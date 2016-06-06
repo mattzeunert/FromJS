@@ -22,7 +22,7 @@ module.exports = function(babel) {
             [path.node.left, path.node.right]
         )
 
-        path.replaceWith(call)        
+        path.replaceWith(call)
       },
       StringLiteral(path) {
         // console.log(path.node.type)
