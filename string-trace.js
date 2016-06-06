@@ -38,6 +38,16 @@ function stringTraceAdd(a, b){
     }
 }
 
+function stringTraceNotTripleEqual(a,b){
+    if (a && a.isStringTraceString) {
+        a = a.toString()
+    }
+    if(a && b.isStringTraceString) {
+        b = b.toString();
+    }
+    return a !== b;
+}
+
 function stringTraceSetInnerHTML(el, innerHTML){
     el.innerHTMLOrigin = innerHTML.origin
     el.innerHTML = innerHTML

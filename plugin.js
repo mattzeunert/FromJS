@@ -13,16 +13,21 @@ module.exports = function(babel) {
         ))
       },
       BinaryExpression(path){
-        if (path.node.operator !== "+") {
-            return;
+        if (path.node.operator === "+") {
+            var call = babel.types.callExpression(
+                babel.types.identifier("stringTraceAdd"),
+                [path.node.left, path.node.right]
+            )
+
+            path.replaceWith(call)
+        } else if (path.node.operator === "!==") {
+            var call = babel.types.callExpression(
+                babel.types.identifier("stringTraceNotTripleEqual"),
+                [path.node.left, path.node.right]
+            )
+
+            path.replaceWith(call)
         }
-
-        var call = babel.types.callExpression(
-            babel.types.identifier("stringTraceAdd"),
-            [path.node.left, path.node.right]
-        )
-
-        path.replaceWith(call)
       },
       StringLiteral(path) {
         // console.log(path.node.type)
