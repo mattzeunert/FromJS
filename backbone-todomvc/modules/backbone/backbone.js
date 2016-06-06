@@ -242,7 +242,7 @@
     var listeningTo = this._listeningTo;
     if (!listeningTo) return this;
 
-    var ids = obj ? [obj._listenId] : _.keys(listeningTo);
+    var ids = stringTraceUseValue(obj) ? [obj._listenId] : _.keys(listeningTo);
 
     for (var i = 0; i < ids.length; i++) {
       var listening = listeningTo[ids[i]];
@@ -278,7 +278,7 @@
       return;
     }
 
-    var names = name ? [name] : _.keys(events);
+    var names = stringTraceUseValue(name) ? [name] : _.keys(events);
     for (; i < names.length; i++) {
       name = names[i];
       var handlers = events[name];
@@ -381,15 +381,25 @@
 
     switch (stringTraceUseValue(args.length)) {
       case 0:
-        while (++i < l) (ev = events[i]).callback.call(ev.ctx);return;
+        while (stringTraceUseValue(++i < l)) (ev = events[i]).callback.call(ev.ctx);
+
+        return;
       case 1:
-        while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1);return;
+        while (stringTraceUseValue(++i < l)) (ev = events[i]).callback.call(ev.ctx, a1);
+
+        return;
       case 2:
-        while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1, a2);return;
+        while (stringTraceUseValue(++i < l)) (ev = events[i]).callback.call(ev.ctx, a1, a2);
+
+        return;
       case 3:
-        while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);return;
+        while (stringTraceUseValue(++i < l)) (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
+
+        return;
       default:
-        while (++i < l) (ev = events[i]).callback.apply(ev.ctx, args);return;
+        while (stringTraceUseValue(++i < l)) (ev = events[i]).callback.apply(ev.ctx, args);
+
+        return;
     }
   };
 
@@ -522,7 +532,7 @@
         } else {
           delete changed[attr];
         }
-        unset ? delete current[attr] : current[attr] = val;
+        stringTraceUseValue(unset) ? delete current[attr] : current[attr] = val;
       }
 
       // Update the `id`.
@@ -540,7 +550,7 @@
       // be recursively nested within `"change"` events.
       if (changing) return this;
       if (!silent) {
-        while (this._pending) {
+        while (stringTraceUseValue(this._pending)) {
           options = this._pending;
           this._pending = false;
           this.trigger(stringTrace('change'), this, options);
@@ -578,15 +588,15 @@
     // You can also pass an attributes object to diff against the model,
     // determining if there *would be* a change.
     changedAttributes: function (diff) {
-      if (!diff) return this.hasChanged() ? _.clone(this.changed) : false;
-      var old = this._changing ? this._previousAttributes : this.attributes;
+      if (!diff) return stringTraceUseValue(this.hasChanged()) ? _.clone(this.changed) : false;
+      var old = stringTraceUseValue(this._changing) ? this._previousAttributes : this.attributes;
       var changed = {};
       for (var attr in diff) {
         var val = diff[attr];
         if (_.isEqual(old[attr], val)) continue;
         changed[attr] = val;
       }
-      return _.size(changed) ? changed : false;
+      return stringTraceUseValue(_.size(changed)) ? changed : false;
     },
 
     // Get the previous value of an attribute, recorded at the time the last
@@ -609,7 +619,7 @@
       var model = this;
       var success = options.success;
       options.success = function (resp) {
-        var serverAttrs = options.parse ? model.parse(resp, options) : resp;
+        var serverAttrs = stringTraceUseValue(options.parse) ? model.parse(resp, options) : resp;
         if (!model.set(serverAttrs, options)) return false;
         if (success) success.call(options.context, model, resp, options);
         model.trigger(stringTrace('sync'), model, resp, options);
@@ -651,7 +661,7 @@
       options.success = function (resp) {
         // Ensure attributes are restored during synchronous saves.
         model.attributes = attributes;
-        var serverAttrs = options.parse ? model.parse(resp, options) : resp;
+        var serverAttrs = stringTraceUseValue(options.parse) ? model.parse(resp, options) : resp;
         if (wait) serverAttrs = _.extend({}, attrs, serverAttrs);
         if (serverAttrs && !model.set(serverAttrs, options)) return false;
         if (success) success.call(options.context, model, resp, options);
@@ -662,7 +672,7 @@
       // Set temporary attributes if `{wait: true}` to properly find new ids.
       if (attrs && wait) this.attributes = _.extend({}, attributes, attrs);
 
-      var method = this.isNew() ? stringTrace('create') : options.patch ? stringTrace('patch') : stringTrace('update');
+      var method = stringTraceUseValue(this.isNew()) ? stringTrace('create') : stringTraceUseValue(options.patch) ? stringTrace('patch') : stringTrace('update');
       if (stringTraceTripleEqual(method, stringTrace('patch')) && !options.attrs) options.attrs = attrs;
       var xhr = this.sync(method, this, options);
 
@@ -676,7 +686,7 @@
     // Optimistically removes the model from its collection, if it has one.
     // If `wait: true` is passed, waits for the server to respond before removal.
     destroy: function (options) {
-      options = options ? _.clone(options) : {};
+      options = stringTraceUseValue(options) ? _.clone(options) : {};
       var model = this;
       var success = options.success;
       var wait = options.wait;
@@ -825,10 +835,10 @@
     remove: function (models, options) {
       options = _.extend({}, options);
       var singular = !_.isArray(models);
-      models = singular ? [models] : _.clone(models);
+      models = stringTraceUseValue(singular) ? [models] : _.clone(models);
       var removed = this._removeModels(models, options);
       if (!options.silent && removed) this.trigger(stringTrace('update'), this, options);
-      return singular ? removed[0] : removed;
+      return stringTraceUseValue(singular) ? removed[0] : removed;
     },
 
     // Update a collection by `set`-ing a new list of models, adding new ones,
@@ -842,7 +852,7 @@
       if (options.parse && !this._isModel(models)) models = this.parse(models, options);
 
       var singular = !_.isArray(models);
-      models = singular ? [models] : models.slice();
+      models = stringTraceUseValue(singular) ? [models] : models.slice();
 
       var at = options.at;
       if (at != null) at = +at;
@@ -859,7 +869,7 @@
 
       var sort = false;
       var sortable = this.comparator && at == null && stringTraceNotTripleEqual(options.sort, false);
-      var sortAttr = _.isString(this.comparator) ? this.comparator : null;
+      var sortAttr = stringTraceUseValue(_.isString(this.comparator)) ? this.comparator : null;
 
       // Turn bare objects into model references, and prevent invalid models
       // from being added.
@@ -872,7 +882,7 @@
         var existing = this.get(model);
         if (existing) {
           if (merge && stringTraceNotTripleEqual(model, existing)) {
-            var attrs = this._isModel(model) ? model.attributes : model;
+            var attrs = stringTraceUseValue(this._isModel(model)) ? model.attributes : model;
             if (options.parse) attrs = existing.parse(attrs, options);
             existing.set(attrs, options);
             if (sortable && !sort) sort = existing.hasChanged(sortAttr);
@@ -916,7 +926,7 @@
         this.length = this.models.length;
       } else if (toAdd.length) {
         if (sortable) sort = true;
-        splice(this.models, toAdd, at == null ? this.length : at);
+        splice(this.models, toAdd, stringTraceUseValue(at == null) ? this.length : at);
         this.length = this.models.length;
       }
 
@@ -935,7 +945,7 @@
       }
 
       // Return the added (or merged) model (or models).
-      return singular ? models[0] : models;
+      return stringTraceUseValue(singular) ? models[0] : models;
     },
 
     // When you have more items than you want to add or remove individually,
@@ -943,7 +953,7 @@
     // any granular `add` or `remove` events. Fires `reset` when finished.
     // Useful for bulk operations and optimizations.
     reset: function (models, options) {
-      options = options ? _.clone(options) : {};
+      options = stringTraceUseValue(options) ? _.clone(options) : {};
       for (var i = 0; i < this.models.length; i++) {
         this._removeReference(this.models[i], options);
       }
@@ -984,7 +994,7 @@
     // Get a model from the set by id.
     get: function (obj) {
       if (obj == null) return void 0;
-      var id = this.modelId(this._isModel(obj) ? obj.attributes : obj);
+      var id = this.modelId(stringTraceUseValue(this._isModel(obj)) ? obj.attributes : obj);
       return this._byId[obj] || this._byId[id] || this._byId[obj.cid];
     },
 
@@ -997,7 +1007,7 @@
     // Return models with matching attributes. Useful for simple cases of
     // `filter`.
     where: function (attrs, first) {
-      return this[first ? stringTrace('find') : stringTrace('filter')](attrs);
+      return this[stringTraceUseValue(first) ? stringTrace('find') : stringTrace('filter')](attrs);
     },
 
     // Return the first model with matching attributes. Useful for simple cases
@@ -1040,7 +1050,7 @@
       var success = options.success;
       var collection = this;
       options.success = function (resp) {
-        var method = options.reset ? stringTrace('reset') : stringTrace('set');
+        var method = stringTraceUseValue(options.reset) ? stringTrace('reset') : stringTrace('set');
         collection[method](resp, options);
         if (success) success.call(options.context, collection, resp, options);
         collection.trigger(stringTrace('sync'), collection, resp, options);
@@ -1053,7 +1063,7 @@
     // collection immediately, unless `wait: true` is passed, in which case we
     // wait for the server to agree.
     create: function (model, options) {
-      options = options ? _.clone(options) : {};
+      options = stringTraceUseValue(options) ? _.clone(options) : {};
       var wait = options.wait;
       model = this._prepareModel(model, options);
       if (!model) return false;
@@ -1102,7 +1112,7 @@
         if (!attrs.collection) attrs.collection = this;
         return attrs;
       }
-      options = options ? _.clone(options) : {};
+      options = stringTraceUseValue(options) ? _.clone(options) : {};
       options.collection = this;
       var model = new this.model(attrs, options);
       if (!model.validationError) return model;
@@ -1129,7 +1139,7 @@
         removed.push(model);
         this._removeReference(model, options);
       }
-      return removed.length ? removed : false;
+      return stringTraceUseValue(removed.length) ? removed : false;
     },
 
     // Method for checking whether an object should be considered a model for
@@ -1269,7 +1279,7 @@
     // alternative DOM manipulation API and are only required to set the
     // `this.el` property.
     _setElement: function (el) {
-      this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
+      this.$el = stringTraceUseValue(el instanceof Backbone.$) ? el : Backbone.$(el);
       this.el = this.$el[0];
     },
 
@@ -1397,7 +1407,7 @@
     // For older servers, emulate JSON by encoding the request into an HTML-form.
     if (options.emulateJSON) {
       params.contentType = stringTrace('application/x-www-form-urlencoded');
-      params.data = params.data ? { model: params.data } : {};
+      params.data = stringTraceUseValue(params.data) ? { model: params.data } : {};
     }
 
     // For older servers, emulate HTTP by mimicking the HTTP method with `_method`
@@ -1517,7 +1527,8 @@
       this.routes = _.result(this, stringTrace('routes'));
       var route,
           routes = _.keys(this.routes);
-      while ((route = routes.pop()) != null) {
+
+      while (stringTraceUseValue((route = routes.pop()) != null)) {
         this.route(route, this.routes[route]);
       }
     },
@@ -1526,7 +1537,7 @@
     // against the current location hash.
     _routeToRegExp: function (route) {
       route = route.replace(escapeRegExp, stringTrace('\\$&')).replace(optionalParam, stringTrace('(?:$1)?')).replace(namedParam, function (match, optional) {
-        return optional ? match : stringTrace('([^/?]+)');
+        return stringTraceUseValue(optional) ? match : stringTrace('([^/?]+)');
       }).replace(splatParam, stringTrace('([^?]*?)'));
       return new RegExp(stringTraceAdd(stringTraceAdd(stringTrace('^'), route), stringTrace('(?:\\?([\\s\\S]*))?$')));
     },
@@ -1539,7 +1550,7 @@
       return _.map(params, function (param, i) {
         // Don't decode the search params.
         if (stringTraceTripleEqual(i, params.length - 1)) return param || null;
-        return param ? decodeURIComponent(param) : null;
+        return stringTraceUseValue(param) ? decodeURIComponent(param) : null;
       });
     }
 
@@ -1607,20 +1618,20 @@
     // fragment contains `?`.
     getSearch: function () {
       var match = this.location.href.replace(/#.*/, stringTrace('')).match(/\?.+/);
-      return match ? match[0] : stringTrace('');
+      return stringTraceUseValue(match) ? match[0] : stringTrace('');
     },
 
     // Gets the true hash value. Cannot use location.hash directly due to bug
     // in Firefox where location.hash will always be decoded.
     getHash: function (window) {
       var match = (window || this).location.href.match(/#(.*)$/);
-      return match ? match[1] : stringTrace('');
+      return stringTraceUseValue(match) ? match[1] : stringTrace('');
     },
 
     // Get the pathname and search params, without the root.
     getPath: function () {
       var path = this.decodeFragment(stringTraceAdd(this.location.pathname, this.getSearch())).slice(this.root.length - 1);
-      return stringTraceTripleEqual(path.charAt(0), stringTrace('/')) ? path.slice(1) : path;
+      return stringTraceUseValue(stringTraceTripleEqual(path.charAt(0), stringTrace('/'))) ? path.slice(1) : path;
     },
 
     // Get the cross-browser normalized URL fragment from the path or hash.
@@ -1801,7 +1812,7 @@
 
       // If pushState is available, we use it to set the fragment as a real URL.
       if (this._usePushState) {
-        this.history[options.replace ? stringTrace('replaceState') : stringTrace('pushState')]({}, document.title, url);
+        this.history[stringTraceUseValue(options.replace) ? stringTrace('replaceState') : stringTrace('pushState')]({}, document.title, url);
 
         // If hash changes haven't been explicitly disabled, update the hash
         // fragment to store history.

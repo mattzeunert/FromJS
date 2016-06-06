@@ -34,9 +34,27 @@ module.exports = function(babel) {
                   undefinedLiteral,
                   babel.types.callExpression(babel.types.identifier("stringTraceTypeOf"),[path.node.argument])
             )
+        replacement.ignore = true;
 
 
           path.replaceWith(replacement)
+      },
+      ConditionalExpression(path){
+          if (path.node.ignore){return}
+
+          var callExpression = babel.types.callExpression(babel.types.identifier("stringTraceUseValue"),[
+              path.node.test
+          ])
+          callExpression.ignore = true;
+
+          var conditionalExpression = babel.types.conditionalExpression(
+              callExpression,
+              path.node.consequent,
+              path.node.alternate
+          )
+          conditionalExpression.ignore = true;
+
+          path.replaceWith(conditionalExpression)
       },
       BinaryExpression(path){
           if (path.node.ignore){return}
@@ -74,6 +92,18 @@ module.exports = function(babel) {
 
           switchStatement.ignore = true
           path.replaceWith(switchStatement)
+      },
+      WhileStatement(path){
+          if (path.node.ignore){return}
+          var whileStatement = babel.types.whileStatement(
+              babel.types.callExpression(babel.types.identifier("stringTraceUseValue"), [
+                  path.node.test
+              ]),
+              path.node.body
+          )
+          whileStatement.ignore = true;
+
+          path.replaceWith(whileStatement)
       },
       StringLiteral(path) {
         // console.log(path.node.type)

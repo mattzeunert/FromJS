@@ -10,7 +10,23 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
     if (propertyName === "valueOf") { return }
     if (typeof String.prototype[propertyName] === "function") {
         StringTraceString.prototype[propertyName] = function(){
-            return this.toString()[propertyName].apply(this, arguments)
+            var args = unstringTracifyArguments(arguments)
+            var newVal = String.prototype[propertyName].apply(this.toString(), args)
+            if (typeof newVal === "string") {
+                return makeTraceObject(
+                    {
+                        value: newVal,
+                        origin: {
+                            type: propertyName + " call",
+                            stack: new Error().stack
+                        }
+                    }
+                )
+            } else {
+                return newVal
+            }
+
+
         }
     }
 })
@@ -22,6 +38,14 @@ StringTraceString.prototype.toString = function(){
 }
 StringTraceString.prototype.toJSON = function(){
     return this.value
+}
+
+function unstringTracifyArguments(argumentsFromOtherFn){
+    var args = []
+    for (var i=0;i<argumentsFromOtherFn.length; i++) {
+        args.push(stringTraceUseValue(argumentsFromOtherFn[i]))
+    }
+    return args
 }
 
 function makeTraceObject(options){
@@ -37,7 +61,10 @@ function makeTraceObject(options){
 }
 
 function stringTraceUseValue(a){
-    return a.toString()
+    if (a && a.isStringTraceString) {
+        return a.toString()
+    }
+    return a;
 }
 
 function stringTrace(value){
@@ -122,3 +149,9 @@ Object.defineProperty(Node.prototype, "appendChild", {
         }
     }
 })
+
+var nativeExec = RegExp.prototype.exec;
+RegExp.prototype.exec = function(){
+    var args = unstringTracifyArguments(arguments)
+    return nativeExec.apply(this, args)
+}

@@ -61,7 +61,7 @@ var app = app || {};
 		},
 
 		isHidden: function () {
-			return this.model.get(stringTrace('completed')) ? stringTraceTripleEqual(app.TodoFilter, stringTrace('active')) : stringTraceTripleEqual(app.TodoFilter, stringTrace('completed'));
+			return stringTraceUseValue(this.model.get(stringTrace('completed'))) ? stringTraceTripleEqual(app.TodoFilter, stringTrace('active')) : stringTraceTripleEqual(app.TodoFilter, stringTrace('completed'));
 		},
 
 		// Toggle the `"completed"` state of the model.

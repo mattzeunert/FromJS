@@ -37,7 +37,9 @@
 
   function contains(array, item) {
     var i = array.length;
-    while (i--) if (stringTraceTripleEqual(array[i], item)) return true;
+
+    while (stringTraceUseValue(i--)) if (stringTraceTripleEqual(array[i], item)) return true;
+
     return false;
   }
 
@@ -49,7 +51,7 @@
   function result(object, property) {
     if (object == null) return void 0;
     var value = object[property];
-    return stringTraceTripleEqual(typeof value === 'undefined' ? 'undefined' : stringTraceTypeOf(value), stringTrace('function')) ? object[property]() : value;
+    return stringTraceUseValue(stringTraceTripleEqual(typeof value === 'undefined' ? 'undefined' : stringTraceTypeOf(value), stringTrace('function'))) ? object[property]() : value;
   }
 
   // Our Store is represented by a single JS object in *localStorage*. Create it
@@ -62,7 +64,7 @@
     this.name = name;
     this.serializer = serializer || {
       serialize: function (item) {
-        return isObject(item) ? JSON.stringify(item) : item;
+        return stringTraceUseValue(isObject(item)) ? JSON.stringify(item) : item;
       },
       // fix for "illegal access" error on Android when JSON.parse is passed null
       deserialize: function (data) {
@@ -174,12 +176,12 @@
 
     var resp, errorMessage;
     //If $ is having Deferred - use it.
-    var syncDfd = Backbone.$ ? Backbone.$.Deferred && Backbone.$.Deferred() : Backbone.Deferred && Backbone.Deferred();
+    var syncDfd = stringTraceUseValue(Backbone.$) ? Backbone.$.Deferred && Backbone.$.Deferred() : Backbone.Deferred && Backbone.Deferred();
 
     try {
       switch (stringTraceUseValue(method)) {
         case "read":
-          resp = model.id != undefined ? store.find(model) : store.findAll();
+          resp = stringTraceUseValue(model.id != undefined) ? store.find(model) : store.findAll();
           break;
         case "create":
           resp = store.create(model);
@@ -207,7 +209,7 @@
         syncDfd.resolve(resp);
       }
     } else {
-      errorMessage = errorMessage ? errorMessage : stringTrace('Record Not Found');
+      errorMessage = stringTraceUseValue(errorMessage) ? errorMessage : stringTrace('Record Not Found');
 
       if (options && options.error) if (stringTraceTripleEqual(Backbone.VERSION, stringTrace('0.9.10'))) {
         options.error(model, errorMessage, options);
