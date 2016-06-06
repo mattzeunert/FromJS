@@ -1,3 +1,9 @@
+switch(a){
+    case "hi":
+        console.log("hi")
+        break;
+}
+
 a["b"] = 88
 
 typeof test

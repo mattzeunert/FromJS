@@ -19,8 +19,6 @@ module.exports = function(babel) {
               return
           }
 
-          debugger
-
           if (path.node.ignore){return}
           var typeofExpression = babel.types.unaryExpression("typeof", path.node.argument);
           typeofExpression.ignore=true;
@@ -65,10 +63,27 @@ module.exports = function(babel) {
             path.replaceWith(call)
         }
       },
+      SwitchStatement(path){
+          if (path.node.ignore){return}
+          var switchStatement = babel.types.switchStatement(
+              babel.types.callExpression(babel.types.identifier("stringTraceUseValue"), [
+                  path.node.discriminant
+              ]),
+              path.node.cases
+          );
+
+          switchStatement.ignore = true
+          path.replaceWith(switchStatement)
+      },
       StringLiteral(path) {
         // console.log(path.node.type)
         if (path.node.ignore) {
             return;
+        }
+
+        if(path.parent.type === "SwitchCase") {
+            // e.g. case "hi": ....
+            return
         }
 
         if (path.parent.type ==="ObjectProperty") {

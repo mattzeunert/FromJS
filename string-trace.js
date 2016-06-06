@@ -20,6 +20,9 @@ StringTraceString.prototype.valueOf = function(){
 StringTraceString.prototype.toString = function(){
     return this.value
 }
+StringTraceString.prototype.toJSON = function(){
+    return this.value
+}
 
 function makeTraceObject(options){
     var stringTraceObject = new StringTraceString({
@@ -29,11 +32,12 @@ function makeTraceObject(options){
     return new Proxy(stringTraceObject, {
         ownKeys: function(){
             return []
-        },
-        getTypeOf(){
-            return "string"
         }
     });
+}
+
+function stringTraceUseValue(a){
+    return a.toString()
 }
 
 function stringTrace(value){
@@ -48,7 +52,11 @@ function stringTrace(value){
 };
 
 function stringTraceTypeOf(a){
+    if (a && a.isStringTraceString) {
+        return "string"
+    }
     return typeof a
+
 }
 
 function stringTraceAdd(a, b){

@@ -77,7 +77,7 @@
   //
   // `Function#apply` can be slow so we use the method's arg count, if we know it.
   var addMethod = function (length, method, attribute) {
-    switch (length) {
+    switch (stringTraceUseValue(length)) {
       case 1:
         return function () {
           return _[method](this[attribute]);
@@ -378,7 +378,8 @@
         a1 = args[0],
         a2 = args[1],
         a3 = args[2];
-    switch (args.length) {
+
+    switch (stringTraceUseValue(args.length)) {
       case 0:
         while (++i < l) (ev = events[i]).callback.call(ev.ctx);return;
       case 1:
