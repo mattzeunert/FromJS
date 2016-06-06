@@ -30,6 +30,11 @@ module.exports = function(babel) {
             return;
         }
 
+        if (path.parent.type ==="ObjectProperty") {
+            // object key like {"a": 88}
+            return;
+        }
+
         const buildRequire = template(`
           stringTrace(STRING)
         `);
