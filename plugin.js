@@ -27,6 +27,13 @@ module.exports = function(babel) {
             )
 
             path.replaceWith(call)
+        } else if (path.node.operator === "===") {
+            var call = babel.types.callExpression(
+                babel.types.identifier("stringTraceTripleEqual"),
+                [path.node.left, path.node.right]
+            )
+
+            path.replaceWith(call)
         }
       },
       StringLiteral(path) {

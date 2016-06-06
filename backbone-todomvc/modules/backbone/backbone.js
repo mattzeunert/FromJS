@@ -12,7 +12,7 @@
   var root = typeof self == stringTrace('object') && self.self == self && self || typeof global == stringTrace('object') && global.global == global && global;
 
   // Set up Backbone appropriately for the environment. Start with AMD.
-  if (typeof define === stringTrace('function') && define.amd) {
+  if (stringTraceTripleEqual(typeof define, stringTrace('function')) && define.amd) {
     define([stringTrace('underscore'), stringTrace('jquery'), stringTrace('exports')], function (_, $, exports) {
       // Export global even in AMD case in case this script is loaded with
       // others that may still expect a global Backbone.
@@ -148,9 +148,9 @@
   var eventsApi = function (iteratee, events, name, callback, opts) {
     var i = 0,
         names;
-    if (name && typeof name === stringTrace('object')) {
+    if (name && stringTraceTripleEqual(typeof name, stringTrace('object'))) {
       // Handle event maps.
-      if (stringTraceNotTripleEqual(callback, void 0) && stringTrace('context') in opts && opts.context === void 0) opts.context = callback;
+      if (stringTraceNotTripleEqual(callback, void 0) && stringTrace('context') in opts && stringTraceTripleEqual(opts.context, void 0)) opts.context = callback;
       for (names = _.keys(name); i < names.length; i++) {
         events = eventsApi(iteratee, events, names[i], name[names[i]], opts);
       }
@@ -294,7 +294,7 @@
           remaining.push(handler);
         } else {
           listening = handler.listening;
-          if (listening && --listening.count === 0) {
+          if (listening && stringTraceTripleEqual(--listening.count, 0)) {
             delete listeners[listening.id];
             delete listening.listeningTo[listening.objId];
           }
@@ -484,7 +484,7 @@
 
       // Handle both `"key", value` and `{key: value}` -style arguments.
       var attrs;
-      if (typeof key === stringTrace('object')) {
+      if (stringTraceTripleEqual(typeof key, stringTrace('object'))) {
         attrs = key;
         options = val;
       } else {
@@ -623,7 +623,7 @@
     save: function (key, val, options) {
       // Handle both `"key", value` and `{key: value}` -style arguments.
       var attrs;
-      if (key == null || typeof key === stringTrace('object')) {
+      if (key == null || stringTraceTripleEqual(typeof key, stringTrace('object'))) {
         attrs = key;
         options = val;
       } else {
@@ -662,7 +662,7 @@
       if (attrs && wait) this.attributes = _.extend({}, attributes, attrs);
 
       var method = this.isNew() ? stringTrace('create') : options.patch ? stringTrace('patch') : stringTrace('update');
-      if (method === stringTrace('patch') && !options.attrs) options.attrs = attrs;
+      if (stringTraceTripleEqual(method, stringTrace('patch')) && !options.attrs) options.attrs = attrs;
       var xhr = this.sync(method, this, options);
 
       // Restore attributes.
@@ -1017,7 +1017,7 @@
       if (_.isFunction(comparator)) comparator = _.bind(comparator, this);
 
       // Run sort based on type of `comparator`.
-      if (length === 1 || _.isString(comparator)) {
+      if (stringTraceTripleEqual(length, 1) || _.isString(comparator)) {
         this.models = this.sortBy(comparator);
       } else {
         this.models.sort(comparator);
@@ -1150,7 +1150,7 @@
       delete this._byId[model.cid];
       var id = this.modelId(model.attributes);
       if (id != null) delete this._byId[id];
-      if (this === model.collection) delete model.collection;
+      if (stringTraceTripleEqual(this, model.collection)) delete model.collection;
       model.off(stringTrace('all'), this._onModelEvent, this);
     },
 
@@ -1159,9 +1159,9 @@
     // events simply proxy through. "add" and "remove" events that originate
     // in other collections are ignored.
     _onModelEvent: function (event, model, collection, options) {
-      if ((event === stringTrace('add') || event === stringTrace('remove')) && stringTraceNotTripleEqual(collection, this)) return;
-      if (event === stringTrace('destroy')) this.remove(model, options);
-      if (event === stringTrace('change')) {
+      if ((stringTraceTripleEqual(event, stringTrace('add')) || stringTraceTripleEqual(event, stringTrace('remove'))) && stringTraceNotTripleEqual(collection, this)) return;
+      if (stringTraceTripleEqual(event, stringTrace('destroy'))) this.remove(model, options);
+      if (stringTraceTripleEqual(event, stringTrace('change'))) {
         var prevId = this.modelId(model.previousAttributes());
         var id = this.modelId(model.attributes);
         if (stringTraceNotTripleEqual(prevId, id)) {
@@ -1388,7 +1388,7 @@
     }
 
     // Ensure that we have the appropriate request data.
-    if (options.data == null && model && (method === stringTrace('create') || method === stringTrace('update') || method === stringTrace('patch'))) {
+    if (options.data == null && model && (stringTraceTripleEqual(method, stringTrace('create')) || stringTraceTripleEqual(method, stringTrace('update')) || stringTraceTripleEqual(method, stringTrace('patch')))) {
       params.contentType = stringTrace('application/json');
       params.data = JSON.stringify(options.attrs || model.toJSON(options));
     }
@@ -1401,7 +1401,7 @@
 
     // For older servers, emulate HTTP by mimicking the HTTP method with `_method`
     // And an `X-HTTP-Method-Override` header.
-    if (options.emulateHTTP && (type === stringTrace('PUT') || type === stringTrace('DELETE') || type === stringTrace('PATCH'))) {
+    if (options.emulateHTTP && (stringTraceTripleEqual(type, stringTrace('PUT')) || stringTraceTripleEqual(type, stringTrace('DELETE')) || stringTraceTripleEqual(type, stringTrace('PATCH')))) {
       params.type = stringTrace('POST');
       if (options.emulateJSON) params.data._method = type;
       var beforeSend = options.beforeSend;
@@ -1537,7 +1537,7 @@
       var params = route.exec(fragment).slice(1);
       return _.map(params, function (param, i) {
         // Don't decode the search params.
-        if (i === params.length - 1) return param || null;
+        if (stringTraceTripleEqual(i, params.length - 1)) return param || null;
         return param ? decodeURIComponent(param) : null;
       });
     }
@@ -1585,14 +1585,14 @@
     // Are we at the app root?
     atRoot: function () {
       var path = this.location.pathname.replace(/[^\/]$/, stringTrace('$&/'));
-      return path === this.root && !this.getSearch();
+      return stringTraceTripleEqual(path, this.root) && !this.getSearch();
     },
 
     // Does the pathname match the root?
     matchRoot: function () {
       var path = this.decodeFragment(this.location.pathname);
       var root = stringTraceAdd(path.slice(0, this.root.length - 1), stringTrace('/'));
-      return root === this.root;
+      return stringTraceTripleEqual(root, this.root);
     },
 
     // Unicode characters in `location.pathname` are percent encoded so they're
@@ -1619,7 +1619,7 @@
     // Get the pathname and search params, without the root.
     getPath: function () {
       var path = this.decodeFragment(stringTraceAdd(this.location.pathname, this.getSearch())).slice(this.root.length - 1);
-      return path.charAt(0) === stringTrace('/') ? path.slice(1) : path;
+      return stringTraceTripleEqual(path.charAt(0), stringTrace('/')) ? path.slice(1) : path;
     },
 
     // Get the cross-browser normalized URL fragment from the path or hash.
@@ -1645,7 +1645,7 @@
       this.options = _.extend({ root: '/' }, this.options, options);
       this.root = this.options.root;
       this._wantsHashChange = stringTraceNotTripleEqual(this.options.hashChange, false);
-      this._hasHashChange = stringTrace('onhashchange') in window && (document.documentMode === void 0 || document.documentMode > 7);
+      this._hasHashChange = stringTrace('onhashchange') in window && (stringTraceTripleEqual(document.documentMode, void 0) || document.documentMode > 7);
       this._useHashChange = this._wantsHashChange && this._hasHashChange;
       this._wantsPushState = !!this.options.pushState;
       this._hasPushState = !!(this.history && this.history.pushState);
@@ -1747,11 +1747,11 @@
 
       // If the user pressed the back button, the iframe's hash will have
       // changed and we should use that for comparison.
-      if (current === this.fragment && this.iframe) {
+      if (stringTraceTripleEqual(current, this.fragment) && this.iframe) {
         current = this.getHash(this.iframe.contentWindow);
       }
 
-      if (current === this.fragment) return false;
+      if (stringTraceTripleEqual(current, this.fragment)) return false;
       if (this.iframe) this.navigate(current);
       this.loadUrl();
     },
@@ -1780,14 +1780,14 @@
     // you wish to modify the current URL without adding an entry to the history.
     navigate: function (fragment, options) {
       if (!History.started) return false;
-      if (!options || options === true) options = { trigger: !!options };
+      if (!options || stringTraceTripleEqual(options, true)) options = { trigger: !!options };
 
       // Normalize the fragment.
       fragment = this.getFragment(fragment || stringTrace(''));
 
       // Don't include a trailing slash on the root.
       var root = this.root;
-      if (fragment === stringTrace('') || fragment.charAt(0) === stringTrace('?')) {
+      if (stringTraceTripleEqual(fragment, stringTrace('')) || stringTraceTripleEqual(fragment.charAt(0), stringTrace('?'))) {
         root = root.slice(0, -1) || stringTrace('/');
       }
       var url = stringTraceAdd(root, fragment);
@@ -1795,7 +1795,7 @@
       // Strip the hash and decode for matching.
       fragment = this.decodeFragment(fragment.replace(pathStripper, stringTrace('')));
 
-      if (this.fragment === fragment) return;
+      if (stringTraceTripleEqual(this.fragment, fragment)) return;
       this.fragment = fragment;
 
       // If pushState is available, we use it to set the fragment as a real URL.
