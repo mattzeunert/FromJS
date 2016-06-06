@@ -130,7 +130,7 @@ function stringTraceTripleEqual(a,b){
 }
 
 function addElOrigin(el, message, moreInfo){
-    console.log("moreInfo", moreInfo)
+    console.log(message, moreInfo)
     if (!el.__origin) {el.__origin = []}
     el.__origin.push({type: message, stack: new Error().stack, moreInfo:moreInfo});
 }
@@ -154,4 +154,9 @@ var nativeExec = RegExp.prototype.exec;
 RegExp.prototype.exec = function(){
     var args = unstringTracifyArguments(arguments)
     return nativeExec.apply(this, args)
+}
+
+var nativeFunction = Function
+window.Function = function(){
+    return nativeFunction.apply(this, arguments)
 }
