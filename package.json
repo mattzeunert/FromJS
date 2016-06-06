@@ -1,0 +1,16 @@
+{
+  "name": "string-trace",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-generator": "^6.7.5",
+    "babel-template": "^6.7.0",
+    "babel-types": "^6.7.2"
+  }
+}
