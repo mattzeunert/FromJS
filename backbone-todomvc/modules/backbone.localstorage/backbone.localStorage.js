@@ -28,13 +28,7 @@
 
   // Generate a pseudo-GUID by concatenating random hexadecimal.
   function guid() {
-      var pre = stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(S4(), S4()), stringTrace('-')), S4()), stringTrace('-')), S4()), stringTrace('-')), S4()), stringTrace('-')), S4()), S4());
-      console.log("pre", pre)
-      debugger;
-    var guid = stringTraceAdd(pre, S4());
-
-    console.log("new guid", guid)
-    return guid
+    return stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(S4(), S4()), stringTrace('-')), S4()), stringTrace('-')), S4()), stringTrace('-')), S4()), stringTrace('-')), S4()), S4()), S4());
   };
 
   function isObject(item) {
@@ -91,7 +85,6 @@
     create: function (model) {
       if (!model.id && stringTraceNotTripleEqual(model.id, 0)) {
         model.id = guid();
-        console.log(model.id)
         model.set(model.idAttribute, model.id);
       }
       this.localStorage().setItem(this._itemName(model.id), this.serializer.serialize(model));

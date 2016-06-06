@@ -102,7 +102,23 @@ function stringTraceTripleEqual(a,b){
     return !stringTraceNotTripleEqual(a,b)
 }
 
+function addElOrigin(el, message, moreInfo){
+    console.log("moreInfo", moreInfo)
+    if (!el.__origin) {el.__origin = []}
+    el.__origin.push({type: message, stack: new Error().stack, moreInfo:moreInfo});
+}
+
 function stringTraceSetInnerHTML(el, innerHTML){
-    el.innerHTMLOrigin = innerHTML.origin
+    addElOrigin(el, "set inner html", innerHTML.origin)
     el.innerHTML = innerHTML
 }
+
+var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild");
+Object.defineProperty(Node.prototype, "appendChild", {
+    get: function(){
+        return function(el){
+            addElOrigin(el, "append to dom el")
+            return appendChildPropertyDescriptor.value.apply(this, arguments)
+        }
+    }
+})

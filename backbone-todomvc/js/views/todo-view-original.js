@@ -2,19 +2,18 @@
 var app = app || {};
 
 (function ($) {
-	'use strict'
+	'use strict';
 
 	// Todo Item View
 	// --------------
 
 	// The DOM element for a todo item...
-	;
 	app.TodoView = Backbone.View.extend({
 		//... is a list tag.
-		tagName: 'li',
+		tagName:  'li',
 
 		// Cache the template function for a single item.
-		template: _.template($(stringTrace('#item-template')).html()),
+		template: _.template($('#item-template').html()),
 
 		// The DOM events specific to an item.
 		events: {
@@ -31,9 +30,9 @@ var app = app || {};
 		// **TodoView** in this app, we set a direct reference on the model for
 		// convenience.
 		initialize: function () {
-			this.listenTo(this.model, stringTrace('change'), this.render);
-			this.listenTo(this.model, stringTrace('destroy'), this.remove);
-			this.listenTo(this.model, stringTrace('visible'), this.toggleVisible);
+			this.listenTo(this.model, 'change', this.render);
+			this.listenTo(this.model, 'destroy', this.remove);
+			this.listenTo(this.model, 'visible', this.toggleVisible);
 		},
 
 		// Re-render the titles of the todo item.
@@ -45,23 +44,25 @@ var app = app || {};
 			// `id` change.  It's known Backbone LocalStorage bug, therefore
 			// we've to create a workaround.
 			// https://github.com/tastejs/todomvc/issues/469
-			if (stringTraceNotTripleEqual(this.model.changed.id, undefined)) {
+			if (this.model.changed.id !== undefined) {
 				return;
 			}
 
 			this.$el.html(this.template(this.model.toJSON()));
-			this.$el.toggleClass(stringTrace('completed'), this.model.get(stringTrace('completed')));
+			this.$el.toggleClass('completed', this.model.get('completed'));
 			this.toggleVisible();
-			this.$input = this.$(stringTrace('.edit'));
+			this.$input = this.$('.edit');
 			return this;
 		},
 
 		toggleVisible: function () {
-			this.$el.toggleClass(stringTrace('hidden'), this.isHidden());
+			this.$el.toggleClass('hidden', this.isHidden());
 		},
 
 		isHidden: function () {
-			return this.model.get(stringTrace('completed')) ? stringTraceTripleEqual(app.TodoFilter, stringTrace('active')) : stringTraceTripleEqual(app.TodoFilter, stringTrace('completed'));
+			return this.model.get('completed') ?
+				app.TodoFilter === 'active' :
+				app.TodoFilter === 'completed';
 		},
 
 		// Toggle the `"completed"` state of the model.
@@ -71,7 +72,7 @@ var app = app || {};
 
 		// Switch this view into `"editing"` mode, displaying the input field.
 		edit: function () {
-			this.$el.addClass(stringTrace('editing'));
+			this.$el.addClass('editing');
 			this.$input.focus();
 		},
 
@@ -84,7 +85,7 @@ var app = app || {};
 			// longer being edited. Relying on the CSS class here has the
 			// benefit of us not having to maintain state in the DOM and the
 			// JavaScript logic.
-			if (!this.$el.hasClass(stringTrace('editing'))) {
+			if (!this.$el.hasClass('editing')) {
 				return;
 			}
 
@@ -94,12 +95,12 @@ var app = app || {};
 				this.clear();
 			}
 
-			this.$el.removeClass(stringTrace('editing'));
+			this.$el.removeClass('editing');
 		},
 
 		// If you hit `enter`, we're through editing the item.
 		updateOnEnter: function (e) {
-			if (stringTraceTripleEqual(e.which, ENTER_KEY)) {
+			if (e.which === ENTER_KEY) {
 				this.close();
 			}
 		},
@@ -107,10 +108,10 @@ var app = app || {};
 		// If you're pressing `escape` we revert your change by simply leaving
 		// the `editing` state.
 		revertOnEscape: function (e) {
-			if (stringTraceTripleEqual(e.which, ESC_KEY)) {
-				this.$el.removeClass(stringTrace('editing'));
+			if (e.which === ESC_KEY) {
+				this.$el.removeClass('editing');
 				// Also reset the hidden input back to the original value.
-				this.$input.val(this.model.get(stringTrace('title')));
+				this.$input.val(this.model.get('title'));
 			}
 		},
 

@@ -2,13 +2,12 @@
 var app = app || {};
 
 (function ($) {
-	'use strict'
+	'use strict';
 
 	// The Application
 	// ---------------
 
 	// Our overall **AppView** is the top-level piece of UI.
-	;
 	app.AppView = Backbone.View.extend({
 
 		// Instead of generating a new element, bind to the existing skeleton of
@@ -16,7 +15,7 @@ var app = app || {};
 		el: '.todoapp',
 
 		// Our template for the line of statistics at the bottom of the app.
-		statsTemplate: _.template($(stringTrace('#stats-template')).html()),
+		statsTemplate: _.template($('#stats-template').html()),
 
 		// Delegated events for creating new items, and clearing completed ones.
 		events: {
@@ -29,22 +28,22 @@ var app = app || {};
 		// collection, when items are added or changed. Kick things off by
 		// loading any preexisting todos that might be saved in *localStorage*.
 		initialize: function () {
-			this.allCheckbox = this.$(stringTrace('.toggle-all'))[0];
-			this.$input = this.$(stringTrace('.new-todo'));
-			this.$footer = this.$(stringTrace('.footer'));
-			this.$main = this.$(stringTrace('.main'));
-			this.$list = $(stringTrace('.todo-list'));
+			this.allCheckbox = this.$('.toggle-all')[0];
+			this.$input = this.$('.new-todo');
+			this.$footer = this.$('.footer');
+			this.$main = this.$('.main');
+			this.$list = $('.todo-list');
 
-			this.listenTo(app.todos, stringTrace('add'), this.addOne);
-			this.listenTo(app.todos, stringTrace('reset'), this.addAll);
-			this.listenTo(app.todos, stringTrace('change:completed'), this.filterOne);
-			this.listenTo(app.todos, stringTrace('filter'), this.filterAll);
-			this.listenTo(app.todos, stringTrace('all'), _.debounce(this.render, 0));
+			this.listenTo(app.todos, 'add', this.addOne);
+			this.listenTo(app.todos, 'reset', this.addAll);
+			this.listenTo(app.todos, 'change:completed', this.filterOne);
+			this.listenTo(app.todos, 'filter', this.filterAll);
+			this.listenTo(app.todos, 'all', _.debounce(this.render, 0));
 
 			// Suppresses 'add' events with {reset: true} and prevents the app view
 			// from being re-rendered for every model. Only renders when the 'reset'
 			// event is triggered at the end of the fetch.
-			app.todos.fetch({ reset: true });
+			app.todos.fetch({reset: true});
 		},
 
 		// Re-rendering the App just means refreshing the statistics -- the rest
@@ -62,7 +61,10 @@ var app = app || {};
 					remaining: remaining
 				}));
 
-				this.$(stringTrace('.filters li a')).removeClass(stringTrace('selected')).filter(stringTraceAdd(stringTraceAdd(stringTrace('[href="#/'), app.TodoFilter || stringTrace('')), stringTrace('"]'))).addClass(stringTrace('selected'));
+				this.$('.filters li a')
+					.removeClass('selected')
+					.filter('[href="#/' + (app.TodoFilter || '') + '"]')
+					.addClass('selected');
 			} else {
 				this.$main.hide();
 				this.$footer.hide();
@@ -80,12 +82,12 @@ var app = app || {};
 
 		// Add all items in the **Todos** collection at once.
 		addAll: function () {
-			this.$list.html(stringTrace(''));
+			this.$list.html('');
 			app.todos.each(this.addOne, this);
 		},
 
 		filterOne: function (todo) {
-			todo.trigger(stringTrace('visible'));
+			todo.trigger('visible');
 		},
 
 		filterAll: function () {
@@ -104,15 +106,15 @@ var app = app || {};
 		// If you hit return in the main input field, create new **Todo** model,
 		// persisting it to *localStorage*.
 		createOnEnter: function (e) {
-			if (stringTraceTripleEqual(e.which, ENTER_KEY) && this.$input.val().trim()) {
+			if (e.which === ENTER_KEY && this.$input.val().trim()) {
 				app.todos.create(this.newAttributes());
-				this.$input.val(stringTrace(''));
+				this.$input.val('');
 			}
 		},
 
 		// Clear all completed todo items, destroying their models.
 		clearCompleted: function () {
-			_.invoke(app.todos.completed(), stringTrace('destroy'));
+			_.invoke(app.todos.completed(), 'destroy');
 			return false;
 		},
 
