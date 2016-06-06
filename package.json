@@ -11,6 +11,7 @@
   "dependencies": {
     "babel-generator": "^6.7.5",
     "babel-template": "^6.7.0",
-    "babel-types": "^6.7.2"
+    "babel-types": "^6.7.2",
+    "babylon": "^6.8.0"
   }
 }

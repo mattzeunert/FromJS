@@ -21,8 +21,23 @@ StringTraceString.prototype.toString = function(){
     return this.value
 }
 
+function makeTraceObject(options){
+    var stringTraceObject = new StringTraceString({
+        value: options.value,
+        origin: options.origin
+    })
+    return new Proxy(stringTraceObject, {
+        ownKeys: function(){
+            return []
+        },
+        getTypeOf(){
+            return "string"
+        }
+    });
+}
+
 function stringTrace(value){
-    return new StringTraceString({
+    return makeTraceObject({
         value: value,
         origin: {
             error: new Error(),
@@ -31,6 +46,10 @@ function stringTrace(value){
         },
     })
 };
+
+function stringTraceTypeOf(a){
+    return typeof a
+}
 
 function stringTraceAdd(a, b){
     var stack = new Error().stack
@@ -51,7 +70,7 @@ function stringTraceAdd(a, b){
     }
 
     var newValue = a.toString() + b.toString();
-    return new StringTraceString({
+    return makeTraceObject({
         value: newValue,
         origin: {
             error: new Error(),

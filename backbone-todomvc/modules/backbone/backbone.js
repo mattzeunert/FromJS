@@ -9,10 +9,10 @@
 
   // Establish the root object, `window` (`self`) in the browser, or `global` on the server.
   // We use `self` instead of `window` for `WebWorker` support.
-  var root = typeof self == stringTrace('object') && self.self == self && self || typeof global == stringTrace('object') && global.global == global && global;
+  var root = (typeof self === 'undefined' ? 'undefined' : stringTraceTypeOf(self)) == stringTrace('object') && self.self == self && self || (typeof global === 'undefined' ? 'undefined' : stringTraceTypeOf(global)) == stringTrace('object') && global.global == global && global;
 
   // Set up Backbone appropriately for the environment. Start with AMD.
-  if (stringTraceTripleEqual(typeof define, stringTrace('function')) && define.amd) {
+  if (stringTraceTripleEqual(typeof define === 'undefined' ? 'undefined' : stringTraceTypeOf(define), stringTrace('function')) && define.amd) {
     define([stringTrace('underscore'), stringTrace('jquery'), stringTrace('exports')], function (_, $, exports) {
       // Export global even in AMD case in case this script is loaded with
       // others that may still expect a global Backbone.
@@ -20,7 +20,7 @@
     });
 
     // Next for Node.js or CommonJS. jQuery may not be needed as a module.
-  } else if (stringTraceNotTripleEqual(typeof exports, stringTrace('undefined'))) {
+  } else if (stringTraceNotTripleEqual(typeof exports === 'undefined' ? 'undefined' : stringTraceTypeOf(exports), stringTrace('undefined'))) {
       var _ = require(stringTrace('underscore')),
           $;
       try {
@@ -148,7 +148,7 @@
   var eventsApi = function (iteratee, events, name, callback, opts) {
     var i = 0,
         names;
-    if (name && stringTraceTripleEqual(typeof name, stringTrace('object'))) {
+    if (name && stringTraceTripleEqual(typeof name === 'undefined' ? 'undefined' : stringTraceTypeOf(name), stringTrace('object'))) {
       // Handle event maps.
       if (stringTraceNotTripleEqual(callback, void 0) && stringTrace('context') in opts && stringTraceTripleEqual(opts.context, void 0)) opts.context = callback;
       for (names = _.keys(name); i < names.length; i++) {
@@ -484,7 +484,7 @@
 
       // Handle both `"key", value` and `{key: value}` -style arguments.
       var attrs;
-      if (stringTraceTripleEqual(typeof key, stringTrace('object'))) {
+      if (stringTraceTripleEqual(typeof key === 'undefined' ? 'undefined' : stringTraceTypeOf(key), stringTrace('object'))) {
         attrs = key;
         options = val;
       } else {
@@ -623,7 +623,7 @@
     save: function (key, val, options) {
       // Handle both `"key", value` and `{key: value}` -style arguments.
       var attrs;
-      if (key == null || stringTraceTripleEqual(typeof key, stringTrace('object'))) {
+      if (key == null || stringTraceTripleEqual(typeof key === 'undefined' ? 'undefined' : stringTraceTypeOf(key), stringTrace('object'))) {
         attrs = key;
         options = val;
       } else {
@@ -1557,7 +1557,7 @@
     this.checkUrl = _.bind(this.checkUrl, this);
 
     // Ensure that `History` can be used outside of the browser.
-    if (stringTraceNotTripleEqual(typeof window, stringTrace('undefined'))) {
+    if (stringTraceNotTripleEqual(typeof window === 'undefined' ? 'undefined' : stringTraceTypeOf(window), stringTrace('undefined'))) {
       this.location = window.location;
       this.history = window.history;
     }
