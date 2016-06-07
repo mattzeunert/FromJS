@@ -46613,13 +46613,27 @@
 	  return {
 	    visitor: {
 	      AssignmentExpression(path){
-	        if (!path.node.left.property || path.node.left.property.name !== "innerHTML") {
-	            return
+	          if (path.node.ignore){return}
+	        if (path.node.left.property && path.node.left.property.name === "innerHTML") {
+	            path.replaceWith(babel.types.callExpression(
+	                babel.types.identifier("stringTraceSetInnerHTML"),
+	                [path.node.left.object, path.node.right]
+	            ))
 	        }
-	        path.replaceWith(babel.types.callExpression(
-	            babel.types.identifier("stringTraceSetInnerHTML"),
-	            [path.node.left.object, path.node.right]
-	        ))
+	        if (path.node.operator === "+=") {
+	            var assignmentExpression = babel.types.assignmentExpression(
+	                "=",
+	                path.node.left,
+	                babel.types.callExpression(
+	                    babel.types.identifier("stringTraceAdd"),
+	                    [path.node.left,path.node.right]
+	                )
+	            )
+	            assignmentExpression.ignore = true
+
+	            path.replaceWith(assignmentExpression)
+	        }
+
 	      },
 	      UnaryExpression(path){
 	          if (path.node.operator !== "typeof") {

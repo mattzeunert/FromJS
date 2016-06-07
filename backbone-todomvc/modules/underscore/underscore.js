@@ -185,7 +185,7 @@
     // Optimized iterator function as using arguments.length
     // in the main function will deoptimize the, see #1991.
     function iterator(obj, iteratee, memo, keys, index, length) {
-      for (; index >= 0 && index < length; index += dir) {
+      for (; index >= 0 && index < length; index = stringTraceAdd(index, dir)) {
         var currentKey = stringTraceUseValue(keys) ? keys[index] : index;
         memo = iteratee(memo, obj[currentKey], currentKey, obj);
       }
@@ -200,7 +200,7 @@
       // Determine the initial value if none is provided.
       if (arguments.length < 3) {
         memo = obj[stringTraceUseValue(keys) ? keys[index] : index];
-        index += dir;
+        index = stringTraceAdd(index, dir);
       }
       return iterator(obj, iteratee, memo, keys, index, length);
     };
@@ -508,7 +508,7 @@
         if (!shallow) value = flatten(value, shallow, strict);
         var j = 0,
             len = value.length;
-        output.length += len;
+        output.length = stringTraceAdd(output.length, len);
 
         while (stringTraceUseValue(j < len)) {
           output[idx++] = value[j++];
@@ -630,7 +630,7 @@
       predicate = cb(predicate, context);
       var length = getLength(array);
       var index = stringTraceUseValue(dir > 0) ? 0 : length - 1;
-      for (; index >= 0 && index < length; index += dir) {
+      for (; index >= 0 && index < length; index = stringTraceAdd(index, dir)) {
         if (predicate(array[index], index, array)) return index;
       }
       return -1;
@@ -676,7 +676,7 @@
         idx = predicateFind(slice.call(array, i, length), _.isNaN);
         return stringTraceUseValue(idx >= 0) ? stringTraceAdd(idx, i) : -1;
       }
-      for (idx = stringTraceUseValue(dir > 0) ? i : length - 1; idx >= 0 && idx < length; idx += dir) {
+      for (idx = stringTraceUseValue(dir > 0) ? i : length - 1; idx >= 0 && idx < length; idx = stringTraceAdd(idx, dir)) {
         if (stringTraceTripleEqual(array[idx], item)) return idx;
       }
       return -1;
@@ -703,7 +703,7 @@
     var length = Math.max(Math.ceil((stop - start) / step), 0);
     var range = Array(length);
 
-    for (var idx = 0; idx < length; idx++, start += step) {
+    for (var idx = 0; idx < length; idx++, start = stringTraceAdd(start, step)) {
       range[idx] = start;
     }
 
@@ -1458,21 +1458,21 @@
     var index = 0;
     var source = stringTrace('__p+=\'');
     text.replace(matcher, function (match, escape, interpolate, evaluate, offset) {
-      source += text.slice(index, offset).replace(escaper, escapeChar);
+      source = stringTraceAdd(source, text.slice(index, offset).replace(escaper, escapeChar));
       index = stringTraceAdd(offset, match.length);
 
       if (escape) {
-        source += stringTraceAdd(stringTraceAdd(stringTrace('\'+\n((__t=('), escape), stringTrace('))==null?\'\':_.escape(__t))+\n\''));
+        source = stringTraceAdd(source, stringTraceAdd(stringTraceAdd(stringTrace('\'+\n((__t=('), escape), stringTrace('))==null?\'\':_.escape(__t))+\n\'')));
       } else if (interpolate) {
-        source += stringTraceAdd(stringTraceAdd(stringTrace('\'+\n((__t=('), interpolate), stringTrace('))==null?\'\':__t)+\n\''));
+        source = stringTraceAdd(source, stringTraceAdd(stringTraceAdd(stringTrace('\'+\n((__t=('), interpolate), stringTrace('))==null?\'\':__t)+\n\'')));
       } else if (evaluate) {
-        source += stringTraceAdd(stringTraceAdd(stringTrace('\';\n'), evaluate), stringTrace('\n__p+=\''));
+        source = stringTraceAdd(source, stringTraceAdd(stringTraceAdd(stringTrace('\';\n'), evaluate), stringTrace('\n__p+=\'')));
       }
 
       // Adobe VMs need the match returned to produce the correct offest.
       return match;
     });
-    source += stringTrace('\';\n');
+    source = stringTraceAdd(source, stringTrace('\';\n'));
 
     // If a variable is not specified, place data values in local scope.
     if (!settings.variable) source = stringTraceAdd(stringTraceAdd(stringTrace('with(obj||{}){\n'), source), stringTrace('}\n'));

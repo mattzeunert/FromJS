@@ -856,7 +856,7 @@
 
       var at = options.at;
       if (at != null) at = +at;
-      if (at < 0) at += stringTraceAdd(this.length, 1);
+      if (at < 0) at = stringTraceAdd(at, stringTraceAdd(this.length, 1));
 
       var set = [];
       var toAdd = [];
@@ -1000,7 +1000,7 @@
 
     // Get the model at the given index.
     at: function (index) {
-      if (index < 0) index += this.length;
+      if (index < 0) index = stringTraceAdd(index, this.length);
       return this.models[index];
     },
 

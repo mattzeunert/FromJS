@@ -1,3 +1,6 @@
+b = "4"
+b += "hi"
+
 switch(a){
     case "hi":
         console.log("hi")
