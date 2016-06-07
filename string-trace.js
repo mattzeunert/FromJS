@@ -17,14 +17,11 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 return makeTraceObject(
                     {
                         value: newVal,
-                        origin: {
-                            type: propertyName + " call",
-                            previousValue: {
-                                value: oldValue.toString(),
-                                origin: oldValue.origin
-                            },
-                            stack: new Error().stack.split("\n")
-                        }
+                        origin: makeOrigin({
+                            value: newVal,
+                            inputValues: [oldValue],
+                            action: propertyName + " call",
+                        })
                     }
                 )
             } else {
@@ -65,6 +62,18 @@ function makeTraceObject(options){
     });
 }
 
+function makeOrigin(opts){
+    var inputValues = opts.inputValues.map(function(inputValue){
+        return inputValue.origin
+    })
+    return {
+        action: opts.action,
+        inputValues: inputValues,
+        value: opts.value.toString(),
+        stack: new Error().stack.split("\n")
+    }
+}
+
 function stringTraceUseValue(a){
     if (a && a.isStringTraceString) {
         return a.toString()
@@ -75,11 +84,11 @@ function stringTraceUseValue(a){
 function stringTrace(value){
     return makeTraceObject({
         value: value,
-        origin: {
-            error: new Error(),
+        origin: makeOrigin({
             action: "string literal",
-            values: [{origin: value.origin, value: value.toString()}]
-        },
+            value: value,
+            inputValues: [{value: value}]
+        }),
     })
 };
 
@@ -112,11 +121,11 @@ function stringTraceAdd(a, b){
     var newValue = a.toString() + b.toString();
     return makeTraceObject({
         value: newValue,
-        origin: {
-            error: new Error(),
+        origin: makeOrigin({
             action: "concat",
-            values: [{origin: a.origin, value: a.toString()}, {origin: b.origin, value: b.toString()}]
-        }
+            value: newValue,
+            inputValues: [a, b]
+        })
     })
 }
 
@@ -134,18 +143,18 @@ function stringTraceTripleEqual(a,b){
     return !stringTraceNotTripleEqual(a,b)
 }
 
-function addElOrigin(el, message, moreInfo){
-    console.log(message, moreInfo)
+function addElOrigin(el, message, value){
+    console.log(message, value)
     if (!el.__origin) {el.__origin = []}
-    el.__origin.push({
-        type: message,
-        stack: new Error().stack.split("\n"),
-        moreInfo:moreInfo
-    });
+    el.__origin.push(makeOrigin({
+        action: message,
+        inputValues: [value],
+        value: value.toString()
+    }));
 }
 
 function stringTraceSetInnerHTML(el, innerHTML){
-    addElOrigin(el, "set inner html", innerHTML.origin)
+    addElOrigin(el, "set inner html", innerHTML)
     el.innerHTML = innerHTML
 }
 
@@ -153,7 +162,7 @@ var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototy
 Object.defineProperty(Node.prototype, "appendChild", {
     get: function(){
         return function(el){
-            addElOrigin(el, "append to dom el")
+            addElOrigin(el, "append to dom el", {__NOT_A_VALUE_JUST_DOM_APPEND: true})
             return appendChildPropertyDescriptor.value.apply(this, arguments)
         }
     }
@@ -169,7 +178,18 @@ var nativeFunction = Function
 window.Function = function(code){
     var args = Array.prototype.slice.apply(arguments)
     var code = args.pop()
+    var argsWithoutCode = args.slice()
     code = stringTraceCompile(stringTraceUseValue(code))
     args.push(code)
-    return nativeFunction.apply(this, args)
+    var script = document.createElement("script")
+    var id = Math.random().toString().replace(".", "");
+    var fnName = "fn" + id
+    // do this rather than calling the native Function, b/c this way we can have a //#sourceURL (though maybe Function would allow that too?)
+    script.innerHTML = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + code + "}" + "\n//# sourceURL=Function" + id + ".js"
+    document.body.appendChild(script)
+    return function(){
+        // debugger;
+        return window[fnName].apply(this, arguments)
+    }
+    // return nativeFunction.apply(this, args)
 }
