@@ -157,6 +157,10 @@ RegExp.prototype.exec = function(){
 }
 
 var nativeFunction = Function
-window.Function = function(){
-    return nativeFunction.apply(this, arguments)
+window.Function = function(code){
+    var args = Array.prototype.slice.apply(arguments)
+    var code = args.pop()
+    code = stringTraceCompile(stringTraceUseValue(code))
+    args.push(code)
+    return nativeFunction.apply(this, args)
 }
