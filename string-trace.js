@@ -10,6 +10,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
     if (propertyName === "valueOf") { return }
     if (typeof String.prototype[propertyName] === "function") {
         StringTraceString.prototype[propertyName] = function(){
+            var oldValue = this;
             var args = unstringTracifyArguments(arguments)
             var newVal = String.prototype[propertyName].apply(this.toString(), args)
             if (typeof newVal === "string") {
@@ -18,7 +19,11 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                         value: newVal,
                         origin: {
                             type: propertyName + " call",
-                            stack: new Error().stack
+                            previousValue: {
+                                value: oldValue.toString(),
+                                origin: oldValue.origin
+                            },
+                            stack: new Error().stack.split("\n")
                         }
                     }
                 )
@@ -73,7 +78,7 @@ function stringTrace(value){
         origin: {
             error: new Error(),
             action: "string literal",
-            values: [value]
+            values: [{origin: value.origin, value: value.toString()}]
         },
     })
 };
@@ -87,7 +92,7 @@ function stringTraceTypeOf(a){
 }
 
 function stringTraceAdd(a, b){
-    var stack = new Error().stack
+    var stack = new Error().stack.split("\n")
     if (a == null){
         a = ""
     }
@@ -110,7 +115,7 @@ function stringTraceAdd(a, b){
         origin: {
             error: new Error(),
             action: "concat",
-            values: [a, b]
+            values: [{origin: a.origin, value: a.toString()}, {origin: b.origin, value: b.toString()}]
         }
     })
 }
@@ -132,7 +137,11 @@ function stringTraceTripleEqual(a,b){
 function addElOrigin(el, message, moreInfo){
     console.log(message, moreInfo)
     if (!el.__origin) {el.__origin = []}
-    el.__origin.push({type: message, stack: new Error().stack, moreInfo:moreInfo});
+    el.__origin.push({
+        type: message,
+        stack: new Error().stack.split("\n"),
+        moreInfo:moreInfo
+    });
 }
 
 function stringTraceSetInnerHTML(el, innerHTML){

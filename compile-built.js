@@ -55,7 +55,6 @@
 	var Plugin = __webpack_require__(583)
 	var babylon = __webpack_require__(352)
 
-
 	window.stringTraceCompile = function(code){
 	    const ast = babylon.parse(code, {
 	        strict: false,

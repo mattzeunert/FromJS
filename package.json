@@ -18,6 +18,7 @@
     "babel-types": "^6.7.2",
     "babylon": "^6.8.0",
     "json-loader": "^0.5.4",
+    "stacktrace-js": "^1.2.0",
     "webpack": "^1.13.1"
   }
 }
