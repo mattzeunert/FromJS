@@ -1,3 +1,4 @@
+
 function StringTraceString(options){
     this.origin = options.origin
     this.value = options.value
@@ -13,13 +14,21 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
             var oldValue = this;
             var args = unstringTracifyArguments(arguments)
             var newVal = String.prototype[propertyName].apply(this.toString(), args)
+            var argumentOrigins = Array.prototype.slice.call(arguments).map(function(arg){
+                return {
+                        origin: {
+                            action: "arg" + "_" + arg.toString()
+                        }
+                    }
+            })
+            console.log(argumentOrigins)
             if (typeof newVal === "string") {
                 return makeTraceObject(
                     {
                         value: newVal,
                         origin: makeOrigin({
                             value: newVal,
-                            inputValues: [oldValue],
+                            inputValues: [oldValue].concat(argumentOrigins),
                             action: propertyName + " call",
                         })
                     }
@@ -143,26 +152,37 @@ function stringTraceTripleEqual(a,b){
     return !stringTraceNotTripleEqual(a,b)
 }
 
-function addElOrigin(el, message, value){
-    console.log(message, value)
-    if (!el.__origin) {el.__origin = []}
-    el.__origin.push(makeOrigin({
-        action: message,
-        inputValues: [value],
-        value: value.toString()
-    }));
+function stringTraceSetInnerHTML(el, innerHTML){
+    el.__origin = makeOrigin({
+        action: "assign innerHTML",
+        inputValues: [innerHTML],
+        value: innerHTML.toString()
+    })
+
+    el.innerHTML = innerHTML
 }
 
-function stringTraceSetInnerHTML(el, innerHTML){
-    addElOrigin(el, "set inner html", innerHTML)
-    el.innerHTML = innerHTML
+var originalCreateElement = document.createElement
+document.createElement = function(arg){
+    var el = originalCreateElement.call(this, arg)
+    el.__origin = makeOrigin({
+        action: "createElement",
+        inputValues: [{origin: arg}],
+        value: arg.toString()
+    })
+    return el;
 }
 
 var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild");
 Object.defineProperty(Node.prototype, "appendChild", {
     get: function(){
-        return function(el){
-            addElOrigin(el, "append to dom el", {__NOT_A_VALUE_JUST_DOM_APPEND: true})
+        return function(appendedEl){
+            this.__origin = makeOrigin({
+                action: "appendChild",
+                inputValues: (this.__origin ? [{origin: this.__origin}] : []).concat([{origin: appendedEl.__origin}]),
+                value: this.__origin ? this.__origin.value : "" + appendedEl.innerHTML
+            })
+
             return appendChildPropertyDescriptor.value.apply(this, arguments)
         }
     }
