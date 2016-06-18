@@ -1,3 +1,20 @@
+function processElementsAvailableOnInitialLoad(){
+    var els = document.querySelectorAll("*")
+
+    els = Array.prototype.slice.apply(els)
+    els.forEach(function(el){
+        el.__elOrigin = [];
+        var children = Array.prototype.slice.apply(el.children)
+        children.forEach(function(child){
+            el.__elOrigin.push({
+                child: child,
+                action: "initial html"
+            })
+        })
+    })
+}
+processElementsAvailableOnInitialLoad();
+
 
 function StringTraceString(options){
     this.origin = options.origin
@@ -153,11 +170,13 @@ function stringTraceTripleEqual(a,b){
 }
 
 function stringTraceSetInnerHTML(el, innerHTML){
-    el.__origin = makeOrigin({
-        action: "assign innerHTML",
-        inputValues: [innerHTML],
-        value: innerHTML.toString()
-    })
+    // debugger;console.log(innerHTML);console.log(innerHTML.origin)
+    el.__elOrigin = [
+        {
+            action: "assign innerHTML",
+            inputValues: [innerHTML]
+        }
+    ]
 
     el.innerHTML = innerHTML
 }
@@ -177,11 +196,19 @@ var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototy
 Object.defineProperty(Node.prototype, "appendChild", {
     get: function(){
         return function(appendedEl){
-            this.__origin = makeOrigin({
+            if (!this.__elOrigin) {
+                this.__elOrigin = []
+            }
+            this.__elOrigin.push({
+                action: "appendChild",
+                child: appendedEl
+            })
+
+            /* = makeOrigin({
                 action: "appendChild",
                 inputValues: (this.__origin ? [{origin: this.__origin}] : []).concat([{origin: appendedEl.__origin}]),
                 value: this.__origin ? this.__origin.value : "" + appendedEl.innerHTML
-            })
+            })*/
 
             return appendChildPropertyDescriptor.value.apply(this, arguments)
         }

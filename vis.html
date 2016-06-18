@@ -19,11 +19,11 @@
 <div id="viz"></div>
 <script>
 var width = 1200,
-    height = 800;
+    height = 500;
 
 var force = d3.layout.force()
-    .charge(-700)
-    .linkDistance(100)
+    .charge(-200)
+    .linkDistance(50)
     .size([width, height]);
 
 var svg = d3.select("body").append("svg")
@@ -50,7 +50,7 @@ function processOriginObject(origin){
     var index = nodes.length;
     nodes.push({
         value: origin.value,
-        action: origin.action,
+        action: origin.action + (origin.elIdentifier ? " " + origin.elIdentifier : ""),
         isRootNode: index ===0
     })
 
@@ -61,6 +61,16 @@ function processOriginObject(origin){
             links.push({
                 source: index,
                 target: inputIndex,
+                value: 20
+            })
+        })
+    }
+    if (origin.children){
+        origin.children.forEach(function(child){
+            var childIndex = processOriginObject(child)
+            links.push({
+                source: index,
+                target: childIndex,
                 value: 20
             })
         })
@@ -97,6 +107,7 @@ var graph = {
       .call(force.drag)
 
       node.append("text")
+        .style("font-size", 12)
         .text(function(d) {
             if (d.action === "string literal"){
                 var truncatedValue = d.value
@@ -110,7 +121,7 @@ var graph = {
             }
         })
         .on("mouseenter", function(d){
-            console.log(d.value)
+            console.log(d)
         })
 
 
