@@ -21,20 +21,16 @@ function resolveStackArray(stackArray, callback){
 
     var gps = new StackTraceGPS({sourceCache: sourceCache});
 
-    var newStackFrames = new Array(err.length);
-    var frame;
-    err.forEach(function(frame, i){
+    async.map(err, function(frame, callback){
         gps.pinpoint(frame).then(function(newFrame){
-            newStackFrames[i] = newFrame.toString();
+            callback(null, newFrame.toString())
         }, function(){
-            newStackFrames[i] = frame.toString();
+            callback(null, frame.toString())
             console.log("error", arguments)
         });
-    })
-
-    setTimeout(function(){
+    }, function(err, newStackFrames){
         callback(newStackFrames)
-    }, 1000)
+    })
 }
 
 function resolveStacksInOrigin(origin, callback){
