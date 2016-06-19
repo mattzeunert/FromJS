@@ -296,7 +296,13 @@ window.Function = function(code){
     script.innerHTML = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + res.code + "}" + "\n//# sourceURL=Function" + id + ".js" + "\n//# sourceMappingURL=data:application/json;base64," + btoa(JSON.stringify(res.map))
     script.setAttribute("fn", "Function" + id)
     script.className = "string-trace-fn";
+
+    script.originalCodeForDebugging = code
+
     document.body.appendChild(script)
+
+
+
     return function(){
         // debugger;
         return window[fnName].apply(this, arguments)

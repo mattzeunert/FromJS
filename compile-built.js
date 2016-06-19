@@ -46738,8 +46738,10 @@
 	            return
 	        }
 
-	        if (path.parent.type ==="ObjectProperty") {
+	        if (path.parent.type ==="ObjectProperty" && path.node.start === path.parent.key.start) {
 	            // object key like {"a": 88}
+	            // but should work for sth like {"a": "kkkk"} (value should be parsed)
+	            console.log("is", path.parent, "-------", path.node)
 	            return;
 	        }
 

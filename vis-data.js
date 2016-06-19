@@ -36,7 +36,7 @@ window.visOriginData = {
       "stack": [
         "Error",
         "    at HTMLBodyElement.<anonymous> (http://localhost:8000/string-trace.js:225:24)",
-        "    at new window.Function (http://localhost:8000/string-trace.js:299:19)",
+        "    at new window.Function (http://localhost:8000/string-trace.js:302:19)",
         "    at Function._.template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1483:20)",
         "    at onload (http://localhost:8000/backbone-todomvc/simple.js:2:19)",
         "    at onload (http://localhost:8000/backbone-todomvc/simple.html:9:26)"
@@ -91,8 +91,8 @@ window.visOriginData = {
                     "Error",
                     "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                     "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                    "    at fn07253631235109281 (Function07253631235109281.js:2:11)",
-                    "    at http://localhost:8000/string-trace.js:302:31",
+                    "    at fn03651766888953376 (Function03651766888953376.js:2:11)",
+                    "    at http://localhost:8000/string-trace.js:308:31",
                     "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                     "    at onload (http://localhost:8000/backbone-todomvc/simple.js:3:16)",
                     "    at onload (http://localhost:8000/backbone-todomvc/simple.html:9:26)"
@@ -152,8 +152,8 @@ window.visOriginData = {
                             "Error",
                             "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                             "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                            "    at fn07253631235109281 (Function07253631235109281.js:8:59)",
-                            "    at http://localhost:8000/string-trace.js:302:31",
+                            "    at fn03651766888953376 (Function03651766888953376.js:8:59)",
+                            "    at http://localhost:8000/string-trace.js:308:31",
                             "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                             "    at onload (http://localhost:8000/backbone-todomvc/simple.js:3:16)",
                             "    at onload (http://localhost:8000/backbone-todomvc/simple.html:9:26)"
@@ -208,37 +208,15 @@ window.visOriginData = {
                             "Error",
                             "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                             "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                            "    at stringTraceAdd (http://localhost:8000/string-trace.js:161:13)",
-                            "    at fn07253631235109281 (Function07253631235109281.js:8:44)",
-                            "    at http://localhost:8000/string-trace.js:302:31",
-                            "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
-                            "    at onload (http://localhost:8000/backbone-todomvc/simple.js:3:16)",
+                            "    at onload (http://localhost:8000/backbone-todomvc/simple.js:3:30)",
                             "    at onload (http://localhost:8000/backbone-todomvc/simple.html:9:26)"
                           ],
                           "resolvedStack": [
                             {
-                              "functionName": "print",
-                              "fileName": "unknown",
-                              "lineNumber": 3,
-                              "columnNumber": 0,
-                              "prevLine": "with(obj||{}){",
-                              "nextLine": "((__t=( name ))==null?'':__t)+",
-                              "line": "__p+='Hello '+"
-                            },
-                            {
-                              "functionName": "template",
-                              "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
-                              "lineNumber": 1461,
-                              "columnNumber": 20,
-                              "prevLine": "    var template = function(data) {",
-                              "nextLine": "    };",
-                              "line": "      return render.call(this, data, _);"
-                            },
-                            {
                               "functionName": "onload",
                               "fileName": "http://localhost:8000/backbone-todomvc/simple-original.js",
                               "lineNumber": 3,
-                              "columnNumber": 15,
+                              "columnNumber": 26,
                               "prevLine": "    var templ = _.template(\"Hello <%= name %>\")",
                               "nextLine": "    var el = document.createElement(\"div\")",
                               "line": "    var html = templ({name: \"John\"})"
@@ -261,8 +239,8 @@ window.visOriginData = {
                         "Error",
                         "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                         "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                        "    at fn07253631235109281 (Function07253631235109281.js:8:44)",
-                        "    at http://localhost:8000/string-trace.js:302:31",
+                        "    at fn03651766888953376 (Function03651766888953376.js:8:44)",
+                        "    at http://localhost:8000/string-trace.js:308:31",
                         "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                         "    at onload (http://localhost:8000/backbone-todomvc/simple.js:3:16)",
                         "    at onload (http://localhost:8000/backbone-todomvc/simple.html:9:26)"
@@ -317,8 +295,8 @@ window.visOriginData = {
                         "Error",
                         "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                         "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                        "    at fn07253631235109281 (Function07253631235109281.js:8:150)",
-                        "    at http://localhost:8000/string-trace.js:302:31",
+                        "    at fn03651766888953376 (Function03651766888953376.js:8:150)",
+                        "    at http://localhost:8000/string-trace.js:308:31",
                         "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                         "    at onload (http://localhost:8000/backbone-todomvc/simple.js:3:16)",
                         "    at onload (http://localhost:8000/backbone-todomvc/simple.html:9:26)"
@@ -369,8 +347,8 @@ window.visOriginData = {
                     "Error",
                     "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                     "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                    "    at fn07253631235109281 (Function07253631235109281.js:8:29)",
-                    "    at http://localhost:8000/string-trace.js:302:31",
+                    "    at fn03651766888953376 (Function03651766888953376.js:8:29)",
+                    "    at http://localhost:8000/string-trace.js:308:31",
                     "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                     "    at onload (http://localhost:8000/backbone-todomvc/simple.js:3:16)",
                     "    at onload (http://localhost:8000/backbone-todomvc/simple.html:9:26)"
@@ -421,8 +399,8 @@ window.visOriginData = {
                 "Error",
                 "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                 "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                "    at fn07253631235109281 (Function07253631235109281.js:8:9)",
-                "    at http://localhost:8000/string-trace.js:302:31",
+                "    at fn03651766888953376 (Function03651766888953376.js:8:9)",
+                "    at http://localhost:8000/string-trace.js:308:31",
                 "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                 "    at onload (http://localhost:8000/backbone-todomvc/simple.js:3:16)",
                 "    at onload (http://localhost:8000/backbone-todomvc/simple.html:9:26)"
