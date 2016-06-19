@@ -6,19 +6,11 @@
 		<link rel="stylesheet" href="modules/todomvc-common/base.css">
 		<link rel="stylesheet" href="modules/todomvc-app-css/index.css">
 	</head>
-	<body>
+	<body onload="onload()">
 		<section class="todoapp">
-			<header class="header">
-				<h1>todos</h1>
-				<input class="new-todo" placeholder="What needs to be done?" autofocus>
-			</header>
-			<footer class="footer"></footer>
 		</section>
-		<footer class="info">
-			<p>Double-click to edit a todo</p>
-			<p>Written by <a href="https://github.com/addyosmani">Addy Osmani</a></p>
-			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
-		</footer>
+
+        <script src="simple.js"></script>
 		<script type="text/template" id="item-template">
 			<div class="view">
 				<input class="toggle" type="checkbox" <%= completed ? 'checked' : '' %>>
