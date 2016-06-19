@@ -110,30 +110,14 @@ var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 
-// var graph =  {
-//     nodes: [
-//         {name: "cake"},
-//         {name: "cookie"},
-//         {name: "hello"}
-//     ],
-//     links: [
-//         {source: 0, target: 1, value: 88},
-//         {source: 0, target: 2, value: 33}
-//     ]
-// }
-
 var nodes= [];
 var links = [];
 
 processOriginObject(window.visOriginData)
 function processOriginObject(origin){
     var index = nodes.length;
-    nodes.push({
-        originObj: origin,
-        value: origin.value,
-        action: origin.action + (origin.elIdentifier ? " " + origin.elIdentifier : ""),
-        isRootNode: index ===0
-    })
+    origin.index = index;
+    nodes.push(origin)
 
     if (origin.inputValues) {
         origin.inputValues.forEach(function(inputValue){
@@ -190,7 +174,7 @@ var graph = {
       node.append("text")
         .style("font-size", 12)
         .text(function(d) {
-            var text = d.action;
+            var text = d.action + (d.elIdentifier ? " " + d.elIdentifier : "");
             if (d.action === "string literal"){
                 var truncatedValue = d.value
                 if (truncatedValue.length > 25) {
@@ -209,7 +193,7 @@ var graph = {
 
             this.classList.add("selected")
 
-            showInfo(d.originObj);
+            showInfo(d);
             console.log(d)
         })
 
@@ -225,7 +209,7 @@ var graph = {
         .attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; })
         .attr("fill", function(d){
-            return d.isRootNode ? "red" : "black"
+            return d.index === 0 ? "red" : "black"
         })
 
 
