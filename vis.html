@@ -18,11 +18,11 @@
 
 <div id="viz"></div>
 <script>
-var width = 1200,
-    height = 500;
+var width = 1050,
+    height = 950;
 
 var force = d3.layout.force()
-    .charge(-200)
+    .charge(-250)
     .linkDistance(50)
     .size([width, height]);
 
@@ -49,6 +49,7 @@ processOriginObject(window.visOriginData)
 function processOriginObject(origin){
     var index = nodes.length;
     nodes.push({
+        originObj: origin,
         value: origin.value,
         action: origin.action + (origin.elIdentifier ? " " + origin.elIdentifier : ""),
         isRootNode: index ===0
