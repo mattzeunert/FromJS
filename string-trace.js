@@ -38,7 +38,6 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                         }
                     }
             })
-            console.log(argumentOrigins)
             if (typeof newVal === "string") {
                 return makeTraceObject(
                     {
