@@ -15,6 +15,10 @@
     font-weight: bold
 }
 
+.stack-frame--library {
+    opacity: .5;
+}
+
 .node {
   stroke: #fff;
   stroke-width: 1.5px;
@@ -44,7 +48,7 @@
 <script>
 
 function showInfo(info){
-    var html = "<b>" + info.action + "</b>"
+    var html = "<u>" + info.action + "</u><br/>"
     console.log("html is", html)
     var hasHighlighted = false
     if (info.resolvedStack) {
@@ -52,20 +56,30 @@ function showInfo(info){
             var fileNameParts = frame.fileName.split("/")
             var fileName = fileNameParts[fileNameParts.length - 1]
 
+            var isLibrary = fileName.indexOf("underscore") !== -1 || fileName.indexOf("jquery") !== -1
+
+            var isLibraryClass = isLibrary ? "stack-frame--library" : ""
+
             var highlightClass = "";
             if (!hasHighlighted) {
-                if (fileName.indexOf("underscore") == -1 && fileName.indexOf("jquery") === -1){
+                if (!isLibrary){
                     highlightClass = "stack-frame--highlight"
                     hasHighlighted = true
                 }
 
             }
-            html += `<div class="stack-frame ${highlightClass}">
+
+            var line = escapeAngleBrackets(frame.line.substr(0, frame.columnNumber)) +
+                "<span style='color: red; '>|</span>" +
+                escapeAngleBrackets(frame.line.substr(frame.columnNumber));
+
+
+            html += `<div class="stack-frame ${highlightClass} ${isLibraryClass}">
                 <div class="stack-frame__file-and-function">
                     ${fileName} / ${frame.functionName}
                 </div>
                 <div class="stack-frame__source ">
-                    ${frame.line.replace(/\</g, "&lt;").replace(/\>/g, "&gt;")}
+                    ${line}
                 </div>
             </div>`;
         })
@@ -73,6 +87,11 @@ function showInfo(info){
     console.log("set html")
     document.getElementById("info").innerHTML = html
 }
+
+function escapeAngleBrackets(str){
+    return str.replace(/\</g, "&lt;").replace(/\>/g, "&gt;")
+}
+
 var width = 1050,
     height = 950;
 
