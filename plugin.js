@@ -157,7 +157,8 @@ module.exports = function(babel) {
         //     babel.types.identifier("world")
         // )
         // path.replaceWith(babel.types.objectExpression([prop]))
-
+        ast.expression.loc = path.node.loc
+        // debugger
         path.replaceWith(ast)
 
         // path.replaceWith(
