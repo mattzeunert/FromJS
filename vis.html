@@ -11,6 +11,10 @@
     stroke: green;
 }
 
+.stack-frame--highlight {
+    font-weight: bold
+}
+
 .node {
   stroke: #fff;
   stroke-width: 1.5px;
@@ -23,7 +27,7 @@
 
 .stack-frame {
     overflow: hidden;
-
+    font-family: monospace;
 }
 .stack-frame__file-and-function {
     float: left;
@@ -42,15 +46,25 @@
 function showInfo(info){
     var html = "<b>" + info.action + "</b>"
     console.log("html is", html)
+    var hasHighlighted = false
     if (info.resolvedStack) {
         info.resolvedStack.forEach(function(frame){
             var fileNameParts = frame.fileName.split("/")
             var fileName = fileNameParts[fileNameParts.length - 1]
-            html += `<div class="stack-frame">
+
+            var highlightClass = "";
+            if (!hasHighlighted) {
+                if (fileName.indexOf("underscore") == -1 && fileName.indexOf("jquery") === -1){
+                    highlightClass = "stack-frame--highlight"
+                    hasHighlighted = true
+                }
+
+            }
+            html += `<div class="stack-frame ${highlightClass}">
                 <div class="stack-frame__file-and-function">
                     ${fileName} / ${frame.functionName}
                 </div>
-                <div class="stack-frame__source">
+                <div class="stack-frame__source ">
                     ${frame.line.replace(/\</g, "&lt;").replace(/\>/g, "&gt;")}
                 </div>
             </div>`;
