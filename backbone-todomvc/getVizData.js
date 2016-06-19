@@ -3,6 +3,9 @@ function resolveStackArray(stackArray, callback){
         if (frame.indexOf("string-trace.js") !== -1) {
             return false;
         }
+        if (frame.indexOf("(native)") !== -1) {
+            return false;
+        }
         return true
     })
 
@@ -115,8 +118,25 @@ function jsonifyElOriginOfEl(el, callback){
                 })
 
             }, function(err, inputV){
-                inputValues = inputV
-                callback()
+                if (elOrigin.action === "assign innerHTML") {
+                    resolveStackArray(elOrigin.stack, function(resolvedStack){
+                        children.push({
+                            inputValues: inputV,
+                            action: "assign innerHTML",
+                            stack: elOrigin.stack,
+                            resolvedStack: resolvedStack
+                        })
+                        callback()
+                    })
+
+                }
+                else {
+                    console.log("other input value thing....", elOrigin.action)
+                    inputValues = inputV
+                    callback()
+                }
+
+
             })
 
         }

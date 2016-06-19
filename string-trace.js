@@ -173,6 +173,7 @@ function stringTraceSetInnerHTML(el, innerHTML){
     el.__elOrigin = [
         {
             action: "assign innerHTML",
+            stack: Error().stack.split("\n"),
             inputValues: [innerHTML]
         }
     ]
