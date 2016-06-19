@@ -232,6 +232,8 @@ window.Function = function(code){
     var fnName = "fn" + id
     // do this rather than calling the native Function, b/c this way we can have a //#sourceURL (though maybe Function would allow that too?)
     script.innerHTML = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + code + "}" + "\n//# sourceURL=Function" + id + ".js"
+    script.setAttribute("fn", "Function" + id)
+    script.className = "string-trace-fn";
     document.body.appendChild(script)
     return function(){
         // debugger;

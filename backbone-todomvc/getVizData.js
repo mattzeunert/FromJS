@@ -1,8 +1,25 @@
 function resolveStackArray(stackArray, callback){
+    stackArray = stackArray.filter(function(frame){
+        if (frame.indexOf("string-trace.js") !== -1) {
+            return false;
+        }
+        return true
+    })
+
     var str = stackArray.join("\n")
 
     var err = ErrorStackParser.parse({stack: str});
-    var gps = new StackTraceGPS();
+
+
+    var sourceCache = {};
+    var fnEls = document.getElementsByClassName("string-trace-fn")
+    fnEls = Array.prototype.slice.call(fnEls)
+    fnEls.forEach(function(el){
+        var key = el.getAttribute("fn") + ".js"
+        sourceCache[key] = el.innerHTML
+    })
+
+    var gps = new StackTraceGPS({sourceCache: sourceCache});
 
     var newStackFrames = new Array(err.length);
     var frame;
@@ -16,10 +33,39 @@ function resolveStackArray(stackArray, callback){
     })
 
     setTimeout(function(){
-        callback(newStackFrames.join("\n"))
+        callback(newStackFrames)
     }, 1000)
 }
 
+function resolveStacksInOrigin(origin, callback){
+    var functionsToCall = []
+    if (origin.stack){
+        functionsToCall.push(function(callback){
+            resolveStackArray(origin.stack, function(newStack){
+                origin.resolvedStack = newStack
+                callback()
+            })
+        })
+    }
+    if (origin.inputValues) {
+        functionsToCall.push(function(callback){
+            async.each(origin.inputValues, function(iv, callback){
+                if (!iv) {callback();}
+                else {
+                    resolveStacksInOrigin(iv, callback)
+                }
+            }, function(){
+                callback();
+            })
+        })
+    }
+
+
+    async.series(functionsToCall, function(){
+        callback();
+    })
+
+}
 
 
 function jsonifyElOriginOfEl(el, callback){
@@ -45,10 +91,12 @@ function jsonifyElOriginOfEl(el, callback){
         } else if (elOrigin.inputValues){
             async.map(elOrigin.inputValues, function(iv, callback){
                 var origin = _.clone(iv.origin);
+                resolveStacksInOrigin(origin, function(){
+                    callback(null, origin)
+                })
 
-                callback(origin)
-            }, function(inputV){
-                inputValues = inputV;
+            }, function(err, inputV){
+                inputValues = inputV
                 callback()
             })
 
