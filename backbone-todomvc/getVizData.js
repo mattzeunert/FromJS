@@ -21,11 +21,23 @@ function resolveStackArray(stackArray, callback){
 
     var gps = new StackTraceGPS({sourceCache: sourceCache});
 
+    function resFrame(frame, callback){
+        gps._get(frame.fileName).then(function(src){
+            var lines = src.split("\n")
+            frame.prevLine = lines[frame.lineNumber - 1 - 1]// adjust for lines being one-indexed
+            frame.nextLine = lines[frame.lineNumber + 1 - 1]
+            frame.line = lines[frame.lineNumber - 1];
+
+            callback(null, JSON.parse(JSON.stringify(frame)))
+        })
+
+    }
+
     async.map(err, function(frame, callback){
         gps.pinpoint(frame).then(function(newFrame){
-            callback(null, newFrame.toString())
+            resFrame(newFrame, callback)
         }, function(){
-            callback(null, frame.toString())
+            resFrame(frame, callback)
             console.log("error", arguments)
         });
     }, function(err, newStackFrames){
