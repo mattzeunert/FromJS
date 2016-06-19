@@ -7,6 +7,11 @@
 
 <style>
 
+blockquote {
+    padding-left: 10px;
+    margin: 0
+}
+
 .selected {
     stroke: green;
 }
@@ -48,7 +53,8 @@
 <script>
 
 function showInfo(info){
-    var html = "<u>" + info.action + "</u><br/>"
+    var html = "<u>" + info.action + " </u><br/>"
+    html += "<blockquote>" + escapeAngleBrackets(info.value ? info.value : "") + "</blockquote>"
     console.log("html is", html)
     var hasHighlighted = false
     if (info.resolvedStack) {
