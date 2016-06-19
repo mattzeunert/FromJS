@@ -8,9 +8,11 @@ window.stringTraceCompile = function(code){
         allowReturnOutsideFunction: true
     });
     var res = babel.transformFromAst(ast, code, {
+        sourceMap: true,
         plugins: [
             Plugin,
         ]
     });
-    return res.code
+
+    return res
 }

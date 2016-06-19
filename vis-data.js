@@ -118,7 +118,7 @@ window.visOriginData = {
                             "Error",
                             "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                             "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
-                            "    at fn07495501018795618 (Function07495501018795618.js:2:11)",
+                            "    at fn0011964656752450287 (Function0011964656752450287.js:2:11)",
                             "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                             "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                             "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
@@ -126,14 +126,12 @@ window.visOriginData = {
                           ],
                           "resolvedStack": [
                             {
-                              "functionName": "fn07495501018795618",
-                              "fileName": "Function07495501018795618.js",
-                              "lineNumber": 2,
-                              "columnNumber": 11,
-                              "source": "    at fn07495501018795618 (Function07495501018795618.js:2:11)",
-                              "prevLine": "function fn07495501018795618(obj,_){var __t,",
-                              "nextLine": "    __j = Array.prototype.join,",
-                              "line": "    __p = stringTrace(''),"
+                              "functionName": "print",
+                              "fileName": "unknown",
+                              "lineNumber": 1,
+                              "columnNumber": 8,
+                              "nextLine": "with(obj||{}){",
+                              "line": "var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};"
                             },
                             {
                               "functionName": "template",
@@ -186,7 +184,7 @@ window.visOriginData = {
                                             "Error",
                                             "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                             "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
-                                            "    at fn07495501018795618 (Function07495501018795618.js:8:89)",
+                                            "    at fn0011964656752450287 (Function0011964656752450287.js:8:89)",
                                             "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                             "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                             "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
@@ -194,14 +192,13 @@ window.visOriginData = {
                                           ],
                                           "resolvedStack": [
                                             {
-                                              "functionName": "fn07495501018795618",
-                                              "fileName": "Function07495501018795618.js",
-                                              "lineNumber": 8,
-                                              "columnNumber": 89,
-                                              "source": "    at fn07495501018795618 (Function07495501018795618.js:8:89)",
-                                              "prevLine": "with (obj || {}) {",
-                                              "nextLine": "  if (completed) {",
-                                              "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<span class=\"todo-count\"><strong>'), stringTraceUseValue((__t = remaining) == null) ? stringTrace('') : __t), stringTrace('</strong> ')), stringTraceUseValue((__t = stringTraceUseValue(stringTraceTripleEqual(remaining, 1)) ? stringTrace('item') : stringTrace('items')) == null) ? stringTrace('') : __t), stringTrace(' left</span>\\n\\t\\t\\t<ul class=\"filters\">\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a class=\"selected\" href=\"#/\">All</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/active\">Active</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/completed\">Completed</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t</ul>\\n\\t\\t\\t')));"
+                                              "functionName": "print",
+                                              "fileName": "unknown",
+                                              "lineNumber": 3,
+                                              "columnNumber": 0,
+                                              "prevLine": "with(obj||{}){",
+                                              "nextLine": "((__t=( remaining ))==null?'':__t)+",
+                                              "line": "__p+='\\n\t\t\t<span class=\"todo-count\"><strong>'+"
                                             },
                                             {
                                               "functionName": "template",
@@ -239,7 +236,7 @@ window.visOriginData = {
                                         "Error",
                                         "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                         "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                                        "    at fn07495501018795618 (Function07495501018795618.js:8:74)",
+                                        "    at fn0011964656752450287 (Function0011964656752450287.js:8:74)",
                                         "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                         "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                         "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
@@ -247,14 +244,13 @@ window.visOriginData = {
                                       ],
                                       "resolvedStack": [
                                         {
-                                          "functionName": "fn07495501018795618",
-                                          "fileName": "Function07495501018795618.js",
-                                          "lineNumber": 8,
-                                          "columnNumber": 74,
-                                          "source": "    at fn07495501018795618 (Function07495501018795618.js:8:74)",
-                                          "prevLine": "with (obj || {}) {",
-                                          "nextLine": "  if (completed) {",
-                                          "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<span class=\"todo-count\"><strong>'), stringTraceUseValue((__t = remaining) == null) ? stringTrace('') : __t), stringTrace('</strong> ')), stringTraceUseValue((__t = stringTraceUseValue(stringTraceTripleEqual(remaining, 1)) ? stringTrace('item') : stringTrace('items')) == null) ? stringTrace('') : __t), stringTrace(' left</span>\\n\\t\\t\\t<ul class=\"filters\">\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a class=\"selected\" href=\"#/\">All</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/active\">Active</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/completed\">Completed</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t</ul>\\n\\t\\t\\t')));"
+                                          "functionName": "print",
+                                          "fileName": "unknown",
+                                          "lineNumber": 3,
+                                          "columnNumber": 0,
+                                          "prevLine": "with(obj||{}){",
+                                          "nextLine": "((__t=( remaining ))==null?'':__t)+",
+                                          "line": "__p+='\\n\t\t\t<span class=\"todo-count\"><strong>'+"
                                         },
                                         {
                                           "functionName": "template",
@@ -295,7 +291,7 @@ window.visOriginData = {
                                         "Error",
                                         "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                         "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
-                                        "    at fn07495501018795618 (Function07495501018795618.js:8:220)",
+                                        "    at fn0011964656752450287 (Function0011964656752450287.js:8:220)",
                                         "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                         "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                         "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
@@ -303,14 +299,13 @@ window.visOriginData = {
                                       ],
                                       "resolvedStack": [
                                         {
-                                          "functionName": "fn07495501018795618",
-                                          "fileName": "Function07495501018795618.js",
-                                          "lineNumber": 8,
-                                          "columnNumber": 220,
-                                          "source": "    at fn07495501018795618 (Function07495501018795618.js:8:220)",
-                                          "prevLine": "with (obj || {}) {",
-                                          "nextLine": "  if (completed) {",
-                                          "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<span class=\"todo-count\"><strong>'), stringTraceUseValue((__t = remaining) == null) ? stringTrace('') : __t), stringTrace('</strong> ')), stringTraceUseValue((__t = stringTraceUseValue(stringTraceTripleEqual(remaining, 1)) ? stringTrace('item') : stringTrace('items')) == null) ? stringTrace('') : __t), stringTrace(' left</span>\\n\\t\\t\\t<ul class=\"filters\">\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a class=\"selected\" href=\"#/\">All</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/active\">Active</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/completed\">Completed</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t</ul>\\n\\t\\t\\t')));"
+                                          "functionName": "print",
+                                          "fileName": "unknown",
+                                          "lineNumber": 3,
+                                          "columnNumber": 0,
+                                          "prevLine": "with(obj||{}){",
+                                          "nextLine": "((__t=( remaining ))==null?'':__t)+",
+                                          "line": "__p+='\\n\t\t\t<span class=\"todo-count\"><strong>'+"
                                         },
                                         {
                                           "functionName": "template",
@@ -347,7 +342,7 @@ window.visOriginData = {
                                     "Error",
                                     "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                     "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                                    "    at fn07495501018795618 (Function07495501018795618.js:8:59)",
+                                    "    at fn0011964656752450287 (Function0011964656752450287.js:8:59)",
                                     "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                     "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                     "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
@@ -355,14 +350,13 @@ window.visOriginData = {
                                   ],
                                   "resolvedStack": [
                                     {
-                                      "functionName": "fn07495501018795618",
-                                      "fileName": "Function07495501018795618.js",
-                                      "lineNumber": 8,
-                                      "columnNumber": 59,
-                                      "source": "    at fn07495501018795618 (Function07495501018795618.js:8:59)",
-                                      "prevLine": "with (obj || {}) {",
-                                      "nextLine": "  if (completed) {",
-                                      "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<span class=\"todo-count\"><strong>'), stringTraceUseValue((__t = remaining) == null) ? stringTrace('') : __t), stringTrace('</strong> ')), stringTraceUseValue((__t = stringTraceUseValue(stringTraceTripleEqual(remaining, 1)) ? stringTrace('item') : stringTrace('items')) == null) ? stringTrace('') : __t), stringTrace(' left</span>\\n\\t\\t\\t<ul class=\"filters\">\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a class=\"selected\" href=\"#/\">All</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/active\">Active</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/completed\">Completed</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t</ul>\\n\\t\\t\\t')));"
+                                      "functionName": "print",
+                                      "fileName": "unknown",
+                                      "lineNumber": 3,
+                                      "columnNumber": 0,
+                                      "prevLine": "with(obj||{}){",
+                                      "nextLine": "((__t=( remaining ))==null?'':__t)+",
+                                      "line": "__p+='\\n\t\t\t<span class=\"todo-count\"><strong>'+"
                                     },
                                     {
                                       "functionName": "template",
@@ -403,7 +397,7 @@ window.visOriginData = {
                                     "Error",
                                     "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                     "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
-                                    "    at fn07495501018795618 (Function07495501018795618.js:8:335)",
+                                    "    at fn0011964656752450287 (Function0011964656752450287.js:8:335)",
                                     "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                     "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                     "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
@@ -411,14 +405,13 @@ window.visOriginData = {
                                   ],
                                   "resolvedStack": [
                                     {
-                                      "functionName": "fn07495501018795618",
-                                      "fileName": "Function07495501018795618.js",
-                                      "lineNumber": 8,
-                                      "columnNumber": 335,
-                                      "source": "    at fn07495501018795618 (Function07495501018795618.js:8:335)",
-                                      "prevLine": "with (obj || {}) {",
-                                      "nextLine": "  if (completed) {",
-                                      "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<span class=\"todo-count\"><strong>'), stringTraceUseValue((__t = remaining) == null) ? stringTrace('') : __t), stringTrace('</strong> ')), stringTraceUseValue((__t = stringTraceUseValue(stringTraceTripleEqual(remaining, 1)) ? stringTrace('item') : stringTrace('items')) == null) ? stringTrace('') : __t), stringTrace(' left</span>\\n\\t\\t\\t<ul class=\"filters\">\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a class=\"selected\" href=\"#/\">All</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/active\">Active</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/completed\">Completed</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t</ul>\\n\\t\\t\\t')));"
+                                      "functionName": "print",
+                                      "fileName": "unknown",
+                                      "lineNumber": 6,
+                                      "columnNumber": 2,
+                                      "prevLine": "'</strong> '+",
+                                      "nextLine": "' left</span>\\n\t\t\t<ul class=\"filters\">\\n\t\t\t\t<li>\\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\\n\t\t\t\t</li>\\n\t\t\t\t<li>\\n\t\t\t\t\t<a href=\"#/active\">Active</a>\\n\t\t\t\t</li>\\n\t\t\t\t<li>\\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\\n\t\t\t\t</li>\\n\t\t\t</ul>\\n\t\t\t';",
+                                      "line": "((__t=( remaining === 1 ? 'item' : 'items' ))==null?'':__t)+"
                                     },
                                     {
                                       "functionName": "template",
@@ -455,7 +448,7 @@ window.visOriginData = {
                                 "Error",
                                 "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                 "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                                "    at fn07495501018795618 (Function07495501018795618.js:8:44)",
+                                "    at fn0011964656752450287 (Function0011964656752450287.js:8:44)",
                                 "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                 "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                 "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
@@ -463,14 +456,13 @@ window.visOriginData = {
                               ],
                               "resolvedStack": [
                                 {
-                                  "functionName": "fn07495501018795618",
-                                  "fileName": "Function07495501018795618.js",
-                                  "lineNumber": 8,
-                                  "columnNumber": 44,
-                                  "source": "    at fn07495501018795618 (Function07495501018795618.js:8:44)",
-                                  "prevLine": "with (obj || {}) {",
-                                  "nextLine": "  if (completed) {",
-                                  "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<span class=\"todo-count\"><strong>'), stringTraceUseValue((__t = remaining) == null) ? stringTrace('') : __t), stringTrace('</strong> ')), stringTraceUseValue((__t = stringTraceUseValue(stringTraceTripleEqual(remaining, 1)) ? stringTrace('item') : stringTrace('items')) == null) ? stringTrace('') : __t), stringTrace(' left</span>\\n\\t\\t\\t<ul class=\"filters\">\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a class=\"selected\" href=\"#/\">All</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/active\">Active</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/completed\">Completed</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t</ul>\\n\\t\\t\\t')));"
+                                  "functionName": "print",
+                                  "fileName": "unknown",
+                                  "lineNumber": 3,
+                                  "columnNumber": 0,
+                                  "prevLine": "with(obj||{}){",
+                                  "nextLine": "((__t=( remaining ))==null?'':__t)+",
+                                  "line": "__p+='\\n\t\t\t<span class=\"todo-count\"><strong>'+"
                                 },
                                 {
                                   "functionName": "template",
@@ -511,7 +503,7 @@ window.visOriginData = {
                                 "Error",
                                 "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                 "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
-                                "    at fn07495501018795618 (Function07495501018795618.js:8:414)",
+                                "    at fn0011964656752450287 (Function0011964656752450287.js:8:414)",
                                 "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                 "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                 "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
@@ -519,14 +511,13 @@ window.visOriginData = {
                               ],
                               "resolvedStack": [
                                 {
-                                  "functionName": "fn07495501018795618",
-                                  "fileName": "Function07495501018795618.js",
-                                  "lineNumber": 8,
-                                  "columnNumber": 414,
-                                  "source": "    at fn07495501018795618 (Function07495501018795618.js:8:414)",
-                                  "prevLine": "with (obj || {}) {",
-                                  "nextLine": "  if (completed) {",
-                                  "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<span class=\"todo-count\"><strong>'), stringTraceUseValue((__t = remaining) == null) ? stringTrace('') : __t), stringTrace('</strong> ')), stringTraceUseValue((__t = stringTraceUseValue(stringTraceTripleEqual(remaining, 1)) ? stringTrace('item') : stringTrace('items')) == null) ? stringTrace('') : __t), stringTrace(' left</span>\\n\\t\\t\\t<ul class=\"filters\">\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a class=\"selected\" href=\"#/\">All</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/active\">Active</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/completed\">Completed</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t</ul>\\n\\t\\t\\t')));"
+                                  "functionName": "print",
+                                  "fileName": "unknown",
+                                  "lineNumber": 3,
+                                  "columnNumber": 0,
+                                  "prevLine": "with(obj||{}){",
+                                  "nextLine": "((__t=( remaining ))==null?'':__t)+",
+                                  "line": "__p+='\\n\t\t\t<span class=\"todo-count\"><strong>'+"
                                 },
                                 {
                                   "functionName": "template",
@@ -563,7 +554,7 @@ window.visOriginData = {
                             "Error",
                             "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                             "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                            "    at fn07495501018795618 (Function07495501018795618.js:8:29)",
+                            "    at fn0011964656752450287 (Function0011964656752450287.js:8:29)",
                             "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                             "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                             "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
@@ -571,14 +562,13 @@ window.visOriginData = {
                           ],
                           "resolvedStack": [
                             {
-                              "functionName": "fn07495501018795618",
-                              "fileName": "Function07495501018795618.js",
-                              "lineNumber": 8,
-                              "columnNumber": 29,
-                              "source": "    at fn07495501018795618 (Function07495501018795618.js:8:29)",
-                              "prevLine": "with (obj || {}) {",
-                              "nextLine": "  if (completed) {",
-                              "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<span class=\"todo-count\"><strong>'), stringTraceUseValue((__t = remaining) == null) ? stringTrace('') : __t), stringTrace('</strong> ')), stringTraceUseValue((__t = stringTraceUseValue(stringTraceTripleEqual(remaining, 1)) ? stringTrace('item') : stringTrace('items')) == null) ? stringTrace('') : __t), stringTrace(' left</span>\\n\\t\\t\\t<ul class=\"filters\">\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a class=\"selected\" href=\"#/\">All</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/active\">Active</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/completed\">Completed</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t</ul>\\n\\t\\t\\t')));"
+                              "functionName": "print",
+                              "fileName": "unknown",
+                              "lineNumber": 3,
+                              "columnNumber": 0,
+                              "prevLine": "with(obj||{}){",
+                              "nextLine": "((__t=( remaining ))==null?'':__t)+",
+                              "line": "__p+='\\n\t\t\t<span class=\"todo-count\"><strong>'+"
                             },
                             {
                               "functionName": "template",
@@ -615,7 +605,7 @@ window.visOriginData = {
                         "Error",
                         "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                         "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                        "    at fn07495501018795618 (Function07495501018795618.js:8:9)",
+                        "    at fn0011964656752450287 (Function0011964656752450287.js:8:9)",
                         "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                         "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                         "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
@@ -623,14 +613,13 @@ window.visOriginData = {
                       ],
                       "resolvedStack": [
                         {
-                          "functionName": "fn07495501018795618",
-                          "fileName": "Function07495501018795618.js",
-                          "lineNumber": 8,
-                          "columnNumber": 9,
-                          "source": "    at fn07495501018795618 (Function07495501018795618.js:8:9)",
-                          "prevLine": "with (obj || {}) {",
-                          "nextLine": "  if (completed) {",
-                          "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<span class=\"todo-count\"><strong>'), stringTraceUseValue((__t = remaining) == null) ? stringTrace('') : __t), stringTrace('</strong> ')), stringTraceUseValue((__t = stringTraceUseValue(stringTraceTripleEqual(remaining, 1)) ? stringTrace('item') : stringTrace('items')) == null) ? stringTrace('') : __t), stringTrace(' left</span>\\n\\t\\t\\t<ul class=\"filters\">\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a class=\"selected\" href=\"#/\">All</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/active\">Active</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/completed\">Completed</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t</ul>\\n\\t\\t\\t')));"
+                          "functionName": "print",
+                          "fileName": "unknown",
+                          "lineNumber": 3,
+                          "columnNumber": 0,
+                          "prevLine": "with(obj||{}){",
+                          "nextLine": "((__t=( remaining ))==null?'':__t)+",
+                          "line": "__p+='\\n\t\t\t<span class=\"todo-count\"><strong>'+"
                         },
                         {
                           "functionName": "template",
@@ -671,7 +660,7 @@ window.visOriginData = {
                         "Error",
                         "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                         "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
-                        "    at fn07495501018795618 (Function07495501018795618.js:12:29)",
+                        "    at fn0011964656752450287 (Function0011964656752450287.js:12:29)",
                         "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                         "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                         "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
@@ -679,14 +668,13 @@ window.visOriginData = {
                       ],
                       "resolvedStack": [
                         {
-                          "functionName": "fn07495501018795618",
-                          "fileName": "Function07495501018795618.js",
-                          "lineNumber": 12,
-                          "columnNumber": 29,
-                          "source": "    at fn07495501018795618 (Function07495501018795618.js:12:29)",
-                          "prevLine": "  }",
+                          "functionName": "print",
+                          "fileName": "unknown",
+                          "lineNumber": 11,
+                          "columnNumber": 0,
+                          "prevLine": " } ",
                           "nextLine": "}",
-                          "line": "  __p = stringTraceAdd(__p, stringTrace('\\n\\t\\t'));"
+                          "line": "__p+='\\n\t\t';"
                         },
                         {
                           "functionName": "template",
@@ -723,7 +711,7 @@ window.visOriginData = {
                     "Error",
                     "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                     "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                    "    at fn07495501018795618 (Function07495501018795618.js:12:9)",
+                    "    at fn0011964656752450287 (Function0011964656752450287.js:12:9)",
                     "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                     "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                     "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
@@ -731,14 +719,13 @@ window.visOriginData = {
                   ],
                   "resolvedStack": [
                     {
-                      "functionName": "fn07495501018795618",
-                      "fileName": "Function07495501018795618.js",
-                      "lineNumber": 12,
-                      "columnNumber": 9,
-                      "source": "    at fn07495501018795618 (Function07495501018795618.js:12:9)",
-                      "prevLine": "  }",
+                      "functionName": "print",
+                      "fileName": "unknown",
+                      "lineNumber": 11,
+                      "columnNumber": 0,
+                      "prevLine": " } ",
                       "nextLine": "}",
-                      "line": "  __p = stringTraceAdd(__p, stringTrace('\\n\\t\\t'));"
+                      "line": "__p+='\\n\t\t';"
                     },
                     {
                       "functionName": "template",
@@ -878,7 +865,7 @@ window.visOriginData = {
                                 "Error",
                                 "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                 "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
-                                "    at fn040108498997371633 (Function040108498997371633.js:2:11)",
+                                "    at fn043670236622624836 (Function043670236622624836.js:2:11)",
                                 "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                 "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                 "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -889,14 +876,12 @@ window.visOriginData = {
                               ],
                               "resolvedStack": [
                                 {
-                                  "functionName": "fn040108498997371633",
-                                  "fileName": "Function040108498997371633.js",
-                                  "lineNumber": 2,
-                                  "columnNumber": 11,
-                                  "source": "    at fn040108498997371633 (Function040108498997371633.js:2:11)",
-                                  "prevLine": "function fn040108498997371633(obj,_){var __t,",
-                                  "nextLine": "    __j = Array.prototype.join,",
-                                  "line": "    __p = stringTrace(''),"
+                                  "functionName": "print",
+                                  "fileName": "unknown",
+                                  "lineNumber": 1,
+                                  "columnNumber": 8,
+                                  "nextLine": "with(obj||{}){",
+                                  "line": "var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};"
                                 },
                                 {
                                   "functionName": "template",
@@ -982,7 +967,7 @@ window.visOriginData = {
                                                         "Error",
                                                         "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                                         "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
-                                                        "    at fn040108498997371633 (Function040108498997371633.js:8:119)",
+                                                        "    at fn043670236622624836 (Function043670236622624836.js:8:119)",
                                                         "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                                         "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                         "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -993,14 +978,13 @@ window.visOriginData = {
                                                       ],
                                                       "resolvedStack": [
                                                         {
-                                                          "functionName": "fn040108498997371633",
-                                                          "fileName": "Function040108498997371633.js",
-                                                          "lineNumber": 8,
-                                                          "columnNumber": 119,
-                                                          "source": "    at fn040108498997371633 (Function040108498997371633.js:8:119)",
-                                                          "prevLine": "with (obj || {}) {",
-                                                          "nextLine": "}",
-                                                          "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                                          "functionName": "print",
+                                                          "fileName": "unknown",
+                                                          "lineNumber": 3,
+                                                          "columnNumber": 0,
+                                                          "prevLine": "with(obj||{}){",
+                                                          "nextLine": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+",
+                                                          "line": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+"
                                                         },
                                                         {
                                                           "functionName": "template",
@@ -1068,7 +1052,7 @@ window.visOriginData = {
                                                         "Error",
                                                         "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                                         "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
-                                                        "    at fn040108498997371633 (Function040108498997371633.js:8:295)",
+                                                        "    at fn043670236622624836 (Function043670236622624836.js:8:295)",
                                                         "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                                         "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                         "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -1079,14 +1063,13 @@ window.visOriginData = {
                                                       ],
                                                       "resolvedStack": [
                                                         {
-                                                          "functionName": "fn040108498997371633",
-                                                          "fileName": "Function040108498997371633.js",
-                                                          "lineNumber": 8,
-                                                          "columnNumber": 295,
-                                                          "source": "    at fn040108498997371633 (Function040108498997371633.js:8:295)",
-                                                          "prevLine": "with (obj || {}) {",
-                                                          "nextLine": "}",
-                                                          "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                                          "functionName": "print",
+                                                          "fileName": "unknown",
+                                                          "lineNumber": 4,
+                                                          "columnNumber": 2,
+                                                          "prevLine": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+",
+                                                          "nextLine": "'>\\n\t\t\t\t<label>'+",
+                                                          "line": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+"
                                                         },
                                                         {
                                                           "functionName": "template",
@@ -1150,7 +1133,7 @@ window.visOriginData = {
                                                     "Error",
                                                     "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                                     "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                                                    "    at fn040108498997371633 (Function040108498997371633.js:8:104)",
+                                                    "    at fn043670236622624836 (Function043670236622624836.js:8:104)",
                                                     "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                                     "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                     "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -1161,14 +1144,13 @@ window.visOriginData = {
                                                   ],
                                                   "resolvedStack": [
                                                     {
-                                                      "functionName": "fn040108498997371633",
-                                                      "fileName": "Function040108498997371633.js",
-                                                      "lineNumber": 8,
-                                                      "columnNumber": 104,
-                                                      "source": "    at fn040108498997371633 (Function040108498997371633.js:8:104)",
-                                                      "prevLine": "with (obj || {}) {",
-                                                      "nextLine": "}",
-                                                      "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                                      "functionName": "print",
+                                                      "fileName": "unknown",
+                                                      "lineNumber": 3,
+                                                      "columnNumber": 0,
+                                                      "prevLine": "with(obj||{}){",
+                                                      "nextLine": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+",
+                                                      "line": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+"
                                                     },
                                                     {
                                                       "functionName": "template",
@@ -1236,7 +1218,7 @@ window.visOriginData = {
                                                     "Error",
                                                     "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                                     "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
-                                                    "    at fn040108498997371633 (Function040108498997371633.js:8:347)",
+                                                    "    at fn043670236622624836 (Function043670236622624836.js:8:347)",
                                                     "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                                     "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                     "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -1247,14 +1229,13 @@ window.visOriginData = {
                                                   ],
                                                   "resolvedStack": [
                                                     {
-                                                      "functionName": "fn040108498997371633",
-                                                      "fileName": "Function040108498997371633.js",
-                                                      "lineNumber": 8,
-                                                      "columnNumber": 347,
-                                                      "source": "    at fn040108498997371633 (Function040108498997371633.js:8:347)",
-                                                      "prevLine": "with (obj || {}) {",
-                                                      "nextLine": "}",
-                                                      "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                                      "functionName": "print",
+                                                      "fileName": "unknown",
+                                                      "lineNumber": 3,
+                                                      "columnNumber": 0,
+                                                      "prevLine": "with(obj||{}){",
+                                                      "nextLine": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+",
+                                                      "line": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+"
                                                     },
                                                     {
                                                       "functionName": "template",
@@ -1318,7 +1299,7 @@ window.visOriginData = {
                                                 "Error",
                                                 "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                                 "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                                                "    at fn040108498997371633 (Function040108498997371633.js:8:89)",
+                                                "    at fn043670236622624836 (Function043670236622624836.js:8:89)",
                                                 "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                                 "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                 "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -1329,14 +1310,13 @@ window.visOriginData = {
                                               ],
                                               "resolvedStack": [
                                                 {
-                                                  "functionName": "fn040108498997371633",
-                                                  "fileName": "Function040108498997371633.js",
-                                                  "lineNumber": 8,
-                                                  "columnNumber": 89,
-                                                  "source": "    at fn040108498997371633 (Function040108498997371633.js:8:89)",
-                                                  "prevLine": "with (obj || {}) {",
-                                                  "nextLine": "}",
-                                                  "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                                  "functionName": "print",
+                                                  "fileName": "unknown",
+                                                  "lineNumber": 3,
+                                                  "columnNumber": 0,
+                                                  "prevLine": "with(obj||{}){",
+                                                  "nextLine": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+",
+                                                  "line": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+"
                                                 },
                                                 {
                                                   "functionName": "template",
@@ -1408,7 +1388,7 @@ window.visOriginData = {
                                                     "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                                     "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
                                                     "    at Function.escape (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1391:87)",
-                                                    "    at fn040108498997371633 (Function040108498997371633.js:8:448)",
+                                                    "    at fn043670236622624836 (Function043670236622624836.js:8:448)",
                                                     "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                                     "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                     "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -1427,14 +1407,13 @@ window.visOriginData = {
                                                       "line": "      string = string == null ? '' : '' + string;"
                                                     },
                                                     {
-                                                      "functionName": "fn040108498997371633",
-                                                      "fileName": "Function040108498997371633.js",
-                                                      "lineNumber": 8,
-                                                      "columnNumber": 448,
-                                                      "source": "    at fn040108498997371633 (Function040108498997371633.js:8:448)",
-                                                      "prevLine": "with (obj || {}) {",
-                                                      "nextLine": "}",
-                                                      "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                                      "functionName": "print",
+                                                      "fileName": "unknown",
+                                                      "lineNumber": 6,
+                                                      "columnNumber": 28,
+                                                      "prevLine": "'>\\n\t\t\t\t<label>'+",
+                                                      "nextLine": "'</label>\\n\t\t\t\t<button class=\"destroy\"></button>\\n\t\t\t</div>\\n\t\t\t<input class=\"edit\" value=\"'+",
+                                                      "line": "((__t=( title ))==null?'':_.escape(__t))+"
                                                     },
                                                     {
                                                       "functionName": "template",
@@ -1495,7 +1474,7 @@ window.visOriginData = {
                                                     "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
                                                     "    at stringTraceAdd (http://localhost:8000/string-trace.js:140:13)",
                                                     "    at Function.escape (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1391:72)",
-                                                    "    at fn040108498997371633 (Function040108498997371633.js:8:448)",
+                                                    "    at fn043670236622624836 (Function043670236622624836.js:8:448)",
                                                     "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                                     "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                     "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -1513,14 +1492,13 @@ window.visOriginData = {
                                                       "line": "      string = string == null ? '' : '' + string;"
                                                     },
                                                     {
-                                                      "functionName": "fn040108498997371633",
-                                                      "fileName": "Function040108498997371633.js",
-                                                      "lineNumber": 8,
-                                                      "columnNumber": 448,
-                                                      "source": "    at fn040108498997371633 (Function040108498997371633.js:8:448)",
-                                                      "prevLine": "with (obj || {}) {",
-                                                      "nextLine": "}",
-                                                      "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                                      "functionName": "print",
+                                                      "fileName": "unknown",
+                                                      "lineNumber": 6,
+                                                      "columnNumber": 28,
+                                                      "prevLine": "'>\\n\t\t\t\t<label>'+",
+                                                      "nextLine": "'</label>\\n\t\t\t\t<button class=\"destroy\"></button>\\n\t\t\t</div>\\n\t\t\t<input class=\"edit\" value=\"'+",
+                                                      "line": "((__t=( title ))==null?'':_.escape(__t))+"
                                                     },
                                                     {
                                                       "functionName": "template",
@@ -1567,7 +1545,7 @@ window.visOriginData = {
                                                 "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                                 "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
                                                 "    at Function.escape (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1391:72)",
-                                                "    at fn040108498997371633 (Function040108498997371633.js:8:448)",
+                                                "    at fn043670236622624836 (Function043670236622624836.js:8:448)",
                                                 "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                                 "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                 "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -1586,14 +1564,13 @@ window.visOriginData = {
                                                   "line": "      string = string == null ? '' : '' + string;"
                                                 },
                                                 {
-                                                  "functionName": "fn040108498997371633",
-                                                  "fileName": "Function040108498997371633.js",
-                                                  "lineNumber": 8,
-                                                  "columnNumber": 448,
-                                                  "source": "    at fn040108498997371633 (Function040108498997371633.js:8:448)",
-                                                  "prevLine": "with (obj || {}) {",
-                                                  "nextLine": "}",
-                                                  "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                                  "functionName": "print",
+                                                  "fileName": "unknown",
+                                                  "lineNumber": 6,
+                                                  "columnNumber": 28,
+                                                  "prevLine": "'>\\n\t\t\t\t<label>'+",
+                                                  "nextLine": "'</label>\\n\t\t\t\t<button class=\"destroy\"></button>\\n\t\t\t</div>\\n\t\t\t<input class=\"edit\" value=\"'+",
+                                                  "line": "((__t=( title ))==null?'':_.escape(__t))+"
                                                 },
                                                 {
                                                   "functionName": "template",
@@ -1648,7 +1625,7 @@ window.visOriginData = {
                                             "Error",
                                             "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                             "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                                            "    at fn040108498997371633 (Function040108498997371633.js:8:74)",
+                                            "    at fn043670236622624836 (Function043670236622624836.js:8:74)",
                                             "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                             "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                             "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -1659,14 +1636,13 @@ window.visOriginData = {
                                           ],
                                           "resolvedStack": [
                                             {
-                                              "functionName": "fn040108498997371633",
-                                              "fileName": "Function040108498997371633.js",
-                                              "lineNumber": 8,
-                                              "columnNumber": 74,
-                                              "source": "    at fn040108498997371633 (Function040108498997371633.js:8:74)",
-                                              "prevLine": "with (obj || {}) {",
-                                              "nextLine": "}",
-                                              "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                              "functionName": "print",
+                                              "fileName": "unknown",
+                                              "lineNumber": 3,
+                                              "columnNumber": 0,
+                                              "prevLine": "with(obj||{}){",
+                                              "nextLine": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+",
+                                              "line": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+"
                                             },
                                             {
                                               "functionName": "template",
@@ -1734,7 +1710,7 @@ window.visOriginData = {
                                             "Error",
                                             "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                             "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
-                                            "    at fn040108498997371633 (Function040108498997371633.js:8:462)",
+                                            "    at fn043670236622624836 (Function043670236622624836.js:8:462)",
                                             "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                             "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                             "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -1745,14 +1721,13 @@ window.visOriginData = {
                                           ],
                                           "resolvedStack": [
                                             {
-                                              "functionName": "fn040108498997371633",
-                                              "fileName": "Function040108498997371633.js",
-                                              "lineNumber": 8,
-                                              "columnNumber": 462,
-                                              "source": "    at fn040108498997371633 (Function040108498997371633.js:8:462)",
-                                              "prevLine": "with (obj || {}) {",
-                                              "nextLine": "}",
-                                              "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                              "functionName": "print",
+                                              "fileName": "unknown",
+                                              "lineNumber": 3,
+                                              "columnNumber": 0,
+                                              "prevLine": "with(obj||{}){",
+                                              "nextLine": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+",
+                                              "line": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+"
                                             },
                                             {
                                               "functionName": "template",
@@ -1816,7 +1791,7 @@ window.visOriginData = {
                                         "Error",
                                         "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                         "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                                        "    at fn040108498997371633 (Function040108498997371633.js:8:59)",
+                                        "    at fn043670236622624836 (Function043670236622624836.js:8:59)",
                                         "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                         "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                         "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -1827,14 +1802,13 @@ window.visOriginData = {
                                       ],
                                       "resolvedStack": [
                                         {
-                                          "functionName": "fn040108498997371633",
-                                          "fileName": "Function040108498997371633.js",
-                                          "lineNumber": 8,
-                                          "columnNumber": 59,
-                                          "source": "    at fn040108498997371633 (Function040108498997371633.js:8:59)",
-                                          "prevLine": "with (obj || {}) {",
-                                          "nextLine": "}",
-                                          "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                          "functionName": "print",
+                                          "fileName": "unknown",
+                                          "lineNumber": 3,
+                                          "columnNumber": 0,
+                                          "prevLine": "with(obj||{}){",
+                                          "nextLine": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+",
+                                          "line": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+"
                                         },
                                         {
                                           "functionName": "template",
@@ -1906,7 +1880,7 @@ window.visOriginData = {
                                             "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                             "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
                                             "    at Function.escape (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1391:87)",
-                                            "    at fn040108498997371633 (Function040108498997371633.js:8:645)",
+                                            "    at fn043670236622624836 (Function043670236622624836.js:8:645)",
                                             "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                             "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                             "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -1925,14 +1899,13 @@ window.visOriginData = {
                                               "line": "      string = string == null ? '' : '' + string;"
                                             },
                                             {
-                                              "functionName": "fn040108498997371633",
-                                              "fileName": "Function040108498997371633.js",
+                                              "functionName": "print",
+                                              "fileName": "unknown",
                                               "lineNumber": 8,
-                                              "columnNumber": 645,
-                                              "source": "    at fn040108498997371633 (Function040108498997371633.js:8:645)",
-                                              "prevLine": "with (obj || {}) {",
-                                              "nextLine": "}",
-                                              "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                              "columnNumber": 28,
+                                              "prevLine": "'</label>\\n\t\t\t\t<button class=\"destroy\"></button>\\n\t\t\t</div>\\n\t\t\t<input class=\"edit\" value=\"'+",
+                                              "nextLine": "'\">\\n\t\t';",
+                                              "line": "((__t=( title ))==null?'':_.escape(__t))+"
                                             },
                                             {
                                               "functionName": "template",
@@ -1993,7 +1966,7 @@ window.visOriginData = {
                                             "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
                                             "    at stringTraceAdd (http://localhost:8000/string-trace.js:140:13)",
                                             "    at Function.escape (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1391:72)",
-                                            "    at fn040108498997371633 (Function040108498997371633.js:8:645)",
+                                            "    at fn043670236622624836 (Function043670236622624836.js:8:645)",
                                             "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                             "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                             "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -2011,14 +1984,13 @@ window.visOriginData = {
                                               "line": "      string = string == null ? '' : '' + string;"
                                             },
                                             {
-                                              "functionName": "fn040108498997371633",
-                                              "fileName": "Function040108498997371633.js",
+                                              "functionName": "print",
+                                              "fileName": "unknown",
                                               "lineNumber": 8,
-                                              "columnNumber": 645,
-                                              "source": "    at fn040108498997371633 (Function040108498997371633.js:8:645)",
-                                              "prevLine": "with (obj || {}) {",
-                                              "nextLine": "}",
-                                              "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                              "columnNumber": 28,
+                                              "prevLine": "'</label>\\n\t\t\t\t<button class=\"destroy\"></button>\\n\t\t\t</div>\\n\t\t\t<input class=\"edit\" value=\"'+",
+                                              "nextLine": "'\">\\n\t\t';",
+                                              "line": "((__t=( title ))==null?'':_.escape(__t))+"
                                             },
                                             {
                                               "functionName": "template",
@@ -2065,7 +2037,7 @@ window.visOriginData = {
                                         "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                         "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
                                         "    at Function.escape (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1391:72)",
-                                        "    at fn040108498997371633 (Function040108498997371633.js:8:645)",
+                                        "    at fn043670236622624836 (Function043670236622624836.js:8:645)",
                                         "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                         "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                         "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -2084,14 +2056,13 @@ window.visOriginData = {
                                           "line": "      string = string == null ? '' : '' + string;"
                                         },
                                         {
-                                          "functionName": "fn040108498997371633",
-                                          "fileName": "Function040108498997371633.js",
+                                          "functionName": "print",
+                                          "fileName": "unknown",
                                           "lineNumber": 8,
-                                          "columnNumber": 645,
-                                          "source": "    at fn040108498997371633 (Function040108498997371633.js:8:645)",
-                                          "prevLine": "with (obj || {}) {",
-                                          "nextLine": "}",
-                                          "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                          "columnNumber": 28,
+                                          "prevLine": "'</label>\\n\t\t\t\t<button class=\"destroy\"></button>\\n\t\t\t</div>\\n\t\t\t<input class=\"edit\" value=\"'+",
+                                          "nextLine": "'\">\\n\t\t';",
+                                          "line": "((__t=( title ))==null?'':_.escape(__t))+"
                                         },
                                         {
                                           "functionName": "template",
@@ -2146,7 +2117,7 @@ window.visOriginData = {
                                     "Error",
                                     "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                     "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                                    "    at fn040108498997371633 (Function040108498997371633.js:8:44)",
+                                    "    at fn043670236622624836 (Function043670236622624836.js:8:44)",
                                     "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                     "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                     "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -2157,14 +2128,13 @@ window.visOriginData = {
                                   ],
                                   "resolvedStack": [
                                     {
-                                      "functionName": "fn040108498997371633",
-                                      "fileName": "Function040108498997371633.js",
-                                      "lineNumber": 8,
-                                      "columnNumber": 44,
-                                      "source": "    at fn040108498997371633 (Function040108498997371633.js:8:44)",
-                                      "prevLine": "with (obj || {}) {",
-                                      "nextLine": "}",
-                                      "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                      "functionName": "print",
+                                      "fileName": "unknown",
+                                      "lineNumber": 3,
+                                      "columnNumber": 0,
+                                      "prevLine": "with(obj||{}){",
+                                      "nextLine": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+",
+                                      "line": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+"
                                     },
                                     {
                                       "functionName": "template",
@@ -2232,7 +2202,7 @@ window.visOriginData = {
                                     "Error",
                                     "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                     "    at stringTrace (http://localhost:8000/string-trace.js:112:17)",
-                                    "    at fn040108498997371633 (Function040108498997371633.js:8:659)",
+                                    "    at fn043670236622624836 (Function043670236622624836.js:8:659)",
                                     "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                     "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                     "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -2243,14 +2213,13 @@ window.visOriginData = {
                                   ],
                                   "resolvedStack": [
                                     {
-                                      "functionName": "fn040108498997371633",
-                                      "fileName": "Function040108498997371633.js",
-                                      "lineNumber": 8,
-                                      "columnNumber": 659,
-                                      "source": "    at fn040108498997371633 (Function040108498997371633.js:8:659)",
-                                      "prevLine": "with (obj || {}) {",
-                                      "nextLine": "}",
-                                      "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                      "functionName": "print",
+                                      "fileName": "unknown",
+                                      "lineNumber": 3,
+                                      "columnNumber": 0,
+                                      "prevLine": "with(obj||{}){",
+                                      "nextLine": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+",
+                                      "line": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+"
                                     },
                                     {
                                       "functionName": "template",
@@ -2314,7 +2283,7 @@ window.visOriginData = {
                                 "Error",
                                 "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                                 "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                                "    at fn040108498997371633 (Function040108498997371633.js:8:29)",
+                                "    at fn043670236622624836 (Function043670236622624836.js:8:29)",
                                 "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                                 "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                 "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -2325,14 +2294,13 @@ window.visOriginData = {
                               ],
                               "resolvedStack": [
                                 {
-                                  "functionName": "fn040108498997371633",
-                                  "fileName": "Function040108498997371633.js",
-                                  "lineNumber": 8,
-                                  "columnNumber": 29,
-                                  "source": "    at fn040108498997371633 (Function040108498997371633.js:8:29)",
-                                  "prevLine": "with (obj || {}) {",
-                                  "nextLine": "}",
-                                  "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                                  "functionName": "print",
+                                  "fileName": "unknown",
+                                  "lineNumber": 3,
+                                  "columnNumber": 0,
+                                  "prevLine": "with(obj||{}){",
+                                  "nextLine": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+",
+                                  "line": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+"
                                 },
                                 {
                                   "functionName": "template",
@@ -2396,7 +2364,7 @@ window.visOriginData = {
                             "Error",
                             "    at makeOrigin (http://localhost:8000/string-trace.js:98:16)",
                             "    at stringTraceAdd (http://localhost:8000/string-trace.js:149:17)",
-                            "    at fn040108498997371633 (Function040108498997371633.js:8:9)",
+                            "    at fn043670236622624836 (Function043670236622624836.js:8:9)",
                             "    at .<anonymous> (http://localhost:8000/string-trace.js:240:31)",
                             "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                             "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
@@ -2407,14 +2375,13 @@ window.visOriginData = {
                           ],
                           "resolvedStack": [
                             {
-                              "functionName": "fn040108498997371633",
-                              "fileName": "Function040108498997371633.js",
-                              "lineNumber": 8,
-                              "columnNumber": 9,
-                              "source": "    at fn040108498997371633 (Function040108498997371633.js:8:9)",
-                              "prevLine": "with (obj || {}) {",
-                              "nextLine": "}",
-                              "line": "  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));"
+                              "functionName": "print",
+                              "fileName": "unknown",
+                              "lineNumber": 3,
+                              "columnNumber": 0,
+                              "prevLine": "with(obj||{}){",
+                              "nextLine": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+",
+                              "line": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+"
                             },
                             {
                               "functionName": "template",
