@@ -66,10 +66,11 @@ window.visOriginData = {
     {
       "action": "appendChild",
       "actionDetails": "SCRIPT",
+      "value": "function fn003228219497422802(obj,_){var __t,\n    __p = stringTrace(''),\n    __j = Array.prototype.join,\n    print = function () {\n  __p = stringTraceAdd(__p, __j.call(arguments, stringTrace('')));\n};\nwith (obj || {}) {\n  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<div class=\"view\">\\n\\t\\t\\t\\t<input class=\"toggle\" type=\"checkbox\" '), stringTraceUseValue((__t = stringTraceUseValue(completed) ? stringTrace('checked') : stringTrace('')) == null) ? stringTrace('') : __t), stringTrace('>\\n\\t\\t\\t\\t<label>')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('</label>\\n\\t\\t\\t\\t<button class=\"destroy\"></button>\\n\\t\\t\\t</div>\\n\\t\\t\\t<input class=\"edit\" value=\"')), stringTraceUseValue((__t = title) == null) ? stringTrace('') : _.escape(__t)), stringTrace('\">\\n\\t\\t')));\n}\nreturn __p;}\n//# sourceURL=Function003228219497422802.js\n//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInVua25vd24iXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsSUFBSSxHQUFKO0lBQVEsTUFBSSxlQUFaO0lBQWUsTUFBSSxNQUFNLFNBQU4sQ0FBZ0IsSUFBbkM7SUFBd0MsUUFBTSxZQUFVO0FBQUMsNEJBQUssSUFBSSxJQUFKLENBQVMsU0FBVCxFQUFtQixlQUFuQixDQUFMO0FBQTZCLENBQXRGO0FBQ0EsTUFBSyxPQUFLLEVBQVYsRUFBYTtBQUNiLHNIQUFLLHlGQUFMLHNCQUNDLENBQUMsMEJBQU0sU0FBTixJQUFrQixzQkFBbEIsR0FBOEIsZUFBL0IsS0FBc0MsSUFEdkMsSUFDNEMsZUFENUMsR0FDK0MsR0FEL0MsR0FFQSxpQ0FGQSx1QkFHQyxDQUFDLE1BQU0sS0FBUCxLQUFpQixJQUhsQixJQUd1QixlQUh2QixHQUcwQixFQUFFLE1BQUYsQ0FBUyxHQUFULENBSDFCLEdBSUEsbUhBSkEsdUJBS0MsQ0FBQyxNQUFNLEtBQVAsS0FBaUIsSUFMbEIsSUFLdUIsZUFMdkIsR0FLMEIsRUFBRSxNQUFGLENBQVMsR0FBVCxDQUwxQixHQU1BLHVCQU5BO0FBT0M7QUFDRCxPQUFPLEdBQVAiLCJmaWxlIjoidW5rbm93biIsInNvdXJjZXNDb250ZW50IjpbInZhciBfX3QsX19wPScnLF9faj1BcnJheS5wcm90b3R5cGUuam9pbixwcmludD1mdW5jdGlvbigpe19fcCs9X19qLmNhbGwoYXJndW1lbnRzLCcnKTt9O1xud2l0aChvYmp8fHt9KXtcbl9fcCs9J1xcblx0XHRcdDxkaXYgY2xhc3M9XCJ2aWV3XCI+XFxuXHRcdFx0XHQ8aW5wdXQgY2xhc3M9XCJ0b2dnbGVcIiB0eXBlPVwiY2hlY2tib3hcIiAnK1xuKChfX3Q9KCBjb21wbGV0ZWQgPyAnY2hlY2tlZCcgOiAnJyApKT09bnVsbD8nJzpfX3QpK1xuJz5cXG5cdFx0XHRcdDxsYWJlbD4nK1xuKChfX3Q9KCB0aXRsZSApKT09bnVsbD8nJzpfLmVzY2FwZShfX3QpKStcbic8L2xhYmVsPlxcblx0XHRcdFx0PGJ1dHRvbiBjbGFzcz1cImRlc3Ryb3lcIj48L2J1dHRvbj5cXG5cdFx0XHQ8L2Rpdj5cXG5cdFx0XHQ8aW5wdXQgY2xhc3M9XCJlZGl0XCIgdmFsdWU9XCInK1xuKChfX3Q9KCB0aXRsZSApKT09bnVsbD8nJzpfLmVzY2FwZShfX3QpKStcbidcIj5cXG5cdFx0Jztcbn1cbnJldHVybiBfX3A7XG4iXX0=",
       "stack": [
         "Error",
-        "    at HTMLBodyElement.<anonymous> (http://localhost:8000/string-trace.js:225:24)",
-        "    at new window.Function (http://localhost:8000/string-trace.js:302:19)",
+        "    at HTMLBodyElement.<anonymous> (http://localhost:8000/string-trace.js:226:24)",
+        "    at new window.Function (http://localhost:8000/string-trace.js:304:19)",
         "    at Function._.template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1483:20)",
         "    at http://localhost:8000/backbone-todomvc/js/views/todo-view.js:17:15",
         "    at http://localhost:8000/backbone-todomvc/js/views/todo-view.js:122:3"
@@ -106,10 +107,11 @@ window.visOriginData = {
     {
       "action": "appendChild",
       "actionDetails": "SCRIPT",
+      "value": "function fn037994003003124655(obj,_){var __t,\n    __p = stringTrace(''),\n    __j = Array.prototype.join,\n    print = function () {\n  __p = stringTraceAdd(__p, __j.call(arguments, stringTrace('')));\n};\nwith (obj || {}) {\n  __p = stringTraceAdd(__p, stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTraceAdd(stringTrace('\\n\\t\\t\\t<span class=\"todo-count\"><strong>'), stringTraceUseValue((__t = remaining) == null) ? stringTrace('') : __t), stringTrace('</strong> ')), stringTraceUseValue((__t = stringTraceUseValue(stringTraceTripleEqual(remaining, 1)) ? stringTrace('item') : stringTrace('items')) == null) ? stringTrace('') : __t), stringTrace(' left</span>\\n\\t\\t\\t<ul class=\"filters\">\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a class=\"selected\" href=\"#/\">All</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/active\">Active</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t\\t<li>\\n\\t\\t\\t\\t\\t<a href=\"#/completed\">Completed</a>\\n\\t\\t\\t\\t</li>\\n\\t\\t\\t</ul>\\n\\t\\t\\t')));\n  if (completed) {\n    __p = stringTraceAdd(__p, stringTrace('\\n\\t\\t\\t<button class=\"clear-completed\">Clear completed</button>\\n\\t\\t\\t'));\n  }\n  __p = stringTraceAdd(__p, stringTrace('\\n\\t\\t'));\n}\nreturn __p;}\n//# sourceURL=Function037994003003124655.js\n//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInVua25vd24iXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsSUFBSSxHQUFKO0lBQVEsTUFBSSxlQUFaO0lBQWUsTUFBSSxNQUFNLFNBQU4sQ0FBZ0IsSUFBbkM7SUFBd0MsUUFBTSxZQUFVO0FBQUMsNEJBQUssSUFBSSxJQUFKLENBQVMsU0FBVCxFQUFtQixlQUFuQixDQUFMO0FBQTZCLENBQXRGO0FBQ0EsTUFBSyxPQUFLLEVBQVYsRUFBYTtBQUNiLHdGQUFLLHdEQUFMLHNCQUNDLENBQUMsTUFBTSxTQUFQLEtBQXFCLElBRHRCLElBQzJCLGVBRDNCLEdBQzhCLEdBRDlCLEdBRUEseUJBRkEsdUJBR0MsQ0FBQyxpREFBTSxTQUFOLEVBQW9CLENBQXBCLEtBQXdCLG1CQUF4QixHQUFpQyxvQkFBbEMsS0FBOEMsSUFIL0MsSUFHb0QsZUFIcEQsR0FHdUQsR0FIdkQsR0FJQSw0U0FKQTtBQUtDLE1BQUksU0FBSixFQUFlO0FBQ2hCLDhCQUFLLHVGQUFMO0FBQ0U7QUFDRiw0QkFBSyxxQkFBTDtBQUNDO0FBQ0QsT0FBTyxHQUFQIiwiZmlsZSI6InVua25vd24iLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgX190LF9fcD0nJyxfX2o9QXJyYXkucHJvdG90eXBlLmpvaW4scHJpbnQ9ZnVuY3Rpb24oKXtfX3ArPV9fai5jYWxsKGFyZ3VtZW50cywnJyk7fTtcbndpdGgob2JqfHx7fSl7XG5fX3ArPSdcXG5cdFx0XHQ8c3BhbiBjbGFzcz1cInRvZG8tY291bnRcIj48c3Ryb25nPicrXG4oKF9fdD0oIHJlbWFpbmluZyApKT09bnVsbD8nJzpfX3QpK1xuJzwvc3Ryb25nPiAnK1xuKChfX3Q9KCByZW1haW5pbmcgPT09IDEgPyAnaXRlbScgOiAnaXRlbXMnICkpPT1udWxsPycnOl9fdCkrXG4nIGxlZnQ8L3NwYW4+XFxuXHRcdFx0PHVsIGNsYXNzPVwiZmlsdGVyc1wiPlxcblx0XHRcdFx0PGxpPlxcblx0XHRcdFx0XHQ8YSBjbGFzcz1cInNlbGVjdGVkXCIgaHJlZj1cIiMvXCI+QWxsPC9hPlxcblx0XHRcdFx0PC9saT5cXG5cdFx0XHRcdDxsaT5cXG5cdFx0XHRcdFx0PGEgaHJlZj1cIiMvYWN0aXZlXCI+QWN0aXZlPC9hPlxcblx0XHRcdFx0PC9saT5cXG5cdFx0XHRcdDxsaT5cXG5cdFx0XHRcdFx0PGEgaHJlZj1cIiMvY29tcGxldGVkXCI+Q29tcGxldGVkPC9hPlxcblx0XHRcdFx0PC9saT5cXG5cdFx0XHQ8L3VsPlxcblx0XHRcdCc7XG4gaWYgKGNvbXBsZXRlZCkgeyBcbl9fcCs9J1xcblx0XHRcdDxidXR0b24gY2xhc3M9XCJjbGVhci1jb21wbGV0ZWRcIj5DbGVhciBjb21wbGV0ZWQ8L2J1dHRvbj5cXG5cdFx0XHQnO1xuIH0gXG5fX3ArPSdcXG5cdFx0Jztcbn1cbnJldHVybiBfX3A7XG4iXX0=",
       "stack": [
         "Error",
-        "    at HTMLBodyElement.<anonymous> (http://localhost:8000/string-trace.js:225:24)",
-        "    at new window.Function (http://localhost:8000/string-trace.js:302:19)",
+        "    at HTMLBodyElement.<anonymous> (http://localhost:8000/string-trace.js:226:24)",
+        "    at new window.Function (http://localhost:8000/string-trace.js:304:19)",
         "    at Function._.template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1483:20)",
         "    at http://localhost:8000/backbone-todomvc/js/views/app-view.js:19:20",
         "    at http://localhost:8000/backbone-todomvc/js/views/app-view.js:129:3"
@@ -182,62 +184,62 @@ window.visOriginData = {
                           "action": "concat",
                           "inputValues": [
                             {
-                              "action": "string literal",
-                              "inputValues": [
-                                null
-                              ],
-                              "value": "",
-                              "stack": [
-                                "Error",
-                                "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
-                                "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                                "    at fn04139217918607534 (Function04139217918607534.js:2:11)",
-                                "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
-                                "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
-                                "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
-                                "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
-                              ],
-                              "resolvedStack": [
-                                {
-                                  "functionName": "print",
-                                  "fileName": "unknown",
-                                  "lineNumber": 1,
-                                  "columnNumber": 12,
-                                  "nextLine": "with(obj||{}){",
-                                  "line": "var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};"
-                                },
-                                {
-                                  "functionName": "template",
-                                  "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
-                                  "lineNumber": 1461,
-                                  "columnNumber": 20,
-                                  "prevLine": "    var template = function(data) {",
-                                  "nextLine": "    };",
-                                  "line": "      return render.call(this, data, _);"
-                                },
-                                {
-                                  "functionName": "render",
-                                  "fileName": "http://localhost:8000/backbone-todomvc/js/views/app-view-original.js",
-                                  "lineNumber": 59,
-                                  "columnNumber": 27,
-                                  "prevLine": "",
-                                  "nextLine": "\t\t\t\t\tcompleted: completed,",
-                                  "line": "\t\t\t\tthis.$footer.html(this.statsTemplate({"
-                                },
-                                {
-                                  "functionName": "later",
-                                  "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
-                                  "lineNumber": 828,
-                                  "columnNumber": 24,
-                                  "prevLine": "        if (!immediate) {",
-                                  "nextLine": "          if (!timeout) context = args = null;",
-                                  "line": "          result = func.apply(context, args);"
-                                }
-                              ]
-                            },
-                            {
                               "action": "concat",
                               "inputValues": [
+                                {
+                                  "action": "string literal",
+                                  "inputValues": [
+                                    null
+                                  ],
+                                  "value": "",
+                                  "stack": [
+                                    "Error",
+                                    "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
+                                    "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
+                                    "    at fn037994003003124655 (Function037994003003124655.js:2:11)",
+                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
+                                    "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
+                                    "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
+                                    "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
+                                  ],
+                                  "resolvedStack": [
+                                    {
+                                      "functionName": "print",
+                                      "fileName": "unknown",
+                                      "lineNumber": 1,
+                                      "columnNumber": 12,
+                                      "nextLine": "with(obj||{}){",
+                                      "line": "var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};"
+                                    },
+                                    {
+                                      "functionName": "template",
+                                      "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
+                                      "lineNumber": 1461,
+                                      "columnNumber": 20,
+                                      "prevLine": "    var template = function(data) {",
+                                      "nextLine": "    };",
+                                      "line": "      return render.call(this, data, _);"
+                                    },
+                                    {
+                                      "functionName": "render",
+                                      "fileName": "http://localhost:8000/backbone-todomvc/js/views/app-view-original.js",
+                                      "lineNumber": 59,
+                                      "columnNumber": 27,
+                                      "prevLine": "",
+                                      "nextLine": "\t\t\t\t\tcompleted: completed,",
+                                      "line": "\t\t\t\tthis.$footer.html(this.statsTemplate({"
+                                    },
+                                    {
+                                      "functionName": "later",
+                                      "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
+                                      "lineNumber": 828,
+                                      "columnNumber": 24,
+                                      "prevLine": "        if (!immediate) {",
+                                      "nextLine": "          if (!timeout) context = args = null;",
+                                      "line": "          result = func.apply(context, args);"
+                                    }
+                                  ]
+                                },
                                 {
                                   "action": "concat",
                                   "inputValues": [
@@ -248,17 +250,72 @@ window.visOriginData = {
                                           "action": "concat",
                                           "inputValues": [
                                             {
-                                              "action": "string literal",
+                                              "action": "concat",
                                               "inputValues": [
+                                                {
+                                                  "action": "string literal",
+                                                  "inputValues": [
+                                                    null
+                                                  ],
+                                                  "value": "\n\t\t\t<span class=\"todo-count\"><strong>",
+                                                  "stack": [
+                                                    "Error",
+                                                    "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
+                                                    "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
+                                                    "    at fn037994003003124655 (Function037994003003124655.js:8:89)",
+                                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
+                                                    "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
+                                                    "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
+                                                    "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
+                                                  ],
+                                                  "resolvedStack": [
+                                                    {
+                                                      "functionName": "print",
+                                                      "fileName": "unknown",
+                                                      "lineNumber": 3,
+                                                      "columnNumber": 5,
+                                                      "prevLine": "with(obj||{}){",
+                                                      "nextLine": "((__t=( remaining ))==null?'':__t)+",
+                                                      "line": "__p+='\\n\t\t\t<span class=\"todo-count\"><strong>'+"
+                                                    },
+                                                    {
+                                                      "functionName": "template",
+                                                      "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
+                                                      "lineNumber": 1461,
+                                                      "columnNumber": 20,
+                                                      "prevLine": "    var template = function(data) {",
+                                                      "nextLine": "    };",
+                                                      "line": "      return render.call(this, data, _);"
+                                                    },
+                                                    {
+                                                      "functionName": "render",
+                                                      "fileName": "http://localhost:8000/backbone-todomvc/js/views/app-view-original.js",
+                                                      "lineNumber": 59,
+                                                      "columnNumber": 27,
+                                                      "prevLine": "",
+                                                      "nextLine": "\t\t\t\t\tcompleted: completed,",
+                                                      "line": "\t\t\t\tthis.$footer.html(this.statsTemplate({"
+                                                    },
+                                                    {
+                                                      "functionName": "later",
+                                                      "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
+                                                      "lineNumber": 828,
+                                                      "columnNumber": 24,
+                                                      "prevLine": "        if (!immediate) {",
+                                                      "nextLine": "          if (!timeout) context = args = null;",
+                                                      "line": "          result = func.apply(context, args);"
+                                                    }
+                                                  ]
+                                                },
                                                 null
                                               ],
-                                              "value": "\n\t\t\t<span class=\"todo-count\"><strong>",
+                                              "value": "\n\t\t\t<span class=\"todo-count\"><strong>0",
                                               "stack": [
                                                 "Error",
                                                 "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
-                                                "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                                                "    at fn04139217918607534 (Function04139217918607534.js:8:89)",
-                                                "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                                "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
+                                                "    at fn037994003003124655 (Function037994003003124655.js:8:74)",
+                                                "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                                 "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                 "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
                                                 "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
@@ -268,7 +325,7 @@ window.visOriginData = {
                                                   "functionName": "print",
                                                   "fileName": "unknown",
                                                   "lineNumber": 3,
-                                                  "columnNumber": 5,
+                                                  "columnNumber": 0,
                                                   "prevLine": "with(obj||{}){",
                                                   "nextLine": "((__t=( remaining ))==null?'':__t)+",
                                                   "line": "__p+='\\n\t\t\t<span class=\"todo-count\"><strong>'+"
@@ -302,15 +359,69 @@ window.visOriginData = {
                                                 }
                                               ]
                                             },
-                                            null
+                                            {
+                                              "action": "string literal",
+                                              "inputValues": [
+                                                null
+                                              ],
+                                              "value": "</strong> ",
+                                              "stack": [
+                                                "Error",
+                                                "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
+                                                "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
+                                                "    at fn037994003003124655 (Function037994003003124655.js:8:220)",
+                                                "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
+                                                "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
+                                                "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
+                                                "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
+                                              ],
+                                              "resolvedStack": [
+                                                {
+                                                  "functionName": "print",
+                                                  "fileName": "unknown",
+                                                  "lineNumber": 5,
+                                                  "columnNumber": 0,
+                                                  "prevLine": "((__t=( remaining ))==null?'':__t)+",
+                                                  "nextLine": "((__t=( remaining === 1 ? 'item' : 'items' ))==null?'':__t)+",
+                                                  "line": "'</strong> '+"
+                                                },
+                                                {
+                                                  "functionName": "template",
+                                                  "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
+                                                  "lineNumber": 1461,
+                                                  "columnNumber": 20,
+                                                  "prevLine": "    var template = function(data) {",
+                                                  "nextLine": "    };",
+                                                  "line": "      return render.call(this, data, _);"
+                                                },
+                                                {
+                                                  "functionName": "render",
+                                                  "fileName": "http://localhost:8000/backbone-todomvc/js/views/app-view-original.js",
+                                                  "lineNumber": 59,
+                                                  "columnNumber": 27,
+                                                  "prevLine": "",
+                                                  "nextLine": "\t\t\t\t\tcompleted: completed,",
+                                                  "line": "\t\t\t\tthis.$footer.html(this.statsTemplate({"
+                                                },
+                                                {
+                                                  "functionName": "later",
+                                                  "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
+                                                  "lineNumber": 828,
+                                                  "columnNumber": 24,
+                                                  "prevLine": "        if (!immediate) {",
+                                                  "nextLine": "          if (!timeout) context = args = null;",
+                                                  "line": "          result = func.apply(context, args);"
+                                                }
+                                              ]
+                                            }
                                           ],
-                                          "value": "\n\t\t\t<span class=\"todo-count\"><strong>1",
+                                          "value": "\n\t\t\t<span class=\"todo-count\"><strong>0</strong> ",
                                           "stack": [
                                             "Error",
                                             "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                             "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                                            "    at fn04139217918607534 (Function04139217918607534.js:8:74)",
-                                            "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                            "    at fn037994003003124655 (Function037994003003124655.js:8:59)",
+                                            "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                             "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                             "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
                                             "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
@@ -359,13 +470,13 @@ window.visOriginData = {
                                           "inputValues": [
                                             null
                                           ],
-                                          "value": "</strong> ",
+                                          "value": "items",
                                           "stack": [
                                             "Error",
                                             "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                             "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                                            "    at fn04139217918607534 (Function04139217918607534.js:8:220)",
-                                            "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                            "    at fn037994003003124655 (Function037994003003124655.js:8:357)",
+                                            "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                             "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                             "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
                                             "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
@@ -374,11 +485,11 @@ window.visOriginData = {
                                             {
                                               "functionName": "print",
                                               "fileName": "unknown",
-                                              "lineNumber": 5,
-                                              "columnNumber": 0,
-                                              "prevLine": "((__t=( remaining ))==null?'':__t)+",
-                                              "nextLine": "((__t=( remaining === 1 ? 'item' : 'items' ))==null?'':__t)+",
-                                              "line": "'</strong> '+"
+                                              "lineNumber": 6,
+                                              "columnNumber": 35,
+                                              "prevLine": "'</strong> '+",
+                                              "nextLine": "' left</span>\\n\t\t\t<ul class=\"filters\">\\n\t\t\t\t<li>\\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\\n\t\t\t\t</li>\\n\t\t\t\t<li>\\n\t\t\t\t\t<a href=\"#/active\">Active</a>\\n\t\t\t\t</li>\\n\t\t\t\t<li>\\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\\n\t\t\t\t</li>\\n\t\t\t</ul>\\n\t\t\t';",
+                                              "line": "((__t=( remaining === 1 ? 'item' : 'items' ))==null?'':__t)+"
                                             },
                                             {
                                               "functionName": "template",
@@ -410,13 +521,13 @@ window.visOriginData = {
                                           ]
                                         }
                                       ],
-                                      "value": "\n\t\t\t<span class=\"todo-count\"><strong>1</strong> ",
+                                      "value": "\n\t\t\t<span class=\"todo-count\"><strong>0</strong> items",
                                       "stack": [
                                         "Error",
                                         "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                         "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                                        "    at fn04139217918607534 (Function04139217918607534.js:8:59)",
-                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                        "    at fn037994003003124655 (Function037994003003124655.js:8:44)",
+                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                         "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                         "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
                                         "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
@@ -465,13 +576,13 @@ window.visOriginData = {
                                       "inputValues": [
                                         null
                                       ],
-                                      "value": "item",
+                                      "value": " left</span>\n\t\t\t<ul class=\"filters\">\n\t\t\t\t<li>\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/active\">Active</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t",
                                       "stack": [
                                         "Error",
                                         "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                         "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                                        "    at fn04139217918607534 (Function04139217918607534.js:8:335)",
-                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                        "    at fn037994003003124655 (Function037994003003124655.js:8:414)",
+                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                         "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                         "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
                                         "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
@@ -480,11 +591,11 @@ window.visOriginData = {
                                         {
                                           "functionName": "print",
                                           "fileName": "unknown",
-                                          "lineNumber": 6,
-                                          "columnNumber": 26,
-                                          "prevLine": "'</strong> '+",
-                                          "nextLine": "' left</span>\\n\t\t\t<ul class=\"filters\">\\n\t\t\t\t<li>\\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\\n\t\t\t\t</li>\\n\t\t\t\t<li>\\n\t\t\t\t\t<a href=\"#/active\">Active</a>\\n\t\t\t\t</li>\\n\t\t\t\t<li>\\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\\n\t\t\t\t</li>\\n\t\t\t</ul>\\n\t\t\t';",
-                                          "line": "((__t=( remaining === 1 ? 'item' : 'items' ))==null?'':__t)+"
+                                          "lineNumber": 7,
+                                          "columnNumber": 0,
+                                          "prevLine": "((__t=( remaining === 1 ? 'item' : 'items' ))==null?'':__t)+",
+                                          "nextLine": " if (completed) { ",
+                                          "line": "' left</span>\\n\t\t\t<ul class=\"filters\">\\n\t\t\t\t<li>\\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\\n\t\t\t\t</li>\\n\t\t\t\t<li>\\n\t\t\t\t\t<a href=\"#/active\">Active</a>\\n\t\t\t\t</li>\\n\t\t\t\t<li>\\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\\n\t\t\t\t</li>\\n\t\t\t</ul>\\n\t\t\t';"
                                         },
                                         {
                                           "functionName": "template",
@@ -516,13 +627,13 @@ window.visOriginData = {
                                       ]
                                     }
                                   ],
-                                  "value": "\n\t\t\t<span class=\"todo-count\"><strong>1</strong> item",
+                                  "value": "\n\t\t\t<span class=\"todo-count\"><strong>0</strong> items left</span>\n\t\t\t<ul class=\"filters\">\n\t\t\t\t<li>\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/active\">Active</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t",
                                   "stack": [
                                     "Error",
                                     "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                     "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                                    "    at fn04139217918607534 (Function04139217918607534.js:8:44)",
-                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                    "    at fn037994003003124655 (Function037994003003124655.js:8:29)",
+                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                     "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                     "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
                                     "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
@@ -565,70 +676,15 @@ window.visOriginData = {
                                       "line": "          result = func.apply(context, args);"
                                     }
                                   ]
-                                },
-                                {
-                                  "action": "string literal",
-                                  "inputValues": [
-                                    null
-                                  ],
-                                  "value": " left</span>\n\t\t\t<ul class=\"filters\">\n\t\t\t\t<li>\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/active\">Active</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t",
-                                  "stack": [
-                                    "Error",
-                                    "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
-                                    "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                                    "    at fn04139217918607534 (Function04139217918607534.js:8:414)",
-                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
-                                    "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
-                                    "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
-                                    "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
-                                  ],
-                                  "resolvedStack": [
-                                    {
-                                      "functionName": "print",
-                                      "fileName": "unknown",
-                                      "lineNumber": 7,
-                                      "columnNumber": 0,
-                                      "prevLine": "((__t=( remaining === 1 ? 'item' : 'items' ))==null?'':__t)+",
-                                      "nextLine": " if (completed) { ",
-                                      "line": "' left</span>\\n\t\t\t<ul class=\"filters\">\\n\t\t\t\t<li>\\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\\n\t\t\t\t</li>\\n\t\t\t\t<li>\\n\t\t\t\t\t<a href=\"#/active\">Active</a>\\n\t\t\t\t</li>\\n\t\t\t\t<li>\\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\\n\t\t\t\t</li>\\n\t\t\t</ul>\\n\t\t\t';"
-                                    },
-                                    {
-                                      "functionName": "template",
-                                      "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
-                                      "lineNumber": 1461,
-                                      "columnNumber": 20,
-                                      "prevLine": "    var template = function(data) {",
-                                      "nextLine": "    };",
-                                      "line": "      return render.call(this, data, _);"
-                                    },
-                                    {
-                                      "functionName": "render",
-                                      "fileName": "http://localhost:8000/backbone-todomvc/js/views/app-view-original.js",
-                                      "lineNumber": 59,
-                                      "columnNumber": 27,
-                                      "prevLine": "",
-                                      "nextLine": "\t\t\t\t\tcompleted: completed,",
-                                      "line": "\t\t\t\tthis.$footer.html(this.statsTemplate({"
-                                    },
-                                    {
-                                      "functionName": "later",
-                                      "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
-                                      "lineNumber": 828,
-                                      "columnNumber": 24,
-                                      "prevLine": "        if (!immediate) {",
-                                      "nextLine": "          if (!timeout) context = args = null;",
-                                      "line": "          result = func.apply(context, args);"
-                                    }
-                                  ]
                                 }
                               ],
-                              "value": "\n\t\t\t<span class=\"todo-count\"><strong>1</strong> item left</span>\n\t\t\t<ul class=\"filters\">\n\t\t\t\t<li>\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/active\">Active</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t",
+                              "value": "\n\t\t\t<span class=\"todo-count\"><strong>0</strong> items left</span>\n\t\t\t<ul class=\"filters\">\n\t\t\t\t<li>\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/active\">Active</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t",
                               "stack": [
                                 "Error",
                                 "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                 "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                                "    at fn04139217918607534 (Function04139217918607534.js:8:29)",
-                                "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                "    at fn037994003003124655 (Function037994003003124655.js:8:9)",
+                                "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                 "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                 "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
                                 "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
@@ -671,15 +727,70 @@ window.visOriginData = {
                                   "line": "          result = func.apply(context, args);"
                                 }
                               ]
+                            },
+                            {
+                              "action": "string literal",
+                              "inputValues": [
+                                null
+                              ],
+                              "value": "\n\t\t\t<button class=\"clear-completed\">Clear completed</button>\n\t\t\t",
+                              "stack": [
+                                "Error",
+                                "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
+                                "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
+                                "    at fn037994003003124655 (Function037994003003124655.js:10:31)",
+                                "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
+                                "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
+                                "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
+                                "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
+                              ],
+                              "resolvedStack": [
+                                {
+                                  "functionName": "print",
+                                  "fileName": "unknown",
+                                  "lineNumber": 9,
+                                  "columnNumber": 5,
+                                  "prevLine": " if (completed) { ",
+                                  "nextLine": " } ",
+                                  "line": "__p+='\\n\t\t\t<button class=\"clear-completed\">Clear completed</button>\\n\t\t\t';"
+                                },
+                                {
+                                  "functionName": "template",
+                                  "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
+                                  "lineNumber": 1461,
+                                  "columnNumber": 20,
+                                  "prevLine": "    var template = function(data) {",
+                                  "nextLine": "    };",
+                                  "line": "      return render.call(this, data, _);"
+                                },
+                                {
+                                  "functionName": "render",
+                                  "fileName": "http://localhost:8000/backbone-todomvc/js/views/app-view-original.js",
+                                  "lineNumber": 59,
+                                  "columnNumber": 27,
+                                  "prevLine": "",
+                                  "nextLine": "\t\t\t\t\tcompleted: completed,",
+                                  "line": "\t\t\t\tthis.$footer.html(this.statsTemplate({"
+                                },
+                                {
+                                  "functionName": "later",
+                                  "fileName": "http://localhost:8000/backbone-todomvc/modules/underscore/underscore-original.js",
+                                  "lineNumber": 828,
+                                  "columnNumber": 24,
+                                  "prevLine": "        if (!immediate) {",
+                                  "nextLine": "          if (!timeout) context = args = null;",
+                                  "line": "          result = func.apply(context, args);"
+                                }
+                              ]
                             }
                           ],
-                          "value": "\n\t\t\t<span class=\"todo-count\"><strong>1</strong> item left</span>\n\t\t\t<ul class=\"filters\">\n\t\t\t\t<li>\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/active\">Active</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t",
+                          "value": "\n\t\t\t<span class=\"todo-count\"><strong>0</strong> items left</span>\n\t\t\t<ul class=\"filters\">\n\t\t\t\t<li>\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/active\">Active</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t\n\t\t\t<button class=\"clear-completed\">Clear completed</button>\n\t\t\t",
                           "stack": [
                             "Error",
                             "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                             "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                            "    at fn04139217918607534 (Function04139217918607534.js:8:9)",
-                            "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                            "    at fn037994003003124655 (Function037994003003124655.js:10:11)",
+                            "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                             "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                             "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
                             "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
@@ -688,11 +799,11 @@ window.visOriginData = {
                             {
                               "functionName": "print",
                               "fileName": "unknown",
-                              "lineNumber": 3,
+                              "lineNumber": 9,
                               "columnNumber": 0,
-                              "prevLine": "with(obj||{}){",
-                              "nextLine": "((__t=( remaining ))==null?'':__t)+",
-                              "line": "__p+='\\n\t\t\t<span class=\"todo-count\"><strong>'+"
+                              "prevLine": " if (completed) { ",
+                              "nextLine": " } ",
+                              "line": "__p+='\\n\t\t\t<button class=\"clear-completed\">Clear completed</button>\\n\t\t\t';"
                             },
                             {
                               "functionName": "template",
@@ -733,8 +844,8 @@ window.visOriginData = {
                             "Error",
                             "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                             "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                            "    at fn04139217918607534 (Function04139217918607534.js:12:29)",
-                            "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                            "    at fn037994003003124655 (Function037994003003124655.js:12:29)",
+                            "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                             "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                             "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
                             "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
@@ -779,13 +890,13 @@ window.visOriginData = {
                           ]
                         }
                       ],
-                      "value": "\n\t\t\t<span class=\"todo-count\"><strong>1</strong> item left</span>\n\t\t\t<ul class=\"filters\">\n\t\t\t\t<li>\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/active\">Active</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t\n\t\t",
+                      "value": "\n\t\t\t<span class=\"todo-count\"><strong>0</strong> items left</span>\n\t\t\t<ul class=\"filters\">\n\t\t\t\t<li>\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/active\">Active</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t\n\t\t\t<button class=\"clear-completed\">Clear completed</button>\n\t\t\t\n\t\t",
                       "stack": [
                         "Error",
                         "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                         "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                        "    at fn04139217918607534 (Function04139217918607534.js:12:9)",
-                        "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                        "    at fn037994003003124655 (Function037994003003124655.js:12:9)",
+                        "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                         "    at template [as statsTemplate] (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                         "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:28)",
                         "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
@@ -836,7 +947,7 @@ window.visOriginData = {
                       "action": "arg_<$1></$2>"
                     }
                   ],
-                  "value": "\n\t\t\t<span class=\"todo-count\"><strong>1</strong> item left</span>\n\t\t\t<ul class=\"filters\">\n\t\t\t\t<li>\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/active\">Active</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t\n\t\t",
+                  "value": "\n\t\t\t<span class=\"todo-count\"><strong>0</strong> items left</span>\n\t\t\t<ul class=\"filters\">\n\t\t\t\t<li>\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/active\">Active</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t\n\t\t\t<button class=\"clear-completed\">Clear completed</button>\n\t\t\t\n\t\t",
                   "stack": [
                     "Error",
                     "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
@@ -907,6 +1018,7 @@ window.visOriginData = {
                 "    at app.AppView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/app-view.js:60:18)",
                 "    at later (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:851:25)"
               ],
+              "value": "\n\t\t\t<span class=\"todo-count\"><strong>0</strong> items left</span>\n\t\t\t<ul class=\"filters\">\n\t\t\t\t<li>\n\t\t\t\t\t<a class=\"selected\" href=\"#/\">All</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/active\">Active</a>\n\t\t\t\t</li>\n\t\t\t\t<li>\n\t\t\t\t\t<a href=\"#/completed\">Completed</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t\n\t\t\t<button class=\"clear-completed\">Clear completed</button>\n\t\t\t\n\t\t",
               "resolvedStack": [
                 {
                   "functionName": ".<anonymous>",
@@ -1188,6 +1300,7 @@ window.visOriginData = {
                     "    at eventsApi (http://localhost:8000/backbone-todomvc/modules/backbone/backbone.js:164:16)",
                     "    at Events.trigger (http://localhost:8000/backbone-todomvc/modules/backbone/backbone.js:355:5)"
                   ],
+                  "value": "",
                   "resolvedStack": [
                     {
                       "functionName": ".<anonymous>",
@@ -1285,8 +1398,8 @@ window.visOriginData = {
                                     "Error",
                                     "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                     "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                                    "    at fn02895829895029145 (Function02895829895029145.js:2:11)",
-                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                    "    at fn003228219497422802 (Function003228219497422802.js:2:11)",
+                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                     "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                     "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                     "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -1387,8 +1500,8 @@ window.visOriginData = {
                                                             "Error",
                                                             "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                                             "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                                                            "    at fn02895829895029145 (Function02895829895029145.js:8:119)",
-                                                            "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                                            "    at fn003228219497422802 (Function003228219497422802.js:8:119)",
+                                                            "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                                             "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                             "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                                             "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -1467,13 +1580,13 @@ window.visOriginData = {
                                                           "inputValues": [
                                                             null
                                                           ],
-                                                          "value": "",
+                                                          "value": "checked",
                                                           "stack": [
                                                             "Error",
                                                             "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                                             "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                                                            "    at fn02895829895029145 (Function02895829895029145.js:8:295)",
-                                                            "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                                            "    at fn003228219497422802 (Function003228219497422802.js:8:270)",
+                                                            "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                                             "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                             "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                                             "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -1486,7 +1599,7 @@ window.visOriginData = {
                                                               "functionName": "print",
                                                               "fileName": "unknown",
                                                               "lineNumber": 4,
-                                                              "columnNumber": 32,
+                                                              "columnNumber": 20,
                                                               "prevLine": "__p+='\\n\t\t\t<div class=\"view\">\\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" '+",
                                                               "nextLine": "'>\\n\t\t\t\t<label>'+",
                                                               "line": "((__t=( completed ? 'checked' : '' ))==null?'':__t)+"
@@ -1548,13 +1661,13 @@ window.visOriginData = {
                                                           ]
                                                         }
                                                       ],
-                                                      "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" ",
+                                                      "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" checked",
                                                       "stack": [
                                                         "Error",
                                                         "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                                         "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                                                        "    at fn02895829895029145 (Function02895829895029145.js:8:104)",
-                                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                                        "    at fn003228219497422802 (Function003228219497422802.js:8:104)",
+                                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                                         "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                         "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                                         "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -1638,8 +1751,8 @@ window.visOriginData = {
                                                         "Error",
                                                         "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                                         "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                                                        "    at fn02895829895029145 (Function02895829895029145.js:8:347)",
-                                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                                        "    at fn003228219497422802 (Function003228219497422802.js:8:347)",
+                                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                                         "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                         "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                                         "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -1714,13 +1827,13 @@ window.visOriginData = {
                                                       ]
                                                     }
                                                   ],
-                                                  "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" >\n\t\t\t\t<label>",
+                                                  "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" checked>\n\t\t\t\t<label>",
                                                   "stack": [
                                                     "Error",
                                                     "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                                     "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                                                    "    at fn02895829895029145 (Function02895829895029145.js:8:89)",
-                                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                                    "    at fn003228219497422802 (Function003228219497422802.js:8:89)",
+                                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                                     "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                     "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                                     "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -1808,8 +1921,8 @@ window.visOriginData = {
                                                         "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                                         "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
                                                         "    at Function.escape (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1391:87)",
-                                                        "    at fn02895829895029145 (Function02895829895029145.js:8:448)",
-                                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                                        "    at fn003228219497422802 (Function003228219497422802.js:8:448)",
+                                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                                         "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                         "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                                         "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -1890,12 +2003,12 @@ window.visOriginData = {
                                                           "inputValues": [
                                                             null
                                                           ],
-                                                          "value": "{\"title\":\"Bake cake\",\"order\":1,\"completed\":false,\"id\":\"5b2a057a-53f1-1784-1fc5-869c03fe160c\"}",
+                                                          "value": "{\"title\":\"Bake cake\",\"order\":1,\"completed\":true,\"id\":\"5b2a057a-53f1-1784-1fc5-869c03fe160c\"}",
                                                           "actionDetails": "todos-backbone-5b2a057a-53f1-1784-1fc5-869c03fe160c",
                                                           "stack": [
                                                             "Error",
                                                             "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
-                                                            "    at Storage.localStorage.getItem (http://localhost:8000/string-trace.js:267:21)",
+                                                            "    at Storage.localStorage.getItem (http://localhost:8000/string-trace.js:269:21)",
                                                             "    at extend.findAll (http://localhost:8000/backbone-todomvc/modules/backbone.localstorage/backbone.localStorage.js:119:64)",
                                                             "    at Backbone.LocalStorage.sync.window.Store.sync.Backbone.localSync (http://localhost:8000/backbone-todomvc/modules/backbone.localstorage/backbone.localStorage.js:184:89)",
                                                             "    at Backbone.sync (http://localhost:8000/backbone-todomvc/modules/backbone.localstorage/backbone.localStorage.js:245:51)",
@@ -1986,7 +2099,7 @@ window.visOriginData = {
                                                       "stack": [
                                                         "Error",
                                                         "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
-                                                        "    at Object.JSON.parse (http://localhost:8000/string-trace.js:248:25)",
+                                                        "    at Object.JSON.parse (http://localhost:8000/string-trace.js:250:25)",
                                                         "    at Object.serializer.serializer.deserialize (http://localhost:8000/backbone-todomvc/modules/backbone.localstorage/backbone.localStorage.js:71:29)",
                                                         "    at extend.findAll (http://localhost:8000/backbone-todomvc/modules/backbone.localstorage/backbone.localStorage.js:119:32)",
                                                         "    at Backbone.LocalStorage.sync.window.Store.sync.Backbone.localSync (http://localhost:8000/backbone-todomvc/modules/backbone.localstorage/backbone.localStorage.js:184:89)",
@@ -2078,8 +2191,8 @@ window.visOriginData = {
                                                     "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                                     "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
                                                     "    at Function.escape (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1391:72)",
-                                                    "    at fn02895829895029145 (Function02895829895029145.js:8:448)",
-                                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                                    "    at fn003228219497422802 (Function003228219497422802.js:8:448)",
+                                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                                     "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                     "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                                     "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -2153,13 +2266,13 @@ window.visOriginData = {
                                                   ]
                                                 }
                                               ],
-                                              "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" >\n\t\t\t\t<label>Bake cake",
+                                              "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" checked>\n\t\t\t\t<label>Bake cake",
                                               "stack": [
                                                 "Error",
                                                 "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                                 "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                                                "    at fn02895829895029145 (Function02895829895029145.js:8:74)",
-                                                "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                                "    at fn003228219497422802 (Function003228219497422802.js:8:74)",
+                                                "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                                 "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                 "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                                 "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -2243,8 +2356,8 @@ window.visOriginData = {
                                                 "Error",
                                                 "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                                 "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                                                "    at fn02895829895029145 (Function02895829895029145.js:8:462)",
-                                                "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                                "    at fn003228219497422802 (Function003228219497422802.js:8:462)",
+                                                "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                                 "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                 "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                                 "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -2319,13 +2432,13 @@ window.visOriginData = {
                                               ]
                                             }
                                           ],
-                                          "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" >\n\t\t\t\t<label>Bake cake</label>\n\t\t\t\t<button class=\"destroy\"></button>\n\t\t\t</div>\n\t\t\t<input class=\"edit\" value=\"",
+                                          "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" checked>\n\t\t\t\t<label>Bake cake</label>\n\t\t\t\t<button class=\"destroy\"></button>\n\t\t\t</div>\n\t\t\t<input class=\"edit\" value=\"",
                                           "stack": [
                                             "Error",
                                             "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                             "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                                            "    at fn02895829895029145 (Function02895829895029145.js:8:59)",
-                                            "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                            "    at fn003228219497422802 (Function003228219497422802.js:8:59)",
+                                            "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                             "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                             "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                             "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -2413,8 +2526,8 @@ window.visOriginData = {
                                                 "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                                 "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
                                                 "    at Function.escape (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1391:87)",
-                                                "    at fn02895829895029145 (Function02895829895029145.js:8:645)",
-                                                "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                                "    at fn003228219497422802 (Function003228219497422802.js:8:645)",
+                                                "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                                 "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                                 "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                                 "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -2495,12 +2608,12 @@ window.visOriginData = {
                                                   "inputValues": [
                                                     null
                                                   ],
-                                                  "value": "{\"title\":\"Bake cake\",\"order\":1,\"completed\":false,\"id\":\"5b2a057a-53f1-1784-1fc5-869c03fe160c\"}",
+                                                  "value": "{\"title\":\"Bake cake\",\"order\":1,\"completed\":true,\"id\":\"5b2a057a-53f1-1784-1fc5-869c03fe160c\"}",
                                                   "actionDetails": "todos-backbone-5b2a057a-53f1-1784-1fc5-869c03fe160c",
                                                   "stack": [
                                                     "Error",
                                                     "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
-                                                    "    at Storage.localStorage.getItem (http://localhost:8000/string-trace.js:267:21)",
+                                                    "    at Storage.localStorage.getItem (http://localhost:8000/string-trace.js:269:21)",
                                                     "    at extend.findAll (http://localhost:8000/backbone-todomvc/modules/backbone.localstorage/backbone.localStorage.js:119:64)",
                                                     "    at Backbone.LocalStorage.sync.window.Store.sync.Backbone.localSync (http://localhost:8000/backbone-todomvc/modules/backbone.localstorage/backbone.localStorage.js:184:89)",
                                                     "    at Backbone.sync (http://localhost:8000/backbone-todomvc/modules/backbone.localstorage/backbone.localStorage.js:245:51)",
@@ -2591,7 +2704,7 @@ window.visOriginData = {
                                               "stack": [
                                                 "Error",
                                                 "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
-                                                "    at Object.JSON.parse (http://localhost:8000/string-trace.js:248:25)",
+                                                "    at Object.JSON.parse (http://localhost:8000/string-trace.js:250:25)",
                                                 "    at Object.serializer.serializer.deserialize (http://localhost:8000/backbone-todomvc/modules/backbone.localstorage/backbone.localStorage.js:71:29)",
                                                 "    at extend.findAll (http://localhost:8000/backbone-todomvc/modules/backbone.localstorage/backbone.localStorage.js:119:32)",
                                                 "    at Backbone.LocalStorage.sync.window.Store.sync.Backbone.localSync (http://localhost:8000/backbone-todomvc/modules/backbone.localstorage/backbone.localStorage.js:184:89)",
@@ -2683,8 +2796,8 @@ window.visOriginData = {
                                             "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                             "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
                                             "    at Function.escape (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1391:72)",
-                                            "    at fn02895829895029145 (Function02895829895029145.js:8:645)",
-                                            "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                            "    at fn003228219497422802 (Function003228219497422802.js:8:645)",
+                                            "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                             "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                             "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                             "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -2758,13 +2871,13 @@ window.visOriginData = {
                                           ]
                                         }
                                       ],
-                                      "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" >\n\t\t\t\t<label>Bake cake</label>\n\t\t\t\t<button class=\"destroy\"></button>\n\t\t\t</div>\n\t\t\t<input class=\"edit\" value=\"Bake cake",
+                                      "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" checked>\n\t\t\t\t<label>Bake cake</label>\n\t\t\t\t<button class=\"destroy\"></button>\n\t\t\t</div>\n\t\t\t<input class=\"edit\" value=\"Bake cake",
                                       "stack": [
                                         "Error",
                                         "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                         "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                                        "    at fn02895829895029145 (Function02895829895029145.js:8:44)",
-                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                        "    at fn003228219497422802 (Function003228219497422802.js:8:44)",
+                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                         "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                         "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                         "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -2848,8 +2961,8 @@ window.visOriginData = {
                                         "Error",
                                         "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                         "    at stringTrace (http://localhost:8000/string-trace.js:133:17)",
-                                        "    at fn02895829895029145 (Function02895829895029145.js:8:659)",
-                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                        "    at fn003228219497422802 (Function003228219497422802.js:8:659)",
+                                        "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                         "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                         "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                         "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -2924,13 +3037,13 @@ window.visOriginData = {
                                       ]
                                     }
                                   ],
-                                  "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" >\n\t\t\t\t<label>Bake cake</label>\n\t\t\t\t<button class=\"destroy\"></button>\n\t\t\t</div>\n\t\t\t<input class=\"edit\" value=\"Bake cake\">\n\t\t",
+                                  "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" checked>\n\t\t\t\t<label>Bake cake</label>\n\t\t\t\t<button class=\"destroy\"></button>\n\t\t\t</div>\n\t\t\t<input class=\"edit\" value=\"Bake cake\">\n\t\t",
                                   "stack": [
                                     "Error",
                                     "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                     "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                                    "    at fn02895829895029145 (Function02895829895029145.js:8:29)",
-                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                    "    at fn003228219497422802 (Function003228219497422802.js:8:29)",
+                                    "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                     "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                     "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                     "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -3005,13 +3118,13 @@ window.visOriginData = {
                                   ]
                                 }
                               ],
-                              "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" >\n\t\t\t\t<label>Bake cake</label>\n\t\t\t\t<button class=\"destroy\"></button>\n\t\t\t</div>\n\t\t\t<input class=\"edit\" value=\"Bake cake\">\n\t\t",
+                              "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" checked>\n\t\t\t\t<label>Bake cake</label>\n\t\t\t\t<button class=\"destroy\"></button>\n\t\t\t</div>\n\t\t\t<input class=\"edit\" value=\"Bake cake\">\n\t\t",
                               "stack": [
                                 "Error",
                                 "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
                                 "    at stringTraceAdd (http://localhost:8000/string-trace.js:170:17)",
-                                "    at fn02895829895029145 (Function02895829895029145.js:8:9)",
-                                "    at .<anonymous> (http://localhost:8000/string-trace.js:308:31)",
+                                "    at fn003228219497422802 (Function003228219497422802.js:8:9)",
+                                "    at .<anonymous> (http://localhost:8000/string-trace.js:310:31)",
                                 "    at template (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:1490:21)",
                                 "    at app.TodoView.Backbone.View.extend.render (http://localhost:8000/backbone-todomvc/js/views/todo-view.js:52:23)",
                                 "    at app.AppView.Backbone.View.extend.addOne (http://localhost:8000/backbone-todomvc/js/views/app-view.js:78:27)",
@@ -3092,7 +3205,7 @@ window.visOriginData = {
                               "action": "arg_<$1></$2>"
                             }
                           ],
-                          "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" >\n\t\t\t\t<label>Bake cake</label>\n\t\t\t\t<button class=\"destroy\"></button>\n\t\t\t</div>\n\t\t\t<input class=\"edit\" value=\"Bake cake\">\n\t\t",
+                          "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" checked>\n\t\t\t\t<label>Bake cake</label>\n\t\t\t\t<button class=\"destroy\"></button>\n\t\t\t</div>\n\t\t\t<input class=\"edit\" value=\"Bake cake\">\n\t\t",
                           "stack": [
                             "Error",
                             "    at makeOrigin (http://localhost:8000/string-trace.js:119:16)",
@@ -3196,6 +3309,7 @@ window.visOriginData = {
                         "    at Function._.each._.forEach (http://localhost:8000/backbone-todomvc/modules/underscore/underscore.js:159:9)",
                         "    at .each (http://localhost:8000/backbone-todomvc/modules/backbone/backbone.js:91:27)"
                       ],
+                      "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" checked>\n\t\t\t\t<label>Bake cake</label>\n\t\t\t\t<button class=\"destroy\"></button>\n\t\t\t</div>\n\t\t\t<input class=\"edit\" value=\"Bake cake\">\n\t\t",
                       "resolvedStack": [
                         {
                           "functionName": ".<anonymous>",
@@ -3273,9 +3387,10 @@ window.visOriginData = {
                     }
                   ],
                   "inputValues": [],
+                  "value": "\n\t\t\t<div class=\"view\">\n\t\t\t\t<input class=\"toggle\" type=\"checkbox\" checked=\"\">\n\t\t\t\t<label>Bake cake</label>\n\t\t\t\t<button class=\"destroy\"></button>\n\t\t\t</div>\n\t\t\t<input class=\"edit\" value=\"Bake cake\">\n\t\t",
                   "stack": [
                     "Error",
-                    "    at HTMLUListElement.<anonymous> (http://localhost:8000/string-trace.js:225:24)",
+                    "    at HTMLUListElement.<anonymous> (http://localhost:8000/string-trace.js:226:24)",
                     "    at HTMLUListElement.<anonymous> (http://localhost:8000/backbone-todomvc/modules/jquery/dist/jquery.js:898:679)",
                     "    at jQuery.fn.extend.domManip (http://localhost:8000/backbone-todomvc/modules/jquery/dist/jquery.js:912:69)",
                     "    at jQuery.fn.extend.append (http://localhost:8000/backbone-todomvc/modules/jquery/dist/jquery.js:898:466)",

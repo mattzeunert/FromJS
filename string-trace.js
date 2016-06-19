@@ -195,7 +195,8 @@ function stringTraceSetInnerHTML(el, innerHTML){
         {
             action: "assign innerHTML",
             stack: Error().stack.split("\n"),
-            inputValues: [innerHTML]
+            inputValues: [innerHTML],
+            value: innerHTML.toString()
         }
     ]
 
@@ -223,7 +224,8 @@ Object.defineProperty(Node.prototype, "appendChild", {
             this.__elOrigin.push({
                 action: "appendChild",
                 stack: new Error().stack.split("\n"),
-                child: appendedEl
+                child: appendedEl,
+                value: appendedEl.innerHTML
             })
 
             /* = makeOrigin({

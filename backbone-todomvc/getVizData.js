@@ -95,7 +95,8 @@ function jsonifyElOriginOfEl(el, callback){
                    action: elOrigin.action,
                    actionDetails: elOrigin.child.tagName,
                    children: ssss.children,
-                   inputValues: ssss.inputValues
+                   inputValues: ssss.inputValues,
+                   value: elOrigin.value
                }
                 if (elOrigin.stack){
                     resolveStackArray(elOrigin.stack, function(resolvedStack){
@@ -124,6 +125,7 @@ function jsonifyElOriginOfEl(el, callback){
                             inputValues: inputV,
                             action: "assign innerHTML",
                             stack: elOrigin.stack,
+                            value: elOrigin.value,
                             resolvedStack: resolvedStack
                         })
                         callback()
