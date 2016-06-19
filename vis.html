@@ -2,6 +2,9 @@
 <script src="node_modules/d3/d3.js"></script>
 <meta charset="utf-8" />
 
+<div id="info"></div>
+
+
 <style>
 
 .node {
@@ -14,10 +17,42 @@
   stroke-opacity: .6;
 }
 
+.stack-frame {
+    overflow: hidden;
+
+}
+.stack-frame__file-and-function {
+    float: left;
+    width: 30%;
+}
+.stack-frame__source {
+    float: left;
+    width: 70%;
+}
+
 </style>
 
 <div id="viz"></div>
 <script>
+
+function showInfo(info){
+    var html = "<b>" + info.action + "</b>"
+    if (info.resolvedStack) {
+        info.resolvedStack.forEach(function(frame){
+            var fileNameParts = frame.fileName.split("/")
+            var fileName = fileNameParts[fileNameParts.length - 1]
+            html += `<div class="stack-frame">
+                <div class="stack-frame__file-and-function">
+                    ${fileName} / ${frame.functionName}
+                </div>
+                <div class="stack-frame__source">
+                    ${frame.line.replace(/\</g, "&lt;").replace(/\>/g, "&gt;")}
+                </div>
+            </div>`;
+        })
+    }
+    document.getElementById("info").innerHTML = html
+}
 var width = 1050,
     height = 950;
 
@@ -122,6 +157,7 @@ var graph = {
             }
         })
         .on("mouseenter", function(d){
+            showInfo(d.originObj);
             console.log(d)
         })
 
