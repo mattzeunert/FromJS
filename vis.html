@@ -61,8 +61,8 @@ var width = 1050,
     height = 950;
 
 var force = d3.layout.force()
-    .charge(-250)
-    .linkDistance(50)
+    .charge(-300)
+    .linkDistance(60)
     .size([width, height]);
 
 var svg = d3.select("body").append("svg")
@@ -149,16 +149,16 @@ var graph = {
       node.append("text")
         .style("font-size", 12)
         .text(function(d) {
+            var text = d.action;
             if (d.action === "string literal"){
                 var truncatedValue = d.value
                 if (truncatedValue.length > 25) {
                     truncatedValue = truncatedValue.substr(0, 25) + "..."
                 }
-                return '"' + truncatedValue + '"'
+                text = '"' + truncatedValue + '"'
             }
-            else {
-                return d.action
-            }
+            text = text.replace(/\n/g, "\\n")
+            return text;
         })
         .on("mouseenter", function(d){
             var currentSelection = document.querySelector(".selected")
