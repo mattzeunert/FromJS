@@ -174,7 +174,7 @@ var graph = {
       node.append("text")
         .style("font-size", 12)
         .text(function(d) {
-            var text = d.action + (d.elIdentifier ? " " + d.elIdentifier : "");
+            var text = d.action + (d.actionDetails ? " " + d.actionDetails : "");
             if (d.action === "string literal"){
                 var truncatedValue = d.value
                 if (truncatedValue.length > 25) {

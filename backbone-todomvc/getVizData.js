@@ -93,7 +93,7 @@ function jsonifyElOriginOfEl(el, callback){
             jsonifyElOriginOfEl(elOrigin.child, function(ssss){
                 var data = {
                    action: elOrigin.action,
-                   elIdentifier: elOrigin.child.tagName,
+                   actionDetails: elOrigin.child.tagName,
                    children: ssss.children,
                    inputValues: ssss.inputValues
                }
@@ -149,6 +149,7 @@ function jsonifyElOriginOfEl(el, callback){
 }
 
 setTimeout(function(){
+    window.JSON.parse = nativeJSONParse
     jsonifyElOriginOfEl(document.body, function(oooo){
 
         window.oooo = oooo;

@@ -15,6 +15,9 @@ function processElementsAvailableOnInitialLoad(){
 }
 processElementsAvailableOnInitialLoad();
 
+function isArray(val){
+    return val.length !== undefined && val.map !== undefined;
+}
 
 function StringTraceString(options){
     this.origin = options.origin
@@ -49,6 +52,23 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                         })
                     }
                 )
+            } else if (isArray(newVal)) {
+                return newVal.map(function(val){
+                    if (typeof val === "string"){
+                        return makeTraceObject(
+                            {
+                                value: val,
+                                origin: makeOrigin({
+                                    value: val,
+                                    inputValues: [oldValue].concat(argumentOrigins),
+                                    action: propertyName + " call",
+                                })
+                            }
+                        )
+                    } else {
+                        return val
+                    }
+                })
             } else {
                 return newVal
             }
@@ -95,6 +115,7 @@ function makeOrigin(opts){
         action: opts.action,
         inputValues: inputValues,
         value: opts.value.toString(),
+        actionDetails: opts.actionDetails,
         stack: new Error().stack.split("\n")
     }
 }
@@ -215,6 +236,45 @@ Object.defineProperty(Node.prototype, "appendChild", {
         }
     }
 })
+
+var nativeJSONParse = JSON.parse
+JSON.parse = function(str){
+    var parsedVal = nativeJSONParse.apply(this, arguments)
+    for (var key in parsedVal) {
+        if (typeof parsedVal[key] !== "string") continue
+        parsedVal[key] =  makeTraceObject(
+            {
+                value: parsedVal[key],
+                origin: makeOrigin({
+                    value: parsedVal[key],
+                    inputValues: [str],
+                    action: "JSON.parse",
+                    actionDetails: key
+                })
+            }
+        )
+    }
+
+    return parsedVal
+}
+
+var nativeLocalStorageGetItem = localStorage.getItem
+localStorage.getItem = function(key){
+    var val = nativeLocalStorageGetItem.apply(this, arguments)
+    if (typeof val === "string"){
+        val = makeTraceObject({
+            value: val,
+            origin: makeOrigin({
+                action: "localStorage.getItem",
+                actionDetails: key,
+                value: val,
+                inputValues: [{value: key}]
+            }),
+        })
+    }
+    // debugger;
+    return val;
+}
 
 var nativeExec = RegExp.prototype.exec;
 RegExp.prototype.exec = function(){
