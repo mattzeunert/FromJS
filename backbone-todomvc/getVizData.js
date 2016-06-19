@@ -88,13 +88,24 @@ function jsonifyElOriginOfEl(el, callback){
     async.each(el.__elOrigin, function(elOrigin, callback){
         if (elOrigin.child){
             jsonifyElOriginOfEl(elOrigin.child, function(ssss){
-                 children.push({
-                    action: elOrigin.action,
-                    elIdentifier: elOrigin.child.tagName,
-                    children: ssss.children,
-                    inputValues: ssss.inputValues
-                })
-                callback()
+                var data = {
+                   action: elOrigin.action,
+                   elIdentifier: elOrigin.child.tagName,
+                   children: ssss.children,
+                   inputValues: ssss.inputValues
+               }
+                if (elOrigin.stack){
+                    resolveStackArray(elOrigin.stack, function(resolvedStack){
+                        children.push(data);
+                        data.stack = elOrigin.stack;
+                        data.resolvedStack = resolvedStack;
+                        callback()
+                    })
+                } else {
+                    children.push(data)
+                   callback()
+                }
+
             })
         } else if (elOrigin.inputValues){
             async.map(elOrigin.inputValues, function(iv, callback){

@@ -200,6 +200,7 @@ Object.defineProperty(Node.prototype, "appendChild", {
             }
             this.__elOrigin.push({
                 action: "appendChild",
+                stack: new Error().stack.split("\n"),
                 child: appendedEl
             })
 

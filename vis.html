@@ -41,6 +41,7 @@
 
 function showInfo(info){
     var html = "<b>" + info.action + "</b>"
+    console.log("html is", html)
     if (info.resolvedStack) {
         info.resolvedStack.forEach(function(frame){
             var fileNameParts = frame.fileName.split("/")
@@ -55,6 +56,7 @@ function showInfo(info){
             </div>`;
         })
     }
+    console.log("set html")
     document.getElementById("info").innerHTML = html
 }
 var width = 1050,
