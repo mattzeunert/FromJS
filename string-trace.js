@@ -256,6 +256,7 @@ Object.defineProperty(Node.prototype, "appendChild", {
     }
 })
 
+
 var nativeJSONParse = JSON.parse
 JSON.parse = function(str){
     var parsedVal = nativeJSONParse.apply(this, arguments)

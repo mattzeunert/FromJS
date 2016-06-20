@@ -52,6 +52,16 @@ blockquote {
 <div id="viz"></div>
 <script>
 
+function nodeIsHTMLElement(node){
+    return node.action === "initial html" || node.action === "content from initial html" ||
+        node.action === "createElement" || node.action === "assign innerHTML" ||
+        node.action === "appendChild"
+}
+
+function nodeIsValueSource(node){
+    return node.action === "string literal" || node.action === "localStorage.getItem"
+}
+
 function showInfo(info){
     var html = "<u>" + info.action + " </u><br/>"
     html += "<blockquote>" + escapeAngleBrackets(info.value ? info.value : "") + "</blockquote>"
@@ -210,7 +220,16 @@ var graph = {
         .attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; })
         .attr("fill", function(d){
-            return d.index === 0 ? "red" : "black"
+            if (d.index === 0) {
+                return "red"
+            }
+            if (nodeIsHTMLElement(d)){
+                return "blue"
+            }
+            if (nodeIsValueSource(d)){
+                return "orange"
+            }
+            return "black"
         })
 
 
