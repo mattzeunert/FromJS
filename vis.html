@@ -64,7 +64,17 @@ function nodeIsValueSource(node){
 
 function showInfo(info){
     var html = "<u>" + info.action + " </u><br/>"
-    html += "<blockquote>" + escapeAngleBrackets(info.value ? info.value : "") + "</blockquote>"
+
+
+    var value = info.value;
+    if (value === undefined) {
+        value = "(no value available)"
+    }
+    if (value === "") {
+        value = "(empty string)"
+    }
+    html += "<blockquote>" + escapeAngleBrackets(value) + "</blockquote>"
+
     console.log("html is", html)
     var hasHighlighted = false
     if (info.resolvedStack) {

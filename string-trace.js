@@ -5,6 +5,7 @@ function processElementsAvailableOnInitialLoad(){
     els.forEach(function(el){
         el.__elOrigin = [];
         var initialHtmlOrigin = {
+            value: el.innerHTML,
             action: "content from initial html",
             inputValues: []
         }

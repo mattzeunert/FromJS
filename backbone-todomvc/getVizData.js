@@ -104,21 +104,15 @@ function resolveStackIfAvailable(data, callback){
     }
 }
 
-function resolveInputValue(value, callback){
-    if (isElement(value)){
-        jsonifyElOriginOfEl(value, function(jsonifiedEl){
-            var data = {
-                actionDetails: value.tagName,
-                stack: value.__elOriginCreation.stack,
-                action: value.__elOriginCreation.action,
-                inputValues: jsonifiedEl.inputValues,
-           }
-           resolveStackIfAvailable(data, function(err, data){
+function resolveInputValue(inputValue, callback){
+    if (isElement(inputValue)){
+        jsonifyElOriginOfEl(inputValue, function(jsonifiedEl){
+           resolveStackIfAvailable(jsonifiedEl, function(err, data){
                callback(null, data)
            })
         })
     } else {
-        var origin = _.clone(value.origin);
+        var origin = _.clone(inputValue.origin);
         resolveStacksInOrigin(origin, function(){
             callback(null, origin)
         })
@@ -143,10 +137,14 @@ function jsonifyElOriginOfEl(el, callback){
     }
 
     async.map(el.__elOrigin, convertElOrigin, function(err, convertedElOrigins){
-        callback({
-            action: el.tagName,
+        var data = {
+            actionDetails: el.tagName,
+            stack: el.__elOriginCreation.stack,
+            action: el.__elOriginCreation.action,
+            value: el.__elOriginCreation.value,
             inputValues: convertedElOrigins
-        })
+        }
+        callback(data)
     })
 }
 
