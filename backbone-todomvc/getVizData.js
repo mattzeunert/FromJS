@@ -78,73 +78,77 @@ function resolveStacksInOrigin(origin, callback){
 
 }
 
+function isElement(value){
+    return value instanceof Element
+}
 
 function jsonifyElOriginOfEl(el, callback){
     console.log("jsonify for ", el)
     if (!el.__elOrigin){
-        console.log("no elorigin for", el)
+        console.warn("no elorigin for", el)
         callback({action: "no el origin"});
         return;
     }
-    var children = [];
+
     var inputValues = []
     async.each(el.__elOrigin, function(elOrigin, callback){
-        if (elOrigin.child){
-            jsonifyElOriginOfEl(elOrigin.child, function(ssss){
-                var data = {
-                   action: elOrigin.action,
-                   actionDetails: elOrigin.child.tagName,
-                   children: ssss.children,
-                   inputValues: ssss.inputValues,
-                   value: elOrigin.value
-               }
-                if (elOrigin.stack){
-                    resolveStackArray(elOrigin.stack, function(resolvedStack){
-                        children.push(data);
-                        data.stack = elOrigin.stack;
-                        data.resolvedStack = resolvedStack;
-                        callback()
-                    })
-                } else {
-                    children.push(data)
-                   callback()
-                }
-
-            })
-        } else if (elOrigin.inputValues){
-            async.map(elOrigin.inputValues, function(iv, callback){
+        if (!elOrigin.inputValues){
+            throw "should be possible any more"
+        }
+        async.map(elOrigin.inputValues, function(iv, callback){
+            if (isElement(iv)){
+                jsonifyElOriginOfEl(iv, function(ssss){
+                    var data = {
+                       action: elOrigin.action,
+                       actionDetails: iv.tagName,
+                       children: ssss.children,
+                       inputValues: ssss.inputValues,
+                       value: elOrigin.value
+                   }
+                    if (elOrigin.stack){
+                        resolveStackArray(elOrigin.stack, function(resolvedStack){
+                            data.stack = elOrigin.stack;
+                            data.resolvedStack = resolvedStack;
+                            callback(null, data)
+                        })
+                    } else {
+                       callback(null, data)
+                    }
+                })
+            } else {
                 var origin = _.clone(iv.origin);
                 resolveStacksInOrigin(origin, function(){
                     callback(null, origin)
                 })
-
-            }, function(err, inputV){
-                if (elOrigin.action === "assign innerHTML") {
-                    resolveStackArray(elOrigin.stack, function(resolvedStack){
-                        children.push({
-                            inputValues: inputV,
-                            action: "assign innerHTML",
-                            stack: elOrigin.stack,
-                            value: elOrigin.value,
-                            resolvedStack: resolvedStack
-                        })
-                        callback()
+            }
+        }, function(err, inputV){
+            el
+            if (elOrigin.action === "assign innerHTML") {
+                resolveStackArray(elOrigin.stack, function(resolvedStack){
+                    inputValues.push({
+                        inputValues: inputV,
+                        action: "assign innerHTML",
+                        stack: elOrigin.stack,
+                        value: elOrigin.value,
+                        resolvedStack: resolvedStack
                     })
-
-                }
-                else {
-                    console.log("other input value thing....", elOrigin.action)
-                    inputValues = inputV
                     callback()
+                })
+
+            }
+            else {
+                if (inputV.length !==1 ){
+                    throw "hmm what might this be, we probably should show more than the first item"
                 }
+                inputValues.push(inputV[0])
+                callback()
+            }
 
 
-            })
+        })
 
-        }
     }, function(){
         callback({
-            children: children,
             inputValues: inputValues
         })
     })
@@ -152,9 +156,11 @@ function jsonifyElOriginOfEl(el, callback){
 
 setTimeout(function(){
     window.JSON.parse = nativeJSONParse
+    console.time("Get visData")
     jsonifyElOriginOfEl(document.body, function(oooo){
 
         window.oooo = oooo;
+        console.timeEnd("Get visData")
         localStorage.setItem("visData", JSON.stringify(oooo))
         console.log("got oooo, saved to localstorage")
     })

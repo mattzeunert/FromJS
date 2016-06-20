@@ -7,7 +7,7 @@ function processElementsAvailableOnInitialLoad(){
         var children = Array.prototype.slice.apply(el.children)
         children.forEach(function(child){
             el.__elOrigin.push({
-                child: child,
+                inputValues: [child],
                 action: "initial html"
             })
         })
@@ -107,17 +107,34 @@ function makeTraceObject(options){
     });
 }
 
-function makeOrigin(opts){
+function Origin(opts){
     var inputValues = opts.inputValues.map(function(inputValue){
+        if (inputValue instanceof Origin){
+            return inputValue
+        }
+        if (inputValue instanceof Element){
+            return inputValue
+        }
+        if (typeof inputValue === "number") {
+            return new Origin({
+                action: "Untracked number",
+                inputValues: [],
+                value: inputValue
+            })
+        }
         return inputValue.origin
     })
-    return {
-        action: opts.action,
-        inputValues: inputValues,
-        value: opts.value.toString(),
-        actionDetails: opts.actionDetails,
-        stack: new Error().stack.split("\n")
-    }
+
+    this.action = opts.action;
+    this.inputValues = inputValues;
+    this.value = opts.value.toString();
+    this.actionDetails = opts.actionDetails;
+    this.stack = new Error().stack.split("\n");
+}
+
+function makeOrigin(opts){
+    return new Origin(opts)
+
 }
 
 function stringTraceUseValue(a){
@@ -133,7 +150,7 @@ function stringTrace(value){
         origin: makeOrigin({
             action: "string literal",
             value: value,
-            inputValues: [{value: value}]
+            inputValues: []
         }),
     })
 };
@@ -204,12 +221,12 @@ function stringTraceSetInnerHTML(el, innerHTML){
 }
 
 var originalCreateElement = document.createElement
-document.createElement = function(arg){
-    var el = originalCreateElement.call(this, arg)
+document.createElement = function(tagName){
+    var el = originalCreateElement.call(this, tagName)
     el.__origin = makeOrigin({
         action: "createElement",
-        inputValues: [{origin: arg}],
-        value: arg.toString()
+        inputValues: [tagName],
+        value: el.outerHTML
     })
     return el;
 }
@@ -221,18 +238,12 @@ Object.defineProperty(Node.prototype, "appendChild", {
             if (!this.__elOrigin) {
                 this.__elOrigin = []
             }
-            this.__elOrigin.push({
+            this.__elOrigin.push(makeOrigin({
                 action: "appendChild",
                 stack: new Error().stack.split("\n"),
-                child: appendedEl,
+                inputValues: [appendedEl],
                 value: appendedEl.innerHTML
-            })
-
-            /* = makeOrigin({
-                action: "appendChild",
-                inputValues: (this.__origin ? [{origin: this.__origin}] : []).concat([{origin: appendedEl.__origin}]),
-                value: this.__origin ? this.__origin.value : "" + appendedEl.innerHTML
-            })*/
+            }))
 
             return appendChildPropertyDescriptor.value.apply(this, arguments)
         }
@@ -270,7 +281,7 @@ localStorage.getItem = function(key){
                 action: "localStorage.getItem",
                 actionDetails: key,
                 value: val,
-                inputValues: [{value: key}]
+                inputValues: [key]
             }),
         })
     }
