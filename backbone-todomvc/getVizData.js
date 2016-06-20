@@ -1,4 +1,5 @@
 function resolveStackArray(stackArray, callback){
+    var unfilteredStackArray = stackArray
     stackArray = stackArray.filter(function(frame){
         if (frame.indexOf("string-trace.js") !== -1) {
             return false;
@@ -6,8 +7,17 @@ function resolveStackArray(stackArray, callback){
         if (frame.indexOf("(native)") !== -1) {
             return false;
         }
+        if (frame === "Error"){
+            return false;
+        }
         return true
     })
+
+    var allCodeIsPartOfStringTrace = stackArray.length === 0;
+    if (allCodeIsPartOfStringTrace){
+        callback(null, unfilteredStackArray)
+        return;
+    }
 
     var str = stackArray.join("\n")
 
@@ -98,10 +108,10 @@ function resolveInputValue(value, callback){
     if (isElement(value)){
         jsonifyElOriginOfEl(value, function(jsonifiedEl){
             var data = {
-            //    action: elOrigin.action,
-               actionDetails: value.tagName,
-               inputValues: jsonifiedEl.inputValues,
-            //    value: elOrigin.value
+                actionDetails: value.tagName,
+                stack: value.__elOriginCreation.stack,
+                action: value.__elOriginCreation.action,
+                inputValues: jsonifiedEl.inputValues,
            }
            resolveStackIfAvailable(data, function(err, data){
                callback(null, data)

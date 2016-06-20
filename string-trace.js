@@ -13,6 +13,12 @@ function processElementsAvailableOnInitialLoad(){
             initialHtmlOrigin.inputValues.push(child)
         })
         el.__elOrigin.push(initialHtmlOrigin)
+
+        el.__elOriginCreation = makeOrigin({
+            action: "initial html",
+            inputValues: [],
+            value: el.outerHTML
+        })
     })
 }
 processElementsAvailableOnInitialLoad();
@@ -223,7 +229,7 @@ function stringTraceSetInnerHTML(el, innerHTML){
 var originalCreateElement = document.createElement
 document.createElement = function(tagName){
     var el = originalCreateElement.call(this, tagName)
-    el.__origin = makeOrigin({
+    el.__elOriginCreation = makeOrigin({
         action: "createElement",
         inputValues: [tagName],
         value: el.outerHTML
