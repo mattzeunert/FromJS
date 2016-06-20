@@ -135,7 +135,14 @@ function jsonifyElOriginOfEl(el, callback){
                 })
 
             }
-            else {
+            else if (elOrigin.action === "initial html") {
+                inputValues.push({
+                    action: elOrigin.action,
+                    actionDetails: elOrigin.actionDetails,
+                    inputValues: inputV
+                })
+                callback()
+            } else {
                 inputValues.push({
                     action: elOrigin.action,
                     inputValues: inputV
