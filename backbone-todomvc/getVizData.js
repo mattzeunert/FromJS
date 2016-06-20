@@ -94,10 +94,37 @@ function resolveStackIfAvailable(data, callback){
     }
 }
 
-function OriginTreeItem(){
-
+function resolveInputValue(value, callback){
+    if (isElement(value)){
+        jsonifyElOriginOfEl(value, function(jsonifiedEl){
+            var data = {
+            //    action: elOrigin.action,
+               actionDetails: value.tagName,
+               inputValues: jsonifiedEl.inputValues,
+            //    value: elOrigin.value
+           }
+           resolveStackIfAvailable(data, function(err, data){
+               callback(null, data)
+           })
+        })
+    } else {
+        var origin = _.clone(value.origin);
+        resolveStacksInOrigin(origin, function(){
+            callback(null, origin)
+        })
+    }
 }
 
+function convertElOrigin(elOrigin, callback){
+    async.map(elOrigin.inputValues, resolveInputValue,  function(err, resolvedInputValues){
+        elOrigin = _.clone(elOrigin)
+        elOrigin.inputValues = resolvedInputValues;
+
+        resolveStackIfAvailable(elOrigin, function(err, elOrigin){
+            callback(null, elOrigin)
+        })
+    })
+}
 function jsonifyElOriginOfEl(el, callback){
     if (!el.__elOrigin){
         console.warn("no elorigin for", el)
@@ -105,62 +132,10 @@ function jsonifyElOriginOfEl(el, callback){
         return;
     }
 
-    var inputValues = []
-    async.each(el.__elOrigin, function(elOrigin, callback){
-        async.map(elOrigin.inputValues, function(value, callback){
-            if (isElement(value)){
-                jsonifyElOriginOfEl(value, function(jsonifiedEl){
-                    console.log("JSONIFIED", value, jsonifiedEl)
-                    var data = {
-                       action: elOrigin.action,
-                       actionDetails: value.tagName,
-                       inputValues: jsonifiedEl.inputValues,
-                       value: elOrigin.value
-                   }
-                   resolveStackIfAvailable(data, function(err, data){
-                       callback(null, data)
-                   })
-                })
-            } else {
-                var origin = _.clone(value.origin);
-                resolveStacksInOrigin(origin, function(){
-                    callback(null, origin)
-                })
-            }
-        }, function(err, inputV){
-            if (elOrigin.action === "assign innerHTML") {
-                resolveStackArray(elOrigin.stack, function(resolvedStack){
-                    inputValues.push({
-                        inputValues: inputV,
-                        action: "assign innerHTML",
-                        stack: elOrigin.stack,
-                        value: elOrigin.value,
-                        resolvedStack: resolvedStack
-                    })
-                    callback()
-                })
-            }
-            else if (elOrigin.action === "initial html") {
-                inputValues.push({
-                    action: elOrigin.action,
-                    actionDetails: elOrigin.actionDetails,
-                    inputValues: inputV
-                })
-                callback()
-            } else {
-                inputValues.push({
-                    action: elOrigin.action,
-                    inputValues: inputV
-                })
-                callback()
-            }
-
-
-        })
-
-    }, function(){
+    async.map(el.__elOrigin, convertElOrigin, function(err, convertedElOrigins){
         callback({
-            inputValues: inputValues
+            action: el.tagName,
+            inputValues: convertedElOrigins
         })
     })
 }
