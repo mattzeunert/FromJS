@@ -4,13 +4,15 @@ function processElementsAvailableOnInitialLoad(){
     els = Array.prototype.slice.apply(els)
     els.forEach(function(el){
         el.__elOrigin = [];
+        var initialHtmlOrigin = {
+            action: "initial html",
+            inputValues: []
+        }
         var children = Array.prototype.slice.apply(el.children)
         children.forEach(function(child){
-            el.__elOrigin.push({
-                inputValues: [child],
-                action: "initial html"
-            })
+            initialHtmlOrigin.inputValues.push(child)
         })
+        el.__elOrigin.push(initialHtmlOrigin)
     })
 }
 processElementsAvailableOnInitialLoad();

@@ -136,10 +136,10 @@ function jsonifyElOriginOfEl(el, callback){
 
             }
             else {
-                if (inputV.length !==1 ){
-                    throw "hmm what might this be, we probably should show more than the first item"
-                }
-                inputValues.push(inputV[0])
+                inputValues.push({
+                    action: elOrigin.action,
+                    inputValues: inputV
+                })
                 callback()
             }
 
