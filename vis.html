@@ -82,7 +82,7 @@ function showInfo(info){
 
             html += `<div class="stack-frame ${highlightClass} ${isLibraryClass}">
                 <div class="stack-frame__file-and-function">
-                    ${fileName} / ${frame.functionName}
+                    ${fileName}:${frame.lineNumber} / ${frame.functionName}
                 </div>
                 <div class="stack-frame__source ">
                     ${line}

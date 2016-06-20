@@ -5,7 +5,7 @@ function processElementsAvailableOnInitialLoad(){
     els.forEach(function(el){
         el.__elOrigin = [];
         var initialHtmlOrigin = {
-            action: "initial html",
+            action: "content from initial html",
             inputValues: []
         }
         var children = Array.prototype.slice.apply(el.children)
