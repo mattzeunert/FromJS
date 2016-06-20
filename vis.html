@@ -113,7 +113,8 @@ var svg = d3.select("body").append("svg")
 var nodes= [];
 var links = [];
 
-processOriginObject(window.visOriginData)
+// processOriginObject(window.visOriginData)
+processOriginObject(JSON.parse(localStorage.getItem("visData")))
 function processOriginObject(origin){
     var index = nodes.length;
     origin.index = index;

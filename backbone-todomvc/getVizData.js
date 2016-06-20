@@ -155,6 +155,7 @@ setTimeout(function(){
     jsonifyElOriginOfEl(document.body, function(oooo){
 
         window.oooo = oooo;
-        console.log("got oooo")
+        localStorage.setItem("visData", JSON.stringify(oooo))
+        console.log("got oooo, saved to localstorage")
     })
-}, 5000)
+}, 2000)
