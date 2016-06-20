@@ -82,6 +82,22 @@ function isElement(value){
     return value instanceof Element
 }
 
+function resolveStackIfAvailable(data, callback){
+    if (data.stack){
+        resolveStackArray(data.stack, function(resolvedStack){
+            data = _.clone(data);
+            data.resolvedStack = resolvedStack;
+            callback(null, data)
+        })
+    } else {
+       callback(null, data)
+    }
+}
+
+function OriginTreeItem(){
+
+}
+
 function jsonifyElOriginOfEl(el, callback){
     if (!el.__elOrigin){
         console.warn("no elorigin for", el)
@@ -91,37 +107,27 @@ function jsonifyElOriginOfEl(el, callback){
 
     var inputValues = []
     async.each(el.__elOrigin, function(elOrigin, callback){
-        if (!elOrigin.inputValues){
-            throw "should be possible any more"
-        }
-        async.map(elOrigin.inputValues, function(iv, callback){
-            if (isElement(iv)){
-                jsonifyElOriginOfEl(iv, function(ssss){
+        async.map(elOrigin.inputValues, function(value, callback){
+            if (isElement(value)){
+                jsonifyElOriginOfEl(value, function(jsonifiedEl){
+                    console.log("JSONIFIED", value, jsonifiedEl)
                     var data = {
                        action: elOrigin.action,
-                       actionDetails: iv.tagName,
-                       children: ssss.children,
-                       inputValues: ssss.inputValues,
+                       actionDetails: value.tagName,
+                       inputValues: jsonifiedEl.inputValues,
                        value: elOrigin.value
                    }
-                    if (elOrigin.stack){
-                        resolveStackArray(elOrigin.stack, function(resolvedStack){
-                            data.stack = elOrigin.stack;
-                            data.resolvedStack = resolvedStack;
-                            callback(null, data)
-                        })
-                    } else {
+                   resolveStackIfAvailable(data, function(err, data){
                        callback(null, data)
-                    }
+                   })
                 })
             } else {
-                var origin = _.clone(iv.origin);
+                var origin = _.clone(value.origin);
                 resolveStacksInOrigin(origin, function(){
                     callback(null, origin)
                 })
             }
         }, function(err, inputV){
-            el
             if (elOrigin.action === "assign innerHTML") {
                 resolveStackArray(elOrigin.stack, function(resolvedStack){
                     inputValues.push({
@@ -133,7 +139,6 @@ function jsonifyElOriginOfEl(el, callback){
                     })
                     callback()
                 })
-
             }
             else if (elOrigin.action === "initial html") {
                 inputValues.push({

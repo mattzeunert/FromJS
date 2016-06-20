@@ -74,8 +74,6 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
             } else {
                 return newVal
             }
-
-
         }
     }
 })
