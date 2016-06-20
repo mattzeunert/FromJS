@@ -83,7 +83,6 @@ function isElement(value){
 }
 
 function jsonifyElOriginOfEl(el, callback){
-    console.log("jsonify for ", el)
     if (!el.__elOrigin){
         console.warn("no elorigin for", el)
         callback({action: "no el origin"});
