@@ -106,10 +106,8 @@ function resolveStackIfAvailable(data, callback){
 
 function resolveInputValue(inputValue, callback){
     if (isElement(inputValue)){
-        jsonifyElOriginOfEl(inputValue, function(jsonifiedEl){
-           resolveStackIfAvailable(jsonifiedEl, function(err, data){
-               callback(null, data)
-           })
+        getElementOriginData(inputValue, function(data){
+            callback(null, data)
         })
     } else {
         var origin = _.clone(inputValue.origin);
@@ -129,7 +127,7 @@ function convertElOrigin(elOrigin, callback){
         })
     })
 }
-function jsonifyElOriginOfEl(el, callback){
+function getElementOriginData(el, callback){
     if (!el.__elOrigin){
         console.warn("no elorigin for", el)
         callback({action: "no el origin"});
@@ -144,14 +142,16 @@ function jsonifyElOriginOfEl(el, callback){
             value: el.__elOriginCreation.value,
             inputValues: convertedElOrigins
         }
-        callback(data)
+        resolveStackIfAvailable(data, function(err, data){
+            callback(data)
+        })
     })
 }
 
 setTimeout(function(){
     window.JSON.parse = nativeJSONParse
     console.time("Get visData")
-    jsonifyElOriginOfEl(document.body, function(oooo){
+    getElementOriginData(document.body, function(oooo){
 
         window.oooo = oooo;
         console.timeEnd("Get visData")
