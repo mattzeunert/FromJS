@@ -22,7 +22,7 @@ module.exports = function processJavaScriptCode(code, options){
         if (options && options.filename){
             comment += "\n//# sourceURL=" + options.filename
         }
-        console.log(res.map)
+        res.map.sourcesContent = [code]
         comment +=  "\n//# sourceMappingURL=data:application/json;base64," + btoa(JSON.stringify(res.map))
         return comment;
     }
