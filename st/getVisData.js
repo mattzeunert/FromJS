@@ -142,7 +142,7 @@ function getElementOriginData(el, callback){
             actionDetails: el.tagName,
             stack: undefined,
             action: "Element",
-            value: el.innerHTML,
+            value: el.outerHTML,
             inputValues: convertedElOrigins.concat(el.__elOriginCreation)
         }
         resolveStackIfAvailable(data, function(err, data){

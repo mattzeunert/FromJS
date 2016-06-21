@@ -255,7 +255,7 @@ Object.defineProperty(Node.prototype, "appendChild", {
                 action: "appendChild",
                 stack: new Error().stack.split("\n"),
                 inputValues: [appendedEl],
-                value: appendedEl.innerHTML
+                value: appendedEl.outerHTML
             }))
 
             return appendChildPropertyDescriptor.value.apply(this, arguments)
