@@ -157,6 +157,45 @@ function escapeAngleBrackets(str){
     return str.replace(/\</g, "&lt;").replace(/\>/g, "&gt;")
 }
 
+function ValueMap(){
+    this.charIndex = 0;
+    this.items = [];
+}
+ValueMap.prototype.append = function(originObject){
+    var newCharIndex = this.charIndex + originObject.value.length
+    this.items.push({
+        originObject: originObject,
+        fromCharIndex: this.charIndex,
+        toCharIndex: newCharIndex
+    })
+    this.charIndex = newCharIndex
+}
+ValueMap.prototype.getItemAt = function(charIndex){
+    var matchingItems = this.items.filter(function(o){
+        return o.fromCharIndex <= charIndex && o.toCharIndex >= charIndex
+    })
+    var matchingItem
+    if (matchingItems.length > 1 && matchingItems[0].originObject.value === "") {
+        // "" can't ever meaningfully be the source of a visible string
+        matchingItem = matchingItems[1]
+    }
+    else {
+        matchingItem = matchingItems[0]
+    }
+
+    var itemsBeforeMatch = this.items.slice(0, this.items.indexOf(matchingItem));
+    var charCountBeforeMatch = 0;
+    itemsBeforeMatch.forEach(function(item){
+        charCountBeforeMatch += item.originObject.value.length;
+    })
+
+    var originObject = matchingItem.originObject
+
+    return {
+        originObject: originObject,
+        characterIndex: charIndex - charCountBeforeMatch
+    }
+}
 
 var nodes= [];
 var links = [];
@@ -182,45 +221,7 @@ function goUp(step){
         }
     }
     if (step.originObject.action === "concat") {
-        function ValueMap(){
-            this.charIndex = 0;
-            this.items = [];
-        }
-        ValueMap.prototype.append = function(originObject){
-            var newCharIndex = this.charIndex + originObject.value.length
-            this.items.push({
-                originObject: originObject,
-                fromCharIndex: this.charIndex,
-                toCharIndex: newCharIndex
-            })
-            this.charIndex = newCharIndex
-        }
-        ValueMap.prototype.getItemAt = function(charIndex){
-            var matchingItems = this.items.filter(function(o){
-                return o.fromCharIndex <= charIndex && o.toCharIndex >= charIndex
-            })
-            var matchingItem
-            if (matchingItems.length > 1 && matchingItems[0].originObject.value === "") {
-                // "" can't ever meaningfully be the source of a visible string
-                matchingItem = matchingItems[1]
-            }
-            else {
-                matchingItem = matchingItems[0]
-            }
 
-            var itemsBeforeMatch = this.items.slice(0, this.items.indexOf(matchingItem));
-            var charCountBeforeMatch = 0;
-            itemsBeforeMatch.forEach(function(item){
-                charCountBeforeMatch += item.originObject.value.length;
-            })
-
-            var originObject = matchingItem.originObject
-
-            return {
-                originObject: originObject,
-                characterIndex: charIndex - charCountBeforeMatch
-            }
-        }
 
         var valueMap = new ValueMap()
         valueMap.append(step.originObject.inputValues[0])
