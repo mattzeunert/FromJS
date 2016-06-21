@@ -103,7 +103,7 @@ function resolveStackIfAvailable(data, callback){
     }
 }
 
-function resolveInputValue(inputValue, callback){
+function resolveElOriginInputValue(inputValue, callback){
     if (isElement(inputValue)){
         getElementOriginData(inputValue, function(data){
             callback(null, data)
@@ -127,7 +127,15 @@ function resolveInputValue(inputValue, callback){
 function convertElOrigin(elOrigin, callback){
     elOrigin.value = elOrigin.getValue();
 
-    async.map(elOrigin.inputValues, resolveInputValue,  function(err, resolvedInputValues){
+    var inputValues = elOrigin.inputValues.filter(function(origin){
+        if (origin === undefined) {
+            console.log("this ins't great but, i  think can happen if an expect arg isn't there e.g. calling just doucment.createElement()")
+            return false;
+        }
+        return true;
+    })
+
+    async.map(inputValues, resolveElOriginInputValue,  function(err, resolvedInputValues){
         elOrigin = _.clone(elOrigin)
         elOrigin.inputValues = resolvedInputValues;
 
