@@ -1,9 +1,0 @@
-function onload() {
-    var templ = _.template(stringTrace("Hello <%= name %>"));
-    var html = templ({ name: stringTrace("John") });
-    var el = document.createElement(stringTrace("div"));
-    stringTraceSetInnerHTML(el, html);
-    document.body.appendChild(el);
-}
-
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInNpbXBsZS1vcmlnaW5hbC5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxTQUFTLE1BQU0sR0FBRTtBQUNiLFFBQUksS0FBSyxHQUFHLENBQUMsQ0FBQyxRQUFRLENBQUMsZ0NBQW1CLENBQUMsQ0FBQTtBQUMzQyxRQUFJLElBQUksR0FBRyxLQUFLLENBQUMsRUFBQyxJQUFJLEVBQUUsbUJBQU0sRUFBQyxDQUFDLENBQUE7QUFDaEMsUUFBSSxFQUFFLEdBQUcsUUFBUSxDQUFDLGFBQWEsQ0FBQyxrQkFBSyxDQUFDLENBQUE7QUFDdEMsNEJBQUEsRUFBRSxFQUFhLElBQUksRUFBQztBQUNwQixZQUFRLENBQUMsSUFBSSxDQUFDLFdBQVcsQ0FBQyxFQUFFLENBQUMsQ0FBQTtDQUNoQyIsImZpbGUiOiJzaW1wbGUuanMiLCJzb3VyY2VzQ29udGVudCI6WyJmdW5jdGlvbiBvbmxvYWQoKXtcbiAgICB2YXIgdGVtcGwgPSBfLnRlbXBsYXRlKFwiSGVsbG8gPCU9IG5hbWUgJT5cIilcbiAgICB2YXIgaHRtbCA9IHRlbXBsKHtuYW1lOiBcIkpvaG5cIn0pXG4gICAgdmFyIGVsID0gZG9jdW1lbnQuY3JlYXRlRWxlbWVudChcImRpdlwiKVxuICAgIGVsLmlubmVySFRNTCA9IGh0bWw7XG4gICAgZG9jdW1lbnQuYm9keS5hcHBlbmRDaGlsZChlbClcbn1cbiJdfQ==
