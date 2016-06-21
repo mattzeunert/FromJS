@@ -109,7 +109,15 @@ function resolveInputValue(inputValue, callback){
             callback(null, data)
         })
     } else {
-        var origin = _.clone(inputValue.origin);
+        var origin
+        if (inputValue.origin){
+            // i never experienced this branch in the wild, i don't think it makes sense to have it
+            origin = _.clone(inputValue.origin);
+            console.log("A", inputValue)
+        } else {
+            console.log("B")
+            origin = _.clone(inputValue);
+        }
         resolveStacksInOrigin(origin, function(){
             callback(null, origin)
         })
@@ -140,12 +148,17 @@ function getElementOriginData(el, callback){
         elOrigins = []
     }
     async.map(elOrigins, convertElOrigin, function(err, convertedElOrigins){
+        var inputValues = []
+        if (el.__elOriginCreation) {
+            inputValues.push(el.__elOriginCreation)
+        }
+        inputValues = inputValues.concat(convertedElOrigins)
         var data = {
             actionDetails: el.tagName,
             stack: undefined,
             action: "Element",
             value: el.outerHTML,
-            inputValues: convertedElOrigins.concat(el.__elOriginCreation)
+            inputValues: inputValues
         }
         resolveStackIfAvailable(data, function(err, data){
             callback(data)

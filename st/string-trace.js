@@ -231,7 +231,7 @@ function stringTraceSetInnerHTML(el, innerHTML){
     el.__elOrigin = [
         makeOrigin({
             action: "assign innerHTML",
-            inputValues: [{value: innerHTML.toString(), origin: innerHTML.origin}],
+            inputValues: [innerHTML],
             value: innerHTML.toString()
         })
     ]
