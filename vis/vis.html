@@ -225,11 +225,14 @@ function whereDoesCharComeFrom(originObject, characterIndex){
     return steps
 }
 function goUp(step){
+    // just pushes the value further up, without changing anything (prob means this action didn't modify the value)
+    var forwardingObject ={
+        originObject: step.originObject.inputValues[0],
+        characterIndex: step.characterIndex
+    }
+
     if (step.originObject.inputValues.length === 1 && step.originObject.inputValues[0].value === step.originObject.value) {
-        return {
-            originObject: step.originObject.inputValues[0],
-            characterIndex: step.characterIndex
-        }
+        return forwardingObject
     }
     if (step.originObject.action === "concat") {
         var valueMap = new ValueMap()
@@ -254,13 +257,20 @@ function goUp(step){
             if (inputValue.action === "appendChild"){
                 valueMap.append(inputValue)
             }
-            console.warn("unhandled input value in elment item", inputValue)
+            if (inputValue.action === "assign innerHTML"){
+                valueMap.append(inputValue)
+            }
+            throw "unhandled input value in elment item"
+
         })
         if (createElement) {
             valueMap.appendString("</" + createElement.inputValues[0].value + ">", createElement)
         }
 
         return valueMap.getItemAt(step.characterIndex)
+    }
+    if (step.originObject.action === "createElement") {
+        return forwardingObject
     }
     console.log("not handling step", step)
     return {}
