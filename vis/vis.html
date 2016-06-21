@@ -77,7 +77,6 @@ function showInfo(info){
     }
     html += "<blockquote>" + escapeAngleBrackets(value) + "</blockquote>"
 
-    console.log("html is", html)
     var hasHighlighted = false
     if (info.resolvedStack) {
         info.resolvedStack.forEach(function(frame){
@@ -116,7 +115,6 @@ function showInfo(info){
             </div>`;
         })
     }
-    console.log("set html")
     document.getElementById("info").innerHTML = html
 }
 
@@ -142,11 +140,61 @@ function whereDoesCharComeFrom(originObject, characterIndex){
     return steps
 }
 function goUp(step){
-    var nextStepUp = {
-        originObject: step.originObject.inputValues[0],
-        characterIndex: 0
+    if (step.originObject.inputValues.length === 1 && step.originObject.inputValues[0].value === step.originObject.value) {
+        return {
+            originObject: step.originObject.inputValues[0],
+            characterIndex: step.characterIndex
+        }
     }
-    return nextStepUp
+    if (step.originObject.action === "concat") {
+        function ValueMap(){
+            this.charIndex = 0;
+            this.items = [];
+        }
+        ValueMap.prototype.append = function(originObject){
+            var newCharIndex = this.charIndex + originObject.value.length
+            this.items.push({
+                originObject: originObject,
+                fromCharIndex: this.charIndex,
+                toCharIndex: newCharIndex
+            })
+            this.charIndex = newCharIndex
+        }
+        ValueMap.prototype.getItemAt = function(charIndex){
+            var matchingItems = this.items.filter(function(o){
+                return o.fromCharIndex <= charIndex && o.toCharIndex >= charIndex
+            })
+            var matchingItem
+            if (matchingItems.length > 1 && matchingItems[0].originObject.value === "") {
+                // "" can't ever meaningfully be the source of a visible string
+                matchingItem = matchingItems[1]
+            }
+            else {
+                matchingItem = matchingItems[0]
+            }
+
+            var itemsBeforeMatch = this.items.slice(0, this.items.indexOf(matchingItem));
+            var charCountBeforeMatch = 0;
+            itemsBeforeMatch.forEach(function(item){
+                charCountBeforeMatch += item.originObject.value.length;
+            })
+
+            var originObject = matchingItem.originObject
+
+            return {
+                originObject: originObject,
+                characterIndex: charIndex - charCountBeforeMatch
+            }
+        }
+
+        var valueMap = new ValueMap()
+        valueMap.append(step.originObject.inputValues[0])
+        valueMap.append(step.originObject.inputValues[1])
+
+        return valueMap.getItemAt(step.characterIndex)
+    }
+    console.log("not handling step", step)
+    return {}
 }
 
 
@@ -156,6 +204,8 @@ processOriginObject(JSON.parse(localStorage.getItem("visData")))
 function processOriginObject(origin){
     var index = nodes.length;
     origin.index = index;
+
+    origin.isInCurrentPath = false
     nodes.push(origin)
 
     if (origin.inputValues) {
@@ -256,15 +306,16 @@ window.onload = function onload(){
                 console.log(d)
             })
             .on("click", function(d){
-                var charOrigin = whereDoesCharComeFrom(d, 0)
+                nodes = []
+                links = []
+                processOriginObject(d)
+
+                var charOrigin = whereDoesCharComeFrom(d, window.index)
                 charOrigin.forEach(function(o){
                     if (!o.originObject)return
                     o.originObject.isInCurrentPath = true;
                 })
 
-                nodes = []
-                links = []
-                processOriginObject(d)
                 document.querySelector("svg").remove()
                 onload()
 
