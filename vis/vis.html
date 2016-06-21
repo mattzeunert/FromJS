@@ -177,7 +177,7 @@ ValueMap.prototype.appendString = function(str, originObject){
 }
 ValueMap.prototype.getItemAt = function(charIndex){
     var matchingItems = this.items.filter(function(o){
-        return o.fromCharIndex <= charIndex && o.toCharIndex >= charIndex
+        return o.fromCharIndex <= charIndex && o.toCharIndex > charIndex
     })
     if (matchingItems.length === 0) {throw "no matches :/"}
     var matchingItem
