@@ -19,7 +19,10 @@
 				</p>
 		</section>
 
-        <script src="simple.js"></script>
+
+		<script src="dontprocess/string-trace.js"></script>
+		<script src="modules/underscore/underscore-original.js"></script>
+        <script src="simple-original.js"></script>
 		<script type="text/template" id="item-template">
 			<div class="view">
 				<input class="toggle" type="checkbox" <%= completed ? 'checked' : '' %>>
@@ -28,21 +31,16 @@
 			</div>
 			<input class="edit" value="<%- title %>">
 		</script>
-		<script src="../compile-built.js"></script>
-		<script src="../string-trace.js"></script>
-		<script src="modules/todomvc-common/base.js"></script>
-		<script src="modules/jquery/dist/jquery.js"></script>
-		<script src="modules/underscore/underscore.js"></script>
-		<script src="modules/backbone/backbone.js"></script>
-		<script src="modules/backbone.localstorage/backbone.localStorage.js"></script>
 
-		<script src="source-map.js"></script>
-		<script src="stackframe.js"></script>
-		<script src="stacktrace-gps.min.js"></script>
-		<script src="error-stack-parser.min.js"></script>
-		<script src="test.js"></script>
-		<script src="async.js"></script>
-		<script src="getVizData.js"></script>
+		<script src="dontprocess/compile-built.js"></script>
+
+		<script src="dontprocess/source-map.js"></script>
+		<script src="dontprocess/stackframe.js"></script>
+		<script src="dontprocess/stacktrace-gps.min.js"></script>
+		<script src="dontprocess/error-stack-parser.min.js"></script>
+		<script src="dontprocess/test.js"></script>
+		<script src="dontprocess/async.js"></script>
+		<script src="dontprocess/getVizData.js"></script>
 
 	</body>
 </html>
