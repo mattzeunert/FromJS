@@ -160,13 +160,10 @@ function processOriginObject(origin){
 
 
 window.onload = function onload(){
-    var width = 1050,
-        height = 950;
 
     var force = d3.layout.force()
         .charge(-200)
         .linkDistance(40)
-        .size([width, height]);
 
     var svg = d3.select("body").append("svg")
 
@@ -222,6 +219,7 @@ window.onload = function onload(){
             })
             .on("mouseenter", function(d){
                 var currentSelection = document.querySelector(".selected")
+                window.lastHover = d
                 if (currentSelection) {
                     currentSelection.classList.remove("selected")
                 }
@@ -230,6 +228,13 @@ window.onload = function onload(){
 
                 showInfo(d);
                 console.log(d)
+            })
+            .on("click", function(d){
+                nodes = []
+                links = []
+                processOriginObject(d)
+                document.querySelector("svg").remove()
+                onload()
             })
 
 
