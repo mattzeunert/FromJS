@@ -6,7 +6,7 @@ module.exports = {
   },
   output: {
     path: "./",
-    filename: 'compile-built.js'
+    filename: 'backbone-todomvc/dontprocess/compile-built.js'
 },
 module: {
     loaders:[

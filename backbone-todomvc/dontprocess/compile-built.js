@@ -51,24 +51,11 @@
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var babel = __webpack_require__(2)
-	var Plugin = __webpack_require__(583)
-	var babylon = __webpack_require__(352)
+	var processJavaScriptCode = __webpack_require__(1191)
 
-	window.stringTraceCompile = function(code){
-	    const ast = babylon.parse(code, {
-	        strict: false,
-	        allowReturnOutsideFunction: true
-	    });
-	    var res = babel.transformFromAst(ast, code, {
-	        sourceMap: true,
-	        plugins: [
-	            Plugin,
-	        ]
-	    });
 
-	    return res
-	}
+
+	window.stringTraceCompile = processJavaScriptCode;
 
 
 /***/ },
@@ -103113,6 +103100,30 @@
 	}
 
 	function JSXEmptyExpression() {}
+
+/***/ },
+/* 1191 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var babel = __webpack_require__(2)
+	var Plugin = __webpack_require__(583)
+	var babylon = __webpack_require__(352)
+
+	module.exports = function processJavaScriptCode(code){
+	    const ast = babylon.parse(code, {
+	        strict: false,
+	        allowReturnOutsideFunction: true
+	    });
+	    var res = babel.transformFromAst(ast, code, {
+	        sourceMap: true,
+	        plugins: [
+	            Plugin,
+	        ]
+	    });
+
+	    return res
+	}
+
 
 /***/ }
 /******/ ]);
