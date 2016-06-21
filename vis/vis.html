@@ -14,6 +14,10 @@ blockquote {
     margin: 0
 }
 
+.value-blockquote a:hover {
+    color: lime;
+}
+
 .selected {
     stroke: green;
 }
@@ -65,8 +69,13 @@ function nodeIsValueSource(node){
 }
 
 function showInfo(info){
-    var html = "<u>" + info.action + " </u><br/>"
+    document.getElementById("info").innerHTML = ""
 
+    var html = "<u>" + info.action + " </u><br/>"
+    var header = document.createElement("div")
+    header.innerHTML = html;
+    document.getElementById("info").appendChild(header)
+    html = ""
 
     var value = info.value;
     if (value === undefined) {
@@ -75,7 +84,31 @@ function showInfo(info){
     if (value === "") {
         value = "(empty string)"
     }
-    html += "<blockquote>" + escapeAngleBrackets(value) + "</blockquote>"
+
+    var valueBlockQuote = document.createElement("blockquote")
+    valueBlockQuote.classList.add("value-blockquote")
+    for (let index in value){
+        var char = value[index]
+        var a = document.createElement("a")
+        a.innerHTML = escapeAngleBrackets(char)
+        a.onclick = function(){
+            nodes = []
+            links = []
+            processOriginObject(info)
+
+            var charOrigin = whereDoesCharComeFrom(info, index)
+            charOrigin.forEach(function(o){
+                if (!o.originObject)return
+                o.originObject.isInCurrentPath = true;
+            })
+
+            document.querySelector("svg").remove()
+            onload()
+        }
+        valueBlockQuote.appendChild(a)
+    }
+    document.getElementById("info").appendChild(valueBlockQuote)
+
 
     var hasHighlighted = false
     if (info.resolvedStack) {
@@ -115,7 +148,9 @@ function showInfo(info){
             </div>`;
         })
     }
-    document.getElementById("info").innerHTML = html
+    var stacktrace = document.createElement("div")
+    stacktrace.innerHTML = html;
+    document.getElementById("info").appendChild(stacktrace)
 }
 
 function escapeAngleBrackets(str){
@@ -309,13 +344,6 @@ window.onload = function onload(){
                 nodes = []
                 links = []
                 processOriginObject(d)
-
-                var charOrigin = whereDoesCharComeFrom(d, window.index)
-                charOrigin.forEach(function(o){
-                    if (!o.originObject)return
-                    o.originObject.isInCurrentPath = true;
-                })
-
                 document.querySelector("svg").remove()
                 onload()
 
