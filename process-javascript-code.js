@@ -16,7 +16,8 @@ module.exports = function processJavaScriptCode(code){
     });
 
     res.getMappingComment = function(){
-        return "\n//# sourceMappingURL=data:application/json;base64," + btoa(JSON.stringify(res.map))
+        var comment =  "\n//# sourceMappingURL=data:application/json;base64," + btoa(JSON.stringify(res.map))
+        return comment;
     }
 
     return res

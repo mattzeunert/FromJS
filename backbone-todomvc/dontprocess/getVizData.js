@@ -1,3 +1,5 @@
+var gps;
+
 function resolveStackArray(stackArray, callback){
     var unfilteredStackArray = stackArray
     stackArray = stackArray.filter(function(frame){
@@ -24,15 +26,6 @@ function resolveStackArray(stackArray, callback){
     var err = ErrorStackParser.parse({stack: str});
 
 
-    var sourceCache = {};
-    var fnEls = document.getElementsByClassName("string-trace-fn")
-    fnEls = Array.prototype.slice.call(fnEls)
-    fnEls.forEach(function(el){
-        var key = el.getAttribute("fn") + ".js"
-        sourceCache[key] = el.innerHTML
-    })
-
-    var gps = new StackTraceGPS({sourceCache: sourceCache});
 
     function resFrame(frame, callback){
         gps._get(frame.fileName).then(function(src){
@@ -149,6 +142,16 @@ function getElementOriginData(el, callback){
 }
 
 setTimeout(function(){
+    var sourceCache = {};
+    var fnEls = document.getElementsByClassName("string-trace-fn")
+    fnEls = Array.prototype.slice.call(fnEls)
+    fnEls.forEach(function(el){
+        var key = el.getAttribute("fn") + ".js"
+        sourceCache[key] = el.innerHTML
+    })
+
+    gps = new StackTraceGPS({sourceCache: sourceCache});
+
     window.JSON.parse = nativeJSONParse
     console.time("Get visData")
     getElementOriginData(document.body, function(oooo){
@@ -156,6 +159,7 @@ setTimeout(function(){
         window.oooo = oooo;
         console.timeEnd("Get visData")
         localStorage.setItem("visData", JSON.stringify(oooo))
+        gps = null;
         console.log("got oooo, saved to localstorage")
     })
 }, 2000)
