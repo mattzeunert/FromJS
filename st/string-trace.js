@@ -2,6 +2,7 @@ require("./compile")
 require("./getVisData")
 require("./stackframe")
 require("./source-map")
+var _ = require("underscore")
 
 function processElementsAvailableOnInitialLoad(){
     var els = document.querySelectorAll("*")

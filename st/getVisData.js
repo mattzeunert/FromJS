@@ -1,6 +1,7 @@
 var async = require("./async");
 var ErrorStackParser = require("./error-stack-parser")
 var StackTraceGPS = require("./stacktrace-gps")
+var _ = require("underscore")
 
 var gps;
 
@@ -138,7 +139,7 @@ function getElementOriginData(el, callback){
             stack: el.__elOriginCreation.stack,
             action: el.__elOriginCreation.action,
             value: el.__elOriginCreation.value,
-            inputValues: convertedElOrigins
+            inputValues: convertedElOrigins.concat(el.__elOriginCreation.inputValues)
         }
         resolveStackIfAvailable(data, function(err, data){
             callback(data)

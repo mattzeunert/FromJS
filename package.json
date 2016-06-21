@@ -26,6 +26,7 @@
     "webpack": "^1.13.1"
   },
   "devDependencies": {
-    "nodemon": "^1.9.2"
+    "nodemon": "^1.9.2",
+    "underscore": "^1.8.3"
   }
 }
