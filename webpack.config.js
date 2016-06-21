@@ -1,13 +1,15 @@
 var webpack = require('webpack');
 
+
 module.exports = {
   entry: {
-    main: ['./compile.js']
+    main: ['./st/string-trace.js']
   },
   output: {
     path: "./",
-    filename: 'backbone-todomvc/dontprocess/compile-built.js'
+    filename: 'backbone-todomvc/dontprocess/string-trace.js'
 },
+devtool: "source-map",
 module: {
     loaders:[
         {
