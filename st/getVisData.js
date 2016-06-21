@@ -117,6 +117,8 @@ function resolveInputValue(inputValue, callback){
 }
 
 function convertElOrigin(elOrigin, callback){
+    elOrigin.value = elOrigin.getValue();
+
     async.map(elOrigin.inputValues, resolveInputValue,  function(err, resolvedInputValues){
         elOrigin = _.clone(elOrigin)
         elOrigin.inputValues = resolvedInputValues;

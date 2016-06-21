@@ -10,11 +10,11 @@ function processElementsAvailableOnInitialLoad(){
     els = Array.prototype.slice.apply(els)
     els.forEach(function(el){
         el.__elOrigin = [];
-        var initialHtmlOrigin = {
+        var initialHtmlOrigin = makeOrigin({
             value: el.innerHTML,
             action: "content from initial html",
             inputValues: []
-        }
+        })
         var children = Array.prototype.slice.apply(el.children)
         children.forEach(function(child){
             initialHtmlOrigin.inputValues.push(child)
@@ -140,7 +140,14 @@ function Origin(opts){
 
     this.action = opts.action;
     this.inputValues = inputValues;
-    this.value = opts.value.toString();
+    this.value = opts.value && opts.value.toString();
+    this.valueOfEl = opts.valueOfEl
+    this.getValue = function(){
+        if (this.valueOfEl) {
+            return this.valueOfEl.outerHTML
+        }
+        return this.value
+    }
     this.actionDetails = opts.actionDetails;
     this.stack = new Error().stack.split("\n");
 }
@@ -222,12 +229,11 @@ function stringTraceTripleEqual(a,b){
 function stringTraceSetInnerHTML(el, innerHTML){
     // debugger;console.log(innerHTML);console.log(innerHTML.origin)
     el.__elOrigin = [
-        {
+        makeOrigin({
             action: "assign innerHTML",
-            stack: Error().stack.split("\n"),
-            inputValues: [innerHTML],
+            inputValues: [{value: innerHTML.toString(), origin: innerHTML.origin}],
             value: innerHTML.toString()
-        }
+        })
     ]
 
     el.innerHTML = innerHTML
@@ -255,7 +261,7 @@ Object.defineProperty(Node.prototype, "appendChild", {
                 action: "appendChild",
                 stack: new Error().stack.split("\n"),
                 inputValues: [appendedEl],
-                value: appendedEl.outerHTML
+                valueOfEl: appendedEl
             }))
 
             return appendChildPropertyDescriptor.value.apply(this, arguments)
