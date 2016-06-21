@@ -163,11 +163,15 @@ function ValueMap(){
     this.items = [];
 }
 ValueMap.prototype.append = function(originObject){
-    var newCharIndex = this.charIndex + originObject.value.length
+    this.appendString(originObject.value, originObject)
+}
+ValueMap.prototype.appendString = function(str, originObject){
+    var newCharIndex = this.charIndex + str.length;
     this.items.push({
         originObject: originObject,
         fromCharIndex: this.charIndex,
-        toCharIndex: newCharIndex
+        toCharIndex: newCharIndex,
+        __justForDebuggingStr: str
     })
     this.charIndex = newCharIndex
 }
@@ -187,14 +191,20 @@ ValueMap.prototype.getItemAt = function(charIndex){
     var itemsBeforeMatch = this.items.slice(0, this.items.indexOf(matchingItem));
     var charCountBeforeMatch = 0;
     itemsBeforeMatch.forEach(function(item){
-        charCountBeforeMatch += item.originObject.value.length;
+        charCountBeforeMatch += item.toCharIndex - item.fromCharIndex
     })
 
     var originObject = matchingItem.originObject
+    var characterIndex = charIndex - charCountBeforeMatch
+
+    if (originObject.value.length < characterIndex) {
+        console.error("it looks like the string originated outside the actual origin value")
+        debugger;
+    }
 
     return {
         originObject: originObject,
-        characterIndex: charIndex - charCountBeforeMatch
+        characterIndex: characterIndex
     }
 }
 
@@ -229,11 +239,28 @@ function goUp(step){
         return valueMap.getItemAt(step.characterIndex)
     }
     if (step.originObject.action === "Element") {
-        console.warn("For now lets assume the relecant one is the last inputVal, the fist one will be the creation which i hope nobody will click on")
-        return {
-            originObject: _.last(step.originObject.inputValues),
-            characterIndex: 0
+        var valueMap = new ValueMap();
+        var createElement;
+        if (step.originObject.inputValues[0].action === "createElement") {
+            createElement = step.originObject.inputValues[0];
         }
+        if (createElement) {
+            valueMap.appendString("<" + createElement.inputValues[0].value + ">", createElement)
+        }
+        step.originObject.inputValues.forEach(function(inputValue){
+            if (inputValue.action === "createElement") {
+                return;
+            }
+            if (inputValue.action === "appendChild"){
+                valueMap.append(inputValue)
+            }
+            console.warn("unhandled input value in elment item", inputValue)
+        })
+        if (createElement) {
+            valueMap.appendString("</" + createElement.inputValues[0].value + ">", createElement)
+        }
+
+        return valueMap.getItemAt(step.characterIndex)
     }
     console.log("not handling step", step)
     return {}

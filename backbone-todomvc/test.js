@@ -5,6 +5,7 @@ function onload(){
     span.innerHTML ="xxxxxxxx"
     el.appendChild(p)
     el.appendChild(span)
-    p.innerHTML = "ooo"
+
     document.body.appendChild(el)
+    p.innerHTML = "ooo"
 }
