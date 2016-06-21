@@ -103652,19 +103652,23 @@
 	    })
 	}
 	function getElementOriginData(el, callback){
-	    if (!el.__elOrigin){
+	    if (!el.__elOrigin && !el.__elOriginCreation){
 	        console.warn("no elorigin for", el)
 	        callback({action: "no el origin"});
 	        return;
 	    }
 	
-	    async.map(el.__elOrigin, convertElOrigin, function(err, convertedElOrigins){
+	    var elOrigins = el.__elOrigin;
+	    if (!elOrigins) {
+	        elOrigins = []
+	    }
+	    async.map(elOrigins, convertElOrigin, function(err, convertedElOrigins){
 	        var data = {
 	            actionDetails: el.tagName,
-	            stack: el.__elOriginCreation.stack,
-	            action: el.__elOriginCreation.action,
-	            value: el.__elOriginCreation.value,
-	            inputValues: convertedElOrigins.concat(el.__elOriginCreation.inputValues)
+	            stack: undefined,
+	            action: "Element",
+	            value: el.innerHTML,
+	            inputValues: convertedElOrigins.concat(el.__elOriginCreation)
 	        }
 	        resolveStackIfAvailable(data, function(err, data){
 	            callback(data)
