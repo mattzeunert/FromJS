@@ -17,6 +17,7 @@
     "babel-template": "^6.7.0",
     "babel-types": "^6.7.2",
     "babylon": "^6.8.0",
+    "btoa": "^1.1.2",
     "d3": "^3.5.17",
     "ends-with": "^0.2.0",
     "json-loader": "^0.5.4",

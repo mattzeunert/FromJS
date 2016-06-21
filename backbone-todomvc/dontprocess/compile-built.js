@@ -103108,6 +103108,7 @@
 	var babel = __webpack_require__(2)
 	var Plugin = __webpack_require__(583)
 	var babylon = __webpack_require__(352)
+	var btoa = __webpack_require__(1192)
 
 	module.exports = function processJavaScriptCode(code){
 	    const ast = babylon.parse(code, {
@@ -103121,9 +103122,38 @@
 	        ]
 	    });
 
+	    res.getMappingComment = function(){
+	        return "\n//# sourceMappingURL=data:application/json;base64," + btoa(JSON.stringify(res.map))
+	    }
+
 	    return res
 	}
 
+
+/***/ },
+/* 1192 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(Buffer) {(function () {
+	  "use strict";
+
+	  function btoa(str) {
+	    var buffer
+	      ;
+
+	    if (str instanceof Buffer) {
+	      buffer = str;
+	    } else {
+	      buffer = new Buffer(str.toString(), 'binary');
+	    }
+
+	    return buffer.toString('base64');
+	  }
+
+	  module.exports = btoa;
+	}());
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(478).Buffer))
 
 /***/ }
 /******/ ]);

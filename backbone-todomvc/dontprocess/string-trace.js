@@ -314,7 +314,7 @@ window.Function = function(code){
     var id = Math.random().toString().replace(".", "");
     var fnName = "fn" + id
     // do this rather than calling the native Function, b/c this way we can have a //#sourceURL (though maybe Function would allow that too?)
-    script.innerHTML = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + res.code + "}" + "\n//# sourceURL=Function" + id + ".js" + "\n//# sourceMappingURL=data:application/json;base64," + btoa(JSON.stringify(res.map))
+    script.innerHTML = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + res.code + "}" + "\n//# sourceURL=Function" + id + ".js" + res.getMappingComment()
     script.setAttribute("fn", "Function" + id)
     script.className = "string-trace-fn";
 

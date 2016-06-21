@@ -25,5 +25,6 @@ function handleRequest(request, response){
 
 function processCode(code){
     var res = processJavaScriptCode(code)
-    return res.code;
+
+    return res.code + res.getMappingComment();
 }
