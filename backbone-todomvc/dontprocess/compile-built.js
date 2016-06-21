@@ -67,11 +67,13 @@
 	var babylon = __webpack_require__(353)
 	var btoa = __webpack_require__(1192)
 
-	module.exports = function processJavaScriptCode(code){
+	module.exports = function processJavaScriptCode(code, options){
 	    const ast = babylon.parse(code, {
 	        strict: false,
-	        allowReturnOutsideFunction: true
+	        allowReturnOutsideFunction: true,
+	        sourceFilename: options !== undefined ? options.filename : undefined
 	    });
+
 	    var res = babel.transformFromAst(ast, code, {
 	        sourceMap: true,
 	        plugins: [
@@ -80,7 +82,12 @@
 	    });
 
 	    res.getMappingComment = function(){
-	        var comment =  "\n//# sourceMappingURL=data:application/json;base64," + btoa(JSON.stringify(res.map))
+	        var comment = ""
+	        if (options && options.filename){
+	            comment += "\n//# sourceURL=" + options.filename
+	        }
+	        console.log(res.map)
+	        comment +=  "\n//# sourceMappingURL=data:application/json;base64," + btoa(JSON.stringify(res.map))
 	        return comment;
 	    }
 

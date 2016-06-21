@@ -308,13 +308,16 @@ window.Function = function(code){
     var args = Array.prototype.slice.apply(arguments)
     var code = args.pop()
     var argsWithoutCode = args.slice()
-    var res = stringTraceCompile(stringTraceUseValue(code))
+
+    var id = Math.random().toString().replace(".", "");
+    filename = "Function" + id + ".js"
+    var res = stringTraceCompile(stringTraceUseValue(code), {filename: filename})
     args.push(res.code)
     var script = document.createElement("script")
-    var id = Math.random().toString().replace(".", "");
+
     var fnName = "fn" + id
     // do this rather than calling the native Function, b/c this way we can have a //#sourceURL (though maybe Function would allow that too?)
-    script.innerHTML = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + res.code + "}" + "\n//# sourceURL=Function" + id + ".js" + res.getMappingComment()
+    script.innerHTML = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + res.code + "}" + res.getMappingComment()
     script.setAttribute("fn", "Function" + id)
     script.className = "string-trace-fn";
 

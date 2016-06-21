@@ -13,7 +13,7 @@ function handleRequest(request, response){
         var fileContents = fs.readFileSync(path).toString()
 
         if (endsWith(request.url, ".js") && !stringContains(request.url, "/dontprocess") && !stringContains(request.url, "/vis") && !stringContains(request.url, "?dontprocess=yes")) {
-            fileContents = processCode(fileContents)
+            fileContents = processCode(fileContents, request.url)
         }
         response.write(fileContents)
     } else {
@@ -23,8 +23,10 @@ function handleRequest(request, response){
     response.end();
 }
 
-function processCode(code){
-    var res = processJavaScriptCode(code)
+function processCode(code, filename){
+    var res = processJavaScriptCode(code, {
+        filename: filename
+    })
 
     return res.code + res.getMappingComment();
 }

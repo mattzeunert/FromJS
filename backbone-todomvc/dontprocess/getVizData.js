@@ -41,6 +41,7 @@ function resolveStackArray(stackArray, callback){
 
     async.map(err, function(frame, callback){
         gps.pinpoint(frame).then(function(newFrame){
+
             resFrame(newFrame, callback)
         }, function(){
             resFrame(frame, callback)
