@@ -128,6 +128,29 @@ function escapeAngleBrackets(str){
 var nodes= [];
 var links = [];
 
+function whereDoesCharComeFrom(originObject, characterIndex){
+    var steps = [];
+    var step = {
+        originObject: originObject,
+        characterIndex: characterIndex
+    }
+    steps.push(step)
+    while (step.originObject){
+        step = goUp(step)
+        steps.push(step)
+    }
+    return steps
+}
+function goUp(step){
+    var nextStepUp = {
+        originObject: step.originObject.inputValues[0],
+        characterIndex: 0
+    }
+    return nextStepUp
+}
+
+
+
 // processOriginObject(window.visOriginData)
 processOriginObject(JSON.parse(localStorage.getItem("visData")))
 function processOriginObject(origin){
@@ -233,11 +256,18 @@ window.onload = function onload(){
                 console.log(d)
             })
             .on("click", function(d){
+                var charOrigin = whereDoesCharComeFrom(d, 0)
+                charOrigin.forEach(function(o){
+                    if (!o.originObject)return
+                    o.originObject.isInCurrentPath = true;
+                })
+
                 nodes = []
                 links = []
                 processOriginObject(d)
                 document.querySelector("svg").remove()
                 onload()
+
             })
 
 
@@ -252,6 +282,9 @@ window.onload = function onload(){
             .attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; })
             .attr("fill", function(d){
+                if (d.isInCurrentPath) {
+                    return "lime"
+                }
                 if (d.index === 0) {
                     return "red"
                 }
