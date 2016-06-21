@@ -143,22 +143,20 @@ function getElementOriginData(el, callback){
         return;
     }
 
-    var elOrigins = el.__elOrigin;
-    if (!elOrigins) {
-        elOrigins = []
+    var elOrigins = [];
+    if (el.__elOriginCreation) {
+        elOrigins.push(el.__elOriginCreation)
+    }
+    if (el.__elOrigin) {
+        elOrigins = elOrigins.concat(el.__elOrigin)
     }
     async.map(elOrigins, convertElOrigin, function(err, convertedElOrigins){
-        var inputValues = []
-        if (el.__elOriginCreation) {
-            inputValues.push(el.__elOriginCreation)
-        }
-        inputValues = inputValues.concat(convertedElOrigins)
         var data = {
             actionDetails: el.tagName,
             stack: undefined,
             action: "Element",
             value: el.outerHTML,
-            inputValues: inputValues
+            inputValues: convertedElOrigins
         }
         resolveStackIfAvailable(data, function(err, data){
             callback(data)
