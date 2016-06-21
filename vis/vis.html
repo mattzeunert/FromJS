@@ -117,17 +117,6 @@ function escapeAngleBrackets(str){
     return str.replace(/\</g, "&lt;").replace(/\>/g, "&gt;")
 }
 
-var width = 1050,
-    height = 950;
-
-var force = d3.layout.force()
-    .charge(-300)
-    .linkDistance(60)
-    .size([width, height]);
-
-var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
 
 var nodes= [];
 var links = [];
@@ -165,88 +154,186 @@ function processOriginObject(origin){
 }
 
 
-var graph = {
-    nodes: nodes,
-    links: links
-}
 
-  force
-      .nodes(graph.nodes)
-      .links(graph.links)
-      .start();
+window.onload = function onload(){
+    var width = 1050,
+        height = 950;
 
-  var link = svg.selectAll(".link")
-      .data(graph.links)
-    .enter().append("line")
-      .attr("class", "link")
-      .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+    var force = d3.layout.force()
+        .charge(-200)
+        .linkDistance(40)
+        .size([width, height]);
 
-  var node = svg.selectAll(".node")
-      .data(graph.nodes)
-    .enter()
-    .append("g")
+    var svg = d3.select("body").append("svg")
 
-    node.append("circle")
-      .attr("class", "node")
-      .attr("r", 5)
-      .call(force.drag)
 
-      node.append("text")
-        .style("font-size", 12)
-        .text(function(d) {
-            var text = d.action + (d.actionDetails ? " " + d.actionDetails : "");
-            if (d.action === "string literal"){
-                var truncatedValue = d.value
-                if (truncatedValue.length > 25) {
-                    truncatedValue = truncatedValue.substr(0, 25) + "..."
+    function updateSize(){
+        force.size([document.body.clientWidth, document.body.clientHeight])
+        svg
+            .attr("width", document.body.clientWidth)
+            .attr("height", document.body.clientHeight);
+    }
+
+    updateSize()
+
+    var graph = {
+        nodes: nodes,
+        links: links
+    }
+
+      force
+          .nodes(graph.nodes)
+          .links(graph.links)
+          .start();
+
+      var link = svg.selectAll(".link")
+          .data(graph.links)
+        .enter().append("line")
+          .attr("class", "link")
+          .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+
+      var node = svg.selectAll(".node")
+          .data(graph.nodes)
+        .enter()
+        .append("g")
+
+        node.append("circle")
+          .attr("class", "node")
+          .attr("r", 5)
+          .call(force.drag)
+
+          node.append("text")
+            .style("font-size", 12)
+            .text(function(d) {
+                var text = d.action + (d.actionDetails ? " " + d.actionDetails : "");
+                if (d.action === "string literal"){
+                    var truncatedValue = d.value
+                    if (truncatedValue.length > 25) {
+                        truncatedValue = truncatedValue.substr(0, 25) + "..."
+                    }
+                    text = '"' + truncatedValue + '"'
                 }
-                text = '"' + truncatedValue + '"'
-            }
-            text = text.replace(/\n/g, "\\n")
-            return text;
-        })
-        .on("mouseenter", function(d){
-            var currentSelection = document.querySelector(".selected")
-            if (currentSelection) {
-                currentSelection.classList.remove("selected")
-            }
+                text = text.replace(/\n/g, "\\n")
+                return text;
+            })
+            .on("mouseenter", function(d){
+                var currentSelection = document.querySelector(".selected")
+                if (currentSelection) {
+                    currentSelection.classList.remove("selected")
+                }
 
-            this.classList.add("selected")
+                this.classList.add("selected")
 
-            showInfo(d);
-            console.log(d)
-        })
+                showInfo(d);
+                console.log(d)
+            })
 
 
-  force.on("tick", function() {
-    link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
+      force.on("tick", function() {
+        link.attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
 
 
-    node.selectAll("circle")
-        .attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; })
-        .attr("fill", function(d){
-            if (d.index === 0) {
-                return "red"
-            }
-            if (nodeIsHTMLElement(d)){
-                return "blue"
-            }
-            if (nodeIsValueSource(d)){
-                return "orange"
-            }
-            return "black"
-        })
+        node.selectAll("circle")
+            .attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; })
+            .attr("fill", function(d){
+                if (d.index === 0) {
+                    return "red"
+                }
+                if (nodeIsHTMLElement(d)){
+                    return "blue"
+                }
+                if (nodeIsValueSource(d)){
+                    return "orange"
+                }
+                return "black"
+            })
 
 
-    node.selectAll("text")
-        .attr("transform", function(d){
-            var x = d.x;
-            var y=  d.y;
-            return "translate(" + x + "," + y + ")"
-        })
-  });
+        node.selectAll("text")
+            .attr("transform", function(d){
+                var x = d.x;
+                var y=  d.y;
+                return "translate(" + x + "," + y + ")"
+            })
+      });
+
+      window.onresize = throttle(function(){
+          updateSize();
+          force.start();
+      }, 500);
+  }
+
+
 </script>
+<script>
+
+function throttle(fn, opts) {
+  opts = opts || {}
+  var timer
+  var queue = []
+  const errMsg = 'Must pass options or milliseconds as second argument'
+  if (!opts)
+    throw new Error(errMsg)
+
+  var msBetweenCalls
+
+  if (typeof opts == 'string')
+    msBetweenCalls = Number(opts)
+
+  else if (typeof opts == 'number')
+    msBetweenCalls = opts
+
+  else {
+    const window = opts.window || 1
+    const limit = opts.limit || 1
+    const exact = opts.exact || false
+    msBetweenCalls = Math.ceil((window / limit) * 1000)
+  }
+
+  if (isNaN(msBetweenCalls))
+    throw new Error(errMsg)
+
+  function enqueue(args) {
+    return queue.push(args)
+  }
+
+  function dequeue() {
+    return queue.shift()
+  }
+
+  function kickQueue() {
+    if (timer) return timer
+    timer = setInterval(runQueue, msBetweenCalls)
+    return timer
+  }
+
+  function runQueue() {
+    const args = dequeue()
+
+    if (queue.length == 0 || !args) {
+      clearInterval(timer)
+      timer = null
+    }
+
+    const result = fn.apply(null, args)
+    return result
+  }
+
+  const throttled = function () {
+    const args = [].slice.call(arguments)
+    const position = enqueue(args)
+    const timer = kickQueue()
+
+    return {
+      position: position,
+      queuedAt: Date.now(),
+      timeUntilCall: position * msBetweenCalls
+    }
+  }
+
+  return throttled
+}</script>
