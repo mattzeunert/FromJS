@@ -94,9 +94,13 @@ function showInfo(info){
 
             }
 
-            var line = escapeAngleBrackets(frame.line.substr(0, frame.columnNumber)) +
-                "<span style='color: red; '>|</span>" +
-                escapeAngleBrackets(frame.line.substr(frame.columnNumber));
+            var line = "";
+
+            if (frame.line){
+                line = escapeAngleBrackets(frame.line.substr(0, frame.columnNumber)) +
+                    "<span style='color: red; '>|</span>" +
+                    escapeAngleBrackets(frame.line.substr(frame.columnNumber));
+            }
 
 
             html += `<div class="stack-frame ${highlightClass} ${isLibraryClass}">
