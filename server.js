@@ -21,14 +21,15 @@ function handleRequest(request, response){
             !stringContains(request.url, "/vis") &&
             !stringContains(request.url, "?dontprocess=yes")
         ) {
+            var jsFileName = path.split("/")[path.split("/").length - 1]
             if (endsWith(request.url, ".js")) {
                 var res = processJavaScriptCode(fileContents)
                 fileContents = res.code
-                fileContents += "\n//# sourceMappingURL=" + path.split("/")[path.split("/").length - 1] + ".map"
+                fileContents += "\n//# sourceMappingURL=" + jsFileName + ".map"
 
             }
             if (endsWith(request.url, ".js.map")){
-                fileContents = JSON.stringify(processJavaScriptCode(fileContents).map)
+                fileContents = JSON.stringify(processJavaScriptCode(fileContents, {filename: jsFileName}).map, null, 4)
             }
 
         }
