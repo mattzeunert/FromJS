@@ -364,6 +364,17 @@ function goUp(step){
             characterIndex: characterIndex
         }
     }
+    if (step.originObject.action === "replace call") {
+        var valueBeforeReplace= step.originObject.inputValues[0].value
+        var replaceCallDidntChangeValue =valueBeforeReplace === step.originObject.value
+        if (replaceCallDidntChangeValue){
+            return {
+                originObject: step.originObject.inputValues[0],
+                characterIndex: step.characterIndex
+            }
+        }
+        throw "need to handle this"
+    }
     console.log("not handling step", step)
     return null
 }
