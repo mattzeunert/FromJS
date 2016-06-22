@@ -17,15 +17,5 @@ module.exports = function processJavaScriptCode(code, options){
         ]
     });
 
-    res.getMappingComment = function(){
-        var comment = ""
-        if (options && options.filename){
-            comment += "\n//# sourceURL=" + options.filename
-        }
-        res.map.sourcesContent = [code]
-        comment +=  "\n//# sourceMappingURL=data:application/json;base64," + btoa(JSON.stringify(res.map))
-        return comment;
-    }
-
     return res
 }

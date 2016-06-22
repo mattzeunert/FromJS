@@ -177,6 +177,7 @@ setTimeout(function(){
     fnEls.forEach(function(el){
         var key = el.getAttribute("fn") + ".js"
         sourceCache[key] = el.innerHTML
+        sourceCache[el.getAttribute("sm-filename")] = decodeURIComponent(el.getAttribute("sm"))
     })
 
     gps = new StackTraceGPS({sourceCache: sourceCache});

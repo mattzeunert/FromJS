@@ -338,8 +338,10 @@ window.Function = function(code){
     var script = document.createElement("script")
 
     var fnName = "fn" + id
-    // do this rather than calling the native Function, b/c this way we can have a //#sourceURL (though maybe Function would allow that too?)
-    script.innerHTML = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + res.code + "}" + res.getMappingComment()
+    var smFilename = filename + ".map"
+    script.innerHTML = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + res.code + "}" + "\n//# sourceURL=" + filename + "\n//# sourceMappingURL=" + smFilename
+    script.setAttribute("sm", encodeURIComponent(JSON.stringify(res.map)))
+    script.setAttribute("sm-filename", smFilename)
     script.setAttribute("fn", "Function" + id)
     script.className = "string-trace-fn";
 
