@@ -2,6 +2,7 @@ var async = require("./async");
 var ErrorStackParser = require("./error-stack-parser")
 var StackTraceGPS = require("./stacktrace-gps")
 var _ = require("underscore")
+var endsWith = require("ends-with")
 
 var gps;
 
@@ -45,13 +46,17 @@ function resolveStackArray(stackArray, callback){
     }
 
     async.map(err, function(frame, callback){
-        gps.pinpoint(frame).then(function(newFrame){
-
-            resFrame(newFrame, callback)
-        }, function(){
-            resFrame(frame, callback)
-            console.log("error", arguments)
-        });
+        if (endsWith(frame.fileName, ".html")){
+            // don't bother looking for source map file
+            callback(null, frame)
+        } else {
+            gps.pinpoint(frame).then(function(newFrame){
+                resFrame(newFrame, callback)
+            }, function(){
+                resFrame(frame, callback)
+                console.log("error", arguments)
+            });
+        }
     }, function(err, newStackFrames){
         callback(newStackFrames)
     })

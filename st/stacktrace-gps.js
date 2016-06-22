@@ -129,6 +129,7 @@
         if (m && m[1]) {
             return m[1];
         } else {
+            console.warn("not found for", source)
             throw new Error('sourceMappingURL not found');
         }
     }
