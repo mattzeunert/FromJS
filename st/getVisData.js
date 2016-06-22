@@ -143,18 +143,15 @@ function convertElOrigin(elOrigin, callback){
     })
 }
 function getElementOriginData(el, callback){
-    if (!el.__elOrigin && !el.__elOriginCreation){
+    if (!el.__elOrigin){
         console.warn("no elorigin for", el)
         callback({action: "no el origin"});
         return;
     }
 
     var elOrigins = [];
-    if (el.__elOriginCreation) {
-        elOrigins.push(el.__elOriginCreation)
-    }
     if (el.__elOrigin) {
-        elOrigins = elOrigins.concat(el.__elOrigin)
+        elOrigins = el.__elOrigin
     }
     async.map(elOrigins, convertElOrigin, function(err, convertedElOrigins){
         var data = {

@@ -19,13 +19,13 @@ function processElementsAvailableOnInitialLoad(){
         children.forEach(function(child){
             initialHtmlOrigin.inputValues.push(child)
         })
-        el.__elOrigin.push(initialHtmlOrigin)
+        addElOrigin(el, initialHtmlOrigin)
 
-        el.__elOriginCreation = makeOrigin({
+        addElOrigin(el, makeOrigin({
             action: "initial html",
             inputValues: [],
             value: el.outerHTML
-        })
+        }))
     })
 }
 processElementsAvailableOnInitialLoad();
@@ -236,27 +236,32 @@ function stringTraceTripleEqual(a,b){
     return !stringTraceNotTripleEqual(a,b)
 }
 
+function addElOrigin(el, origin){
+    if (!el.__elOrigin) {
+        el.__elOrigin = []
+    }
+    el.__elOrigin.push(origin)
+}
+
 function stringTraceSetInnerHTML(el, innerHTML){
-    // debugger;console.log(innerHTML);console.log(innerHTML.origin)
-    el.__elOrigin = [
-        makeOrigin({
-            action: "assign innerHTML",
-            inputValues: [innerHTML],
-            value: innerHTML.toString()
-        })
-    ]
+    addElOrigin(el, makeOrigin({
+        action: "assign innerHTML",
+        inputValues: [innerHTML],
+        value: innerHTML.toString()
+    }))
 
     el.innerHTML = innerHTML
 }
 
 var originalCreateElement = document.createElement
 document.createElement = function(tagName){
+
     var el = originalCreateElement.call(this, tagName)
-    el.__elOriginCreation = makeOrigin({
+    addElOrigin(el, makeOrigin({
         action: "createElement",
         inputValues: [tagName],
         value: el.outerHTML
-    })
+    }))
     return el;
 }
 
@@ -264,10 +269,7 @@ var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototy
 Object.defineProperty(Node.prototype, "appendChild", {
     get: function(){
         return function(appendedEl){
-            if (!this.__elOrigin) {
-                this.__elOrigin = []
-            }
-            this.__elOrigin.push(makeOrigin({
+            addElOrigin(this, makeOrigin({
                 action: "appendChild",
                 stack: new Error().stack.split("\n"),
                 inputValues: [appendedEl],
@@ -279,6 +281,30 @@ Object.defineProperty(Node.prototype, "appendChild", {
     }
 })
 
+var nativeSetAttribute = Element.prototype.setAttribute;
+Element.prototype.setAttribute = function(attrName, value){
+    addElOrigin(this, makeOrigin({
+        action: "setAttribute",
+        inputValues: [attrName, value],
+        value: "not gotten around to making this work yet"
+    }))
+    return nativeSetAttribute.apply(this, arguments)
+}
+
+var nativeClassNameDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "className");
+Object.defineProperty(Element.prototype, "className", {
+    set: function(){
+        addElOrigin(this, makeOrigin({
+            action: "set className",
+            value: "todoaaaa",
+            inputValues: []
+        }))
+        return nativeClassNameDescriptor.set.apply(this, arguments)
+    },
+    get: function(){
+        return nativeClassNameDescriptor.get.apply(this, arguments)
+    }
+})
 
 var nativeJSONParse = JSON.parse
 JSON.parse = function(str){
@@ -315,7 +341,6 @@ localStorage.getItem = function(key){
             }),
         })
     }
-    // debugger;
     return val;
 }
 
@@ -353,7 +378,6 @@ window.Function = function(code){
 
 
     return function(){
-        // debugger;
         return window[fnName].apply(this, arguments)
     }
     // return nativeFunction.apply(this, args)
