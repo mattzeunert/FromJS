@@ -125,12 +125,22 @@ function Origin(opts){
         if (inputValue instanceof Origin){
             return inputValue
         }
+        if (inputValue.origin instanceof Origin){
+            return inputValue.origin
+        }
         if (inputValue instanceof Element){
             return inputValue
         }
         if (typeof inputValue === "number") {
             return new Origin({
                 action: "Untracked number",
+                inputValues: [],
+                value: inputValue
+            })
+        }
+        if (typeof inputValue === "string") {
+            return new Origin({
+                action: "Untracked string",
                 inputValues: [],
                 value: inputValue
             })

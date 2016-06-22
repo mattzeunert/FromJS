@@ -109,15 +109,8 @@ function resolveElOriginInputValue(inputValue, callback){
             callback(null, data)
         })
     } else {
-        var origin
-        if (inputValue.origin){
-            // i never experienced this branch in the wild, i don't think it makes sense to have it
-            origin = _.clone(inputValue.origin);
-            console.log("A", inputValue)
-        } else {
-            console.log("B")
-            origin = _.clone(inputValue);
-        }
+        var origin = _.clone(inputValue);
+
         resolveStacksInOrigin(origin, function(){
             callback(null, origin)
         })
@@ -129,7 +122,7 @@ function convertElOrigin(elOrigin, callback){
 
     var inputValues = elOrigin.inputValues.filter(function(origin){
         if (origin === undefined) {
-            console.log("this ins't great but, i  think can happen if an expect arg isn't there e.g. calling just doucment.createElement()")
+            throw "hmm dont really want this to happen"
             return false;
         }
         return true;
