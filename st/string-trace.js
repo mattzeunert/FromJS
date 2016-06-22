@@ -158,7 +158,7 @@ function Origin(opts){
             return new Origin({
                 action: "Untracked number",
                 inputValues: [],
-                value: inputValue
+                value: inputValue.toString()
             })
         }
         if (typeof inputValue === "string") {
