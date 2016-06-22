@@ -44,11 +44,6 @@ ValueMap.prototype.getItemAt = function(charIndex){
     var originObject = matchingItem.originObject
     var characterIndex = charIndex - charCountBeforeMatch + charsBelongingToMatchedOrigin
 
-    if (originObject.value.length < characterIndex) {
-        console.error("it looks like the string originated outside the actual origin value")
-        debugger;
-    }
-
     console.log("char is", originObject.value[characterIndex])
 
     return {
@@ -62,6 +57,32 @@ ValueMap.prototype.debugginGetValue = function(){
         value += item.__justForDebuggingStr;
     })
     return value;
+}
+ValueMap.prototype.serialize = function(inputValues){
+    console.log("serialize with", inputValues)
+    var ret = this.items.map(function(item){
+        return {
+            originObjectIndex: inputValues.indexOf(item.originObject),
+            fromCharIndex: item.fromCharIndex,
+            toCharIndex: item.toCharIndex,
+            __justForDebuggingStr: item.__justForDebuggingStr
+        }
+    })
+    return ret
+}
+ValueMap.deserialize = function(serializedValueMap, inputValues){
+    console.log("deserialize with ", inputValues)
+    var valueMap = new ValueMap();
+    serializedValueMap.forEach(function(item){
+        valueMap.items.push({
+            fromCharIndex: item.fromCharIndex,
+            toCharIndex: item.toCharIndex,
+            __justForDebuggingStr: item.__justForDebuggingStr,
+            originObject: inputValues[item.originObjectIndex]
+        })
+    })
+    console.log("deserialized valueMap", valueMap)
+    return valueMap
 }
 
 if (typeof module !== "undefined") {

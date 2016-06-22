@@ -2,6 +2,7 @@ require("./compile")
 require("./getVisData")
 require("./stackframe")
 require("./source-map")
+var ValueMap = require("../value-map")
 var _ = require("underscore")
 
 function processElementsAvailableOnInitialLoad(){
@@ -49,20 +50,42 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
             var oldValue = this;
             var args = unstringTracifyArguments(arguments)
             var newVal = String.prototype[propertyName].apply(this.toString(), args)
+
+
             var argumentOrigins = Array.prototype.slice.call(arguments).map(function(arg){
-                return {
-                        origin: {
-                            action: "arg" + "_" + arg.toString()
-                        }
-                    }
+                return makeOrigin({
+                    action: "arg_" + arg.toString(),
+                    value: arg.toString(),
+                    inputValues: []
+                })
             })
+            var inputValues = [oldValue.origin].concat(argumentOrigins)
+
+            var valueItems = null;
+            if (propertyName === "replace") {
+                var valueMap = new ValueMap();
+                var lastIndex = 0;
+                var oldString = oldValue.toString()
+                oldString.replace(args[0], function(matchStr, index){
+                    if (typeof args[1] !== "string") throw "not handled"
+                    valueMap.appendString(oldString.substring(lastIndex, index), oldValue.origin)
+                    valueMap.appendString(inputValues[2].value, inputValues[2])
+                    lastIndex = index + matchStr.length;
+                    return args[1]
+                })
+                valueMap.appendString(oldString.substring(lastIndex), oldValue.origin)
+
+                valueItems = valueMap.serialize(inputValues)
+            }
+
             if (typeof newVal === "string") {
                 return makeTraceObject(
                     {
                         value: newVal,
                         origin: makeOrigin({
                             value: newVal,
-                            inputValues: [oldValue].concat(argumentOrigins),
+                            valueItems: valueItems,
+                            inputValues: inputValues,
                             action: propertyName + " call",
                         })
                     }
@@ -75,7 +98,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                                 value: val,
                                 origin: makeOrigin({
                                     value: val,
-                                    inputValues: [oldValue].concat(argumentOrigins),
+                                    inputValues: inputValues,
                                     action: propertyName + " call",
                                 })
                             }
@@ -152,6 +175,7 @@ function Origin(opts){
     this.inputValues = inputValues;
     this.value = opts.value && opts.value.toString();
     this.valueOfEl = opts.valueOfEl
+    this.valueItems = opts.valueItems
     this.getValue = function(){
         if (this.valueOfEl) {
             return this.valueOfEl.outerHTML

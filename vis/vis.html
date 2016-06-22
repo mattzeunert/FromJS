@@ -236,6 +236,14 @@ function whereDoesCharComeFrom(originObject, characterIndex){
 function goUp(step){
 
 
+    if (step.originObject.action === "set className"){
+        var characterIndex =  step.characterIndex - " class='".length
+        return {
+            originObject: step.originObject.inputValues[0],
+            characterIndex: characterIndex
+        }
+    }
+
     if (step.originObject.inputValues.length === 1 && step.originObject.inputValues[0].value === step.originObject.value) {
         return {
             originObject: step.originObject.inputValues[0],
@@ -328,15 +336,17 @@ function goUp(step){
         }
     }
     if (step.originObject.action === "replace call") {
-        var valueBeforeReplace= step.originObject.inputValues[0].value
-        var replaceCallDidntChangeValue =valueBeforeReplace === step.originObject.value
-        if (replaceCallDidntChangeValue){
-            return {
-                originObject: step.originObject.inputValues[0],
-                characterIndex: step.characterIndex
-            }
-        }
-        throw "need to handle this"
+        // var valueBeforeReplace= step.originObject.inputValues[0].value
+        // var replaceCallDidntChangeValue =valueBeforeReplace === step.originObject.value
+        // if (replaceCallDidntChangeValue){
+        //     return {
+        //         originObject: step.originObject.inputValues[0],
+        //         characterIndex: step.characterIndex
+        //     }
+        // }
+        // throw "need to handle this"
+        var valueMap = ValueMap.deserialize(step.originObject.valueItems, step.originObject.inputValues)
+        return valueMap.getItemAt(step.characterIndex)
     }
     if (step.originObject.action === "JSON.parse"){
         if (step.originObject.inputValues.length === 1) {

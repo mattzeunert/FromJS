@@ -3,7 +3,6 @@ var ErrorStackParser = require("./error-stack-parser")
 var StackTraceGPS = require("./stacktrace-gps")
 var _ = require("underscore")
 var endsWith = require("ends-with")
-var ValueMap = require("../value-map")
 
 var gps;
 
