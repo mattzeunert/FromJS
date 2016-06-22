@@ -89,6 +89,16 @@ function showOriginPath(originPath){
                     itemHtml += "</code>"
                 }
             }
+
+            if (origin.originObject){
+                var val = origin.originObject.value
+                itemHtml += "<div>" + escapeAngleBrackets(val.substr(0, origin.characterIndex)) +
+                        "<span style='color: red; font-weight:bold'>" +
+                        escapeAngleBrackets(val.substr(origin.characterIndex, 1))
+                        + "</span>" +
+                        escapeAngleBrackets(val.substr(origin.characterIndex + 1)) + "</div>"
+            }
+
         itemHtml += "</div>"
         originPathEl.innerHTML += itemHtml
     }
@@ -253,7 +263,7 @@ ValueMap.prototype.getItemAt = function(charIndex){
 
     return {
         originObject: originObject,
-        characterIndex: characterIndex
+        characterIndex: parseFloat(characterIndex)
     }
 }
 ValueMap.prototype.debugginGetValue = function(){
@@ -268,16 +278,21 @@ var nodes= [];
 var links = [];
 
 function whereDoesCharComeFrom(originObject, characterIndex){
+    characterIndex = parseFloat(characterIndex)
+
     var steps = [];
     var step = {
         originObject: originObject,
         characterIndex: characterIndex
     }
     steps.push(step)
-    while (step.originObject){
+    while (step !== null){
         step = goUp(step)
-        steps.push(step)
+        if (step !== null){
+            steps.push(step)
+        }
     }
+
     return steps
 }
 function goUp(step){
@@ -350,7 +365,7 @@ function goUp(step){
         }
     }
     console.log("not handling step", step)
-    return {}
+    return null
 }
 
 
