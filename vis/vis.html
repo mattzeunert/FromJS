@@ -59,6 +59,44 @@ blockquote {
 <div id="viz"></div>
 <script>
 
+function showOriginPath(originPath){
+    window.op = originPath
+    console.log("originPath", originPath)
+    var originPathEl =  document.createElement("div")
+    for (origin of originPath) {
+        var itemHtml = "";
+        itemHtml += "<div>"
+
+            itemHtml += "<u>"
+            if (origin.originObject) {
+                itemHtml += origin.originObject.action
+            } else {
+                itemHtml += "(no origin object)"
+            }
+            itemHtml += "</u>"
+
+            itemHtml += "<br/>"
+
+            if (origin.originObject) {
+                if (!origin.originObject.resolvedStack) {
+                    itemHtml += "(no stack)"
+                } else {
+                    itemHtml += "<code>"
+                    var frame = _.first(origin.originObject.resolvedStack)
+                    itemHtml += escapeAngleBrackets(frame.line.substr(0, frame.columnNumber)) +
+                        "<span style='color: red; '>|</span>" +
+                        escapeAngleBrackets(frame.line.substr(frame.columnNumber));
+                    itemHtml += "</code>"
+                }
+            }
+        itemHtml += "</div>"
+        originPathEl.innerHTML += itemHtml
+    }
+
+    document.body.innerHTML = "";
+    document.body.appendChild(originPathEl)
+}
+
 function nodeIsHTMLElement(node){
     return node.action === "initial html" || node.action === "content from initial html" ||
         node.action === "createElement" || node.action === "assign innerHTML" ||
@@ -98,13 +136,15 @@ function showInfo(info){
             processOriginObject(info)
 
             var charOrigin = whereDoesCharComeFrom(info, index)
-            charOrigin.forEach(function(o){
-                if (!o.originObject)return
-                o.originObject.isInCurrentPath = true;
-            })
-
-            document.querySelector("svg").remove()
-            onload()
+            showOriginPath(charOrigin)
+            // charOrigin.forEach(function(o){
+            //     if (!o.originObject)return
+            //     o.originObject.isInCurrentPath = true;
+            // })
+            //
+            //
+            // document.querySelector("svg").remove()
+            // onload()
         }
         valueBlockQuote.appendChild(a)
     }
