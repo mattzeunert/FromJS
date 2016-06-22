@@ -3,7 +3,8 @@
 <meta charset="utf-8" />
 
 <div id="info" style="position: absolute; width: 100%; left: 0; top: 0; background: white"></div>
-
+<div id="graph"></div>
+<div id="origin-path"></div>
 
 <style>
 body {
@@ -103,8 +104,8 @@ function showOriginPath(originPath){
         originPathEl.innerHTML += itemHtml
     }
 
-    document.body.innerHTML = "";
-    document.body.appendChild(originPathEl)
+    document.getElementById("origin-path").innerHTML = ""
+    document.getElementById("origin-path").appendChild(originPathEl)
 }
 
 function nodeIsHTMLElement(node){
@@ -147,14 +148,13 @@ function showInfo(info){
 
             var charOrigin = whereDoesCharComeFrom(info, index)
             showOriginPath(charOrigin)
-            // charOrigin.forEach(function(o){
-            //     if (!o.originObject)return
-            //     o.originObject.isInCurrentPath = true;
-            // })
-            //
-            //
-            // document.querySelector("svg").remove()
-            // onload()
+            charOrigin.forEach(function(o){
+                if (!o.originObject)return
+                o.originObject.isInCurrentPath = true;
+            })
+
+
+            onload()
         }
         valueBlockQuote.appendChild(a)
     }
@@ -408,18 +408,20 @@ function processOriginObject(origin){
 
 window.onload = function onload(){
 
+
     var force = d3.layout.force()
         .charge(-200)
         .linkDistance(40)
 
-    var svg = d3.select("body").append("svg")
+        document.querySelector("#graph").innerHTML = ""
+    var svg = d3.select("#graph").append("svg")
 
 
     function updateSize(){
-        force.size([document.body.clientWidth, document.body.clientHeight])
+        force.size([document.body.clientWidth, document.body.clientHeight - 50])
         svg
             .attr("width", document.body.clientWidth)
-            .attr("height", document.body.clientHeight);
+            .attr("height", document.body.clientHeight - 50);
     }
 
     updateSize()
