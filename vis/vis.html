@@ -375,6 +375,15 @@ function goUp(step){
         }
         throw "need to handle this"
     }
+    if (step.originObject.action === "JSON.parse"){
+        if (step.originObject.inputValues.length === 1) {
+            return {
+                originObject: step.originObject.inputValues[0],
+                characterIndex: 0
+            }
+        }
+        throw "need to handlesss"
+    }
     console.log("not handling step", step)
     return null
 }
