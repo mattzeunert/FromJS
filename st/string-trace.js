@@ -343,6 +343,7 @@ window.Function = function(code){
     script.setAttribute("sm", encodeURIComponent(JSON.stringify(res.map)))
     script.setAttribute("sm-filename", smFilename)
     script.setAttribute("fn", "Function" + id)
+    script.setAttribute("original-source", encodeURIComponent(code))
     script.className = "string-trace-fn";
 
     script.originalCodeForDebugging = code

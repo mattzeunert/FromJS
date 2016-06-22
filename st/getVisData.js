@@ -177,6 +177,7 @@ setTimeout(function(){
     fnEls.forEach(function(el){
         var key = el.getAttribute("fn") + ".js"
         sourceCache[key] = el.innerHTML
+        sourceCache[key + "?dontprocess=yes"] = decodeURIComponent(el.getAttribute("original-source"))
         sourceCache[el.getAttribute("sm-filename")] = decodeURIComponent(el.getAttribute("sm"))
     })
 

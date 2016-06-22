@@ -7,7 +7,7 @@ module.exports = function processJavaScriptCode(code, options){
     const ast = babylon.parse(code, {
         strict: false,
         allowReturnOutsideFunction: true,
-        sourceFilename: options !== undefined ? options.filename : undefined
+        sourceFilename: options !== undefined ? options.filename +"?dontprocess=yes" : undefined
     });
 
     var res = babel.transformFromAst(ast, code, {
