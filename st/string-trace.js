@@ -293,11 +293,11 @@ Element.prototype.setAttribute = function(attrName, value){
 
 var nativeClassNameDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "className");
 Object.defineProperty(Element.prototype, "className", {
-    set: function(){
+    set: function(newValue){
         addElOrigin(this, makeOrigin({
             action: "set className",
-            value: "todoaaaa",
-            inputValues: []
+            value: newValue.toString(),
+            inputValues: [newValue]
         }))
         return nativeClassNameDescriptor.set.apply(this, arguments)
     },

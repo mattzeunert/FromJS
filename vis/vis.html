@@ -315,13 +315,33 @@ function goUp(step){
     if (step.originObject.action === "Element") {
         var valueMap = new ValueMap();
         var createElement;
-        if (step.originObject.inputValues[0].action === "createElement") {
-            createElement = step.originObject.inputValues[0];
-        }
-        if (createElement) {
-            valueMap.appendString("<" + createElement.inputValues[0].value + ">", createElement)
-        }
+
+        var tagOrigins = [];
+        var contentOrigins = []
         step.originObject.inputValues.forEach(function(inputValue){
+            if (inputValue.action === "createElement" || inputValue.action === "set className"){
+                tagOrigins.push(inputValue)
+            } else {
+                contentOrigins.push(inputValue)
+            }
+        })
+
+
+        tagOrigins.forEach(function(tagOrigin){
+            if (tagOrigin.action === "createElement") {
+                valueMap.appendString("<" + tagOrigin.inputValues[0].value , tagOrigin)
+            } else if (tagOrigin.action === "set className"){
+                valueMap.appendString(" class='" + tagOrigin.value + "'", tagOrigin)
+            } else {
+                debugger
+            }
+        })
+        tagOrigins.forEach(function(tagOrigin){
+            if (tagOrigin.action === "createElement") {
+                valueMap.appendString(">" , tagOrigin)
+            }
+        })
+        contentOrigins.forEach(function(inputValue){
             if (inputValue.action === "createElement") {
                 return;
             }
@@ -334,10 +354,15 @@ function goUp(step){
             else {
                 throw "unhandled input value in elment item"
             }
-
         })
-        if (createElement) {
-            valueMap.appendString("</" + createElement.inputValues[0].value + ">", createElement)
+        tagOrigins.forEach(function(tagOrigin){
+            if (tagOrigin.action === "createElement") {
+                valueMap.appendString("</" + tagOrigin.inputValues[0].value + ">", tagOrigin)
+            }
+        })
+
+        if (valueMap.debugginGetValue() !== step.originObject.value){
+            console.warn(valueMap.debugginGetValue(), "!!!!is not!!!", step.originObject.value)
         }
 
         return valueMap.getItemAt(step.characterIndex)
