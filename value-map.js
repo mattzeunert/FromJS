@@ -44,8 +44,6 @@ ValueMap.prototype.getItemAt = function(charIndex){
     var originObject = matchingItem.originObject
     var characterIndex = charIndex - charCountBeforeMatch + charsBelongingToMatchedOrigin
 
-    console.log("char is", originObject.value[characterIndex])
-
     return {
         originObject: originObject,
         characterIndex: parseFloat(characterIndex)

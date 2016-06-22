@@ -237,29 +237,25 @@ function whereDoesCharComeFrom(originObject, characterIndex){
 }
 function goUp(step){
 
-
+    var ret
     if (step.originObject.action === "set className"){
-        var characterIndex =  step.characterIndex - " class='".length
-        return {
+        var characterIndex =  step.characterIndex
+        ret = {
             originObject: step.originObject.inputValues[0],
             characterIndex: characterIndex
         }
-    }
-
-    if (step.originObject.inputValues.length === 1 && step.originObject.inputValues[0].value === step.originObject.value) {
-        return {
+    } else if (step.originObject.inputValues.length === 1 && step.originObject.inputValues[0].value === step.originObject.value) {
+        ret = {
             originObject: step.originObject.inputValues[0],
             characterIndex: step.characterIndex
         }
-    }
-    if (step.originObject.action === "concat") {
+    } else  if (step.originObject.action === "concat") {
         var valueMap = new ValueMap()
         valueMap.append(step.originObject.inputValues[0])
         valueMap.append(step.originObject.inputValues[1])
 
-        return valueMap.getItemAt(step.characterIndex)
-    }
-    if (step.originObject.action === "Element") {
+        ret = valueMap.getItemAt(step.characterIndex)
+    } else if (step.originObject.action === "Element") {
         var valueMap = new ValueMap();
         var createElement;
 
@@ -312,9 +308,8 @@ function goUp(step){
             console.warn(valueMap.debugginGetValue(), "!!!!is not!!!", step.originObject.value)
         }
 
-        return valueMap.getItemAt(step.characterIndex)
-    }
-    if (step.originObject.action === "createElement") {
+        ret = valueMap.getItemAt(step.characterIndex)
+    } else if (step.originObject.action === "createElement") {
         var characterIndex = step.characterIndex
         var elementType = step.originObject.inputValues[0].value;
         var openingHtml = "<" + elementType + ">"
@@ -332,12 +327,11 @@ function goUp(step){
             // but let's pretend for now
             characterIndex = 0
         }
-        return {
+        ret = {
             originObject: step.originObject.inputValues[0],
             characterIndex: characterIndex
         }
-    }
-    if (step.originObject.action === "replace call") {
+    } else if (step.originObject.action === "replace call") {
         // var valueBeforeReplace= step.originObject.inputValues[0].value
         // var replaceCallDidntChangeValue =valueBeforeReplace === step.originObject.value
         // if (replaceCallDidntChangeValue){
@@ -348,19 +342,37 @@ function goUp(step){
         // }
         // throw "need to handle this"
         var valueMap = ValueMap.deserialize(step.originObject.valueItems, step.originObject.inputValues)
-        return valueMap.getItemAt(step.characterIndex)
+        ret = valueMap.getItemAt(step.characterIndex)
     }
-    if (step.originObject.action === "JSON.parse"){
+    else if (step.originObject.action === "JSON.parse"){
         if (step.originObject.inputValues.length === 1) {
-            return {
+            ret = {
                 originObject: step.originObject.inputValues[0],
                 characterIndex: 0
             }
+        } else {
+            throw "need to handlesss"
         }
-        throw "need to handlesss"
     }
-    console.log("not handling step", step)
-    return null
+    else {
+        return null
+        console.log("not handling step", step)
+    }
+
+
+
+
+    if (ret.originObject.action === "set className") {
+        ret.characterIndex = ret.characterIndex - " class='".length
+        if (ret.characterIndex < 0) {
+            ret.characterIndex = 0;
+            console.log("todo: really this means that this is the end of the path")
+        }
+    }
+
+
+
+    return ret;
 }
 
 
