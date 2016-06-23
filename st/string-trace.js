@@ -64,17 +64,22 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
             var valueItems = null;
             if (propertyName === "replace") {
                 var valueMap = new ValueMap();
-                var lastIndex = 0;
                 var oldString = oldValue.toString()
+                var inputMappedSoFar = ""
                 oldString.replace(args[0], function(matchStr, index){
                     if (typeof args[1] !== "string") throw "not handled"
-                    valueMap.appendString(oldString.substring(lastIndex, index), oldValue.origin)
-                    valueMap.appendString(inputValues[2].value, inputValues[2])
-                    lastIndex = index + matchStr.length;
+                    var inputBeforeToKeep = oldString.substring(inputMappedSoFar.length, index)
+                    valueMap.appendString(inputBeforeToKeep , oldValue.origin, inputMappedSoFar.length)
+                    inputMappedSoFar += inputBeforeToKeep
+
+                    var replaceWith = inputValues[2].value
+                    valueMap.appendString(replaceWith, inputValues[2], 0)
+                    inputMappedSoFar += matchStr
+
                     return args[1]
                 })
-                valueMap.appendString(oldString.substring(lastIndex), oldValue.origin)
-
+                valueMap.appendString(oldString.substring(inputMappedSoFar.length), oldValue.origin, inputMappedSoFar.length)
+                
                 valueItems = valueMap.serialize(inputValues)
             }
 

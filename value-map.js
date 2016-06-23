@@ -3,15 +3,20 @@ function ValueMap(){
     this.items = [];
 }
 ValueMap.prototype.append = function(originObject){
-    this.appendString(originObject.value, originObject)
+    this.appendString(originObject.value, originObject, 0)
 }
-ValueMap.prototype.appendString = function(str, originObject){
+ValueMap.prototype.appendString = function(str, originObject, indexInOriginValue){
+    if (indexInOriginValue === undefined) {
+        debugger;
+    }
+
     var newCharIndex = this.charIndex + str.length;
     this.items.push({
         originObject: originObject,
         fromCharIndex: this.charIndex,
         toCharIndex: newCharIndex,
-        __justForDebuggingStr: str
+        __justForDebuggingStr: str,
+        indexInOriginValue: indexInOriginValue
     })
     this.charIndex = newCharIndex
 }
@@ -42,11 +47,12 @@ ValueMap.prototype.getItemAt = function(charIndex){
     })
 
     var originObject = matchingItem.originObject
-    var characterIndex = charIndex - charCountBeforeMatch + charsBelongingToMatchedOrigin
+    var characterIndex = charIndex - charCountBeforeMatch + charsBelongingToMatchedOrigin +
+        matchingItem.indexInOriginValue;
 
     return {
-        originObject: originObject,
-        characterIndex: parseFloat(characterIndex)
+        originObject: matchingItem.originObject,
+        characterIndex: characterIndex
     }
 }
 ValueMap.prototype.debugginGetValue = function(){
@@ -63,7 +69,8 @@ ValueMap.prototype.serialize = function(inputValues){
             originObjectIndex: inputValues.indexOf(item.originObject),
             fromCharIndex: item.fromCharIndex,
             toCharIndex: item.toCharIndex,
-            __justForDebuggingStr: item.__justForDebuggingStr
+            __justForDebuggingStr: item.__justForDebuggingStr,
+            indexInOriginValue: item.indexInOriginValue
         }
     })
     return ret
@@ -76,7 +83,8 @@ ValueMap.deserialize = function(serializedValueMap, inputValues){
             fromCharIndex: item.fromCharIndex,
             toCharIndex: item.toCharIndex,
             __justForDebuggingStr: item.__justForDebuggingStr,
-            originObject: inputValues[item.originObjectIndex]
+            originObject: inputValues[item.originObjectIndex],
+            indexInOriginValue: item.indexInOriginValue
         })
     })
     console.log("deserialized valueMap", valueMap)

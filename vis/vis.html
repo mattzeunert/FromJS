@@ -272,16 +272,17 @@ function goUp(step){
 
         tagOrigins.forEach(function(tagOrigin){
             if (tagOrigin.action === "createElement") {
-                valueMap.appendString("<" + tagOrigin.inputValues[0].value , tagOrigin)
+                valueMap.appendString("<" + tagOrigin.inputValues[0].value , tagOrigin, 0)
             } else if (tagOrigin.action === "set className"){
-                valueMap.appendString(" class='" + tagOrigin.value + "'", tagOrigin)
+                valueMap.appendString(" class='" + tagOrigin.value + "'", tagOrigin, 0)
             } else {
                 debugger
             }
         })
         tagOrigins.forEach(function(tagOrigin){
             if (tagOrigin.action === "createElement") {
-                valueMap.appendString(">" , tagOrigin)
+                var contentBefore = "<" + tagOrigin.inputValues[0].value
+                valueMap.appendString(">" , tagOrigin, contentBefore.length)
             }
         })
         contentOrigins.forEach(function(inputValue){
@@ -300,7 +301,7 @@ function goUp(step){
         })
         tagOrigins.forEach(function(tagOrigin){
             if (tagOrigin.action === "createElement") {
-                valueMap.appendString("</" + tagOrigin.inputValues[0].value + ">", tagOrigin)
+                valueMap.appendString("</" + tagOrigin.inputValues[0].value + ">", tagOrigin, 0)
             }
         })
 
@@ -326,6 +327,10 @@ function goUp(step){
             // it's not really clear what that should mean, since that doesn't have an origin
             // but let's pretend for now
             characterIndex = 0
+        }
+        if (characterIndex == step.originObject.inputValues[0].value.length) {
+            // they clicked on ">", should really end path here
+            characterIndex = step.originObject.inputValues[0].value.length - 1
         }
         ret = {
             originObject: step.originObject.inputValues[0],
@@ -425,10 +430,10 @@ window.onload = function onload(){
 
 
     function updateSize(){
-        force.size([document.body.clientWidth, document.body.clientHeight - 50])
+        force.size([document.body.clientWidth, document.body.clientHeight - 150])
         svg
             .attr("width", document.body.clientWidth)
-            .attr("height", document.body.clientHeight - 50);
+            .attr("height", document.body.clientHeight - 150);
     }
 
     updateSize()
