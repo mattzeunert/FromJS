@@ -469,13 +469,15 @@ window.onload = function onload(){
             .text(function(d) {
                 var text = d.action + (d.actionDetails ? " " + d.actionDetails : "");
                 if (d.action === "string literal"){
-                    var truncatedValue = d.value
-                    if (truncatedValue.length > 25) {
-                        truncatedValue = truncatedValue.substr(0, 25) + "..."
-                    }
-                    text = '"' + truncatedValue + '"'
+                    text = '"' + d.value + '"'
                 }
+
                 text = text.replace(/\n/g, "\\n")
+
+                if (text.length > 25) {
+                    text = text.substr(0, 25) + "..."
+                }
+
                 return text;
             })
             .on("mouseenter", function(d){
