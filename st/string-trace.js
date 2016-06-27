@@ -270,7 +270,22 @@ function addElOrigin(el, origin){
     if (!el.__elOrigin) {
         el.__elOrigin = []
     }
-    el.__elOrigin.push(origin)
+    if (origin.action === "removeAttribute") {
+        el.__elOrigin = el.__elOrigin.filter(function(existingOrigin){
+            if (existingOrigin.action !== "setAttribute") {
+                return true;
+            }
+
+            if (existingOrigin.inputValues[0].value !== origin.inputValues[0].value){
+                return true;
+            }
+
+            console.log("removeing attr", existingOrigin)
+            return false;
+        })
+    } else {
+         el.__elOrigin.push(origin)
+    }
 }
 
 function stringTraceSetInnerHTML(el, innerHTML){
@@ -327,6 +342,16 @@ Element.prototype.setAttribute = function(attrName, value){
         value: "not gotten around to making this work yet"
     }))
     return nativeSetAttribute.apply(this, arguments)
+}
+
+var nativeRemoveAttribute = Element.prototype.removeAttribute;
+Element.prototype.removeAttribute = function(attrName){
+    addElOrigin(this, makeOrigin({
+        action: "removeAttribute",
+        inputValues: [attrName],
+        value: "whateverr"
+    }))
+    return nativeRemoveAttribute.apply(this, arguments)
 }
 
 var nativeClassNameDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "className");

@@ -251,6 +251,7 @@ setTimeout(function(){
 
                 getElementOriginData(usedEl, function(oooo){
                     console.log("oooo", oooo)
+                    localStorage.setItem("visData", JSON.stringify(oooo))
 
                     var originPath = vis.whereDoesCharComeFrom(oooo, characterIndex)
                     vis.showOriginPath(originPath)
