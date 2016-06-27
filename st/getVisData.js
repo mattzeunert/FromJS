@@ -64,35 +64,35 @@ function resolveStackArray(stackArray, callback){
     })
 }
 //
-// function resolveStacksInOrigin(origin, callback){
-//     var functionsToCall = []
-//     if (origin.stack){
-//         functionsToCall.push(function(callback){
-//             resolveStackArray(origin.stack, function(newStack){
-//                 origin.resolvedStack = newStack
-//                 callback()
-//             })
-//         })
-//     }
-//     if (origin.inputValues) {
-//         functionsToCall.push(function(callback){
-//             async.each(origin.inputValues, function(iv, callback){
-//                 if (!iv) {callback();}
-//                 else {
-//                     resolveStacksInOrigin(iv, callback)
-//                 }
-//             }, function(){
-//                 callback();
-//             })
-//         })
-//     }
-//
-//
-//     async.series(functionsToCall, function(){
-//         callback();
-//     })
-//
-// }
+function resolveStacksInOrigin(origin, callback){
+    var functionsToCall = []
+    if (origin.stack){
+        functionsToCall.push(function(callback){
+            resolveStackArray(origin.stack, function(newStack){
+                origin.resolvedStack = newStack
+                callback()
+            })
+        })
+    }
+    if (origin.inputValues) {
+        functionsToCall.push(function(callback){
+            async.each(origin.inputValues, function(iv, callback){
+                if (!iv) {callback();}
+                else {
+                    resolveStacksInOrigin(iv, callback)
+                }
+            }, function(){
+                callback();
+            })
+        })
+    }
+
+
+    async.series(functionsToCall, function(){
+        callback();
+    })
+
+}
 
 function isElement(value){
     return value instanceof Element
@@ -247,8 +247,10 @@ setTimeout(function(){
                 console.log("used el", usedEl)
 
                 getElementOriginData(usedEl, function(oooo){
+                    window.oooo = oooo;
                     console.log("oooo", oooo)
-                    localStorage.setItem("visData", JSON.stringify(oooo))
+
+                    exportElementOrigin(oooo)
 
                     var originPath = vis.whereDoesCharComeFrom(oooo, characterIndex)
                     async.map(originPath, function(origin, callback){
@@ -259,13 +261,9 @@ setTimeout(function(){
                     }, function(err, resolvedOriginPath){
                         vis.showOriginPath(resolvedOriginPath)
                         console.log(resolvedOriginPath)
+
                     })
-
-
-
                 })
-
-
             })
         }
     }
@@ -279,18 +277,13 @@ setTimeout(function(){
         display(this)
     })
     $("body").append(div)
-
-
-
-
-
-    // console.time("Get visData")
-    // getElementOriginData(document.body, function(oooo){
-    //
-    //     window.oooo = oooo;
-    //     console.timeEnd("Get visData")
-    //     localStorage.setItem("visData", JSON.stringify(oooo))
-    //     gps = null;
-    //     console.log("got oooo, saved to localstorage")
-    // })
 }, 1000)
+
+function exportElementOrigin(origin){
+    console.time("Resolving all origin stacks")
+    resolveStacksInOrigin(origin, function(){
+        console.timeEnd("Resolving all origin stacks")
+        localStorage.setItem("visData", JSON.stringify(origin))
+    })
+
+}
