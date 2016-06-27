@@ -12,22 +12,23 @@ function processElementsAvailableOnInitialLoad(){
     els = Array.prototype.slice.apply(els)
     els.forEach(function(el){
         el.__elOrigin = [];
-        var initialHtmlOrigin = makeOrigin({
+
+        var initialHtmlOriginInputValues = []
+        var children = Array.prototype.slice.apply(el.children)
+        children.forEach(function(child){
+            initialHtmlOriginInputValues.push(child)
+        })
+        addElOrigin(el, {
             value: el.innerHTML,
             action: "content from initial html",
             inputValues: []
         })
-        var children = Array.prototype.slice.apply(el.children)
-        children.forEach(function(child){
-            initialHtmlOrigin.inputValues.push(child)
-        })
-        addElOrigin(el, initialHtmlOrigin)
 
-        addElOrigin(el, makeOrigin({
+        addElOrigin(el, {
             action: "initial html",
             inputValues: [],
             value: el.outerHTML
-        }))
+        })
     })
 }
 processElementsAvailableOnInitialLoad();
@@ -266,11 +267,12 @@ function stringTraceTripleEqual(a,b){
     return !stringTraceNotTripleEqual(a,b)
 }
 
-function addElOrigin(el, origin){
+function addElOrigin(el, originInfo){
     if (!el.__elOrigin) {
         el.__elOrigin = []
     }
-    if (origin.action === "removeAttribute") {
+    var origin = makeOrigin(originInfo)
+    if (originInfo.action === "removeAttribute") {
         el.__elOrigin = el.__elOrigin.filter(function(existingOrigin){
             if (existingOrigin.action !== "setAttribute") {
                 return true;
@@ -289,20 +291,20 @@ function addElOrigin(el, origin){
 }
 
 function stringTraceSetInnerHTML(el, innerHTML){
-    addElOrigin(el, makeOrigin({
+    addElOrigin(el,{
         action: "assign innerHTML",
         inputValues: [innerHTML],
         value: innerHTML.toString()
-    }))
+    })
 
     el.innerHTML = innerHTML
 
     $(el).find("*").each(function(i, el){
-        addElOrigin(el, makeOrigin({
+        addElOrigin(el, {
             action: "ancestor innerHTML",
             inputValues: [],
             valueOfEl: el
-        }))
+        })
     })
 }
 
@@ -310,11 +312,11 @@ var originalCreateElement = document.createElement
 document.createElement = function(tagName){
 
     var el = originalCreateElement.call(this, tagName)
-    addElOrigin(el, makeOrigin({
+    addElOrigin(el, {
         action: "createElement",
         inputValues: [tagName],
         value: el.outerHTML
-    }))
+    })
     return el;
 }
 
@@ -322,12 +324,12 @@ var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototy
 Object.defineProperty(Node.prototype, "appendChild", {
     get: function(){
         return function(appendedEl){
-            addElOrigin(this, makeOrigin({
+            addElOrigin(this,{
                 action: "appendChild",
                 stack: new Error().stack.split("\n"),
                 inputValues: [appendedEl],
                 valueOfEl: appendedEl
-            }))
+            })
 
             return appendChildPropertyDescriptor.value.apply(this, arguments)
         }
@@ -336,32 +338,32 @@ Object.defineProperty(Node.prototype, "appendChild", {
 
 var nativeSetAttribute = Element.prototype.setAttribute;
 Element.prototype.setAttribute = function(attrName, value){
-    addElOrigin(this, makeOrigin({
+    addElOrigin(this, {
         action: "setAttribute",
         inputValues: [attrName, value],
         value: "not gotten around to making this work yet"
-    }))
+    })
     return nativeSetAttribute.apply(this, arguments)
 }
 
 var nativeRemoveAttribute = Element.prototype.removeAttribute;
 Element.prototype.removeAttribute = function(attrName){
-    addElOrigin(this, makeOrigin({
+    addElOrigin(this, {
         action: "removeAttribute",
         inputValues: [attrName],
         value: "whateverr"
-    }))
+    })
     return nativeRemoveAttribute.apply(this, arguments)
 }
 
 var nativeClassNameDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "className");
 Object.defineProperty(Element.prototype, "className", {
     set: function(newValue){
-        addElOrigin(this, makeOrigin({
+        addElOrigin(this, {
             action: "set className",
             value: newValue.toString(),
             inputValues: [newValue]
-        }))
+        })
         return nativeClassNameDescriptor.set.apply(this, arguments)
     },
     get: function(){
