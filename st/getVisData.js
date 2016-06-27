@@ -196,15 +196,14 @@ setTimeout(function(){
     div.append(textContainer)
     div.css({
         position: "fixed",
-        top: 0,
+        bottom: 0,
         left: 0,
         width: "100%",
-        "max-height": "200px",
-        background: "#ddd",
+        "max-height": "400px",
+        background: "#eee",
         overflow: "auto"
     })
 
-    $("body").css("margin-top", "200px")
 
     console.log("k")
 

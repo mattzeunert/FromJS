@@ -6,50 +6,61 @@ function showOriginPath(originPath){
     window.op = originPath
     console.log("originPath", originPath)
     var originPathEl =  document.createElement("div")
+
+    var lastOrigin = originPath[originPath.length - 1]
+    originPathEl.innerHTML += getOriginPathItemHtml(lastOrigin)
+    originPathEl.innerHTML += "<br/><hr/>"
+
+
     for (origin of originPath) {
-        var itemHtml = "";
-        itemHtml += "<div>"
-
-            itemHtml += "<u>"
-
-            itemHtml += origin.originObject.action
-
-            itemHtml += "</u>"
-
-            if (origin.originObject.resolvedStack) {
-                itemHtml += " (" + _.first(origin.originObject.resolvedStack).fileName.replace("?dontprocess=yes", "") + ")"
-            }
-
-            itemHtml += "<br/>"
-
-
-            if (!origin.originObject.resolvedStack) {
-                itemHtml += "(no stack)"
-            } else {
-                itemHtml += "<code>"
-                var frame = _.first(origin.originObject.resolvedStack)
-                itemHtml += escapeAngleBrackets(frame.line.substr(0, frame.columnNumber)) +
-                    "<span style='color: red; '>|</span>" +
-                    escapeAngleBrackets(frame.line.substr(frame.columnNumber));
-                itemHtml += "</code>"
-            }
-
-
-
-            var val = origin.originObject.value
-            itemHtml += "<div>" + escapeAngleBrackets(val.substr(0, origin.characterIndex)) +
-                    "<span style='color: red; font-weight:bold'>" +
-                    escapeAngleBrackets(val.substr(origin.characterIndex, 1))
-                    + "</span>" +
-                    escapeAngleBrackets(val.substr(origin.characterIndex + 1)) + "</div>"
-
-
-        itemHtml += "</div>"
-        originPathEl.innerHTML += itemHtml
+        originPathEl.innerHTML += getOriginPathItemHtml(origin)
     }
 
     document.getElementById("origin-path").innerHTML = ""
     document.getElementById("origin-path").appendChild(originPathEl)
+}
+
+function getOriginPathItemHtml(origin){
+    var itemHtml = "";
+    itemHtml += "<div>"
+
+        itemHtml += "<u>"
+
+        itemHtml += origin.originObject.action
+
+        itemHtml += "</u>"
+
+        if (origin.originObject.resolvedStack) {
+            itemHtml += " (" + _.first(origin.originObject.resolvedStack).fileName.replace("?dontprocess=yes", "") + ")"
+        }
+
+        itemHtml += "<br/>"
+
+
+        if (!origin.originObject.resolvedStack) {
+            itemHtml += "(no stack)"
+        } else {
+            itemHtml += "<code>"
+            var frame = _.first(origin.originObject.resolvedStack)
+            itemHtml += escapeAngleBrackets(frame.line.substr(0, frame.columnNumber)) +
+                "<span style='color: red; '>|</span>" +
+                escapeAngleBrackets(frame.line.substr(frame.columnNumber));
+            itemHtml += "</code>"
+        }
+
+
+
+        var val = origin.originObject.value
+        itemHtml += "<div>" + escapeAngleBrackets(val.substr(0, origin.characterIndex)) +
+                "<span style='color: red; font-weight:bold'>" +
+                escapeAngleBrackets(val.substr(origin.characterIndex, 1))
+                + "</span>" +
+                escapeAngleBrackets(val.substr(origin.characterIndex + 1)) + "</div>"
+
+
+    itemHtml += "</div>"
+
+    return itemHtml
 }
 
 function nodeIsHTMLElement(node){
