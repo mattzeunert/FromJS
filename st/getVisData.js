@@ -189,5 +189,26 @@ setTimeout(function(){
         localStorage.setItem("visData", JSON.stringify(oooo))
         gps = null;
         console.log("got oooo, saved to localstorage")
+
+        var div = $("<div>")
+        var textContainer = $("<div>")
+        div.append(textContainer)
+        div.css({
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            "max-height": "100px",
+            background: "#ddd",
+            overflow: "auto"
+        })
+
+        $("*").off("click")
+        $("*").click(function(e){
+            e.stopPropagation();e.preventDefault();
+            div.text(this.outerHTML)
+        })
+        $("body").append(div)
+
     })
 }, 2000)
