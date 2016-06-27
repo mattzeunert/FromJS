@@ -1,3 +1,6 @@
+if (require){
+    window.ValueMap = require("../value-map")
+}
 
 function showOriginPath(originPath){
     window.op = originPath
@@ -95,7 +98,7 @@ function showInfo(info){
             })
 
 
-            onload()
+            showGraph()
         }
         valueBlockQuote.appendChild(a)
     }
@@ -173,6 +176,13 @@ function whereDoesCharComeFrom(originObject, characterIndex){
 
     return steps
 }
+
+if (typeof module !== "undefined"){
+    module.exports = {
+        whereDoesCharComeFrom: whereDoesCharComeFrom
+    }
+}
+
 function goUp(step){
 
     var ret
@@ -356,7 +366,7 @@ function processOriginObject(origin){
 
 
 
-window.onload = function onload(){
+function showGraph(){
 
 
     var force = d3.layout.force()
@@ -435,7 +445,7 @@ window.onload = function onload(){
                 links = []
                 processOriginObject(d)
                 document.querySelector("svg").remove()
-                onload()
+                showGraph()
 
             })
 

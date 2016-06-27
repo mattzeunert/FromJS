@@ -1,6 +1,7 @@
 var async = require("./async");
 var ErrorStackParser = require("./error-stack-parser")
 var StackTraceGPS = require("./stacktrace-gps")
+var vis = require("../vis/vis")
 var _ = require("underscore")
 var endsWith = require("ends-with")
 var $ = require("jquery")
@@ -182,53 +183,80 @@ setTimeout(function(){
     gps = new StackTraceGPS({sourceCache: sourceCache});
 
     window.JSON.parse = window.nativeJSONParse
-    console.time("Get visData")
-    getElementOriginData(document.body, function(oooo){
 
-        window.oooo = oooo;
-        console.timeEnd("Get visData")
-        localStorage.setItem("visData", JSON.stringify(oooo))
-        gps = null;
-        console.log("got oooo, saved to localstorage")
 
-        var div = $("<div>")
-        div.attr("id", "fromjs")
-        div.append("<style>#fromjs span:hover{color: red}</style>")
-        var textContainer = $("<div>")
-        div.append(textContainer)
-        div.css({
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            "max-height": "100px",
-            background: "#ddd",
-            overflow: "auto"
-        })
 
-        function display(el){
-            var outerHTML = el.outerHTML;
-            textContainer.html("");
-            for (let index in outerHTML){
-                let char = outerHTML[index]
-                let span = $("<span>")
-                span.html(char);
-                textContainer.append(span)
-                span.on("click", function(){
-                    console.log("clicked on index", index, el, el.__elOrigin)
-                })
-            }
-        }
 
-        $("*").off("click")
-        $("*").click(function(e){
-            e.stopPropagation();e.preventDefault();
-            if ($(this).is("html, body")){
-                return;
-            }
-            display(this)
-        })
-        $("body").append(div)
 
+    var div = $("<div>")
+    div.attr("id", "fromjs")
+    div.append("<style>#fromjs span:hover{color: red}</style>")
+    var textContainer = $("<div>")
+    div.append(textContainer)
+    div.css({
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        "max-height": "100px",
+        background: "#ddd",
+        overflow: "auto"
     })
+
+    console.log("k")
+
+    function display(el){
+        var outerHTML = el.outerHTML;
+        textContainer.html("");
+        for (let index in outerHTML){
+            let char = outerHTML[index]
+            let span = $("<span>")
+            span.html(char);
+            textContainer.append(span)
+            span.on("click", function(){
+                var characterIndex = index;
+                var usedEl = el;
+
+                while (usedEl.__elOrigin[0].action === "ancestor innerHTML"){
+                    usedEl = usedEl.parentElement
+                }
+
+                console.log("clicked el", el)
+                console.log("used el", usedEl)
+
+                getElementOriginData(usedEl, function(oooo){
+                    console.log("oooo", oooo)
+
+                    var originPath = vis.whereDoesCharComeFrom(oooo, characterIndex)
+                    console.log(originPath)
+                })
+
+
+            })
+        }
+    }
+
+    $("*").off("click")
+    $("*").click(function(e){
+        e.stopPropagation();e.preventDefault();
+        if ($(this).is("html, body")){
+            return;
+        }
+        display(this)
+    })
+    $("body").append(div)
+
+
+
+
+
+    // console.time("Get visData")
+    // getElementOriginData(document.body, function(oooo){
+    //
+    //     window.oooo = oooo;
+    //     console.timeEnd("Get visData")
+    //     localStorage.setItem("visData", JSON.stringify(oooo))
+    //     gps = null;
+    //     console.log("got oooo, saved to localstorage")
+    // })
 }, 2000)
