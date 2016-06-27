@@ -191,6 +191,8 @@ setTimeout(function(){
         console.log("got oooo, saved to localstorage")
 
         var div = $("<div>")
+        div.attr("id", "fromjs")
+        div.append("<style>#fromjs span:hover{color: red}</style>")
         var textContainer = $("<div>")
         div.append(textContainer)
         div.css({
@@ -203,10 +205,26 @@ setTimeout(function(){
             overflow: "auto"
         })
 
+        function display(outerHTML){
+            textContainer.html("");
+            for (let index in outerHTML){
+                let char = outerHTML[index]
+                let span = $("<span>")
+                span.html(char);
+                textContainer.append(span)
+                span.on("click", function(){
+                    console.log("clicked on index", index)
+                })
+            }
+        }
+
         $("*").off("click")
         $("*").click(function(e){
             e.stopPropagation();e.preventDefault();
-            div.text(this.outerHTML)
+            if ($(this).is("html, body")){
+                return;
+            }
+            display(this.outerHTML)
         })
         $("body").append(div)
 
