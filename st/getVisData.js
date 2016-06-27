@@ -250,7 +250,7 @@ setTimeout(function(){
                     window.oooo = oooo;
                     console.log("oooo", oooo)
 
-                    exportElementOrigin(oooo)
+                    // exportElementOrigin(oooo)
 
                     var originPath = vis.whereDoesCharComeFrom(oooo, characterIndex)
                     async.map(originPath, function(origin, callback){

@@ -24,7 +24,7 @@ function showOriginPath(originPath){
 
 function getOriginPathItemHtml(origin){
     var itemHtml = "";
-    itemHtml += "<div style='padding-bottom: 10px'>"
+    itemHtml += "<div style='padding-bottom: 20px'>"
 
         itemHtml += "<div style='padding-bottom: 5px;'>"
             itemHtml += "<span style='text-decoration: underline; font-weight: bold'>"
@@ -45,23 +45,23 @@ function getOriginPathItemHtml(origin){
 
         var val = origin.originObject.value
         itemHtml += "<div style='background: #eee; padding: 10px'>"
-        itemHtml += escapeAngleBrackets(val.substr(0, origin.characterIndex)) +
+        itemHtml += escapeAngleBrackets(val.substr(0, origin.characterIndex)).replace(/ /g, "&nbsp;") +
                 "<span style='color: red; font-weight:bold'>" +
-                escapeAngleBrackets(val.substr(origin.characterIndex, 1))
+                escapeAngleBrackets(val.substr(origin.characterIndex, 1)).replace(/ /g, "&nbsp;")
                 + "</span>" +
-                escapeAngleBrackets(val.substr(origin.characterIndex + 1))
+                escapeAngleBrackets(val.substr(origin.characterIndex + 1)).replace(/ /g, "&nbsp;")
         itemHtml += "</div>"
 
         if (!origin.originObject.resolvedStack) {
             itemHtml += "(no stack)"
         } else {
-            itemHtml += "<code>"
+            itemHtml += "<code style='background: aliceblue;display: block;padding-top: 5px;margin-top: 5px;padding-bottom: 5px;'>"
             var frame = _.first(origin.originObject.resolvedStack)
-            itemHtml += escapeAngleBrackets(frame.prevLine) + "<br/>"
-            itemHtml += escapeAngleBrackets(frame.line.substr(0, frame.columnNumber)) +
+            itemHtml += escapeAngleBrackets(frame.prevLine).replace(/ /g, "&nbsp;") + "<br/>"
+            itemHtml += escapeAngleBrackets(frame.line.substr(0, frame.columnNumber)).replace(/ /g, "&nbsp;") +
                 "<span style='color: red; '>|</span>" +
-                escapeAngleBrackets(frame.line.substr(frame.columnNumber)) + "<br/>"
-            itemHtml += escapeAngleBrackets(frame.nextLine)
+                escapeAngleBrackets(frame.line.substr(frame.columnNumber)).replace(/ /g, "&nbsp;") + "<br/>"
+            itemHtml += escapeAngleBrackets(frame.nextLine).replace(/ /g, "&nbsp;")
             itemHtml += "</code>"
         }
 
