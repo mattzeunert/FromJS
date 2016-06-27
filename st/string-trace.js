@@ -282,7 +282,6 @@ function addElOrigin(el, originInfo){
                 return true;
             }
 
-            console.log("removeing attr", existingOrigin)
             return false;
         })
     } else {

@@ -196,12 +196,15 @@ setTimeout(function(){
     div.append(textContainer)
     div.css({
         position: "fixed",
+        "font-family": "Arial",
+        "font-size": 16,
         bottom: 0,
         left: 0,
         width: "100%",
-        "max-height": "400px",
-        background: "#eee",
-        overflow: "auto"
+        "max-height": "500px",
+        background: "white",
+        overflow: "auto",
+        "border-top": "1px solid black"
     })
 
 
@@ -285,4 +288,4 @@ setTimeout(function(){
     //     gps = null;
     //     console.log("got oooo, saved to localstorage")
     // })
-}, 2000)
+}, 1000)

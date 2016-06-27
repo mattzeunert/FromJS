@@ -1,15 +1,17 @@
 if (typeof require !== "undefined"){
     window.ValueMap = require("../value-map")
+    window._ = require("underscore")
 }
 
 function showOriginPath(originPath){
     window.op = originPath
     console.log("originPath", originPath)
     var originPathEl =  document.createElement("div")
+    originPathEl.setAttribute("style", "padding: 10px")
 
     var lastOrigin = originPath[originPath.length - 1]
     originPathEl.innerHTML += getOriginPathItemHtml(lastOrigin)
-    originPathEl.innerHTML += "<br/><hr/>"
+    originPathEl.innerHTML += "<hr/>"
 
 
     for (origin of originPath) {
@@ -22,41 +24,46 @@ function showOriginPath(originPath){
 
 function getOriginPathItemHtml(origin){
     var itemHtml = "";
-    itemHtml += "<div>"
+    itemHtml += "<div style='padding-bottom: 10px'>"
 
-        itemHtml += "<u>"
+        itemHtml += "<div style='padding-bottom: 5px;'>"
+            itemHtml += "<span style='text-decoration: underline; font-weight: bold'>"
 
-        itemHtml += origin.originObject.action
+            itemHtml += origin.originObject.action
 
-        itemHtml += "</u>"
+            itemHtml += "</span>"
 
-        if (origin.originObject.resolvedStack) {
-            itemHtml += " (" + _.first(origin.originObject.resolvedStack).fileName.replace("?dontprocess=yes", "") + ")"
-        }
+            if (origin.originObject.resolvedStack) {
+                var filename = _.first(origin.originObject.resolvedStack).fileName.replace("?dontprocess=yes", "");
+                var filenameParts = filename.split("/")
+                filename = _.last(filenameParts)
+                itemHtml += " (" + filename + ")"
+            }
 
-        itemHtml += "<br/>"
+        itemHtml += "</div>"
 
+
+        var val = origin.originObject.value
+        itemHtml += "<div style='background: #eee; padding: 10px'>"
+        itemHtml += escapeAngleBrackets(val.substr(0, origin.characterIndex)) +
+                "<span style='color: red; font-weight:bold'>" +
+                escapeAngleBrackets(val.substr(origin.characterIndex, 1))
+                + "</span>" +
+                escapeAngleBrackets(val.substr(origin.characterIndex + 1))
+        itemHtml += "</div>"
 
         if (!origin.originObject.resolvedStack) {
             itemHtml += "(no stack)"
         } else {
             itemHtml += "<code>"
             var frame = _.first(origin.originObject.resolvedStack)
+            itemHtml += escapeAngleBrackets(frame.prevLine) + "<br/>"
             itemHtml += escapeAngleBrackets(frame.line.substr(0, frame.columnNumber)) +
                 "<span style='color: red; '>|</span>" +
-                escapeAngleBrackets(frame.line.substr(frame.columnNumber));
+                escapeAngleBrackets(frame.line.substr(frame.columnNumber)) + "<br/>"
+            itemHtml += escapeAngleBrackets(frame.nextLine)
             itemHtml += "</code>"
         }
-
-
-
-        var val = origin.originObject.value
-        itemHtml += "<div>" + escapeAngleBrackets(val.substr(0, origin.characterIndex)) +
-                "<span style='color: red; font-weight:bold'>" +
-                escapeAngleBrackets(val.substr(origin.characterIndex, 1))
-                + "</span>" +
-                escapeAngleBrackets(val.substr(origin.characterIndex + 1)) + "</div>"
-
 
     itemHtml += "</div>"
 
