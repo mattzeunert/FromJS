@@ -63,36 +63,36 @@ function resolveStackArray(stackArray, callback){
         callback(newStackFrames)
     })
 }
-
-function resolveStacksInOrigin(origin, callback){
-    var functionsToCall = []
-    if (origin.stack){
-        functionsToCall.push(function(callback){
-            resolveStackArray(origin.stack, function(newStack){
-                origin.resolvedStack = newStack
-                callback()
-            })
-        })
-    }
-    if (origin.inputValues) {
-        functionsToCall.push(function(callback){
-            async.each(origin.inputValues, function(iv, callback){
-                if (!iv) {callback();}
-                else {
-                    resolveStacksInOrigin(iv, callback)
-                }
-            }, function(){
-                callback();
-            })
-        })
-    }
-
-
-    async.series(functionsToCall, function(){
-        callback();
-    })
-
-}
+//
+// function resolveStacksInOrigin(origin, callback){
+//     var functionsToCall = []
+//     if (origin.stack){
+//         functionsToCall.push(function(callback){
+//             resolveStackArray(origin.stack, function(newStack){
+//                 origin.resolvedStack = newStack
+//                 callback()
+//             })
+//         })
+//     }
+//     if (origin.inputValues) {
+//         functionsToCall.push(function(callback){
+//             async.each(origin.inputValues, function(iv, callback){
+//                 if (!iv) {callback();}
+//                 else {
+//                     resolveStacksInOrigin(iv, callback)
+//                 }
+//             }, function(){
+//                 callback();
+//             })
+//         })
+//     }
+//
+//
+//     async.series(functionsToCall, function(){
+//         callback();
+//     })
+//
+// }
 
 function isElement(value){
     return value instanceof Element
@@ -116,11 +116,7 @@ function resolveElOriginInputValue(inputValue, callback){
             callback(null, data)
         })
     } else {
-        var origin = _.clone(inputValue);
-
-        resolveStacksInOrigin(origin, function(){
-            callback(null, origin)
-        })
+        callback(null, inputValue)
     }
 }
 
@@ -138,10 +134,7 @@ function convertElOrigin(elOrigin, callback){
     async.map(inputValues, resolveElOriginInputValue,  function(err, resolvedInputValues){
         elOrigin = _.clone(elOrigin)
         elOrigin.inputValues = resolvedInputValues;
-
-        resolveStackIfAvailable(elOrigin, function(err, elOrigin){
-            callback(null, elOrigin)
-        })
+        callback(null, elOrigin)
     })
 }
 function getElementOriginData(el, callback){
@@ -163,9 +156,7 @@ function getElementOriginData(el, callback){
             value: el.outerHTML,
             inputValues: convertedElOrigins
         }
-        resolveStackIfAvailable(data, function(err, data){
-            callback(data)
-        })
+        callback(data)
     })
 }
 
@@ -260,8 +251,18 @@ setTimeout(function(){
                     localStorage.setItem("visData", JSON.stringify(oooo))
 
                     var originPath = vis.whereDoesCharComeFrom(oooo, characterIndex)
-                    vis.showOriginPath(originPath)
-                    console.log(originPath)
+                    async.map(originPath, function(origin, callback){
+                        resolveStackIfAvailable(origin.originObject, function(err, originObject){
+                            origin.originObject = originObject
+                            callback(null, origin)
+                        });
+                    }, function(err, resolvedOriginPath){
+                        vis.showOriginPath(resolvedOriginPath)
+                        console.log(resolvedOriginPath)
+                    })
+
+
+
                 })
 
 
