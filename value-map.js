@@ -63,7 +63,7 @@ ValueMap.prototype.debugginGetValue = function(){
     return value;
 }
 ValueMap.prototype.serialize = function(inputValues){
-    console.log("serialize with", inputValues)
+    // console.log("serialize with", inputValues)
     var ret = this.items.map(function(item){
         return {
             originObjectIndex: inputValues.indexOf(item.originObject),
