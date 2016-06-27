@@ -71,7 +71,7 @@ function getOriginPathItemHtml(origin){
 }
 
 function nodeIsHTMLElement(node){
-    return node.action === "initial html" || node.action === "content from initial html" ||
+    return node.action === "initial html" ||
         node.action === "createElement" || node.action === "assign innerHTML" ||
         node.action === "appendChild"
 }
@@ -263,6 +263,9 @@ function goUp(step){
                 valueMap.append(inputValue)
             }
             else if (inputValue.action === "assign innerHTML"){
+                valueMap.append(inputValue)
+            }
+            else if (inputValue.action === "initial html"){
                 valueMap.append(inputValue)
             }
             else {

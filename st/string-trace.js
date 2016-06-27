@@ -13,22 +13,20 @@ function processElementsAvailableOnInitialLoad(){
     els.forEach(function(el){
         el.__elOrigin = [];
 
-        var initialHtmlOriginInputValues = []
-        var children = Array.prototype.slice.apply(el.children)
-        children.forEach(function(child){
-            initialHtmlOriginInputValues.push(child)
-        })
-        addElOrigin(el, {
-            value: el.innerHTML,
-            action: "content from initial html",
-            inputValues: []
+        $(el).find("*").each(function(i, el){
+            addElOrigin(el, {
+                value: el.outerHTML,
+                action: "initial html",
+                inputValues: []
+            })
         })
 
         addElOrigin(el, {
+            value: el.outerHTML,
             action: "initial html",
-            inputValues: [],
-            value: el.outerHTML
+            inputValues: []
         })
+
     })
 }
 processElementsAvailableOnInitialLoad();

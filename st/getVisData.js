@@ -279,6 +279,8 @@ setTimeout(function(){
     $("body").append(div)
 }, 1000)
 
+window.getElementOriginData = getElementOriginData
+
 function exportElementOrigin(origin){
     console.time("Resolving all origin stacks")
     resolveStacksInOrigin(origin, function(){
