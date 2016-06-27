@@ -1,4 +1,4 @@
-if (require){
+if (typeof require !== "undefined"){
     window.ValueMap = require("../value-map")
 }
 
@@ -179,7 +179,8 @@ function whereDoesCharComeFrom(originObject, characterIndex){
 
 if (typeof module !== "undefined"){
     module.exports = {
-        whereDoesCharComeFrom: whereDoesCharComeFrom
+        whereDoesCharComeFrom: whereDoesCharComeFrom,
+        showOriginPath: showOriginPath
     }
 }
 
@@ -210,7 +211,8 @@ function goUp(step){
         var tagOrigins = [];
         var contentOrigins = []
         step.originObject.inputValues.forEach(function(inputValue){
-            if (inputValue.action === "createElement" || inputValue.action === "set className"){
+            if (inputValue.action === "createElement" || inputValue.action === "set className" ||
+                inputValue.action === "setAttribute"){
                 tagOrigins.push(inputValue)
             } else {
                 contentOrigins.push(inputValue)
@@ -223,6 +225,8 @@ function goUp(step){
                 valueMap.appendString("<" + tagOrigin.inputValues[0].value , tagOrigin, 0)
             } else if (tagOrigin.action === "set className"){
                 valueMap.appendString(" class='" + tagOrigin.value + "'", tagOrigin, 0)
+            } else if (tagOrigin.action === "setAttribute") {
+                valueMap.appendString(" " + tagOrigin.inputValues[0].value + '="' + tagOrigin.inputValues[1].value + '"', tagOrigin, 0)
             } else {
                 debugger
             }

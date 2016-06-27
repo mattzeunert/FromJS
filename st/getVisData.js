@@ -191,6 +191,7 @@ setTimeout(function(){
     var div = $("<div>")
     div.attr("id", "fromjs")
     div.append("<style>#fromjs span:hover{color: red}</style>")
+    div.append("<div id='origin-path'></div>")
     var textContainer = $("<div>")
     div.append(textContainer)
     div.css({
@@ -198,10 +199,12 @@ setTimeout(function(){
         top: 0,
         left: 0,
         width: "100%",
-        "max-height": "100px",
+        "max-height": "200px",
         background: "#ddd",
         overflow: "auto"
     })
+
+    $("body").css("margin-top", "200px")
 
     console.log("k")
 
@@ -214,11 +217,33 @@ setTimeout(function(){
             span.html(char);
             textContainer.append(span)
             span.on("click", function(){
-                var characterIndex = index;
+                var characterIndex = parseFloat(index);
                 var usedEl = el;
 
+                console.log("clicked on", usedEl.outerHTML[characterIndex], characterIndex)
                 while (usedEl.__elOrigin[0].action === "ancestor innerHTML"){
+                    var prevUsedEl = usedEl;
                     usedEl = usedEl.parentElement
+                    var childNodes = usedEl.childNodes
+                    for (var i in childNodes) {
+                        var childNode = childNodes[i];
+
+                        if (prevUsedEl === childNode) {
+                            break;
+                        } else {
+                            var isTextNode = childNode.outerHTML === undefined
+                            if (!isTextNode){
+                                characterIndex += childNode.outerHTML.length;
+                            } else {
+                                characterIndex += childNode.textContent.length;
+                            }
+                        }
+                    }
+
+                    var outerHTMLAdjustment = usedEl.outerHTML.replace(usedEl.innerHTML, "").indexOf("</")
+                    characterIndex += outerHTMLAdjustment
+
+                    console.log("char is now", usedEl.outerHTML[characterIndex], characterIndex)
                 }
 
                 console.log("clicked el", el)
@@ -228,6 +253,7 @@ setTimeout(function(){
                     console.log("oooo", oooo)
 
                     var originPath = vis.whereDoesCharComeFrom(oooo, characterIndex)
+                    vis.showOriginPath(originPath)
                     console.log(originPath)
                 })
 
