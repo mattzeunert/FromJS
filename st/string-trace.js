@@ -2,6 +2,7 @@ require("./compile")
 require("./getVisData")
 require("./stackframe")
 require("./source-map")
+var $= require("jquery")
 var ValueMap = require("../value-map")
 var _ = require("underscore")
 
@@ -79,7 +80,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     return args[1]
                 })
                 valueMap.appendString(oldString.substring(inputMappedSoFar.length), oldValue.origin, inputMappedSoFar.length)
-                
+
                 valueItems = valueMap.serialize(inputValues)
             }
 
@@ -280,6 +281,14 @@ function stringTraceSetInnerHTML(el, innerHTML){
     }))
 
     el.innerHTML = innerHTML
+
+    $(el).find("*").each(function(i, el){
+        addElOrigin(el, makeOrigin({
+            action: "ancestor innerHTML",
+            inputValues: [],
+            valueOfEl: el
+        }))
+    })
 }
 
 var originalCreateElement = document.createElement

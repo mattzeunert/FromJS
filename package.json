@@ -21,6 +21,7 @@
     "btoa": "^1.1.2",
     "d3": "^3.5.17",
     "ends-with": "^0.2.0",
+    "jquery": "^3.0.0",
     "json-loader": "^0.5.4",
     "stacktrace-js": "^1.2.0",
     "string-contains": "^0.1.0",

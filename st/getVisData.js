@@ -3,6 +3,7 @@ var ErrorStackParser = require("./error-stack-parser")
 var StackTraceGPS = require("./stacktrace-gps")
 var _ = require("underscore")
 var endsWith = require("ends-with")
+var $ = require("jquery")
 
 var gps;
 
@@ -205,7 +206,8 @@ setTimeout(function(){
             overflow: "auto"
         })
 
-        function display(outerHTML){
+        function display(el){
+            var outerHTML = el.outerHTML;
             textContainer.html("");
             for (let index in outerHTML){
                 let char = outerHTML[index]
@@ -213,7 +215,7 @@ setTimeout(function(){
                 span.html(char);
                 textContainer.append(span)
                 span.on("click", function(){
-                    console.log("clicked on index", index)
+                    console.log("clicked on index", index, el, el.__elOrigin)
                 })
             }
         }
@@ -224,7 +226,7 @@ setTimeout(function(){
             if ($(this).is("html, body")){
                 return;
             }
-            display(this.outerHTML)
+            display(this)
         })
         $("body").append(div)
 
