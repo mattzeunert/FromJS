@@ -190,10 +190,14 @@ setTimeout(function(){
 
     var div = $("<div>")
     div.attr("id", "fromjs")
-    div.append("<style>#fromjs span:hover{color: red}</style>")
-    div.append("<div id='origin-path'></div>")
+
     var textContainer = $("<div>")
     div.append(textContainer)
+    div.append("<hr>")
+
+    div.append("<style>#fromjs span:hover{color: red}</style>")
+    div.append("<div id='origin-path'></div>")
+
     div.css({
         position: "fixed",
         "font-family": "Arial",
