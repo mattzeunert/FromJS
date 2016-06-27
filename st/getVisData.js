@@ -206,6 +206,8 @@ setTimeout(function(){
     console.log("k")
 
     function display(el){
+        $("#origin-path").empty()
+        
         var outerHTML = el.outerHTML;
         textContainer.html("");
         for (let index in outerHTML){
