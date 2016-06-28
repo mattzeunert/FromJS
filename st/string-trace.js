@@ -430,7 +430,7 @@ window.Function = function(code){
     var argsWithoutCode = args.slice()
 
     var id = Math.random().toString().replace(".", "");
-    filename = "Function" + id + ".js"
+    var filename = "Function" + id + ".js"
     var res = stringTraceCompile(stringTraceUseValue(code), {filename: filename})
     args.push(res.code)
     var script = document.createElement("script")
