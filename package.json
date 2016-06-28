@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "nodemon server.js"
+    "server": "nodemon server.js",
+    "webpack": "webpack-dev-server"
   },
   "author": "Matt Zeunert",
   "license": "ISC",
@@ -37,7 +38,8 @@
     "babel-preset-react": "^6.11.1",
     "babel-preset-stage-0": "^6.5.0",
     "nodemon": "^1.9.2",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "webpack-dev-server": "^1.14.1"
   },
   "bin": {
     "fromjs": "./bin/fromjs"
