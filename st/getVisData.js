@@ -118,6 +118,11 @@ setTimeout(function(){
                 showOriginPath(el, index)
             })
         }
+
+        var autoIndex = el.outerHTML.indexOf(">") + 1
+        autoIndex++; // because it happens to work better for todomvc
+        console.log("autoselect index", autoIndex)
+        showOriginPath(el, autoIndex)
     }
 
     $("*").off("click")
