@@ -27,11 +27,26 @@ export default class OriginPath extends React.Component {
 }
 
 class OriginPathItem extends React.Component {
+    constructor(props){
+        super(props)
+        this.state = {
+            resolvedFrame: null
+        }
+
+        var frame = _.first(this.props.originPathItem.originObject.stack)
+        if (frame){
+            resolveFrame(frame, (err, resolvedFrame) => {
+                this.setState({resolvedFrame})
+            })
+        }
+    }
     render(){
         var originObject = this.props.originPathItem.originObject
 
-        if (originObject.resolvedStack) {
-            var filename = _.first(originObject.resolvedStack).fileName.replace("?dontprocess=yes", "");
+
+        var filename = "";
+        if (this.state.resolvedFrame) {
+            filename = this.state.resolvedFrame.fileName.replace("?dontprocess=yes", "");
             var filenameParts = filename.split("/")
             filename = _.last(filenameParts)
         }
