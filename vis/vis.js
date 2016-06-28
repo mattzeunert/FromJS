@@ -433,7 +433,7 @@ function goUp(step){
 
 
 // processOriginObject(window.visOriginData)
-processOriginObject(JSON.parse(localStorage.getItem("visData")))
+
 function processOriginObject(origin){
     var index = nodes.length;
     origin.index = index;
@@ -469,7 +469,9 @@ function processOriginObject(origin){
 window.showGraph = showGraph
 
 function showGraph(){
+
     disableTracing();
+    processOriginObject(JSON.parse(localStorage.getItem("visData")))
 
     var force = d3.layout.force()
         .charge(-200)

@@ -34,6 +34,7 @@ export function disableTracing(){
     document.createElement = window.originalCreateElement
     Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
     Element.prototype.setAttribute = window.nativeSetAttribute
+    localStorage.getItem = window.nativeLocalStorageGetItem;
 }
 
 function isArray(val){
@@ -423,6 +424,7 @@ function enableTracing(){
     }
 
     var nativeLocalStorageGetItem = localStorage.getItem
+    window.nativeLocalStorageGetItem = nativeLocalStorageGetItem
     localStorage.getItem = function(key){
         var val = nativeLocalStorageGetItem.apply(this, arguments)
         if (typeof val === "string"){
