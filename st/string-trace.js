@@ -188,7 +188,18 @@ function Origin(opts){
         return this.value
     }
     this.actionDetails = opts.actionDetails;
-    this.stack = new Error().stack.split("\n");
+    this.stack = new Error().stack.split("\n").filter(function(frame){
+        if (frame.indexOf("string-trace.js") !== -1) {
+            return false;
+        }
+        if (frame.indexOf("(native)") !== -1) {
+            return false;
+        }
+        if (frame === "Error"){
+            return false;
+        }
+        return true
+    });
 }
 
 function makeOrigin(opts){

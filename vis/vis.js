@@ -1,4 +1,5 @@
 import React from "react"
+import resolveFrame from "../st/resolve-frame"
 window.ValueMap = require("../value-map")
 window._ = require("underscore")
 
@@ -83,32 +84,54 @@ class ValueEl extends React.Component {
 class Stack extends React.Component {
     render(){
         var originPathItem = this.props.originPathItem;
-        if (!originPathItem.originObject.resolvedStack) {
+        if (!originPathItem.originObject.stack) {
             return <div>(No stack)</div>
         }
 
-        var frame = _.first(originPathItem.originObject.resolvedStack)
+        var frame = _.first(originPathItem.originObject.stack)
 
+        return <div>
+            <StackFrame frame={frame} />
+        </div>
+    }
+}
+
+class StackFrame extends React.Component{
+    constructor(props){
+        super(props)
+        this.state = {
+            resolvedFrame: null
+        }
+        resolveFrame(props.frame, (err, resolvedFrame) => {
+            this.setState({resolvedFrame})
+        })
+    }
+    render(){
         function processFrameString(str){
             return str.replace(/ /g, "\u00a0") //nbsp
         }
 
-        return <div>
-            <code style={{
-                background: "aliceblue",
-                display: "block",
-                "padding-top": 5,
-                "margin-top": 5,
-                "padding-bottom": 5
-            }}>
-                {processFrameString(frame.prevLine)}<br/>
-                {processFrameString(frame.line.substr(0, frame.columnNumber))}
-                <span style={{color: "red"}}>|</span>
-                {processFrameString(frame.line.substr(frame.columnNumber))}
-                <br/>
-                {processFrameString(frame.nextLine)}
-            </code>
-        </div>
+        if (this.state.resolvedFrame === null) {
+            return <div>Loading...</div>
+        }
+
+        var frame = this.state.resolvedFrame;
+
+
+        return <code style={{
+            background: "aliceblue",
+            display: "block",
+            "padding-top": 5,
+            "margin-top": 5,
+            "padding-bottom": 5
+        }}>
+            {processFrameString(frame.prevLine)}<br/>
+            {processFrameString(frame.line.substr(0, frame.columnNumber))}
+            <span style={{color: "red"}}>|</span>
+            {processFrameString(frame.line.substr(frame.columnNumber))}
+            <br/>
+            {processFrameString(frame.nextLine)}
+        </code>
     }
 }
 

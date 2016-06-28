@@ -1,32 +1,22 @@
 var async = require("./async");
 var ErrorStackParser = require("./error-stack-parser")
-var StackTraceGPS = require("./stacktrace-gps")
+
 import OriginPathComponent, {whereDoesCharComeFrom} from "../vis/vis"
 var _ = require("underscore")
 var endsWith = require("ends-with")
 var $ = require("jquery")
 
+var resolveFrame = require("./resolve-frame")
+
 var gps;
 
 
 function resolveStackArray(stackArray, callback){
-    var unfilteredStackArray = stackArray
-    stackArray = stackArray.filter(function(frame){
-        if (frame.indexOf("string-trace.js") !== -1) {
-            return false;
-        }
-        if (frame.indexOf("(native)") !== -1) {
-            return false;
-        }
-        if (frame === "Error"){
-            return false;
-        }
-        return true
-    })
+
 
     var allCodeIsPartOfStringTrace = stackArray.length === 0;
     if (allCodeIsPartOfStringTrace){
-        callback(null, unfilteredStackArray)
+        callback(null, [])
         return;
     }
 
@@ -35,32 +25,7 @@ function resolveStackArray(stackArray, callback){
     var err = ErrorStackParser.parse({stack: str});
 
 
-
-    function resFrame(frame, callback){
-        gps._get(frame.fileName).then(function(src){
-            var lines = src.split("\n")
-            frame.prevLine = lines[frame.lineNumber - 1 - 1]// adjust for lines being one-indexed
-            frame.nextLine = lines[frame.lineNumber + 1 - 1]
-            frame.line = lines[frame.lineNumber - 1];
-
-            callback(null, JSON.parse(JSON.stringify(frame)))
-        })
-
-    }
-
-    async.map(err, function(frame, callback){
-        if (endsWith(frame.fileName, ".html")){
-            // don't bother looking for source map file
-            callback(null, frame)
-        } else {
-            gps.pinpoint(frame).then(function(newFrame){
-                resFrame(newFrame, callback)
-            }, function(){
-                resFrame(frame, callback)
-                console.log("error", arguments)
-            });
-        }
-    }, function(err, newStackFrames){
+    async.map(err, resolveFrame, function(err, newStackFrames){
         callback(newStackFrames)
     })
 }
@@ -166,17 +131,7 @@ var React = require("react")
 
 
 setTimeout(function(){
-    var sourceCache = {};
-    var fnEls = document.getElementsByClassName("string-trace-fn")
-    fnEls = Array.prototype.slice.call(fnEls)
-    fnEls.forEach(function(el){
-        var key = el.getAttribute("fn") + ".js"
-        sourceCache[key] = el.innerHTML
-        sourceCache[key + "?dontprocess=yes"] = decodeURIComponent(el.getAttribute("original-source"))
-        sourceCache[el.getAttribute("sm-filename")] = decodeURIComponent(el.getAttribute("sm"))
-    })
 
-    gps = new StackTraceGPS({sourceCache: sourceCache});
 
     window.JSON.parse = window.nativeJSONParse
 
@@ -263,22 +218,17 @@ setTimeout(function(){
 
                     function displayOriginPath(oooo, characterIndex){
                         var originPath = whereDoesCharComeFrom(oooo, characterIndex)
-                        async.map(originPath, function(origin, callback){
-                            resolveStackIfAvailable(origin.originObject, function(err, originObject){
-                                origin.originObject = originObject
-                                callback(null, origin)
-                            });
-                        }, function(err, resolvedOriginPath){
-                            ReactDOM.render(
-                                <div style={{padding: 10}}>
-                                    <OriginPathComponent
-                                        originPath={resolvedOriginPath}
-                                        handleValueSpanClick={displayOriginPath} />
-                                </div>,
-                                $("#origin-path")[0]
-                            )
 
-                        })
+                        ReactDOM.render(
+                            <div style={{padding: 10}}>
+                                <OriginPathComponent
+                                    originPath={originPath}
+                                    handleValueSpanClick={displayOriginPath} />
+                            </div>,
+                            $("#origin-path")[0]
+                        )
+
+
                     }
 
 
