@@ -317,6 +317,7 @@ function stringTraceSetInnerHTML(el, innerHTML){
 }
 
 var originalCreateElement = document.createElement
+window.originalCreateElement = originalCreateElement
 document.createElement = function(tagName){
 
     var el = originalCreateElement.call(this, tagName)
@@ -329,6 +330,7 @@ document.createElement = function(tagName){
 }
 
 var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild");
+window.originalAppendChildPropertyDescriptor = appendChildPropertyDescriptor
 Object.defineProperty(Node.prototype, "appendChild", {
     get: function(){
         return function(appendedEl){

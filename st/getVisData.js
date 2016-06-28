@@ -134,6 +134,8 @@ setTimeout(function(){
 
 
     window.JSON.parse = window.nativeJSONParse
+    document.createElement = window.originalCreateElement
+    Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
 
 
 
