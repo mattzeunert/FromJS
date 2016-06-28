@@ -340,10 +340,6 @@ function goUp(step){
             }
         })
 
-        if (valueMap.debugginGetValue() !== step.originObject.value){
-            console.warn(valueMap.debugginGetValue(), "!!!!is not!!!", step.originObject.value)
-        }
-
         ret = valueMap.getItemAt(step.characterIndex)
     } else if (step.originObject.action === "createElement") {
         var characterIndex = step.characterIndex

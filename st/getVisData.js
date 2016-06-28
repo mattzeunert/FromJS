@@ -181,7 +181,7 @@ setTimeout(function(){
                 var characterIndex = parseFloat(index);
                 var usedEl = el;
 
-                console.log("clicked on", usedEl.outerHTML[characterIndex], characterIndex)
+                // console.log("clicked on", usedEl.outerHTML[characterIndex], characterIndex)
                 while (usedEl.__elOrigin[0].action === "ancestor innerHTML"){
                     var prevUsedEl = usedEl;
                     usedEl = usedEl.parentElement
@@ -204,11 +204,11 @@ setTimeout(function(){
                     var outerHTMLAdjustment = usedEl.outerHTML.replace(usedEl.innerHTML, "").indexOf("</")
                     characterIndex += outerHTMLAdjustment
 
-                    console.log("char is now", usedEl.outerHTML[characterIndex], characterIndex)
+                    // console.log("char is now", usedEl.outerHTML[characterIndex], characterIndex)
                 }
 
-                console.log("clicked el", el)
-                console.log("used el", usedEl)
+                // console.log("clicked el", el)
+                // console.log("used el", usedEl)
 
                 getElementOriginData(usedEl, function(oooo){
                     window.oooo = oooo;
