@@ -12,8 +12,6 @@ var gps;
 
 
 function resolveStackArray(stackArray, callback){
-
-
     var allCodeIsPartOfStringTrace = stackArray.length === 0;
     if (allCodeIsPartOfStringTrace){
         callback(null, [])
@@ -138,9 +136,6 @@ setTimeout(function(){
     Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
 
 
-
-
-
     var div = $("<div>")
     div.attr("id", "fromjs")
     div.className = "fromjs"
@@ -156,14 +151,17 @@ setTimeout(function(){
         position: "fixed",
         "font-family": "Arial",
         "font-size": 16,
+        right: 0,
+        top: 0,
         bottom: 0,
-        left: 0,
-        width: "100%",
-        "max-height": "500px",
+        height: "100vh",
+        width: "40vw",
         background: "white",
         overflow: "auto",
         "border-top": "1px solid black"
     })
+
+    $("body").css("padding-right", "40vw")
 
 
     console.log("k")
@@ -233,11 +231,7 @@ setTimeout(function(){
                             </div>,
                             $("#origin-path")[0]
                         )
-
-
                     }
-
-
                 })
             })
         }
@@ -256,7 +250,7 @@ setTimeout(function(){
         display(this)
     })
     $("body").append(div)
-}, 1000)
+}, 4000)
 
 window.getElementOriginData = getElementOriginData
 
@@ -266,5 +260,4 @@ function exportElementOrigin(origin){
         console.timeEnd("Resolving all origin stacks")
         localStorage.setItem("visData", JSON.stringify(origin))
     })
-
 }

@@ -17,8 +17,6 @@ function handleRequest(request, response){
         path = "." + path
     }
 
-
-
     console.log("Request for path ", path)
     if (endsWith(path, ".js.map") && !isInternalRequest){
         path = path.substr(0, path.length - ".map".length)
@@ -28,7 +26,7 @@ function handleRequest(request, response){
         var fileContents = fs.readFileSync(path).toString()
 
         if (endsWith(request.url, ".html")){
-            var scriptTagHtml = '<script src="/fromjs-internals/from.js"></script>'
+            var scriptTagHtml = '<script src="http://localhost:8080/dist/from.js"></script>'
             if (stringContains(fileContents, "<head>")){
                 fileContents = fileContents.replace("<head>", "<head>" + scriptTagHtml)
             } else {

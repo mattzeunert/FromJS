@@ -6,6 +6,8 @@ var $ = require("jquery")
 var ValueMap = require("../value-map")
 var _ = require("underscore")
 
+console.log("in stringtrace js")
+
 function processElementsAvailableOnInitialLoad(){
     var els = document.querySelectorAll("*")
 
@@ -190,6 +192,13 @@ function Origin(opts){
     this.actionDetails = opts.actionDetails;
     this.stack = new Error().stack.split("\n").filter(function(frame){
         if (frame.indexOf("/fromjs-internals/from.js") !== -1) {
+            return false;
+        }
+        if (frame.indexOf("http://localhost:8080/dist/from.js") !== -1) {
+            return false;
+        }
+        if (frame.indexOf("webpack://") !== -1) {
+            // loading from webpack-dev-server
             return false;
         }
         if (frame.indexOf("(native)") !== -1) {
