@@ -1,10 +1,8 @@
 var template = require("babel-template");
-var babylon = require("babylon")
-var generate = require("babel-generator").default;
+// var babylon = require("babylon")
+// var generate = require("babel-generator").default;
 
 module.exports = function(babel) {
-
-
   return {
     visitor: {
       AssignmentExpression(path){
