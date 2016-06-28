@@ -141,6 +141,7 @@ setTimeout(function(){
 
     var div = $("<div>")
     div.attr("id", "fromjs")
+    div.className = "fromjs"
 
     var textContainer = $("<div>")
     div.append(textContainer)
@@ -238,11 +239,15 @@ setTimeout(function(){
     }
 
     $("*").off("click")
+    console.log("all on click disable")
     $("*").click(function(e){
-        e.stopPropagation();e.preventDefault();
+        if ($(this).parents(".fromjs").length !== 0){
+            return
+        }
         if ($(this).is("html, body")){
             return;
         }
+        e.stopPropagation();e.preventDefault();
         display(this)
     })
     $("body").append(div)

@@ -2,7 +2,9 @@ var endsWith = require("ends-with")
 var StackTraceGPS = require("./stacktrace-gps")
 var ErrorStackParser = require("./error-stack-parser")
 
-function resFrame(gps, frame, callback){
+var gps = null;
+
+function resFrame(frame, callback){
     gps._get(frame.fileName).then(function(src){
         var lines = src.split("\n")
         frame.prevLine = lines[frame.lineNumber - 1 - 1]// adjust for lines being one-indexed
@@ -14,7 +16,7 @@ function resFrame(gps, frame, callback){
 
 }
 
-export default function(frame, callback){
+function initGPSIfNecessary(){
     var sourceCache = {};
     var fnEls = document.getElementsByClassName("string-trace-fn")
     fnEls = Array.prototype.slice.call(fnEls)
@@ -25,7 +27,11 @@ export default function(frame, callback){
         sourceCache[el.getAttribute("sm-filename")] = decodeURIComponent(el.getAttribute("sm"))
     })
 
-    var gps = new StackTraceGPS({sourceCache: sourceCache});
+    gps = new StackTraceGPS({sourceCache: sourceCache});
+}
+
+export default function(frame, callback){
+    initGPSIfNecessary()
 
     var frameObject = ErrorStackParser.parse({stack: frame})[0];
 
@@ -34,9 +40,9 @@ export default function(frame, callback){
         callback(null, frame)
     } else {
         gps.pinpoint(frameObject).then(function(newFrame){
-            resFrame(gps, newFrame, callback)
+            resFrame(newFrame, callback)
         }, function(){
-            resFrame(gps, frameObject, callback)
+            resFrame(frameObject, callback)
             console.log("error", arguments)
         });
     }

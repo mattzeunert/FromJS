@@ -53,14 +53,18 @@ class OriginPathItem extends React.Component {
 
 class ValueEl extends React.Component {
     render(){
+        var self = this;
         function getValueSpans(val){
+
             var els = [];
             for (let index in val){
                 index = parseFloat(index)
                 var char = val[index]
-                var span = <span onClick={
-                    () => this.props.handleValueSpanClick(origin.originObject, index)
-                }>
+                var span = <span
+                    onClick={() => {
+                        self.props.handleValueSpanClick(origin.originObject, index)
+                    }}
+                >
                     {char}
                 </span>
                 els.push(span)
