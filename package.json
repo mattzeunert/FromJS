@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "nodemon server.js"
   },
-  "author": "",
+  "author": "Matt Zeunert",
   "license": "ISC",
   "dependencies": {
     "babel": "^6.5.2",
@@ -31,5 +31,8 @@
   "devDependencies": {
     "nodemon": "^1.9.2",
     "underscore": "^1.8.3"
-  }
+},
+"bin": {
+    "fromjs": "./bin/fromjs"
+}
 }
