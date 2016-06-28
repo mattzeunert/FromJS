@@ -140,12 +140,8 @@ setTimeout(function(){
     $("body").append(div)
 }, 4000)
 
-
-function showOriginPath(el, index){
-    var characterIndex = parseFloat(index);
+function getElementWithUsefulOrigin(el, characterIndex){
     var usedEl = el;
-
-    // console.log("clicked on", usedEl.outerHTML[characterIndex], characterIndex)
     while (usedEl.__elOrigin[0].action === "ancestor innerHTML"){
         var prevUsedEl = usedEl;
         usedEl = usedEl.parentElement
@@ -167,12 +163,20 @@ function showOriginPath(el, index){
 
         var outerHTMLAdjustment = usedEl.outerHTML.replace(usedEl.innerHTML, "").indexOf("</")
         characterIndex += outerHTMLAdjustment
-
-        // console.log("char is now", usedEl.outerHTML[characterIndex], characterIndex)
     }
 
-    // console.log("clicked el", el)
-    // console.log("used el", usedEl)
+    return {
+        el: usedEl,
+        characterIndex: characterIndex
+    }
+}
+
+function showOriginPath(el, index){
+    var characterIndex = parseFloat(index);
+
+    var useful = getElementWithUsefulOrigin(el, characterIndex);
+    var usedEl = useful.el;
+    characterIndex = useful.characterIndex
 
     getElementOriginData(usedEl, function(oooo){
         window.oooo = oooo;
