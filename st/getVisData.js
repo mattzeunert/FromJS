@@ -1,20 +1,13 @@
 var async = require("./async");
 var ErrorStackParser = require("./error-stack-parser")
 var StackTraceGPS = require("./stacktrace-gps")
-var vis = require("../vis/vis")
+import OriginPathComponent, {whereDoesCharComeFrom} from "../vis/vis"
 var _ = require("underscore")
 var endsWith = require("ends-with")
 var $ = require("jquery")
 
 var gps;
 
-setTimeout(function(){
-    var reactTest = document.createElement("div")
-    var ReactDOM = require("react-dom")
-    var React = require("react")
-    document.body.appendChild(reactTest)
-    ReactDOM.render(<p>cake</p>, reactTest)
-}, 100)
 
 function resolveStackArray(stackArray, callback){
     var unfilteredStackArray = stackArray
@@ -168,6 +161,10 @@ function getElementOriginData(el, callback){
     })
 }
 
+var ReactDOM = require("react-dom")
+var React = require("react")
+
+
 setTimeout(function(){
     var sourceCache = {};
     var fnEls = document.getElementsByClassName("string-trace-fn")
@@ -265,17 +262,21 @@ setTimeout(function(){
                     displayOriginPath(oooo, characterIndex)
 
                     function displayOriginPath(oooo, characterIndex){
-                        var originPath = vis.whereDoesCharComeFrom(oooo, characterIndex)
+                        var originPath = whereDoesCharComeFrom(oooo, characterIndex)
                         async.map(originPath, function(origin, callback){
                             resolveStackIfAvailable(origin.originObject, function(err, originObject){
                                 origin.originObject = originObject
                                 callback(null, origin)
                             });
                         }, function(err, resolvedOriginPath){
-                            vis.showOriginPath(resolvedOriginPath, function(origin, characterIndex){
-                                displayOriginPath(origin, characterIndex)
-                            })
-                            console.log(resolvedOriginPath)
+                            ReactDOM.render(
+                                <div style={{padding: 10}}>
+                                    <OriginPathComponent
+                                        originPath={resolvedOriginPath}
+                                        handleValueSpanClick={displayOriginPath} />
+                                </div>,
+                                $("#origin-path")[0]
+                            )
 
                         })
                     }

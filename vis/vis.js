@@ -1,104 +1,115 @@
-if (typeof require !== "undefined"){
-    window.ValueMap = require("../value-map")
-    window._ = require("underscore")
-}
-
-function showOriginPath(originPath, handleValueSpanClick){
-    window.op = originPath
-    console.log("originPath", originPath)
-    var originPathEl =  document.createElement("div")
-    originPathEl.setAttribute("style", "padding: 10px")
-
-    var lastOrigin = originPath[originPath.length - 1]
-    originPathEl.appendChild(getOriginPathItem(lastOrigin, handleValueSpanClick))
-    originPathEl.appendChild(document.createElement("hr"))
+import React from "react"
+window.ValueMap = require("../value-map")
+window._ = require("underscore")
 
 
-    for (origin of originPath) {
-        originPathEl.appendChild(getOriginPathItem(origin, handleValueSpanClick))
+export default class OriginPath extends React.Component {
+    render(){
+        var lastOrigin = this.props.originPath[this.props.originPath.length - 1]
+
+        var fullPath = [];
+        for (var originPathItem of this.props.originPath) {
+            fullPath.push(<OriginPathItem
+                originPathItem={originPathItem}
+                handleValueSpanClick={this.props.handleValueSpanClick}
+            />)
+        }
+        return <div>
+            <OriginPathItem
+                originPathItem={lastOrigin}
+                handleValueSpanClick={this.props.handleValueSpanClick}
+            />
+            <hr/>
+            {fullPath}
+        </div>
     }
-
-    document.getElementById("origin-path").innerHTML = ""
-    document.getElementById("origin-path").appendChild(originPathEl)
 }
 
-function getOriginPathItem(origin, handleValueSpanClick){
-    var itemEl = document.createElement("div")
-    itemEl.setAttribute("style", 'padding-bottom: 20px')
+class OriginPathItem extends React.Component {
+    render(){
+        var originObject = this.props.originPathItem.originObject
 
-    var titleEl = document.createElement("div")
-        titleEl.setAttribute("style", 'padding-bottom: 5px;')
-        var titleHtml =""
-        titleHtml += "<span style='text-decoration: underline; font-weight: bold'>"
-
-        titleHtml += origin.originObject.action
-
-        titleHtml += "</span>"
-        if (origin.originObject.resolvedStack) {
-            var filename = _.first(origin.originObject.resolvedStack).fileName.replace("?dontprocess=yes", "");
+        if (originObject.resolvedStack) {
+            var filename = _.first(originObject.resolvedStack).fileName.replace("?dontprocess=yes", "");
             var filenameParts = filename.split("/")
             filename = _.last(filenameParts)
-            titleHtml += " (" + filename + ")"
         }
-        titleEl.innerHTML = titleHtml
-    itemEl.appendChild(titleEl)
 
-    function getValueEl(val){
-        var el = document.createElement("div")
-        el.className="fromjs-value"
-        function addValueElements(val){
+        return <div style={{paddingBottom: 20}}>
+            <div style={{paddingBottom: 5}}>
+                <span style={{textDecoration: "underline", fontWeight: "bold"}}>
+                    {originObject.action}
+                </span>
+                ({filename})
+            </div>
+
+            <ValueEl origin={originObject} handleValueSpanClick={this.props.handleValueSpanClick} />
+
+            <Stack originPathItem={this.props.originPathItem} />
+        </div>
+    }
+}
+
+class ValueEl extends React.Component {
+    render(){
+        function getValueSpans(val){
+            var els = [];
             for (let index in val){
                 index = parseFloat(index)
                 var char = val[index]
-                var span = document.createElement("span")
-                span.innerHTML = escapeAngleBrackets(char).replace(/ /g, "&nbsp;")
-                span.onclick = function(){
-                    handleValueSpanClick(origin.originObject, index)
-                }
-                el.appendChild(span)
+                var span = <span onClick={
+                    () => this.props.handleValueSpanClick(origin.originObject, index)
+                }>
+                    {char}
+                </span>
+                els.push(span)
+                return els
             }
         }
 
-        addValueElements(val.substr(0, origin.characterIndex));
+        var origin = this.props.origin;
+        var val = origin.value
 
-        var selectedSpan = document.createElement("span")
-        selectedSpan.setAttribute("style", 'color: red; font-weight:bold')
-        selectedSpan.innerHTML = escapeAngleBrackets(val.substr(origin.characterIndex, 1)).replace(/ /g, "&nbsp;")
-        el.appendChild(selectedSpan)
-
-        addValueElements(val.substr(origin.characterIndex + 1))
-
-        return el;
+        return <div className="fromjs-value">
+            {getValueSpans(val.substr(0, origin.characterIndex))}
+            <span style={{color: "red", fontWeight: "bold"}}>
+                <pre style={{display: "inline"}}>{val.substr(origin.characterIndex, 1)}</pre>
+            </span>
+            {getValueSpans(val.substr(origin.characterIndex + 1))}
+        </div>
     }
-
-    itemEl.appendChild(getValueEl(origin.originObject.value))
-
-
-    var stackHtml = "";
-    if (!origin.originObject.resolvedStack) {
-        stackHtml += "(no stack)"
-    } else {
-        stackHtml += "<code style='background: aliceblue;display: block;padding-top: 5px;margin-top: 5px;padding-bottom: 5px;'>"
-        var frame = _.first(origin.originObject.resolvedStack)
-        stackHtml += escapeAngleBrackets(frame.prevLine).replace(/ /g, "&nbsp;") + "<br/>"
-        stackHtml += escapeAngleBrackets(frame.line.substr(0, frame.columnNumber)).replace(/ /g, "&nbsp;") +
-            "<span style='color: red; '>|</span>" +
-            escapeAngleBrackets(frame.line.substr(frame.columnNumber)).replace(/ /g, "&nbsp;") + "<br/>"
-        stackHtml += escapeAngleBrackets(frame.nextLine).replace(/ /g, "&nbsp;")
-        stackHtml += "</code>"
-    }
-    var stackEl = document.createElement("div")
-    stackEl.innerHTML = stackHtml
-    itemEl.appendChild(stackEl)
-
-
-    return itemEl
 }
 
-function nodeIsHTMLElement(node){
-    return node.action === "initial html" ||
-        node.action === "createElement" || node.action === "assign innerHTML" ||
-        node.action === "appendChild"
+class Stack extends React.Component {
+    render(){
+        var originPathItem = this.props.originPathItem;
+        if (!originPathItem.originObject.resolvedStack) {
+            return <div>(No stack)</div>
+        }
+
+        var frame = _.first(originPathItem.originObject.resolvedStack)
+
+        function processFrameString(str){
+            return str.replace(/ /g, "\u00a0") //nbsp
+        }
+
+        return <div>
+            <code style={{
+                background: "aliceblue",
+                display: "block",
+                "padding-top": 5,
+                "margin-top": 5,
+                "padding-bottom": 5
+            }}>
+                {processFrameString(frame.prevLine)}<br/>
+                {processFrameString(frame.line.substr(0, frame.columnNumber))}
+                <span style={{color: "red"}}>|</span>
+                {processFrameString(frame.line.substr(frame.columnNumber))}
+                <br/>
+                {processFrameString(frame.nextLine)}
+            </code>
+        </div>
+    }
 }
 
 function nodeIsValueSource(node){
@@ -220,12 +231,7 @@ function whereDoesCharComeFrom(originObject, characterIndex){
     return steps
 }
 
-if (typeof module !== "undefined"){
-    module.exports = {
-        whereDoesCharComeFrom: whereDoesCharComeFrom,
-        showOriginPath: showOriginPath
-    }
-}
+export {whereDoesCharComeFrom}
 
 function goUp(step){
 
