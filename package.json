@@ -1,6 +1,6 @@
 {
-  "name": "string-trace",
-  "version": "1.0.0",
+  "name": "from-js",
+  "version": "0.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -24,6 +24,7 @@
     "jquery": "^3.0.0",
     "json-loader": "^0.5.4",
     "stacktrace-js": "^1.2.0",
+    "starts-with": "^1.0.2",
     "string-contains": "^0.1.0",
     "webpack": "^1.13.1"
   },

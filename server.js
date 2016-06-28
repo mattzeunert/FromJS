@@ -1,15 +1,26 @@
 var http = require("http");
 var fs = require("fs");
 var endsWith = require('ends-with');
+var startsWith = require("starts-with")
 var stringContains = require("string-contains");
 var processJavaScriptCode = require("./process-javascript-code")
 
 http.createServer(handleRequest).listen(8888)
 
 function handleRequest(request, response){
-    var path = "." + request.url.split("?")[0]
+    var path = request.url.split("?")[0]
+    var isInternalRequest = startsWith(path, "/fromjs-internals/")
+
+    if (isInternalRequest){
+        path = path.replace("/fromjs-internals/", __dirname + "/" + "dist/")
+    } else {
+        path = "." + path
+    }
+
+
+
     console.log("Request for path ", path)
-    if (endsWith(path, ".js.map")){
+    if (endsWith(path, ".js.map") && !isInternalRequest){
         path = path.substr(0, path.length - ".map".length)
     }
 
@@ -17,7 +28,7 @@ function handleRequest(request, response){
         var fileContents = fs.readFileSync(path).toString()
 
         if (endsWith(request.url, ".html")){
-            var scriptTagHtml = '<script src="dontprocess/string-trace.js"></script>'
+            var scriptTagHtml = '<script src="/fromjs-internals/from.js"></script>'
             if (stringContains(fileContents, "<head>")){
                 fileContents = fileContents.replace("<head>", "<head>" + scriptTagHtml)
             } else {
@@ -28,7 +39,8 @@ function handleRequest(request, response){
         if ((endsWith(request.url, ".js") || endsWith(request.url, ".js.map")) &&
             !stringContains(request.url, "/dontprocess") &&
             !stringContains(request.url, "/vis") &&
-            !stringContains(request.url, "?dontprocess=yes")
+            !stringContains(request.url, "?dontprocess=yes") &&
+            !isInternalRequest
         ) {
             var jsFileName = path.split("/")[path.split("/").length - 1]
             if (endsWith(request.url, ".js")) {
@@ -37,7 +49,7 @@ function handleRequest(request, response){
                 fileContents += "\n//# sourceMappingURL=" + jsFileName + ".map"
 
             }
-            if (endsWith(request.url, ".js.map")){
+            if (endsWith(request.url, ".js.map") ){
                 fileContents = JSON.stringify(processJavaScriptCode(fileContents, {filename: jsFileName}).map, null, 4)
             }
 
