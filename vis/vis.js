@@ -195,7 +195,7 @@ function showInfo(info){
             processOriginObject(info)
 
             var charOrigin = whereDoesCharComeFrom(info, index)
-            showOriginPath(charOrigin)
+            // showOriginPath(charOrigin)
             charOrigin.forEach(function(o){
                 if (!o.originObject)return
                 o.originObject.isInCurrentPath = true;
@@ -468,10 +468,15 @@ function processOriginObject(origin){
 
 window.showGraph = showGraph
 
-function showGraph(){
-
+window.init = init
+function init(){
     disableTracing();
     processOriginObject(JSON.parse(localStorage.getItem("visData")))
+    showGraph()
+}
+
+function showGraph(){
+
 
     var force = d3.layout.force()
         .charge(-200)
