@@ -99,7 +99,7 @@ class Stack extends React.Component {
         var frame = _.first(originPathItem.originObject.stack)
 
         return <div>
-            <StackFrame frame={frame} />
+            <StackFrame frame={frame} key={frame} />
         </div>
     }
 }
