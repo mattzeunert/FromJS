@@ -5,73 +5,10 @@ import OriginPathComponent, {whereDoesCharComeFrom} from "../vis/vis"
 var _ = require("underscore")
 var endsWith = require("ends-with")
 var $ = require("jquery")
-
-var resolveFrame = require("./resolve-frame")
-
-var gps;
-
-
-function resolveStackArray(stackArray, callback){
-    var allCodeIsPartOfStringTrace = stackArray.length === 0;
-    if (allCodeIsPartOfStringTrace){
-        callback(null, [])
-        return;
-    }
-
-    var str = stackArray.join("\n")
-
-    var err = ErrorStackParser.parse({stack: str});
-
-
-    async.map(err, resolveFrame, function(err, newStackFrames){
-        callback(newStackFrames)
-    })
-}
-//
-function resolveStacksInOrigin(origin, callback){
-    var functionsToCall = []
-    if (origin.stack){
-        functionsToCall.push(function(callback){
-            resolveStackArray(origin.stack, function(newStack){
-                origin.resolvedStack = newStack
-                callback()
-            })
-        })
-    }
-    if (origin.inputValues) {
-        functionsToCall.push(function(callback){
-            async.each(origin.inputValues, function(iv, callback){
-                if (!iv) {callback();}
-                else {
-                    resolveStacksInOrigin(iv, callback)
-                }
-            }, function(){
-                callback();
-            })
-        })
-    }
-
-
-    async.series(functionsToCall, function(){
-        callback();
-    })
-
-}
+import exportElementOrigin from "./export-element-origin"
 
 function isElement(value){
     return value instanceof Element
-}
-
-function resolveStackIfAvailable(data, callback){
-    if (data.stack){
-        resolveStackArray(data.stack, function(resolvedStack){
-            data = _.clone(data);
-            data.resolvedStack = resolvedStack;
-            callback(null, data)
-        })
-    } else {
-       callback(null, data)
-    }
 }
 
 function resolveElOriginInputValue(inputValue, callback){
@@ -178,61 +115,7 @@ setTimeout(function(){
             span.html(char);
             textContainer.append(span)
             span.on("click", function(){
-                var characterIndex = parseFloat(index);
-                var usedEl = el;
-
-                // console.log("clicked on", usedEl.outerHTML[characterIndex], characterIndex)
-                while (usedEl.__elOrigin[0].action === "ancestor innerHTML"){
-                    var prevUsedEl = usedEl;
-                    usedEl = usedEl.parentElement
-                    var childNodes = usedEl.childNodes
-                    for (var i in childNodes) {
-                        var childNode = childNodes[i];
-
-                        if (prevUsedEl === childNode) {
-                            break;
-                        } else {
-                            var isTextNode = childNode.outerHTML === undefined
-                            if (!isTextNode){
-                                characterIndex += childNode.outerHTML.length;
-                            } else {
-                                characterIndex += childNode.textContent.length;
-                            }
-                        }
-                    }
-
-                    var outerHTMLAdjustment = usedEl.outerHTML.replace(usedEl.innerHTML, "").indexOf("</")
-                    characterIndex += outerHTMLAdjustment
-
-                    // console.log("char is now", usedEl.outerHTML[characterIndex], characterIndex)
-                }
-
-                // console.log("clicked el", el)
-                // console.log("used el", usedEl)
-
-                getElementOriginData(usedEl, function(oooo){
-                    window.oooo = oooo;
-                    console.log("oooo", oooo)
-
-                    // exportElementOrigin(oooo)
-                    displayOriginPath(oooo, characterIndex)
-
-                    function displayOriginPath(oooo, characterIndex){
-                        var originPath = whereDoesCharComeFrom(oooo, characterIndex)
-
-                        ReactDOM.render(
-                            <div style={{padding: 10}}>
-                                <OriginPathComponent
-                                    originPath={originPath}
-                                    handleValueSpanClick={(origin, characterIndex) => {
-                                        console.log("clicked on", characterIndex, origin)
-                                        displayOriginPath(origin, characterIndex)
-                                    }} />
-                            </div>,
-                            $("#origin-path")[0]
-                        )
-                    }
-                })
+                showOriginPath(el, index)
             })
         }
     }
@@ -252,12 +135,66 @@ setTimeout(function(){
     $("body").append(div)
 }, 4000)
 
-window.getElementOriginData = getElementOriginData
 
-function exportElementOrigin(origin){
-    console.time("Resolving all origin stacks")
-    resolveStacksInOrigin(origin, function(){
-        console.timeEnd("Resolving all origin stacks")
-        localStorage.setItem("visData", JSON.stringify(origin))
+function showOriginPath(el, index){
+    var characterIndex = parseFloat(index);
+    var usedEl = el;
+
+    // console.log("clicked on", usedEl.outerHTML[characterIndex], characterIndex)
+    while (usedEl.__elOrigin[0].action === "ancestor innerHTML"){
+        var prevUsedEl = usedEl;
+        usedEl = usedEl.parentElement
+        var childNodes = usedEl.childNodes
+        for (var i in childNodes) {
+            var childNode = childNodes[i];
+
+            if (prevUsedEl === childNode) {
+                break;
+            } else {
+                var isTextNode = childNode.outerHTML === undefined
+                if (!isTextNode){
+                    characterIndex += childNode.outerHTML.length;
+                } else {
+                    characterIndex += childNode.textContent.length;
+                }
+            }
+        }
+
+        var outerHTMLAdjustment = usedEl.outerHTML.replace(usedEl.innerHTML, "").indexOf("</")
+        characterIndex += outerHTMLAdjustment
+
+        // console.log("char is now", usedEl.outerHTML[characterIndex], characterIndex)
+    }
+
+    // console.log("clicked el", el)
+    // console.log("used el", usedEl)
+
+    getElementOriginData(usedEl, function(oooo){
+        window.oooo = oooo;
+        console.log("oooo", oooo)
+
+
+        displayOriginPath(oooo, characterIndex)
+
+        function displayOriginPath(oooo, characterIndex){
+            var originPath = whereDoesCharComeFrom(oooo, characterIndex)
+            window.exportToVis = function(){
+                exportElementOrigin(oooo)
+            }
+
+            ReactDOM.render(
+                <div style={{padding: 10}}>
+                    <OriginPathComponent
+                        originPath={originPath}
+                        handleValueSpanClick={(origin, characterIndex) => {
+                            console.log("clicked on", characterIndex, origin)
+                            displayOriginPath(origin, characterIndex)
+                        }} />
+                </div>,
+                $("#origin-path")[0]
+            )
+        }
     })
 }
+
+window.getElementOriginData = getElementOriginData

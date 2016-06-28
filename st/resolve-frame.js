@@ -17,6 +17,8 @@ function resFrame(frame, callback){
 }
 
 function initGPSIfNecessary(){
+    if (gps !== null) return;
+
     var sourceCache = {};
     var fnEls = document.getElementsByClassName("string-trace-fn")
     fnEls = Array.prototype.slice.call(fnEls)
