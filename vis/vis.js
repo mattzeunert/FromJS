@@ -44,7 +44,7 @@ class OriginPathItem extends React.Component {
                 ({filename})
             </div>
 
-            <ValueEl origin={originObject} handleValueSpanClick={this.props.handleValueSpanClick} />
+            <ValueEl originPathItem={this.props.originPathItem} handleValueSpanClick={this.props.handleValueSpanClick} />
 
             <Stack originPathItem={this.props.originPathItem} />
         </div>
@@ -64,12 +64,13 @@ class ValueEl extends React.Component {
                     {char}
                 </span>
                 els.push(span)
-                return els
             }
+            return els
         }
 
-        var origin = this.props.origin;
-        var val = origin.value
+        var origin = this.props.originPathItem;
+        var val = origin.originObject.value
+
 
         return <div className="fromjs-value">
             {getValueSpans(val.substr(0, origin.characterIndex))}
@@ -121,9 +122,9 @@ class StackFrame extends React.Component{
         return <code style={{
             background: "aliceblue",
             display: "block",
-            "padding-top": 5,
-            "margin-top": 5,
-            "padding-bottom": 5
+            paddingTop: 5,
+            marginTop: 5,
+            paddingBottom: 5
         }}>
             {processFrameString(frame.prevLine)}<br/>
             {processFrameString(frame.line.substr(0, frame.columnNumber))}

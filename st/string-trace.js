@@ -189,9 +189,7 @@ function Origin(opts){
     }
     this.actionDetails = opts.actionDetails;
     this.stack = new Error().stack.split("\n").filter(function(frame){
-        console.log("frame", frame)
         if (frame.indexOf("/fromjs-internals/from.js") !== -1) {
-            console.log("exluce..")
             return false;
         }
         if (frame.indexOf("(native)") !== -1) {
@@ -202,7 +200,6 @@ function Origin(opts){
         }
         return true
     });
-    console.log("stack", this.stack)
 }
 
 function makeOrigin(opts){
