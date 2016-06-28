@@ -7,7 +7,7 @@ var processJavaScriptCode = require("./process-javascript-code")
 http.createServer(handleRequest).listen(8888)
 
 function handleRequest(request, response){
-    var path = "." + request.url.split("?")[0];
+    var path = "." + request.url.split("?")[0]
     console.log("Request for path ", path)
     if (endsWith(path, ".js.map")){
         path = path.substr(0, path.length - ".map".length)
@@ -15,6 +15,15 @@ function handleRequest(request, response){
 
     if (fs.existsSync(path)){
         var fileContents = fs.readFileSync(path).toString()
+
+        if (endsWith(request.url, ".html")){
+            var scriptTagHtml = '<script src="dontprocess/string-trace.js"></script>'
+            if (stringContains(fileContents, "<head>")){
+                fileContents = fileContents.replace("<head>", "<head>" + scriptTagHtml)
+            } else {
+                fileContents = scriptTagHtml + fileContents
+            }
+        }
 
         if ((endsWith(request.url, ".js") || endsWith(request.url, ".js.map")) &&
             !stringContains(request.url, "/dontprocess") &&
