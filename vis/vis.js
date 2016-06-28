@@ -3,26 +3,26 @@ if (typeof require !== "undefined"){
     window._ = require("underscore")
 }
 
-function showOriginPath(originPath){
+function showOriginPath(originPath, handleValueSpanClick){
     window.op = originPath
     console.log("originPath", originPath)
     var originPathEl =  document.createElement("div")
     originPathEl.setAttribute("style", "padding: 10px")
 
     var lastOrigin = originPath[originPath.length - 1]
-    originPathEl.appendChild(getOriginPathItem(lastOrigin))
+    originPathEl.appendChild(getOriginPathItem(lastOrigin, handleValueSpanClick))
     originPathEl.appendChild(document.createElement("hr"))
 
 
     for (origin of originPath) {
-        originPathEl.appendChild(getOriginPathItem(origin))
+        originPathEl.appendChild(getOriginPathItem(origin, handleValueSpanClick))
     }
 
     document.getElementById("origin-path").innerHTML = ""
     document.getElementById("origin-path").appendChild(originPathEl)
 }
 
-function getOriginPathItem(origin){
+function getOriginPathItem(origin, handleValueSpanClick){
     var itemEl = document.createElement("div")
     itemEl.setAttribute("style", 'padding-bottom: 20px')
 
@@ -47,11 +47,14 @@ function getOriginPathItem(origin){
         var el = document.createElement("div")
         el.className="fromjs-value"
         function addValueElements(val){
-            for (var index in val){
+            for (let index in val){
                 index = parseFloat(index)
                 var char = val[index]
                 var span = document.createElement("span")
                 span.innerHTML = escapeAngleBrackets(char).replace(/ /g, "&nbsp;")
+                span.onclick = function(){
+                    handleValueSpanClick(origin.originObject, index)
+                }
                 el.appendChild(span)
             }
         }

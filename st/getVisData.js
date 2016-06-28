@@ -254,18 +254,25 @@ setTimeout(function(){
                     console.log("oooo", oooo)
 
                     // exportElementOrigin(oooo)
+                    displayOriginPath(oooo, characterIndex)
 
-                    var originPath = vis.whereDoesCharComeFrom(oooo, characterIndex)
-                    async.map(originPath, function(origin, callback){
-                        resolveStackIfAvailable(origin.originObject, function(err, originObject){
-                            origin.originObject = originObject
-                            callback(null, origin)
-                        });
-                    }, function(err, resolvedOriginPath){
-                        vis.showOriginPath(resolvedOriginPath)
-                        console.log(resolvedOriginPath)
+                    function displayOriginPath(oooo, characterIndex){
+                        var originPath = vis.whereDoesCharComeFrom(oooo, characterIndex)
+                        async.map(originPath, function(origin, callback){
+                            resolveStackIfAvailable(origin.originObject, function(err, originObject){
+                                origin.originObject = originObject
+                                callback(null, origin)
+                            });
+                        }, function(err, resolvedOriginPath){
+                            vis.showOriginPath(resolvedOriginPath, function(origin, characterIndex){
+                                displayOriginPath(origin, characterIndex)
+                            })
+                            console.log(resolvedOriginPath)
 
-                    })
+                        })
+                    }
+
+
                 })
             })
         }
