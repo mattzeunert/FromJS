@@ -68,7 +68,9 @@ var React = require("react")
 
 
 setTimeout(function(){
-
+    if (window.isVis) {
+        return;
+    }
 
     disableTracing()
 
