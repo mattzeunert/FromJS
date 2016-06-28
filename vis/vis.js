@@ -311,7 +311,8 @@ function goUp(step){
         var contentOrigins = []
         step.originObject.inputValues.forEach(function(inputValue){
             if (inputValue.action === "createElement" || inputValue.action === "set className" ||
-                inputValue.action === "setAttribute"){
+                inputValue.action === "setAttribute" ||
+                inputValue.action === "initial html tag"){
                 tagOrigins.push(inputValue)
             } else {
                 contentOrigins.push(inputValue)
@@ -346,7 +347,7 @@ function goUp(step){
             else if (inputValue.action === "assign innerHTML"){
                 valueMap.append(inputValue)
             }
-            else if (inputValue.action === "initial html"){
+            else if (inputValue.action === "initial html content"){
                 valueMap.append(inputValue)
             }
             else {

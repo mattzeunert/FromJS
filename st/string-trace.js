@@ -9,6 +9,10 @@ var _ = require("underscore")
 console.log("in stringtrace js")
 
 function processElementsAvailableOnInitialLoad(){
+    return;
+
+
+
     var els = document.querySelectorAll("*")
 
     els = Array.prototype.slice.apply(els)
@@ -16,8 +20,14 @@ function processElementsAvailableOnInitialLoad(){
         el.__elOrigin = [];
 
         addElOrigin(el, {
-            value: el.outerHTML,
-            action: "initial html",
+            value: el.outerHTML.replace(el.innerHTML, ""),
+            action: "initial html tag",
+            inputValues: []
+        })
+
+        addElOrigin(el, {
+            value: el.innerHTML,
+            action: "initial html content",
             inputValues: []
         })
 
@@ -289,44 +299,75 @@ function stringTraceTripleEqual(a,b){
     return !stringTraceNotTripleEqual(a,b)
 }
 
-function addElOrigin(el, originInfo){
+function addElOrigin(el, what, originInfo){
+    if (!originInfo) debugger
     if (!el.__elOrigin) {
-        el.__elOrigin = []
+        el.__elOrigin = {}
     }
-    var origin = makeOrigin(originInfo)
-    if (originInfo.action === "removeAttribute") {
-        el.__elOrigin = el.__elOrigin.filter(function(existingOrigin){
-            if (existingOrigin.action !== "setAttribute") {
-                return true;
-            }
 
-            if (existingOrigin.inputValues[0].value !== origin.inputValues[0].value){
-                return true;
-            }
 
-            return false;
-        })
+
+    if (what === "replaceContents") {
+        el.__elOrigin.contents = originInfo.children
+    } else if(what==="appendChild") {
+        if (!el.__elOrigin.contents) {
+            el.__elOrigin.contents = []
+        }
+        el.__elOrigin.contents.push(originInfo.child)
     } else {
-         el.__elOrigin.push(origin)
+        var origin = makeOrigin(originInfo)
+        el.__elOrigin[what] = origin;
     }
+
+
+
+    // if (originInfo.action === "removeAttribute") {
+    //     el.__elOrigin = el.__elOrigin.filter(function(existingOrigin){
+    //         if (existingOrigin.action !== "setAttribute") {
+    //             return true;
+    //         }
+    //
+    //         if (existingOrigin.inputValues[0].value !== origin.inputValues[0].value){
+    //             return true;
+    //         }
+    //
+    //         return false;
+    //     })
+    // } else {
+    //      el.__elOrigin.push(origin)
+    // }
 }
 
 function stringTraceSetInnerHTML(el, innerHTML){
-    addElOrigin(el,{
-        action: "assign innerHTML",
-        inputValues: [innerHTML],
-        value: innerHTML.toString()
-    })
+
 
     el.innerHTML = innerHTML
 
-    $(el).find("*").each(function(i, el){
-        addElOrigin(el, {
+    processNewInnerHtml(el)
+    function processNewInnerHtml(el){
+        var children = Array.prototype.slice.apply(el.childNodes, [])
+        addElOrigin(el, "replaceContents", {
             action: "ancestor innerHTML",
-            inputValues: [],
-            valueOfEl: el
+            children: children
         })
-    })
+
+
+        $(el).children().each(function(i, childEl){
+            addElOrigin(childEl, "tagName", {
+                action: "ancestor innerHTML",
+                inputValues: [],
+                value: childEl.tagName
+            })
+            addElOrigin(childEl, "attribute_class", {
+                action: "ancestor innerHTML",
+                inputValues: [],
+                value: childEl.className
+            })
+            processNewInnerHtml(childEl)
+        })
+    }
+
+
 }
 
 if (!window.tracingEnabled){
@@ -341,10 +382,10 @@ function enableTracing(){
     document.createElement = function(tagName){
 
         var el = originalCreateElement.call(this, tagName)
-        addElOrigin(el, {
+        addElOrigin(el, "tagName", {
             action: "createElement",
             inputValues: [tagName],
-            value: el.outerHTML
+            value: el.tagName
         })
         return el;
     }
@@ -354,11 +395,12 @@ function enableTracing(){
     Object.defineProperty(Node.prototype, "appendChild", {
         get: function(){
             return function(appendedEl){
-                addElOrigin(this,{
+                addElOrigin(this, "appendChild",{
                     action: "appendChild",
                     stack: new Error().stack.split("\n"),
                     inputValues: [appendedEl],
-                    valueOfEl: appendedEl
+                    valueOfEl: appendedEl,
+                    child: appendedEl
                 })
 
                 return appendChildPropertyDescriptor.value.apply(this, arguments)
@@ -369,7 +411,7 @@ function enableTracing(){
     var nativeSetAttribute = Element.prototype.setAttribute;
     window.nativeSetAttribute = nativeSetAttribute
     Element.prototype.setAttribute = function(attrName, value){
-        addElOrigin(this, {
+        addElOrigin(this, "attribute_" + attrName.toString(), {
             action: "setAttribute",
             inputValues: [attrName, value],
             value: "not gotten around to making this work yet"
@@ -379,7 +421,7 @@ function enableTracing(){
 
     var nativeRemoveAttribute = Element.prototype.removeAttribute;
     Element.prototype.removeAttribute = function(attrName){
-        addElOrigin(this, {
+        addElOrigin(this, "attribute_" +attrName.toString(), {
             action: "removeAttribute",
             inputValues: [attrName],
             value: "whateverr"
@@ -390,7 +432,7 @@ function enableTracing(){
     var nativeClassNameDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "className");
     Object.defineProperty(Element.prototype, "className", {
         set: function(newValue){
-            addElOrigin(this, {
+            addElOrigin(this, "attribute_class", {
                 action: "set className",
                 value: newValue.toString(),
                 inputValues: [newValue]

@@ -1,10 +1,11 @@
 function onload(){
-    var type = "d"
-    type += "iv"
-    var el = document.createElement(type)
-    var c = "cake"
-    el.className = c
-    el.innerHTML = "hlelo".replace(/l/g, "kaa")
 
+    var el = document.createElement("div")
+    el.innerHTML = "<p><a>Hello</a> world</p>"
     document.body.appendChild(el)
+
+    document.querySelector("p").className = "cake"
+    document.querySelector("a").innerHTML = "Hey"
+
+
 }
