@@ -15,14 +15,6 @@ function processElementsAvailableOnInitialLoad(){
     els.forEach(function(el){
         el.__elOrigin = [];
 
-        $(el).find("*").each(function(i, el){
-            addElOrigin(el, {
-                value: el.outerHTML,
-                action: "initial html",
-                inputValues: []
-            })
-        })
-
         addElOrigin(el, {
             value: el.outerHTML,
             action: "initial html",
@@ -31,7 +23,12 @@ function processElementsAvailableOnInitialLoad(){
 
     })
 }
-processElementsAvailableOnInitialLoad();
+console.log("adding")
+window.addEventListener("load", function(){
+    console.log("processElementsAvailableOnInitialLoad")
+    processElementsAvailableOnInitialLoad();
+})
+
 
 function isArray(val){
     return val.length !== undefined && val.map !== undefined;

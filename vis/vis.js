@@ -96,6 +96,10 @@ class Stack extends React.Component {
             return <div>(No stack)</div>
         }
 
+        if (originPathItem.originObject.stack.length === 0) {
+            return <div>(Empty stack)</div>
+        }
+
         var frame = _.first(originPathItem.originObject.stack)
 
         return <div>
