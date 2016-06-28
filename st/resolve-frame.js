@@ -36,7 +36,7 @@ export default function(frame, callback){
         gps.pinpoint(frameObject).then(function(newFrame){
             resFrame(gps, newFrame, callback)
         }, function(){
-            resFrame(frameObject, callback)
+            resFrame(gps, frameObject, callback)
             console.log("error", arguments)
         });
     }

@@ -2,7 +2,7 @@ require("./compile")
 require("./getVisData")
 require("./stackframe")
 require("./source-map")
-var $= require("jquery")
+var $ = require("jquery")
 var ValueMap = require("../value-map")
 var _ = require("underscore")
 
@@ -189,7 +189,9 @@ function Origin(opts){
     }
     this.actionDetails = opts.actionDetails;
     this.stack = new Error().stack.split("\n").filter(function(frame){
-        if (frame.indexOf("string-trace.js") !== -1) {
+        console.log("frame", frame)
+        if (frame.indexOf("/fromjs-internals/from.js") !== -1) {
+            console.log("exluce..")
             return false;
         }
         if (frame.indexOf("(native)") !== -1) {
@@ -200,6 +202,7 @@ function Origin(opts){
         }
         return true
     });
+    console.log("stack", this.stack)
 }
 
 function makeOrigin(opts){
