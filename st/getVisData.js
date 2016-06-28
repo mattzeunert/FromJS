@@ -186,7 +186,7 @@ setTimeout(function(){
     div.append(textContainer)
     div.append("<hr>")
 
-    div.append("<style>#fromjs span:hover{color: red}</style>")
+    div.append("<style>.fromjs-value span:hover {color: lime} .fromjs-value { background: #eee; padding: 10px}</style>")
     div.append("<div id='origin-path'></div>")
 
     div.css({
@@ -207,9 +207,10 @@ setTimeout(function(){
 
     function display(el){
         $("#origin-path").empty()
-        
+
         var outerHTML = el.outerHTML;
         textContainer.html("");
+        textContainer.addClass("fromjs-value")
         for (let index in outerHTML){
             let char = outerHTML[index]
             let span = $("<span>")

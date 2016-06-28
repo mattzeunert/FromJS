@@ -10,64 +10,86 @@ function showOriginPath(originPath){
     originPathEl.setAttribute("style", "padding: 10px")
 
     var lastOrigin = originPath[originPath.length - 1]
-    originPathEl.innerHTML += getOriginPathItemHtml(lastOrigin)
-    originPathEl.innerHTML += "<hr/>"
+    originPathEl.appendChild(getOriginPathItem(lastOrigin))
+    originPathEl.appendChild(document.createElement("hr"))
 
 
     for (origin of originPath) {
-        originPathEl.innerHTML += getOriginPathItemHtml(origin)
+        originPathEl.appendChild(getOriginPathItem(origin))
     }
 
     document.getElementById("origin-path").innerHTML = ""
     document.getElementById("origin-path").appendChild(originPathEl)
 }
 
-function getOriginPathItemHtml(origin){
-    var itemHtml = "";
-    itemHtml += "<div style='padding-bottom: 20px'>"
+function getOriginPathItem(origin){
+    var itemEl = document.createElement("div")
+    itemEl.setAttribute("style", 'padding-bottom: 20px')
 
-        itemHtml += "<div style='padding-bottom: 5px;'>"
-            itemHtml += "<span style='text-decoration: underline; font-weight: bold'>"
+    var titleEl = document.createElement("div")
+        titleEl.setAttribute("style", 'padding-bottom: 5px;')
+        var titleHtml =""
+        titleHtml += "<span style='text-decoration: underline; font-weight: bold'>"
 
-            itemHtml += origin.originObject.action
+        titleHtml += origin.originObject.action
 
-            itemHtml += "</span>"
+        titleHtml += "</span>"
+        if (origin.originObject.resolvedStack) {
+            var filename = _.first(origin.originObject.resolvedStack).fileName.replace("?dontprocess=yes", "");
+            var filenameParts = filename.split("/")
+            filename = _.last(filenameParts)
+            titleHtml += " (" + filename + ")"
+        }
+        titleEl.innerHTML = titleHtml
+    itemEl.appendChild(titleEl)
 
-            if (origin.originObject.resolvedStack) {
-                var filename = _.first(origin.originObject.resolvedStack).fileName.replace("?dontprocess=yes", "");
-                var filenameParts = filename.split("/")
-                filename = _.last(filenameParts)
-                itemHtml += " (" + filename + ")"
+    function getValueEl(val){
+        var el = document.createElement("div")
+        el.className="fromjs-value"
+        function addValueElements(val){
+            for (var index in val){
+                index = parseFloat(index)
+                var char = val[index]
+                var span = document.createElement("span")
+                span.innerHTML = escapeAngleBrackets(char).replace(/ /g, "&nbsp;")
+                el.appendChild(span)
             }
-
-        itemHtml += "</div>"
-
-
-        var val = origin.originObject.value
-        itemHtml += "<div style='background: #eee; padding: 10px'>"
-        itemHtml += escapeAngleBrackets(val.substr(0, origin.characterIndex)).replace(/ /g, "&nbsp;") +
-                "<span style='color: red; font-weight:bold'>" +
-                escapeAngleBrackets(val.substr(origin.characterIndex, 1)).replace(/ /g, "&nbsp;")
-                + "</span>" +
-                escapeAngleBrackets(val.substr(origin.characterIndex + 1)).replace(/ /g, "&nbsp;")
-        itemHtml += "</div>"
-
-        if (!origin.originObject.resolvedStack) {
-            itemHtml += "(no stack)"
-        } else {
-            itemHtml += "<code style='background: aliceblue;display: block;padding-top: 5px;margin-top: 5px;padding-bottom: 5px;'>"
-            var frame = _.first(origin.originObject.resolvedStack)
-            itemHtml += escapeAngleBrackets(frame.prevLine).replace(/ /g, "&nbsp;") + "<br/>"
-            itemHtml += escapeAngleBrackets(frame.line.substr(0, frame.columnNumber)).replace(/ /g, "&nbsp;") +
-                "<span style='color: red; '>|</span>" +
-                escapeAngleBrackets(frame.line.substr(frame.columnNumber)).replace(/ /g, "&nbsp;") + "<br/>"
-            itemHtml += escapeAngleBrackets(frame.nextLine).replace(/ /g, "&nbsp;")
-            itemHtml += "</code>"
         }
 
-    itemHtml += "</div>"
+        addValueElements(val.substr(0, origin.characterIndex));
 
-    return itemHtml
+        var selectedSpan = document.createElement("span")
+        selectedSpan.setAttribute("style", 'color: red; font-weight:bold')
+        selectedSpan.innerHTML = escapeAngleBrackets(val.substr(origin.characterIndex, 1)).replace(/ /g, "&nbsp;")
+        el.appendChild(selectedSpan)
+
+        addValueElements(val.substr(origin.characterIndex + 1))
+
+        return el;
+    }
+
+    itemEl.appendChild(getValueEl(origin.originObject.value))
+
+
+    var stackHtml = "";
+    if (!origin.originObject.resolvedStack) {
+        stackHtml += "(no stack)"
+    } else {
+        stackHtml += "<code style='background: aliceblue;display: block;padding-top: 5px;margin-top: 5px;padding-bottom: 5px;'>"
+        var frame = _.first(origin.originObject.resolvedStack)
+        stackHtml += escapeAngleBrackets(frame.prevLine).replace(/ /g, "&nbsp;") + "<br/>"
+        stackHtml += escapeAngleBrackets(frame.line.substr(0, frame.columnNumber)).replace(/ /g, "&nbsp;") +
+            "<span style='color: red; '>|</span>" +
+            escapeAngleBrackets(frame.line.substr(frame.columnNumber)).replace(/ /g, "&nbsp;") + "<br/>"
+        stackHtml += escapeAngleBrackets(frame.nextLine).replace(/ /g, "&nbsp;")
+        stackHtml += "</code>"
+    }
+    var stackEl = document.createElement("div")
+    stackEl.innerHTML = stackHtml
+    itemEl.appendChild(stackEl)
+
+
+    return itemEl
 }
 
 function nodeIsHTMLElement(node){
