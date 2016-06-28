@@ -8,6 +8,14 @@ var $ = require("jquery")
 
 var gps;
 
+setTimeout(function(){
+    var reactTest = document.createElement("div")
+    var ReactDOM = require("react-dom")
+    var React = require("react")
+    document.body.appendChild(reactTest)
+    ReactDOM.render(<p>cake</p>, reactTest)
+}, 100)
+
 function resolveStackArray(stackArray, callback){
     var unfilteredStackArray = stackArray
     stackArray = stackArray.filter(function(frame){
