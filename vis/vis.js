@@ -2,7 +2,7 @@ import React from "react"
 import resolveFrame from "../st/resolve-frame"
 window.ValueMap = require("../value-map")
 window._ = require("underscore")
-
+import {disableTracing} from "../st/string-trace"
 
 export default class OriginPath extends React.Component {
     render(){
@@ -466,10 +466,10 @@ function processOriginObject(origin){
     return index;
 }
 
-
+window.showGraph = showGraph
 
 function showGraph(){
-
+    disableTracing();
 
     var force = d3.layout.force()
         .charge(-200)
@@ -568,9 +568,6 @@ function showGraph(){
                 }
                 if (d.index === 0) {
                     return "red"
-                }
-                if (nodeIsHTMLElement(d)){
-                    return "blue"
                 }
                 if (nodeIsValueSource(d)){
                     return "orange"

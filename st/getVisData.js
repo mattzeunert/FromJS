@@ -1,6 +1,8 @@
 var async = require("./async");
 var ErrorStackParser = require("./error-stack-parser")
 
+import {disableTracing} from "./string-trace"
+
 import OriginPathComponent, {whereDoesCharComeFrom} from "../vis/vis"
 var _ = require("underscore")
 var endsWith = require("ends-with")
@@ -68,9 +70,7 @@ var React = require("react")
 setTimeout(function(){
 
 
-    window.JSON.parse = window.nativeJSONParse
-    document.createElement = window.originalCreateElement
-    Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
+    disableTracing()
 
 
     var div = $("<div>")
