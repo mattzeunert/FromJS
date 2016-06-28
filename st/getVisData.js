@@ -224,7 +224,10 @@ setTimeout(function(){
                             <div style={{padding: 10}}>
                                 <OriginPathComponent
                                     originPath={originPath}
-                                    handleValueSpanClick={displayOriginPath} />
+                                    handleValueSpanClick={(origin, characterIndex) => {
+                                        console.log("clicked on", characterIndex, origin)
+                                        displayOriginPath(origin, characterIndex)
+                                    }} />
                             </div>,
                             $("#origin-path")[0]
                         )

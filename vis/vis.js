@@ -54,7 +54,7 @@ class OriginPathItem extends React.Component {
 class ValueEl extends React.Component {
     render(){
         var self = this;
-        function getValueSpans(val){
+        function getValueSpans(val, indexOffset){
 
             var els = [];
             for (let index in val){
@@ -62,7 +62,7 @@ class ValueEl extends React.Component {
                 var char = val[index]
                 var span = <span
                     onClick={() => {
-                        self.props.handleValueSpanClick(origin.originObject, index)
+                        self.props.handleValueSpanClick(origin.originObject, index + indexOffset)
                     }}
                 >
                     {char}
@@ -75,13 +75,16 @@ class ValueEl extends React.Component {
         var origin = this.props.originPathItem;
         var val = origin.originObject.value
 
+        var valBeforeColumn = val.substr(0, origin.characterIndex);
+        var valAtColumn = val.substr(origin.characterIndex, 1);
+        var valAfterColumn = val.substr(origin.characterIndex + 1)
 
         return <div className="fromjs-value">
-            {getValueSpans(val.substr(0, origin.characterIndex))}
+            {getValueSpans(valBeforeColumn, 0)}
             <span style={{color: "red", fontWeight: "bold"}}>
-                <pre style={{display: "inline"}}>{val.substr(origin.characterIndex, 1)}</pre>
+                <pre style={{display: "inline"}}>{valAtColumn}</pre>
             </span>
-            {getValueSpans(val.substr(origin.characterIndex + 1))}
+            {getValueSpans(valAfterColumn, valBeforeColumn.length + valAtColumn.length)}
         </div>
     }
 }
