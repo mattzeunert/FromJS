@@ -12,7 +12,10 @@ function handleRequest(request, response){
     var isInternalRequest = startsWith(path, "/fromjs-internals/")
 
     if (isInternalRequest){
-        path = path.replace("/fromjs-internals/", __dirname + "/" + "dist/")
+        if (endsWith(path, "fromjs.css")) {
+            path = __dirname + "/fromjs.css"
+        }
+        // path = path.replace("/fromjs-internals/", __dirname + "/" + "dist/")
     } else {
         path = "." + path
     }

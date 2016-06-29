@@ -1,0 +1,7 @@
+.fromjs-value span:hover {
+    color: lime
+}
+.fromjs-value {
+    background: #eee;
+    padding: 10px;
+}

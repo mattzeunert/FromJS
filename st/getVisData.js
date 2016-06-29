@@ -34,7 +34,10 @@ setTimeout(function(){
     div.append(textContainer)
     div.append("<hr>")
 
-    div.append("<style>.fromjs-value span:hover {color: lime} .fromjs-value { background: #eee; padding: 10px}</style>")
+    var link = document.createElement("link")
+    link.setAttribute("rel", "stylesheet")
+    link.setAttribute("href", "/fromjs-internals/fromjs.css")
+    document.body.appendChild(link)
     div.append("<div id='origin-path'></div>")
 
     div.css({
