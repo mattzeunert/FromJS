@@ -144,31 +144,70 @@ setTimeout(function(){
 
 function getElementWithUsefulOrigin(el, characterIndex){
     var usedEl = el;
-    while (usedEl.__elOrigin[0].action === "ancestor innerHTML"){
-        var prevUsedEl = usedEl;
-        usedEl = usedEl.parentElement
-        var childNodes = usedEl.childNodes
-        for (var i in childNodes) {
-            var childNode = childNodes[i];
 
-            if (prevUsedEl === childNode) {
-                break;
-            } else {
-                var isTextNode = childNode.outerHTML === undefined
-                if (!isTextNode){
-                    characterIndex += childNode.outerHTML.length;
-                } else {
-                    characterIndex += childNode.textContent.length;
-                }
-            }
+    var tagHtml = el.outerHTML.replace(el.innerHTML,"")
+    var openingTag = tagHtml.split("></")[0] + ">"
+    var closingTag = "</" +tagHtml.split("></")[1]
+    var innerHTML = el.innerHTML
+
+    var vm = new ValueMap();
+    vm.appendString(openingTag, "openingTag", 0)
+    vm.appendString(innerHTML, "innerHTML", 0)
+    vm.appendString(closingTag, "closingTag", 0)
+
+    var item = vm.getItemAt(characterIndex)
+
+    if (item.originObject === "openingTag") {
+        throw "todo"
+    } else if (item.originObject === "closingTag") {
+        return {
+            origin: el.__elOrigin.tagName,
+            characterIndex: 0 // not one hundred perecent accurate, but maybe close enough
         }
+    } else if (item.originObject === "innerHTML") {
+        var vm = new ValueMap();
+        characterIndex -= openingTag.length;
+        el.__elOrigin.contents.forEach(function(el){
+            var elIsTextNode = el.outerHTML === undefined
+            if (elIsTextNode) {
+                debugger;
+                vm.appendString(el.textContent, el, 0)
+            } else {
+                vm.appendString(el.outerHTML, el, 0)
+            }
 
-        var outerHTMLAdjustment = usedEl.outerHTML.replace(usedEl.innerHTML, "").indexOf("</")
-        characterIndex += outerHTMLAdjustment
+        })
+        var item = vm.getItemAt(characterIndex)
+        return getElementOriginData(item.originObject, item.characterIndex)
+    } else {
+        throw "ooooossdfa"
     }
 
+    // while (usedEl.__elOrigin[0].action === "ancestor innerHTML"){
+    //     var prevUsedEl = usedEl;
+    //     usedEl = usedEl.parentElement
+    //     var childNodes = usedEl.childNodes
+    //     for (var i in childNodes) {
+    //         var childNode = childNodes[i];
+    //
+    //         if (prevUsedEl === childNode) {
+    //             break;
+    //         } else {
+    //             var isTextNode = childNode.outerHTML === undefined
+    //             if (!isTextNode){
+    //                 characterIndex += childNode.outerHTML.length;
+    //             } else {
+    //                 characterIndex += childNode.textContent.length;
+    //             }
+    //         }
+    //     }
+    //
+    //     var outerHTMLAdjustment = usedEl.outerHTML.replace(usedEl.innerHTML, "").indexOf("</")
+    //     characterIndex += outerHTMLAdjustment
+    // }
+
     return {
-        el: usedEl,
+        origin: origin,
         characterIndex: characterIndex
     }
 }
