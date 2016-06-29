@@ -170,15 +170,20 @@ function getElementWithUsefulOrigin(el, characterIndex){
         el.__elOrigin.contents.forEach(function(el){
             var elIsTextNode = el.outerHTML === undefined
             if (elIsTextNode) {
-                debugger;
                 vm.appendString(el.textContent, el, 0)
             } else {
                 vm.appendString(el.outerHTML, el, 0)
             }
-
         })
         var item = vm.getItemAt(characterIndex)
-        return getElementOriginData(item.originObject, item.characterIndex)
+        var isTextNode = item.originObject.outerHTML === undefined;
+        if (isTextNode) {
+            return {
+                characterIndex: item.characterIndex,
+                origin: item.originObject.__elOrigin.textValue
+            }
+        }
+        return getElementWithUsefulOrigin(item.originObject, item.characterIndex)
     } else {
         throw "ooooossdfa"
     }
@@ -214,36 +219,42 @@ function getElementWithUsefulOrigin(el, characterIndex){
 
 function showOriginPath(el, index){
     var characterIndex = parseFloat(index);
-
     var useful = getElementWithUsefulOrigin(el, characterIndex);
-    var usedEl = useful.el;
-    characterIndex = useful.characterIndex
+
+    displayOriginPath(useful.origin, useful.characterIndex)
+
+    return
+
+    function displayOriginPath(oooo, characterIndex){
+        var originPath = whereDoesCharComeFrom(oooo, characterIndex)
+        window.exportToVis = function(){
+            exportElementOrigin(oooo)
+        }
+
+        ReactDOM.render(
+            <div style={{padding: 10}}>
+                <OriginPathComponent
+                    originPath={originPath}
+                    handleValueSpanClick={(origin, characterIndex) => {
+                        console.log("clicked on", characterIndex, origin)
+                        displayOriginPath(origin, characterIndex)
+                    }} />
+            </div>,
+            $("#origin-path")[0]
+        )
+    }
+
+
 
     getElementOriginData(usedEl, function(oooo){
+
         window.oooo = oooo;
         console.log("oooo", oooo)
 
 
         displayOriginPath(oooo, characterIndex)
 
-        function displayOriginPath(oooo, characterIndex){
-            var originPath = whereDoesCharComeFrom(oooo, characterIndex)
-            window.exportToVis = function(){
-                exportElementOrigin(oooo)
-            }
 
-            ReactDOM.render(
-                <div style={{padding: 10}}>
-                    <OriginPathComponent
-                        originPath={originPath}
-                        handleValueSpanClick={(origin, characterIndex) => {
-                            console.log("clicked on", characterIndex, origin)
-                            displayOriginPath(origin, characterIndex)
-                        }} />
-                </div>,
-                $("#origin-path")[0]
-            )
-        }
     })
 }
 

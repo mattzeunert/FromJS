@@ -194,6 +194,9 @@ function Origin(opts){
 
     this.action = opts.action;
     this.inputValues = inputValues;
+
+    this.inputValuesCharacterIndex = opts.inputValuesCharacterIndex
+
     this.value = opts.value && opts.value.toString();
     this.valueOfEl = opts.valueOfEl
     this.valueItems = opts.valueItems
@@ -351,16 +354,28 @@ function stringTraceSetInnerHTML(el, innerHTML){
             children: children
         })
 
+        $(el).contents().each(function(i, child){
+            var isTextNode = child.innerHTML === undefined;
+            if (isTextNode) {
+                addElOrigin(child, "textValue", {
+                    "action": "ancestor innerHTML",
+                    inputValues: [innerHTML],
+                    value: innerHTML.toString(),
+                    inputValuesCharacterIndex: [0]
+                })
+            }
+        })
+
 
         $(el).children().each(function(i, childEl){
             addElOrigin(childEl, "tagName", {
                 action: "ancestor innerHTML",
-                inputValues: [],
+                inputValues: [innerHTML],
                 value: childEl.tagName
             })
             addElOrigin(childEl, "attribute_class", {
                 action: "ancestor innerHTML",
-                inputValues: [],
+                inputValues: [innerHTML],
                 value: childEl.className
             })
             processNewInnerHtml(childEl)
