@@ -136,7 +136,7 @@ class StackFrame extends React.Component{
     }
     render(){
         function processFrameString(str){
-            return str.replace(/ /g, "\u00a0") //nbsp
+            return str.replace(/ /g, '\xa0') //nbsp
         }
 
         if (this.state.resolvedFrame === null) {
