@@ -415,6 +415,16 @@ function goUp(step){
             throw "need to handlesss"
         }
     }
+    else if (step.originObject.action === "match call"){
+        if (step.originObject.value === step.originObject.inputValues[0].value) {
+            ret = {
+                originObject: step.originObject.inputValues[0],
+                characterIndex: step.characterIndex
+            }
+        } else {
+            throw "not handled mathc call"
+        }
+    }
     else {
         console.log("not handling step", step)
         return null

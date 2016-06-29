@@ -212,7 +212,6 @@ function getElementWithUsefulOrigin(el, characterIndex){
 
         if (isTextNode) {
             var origin = item.originObject.__elOrigin.textValue
-            debugger;
             return {
                 characterIndex: item.characterIndex + (origin.inputValuesCharacterIndex ? origin.inputValuesCharacterIndex[0] : 0),
                 origin: origin
