@@ -9,29 +9,32 @@ var _ = require("underscore")
 console.log("in stringtrace js")
 
 function processElementsAvailableOnInitialLoad(){
-    return;
 
 
+    processNode(document.body)
 
-    var els = document.querySelectorAll("*")
+    function processNode(el){
+        var isTextNode = el.innerHTML === undefined
+        if (isTextNode) {
+            addElOrigin(el, "textValue", {
+                "action": "initial html",
+                inputValues: [],
+                value: el.textContent
+            })
 
-    els = Array.prototype.slice.apply(els)
-    els.forEach(function(el){
-        el.__elOrigin = [];
+        } else {
+            var children = Array.prototype.slice.apply(el.childNodes, [])
 
-        addElOrigin(el, {
-            value: el.outerHTML.replace(el.innerHTML, ""),
-            action: "initial html tag",
-            inputValues: []
-        })
+            addElOrigin(el, "replaceContents", {
+                action: "initial html tag",
+                children: children
+            })
 
-        addElOrigin(el, {
-            value: el.innerHTML,
-            action: "initial html content",
-            inputValues: []
-        })
-
-    })
+            children.forEach(function(child){
+                processNode(child)
+            })
+        }
+    }
 }
 console.log("adding")
 window.addEventListener("load", function(){
