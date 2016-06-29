@@ -50,10 +50,10 @@ export default function getRootOriginAtChar(el, characterIndex){
         }
     } else if (item.originObject === "closingTag") {
         var ivIndex =  el.__elOrigin.tagName.inputValuesCharacterIndex
-
+        var indexInClosingTag = characterIndex - innerHTML.length - openingTag.length
         return {
             origin: el.__elOrigin.tagName,
-            characterIndex: 0 + (ivIndex ? ivIndex[0] : 0)
+            characterIndex: indexInClosingTag + (ivIndex ? ivIndex[0] : 0)
         }
     } else if (item.originObject === "innerHTML") {
         var vm = new ValueMap();
