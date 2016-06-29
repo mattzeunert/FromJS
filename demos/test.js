@@ -4,7 +4,7 @@ function onload(){
     el.innerHTML = "<p><a>Hello</a> world</p>"
     document.body.appendChild(el)
 
-    // document.querySelector("p").className = "cake"
+    document.querySelector("p").className = "cake"
     document.querySelector("a").innerHTML = "Hey"
 
 

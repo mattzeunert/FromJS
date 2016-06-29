@@ -374,7 +374,7 @@ function stringTraceSetInnerHTML(el, innerHTML){
                     action: "ancestor innerHTML",
                     inputValues: [innerHTML],
                     inputValuesCharacterIndex: [charOffset],
-                    value: child.tagName
+                    value: innerHTML.toString()
                 })
                 var openingTagStart = "<" + child.tagName
                 charOffset += openingTagStart.length
@@ -386,7 +386,7 @@ function stringTraceSetInnerHTML(el, innerHTML){
                     addElOrigin(child, "attribute_" + attr.name, {
                         action: "ancestor innerHTML",
                         inputValues: [innerHTML],
-                        value: attr.textContent
+                        value: innerHTML.toString()
                     })
 
                     var attrStr = " " + attr.name

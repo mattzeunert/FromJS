@@ -284,6 +284,7 @@ function whereDoesCharComeFrom(originObject, characterIndex){
 export {whereDoesCharComeFrom}
 
 function goUp(step){
+    console.log("trying to handle step with action", step.originObject.action)
 
     var ret
     if (step.originObject.action === "set className"){
@@ -411,8 +412,8 @@ function goUp(step){
         }
     }
     else {
-        return null
         console.log("not handling step", step)
+        return null
     }
 
 
