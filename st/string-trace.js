@@ -36,6 +36,16 @@ function processElementsAvailableOnInitialLoad(){
                 inputValues: []
             })
 
+            for (var i = 0;i<el.attributes.length;i++) {
+                var attr = el.attributes[i]
+                addElOrigin(el, "attribute_" + attr.name, {
+                    action: "initial html",
+                    value: " " + attr.name + "='" + attr.textContent + "'",
+                    inputValues: []
+                })
+            }
+
+
             children.forEach(function(child){
                 processNode(child)
             })
