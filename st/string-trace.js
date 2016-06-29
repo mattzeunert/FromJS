@@ -346,7 +346,11 @@ function stringTraceSetInnerHTML(el, innerHTML){
 
     el.innerHTML = innerHTML
 
+    var forDebuggingProcessedHtml = ""
+    var charOffset = 0;
     processNewInnerHtml(el)
+
+
     function processNewInnerHtml(el){
         var children = Array.prototype.slice.apply(el.childNodes, [])
         addElOrigin(el, "replaceContents", {
@@ -361,25 +365,36 @@ function stringTraceSetInnerHTML(el, innerHTML){
                     "action": "ancestor innerHTML",
                     inputValues: [innerHTML],
                     value: innerHTML.toString(),
-                    inputValuesCharacterIndex: [0]
+                    inputValuesCharacterIndex: [charOffset]
                 })
+                charOffset += child.textContent.length
+                forDebuggingProcessedHtml += child.textContent
+            } else {
+                addElOrigin(child, "tagName", {
+                    action: "ancestor innerHTML",
+                    inputValues: [innerHTML],
+                    inputValuesCharacterIndex: [charOffset],
+                    value: child.tagName
+                })
+                var openingTag = ("<" + child.tagName + ">")
+                charOffset += openingTag.length
+                forDebuggingProcessedHtml += openingTag
+                // addElOrigin(child, "attribute_class", {
+                //     action: "ancestor innerHTML",
+                //     inputValues: [innerHTML],
+                //     value: child.className
+                // })
+                processNewInnerHtml(child)
+                var closingTag = "</" + child.tagName + ">"
+                charOffset += closingTag.length
+                forDebuggingProcessedHtml += closingTag
             }
+            console.log("processed", forDebuggingProcessedHtml, innerHTML.toString().toLowerCase() === forDebuggingProcessedHtml.toLowerCase())
         })
+    }
 
-
-        $(el).children().each(function(i, childEl){
-            addElOrigin(childEl, "tagName", {
-                action: "ancestor innerHTML",
-                inputValues: [innerHTML],
-                value: childEl.tagName
-            })
-            addElOrigin(childEl, "attribute_class", {
-                action: "ancestor innerHTML",
-                inputValues: [innerHTML],
-                value: childEl.className
-            })
-            processNewInnerHtml(childEl)
-        })
+    if (innerHTML.toString().toLowerCase() !== forDebuggingProcessedHtml.toLowerCase()){
+        debugger;
     }
 
 
