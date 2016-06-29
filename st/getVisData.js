@@ -1,4 +1,4 @@
-import {disableTracing} from "./string-trace"
+import {disableTracing} from "../src/tracing/tracing"
 
 
 import whereDoesCharComeFrom from "../src/whereDoesCharComeFrom"

@@ -1,8 +1,8 @@
 import whereDoesCharComeFrom from "../src/whereDoesCharComeFrom"
 
 window._ = require("underscore")
-import {disableTracing} from "../st/string-trace"
-
+import {disableTracing} from "../src/tracing/tracing"
+import {StringTraceString} from "../src/tracing/FromJSString"
 
 function nodeIsValueSource(node){
     return node.action === "string literal" || node.action === "localStorage.getItem"
