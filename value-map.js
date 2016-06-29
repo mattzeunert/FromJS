@@ -10,6 +10,10 @@ ValueMap.prototype.appendString = function(str, originObject, indexInOriginValue
         debugger;
     }
 
+    if (!originObject) {
+        throw "need origin object"
+    }
+
     var newCharIndex = this.charIndex + str.length;
     this.items.push({
         originObject: originObject,
@@ -50,7 +54,6 @@ ValueMap.prototype.getItemAt = function(charIndex){
     var characterIndex = charIndex - charCountBeforeMatch + charsBelongingToMatchedOrigin +
         matchingItem.indexInOriginValue;
 
-        // console.log("vm", this)
 
     return {
         originObject: matchingItem.originObject,

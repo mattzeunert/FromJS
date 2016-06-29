@@ -275,6 +275,11 @@ function whereDoesCharComeFrom(originObject, characterIndex){
     steps.push(step)
     while (step !== null){
         step = goUp(step)
+
+        if (step !== null && !step.originObject){
+            throw "hmm?"
+        }
+
         if (step !== null){
             steps.push(step)
         }
