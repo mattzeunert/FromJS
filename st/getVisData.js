@@ -3,7 +3,8 @@ var ErrorStackParser = require("./error-stack-parser")
 
 import {disableTracing} from "./string-trace"
 
-import OriginPathComponent, {whereDoesCharComeFrom} from "../vis/vis"
+import {whereDoesCharComeFrom} from "../vis/vis"
+import { OriginPath } from "../src/ui/ui"
 var _ = require("underscore")
 var endsWith = require("ends-with")
 var $ = require("jquery")
@@ -270,7 +271,7 @@ function showOriginPath(el, index){
 
         ReactDOM.render(
             <div style={{padding: 10}}>
-                <OriginPathComponent
+                <OriginPath
                     originPath={originPath}
                     handleValueSpanClick={(origin, characterIndex) => {
                         console.log("clicked on", characterIndex, origin)
