@@ -37,23 +37,6 @@ setTimeout(function(){
     document.body.appendChild(link)
     div.append("<div id='origin-path'></div>")
 
-    div.css({
-        position: "fixed",
-        "font-family": "Arial",
-        "font-size": 16,
-        right: 0,
-        top: 0,
-        bottom: 0,
-        height: "100vh",
-        width: "40vw",
-        background: "white",
-        overflow: "auto",
-        "border-top": "1px solid black"
-    })
-
-    $("body").css("padding-right", "40vw")
-
-
     console.log("k")
 
     function display(el){
@@ -79,9 +62,8 @@ setTimeout(function(){
     }
 
     $("*").off("click")
-    console.log("all on click disable")
     $("*").click(function(e){
-        if ($(this).parents(".fromjs").length !== 0){
+        if ($(this).parents("#fromjs").length !== 0){
             return
         }
         if ($(this).is("html, body")){

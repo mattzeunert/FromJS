@@ -5,3 +5,20 @@
     background: #eee;
     padding: 10px;
 }
+#fromjs {
+    position: fixed;
+    font-family: "Arial";
+    font-size: 16;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: 100vh;
+    width: 40vw;
+    background: white;
+    overflow: auto;
+    border-top: 1px solid black;
+}
+
+body {
+    padding-right: 40vw;
+}
