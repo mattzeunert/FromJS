@@ -49,9 +49,11 @@ export default function getRootOriginAtChar(el, characterIndex){
             characterIndex: item.characterIndex + (item.originObject.inputValuesCharacterIndex ? item.originObject.inputValuesCharacterIndex[0] : 0)
         }
     } else if (item.originObject === "closingTag") {
+        var ivIndex =  el.__elOrigin.tagName.inputValuesCharacterIndex
+
         return {
             origin: el.__elOrigin.tagName,
-            characterIndex: 0 // not one hundred perecent accurate, but maybe close enough
+            characterIndex: 0 + (ivIndex ? ivIndex[0] : 0)
         }
     } else if (item.originObject === "innerHTML") {
         var vm = new ValueMap();
