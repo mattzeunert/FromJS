@@ -293,9 +293,17 @@ function goUp(step){
     var ret
     if (step.originObject.action === "set className"){
         var characterIndex =  step.characterIndex
+        var newCharIndex = characterIndex - " class='".length
+
+        var clickedOnAttributeLeftPart = newCharIndex < 0
+        var clickedOnAttributeRightPart = newCharIndex >= step.originObject.inputValues[0].value.length
+
+        if (clickedOnAttributeLeftPart || clickedOnAttributeRightPart) {
+            return null; // clicked on class=' part rather than actual class name
+        }
         ret = {
             originObject: step.originObject.inputValues[0],
-            characterIndex: characterIndex
+            characterIndex: newCharIndex
         }
     } else if (step.originObject.inputValues.length === 1 && step.originObject.inputValues[0].value === step.originObject.value) {
         ret = {

@@ -495,7 +495,7 @@ function enableTracing(){
         set: function(newValue){
             addElOrigin(this, "attribute_class", {
                 action: "set className",
-                value: newValue.toString(),
+                value: " class='" + newValue.toString() + "'",
                 inputValues: [newValue]
             })
             return nativeClassNameDescriptor.set.apply(this, arguments)
