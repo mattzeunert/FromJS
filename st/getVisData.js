@@ -212,8 +212,9 @@ function getElementWithUsefulOrigin(el, characterIndex){
 
         if (isTextNode) {
             var origin = item.originObject.__elOrigin.textValue
+            debugger;
             return {
-                characterIndex: item.characterIndex + (item.originObject.inputValuesCharacterIndex ? item.originObject.inputValuesCharacterIndex[0] : 0),
+                characterIndex: item.characterIndex + (origin.inputValuesCharacterIndex ? origin.inputValuesCharacterIndex[0] : 0),
                 origin: origin
             }
         }
@@ -255,6 +256,7 @@ function showOriginPath(el, index){
     var characterIndex = parseFloat(index);
     var useful = getElementWithUsefulOrigin(el, characterIndex);
 
+    console.log("used origin", useful)
     console.log("has char", useful.origin.value[useful.characterIndex])
 
     displayOriginPath(useful.origin, useful.characterIndex)

@@ -263,6 +263,7 @@ var nodes= [];
 var links = [];
 
 function whereDoesCharComeFrom(originObject, characterIndex){
+    console.groupCollapsed("whereDoesCharComeFrom")
     characterIndex = parseFloat(characterIndex)
 
     var steps = [];
@@ -277,6 +278,8 @@ function whereDoesCharComeFrom(originObject, characterIndex){
             steps.push(step)
         }
     }
+
+    console.groupEnd()
 
     return steps
 }
