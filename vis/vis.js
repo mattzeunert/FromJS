@@ -17,6 +17,7 @@ export default class OriginPath extends React.Component {
         }
         return <div>
             <OriginPathItem
+                key={JSON.stringify(lastOrigin)}
                 originPathItem={lastOrigin}
                 handleValueSpanClick={this.props.handleValueSpanClick}
             />
