@@ -280,7 +280,7 @@ function whereDoesCharComeFrom(originObject, characterIndex){
         }
     }
 
-    console.groupEnd()
+    console.groupEnd("whereDoesCharComeFrom")
 
     return steps
 }
