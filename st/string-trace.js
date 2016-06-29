@@ -376,29 +376,58 @@ function stringTraceSetInnerHTML(el, innerHTML){
                     inputValuesCharacterIndex: [charOffset],
                     value: child.tagName
                 })
-                var openingTag = ("<" + child.tagName + ">")
-                charOffset += openingTag.length
-                forDebuggingProcessedHtml += openingTag
-                // addElOrigin(child, "attribute_class", {
-                //     action: "ancestor innerHTML",
-                //     inputValues: [innerHTML],
-                //     value: child.className
-                // })
+                var openingTagStart = "<" + child.tagName
+                charOffset += openingTagStart.length
+                forDebuggingProcessedHtml += openingTagStart
+
+                for (var i = 0;i<child.attributes.length;i++) {
+                    var attr = child.attributes[i]
+
+                    addElOrigin(child, "attribute_" + attr.name, {
+                        action: "ancestor innerHTML",
+                        inputValues: [innerHTML],
+                        value: attr.textContent
+                    })
+
+                    var attrStr = " " + attr.name
+                    if (attr.textContent !== ""){
+                        attrStr += "='" + attr.textContent +  "'"
+                    }
+                    charOffset += attrStr.length
+                    forDebuggingProcessedHtml += attrStr
+                }
+
+                var openingTagEnd = ""
+                if (!tagTypeHasClosingTag(child.tagName)) {
+                    openingTagEnd +=  "/"
+                }
+                openingTagEnd += ">"
+                charOffset += openingTagEnd.length
+                forDebuggingProcessedHtml += openingTagEnd
+
                 processNewInnerHtml(child)
-                var closingTag = "</" + child.tagName + ">"
-                charOffset += closingTag.length
-                forDebuggingProcessedHtml += closingTag
+
+                if (tagTypeHasClosingTag(child.tagName)) {
+                    var closingTag = "</" + child.tagName + ">"
+                    charOffset += closingTag.length
+                    forDebuggingProcessedHtml += closingTag
+                }
             }
-            console.log("processed", forDebuggingProcessedHtml, innerHTML.toString().toLowerCase() === forDebuggingProcessedHtml.toLowerCase())
+            console.log("processed", forDebuggingProcessedHtml, innerHTML.toString().toLowerCase().replace(/\"/g, "'") === forDebuggingProcessedHtml.toLowerCase())
         })
     }
 
-    if (innerHTML.toString().toLowerCase() !== forDebuggingProcessedHtml.toLowerCase()){
-        debugger;
-    }
+    // if (innerHTML.toString().toLowerCase().replace(/\"/g, "'") !== forDebuggingProcessedHtml.toLowerCase()){
+    //     debugger;
+    // }
 
 
 }
+
+function tagTypeHasClosingTag(tagName){
+    return originalCreateElement.apply(document, [tagName]).outerHTML.indexOf("></") !== -1
+}
+window.tagTypeHasClosingTag = tagTypeHasClosingTag
 
 if (!window.tracingEnabled){
     enableTracing()
