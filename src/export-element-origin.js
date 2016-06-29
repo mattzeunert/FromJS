@@ -1,4 +1,4 @@
-var async = require("./async");
+var async = require("async");
 import resolveFrame from "./resolve-frame"
 
 function resolveStackArray(stackArray, callback){
@@ -7,9 +7,6 @@ function resolveStackArray(stackArray, callback){
         callback(null, [])
         return;
     }
-
-
-
 
     async.map(stackArray, resolveFrame, function(err, newStackFrames){
         callback(newStackFrames)

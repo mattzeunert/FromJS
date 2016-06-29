@@ -1,5 +1,3 @@
-var async = require("../src/async");
-
 import {disableTracing} from "./string-trace"
 
 

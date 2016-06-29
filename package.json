@@ -11,6 +11,7 @@
   "author": "Matt Zeunert",
   "license": "ISC",
   "dependencies": {
+    "async": "^1.5.2",
     "babel": "^6.5.2",
     "babel-core": "^6.9.1",
     "babel-generator": "^6.7.5",
