@@ -26,8 +26,14 @@ function processElementsAvailableOnInitialLoad(){
             var children = Array.prototype.slice.apply(el.childNodes, [])
 
             addElOrigin(el, "replaceContents", {
-                action: "initial html tag",
+                action: "initial html",
                 children: children
+            })
+
+            addElOrigin(el, "tagName", {
+                action: "initial html",
+                value: el.tagName,
+                inputValues: []
             })
 
             children.forEach(function(child){
