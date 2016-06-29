@@ -56,7 +56,6 @@ setTimeout(function(){
         }
 
         var autoIndex = el.outerHTML.indexOf(">") + 1
-        autoIndex++; // because it happens to work better for todomvc
         console.log("autoselect index", autoIndex)
         showOriginPath(el, autoIndex)
     }
@@ -84,25 +83,23 @@ function showOriginPath(el, index){
     console.log("has char", useful.origin.value[useful.characterIndex])
 
     displayOriginPath(useful.origin, useful.characterIndex)
+}
 
-    return
-
-    function displayOriginPath(oooo, characterIndex){
-        var originPath = whereDoesCharComeFrom(oooo, characterIndex)
-        window.exportToVis = function(){
-            exportElementOrigin(oooo)
-        }
-
-        ReactDOM.render(
-            <div style={{padding: 10}}>
-                <OriginPath
-                    originPath={originPath}
-                    handleValueSpanClick={(origin, characterIndex) => {
-                        console.log("clicked on", characterIndex, origin)
-                        displayOriginPath(origin, characterIndex)
-                    }} />
-            </div>,
-            $("#origin-path")[0]
-        )
+function displayOriginPath(oooo, characterIndex){
+    var originPath = whereDoesCharComeFrom(oooo, characterIndex)
+    window.exportToVis = function(){
+        exportElementOrigin(oooo)
     }
+
+    ReactDOM.render(
+        <div style={{padding: 10}}>
+            <OriginPath
+                originPath={originPath}
+                handleValueSpanClick={(origin, characterIndex) => {
+                    console.log("clicked on", characterIndex, origin)
+                    displayOriginPath(origin, characterIndex)
+                }} />
+        </div>,
+        $("#origin-path")[0]
+    )
 }
