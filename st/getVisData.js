@@ -14,56 +14,6 @@ function isElement(value){
     return value instanceof Element
 }
 
-function resolveElOriginInputValue(inputValue, callback){
-    if (isElement(inputValue)){
-        getElementOriginData(inputValue, function(data){
-            callback(null, data)
-        })
-    } else {
-        callback(null, inputValue)
-    }
-}
-
-function convertElOrigin(elOrigin, callback){
-    elOrigin.value = elOrigin.getValue();
-
-    var inputValues = elOrigin.inputValues.filter(function(origin){
-        if (origin === undefined) {
-            throw "hmm dont really want this to happen"
-            return false;
-        }
-        return true;
-    })
-
-    async.map(inputValues, resolveElOriginInputValue,  function(err, resolvedInputValues){
-        elOrigin = _.clone(elOrigin)
-        elOrigin.inputValues = resolvedInputValues;
-        callback(null, elOrigin)
-    })
-}
-function getElementOriginData(el, callback){
-    if (!el.__elOrigin){
-        console.warn("no elorigin for", el)
-        callback({action: "no el origin"});
-        return;
-    }
-
-    var elOrigins = [];
-    if (el.__elOrigin) {
-        elOrigins = el.__elOrigin
-    }
-    async.map(elOrigins, convertElOrigin, function(err, convertedElOrigins){
-        var data = {
-            actionDetails: el.tagName,
-            stack: undefined,
-            action: "Element",
-            value: el.outerHTML,
-            inputValues: convertedElOrigins
-        }
-        callback(data)
-    })
-}
-
 var ReactDOM = require("react-dom")
 var React = require("react")
 
@@ -258,19 +208,4 @@ function showOriginPath(el, index){
             $("#origin-path")[0]
         )
     }
-
-
-
-    getElementOriginData(usedEl, function(oooo){
-
-        window.oooo = oooo;
-        console.log("oooo", oooo)
-
-
-        displayOriginPath(oooo, characterIndex)
-
-
-    })
 }
-
-window.getElementOriginData = getElementOriginData
