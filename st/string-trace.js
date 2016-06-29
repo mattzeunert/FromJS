@@ -1,7 +1,7 @@
 require("./compile")
 require("./getVisData")
 var $ = require("jquery")
-var ValueMap = require("../value-map")
+var ValueMap = require("../src/value-map")
 var _ = require("underscore")
 
 console.log("in stringtrace js")

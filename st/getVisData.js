@@ -1,8 +1,9 @@
 var async = require("../src/async");
 
 import {disableTracing} from "./string-trace"
+import ValueMap from "../src/value-map"
 
-import {whereDoesCharComeFrom} from "../vis/vis"
+import whereDoesCharComeFrom from "../src/whereDoesCharComeFrom"
 import { OriginPath } from "../src/ui/ui"
 var _ = require("underscore")
 var endsWith = require("ends-with")
