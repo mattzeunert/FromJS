@@ -142,8 +142,12 @@ setTimeout(function(){
     $("body").append(div)
 }, 4000)
 
+
+function tagTypeHasClosingTag(tagName){
+    return originalCreateElement.apply(document, [tagName]).outerHTML.indexOf("></") !== -1
+}
+
 function getElementWithUsefulOrigin(el, characterIndex){
-    var usedEl = el;
 
     var tagHtml = el.outerHTML.replace(el.innerHTML,"")
     var openingTag = tagHtml.split("></")[0] + ">"
@@ -158,7 +162,35 @@ function getElementWithUsefulOrigin(el, characterIndex){
     var item = vm.getItemAt(characterIndex)
 
     if (item.originObject === "openingTag") {
-        throw "todo"
+        var vm = new ValueMap();
+
+        var openingTagStart = "<" + el.tagName
+        vm.appendString(openingTagStart, el.__elOrigin.tagName, 0)
+
+        for (var i = 0;i<el.attributes.length;i++) {
+            var attr = el.attributes[i]
+
+
+            var attrStr = " " + attr.name
+            if (attr.textContent !== ""){
+                attrStr += "='" + attr.textContent +  "'"
+            }
+
+            vm.appendString(attrStr, el.__elOrigin["attribute_" + attr.name], 0)
+        }
+
+        var openingTagEnd = ""
+        if (!tagTypeHasClosingTag(el.tagName)) {
+            openingTagEnd +=  "/"
+        }
+        openingTagEnd += ">"
+        vm.appendString(openingTagEnd, el.__elOrigin.tagName, 0)
+
+        var item = vm.getItemAt(characterIndex)
+        return {
+            origin: item.originObject,
+            characterIndex: item.characterIndex
+        }
     } else if (item.originObject === "closingTag") {
         return {
             origin: el.__elOrigin.tagName,

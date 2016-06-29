@@ -370,6 +370,7 @@ function stringTraceSetInnerHTML(el, innerHTML){
                 charOffset += child.textContent.length
                 forDebuggingProcessedHtml += child.textContent
             } else {
+
                 addElOrigin(child, "tagName", {
                     action: "ancestor innerHTML",
                     inputValues: [innerHTML],
