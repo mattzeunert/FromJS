@@ -1,5 +1,4 @@
 var async = require("./async");
-var ErrorStackParser = require("./error-stack-parser")
 import resolveFrame from "./resolve-frame"
 
 function resolveStackArray(stackArray, callback){

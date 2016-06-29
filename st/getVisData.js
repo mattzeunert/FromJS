@@ -1,5 +1,4 @@
-var async = require("./async");
-var ErrorStackParser = require("./error-stack-parser")
+var async = require("../src/async");
 
 import {disableTracing} from "./string-trace"
 
@@ -8,7 +7,7 @@ import { OriginPath } from "../src/ui/ui"
 var _ = require("underscore")
 var endsWith = require("ends-with")
 var $ = require("jquery")
-import exportElementOrigin from "./export-element-origin"
+import exportElementOrigin from "../src/export-element-origin"
 
 function isElement(value){
     return value instanceof Element
@@ -222,29 +221,6 @@ function getElementWithUsefulOrigin(el, characterIndex){
     } else {
         throw "ooooossdfa"
     }
-
-    // while (usedEl.__elOrigin[0].action === "ancestor innerHTML"){
-    //     var prevUsedEl = usedEl;
-    //     usedEl = usedEl.parentElement
-    //     var childNodes = usedEl.childNodes
-    //     for (var i in childNodes) {
-    //         var childNode = childNodes[i];
-    //
-    //         if (prevUsedEl === childNode) {
-    //             break;
-    //         } else {
-    //             var isTextNode = childNode.outerHTML === undefined
-    //             if (!isTextNode){
-    //                 characterIndex += childNode.outerHTML.length;
-    //             } else {
-    //                 characterIndex += childNode.textContent.length;
-    //             }
-    //         }
-    //     }
-    //
-    //     var outerHTMLAdjustment = usedEl.outerHTML.replace(usedEl.innerHTML, "").indexOf("</")
-    //     characterIndex += outerHTMLAdjustment
-    // }
 
     return {
         origin: origin,

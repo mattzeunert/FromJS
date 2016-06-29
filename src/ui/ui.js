@@ -1,6 +1,6 @@
 import React from "react"
 import _ from "underscore"
-import resolveFrame from "../../st/resolve-frame"
+import resolveFrame from "../resolve-frame"
 
 export class OriginPath extends React.Component {
     render(){

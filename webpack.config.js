@@ -1,6 +1,6 @@
 var webpack = require('webpack');
 
-var modules = {
+var mod = {
     loaders:[
         {
             test: /\.js$/,
@@ -28,7 +28,7 @@ module.exports = [{
         filename: 'dist/from.js'
     },
     devtool: "source-map",
-    module: module,
+    module: mod,
     node: node
 },
 {
@@ -40,6 +40,6 @@ module.exports = [{
         filename: 'dist/vis.js'
     },
     devtool: "source-map",
-    module: module,
+    module: mod,
     node: node
 }]

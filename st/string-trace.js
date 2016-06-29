@@ -1,7 +1,5 @@
 require("./compile")
 require("./getVisData")
-require("./stackframe")
-require("./source-map")
 var $ = require("jquery")
 var ValueMap = require("../value-map")
 var _ = require("underscore")
