@@ -189,7 +189,7 @@ function getElementWithUsefulOrigin(el, characterIndex){
         var item = vm.getItemAt(characterIndex)
         return {
             origin: item.originObject,
-            characterIndex: item.characterIndex
+            characterIndex: item.characterIndex + (item.originObject.inputValuesCharacterIndex ? item.originObject.inputValuesCharacterIndex[0] : 0)
         }
     } else if (item.originObject === "closingTag") {
         return {
@@ -213,7 +213,7 @@ function getElementWithUsefulOrigin(el, characterIndex){
         if (isTextNode) {
             var origin = item.originObject.__elOrigin.textValue
             return {
-                characterIndex: item.characterIndex + origin.inputValuesCharacterIndex[0],
+                characterIndex: item.characterIndex + (item.originObject.inputValuesCharacterIndex ? item.originObject.inputValuesCharacterIndex[0] : 0),
                 origin: origin
             }
         }
