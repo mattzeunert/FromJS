@@ -1,3 +1,2 @@
-node_modules
-backbone-todomvc/dontprocess
-dist
+/node_modules
+/dist
