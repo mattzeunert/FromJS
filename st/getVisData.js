@@ -76,12 +76,14 @@ setTimeout(function(){
             left: rect.left,
             top: rect.top,
             height: rect.height,
-            width: rect.width
+            width: rect.width,
+            display: "block"
         })
     })
     $("*").mouseleave(function(e){
         if (!shouldHandle(e)) {return}
         component.setPreviewEl(null)
+        $(hoverMarkerDiv).css("display", "none")
     })
 
 
