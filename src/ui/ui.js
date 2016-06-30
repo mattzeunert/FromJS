@@ -33,7 +33,8 @@ class OriginPathItem extends React.Component {
         this.state = {
             resolvedFrame: null
         }
-
+    }
+    componentDidMount(){
         var frame = _.first(this.props.originPathItem.originObject.stack)
         if (frame){
             resolveFrame(frame, (err, resolvedFrame) => {
@@ -153,7 +154,9 @@ class StackFrame extends React.Component{
         this.state = {
             resolvedFrame: null
         }
-        resolveFrame(props.frame, (err, resolvedFrame) => {
+    }
+    componentDidMount(){
+        resolveFrame(this.props.frame, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
@@ -196,8 +199,6 @@ export class FromJSView extends React.Component {
         }
     }
     render(){
-        console.log("characterIndex", this.state.characterIndex)
-
         var preview = null;
         var info = null;
         if (this.state.previewEl !== null){
@@ -222,7 +223,7 @@ export class FromJSView extends React.Component {
                         }} />
                 </div>
             }
-            
+
             info = <div>
                 {this.state.el ? <TextEl
                     text={this.state.el.outerHTML}
