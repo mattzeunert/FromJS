@@ -22,10 +22,3 @@
 body {
     padding-right: 40vw;
 }
-
-.fromjs-el-hover {
-    outline: 1px solid blue;
-}
-.fromjs-el-selected {
-    outline: 2px solid red !important;
-}

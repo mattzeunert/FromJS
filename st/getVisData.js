@@ -46,20 +46,16 @@ setTimeout(function(){
         if (!shouldHandle(e)) {return}
         e.stopPropagation();
         e.preventDefault();
-        $(".fromjs-el-selected").removeClass("fromjs-el-selected")
-        $(this).addClass("fromjs-el-selected")
         component.display(this)
     })
     $("*").mouseenter(function(e){
         if (!shouldHandle(e)) {return}
         e.stopPropagation()
-        $(".fromjs-el-hover").removeClass("fromjs-el-hover")
-        $(e.target).addClass("fromjs-el-hover")
+
         component.setPreviewEl(e.target)
     })
     $("*").mouseleave(function(e){
         if (!shouldHandle(e)) {return}
-        $(".fromjs-el-hover").removeClass("fromjs-el-hover")
         component.setPreviewEl(null)
     })
 
