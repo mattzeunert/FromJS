@@ -203,7 +203,7 @@ export class FromJSView extends React.Component {
         var preview = null;
         var info = null;
         if (this.state.previewEl !== null && this.state.previewEl !== this.state.el){
-            var characterIndex = parseFloat(this.getDefaultCharacterIndex(this.state.previewEl));
+            var characterIndex = this.getDefaultCharacterIndex(this.state.previewEl);
             var useful = getRootOriginAtChar(this.state.previewEl, characterIndex);
             console.log("used origin", useful)
             console.log("has char", useful.origin.value[useful.characterIndex])
@@ -211,6 +211,7 @@ export class FromJSView extends React.Component {
             var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
             preview = <div>
                 <TextEl
+                    highlightedCharacterIndex={characterIndex}
                     text={this.state.previewEl.outerHTML} />
                     <OriginPath
                         originPath={originPath}
