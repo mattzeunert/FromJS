@@ -191,40 +191,62 @@ export class FromJSView extends React.Component {
         super(props)
         this.state = {
             el: null,
-            characterIndex: null
+            characterIndex: null,
+            previewEl: null
         }
     }
     render(){
         console.log("characterIndex", this.state.characterIndex)
 
-        var origin = null;
-        if (this.state.characterIndex !== null) {
-            var characterIndex = parseFloat(this.state.characterIndex);
-            var useful = getRootOriginAtChar(this.state.el, characterIndex);
-            console.log("used origin", useful)
-            console.log("has char", useful.origin.value[useful.characterIndex])
+        var preview = null;
+        var info = null;
+        if (this.state.previewEl !== null){
+            preview = <TextEl
+                text={this.state.previewEl.outerHTML} />
+        }
+        else if(this.state.el){
+            var origin = null;
+            if (this.state.characterIndex !== null) {
+                var characterIndex = parseFloat(this.state.characterIndex);
+                var useful = getRootOriginAtChar(this.state.el, characterIndex);
+                console.log("used origin", useful)
+                console.log("has char", useful.origin.value[useful.characterIndex])
 
-            var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
-            origin = <div style={{padding: 10}}>
-                <OriginPath
-                    originPath={originPath}
-                    handleValueSpanClick={(origin, characterIndex) => {
-                        console.log("clicked on", characterIndex, origin)
-                        displayOriginPath(origin, characterIndex)
-                    }} />
+                var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
+                origin = <div style={{padding: 10}}>
+                    <OriginPath
+                        originPath={originPath}
+                        handleValueSpanClick={(origin, characterIndex) => {
+                            console.log("clicked on", characterIndex, origin)
+                            displayOriginPath(origin, characterIndex)
+                        }} />
+                </div>
+            }
+            
+            info = <div>
+                {this.state.el ? <TextEl
+                    text={this.state.el.outerHTML}
+                    onCharacterClick={(characterIndex) => this.setState({characterIndex})}
+                    /> : "no el"}
+                <hr/>
+                {origin}
             </div>
+
+
         }
 
+
+
         return <div id="fromjs" className="fromjs">
-            {this.state.el ? <TextEl
-                text={this.state.el.outerHTML}
-                onCharacterClick={(characterIndex) => this.setState({characterIndex})}
-                /> : "no el"}
-            <hr/>
-            {origin}
+            {preview}
+
+            {info}
         </div>
     }
     display(el){
         this.setState({el: el, characterIndex: null})
+    }
+    setPreviewEl(el){
+        this.setState({previewEl: el})
     }
 }
