@@ -217,7 +217,8 @@ class StackFrame extends React.Component{
             marginTop: 5,
             paddingBottom: 5
         }}>
-            {processFrameString(frame.prevLine)}<br/>
+            <span style={{opacity: .6}}>{processFrameString(frame.prevLine)}</span>
+            <br/>
             {processFrameString(frame.line.substr(0, frame.columnNumber))}
             <span style={{color: "red"}}>|</span>
             {processFrameString(strBetweenBarAndHighlight)}
@@ -226,7 +227,7 @@ class StackFrame extends React.Component{
             </span>
             {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn + 1))}
             <br/>
-            {processFrameString(frame.nextLine)}
+            <span style={{opacity: .6}}>{processFrameString(frame.nextLine)}</span>
         </code>
     }
 }
