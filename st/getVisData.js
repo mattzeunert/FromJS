@@ -46,7 +46,7 @@ setTimeout(function(){
         if (!shouldHandle(e)) {return}
         e.stopPropagation();
         e.preventDefault();
-        $(".fromjs-el-selected").removeClass(".fromjs-el-selected")
+        $(".fromjs-el-selected").removeClass("fromjs-el-selected")
         $(this).addClass("fromjs-el-selected")
         component.display(this)
     })
