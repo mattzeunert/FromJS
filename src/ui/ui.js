@@ -143,13 +143,15 @@ class TextEl extends React.Component {
                 ]
             }
 
-            return <div className="fromjs-value">
-                {beforeColumnValueSpans}
-                <span style={{color: "red", fontWeight: "bold"}}>
-                    <pre style={{display: "inline"}}>{processChar(valAtColumn)}</pre>
-                </span>
-                {getValueSpans(valAfterColumn, valBeforeColumn.length + valAtColumn.length)}
-            </div>
+            return <HorizontalScrollContainer>
+                <div className="fromjs-value">
+                    {beforeColumnValueSpans}
+                    <span style={{color: "red", fontWeight: "bold"}}>
+                        <pre style={{display: "inline"}}>{processChar(valAtColumn)}</pre>
+                    </span>
+                    {getValueSpans(valAfterColumn, valBeforeColumn.length + valAtColumn.length)}
+                </div>
+            </HorizontalScrollContainer>
         }
 
 
@@ -237,34 +239,46 @@ class StackFrame extends React.Component{
 
 
 
-        return <code className="fromjs-stack__code" style={{
-            background: "aliceblue",
-            display: "block",
-            paddingTop: 5,
-            marginTop: 5,
-            paddingBottom: 5
-        }}>
-            <span className="fromjs-stack__line-number">{frame.lineNumber - 1}</span>
-            <span style={{opacity: .6}}>{processFrameString(frame.prevLine)}</span>
-            <br/>
-            <span className="fromjs-stack__line-number">{frame.lineNumber}</span>
-            <span>
-                {processFrameString(strBeforeBar)}
-            </span>
-            <span style={{color: "red"}}>|</span>
-            <span>
-                {processFrameString(strBetweenBarAndHighlight)}
-            </span>
-            <span style={highlightStyle}>
-                {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn, 1))}
-            </span>
-            <span>
-                {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn + 1))}
-            </span>
-            <br/>
-            <span className="fromjs-stack__line-number">{frame.lineNumber + 1}</span>
-            <span style={{opacity: .6}}>{processFrameString(frame.nextLine)}</span>
-        </code>
+        return <HorizontalScrollContainer>
+            <code className="fromjs-stack__code" style={{
+                background: "aliceblue",
+                display: "block",
+                paddingTop: 5,
+                marginTop: 5,
+                paddingBottom: 5
+            }}>
+                <span className="fromjs-stack__line-number">{frame.lineNumber - 1}</span>
+                <span style={{opacity: .6}}>{processFrameString(frame.prevLine)}</span>
+                <br/>
+                <span className="fromjs-stack__line-number">{frame.lineNumber}</span>
+                <span>
+                    {processFrameString(strBeforeBar)}
+                </span>
+                <span style={{color: "red"}}>|</span>
+                <span>
+                    {processFrameString(strBetweenBarAndHighlight)}
+                </span>
+                <span style={highlightStyle}>
+                    {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn, 1))}
+                </span>
+                <span>
+                    {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn + 1))}
+                </span>
+                <br/>
+                <span className="fromjs-stack__line-number">{frame.lineNumber + 1}</span>
+                <span style={{opacity: .6}}>{processFrameString(frame.nextLine)}</span>
+            </code>
+        </HorizontalScrollContainer>
+    }
+}
+
+class HorizontalScrollContainer extends React.Component {
+    render(){
+        return <div className="fromjs-horizontal-scroll-container">
+            <div>
+                {this.props.children}
+            </div>
+        </div>
     }
 }
 

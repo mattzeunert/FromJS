@@ -31,3 +31,11 @@ body {
     min-width: 30px;
     display: inline-block;
 }
+
+.fromjs-horizontal-scroll-container {
+    overflow-x: auto;
+}
+.fromjs-horizontal-scroll-container > div {
+    display: inline-block;
+    min-width: 100%;
+}
