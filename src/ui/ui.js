@@ -237,23 +237,32 @@ class StackFrame extends React.Component{
 
 
 
-        return <code style={{
+        return <code className="fromjs-stack__code" style={{
             background: "aliceblue",
             display: "block",
             paddingTop: 5,
             marginTop: 5,
             paddingBottom: 5
         }}>
+            <span className="fromjs-stack__line-number">{frame.lineNumber - 1}</span>
             <span style={{opacity: .6}}>{processFrameString(frame.prevLine)}</span>
             <br/>
-            {processFrameString(strBeforeBar)}
+            <span className="fromjs-stack__line-number">{frame.lineNumber}</span>
+            <span>
+                {processFrameString(strBeforeBar)}
+            </span>
             <span style={{color: "red"}}>|</span>
-            {processFrameString(strBetweenBarAndHighlight)}
+            <span>
+                {processFrameString(strBetweenBarAndHighlight)}
+            </span>
             <span style={highlightStyle}>
                 {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn, 1))}
             </span>
-            {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn + 1))}
+            <span>
+                {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn + 1))}
+            </span>
             <br/>
+            <span className="fromjs-stack__line-number">{frame.lineNumber + 1}</span>
             <span style={{opacity: .6}}>{processFrameString(frame.nextLine)}</span>
         </code>
     }

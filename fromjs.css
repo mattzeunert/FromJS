@@ -22,3 +22,12 @@
 body {
     padding-right: 40vw;
 }
+
+.fromjs-stack__line-number {
+    border-right: 1px solid gray;
+    padding-right: 5px;
+    margin-right: 5px;
+    text-align: right;
+    min-width: 30px;
+    display: inline-block;
+}
