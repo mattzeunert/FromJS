@@ -86,12 +86,25 @@ class ValueEl extends React.Component {
 class TextEl extends React.Component {
     render(){
         var self = this;
+        function processChar(char){
+            if (char==="\n"){
+                char = "\\n"
+            }
+            if (char===" ") {
+                char = '\xa0'
+            }
+            if (char==="\t"){
+                char = "\\t"
+            }
+            return char
+        }
         function getValueSpans(val, indexOffset){
 
             var els = [];
             for (let index in val){
                 index = parseFloat(index)
                 var char = val[index]
+                char = processChar(char)
                 var span = <span
                     onClick={() => {
                         self.props.onCharacterClick(index + indexOffset)
@@ -119,7 +132,7 @@ class TextEl extends React.Component {
             return <div className="fromjs-value">
                 {getValueSpans(valBeforeColumn, 0)}
                 <span style={{color: "red", fontWeight: "bold"}}>
-                    <pre style={{display: "inline"}}>{valAtColumn}</pre>
+                    <pre style={{display: "inline"}}>{processChar(valAtColumn)}</pre>
                 </span>
                 {getValueSpans(valAfterColumn, valBeforeColumn.length + valAtColumn.length)}
             </div>
@@ -142,8 +155,16 @@ class Stack extends React.Component {
 
         var frame = _.first(originPathItem.originObject.stack)
 
+        var nthChar = null;
+        if (originPathItem.originObject.action === "string literal"){
+            nthChar = "'".length + originPathItem.characterIndex
+        }
+
         return <div>
-            <StackFrame frame={frame} key={frame} />
+            <StackFrame
+                frame={frame}
+                key={frame}
+                highlightStringIndex={nthChar} />
         </div>
     }
 }
@@ -162,7 +183,9 @@ class StackFrame extends React.Component{
     }
     render(){
         function processFrameString(str){
-            return str.replace(/ /g, '\xa0') //nbsp
+            return str
+                .replace(/ /g, '\xa0') //nbsp
+                .replace(/\t/g, "\\t")
         }
 
         if (this.state.resolvedFrame === null) {
@@ -171,6 +194,21 @@ class StackFrame extends React.Component{
 
         var frame = this.state.resolvedFrame;
 
+
+        var highlighNthCharAfterColumn = this.props.highlightStringIndex;
+        var highlightStyle = {color: "red"}
+        var hasHighlight = highlighNthCharAfterColumn !== undefined && highlighNthCharAfterColumn !== null
+        if (!hasHighlight) {
+            highlighNthCharAfterColumn = 0
+            highlightStyle = {}
+        }
+
+        // OMG this is so fragile and edge case buggy!
+        // two chars in a string literal can map to one char in the actual string value (i.e. if there's an escape sequence like
+        // "\n" that becomes one new line character)
+        var strBetweenBarAndHighlight = frame.line.substring(frame.columnNumber, frame.columnNumber + highlighNthCharAfterColumn)
+        highlighNthCharAfterColumn += strBetweenBarAndHighlight.split("\\").length -1
+        strBetweenBarAndHighlight = frame.line.substring(frame.columnNumber, frame.columnNumber + highlighNthCharAfterColumn)
 
         return <code style={{
             background: "aliceblue",
@@ -182,7 +220,11 @@ class StackFrame extends React.Component{
             {processFrameString(frame.prevLine)}<br/>
             {processFrameString(frame.line.substr(0, frame.columnNumber))}
             <span style={{color: "red"}}>|</span>
-            {processFrameString(frame.line.substr(frame.columnNumber))}
+            {processFrameString(strBetweenBarAndHighlight)}
+            <span style={highlightStyle}>
+                {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn, 1))}
+            </span>
+            {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn + 1))}
             <br/>
             {processFrameString(frame.nextLine)}
         </code>
