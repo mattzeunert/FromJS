@@ -213,15 +213,8 @@ export class FromJSView extends React.Component {
                 <TextEl
                     highlightedCharacterIndex={characterIndex}
                     text={this.state.previewEl.outerHTML} />
-                    <OriginPath
-                        originPath={originPath}
-                        handleValueSpanClick={(origin, characterIndex) => {
-                            console.log("clicked on", characterIndex, origin)
-                            this.setState({
-                                rootOrigin: origin,
-                                characterIndex
-                            })
-                        }} />
+                    <OriginPathItem
+                        originPathItem={_.last(originPath)} />
                 </div>
         }
         else if(this.state.el){

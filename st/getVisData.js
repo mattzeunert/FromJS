@@ -68,6 +68,7 @@ setTimeout(function(){
         if (!shouldHandle(e)) {return}
         e.stopPropagation()
 
+        console.log("enter", e.target)
         component.setPreviewEl(e.target)
 
         var rect = this.getBoundingClientRect();
