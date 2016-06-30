@@ -37,15 +37,19 @@ export default function(frame, callback){
 
     var frameObject = ErrorStackParser.parse({stack: frame})[0];
 
-    if (endsWith(frameObject.fileName, ".html")){
-        // don't bother looking for source map file
-        callback(null, frame)
-    } else {
-        gps.pinpoint(frameObject).then(function(newFrame){
-            resFrame(newFrame, callback)
-        }, function(){
-            resFrame(frameObject, callback)
-            console.log("error", arguments)
-        });
-    }
+    // Force asynchronous callback call, to avoid calling setState on
+    // uninitialized compnent in React when using resolveFrame in constructor
+    setTimeout(function(){
+        if (endsWith(frameObject.fileName, ".html")){
+            // don't bother looking for source map file
+            callback(null, frame)
+        } else {
+            gps.pinpoint(frameObject).then(function(newFrame){
+                resFrame(newFrame, callback)
+            }, function(){
+                resFrame(frameObject, callback)
+                console.log("error", arguments)
+            });
+        }
+    })
 }
