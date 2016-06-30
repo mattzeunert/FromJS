@@ -3,7 +3,7 @@ import {disableTracing} from "../src/tracing/tracing"
 
 import whereDoesCharComeFrom from "../src/whereDoesCharComeFrom"
 import getRootOriginAtChar from "../src/getRootOriginAtChar"
-import { OriginPath } from "../src/ui/ui"
+import { OriginPath, FromJSView } from "../src/ui/ui"
 var _ = require("underscore")
 var $ = require("jquery")
 import exportElementOrigin from "../src/export-element-origin"
@@ -20,84 +20,32 @@ setTimeout(function(){
 
     disableTracing()
 
-
-    var div = $("<div>")
-    div.attr("id", "fromjs")
-    div.className = "fromjs"
-
-    var textContainer = $("<div>")
-    div.append(textContainer)
-    div.append("<hr>")
-
     var link = document.createElement("link")
     link.setAttribute("rel", "stylesheet")
     link.setAttribute("href", "/fromjs-internals/fromjs.css")
     document.body.appendChild(link)
-    div.append("<div id='origin-path'></div>")
 
-    console.log("k")
+    var container = document.createElement("div")
+    var component;
 
-    function display(el){
-        $("#origin-path").empty()
-
-        var outerHTML = el.outerHTML;
-        textContainer.html("");
-        textContainer.addClass("fromjs-value")
-        for (let index in outerHTML){
-            let char = outerHTML[index]
-            let span = $("<span>")
-            span.html(char);
-            textContainer.append(span)
-            span.on("click", function(){
-                showOriginPath(el, index)
-            })
-        }
-
-        var autoIndex = el.outerHTML.indexOf(">") + 1
-        console.log("autoselect index", autoIndex)
-        showOriginPath(el, autoIndex)
-    }
+    ReactDOM.render(<FromJSView ref={(c) => component = c}/>, container)
+    document.body.appendChild(container)
 
     $("*").off("click")
     $("*").click(function(e){
-        if ($(this).parents("#fromjs").length !== 0){
+        if ($(e.target).closest("#fromjs").length !== 0){
             return
         }
-        if ($(this).is("html, body")){
+        if ($(e.target).is("html, body")){
             return;
         }
-        e.stopPropagation();e.preventDefault();
-        display(this)
+        e.stopPropagation();
+        e.preventDefault();
+        component.display(this)
     })
-    $("body").append(div)
+
+        console.log("k")
+
+
+    return
 }, 4000)
-
-
-function showOriginPath(el, index){
-    var characterIndex = parseFloat(index);
-    var useful = getRootOriginAtChar(el, characterIndex);
-
-    console.log("used origin", useful)
-    console.log("has char", useful.origin.value[useful.characterIndex])
-
-    displayOriginPath(useful.origin, useful.characterIndex)
-}
-
-function displayOriginPath(oooo, characterIndex){
-    var originPath = whereDoesCharComeFrom(oooo, characterIndex)
-    window.exportToVis = function(){
-        exportElementOrigin(oooo)
-    }
-
-    ReactDOM.render(
-        <div style={{padding: 10}}>
-            <OriginPath
-                originPath={originPath}
-                handleValueSpanClick={(origin, characterIndex) => {
-                    console.log("clicked on", characterIndex, origin)
-                    displayOriginPath(origin, characterIndex)
-                }} />
-        </div>,
-        $("#origin-path")[0]
-    )
-}

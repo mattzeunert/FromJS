@@ -1,6 +1,8 @@
 import React from "react"
 import _ from "underscore"
 import resolveFrame from "../resolve-frame"
+import getRootOriginAtChar from "../getRootOriginAtChar"
+import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 
 export class OriginPath extends React.Component {
     render(){
@@ -67,6 +69,21 @@ class OriginPathItem extends React.Component {
 
 class ValueEl extends React.Component {
     render(){
+        var origin = this.props.originPathItem;
+        var val = origin.originObject.value
+
+        return <TextEl
+            text={val}
+            highlightedCharacterIndex={origin.characterIndex}
+            onCharacterClick={(charIndex) => this.props.handleValueSpanClick(origin.originObject,  charIndex)}
+        />
+    }
+}
+
+
+
+class TextEl extends React.Component {
+    render(){
         var self = this;
         function getValueSpans(val, indexOffset){
 
@@ -76,7 +93,7 @@ class ValueEl extends React.Component {
                 var char = val[index]
                 var span = <span
                     onClick={() => {
-                        self.props.handleValueSpanClick(origin.originObject, index + indexOffset)
+                        self.props.onCharacterClick(index + indexOffset)
                     }}
                 >
                     {char}
@@ -86,20 +103,28 @@ class ValueEl extends React.Component {
             return els
         }
 
-        var origin = this.props.originPathItem;
-        var val = origin.originObject.value
+        var val = this.props.text
+        var highlightedCharIndex = this.props.highlightedCharacterIndex
 
-        var valBeforeColumn = val.substr(0, origin.characterIndex);
-        var valAtColumn = val.substr(origin.characterIndex, 1);
-        var valAfterColumn = val.substr(origin.characterIndex + 1)
+        if (highlightedCharIndex === undefined) {
+            return <div className="fromjs-value">
+                {getValueSpans(val, 0)}
+            </div>
+        } else {
+            var valBeforeColumn = val.substr(0, highlightedCharIndex);
+            var valAtColumn = val.substr(highlightedCharIndex, 1);
+            var valAfterColumn = val.substr(highlightedCharIndex+ 1)
 
-        return <div className="fromjs-value">
-            {getValueSpans(valBeforeColumn, 0)}
-            <span style={{color: "red", fontWeight: "bold"}}>
-                <pre style={{display: "inline"}}>{valAtColumn}</pre>
-            </span>
-            {getValueSpans(valAfterColumn, valBeforeColumn.length + valAtColumn.length)}
-        </div>
+            return <div className="fromjs-value">
+                {getValueSpans(valBeforeColumn, 0)}
+                <span style={{color: "red", fontWeight: "bold"}}>
+                    <pre style={{display: "inline"}}>{valAtColumn}</pre>
+                </span>
+                {getValueSpans(valAfterColumn, valBeforeColumn.length + valAtColumn.length)}
+            </div>
+        }
+
+
     }
 }
 
@@ -158,5 +183,48 @@ class StackFrame extends React.Component{
             <br/>
             {processFrameString(frame.nextLine)}
         </code>
+    }
+}
+
+export class FromJSView extends React.Component {
+    constructor(props){
+        super(props)
+        this.state = {
+            el: null,
+            characterIndex: null
+        }
+    }
+    render(){
+        console.log("characterIndex", this.state.characterIndex)
+
+        var origin = null;
+        if (this.state.characterIndex !== null) {
+            var characterIndex = parseFloat(this.state.characterIndex);
+            var useful = getRootOriginAtChar(this.state.el, characterIndex);
+            console.log("used origin", useful)
+            console.log("has char", useful.origin.value[useful.characterIndex])
+
+            var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
+            origin = <div style={{padding: 10}}>
+                <OriginPath
+                    originPath={originPath}
+                    handleValueSpanClick={(origin, characterIndex) => {
+                        console.log("clicked on", characterIndex, origin)
+                        displayOriginPath(origin, characterIndex)
+                    }} />
+            </div>
+        }
+
+        return <div id="fromjs" className="fromjs">
+            {this.state.el ? <TextEl
+                text={this.state.el.outerHTML}
+                onCharacterClick={(characterIndex) => this.setState({characterIndex})}
+                /> : "no el"}
+            <hr/>
+            {origin}
+        </div>
+    }
+    display(el){
+        this.setState({el: el, characterIndex: null})
     }
 }
