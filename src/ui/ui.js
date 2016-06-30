@@ -203,8 +203,25 @@ export class FromJSView extends React.Component {
         var preview = null;
         var info = null;
         if (this.state.previewEl !== null && this.state.previewEl !== this.state.el){
-            preview = <TextEl
-                text={this.state.previewEl.outerHTML} />
+            var characterIndex = parseFloat(this.getDefaultCharacterIndex(this.state.previewEl));
+            var useful = getRootOriginAtChar(this.state.previewEl, characterIndex);
+            console.log("used origin", useful)
+            console.log("has char", useful.origin.value[useful.characterIndex])
+
+            var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
+            preview = <div>
+                <TextEl
+                    text={this.state.previewEl.outerHTML} />
+                    <OriginPath
+                        originPath={originPath}
+                        handleValueSpanClick={(origin, characterIndex) => {
+                            console.log("clicked on", characterIndex, origin)
+                            this.setState({
+                                rootOrigin: origin,
+                                characterIndex
+                            })
+                        }} />
+                </div>
         }
         else if(this.state.el){
             var origin = null;
@@ -261,16 +278,17 @@ export class FromJSView extends React.Component {
             }
         }
     }
-    display(el){
+    getDefaultCharacterIndex(el){
         var defaultCharacterIndex = el.outerHTML.indexOf(">") + 1;
         if (defaultCharacterIndex >= el.outerHTML.length) {
             defaultCharacterIndex = 1;
         }
-
-
+        return defaultCharacterIndex
+    }
+    display(el){
         this.setState({
             el: el,
-            characterIndex: defaultCharacterIndex,
+            characterIndex: this.getDefaultCharacterIndex(el),
             rootOrigin: null
         })
     }
