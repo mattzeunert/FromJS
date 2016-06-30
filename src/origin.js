@@ -41,6 +41,7 @@ export default function Origin(opts){
         return this.value
     }
     this.actionDetails = opts.actionDetails;
+    Error.stackTraceLimit = 500;
     this.stack = new Error().stack.split("\n").filter(function(frame){
         if (frame.indexOf("/fromjs-internals/from.js") !== -1) {
             return false;

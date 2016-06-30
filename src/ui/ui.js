@@ -6,6 +6,8 @@ import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 
 export class OriginPath extends React.Component {
     render(){
+        window.originPath = this.props.originPath
+
         var lastOrigin = this.props.originPath[this.props.originPath.length - 1]
 
         var fullPath = [];
