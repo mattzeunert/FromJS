@@ -202,7 +202,7 @@ export class FromJSView extends React.Component {
     render(){
         var preview = null;
         var info = null;
-        if (this.state.previewEl !== null){
+        if (this.state.previewEl !== null && this.state.previewEl !== this.state.el){
             preview = <TextEl
                 text={this.state.previewEl.outerHTML} />
         }
@@ -262,9 +262,15 @@ export class FromJSView extends React.Component {
         }
     }
     display(el){
+        var defaultCharacterIndex = el.outerHTML.indexOf(">") + 1;
+        if (defaultCharacterIndex >= el.outerHTML.length) {
+            defaultCharacterIndex = 1;
+        }
+
+
         this.setState({
             el: el,
-            characterIndex: null,
+            characterIndex: defaultCharacterIndex,
             rootOrigin: null
         })
     }
