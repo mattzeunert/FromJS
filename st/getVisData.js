@@ -41,23 +41,48 @@ setTimeout(function(){
         return true
     }
 
+    var selectionMarkerDiv = document.createElement("div")
+    selectionMarkerDiv.setAttribute("style", "outline: 2px solid red; position: fixed;z-index: 10001;pointer-events: none")
+    document.body.appendChild(selectionMarkerDiv)
+
+    var hoverMarkerDiv = document.createElement("div")
+    hoverMarkerDiv.setAttribute("style", "outline: 1px solid blue; position: fixed;z-index: 10000;pointer-events: none")
+    document.body.appendChild(hoverMarkerDiv)
+
     $("*").off("click")
     $("*").click(function(e){
         if (!shouldHandle(e)) {return}
         e.stopPropagation();
         e.preventDefault();
         component.display(this)
+
+        var rect = this.getBoundingClientRect();
+        $(selectionMarkerDiv).css({
+            left: rect.left,
+            top: rect.top,
+            height: rect.height,
+            width: rect.width
+        })
     })
     $("*").mouseenter(function(e){
         if (!shouldHandle(e)) {return}
         e.stopPropagation()
 
         component.setPreviewEl(e.target)
+
+        var rect = this.getBoundingClientRect();
+        $(hoverMarkerDiv).css({
+            left: rect.left,
+            top: rect.top,
+            height: rect.height,
+            width: rect.width
+        })
     })
     $("*").mouseleave(function(e){
         if (!shouldHandle(e)) {return}
         component.setPreviewEl(null)
     })
+
 
 
         console.log("k")
