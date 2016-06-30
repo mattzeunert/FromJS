@@ -107,7 +107,7 @@ class TextEl extends React.Component {
         var val = this.props.text
         var highlightedCharIndex = this.props.highlightedCharacterIndex
 
-        if (highlightedCharIndex === undefined) {
+        if (highlightedCharIndex === undefined || highlightedCharIndex === null) {
             return <div className="fromjs-value">
                 {getValueSpans(val, 0)}
             </div>
@@ -195,7 +195,8 @@ export class FromJSView extends React.Component {
         this.state = {
             el: null,
             characterIndex: null,
-            previewEl: null
+            previewEl: null,
+            rootOrigin: null
         }
     }
     render(){
@@ -229,6 +230,7 @@ export class FromJSView extends React.Component {
             info = <div>
                 {this.state.el ? <TextEl
                     text={this.state.el.outerHTML}
+                    highlightedCharacterIndex={this.originComesFromElement() ? this.state.characterIndex : null}
                     onCharacterClick={(characterIndex) => this.setState({characterIndex})}
                     /> : "no el"}
                 <hr/>
@@ -244,16 +246,19 @@ export class FromJSView extends React.Component {
             {info}
         </div>
     }
+    originComesFromElement(){
+        return this.state.rootOrigin === null
+    }
     getOriginAndCharacterIndex(){
-        if (this.state.rootOrigin) {
+        if (this.originComesFromElement()) {
+            var characterIndex = parseFloat(this.state.characterIndex);
+            var useful = getRootOriginAtChar(this.state.el, characterIndex);
+            return useful
+        } else {
             return {
                 characterIndex: this.state.characterIndex,
                 origin: this.state.rootOrigin
             }
-        } else {
-            var characterIndex = parseFloat(this.state.characterIndex);
-            var useful = getRootOriginAtChar(this.state.el, characterIndex);
-            return useful
         }
     }
     display(el){
