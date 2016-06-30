@@ -210,6 +210,19 @@ class StackFrame extends React.Component{
         highlighNthCharAfterColumn += strBetweenBarAndHighlight.split("\\").length -1
         strBetweenBarAndHighlight = frame.line.substring(frame.columnNumber, frame.columnNumber + highlighNthCharAfterColumn)
 
+        var strBeforeBar = frame.line.substr(0, frame.columnNumber)
+        console.log(strBeforeBar, strBeforeBar.length)
+        if (strBeforeBar.length > 50) {
+            strBeforeBar = strBeforeBar.substr(0, 10) + "..." + strBeforeBar.substr(strBeforeBar.length - 10)
+        }
+
+        if (strBetweenBarAndHighlight.length > 50) {
+            strBetweenBarAndHighlight = strBetweenBarAndHighlight.substr(0, 10) + "..." + strBetweenBarAndHighlight.substr(strBetweenBarAndHighlight.length - 20)
+        }
+
+
+
+
         return <code style={{
             background: "aliceblue",
             display: "block",
@@ -219,7 +232,7 @@ class StackFrame extends React.Component{
         }}>
             <span style={{opacity: .6}}>{processFrameString(frame.prevLine)}</span>
             <br/>
-            {processFrameString(frame.line.substr(0, frame.columnNumber))}
+            {processFrameString(strBeforeBar)}
             <span style={{color: "red"}}>|</span>
             {processFrameString(strBetweenBarAndHighlight)}
             <span style={highlightStyle}>
