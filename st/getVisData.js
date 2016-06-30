@@ -31,18 +31,34 @@ setTimeout(function(){
     ReactDOM.render(<FromJSView ref={(c) => component = c}/>, container)
     document.body.appendChild(container)
 
-    $("*").off("click")
-    $("*").click(function(e){
+    function shouldHandle(e){
         if ($(e.target).closest("#fromjs").length !== 0){
-            return
+            return false
         }
         if ($(e.target).is("html, body")){
-            return;
+            return false
         }
+        return true
+    }
+
+    $("*").off("click")
+    $("*").click(function(e){
+        if (!shouldHandle(e)) {return}
         e.stopPropagation();
         e.preventDefault();
         component.display(this)
     })
+    $("*").mouseenter(function(e){
+        if (!shouldHandle(e)) {return}
+        e.stopPropagation()
+        $(".fromjs-el-hover").removeClass("fromjs-el-hover")
+        $(e.target).addClass("fromjs-el-hover")
+    })
+    $("*").mouseleave(function(e){
+        if (!shouldHandle(e)) {return}
+        $(".fromjs-el-hover").removeClass("fromjs-el-hover")
+    })
+
 
         console.log("k")
 

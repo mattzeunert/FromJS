@@ -22,3 +22,7 @@
 body {
     padding-right: 40vw;
 }
+
+.fromjs-el-hover {
+    outline: 1px solid blue;
+}
