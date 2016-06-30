@@ -208,8 +208,7 @@ export class FromJSView extends React.Component {
         else if(this.state.el){
             var origin = null;
             if (this.state.characterIndex !== null) {
-                var characterIndex = parseFloat(this.state.characterIndex);
-                var useful = getRootOriginAtChar(this.state.el, characterIndex);
+                var useful = this.getOriginAndCharacterIndex()
                 console.log("used origin", useful)
                 console.log("has char", useful.origin.value[useful.characterIndex])
 
@@ -219,7 +218,10 @@ export class FromJSView extends React.Component {
                         originPath={originPath}
                         handleValueSpanClick={(origin, characterIndex) => {
                             console.log("clicked on", characterIndex, origin)
-                            displayOriginPath(origin, characterIndex)
+                            this.setState({
+                                rootOrigin: origin,
+                                characterIndex
+                            })
                         }} />
                 </div>
             }
@@ -232,8 +234,6 @@ export class FromJSView extends React.Component {
                 <hr/>
                 {origin}
             </div>
-
-
         }
 
 
@@ -244,8 +244,24 @@ export class FromJSView extends React.Component {
             {info}
         </div>
     }
+    getOriginAndCharacterIndex(){
+        if (this.state.rootOrigin) {
+            return {
+                characterIndex: this.state.characterIndex,
+                origin: this.state.rootOrigin
+            }
+        } else {
+            var characterIndex = parseFloat(this.state.characterIndex);
+            var useful = getRootOriginAtChar(this.state.el, characterIndex);
+            return useful
+        }
+    }
     display(el){
-        this.setState({el: el, characterIndex: null})
+        this.setState({
+            el: el,
+            characterIndex: null,
+            rootOrigin: null
+        })
     }
     setPreviewEl(el){
         this.setState({previewEl: el})
