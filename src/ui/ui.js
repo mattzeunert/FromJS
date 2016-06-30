@@ -53,17 +53,30 @@ class OriginPathItem extends React.Component {
             filename = _.last(filenameParts)
         }
 
-        return <div style={{paddingBottom: 20}}>
-            <div style={{paddingBottom: 5}}>
-                <span style={{textDecoration: "underline", fontWeight: "bold"}}>
-                    {originObject.action}
-                </span>
-                ({filename})
+        return <div style={{border: "1px solid #ddd", marginBottom: 20}}>
+            <div >
+                <div style={{background: "aliceblue"}}>
+                    <span style={{
+                        display: "inline-block",
+                        padding: 5
+                     }}>
+                        <span style={{fontWeight: "bold", marginRight: 5}}>
+                            {originObject.action}
+                        </span>
+                        &nbsp;
+                        <span>
+                            {filename}
+                        </span>
+                    </span>
+                </div>
+
+                <Stack originPathItem={this.props.originPathItem} />
             </div>
-
-            <ValueEl originPathItem={this.props.originPathItem} handleValueSpanClick={this.props.handleValueSpanClick} />
-
-            <Stack originPathItem={this.props.originPathItem} />
+            <div style={{borderTop: "1px dotted #ddd"}}>
+                <ValueEl
+                    originPathItem={this.props.originPathItem}
+                    handleValueSpanClick={this.props.handleValueSpanClick} />
+            </div>
         </div>
     }
 }
@@ -162,11 +175,11 @@ class Stack extends React.Component {
     render(){
         var originPathItem = this.props.originPathItem;
         if (!originPathItem.originObject.stack) {
-            return <div>(No stack)</div>
+            return <div style={{padding:5}}>(No stack)</div>
         }
 
         if (originPathItem.originObject.stack.length === 0) {
-            return <div>(Empty stack)</div>
+            return <div style={{padding: 5}}>(Empty stack)</div>
         }
 
         var frame = _.first(originPathItem.originObject.stack)
@@ -241,10 +254,8 @@ class StackFrame extends React.Component{
 
         return <HorizontalScrollContainer>
             <code className="fromjs-stack__code" style={{
-                background: "aliceblue",
-                display: "block",
                 paddingTop: 5,
-                marginTop: 5,
+                display: "block",
                 paddingBottom: 5
             }}>
                 <span className="fromjs-stack__line-number">{frame.lineNumber - 1}</span>
@@ -302,13 +313,20 @@ export class FromJSView extends React.Component {
             console.log("has char", useful.origin.value[useful.characterIndex])
 
             var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
-            preview = <div>
-                <TextEl
-                    highlightedCharacterIndex={characterIndex}
-                    text={this.state.previewEl.outerHTML} />
+            preview = <div >
+                <div style={{padding: 10}}>
+                    <div style={{border: "1px solid #ddd"}}>
+                        <TextEl
+                            highlightedCharacterIndex={characterIndex}
+                            text={this.state.previewEl.outerHTML} />
+                    </div>
+                </div>
+                <hr/>
+                <div style={{padding: 10}}>
                     <OriginPathItem
                         originPathItem={_.last(originPath)} />
                 </div>
+            </div>
         }
         else if(this.state.el){
             var origin = null;
@@ -332,11 +350,15 @@ export class FromJSView extends React.Component {
             }
 
             info = <div>
-                {this.state.el ? <TextEl
-                    text={this.state.el.outerHTML}
-                    highlightedCharacterIndex={this.originComesFromElement() ? this.state.characterIndex : null}
-                    onCharacterClick={(characterIndex) => this.setState({characterIndex})}
-                    /> : "no el"}
+                <div style={{padding: 10}}>
+                    <div style={{border: "1px solid #ddd"}}>
+                        {this.state.el ? <TextEl
+                            text={this.state.el.outerHTML}
+                            highlightedCharacterIndex={this.originComesFromElement() ? this.state.characterIndex : null}
+                            onCharacterClick={(characterIndex) => this.setState({characterIndex})}
+                            /> : "no el"}
+                    </div>
+                </div>
                 <hr/>
                 {origin}
             </div>

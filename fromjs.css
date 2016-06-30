@@ -2,7 +2,6 @@
     color: lime
 }
 .fromjs-value {
-    background: #eee;
     padding: 10px;
 }
 #fromjs {
@@ -24,7 +23,7 @@ body {
 }
 
 .fromjs-stack__line-number {
-    border-right: 1px solid gray;
+    border-right: 1px solid #ddd;
     padding-right: 5px;
     margin-right: 5px;
     text-align: right;
