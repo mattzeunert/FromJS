@@ -129,8 +129,22 @@ class TextEl extends React.Component {
             var valAtColumn = val.substr(highlightedCharIndex, 1);
             var valAfterColumn = val.substr(highlightedCharIndex+ 1)
 
+            var beforeColumnValueSpans = getValueSpans(valBeforeColumn, 0)
+            // if content is too long to hide the highlight truncate text
+            // cut the list of spans rather than the valBeforeColumn string
+            // to maintain the correct character index on click on a char
+            if (beforeColumnValueSpans.length > 50) {
+                var beforeEllipsis = beforeColumnValueSpans.slice(0, 10)
+                var afterEllipsis = beforeColumnValueSpans.slice(beforeColumnValueSpans.length - 20)
+                beforeColumnValueSpans = [
+                    ...beforeEllipsis,
+                    <span>...</span>,
+                    ...afterEllipsis
+                ]
+            }
+
             return <div className="fromjs-value">
-                {getValueSpans(valBeforeColumn, 0)}
+                {beforeColumnValueSpans}
                 <span style={{color: "red", fontWeight: "bold"}}>
                     <pre style={{display: "inline"}}>{processChar(valAtColumn)}</pre>
                 </span>
@@ -210,12 +224,12 @@ class StackFrame extends React.Component{
         highlighNthCharAfterColumn += strBetweenBarAndHighlight.split("\\").length -1
         strBetweenBarAndHighlight = frame.line.substring(frame.columnNumber, frame.columnNumber + highlighNthCharAfterColumn)
 
+        // If strings are too long and would hide highlighted content truncate them
         var strBeforeBar = frame.line.substr(0, frame.columnNumber)
         console.log(strBeforeBar, strBeforeBar.length)
         if (strBeforeBar.length > 50) {
             strBeforeBar = strBeforeBar.substr(0, 10) + "..." + strBeforeBar.substr(strBeforeBar.length - 10)
         }
-
         if (strBetweenBarAndHighlight.length > 50) {
             strBetweenBarAndHighlight = strBetweenBarAndHighlight.substr(0, 10) + "..." + strBetweenBarAndHighlight.substr(strBetweenBarAndHighlight.length - 20)
         }
