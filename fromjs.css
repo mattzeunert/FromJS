@@ -1,8 +1,12 @@
 .fromjs-value span:hover {
-    color: lime
+    color: red;
+    border-bottom: 2px solid red;
 }
 .fromjs-value {
     padding: 10px;
+}
+.fromjs-value span {
+    cursor: pointer;
 }
 
 #fromjs * {
