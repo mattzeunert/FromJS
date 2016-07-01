@@ -319,82 +319,50 @@ class HorizontalScrollContainer extends React.Component {
     }
 }
 
-export class FromJSView extends React.Component {
+class ElementOriginPath extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            el: null,
-            characterIndex: null,
-            previewEl: null,
+            characterIndex: this.getDefaultCharacterIndex(props.el),
             rootOrigin: null
         }
     }
     render(){
-        var preview = null;
         var info = null;
-        if (this.state.previewEl !== null && this.state.previewEl !== this.state.el){
-            var characterIndex = this.getDefaultCharacterIndex(this.state.previewEl);
-            var useful = getRootOriginAtChar(this.state.previewEl, characterIndex);
+
+        var origin = null;
+
+        if (this.state.characterIndex !== null) {
+            var useful = this.getOriginAndCharacterIndex()
             console.log("used origin", useful)
             console.log("has char", useful.origin.value[useful.characterIndex])
 
             var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
-            preview = <div style={{padding: 10}}>
-                <div>
-                    <div style={{border: "1px solid #ddd"}}>
-                        <TextEl
-                            highlightedCharacterIndex={characterIndex}
-                            text={this.state.previewEl.outerHTML} />
-                    </div>
-                </div>
-                <hr/>
+            origin = <div style={{padding: 10}}>
                 <OriginPath
-                    originPath={originPath} />
-            </div>
-
-        }
-        else if(this.state.el){
-            var origin = null;
-            if (this.state.characterIndex !== null) {
-                var useful = this.getOriginAndCharacterIndex()
-                console.log("used origin", useful)
-                console.log("has char", useful.origin.value[useful.characterIndex])
-
-                var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
-                origin = <div style={{padding: 10}}>
-                    <OriginPath
-                        originPath={originPath}
-                        handleValueSpanClick={(origin, characterIndex) => {
-                            console.log("clicked on", characterIndex, origin)
-                            this.setState({
-                                rootOrigin: origin,
-                                characterIndex
-                            })
-                        }} />
-                </div>
-            }
-
-            info = <div>
-                <div style={{padding: 10}}>
-                    <div style={{border: "1px solid #ddd"}}>
-                        {this.state.el ? <TextEl
-                            text={this.state.el.outerHTML}
-                            highlightedCharacterIndex={this.originComesFromElement() ? this.state.characterIndex : null}
-                            onCharacterClick={(characterIndex) => this.setState({characterIndex})}
-                            /> : "no el"}
-                    </div>
-                </div>
-                <hr/>
-                {origin}
+                    originPath={originPath}
+                    handleValueSpanClick={(origin, characterIndex) => {
+                        console.log("clicked on", characterIndex, origin)
+                        this.setState({
+                            rootOrigin: origin,
+                            characterIndex
+                        })
+                    }} />
             </div>
         }
 
-
-
-        return <div id="fromjs" className="fromjs">
-            {preview}
-
-            {info}
+        return <div>
+            <div style={{padding: 10}}>
+                <div style={{border: "1px solid #ddd"}}>
+                    {this.props.el ? <TextEl
+                        text={this.props.el.outerHTML}
+                        highlightedCharacterIndex={this.originComesFromElement() ? this.state.characterIndex : null}
+                        onCharacterClick={(characterIndex) => this.setState({characterIndex})}
+                        /> : "no el"}
+                </div>
+            </div>
+            <hr/>
+            {origin}
         </div>
     }
     originComesFromElement(){
@@ -403,7 +371,7 @@ export class FromJSView extends React.Component {
     getOriginAndCharacterIndex(){
         if (this.originComesFromElement()) {
             var characterIndex = parseFloat(this.state.characterIndex);
-            var useful = getRootOriginAtChar(this.state.el, characterIndex);
+            var useful = getRootOriginAtChar(this.props.el, characterIndex);
             return useful
         } else {
             return {
@@ -413,17 +381,45 @@ export class FromJSView extends React.Component {
         }
     }
     getDefaultCharacterIndex(el){
+        console.log("getting default char for", el.outerHTML)
         var defaultCharacterIndex = el.outerHTML.indexOf(">") + 1;
         if (defaultCharacterIndex >= el.outerHTML.length) {
             defaultCharacterIndex = 1;
         }
         return defaultCharacterIndex
     }
+}
+
+
+export class FromJSView extends React.Component {
+    constructor(props){
+        super(props)
+        this.state = {
+            el: null,
+            previewEl: null,
+        }
+    }
+    render(){
+        var preview = null;
+        var info = null;
+        if (this.state.previewEl !== null && this.state.previewEl !== this.state.el){
+            preview = <ElementOriginPath key={this.state.previewEl} el={this.state.previewEl} />
+        }
+
+        if (this.state.el) {
+            info = <ElementOriginPath key={this.state.el} el={this.state.el}/>
+        }
+
+
+        return <div id="fromjs" className="fromjs">
+            {preview}
+
+            {info}
+        </div>
+    }
     display(el){
         this.setState({
-            el: el,
-            characterIndex: this.getDefaultCharacterIndex(el),
-            rootOrigin: null
+            el: el
         })
     }
     setPreviewEl(el){
