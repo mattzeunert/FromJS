@@ -21,11 +21,14 @@ export class OriginPath extends React.Component {
         var inbetweenStepsComponents = []
         if (this.state.showFullPath){
             for (var originPathStep of inbetweenSteps) {
-                inbetweenStepsComponents.push(<OriginPathItem
-                    originPathItem={originPathStep}
-                    handleValueSpanClick={this.props.handleValueSpanClick}
-                />)
+                inbetweenStepsComponents.push(this.getOriginPathItem(originPathStep))
             }
+        }
+
+        var lastStep = this.getOriginPathItem(lastOriginPathStep);
+        var firstStep = null;
+        if (this.props.originPath.length > 1) {
+            firstStep = this.getOriginPathItem(firstOriginPathStep)
         }
 
         var showFullPathButton = null;
@@ -43,22 +46,20 @@ export class OriginPath extends React.Component {
             <div style={{marginBottom: 5}}>
                 <b>Character origin</b>
             </div>
-            <OriginPathItem
-                key={JSON.stringify(lastOriginPathStep)}
-                originPathItem={lastOriginPathStep}
-                handleValueSpanClick={this.props.handleValueSpanClick}
-            />
+            {lastStep}
             {showFullPathButton}
 
             {inbetweenStepsComponents}
 
-            <OriginPathItem
-                key={JSON.stringify(firstOriginPathStep)}
-                originPathItem={firstOriginPathStep}
-                handleValueSpanClick={this.props.handleValueSpanClick}
-            />
-            <hr/>
+            {firstStep}
         </div>
+    }
+    getOriginPathItem(originPathStep){
+        return <OriginPathItem
+            key={JSON.stringify(originPathStep)}
+            originPathItem={originPathStep}
+            handleValueSpanClick={this.props.handleValueSpanClick}
+        />
     }
 }
 
