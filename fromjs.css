@@ -39,3 +39,11 @@ body {
     display: inline-block;
     min-width: 100%;
 }
+
+.fromjs-btn-link{
+    color: green;
+    cursor: pointer;
+}
+.fromjs-btn-link:hover {
+    text-decoration: underline;
+}

@@ -5,26 +5,50 @@ import getRootOriginAtChar from "../getRootOriginAtChar"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 
 export class OriginPath extends React.Component {
+    constructor(props){
+        super(props)
+        this.state = {
+            showFullPath: false
+        }
+    }
     render(){
         window.originPath = this.props.originPath
 
-        var lastOrigin = this.props.originPath[this.props.originPath.length - 1]
+        var lastOriginPathStep = _.last(this.props.originPath)
+        var firstOriginPathStep = _.first(this.props.originPath)
 
-        var fullPath = [];
-        for (var originPathItem of this.props.originPath) {
-            fullPath.push(<OriginPathItem
-                originPathItem={originPathItem}
-                handleValueSpanClick={this.props.handleValueSpanClick}
-            />)
+        var inbetweenSteps = this.props.originPath.slice(1, this.props.originPath.length - 1).reverse();
+        var inbetweenStepsComponents = []
+        if (this.state.showFullPath){
+            for (var originPathStep of inbetweenSteps) {
+                inbetweenStepsComponents.push(<OriginPathItem
+                    originPathItem={originPathStep}
+                    handleValueSpanClick={this.props.handleValueSpanClick}
+                />)
+            }
         }
+
         return <div>
+            Character origin:
             <OriginPathItem
-                key={JSON.stringify(lastOrigin)}
-                originPathItem={lastOrigin}
+                key={JSON.stringify(lastOriginPathStep)}
+                originPathItem={lastOriginPathStep}
+                handleValueSpanClick={this.props.handleValueSpanClick}
+            />
+            {this.state.showFullPath ? null : <div><button className="fromjs-btn-link" onClick={() => this.setState({showFullPath: true})}>
+                =&gt; Show full character origin
+            </button></div>}
+
+            {inbetweenStepsComponents}
+            <br/>
+
+            DOM mutation:
+            <OriginPathItem
+                key={JSON.stringify(firstOriginPathStep)}
+                originPathItem={firstOriginPathStep}
                 handleValueSpanClick={this.props.handleValueSpanClick}
             />
             <hr/>
-            {fullPath}
         </div>
     }
 }
