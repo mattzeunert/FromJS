@@ -57,11 +57,11 @@ function doneRenderingApp(){
     }
 
     var selectionMarkerDiv = document.createElement("div")
-    selectionMarkerDiv.setAttribute("style", "outline: 2px solid red; position: fixed;z-index: 10001;pointer-events: none")
+    selectionMarkerDiv.setAttribute("style", "outline: 2px solid #0088ff; position: fixed;z-index: 10001;pointer-events: none")
     document.body.appendChild(selectionMarkerDiv)
 
     var hoverMarkerDiv = document.createElement("div")
-    hoverMarkerDiv.setAttribute("style", "outline: 1px solid blue; position: fixed;z-index: 10000;pointer-events: none")
+    hoverMarkerDiv.setAttribute("style", "outline: 1px solid green; position: fixed;z-index: 10000;pointer-events: none")
     document.body.appendChild(hoverMarkerDiv)
 
     $("*").off("click")
