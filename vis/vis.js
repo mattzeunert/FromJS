@@ -43,6 +43,9 @@ function showInfo(info){
                 o.originObject.isInCurrentPath = true;
             })
 
+            var last = charOrigin[charOrigin.length - 1];
+            console.log("LAST was", last)
+            console.log("char is", last.originObject.value[last.characterIndex])
 
             showGraph()
         }

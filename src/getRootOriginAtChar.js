@@ -5,7 +5,6 @@ function tagTypeHasClosingTag(tagName){
 }
 
 export default function getRootOriginAtChar(el, characterIndex){
-
     var tagHtml = el.outerHTML.replace(el.innerHTML,"")
     var openingTag = tagHtml.split("></")[0] + ">"
     var closingTag = "</" +tagHtml.split("></")[1]

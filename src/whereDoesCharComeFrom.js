@@ -1,10 +1,16 @@
 import ValueMap from "./value-map"
+import exportElementOrigin from "./export-element-origin"
 
 export default function whereDoesCharComeFrom(originObject, characterIndex){
     console.groupCollapsed("whereDoesCharComeFrom")
     characterIndex = parseFloat(characterIndex)
 
     var steps = [];
+
+    window.exportToVis = function(){
+        exportElementOrigin(originObject)
+    }
+
     var step = {
         originObject: originObject,
         characterIndex: characterIndex

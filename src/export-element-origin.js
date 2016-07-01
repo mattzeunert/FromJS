@@ -58,6 +58,7 @@ function resolveStackIfAvailable(data, callback){
 }
 
 export default function exportElementOrigin(origin){
+    console.log("exporting origin")
     console.time("Resolving all origin stacks")
     resolveStacksInOrigin(origin, function(){
         console.timeEnd("Resolving all origin stacks")
