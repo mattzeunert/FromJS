@@ -28,21 +28,30 @@ export class OriginPath extends React.Component {
             }
         }
 
+        var showFullPathButton = null;
+        if (!this.state.showFullPath && this.props.originPath.length > 2){
+            showFullPathButton = <div style={{marginBottom: 20}}>
+                <button
+                    className="fromjs-btn-link"
+                    onClick={() => this.setState({showFullPath: true})}>
+                    =&gt; Show {inbetweenSteps.length} steps in-between
+                </button>
+            </div>
+        }
+
         return <div>
-            Character origin:
+            <div style={{marginBottom: 5}}>
+                <b>Character origin</b>
+            </div>
             <OriginPathItem
                 key={JSON.stringify(lastOriginPathStep)}
                 originPathItem={lastOriginPathStep}
                 handleValueSpanClick={this.props.handleValueSpanClick}
             />
-            {this.state.showFullPath ? null : <div><button className="fromjs-btn-link" onClick={() => this.setState({showFullPath: true})}>
-                =&gt; Show full character origin
-            </button></div>}
+            {showFullPathButton}
 
             {inbetweenStepsComponents}
-            <br/>
 
-            DOM mutation:
             <OriginPathItem
                 key={JSON.stringify(firstOriginPathStep)}
                 originPathItem={firstOriginPathStep}
