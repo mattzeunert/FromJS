@@ -1,8 +1,10 @@
 var endsWith = require("ends-with")
 var StackTraceGPS = require("./stacktrace-gps")
 var ErrorStackParser = require("./error-stack-parser")
+import _ from "underscore"
 
 var gps = null;
+var defaultSourceCache = null
 
 function resFrame(frame, callback){
     gps._get(frame.fileName).then(function(src){
@@ -16,8 +18,15 @@ function resFrame(frame, callback){
 
 }
 
-function initGPSIfNecessary(){
-    if (gps !== null) return;
+window.setDefaultSourceCache = setDefaultSourceCache
+export function setDefaultSourceCache(sourceCache){
+    defaultSourceCache = _.clone(sourceCache)
+}
+
+export function getDefaultSourceCache(){
+    if (defaultSourceCache !== null) {
+        return defaultSourceCache
+    }
 
     var sourceCache = {};
     var fnEls = document.getElementsByClassName("string-trace-fn")
@@ -28,9 +37,17 @@ function initGPSIfNecessary(){
         sourceCache[key + "?dontprocess=yes"] = decodeURIComponent(el.getAttribute("original-source"))
         sourceCache[el.getAttribute("sm-filename")] = decodeURIComponent(el.getAttribute("sm"))
     })
-
-    gps = new StackTraceGPS({sourceCache: sourceCache});
+    return sourceCache
 }
+
+function initGPSIfNecessary(){
+    if (gps !== null) return
+
+    gps = new StackTraceGPS({sourceCache: getDefaultSourceCache()});
+    window.gps = gps
+}
+
+
 
 export default function(frame, callback){
     initGPSIfNecessary()

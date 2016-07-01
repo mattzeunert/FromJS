@@ -7,6 +7,7 @@ import { OriginPath, FromJSView } from "../src/ui/ui"
 var _ = require("underscore")
 var $ = require("jquery")
 import exportElementOrigin from "../src/export-element-origin"
+import {getDefaultSourceCache} from "../src/resolve-frame"
 
 
 var ReactDOM = require("react-dom")
@@ -155,7 +156,10 @@ function saveAndSerializeDomState(){
 
     var serializedState = {
         html: document.body.parentElement.innerHTML,
-        elOrigins: elOrigins
+        elOrigins: elOrigins,
+        sourceCache: getDefaultSourceCache()
     }
     localStorage.setItem("domState", JSON.stringify(serializedState))
+
+    document.body.innerHTML = "Done"
 }

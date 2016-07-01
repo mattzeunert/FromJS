@@ -133,12 +133,12 @@ export function enableTracing(){
         args.push(res.code)
         var script = document.createElement("script")
 
-        var fnName = "fn" + id
+        var fnName = "DynamicFunction" + id
         var smFilename = filename + ".map"
         script.innerHTML = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + res.code + "}" + "\n//# sourceURL=" + filename + "\n//# sourceMappingURL=" + smFilename
         script.setAttribute("sm", encodeURIComponent(JSON.stringify(res.map)))
         script.setAttribute("sm-filename", smFilename)
-        script.setAttribute("fn", "Function" + id)
+        script.setAttribute("fn", fnName)
         script.setAttribute("original-source", encodeURIComponent(code))
         script.className = "string-trace-fn";
 
