@@ -339,8 +339,8 @@ export class FromJSView extends React.Component {
             console.log("has char", useful.origin.value[useful.characterIndex])
 
             var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
-            preview = <div >
-                <div style={{padding: 10}}>
+            preview = <div style={{padding: 10}}>
+                <div>
                     <div style={{border: "1px solid #ddd"}}>
                         <TextEl
                             highlightedCharacterIndex={characterIndex}
@@ -348,11 +348,10 @@ export class FromJSView extends React.Component {
                     </div>
                 </div>
                 <hr/>
-                <div style={{padding: 10}}>
-                    <OriginPathItem
-                        originPathItem={_.last(originPath)} />
-                </div>
+                <OriginPath
+                    originPath={originPath} />
             </div>
+
         }
         else if(this.state.el){
             var origin = null;
