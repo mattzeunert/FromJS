@@ -4,6 +4,17 @@
 .fromjs-value {
     padding: 10px;
 }
+
+#fromjs * {
+    box-sizing: border-box;
+}
+
+.fromjs-highlighted-character {
+    color: #0088ff;
+    font-weight: bold;
+    border-bottom: 2px solid #0088ff;
+}
+
 #fromjs {
     position: fixed;
     font-family: "Arial";

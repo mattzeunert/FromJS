@@ -133,7 +133,7 @@ class TextEl extends React.Component {
                 char = '\xa0'
             }
             if (char==="\t"){
-                char = "\\t"
+                char = "\xa0\xa0"
             }
             return char
         }
@@ -185,8 +185,8 @@ class TextEl extends React.Component {
             return <HorizontalScrollContainer>
                 <div className="fromjs-value">
                     {beforeColumnValueSpans}
-                    <span style={{color: "red", fontWeight: "bold"}}>
-                        <pre style={{display: "inline"}}>{processChar(valAtColumn)}</pre>
+                    <span className="fromjs-highlighted-character">
+                        {processChar(valAtColumn)}
                     </span>
                     {getValueSpans(valAfterColumn, valBeforeColumn.length + valAtColumn.length)}
                 </div>
@@ -251,11 +251,11 @@ class StackFrame extends React.Component{
 
 
         var highlighNthCharAfterColumn = this.props.highlightStringIndex;
-        var highlightStyle = {color: "red"}
+        var highlightClass = "fromjs-highlighted-character"
         var hasHighlight = highlighNthCharAfterColumn !== undefined && highlighNthCharAfterColumn !== null
         if (!hasHighlight) {
             highlighNthCharAfterColumn = 0
-            highlightStyle = {}
+            highlightClass = ""
         }
 
         // OMG this is so fragile and edge case buggy!
@@ -275,9 +275,6 @@ class StackFrame extends React.Component{
             strBetweenBarAndHighlight = strBetweenBarAndHighlight.substr(0, 10) + "..." + strBetweenBarAndHighlight.substr(strBetweenBarAndHighlight.length - 20)
         }
 
-
-
-
         return <HorizontalScrollContainer>
             <code className="fromjs-stack__code" style={{
                 paddingTop: 5,
@@ -291,11 +288,11 @@ class StackFrame extends React.Component{
                 <span>
                     {processFrameString(strBeforeBar)}
                 </span>
-                <span style={{color: "red"}}>|</span>
+                <span style={{color: "#0088ff"}}>|</span>
                 <span>
                     {processFrameString(strBetweenBarAndHighlight)}
                 </span>
-                <span style={highlightStyle}>
+                <span className={highlightClass}>
                     {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn, 1))}
                 </span>
                 <span>
@@ -404,9 +401,7 @@ export class FromJSView extends React.Component {
         var info = null;
         if (this.state.previewEl !== null && this.state.previewEl !== this.state.el){
             preview = <ElementOriginPath key={this.state.previewEl} el={this.state.previewEl} />
-        }
-
-        if (this.state.el) {
+        } else  if (this.state.el) {
             info = <ElementOriginPath key={this.state.el} el={this.state.el}/>
         }
 
