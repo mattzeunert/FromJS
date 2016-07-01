@@ -2,6 +2,7 @@ import addElOrigin from "./addElOrigin"
 import unstringTracifyArguments from "./unstringTracifyArguments"
 import makeTraceObject from "./makeTraceObject"
 import Origin from "../origin"
+import _ from "underscore"
 
 export function enableTracing(){
     window.tracingEnabled = true
@@ -126,8 +127,8 @@ export function enableTracing(){
         var code = args.pop()
         var argsWithoutCode = args.slice()
 
-        var id = Math.random().toString().replace(".", "");
-        var filename = "Function" + id + ".js"
+        var id = _.uniqueId();
+        var filename = "DynamicFunction" + id + ".js"
         var res = stringTraceCompile(stringTraceUseValue(code), {filename: filename})
         args.push(res.code)
         var script = document.createElement("script")
