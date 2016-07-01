@@ -111,6 +111,8 @@ function doneRenderingApp(){
 
 function saveAndSerializeDomState(){
 
+    var sourceCache = getDefaultSourceCache()
+
     $("html").find("*")
       .contents()
       .filter(function() {
@@ -157,7 +159,7 @@ function saveAndSerializeDomState(){
     var serializedState = {
         html: document.body.parentElement.innerHTML,
         elOrigins: elOrigins,
-        sourceCache: getDefaultSourceCache()
+        sourceCache: sourceCache
     }
     localStorage.setItem("domState", JSON.stringify(serializedState))
 
