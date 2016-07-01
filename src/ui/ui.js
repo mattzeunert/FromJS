@@ -364,7 +364,7 @@ class ElementOriginPath extends React.Component {
                     {this.props.el ? <TextEl
                         text={this.props.el.outerHTML}
                         highlightedCharacterIndex={this.originComesFromElement() ? this.state.characterIndex : null}
-                        onCharacterClick={(characterIndex) => this.setState({characterIndex})}
+                        onCharacterClick={(characterIndex) => this.setState({characterIndex, rootOrigin: null})}
                         /> : "no el"}
                 </div>
             </div>
