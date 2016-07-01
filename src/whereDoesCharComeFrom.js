@@ -157,7 +157,7 @@ function goUp(step){
         if (step.originObject.inputValues.length === 1) {
             ret = {
                 originObject: step.originObject.inputValues[0],
-                characterIndex: 0
+                characterIndex: step.characterIndex + step.originObject.inputValuesCharacterIndex[0]
             }
         } else {
             throw "need to handlesss"

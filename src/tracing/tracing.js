@@ -87,6 +87,7 @@ export function enableTracing(){
                     origin: new Origin({
                         value: parsedVal[key],
                         inputValues: [str],
+                        inputValuesCharacterIndex: [str.toString().indexOf(parsedVal[key])], // not very accurate, but better than nothing/always using char 0
                         action: "JSON.parse",
                         actionDetails: key
                     })
