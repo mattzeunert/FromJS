@@ -12,13 +12,27 @@ import exportElementOrigin from "../src/export-element-origin"
 var ReactDOM = require("react-dom")
 var React = require("react")
 
-
 setTimeout(function(){
-    if (window.isVis) {
-        return;
-    }
+    if (window.isSerializedDomPage){
+        doneRenderingApp()
+    } else {
+        setTimeout(function(){
+            if (window.isVis) {
+                return;
+            }
 
+            doneRenderingApp()
+        }, 4000)
+
+    }
+}, 100)
+
+function doneRenderingApp(){
     disableTracing()
+
+    if (!window.isSerializedDomPage){
+        saveAndSerializeDomState()
+    }
 
     var link = document.createElement("link")
     link.setAttribute("rel", "stylesheet")
@@ -92,4 +106,56 @@ setTimeout(function(){
 
 
     return
-}, 4000)
+}
+
+function saveAndSerializeDomState(){
+
+    $("html").find("*")
+      .contents()
+      .filter(function() {
+        return this.nodeType === 3; //Node.TEXT_NODE
+      }).each(function(){
+          var span = $("<span>")
+          span.attr("fromjs-text-node-converted-to-span", "true")
+          span[0].textContent = this.textContent
+          span[0].__elOrigin = this.__elOrigin
+
+          $(this).replaceWith(span)
+      });
+
+    var elsWithOrigin = jQuery("*").filter(function(){
+        return this.__elOrigin
+    })
+    var id=1;
+
+    elsWithOrigin.each(function(){
+        var el = this;
+        $(el).attr("fromjs-id", id)
+        id++;
+    })
+    var elOrigins = {}
+    elsWithOrigin.each(function(){
+        var el = this;
+
+        var serializedElOrigin = {};
+        for (var key in el.__elOrigin) {
+            if (key === "contents") {
+                var contents = el.__elOrigin[key];
+                serializedElOrigin[key] = contents.map(function(el){
+                    return {elId: $(el).attr("fromjs-id")}
+                })
+            } else {
+                serializedElOrigin[key] = el.__elOrigin[key]
+            }
+
+        }
+        elOrigins[$(el).attr("fromjs-id")] = serializedElOrigin
+
+    })
+
+    var serializedState = {
+        html: document.body.parentElement.innerHTML,
+        elOrigins: elOrigins
+    }
+    localStorage.setItem("domState", JSON.stringify(serializedState))
+}

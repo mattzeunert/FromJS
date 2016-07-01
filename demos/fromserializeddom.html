@@ -1,0 +1,39 @@
+<html><head>
+<meta charset="utf-8">
+<script src="https://code.jquery.com/jquery-3.0.0.js"></script>
+</head><body>
+<script>
+window.isSerializedDomPage = true
+window._disableTracing();
+var data = JSON.parse(localStorage.getItem("domState"))
+document.body.parentElement.innerHTML = data.html
+
+jQuery("[fromjs-id]").each(function(){
+    var id = $(this).attr("fromjs-id")
+    var elOrigin = data.elOrigins[id]
+    elOrigin.contents = Array.prototype.slice.apply(this.childNodes, [])
+    // elOrigin.contents = elOrigin.contents.map(function(origin){
+    //     return $("[fromjs-id='" + origin.elId + "']")[0]
+    // })
+    this.__elOrigin = elOrigin
+})
+jQuery("[fromjs-text-node-converted-to-span]").each(function(){
+    var textNode = document.createTextNode(this.textContent)
+    textNode.__elOrigin = this.__elOrigin
+    this.replacementTextNode = textNode
+    $(this).replaceWith(textNode)
+})
+jQuery("[fromjs-id]").each(function(){
+    this.__elOrigin.contents = this.__elOrigin.contents.map(function(el){
+        if (el.replacementTextNode) {
+            return el.replacementTextNode
+        }
+        return el
+    })
+
+})
+jQuery("[fromjs-id]").each(function(){
+    $(this).removeAttr("fromjs-id")
+});
+</script>
+</body></html>

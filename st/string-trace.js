@@ -16,6 +16,7 @@ import {enableTracing, disableTracing} from "../src/tracing/tracing"
 console.log("adding")
 window.addEventListener("load", function(){
     console.log("processElementsAvailableOnInitialLoad")
+    if (window.isSerializedDomPage){return}
     processElementsAvailableOnInitialLoad();
 })
 

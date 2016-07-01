@@ -166,3 +166,5 @@ export function disableTracing(){
     Element.prototype.setAttribute = window.nativeSetAttribute
     localStorage.getItem = window.nativeLocalStorageGetItem;
 }
+
+window._disableTracing = disableTracing
