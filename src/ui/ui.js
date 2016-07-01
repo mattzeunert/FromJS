@@ -240,7 +240,7 @@ class StackFrame extends React.Component{
         function processFrameString(str){
             return str
                 .replace(/ /g, '\xa0') //nbsp
-                .replace(/\t/g, "\\t")
+                .replace(/\t/g, '\xa0\xa0')
         }
 
         if (this.state.resolvedFrame === null) {
