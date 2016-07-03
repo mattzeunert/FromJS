@@ -34,7 +34,7 @@ export default function whereDoesCharComeFrom(originObject, characterIndex){
 }
 
 function goUp(step){
-    console.log("trying to handle step with action", step.originObject.action)
+    console.log("trying to handle step with action", step.originObject.action, step)
 
     var ret
     if (step.originObject.action === "set className"){
@@ -55,6 +55,11 @@ function goUp(step){
         ret = {
             originObject: step.originObject.inputValues[0],
             characterIndex: step.characterIndex
+        }
+    } else if (step.originObject.action === "ancestor innerHTML") {
+        ret = {
+            originObject: step.originObject.inputValues[0],
+            characterIndex: step.characterIndex - step.originObject.extraCharsAdded
         }
     } else  if (step.originObject.action === "concat") {
         var valueMap = new ValueMap()

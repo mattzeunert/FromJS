@@ -4,6 +4,8 @@ function tagTypeHasClosingTag(tagName){
     return originalCreateElement.apply(document, [tagName]).outerHTML.indexOf("></") !== -1
 }
 
+window.getRootOriginAtChar = getRootOriginAtChar
+
 export default function getRootOriginAtChar(el, characterIndex){
     var tagHtml = el.outerHTML.replace(el.innerHTML,"")
     var openingTag = tagHtml.split("></")[0] + ">"
@@ -28,9 +30,9 @@ export default function getRootOriginAtChar(el, characterIndex){
 
 
             var attrStr = " " + attr.name
-            if (attr.textContent !== ""){
+
                 attrStr += "='" + attr.textContent +  "'"
-            }
+
 
             vm.appendString(attrStr, el.__elOrigin["attribute_" + attr.name], 0)
         }
@@ -43,6 +45,7 @@ export default function getRootOriginAtChar(el, characterIndex){
         vm.appendString(openingTagEnd, el.__elOrigin.tagName, 0)
 
         var item = vm.getItemAt(characterIndex)
+        console.log("is in opening tag at charIndex", characterIndex, "mapping to index", item.characterIndex, item)
         return {
             origin: item.originObject,
             characterIndex: item.characterIndex + (item.originObject.inputValuesCharacterIndex ? item.originObject.inputValuesCharacterIndex[0] : 0)

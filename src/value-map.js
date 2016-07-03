@@ -57,7 +57,8 @@ ValueMap.prototype.getItemAt = function(charIndex){
 
     return {
         originObject: matchingItem.originObject,
-        characterIndex: characterIndex
+        characterIndex: characterIndex,
+        __justForDebuggingStr: matchingItem.__justForDebuggingStr
     }
 }
 ValueMap.prototype.debugginGetValue = function(){

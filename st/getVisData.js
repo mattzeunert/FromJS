@@ -32,7 +32,7 @@ function doneRenderingApp(){
     disableTracing()
 
     if (!window.isSerializedDomPage){
-        saveAndSerializeDomState()
+        // saveAndSerializeDomState()
     }
 
     var link = document.createElement("link")

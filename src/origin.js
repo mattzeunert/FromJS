@@ -29,6 +29,11 @@ export default function Origin(opts){
     this.action = opts.action;
     this.inputValues = inputValues;
 
+    this.extraCharsAdded = 0;
+    if (opts.extraCharsAdded) {
+        this.extraCharsAdded = opts.extraCharsAdded
+    }
+
     this.inputValuesCharacterIndex = opts.inputValuesCharacterIndex
 
     this.value = opts.value && opts.value.toString();

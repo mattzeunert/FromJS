@@ -100,9 +100,11 @@ function stringTraceSetInnerHTML(el, innerHTML){
 
 
     el.innerHTML = innerHTML
+    var innerHTMLAfterAssignment = el.innerHTML
 
     var forDebuggingProcessedHtml = ""
     var charOffset = 0;
+    var extraCharsAdded = 0;
     processNewInnerHtml(el)
 
 
@@ -119,9 +121,11 @@ function stringTraceSetInnerHTML(el, innerHTML){
                 addElOrigin(child, "textValue", {
                     "action": "ancestor innerHTML",
                     inputValues: [innerHTML],
-                    value: innerHTML.toString(),
+                    value: innerHTMLAfterAssignment,
                     inputValuesCharacterIndex: [charOffset]
                 })
+                console.log(child.textContent, " ==? ",innerHTMLAfterAssignment.substr(charOffset, child.textContent.length),
+                    innerHTMLAfterAssignment.substr(charOffset, child.textContent.length) == child.textContent)
                 charOffset += child.textContent.length
                 forDebuggingProcessedHtml += child.textContent
             } else {
@@ -130,7 +134,7 @@ function stringTraceSetInnerHTML(el, innerHTML){
                     action: "ancestor innerHTML",
                     inputValues: [innerHTML],
                     inputValuesCharacterIndex: [charOffset],
-                    value: innerHTML.toString()
+                    value: innerHTMLAfterAssignment
                 })
                 var openingTagStart = "<" + child.tagName
                 charOffset += openingTagStart.length
@@ -139,25 +143,34 @@ function stringTraceSetInnerHTML(el, innerHTML){
                 for (var i = 0;i<child.attributes.length;i++) {
                     var attr = child.attributes[i]
 
+                    var charOffsetBefore = charOffset
+
+                    var attrStr = " " + attr.name
+                    attrStr += "='" + attr.textContent +  "'"
+
+                    charOffset += attrStr.length
+                    if (attr.textContent === ""){
+                        //charOffset += "'='".length
+                        extraCharsAdded += "'='".length
+                    }
+
                     addElOrigin(child, "attribute_" + attr.name, {
                         action: "ancestor innerHTML",
                         inputValues: [innerHTML],
-                        value: innerHTML.toString(),
-                        inputValuesCharacterIndex: [charOffset]
+                        value: innerHTMLAfterAssignment,
+                        inputValuesCharacterIndex: [charOffsetBefore],
+                        extraCharsAdded: extraCharsAdded
                     })
 
-                    var attrStr = " " + attr.name
-                    if (attr.textContent !== ""){
-                        attrStr += "='" + attr.textContent +  "'"
-                    }
-                    charOffset += attrStr.length
+
+
                     forDebuggingProcessedHtml += attrStr
                 }
 
                 var openingTagEnd = ""
-                if (!tagTypeHasClosingTag(child.tagName)) {
-                    openingTagEnd +=  "/"
-                }
+                // if (!tagTypeHasClosingTag(child.tagName)) {
+                //     openingTagEnd +=  "/"
+                // }
                 openingTagEnd += ">"
                 charOffset += openingTagEnd.length
                 forDebuggingProcessedHtml += openingTagEnd
@@ -171,6 +184,7 @@ function stringTraceSetInnerHTML(el, innerHTML){
                 }
             }
             console.log("processed", forDebuggingProcessedHtml, innerHTML.toString().toLowerCase().replace(/\"/g, "'") === forDebuggingProcessedHtml.toLowerCase())
+
         })
     }
 
