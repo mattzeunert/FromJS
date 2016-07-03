@@ -40,6 +40,7 @@ body {
 .fromjs-stack__line-number {
     border-right: 1px solid #ddd;
     padding-right: 5px;
+    padding-left: 10px;
     margin-right: 5px;
     text-align: right;
     min-width: 30px;
