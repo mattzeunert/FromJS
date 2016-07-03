@@ -122,7 +122,8 @@ function stringTraceSetInnerHTML(el, innerHTML){
                     "action": "ancestor innerHTML",
                     inputValues: [innerHTML],
                     value: innerHTMLAfterAssignment,
-                    inputValuesCharacterIndex: [charOffset]
+                    inputValuesCharacterIndex: [charOffset],
+                    extraCharsAdded: extraCharsAdded
                 })
                 console.log(child.textContent, " ==? ",innerHTMLAfterAssignment.substr(charOffset, child.textContent.length),
                     innerHTMLAfterAssignment.substr(charOffset, child.textContent.length) == child.textContent)
@@ -134,7 +135,8 @@ function stringTraceSetInnerHTML(el, innerHTML){
                     action: "ancestor innerHTML",
                     inputValues: [innerHTML],
                     inputValuesCharacterIndex: [charOffset],
-                    value: innerHTMLAfterAssignment
+                    value: innerHTMLAfterAssignment,
+                    extraCharsAdded: extraCharsAdded
                 })
                 var openingTagStart = "<" + child.tagName
                 charOffset += openingTagStart.length
@@ -166,6 +168,8 @@ function stringTraceSetInnerHTML(el, innerHTML){
 
                     forDebuggingProcessedHtml += attrStr
                 }
+
+                console.log("extraCharsAdded", extraCharsAdded)
 
                 var openingTagEnd = ""
                 // if (!tagTypeHasClosingTag(child.tagName)) {
