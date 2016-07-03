@@ -151,19 +151,34 @@ function stringTraceSetInnerHTML(el, innerHTML){
                     attrStr += "='" + attr.textContent +  "'"
 
                     charOffset += attrStr.length
+                    var offsetAtCharIndex = null
+                    var extraCharsAddedHere = 0;
                     if (attr.textContent === ""){
                         //charOffset += "'='".length
-                        extraCharsAdded += "'='".length
+                        extraCharsAddedHere = "=''".length
+
+                        offsetAtCharIndex = []
+                        for (var charIndex in attrStr){
+                            if (charIndex >= attrStr.length - '=""'.length){
+                                offsetAtCharIndex.push(attrStr.length - "=''".length - charIndex - 1)
+                            } else {
+                                offsetAtCharIndex.push(0)
+                            }
+                        }
                     }
+
+
 
                     addElOrigin(child, "attribute_" + attr.name, {
                         action: "ancestor innerHTML",
                         inputValues: [innerHTML],
                         value: innerHTMLAfterAssignment,
                         inputValuesCharacterIndex: [charOffsetBefore],
-                        extraCharsAdded: extraCharsAdded
+                        extraCharsAdded: extraCharsAdded,
+                        offsetAtCharIndex: offsetAtCharIndex
                     })
 
+                    extraCharsAdded += extraCharsAddedHere
 
 
                     forDebuggingProcessedHtml += attrStr

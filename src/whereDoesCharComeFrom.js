@@ -57,9 +57,15 @@ function goUp(step){
             characterIndex: step.characterIndex
         }
     } else if (step.originObject.action === "ancestor innerHTML") {
+        var offsetAtChar = 0;
+        console.warn("offsetAtCharIndex", step.originObject.offsetAtCharIndex)
+        if (step.originObject.offsetAtCharIndex){
+            offsetAtChar = step.originObject.offsetAtCharIndex[step.characterIndex - step.originObject.inputValuesCharacterIndex[0]]
+            console.warn("offsetAtChar", offsetAtChar)
+        }
         ret = {
             originObject: step.originObject.inputValues[0],
-            characterIndex: step.characterIndex - step.originObject.extraCharsAdded
+            characterIndex: step.characterIndex - step.originObject.extraCharsAdded + offsetAtChar
         }
     } else  if (step.originObject.action === "concat") {
         var valueMap = new ValueMap()

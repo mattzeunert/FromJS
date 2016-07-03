@@ -35,6 +35,7 @@ export default function Origin(opts){
     }
 
     this.inputValuesCharacterIndex = opts.inputValuesCharacterIndex
+    this.offsetAtCharIndex = opts.offsetAtCharIndex
 
     this.value = opts.value && opts.value.toString();
     this.valueOfEl = opts.valueOfEl
