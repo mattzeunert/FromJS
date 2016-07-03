@@ -1,16 +1,18 @@
 import addElOrigin from "./addElOrigin"
 
 export default function processElementsAvailableOnInitialLoad(){
-    processNode(document.body)
+    var originalHtml = decodeURIComponent(document.getElementById("fromjs-initial-html").innerHTML)
+    processNode(document.body, originalHtml)
 }
 
-function processNode(el){
+function processNode(el, originalHtml){
     var isTextNode = el.innerHTML === undefined
     if (isTextNode) {
         addElOrigin(el, "textValue", {
             "action": "initial html",
-            inputValues: [],
-            value: el.textContent
+            inputValues: [stringTrace(originalHtml)],
+            value: el.textContent,
+            inputValuesCharacterIndex: [0]
         })
 
     } else {
@@ -24,7 +26,8 @@ function processNode(el){
         addElOrigin(el, "tagName", {
             action: "initial html",
             value: el.tagName,
-            inputValues: []
+            inputValues: [stringTrace(originalHtml)],
+            inputValuesCharacterIndex: [0]
         })
 
         for (var i = 0;i<el.attributes.length;i++) {
@@ -32,13 +35,14 @@ function processNode(el){
             addElOrigin(el, "attribute_" + attr.name, {
                 action: "initial html",
                 value: " " + attr.name + "='" + attr.textContent + "'",
-                inputValues: []
+                inputValues: [stringTrace(originalHtml)],
+                inputValuesCharacterIndex: [0]
             })
         }
 
 
         children.forEach(function(child){
-            processNode(child)
+            processNode(child, originalHtml)
         })
     }
 }

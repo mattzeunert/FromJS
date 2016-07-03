@@ -29,9 +29,10 @@ function handleRequest(request, response){
         var fileContents = fs.readFileSync(path).toString()
 
         if (endsWith(request.url, ".html")){
+            var originalHtmlScriptTag = "<script id='fromjs-initial-html' type='text/template'>" + encodeURIComponent(fileContents) + "</script>"
             var scriptTagHtml = '<script src="http://localhost:8080/dist/from.js"></script>'
             if (stringContains(fileContents, "<head>")){
-                fileContents = fileContents.replace("<head>", "<head>" + scriptTagHtml)
+                fileContents = fileContents.replace("<head>", "<head>" + originalHtmlScriptTag + scriptTagHtml)
             } else {
                 fileContents = scriptTagHtml + fileContents
             }

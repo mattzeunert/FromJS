@@ -190,6 +190,12 @@ function goUp(step){
             throw "not handled mathc call"
         }
     }
+    else if (step.originObject.action === "initial html"){
+        ret = {
+            originObject: step.originObject.inputValues[0],
+            characterIndex: step.characterIndex + step.originObject.inputValuesCharacterIndex[0]
+        }
+    }
     else {
         console.log("not handling step", step)
         return null
