@@ -8,6 +8,7 @@ import processElementsAvailableOnInitialLoad from "../src/tracing/processElement
 import StringTraceString, {makeTraceObject} from "../src/tracing/FromJSString"
 import addElOrigin from "../src/tracing/addElOrigin"
 import stringTraceUseValue from "../src/tracing/stringTraceUseValue"
+import mapInnerHTMLAssignment from "../src/tracing/mapInnerHTMLAssignment"
 
 console.log("in stringtrace js")
 
@@ -97,119 +98,10 @@ function stringTraceTripleEqual(a,b){
 
 
 function stringTraceSetInnerHTML(el, innerHTML){
-
-
     el.innerHTML = innerHTML
-    var innerHTMLAfterAssignment = el.innerHTML
-
-    var forDebuggingProcessedHtml = ""
-    var charOffset = 0;
-    var extraCharsAdded = 0;
-    processNewInnerHtml(el)
 
 
-    function processNewInnerHtml(el){
-        var children = Array.prototype.slice.apply(el.childNodes, [])
-        addElOrigin(el, "replaceContents", {
-            action: "ancestor innerHTML",
-            children: children
-        })
-
-        $(el).contents().each(function(i, child){
-            var isTextNode = child.innerHTML === undefined;
-            if (isTextNode) {
-                addElOrigin(child, "textValue", {
-                    "action": "ancestor innerHTML",
-                    inputValues: [innerHTML],
-                    value: innerHTMLAfterAssignment,
-                    inputValuesCharacterIndex: [charOffset],
-                    extraCharsAdded: extraCharsAdded
-                })
-                console.log(child.textContent, " ==? ",innerHTMLAfterAssignment.substr(charOffset, child.textContent.length),
-                    innerHTMLAfterAssignment.substr(charOffset, child.textContent.length) == child.textContent)
-                charOffset += child.textContent.length
-                forDebuggingProcessedHtml += child.textContent
-            } else {
-
-                addElOrigin(child, "tagName", {
-                    action: "ancestor innerHTML",
-                    inputValues: [innerHTML],
-                    inputValuesCharacterIndex: [charOffset],
-                    value: innerHTMLAfterAssignment,
-                    extraCharsAdded: extraCharsAdded
-                })
-                var openingTagStart = "<" + child.tagName
-                charOffset += openingTagStart.length
-                forDebuggingProcessedHtml += openingTagStart
-
-                for (var i = 0;i<child.attributes.length;i++) {
-                    var attr = child.attributes[i]
-
-                    var charOffsetBefore = charOffset
-
-                    var attrStr = " " + attr.name
-                    attrStr += "='" + attr.textContent +  "'"
-
-                    charOffset += attrStr.length
-                    var offsetAtCharIndex = null
-                    var extraCharsAddedHere = 0;
-                    if (attr.textContent === ""){
-                        //charOffset += "'='".length
-                        extraCharsAddedHere = "=''".length
-
-                        offsetAtCharIndex = []
-                        for (var charIndex in attrStr){
-                            if (charIndex >= attrStr.length - '=""'.length){
-                                offsetAtCharIndex.push(attrStr.length - "=''".length - charIndex - 1)
-                            } else {
-                                offsetAtCharIndex.push(0)
-                            }
-                        }
-                    }
-
-
-
-                    addElOrigin(child, "attribute_" + attr.name, {
-                        action: "ancestor innerHTML",
-                        inputValues: [innerHTML],
-                        value: innerHTMLAfterAssignment,
-                        inputValuesCharacterIndex: [charOffsetBefore],
-                        extraCharsAdded: extraCharsAdded,
-                        offsetAtCharIndex: offsetAtCharIndex
-                    })
-
-                    extraCharsAdded += extraCharsAddedHere
-
-
-                    forDebuggingProcessedHtml += attrStr
-                }
-
-                console.log("extraCharsAdded", extraCharsAdded)
-
-                var openingTagEnd = ""
-                // if (!tagTypeHasClosingTag(child.tagName)) {
-                //     openingTagEnd +=  "/"
-                // }
-                openingTagEnd += ">"
-                charOffset += openingTagEnd.length
-                forDebuggingProcessedHtml += openingTagEnd
-
-                processNewInnerHtml(child)
-
-                if (tagTypeHasClosingTag(child.tagName)) {
-                    var closingTag = "</" + child.tagName + ">"
-                    charOffset += closingTag.length
-                    forDebuggingProcessedHtml += closingTag
-                }
-            }
-            console.log("processed", forDebuggingProcessedHtml, innerHTML.toString().toLowerCase().replace(/\"/g, "'") === forDebuggingProcessedHtml.toLowerCase())
-
-        })
-    }
-
-    // if (innerHTML.toString().toLowerCase().replace(/\"/g, "'") !== forDebuggingProcessedHtml.toLowerCase()){
-    //     debugger;
-    // }
+    mapInnerHTMLAssignment(el, innerHTML, "ancestor innerHTML")
 
 
 }
