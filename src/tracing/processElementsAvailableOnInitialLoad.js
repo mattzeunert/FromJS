@@ -6,9 +6,11 @@ export default function processElementsAvailableOnInitialLoad(){
     var originalHtml = decodeURIComponent(document.getElementById("fromjs-initial-html").innerHTML)
 
     // replace everythign before body tag
-    var htmlWithoutHtmlAndHeadTags = originalHtml.substr(originalHtml.search(/\<body.*\>/))
+    var bodyContent = originalHtml.substr(originalHtml.search(/\<body.*\>/))
     // remove body tag
-    htmlWithoutHtmlAndHeadTags = htmlWithoutHtmlAndHeadTags.substr(originalHtml.match(/\<body.*\>/)[0].length)
+    bodyContent = bodyContent.substr(originalHtml.match(/\<body.*\>/)[0].length)
+    // remove closing body tag
+    bodyContent = bodyContent.substr(0, bodyContent.indexOf("</body>"))
 
     originalHtml = {
         value: originalHtml,
@@ -21,7 +23,7 @@ export default function processElementsAvailableOnInitialLoad(){
             }
         })
     }
-    mapInnerHTMLAssignment(document.body, originalHtml, "Initial Body HTML",  htmlWithoutHtmlAndHeadTags.length - originalHtml.value.length)
+    mapInnerHTMLAssignment(document.body, originalHtml, "Initial Body HTML",  bodyContent.length - originalHtml.value.length)
 
 
     //processNode(document.body, originalHtml)
