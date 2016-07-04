@@ -148,6 +148,7 @@ class OriginPathItem extends React.Component {
                 selectedFrameString={this.state.selectedFrameString}
                 onFrameSelected={(frameString) => {
                     this.selectFrameString(frameString)
+                    this.setState({showStackFrameSelector: false})
                 }}
                 onFrameHovered={(frameString) => {
                     this.setState({previewFrameString: frameString})
