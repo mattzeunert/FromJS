@@ -5,6 +5,13 @@ import getRootOriginAtChar from "../getRootOriginAtChar"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getCodeFilePath from "./getCodeFilePath"
 
+function getFilenameFromPath(path){
+    var pathParts = path.split("/");
+    var filename = _.last(pathParts);
+    filename = filename.replace("?dontprocess=yes", "");
+    return filename
+}
+
 export class OriginPath extends React.Component {
     constructor(props){
         super(props)
@@ -211,14 +218,45 @@ class StackFrameSelector extends React.Component {
 }
 
 class StackFrameSelectorItem extends React.Component {
+    constructor(props){
+        super(props);
+        this.state = {
+            resolvedFrame: null
+        }
+    }
+    componentDidMount(){
+        resolveFrame(this.props.frameString, (err, resolvedFrame) => {
+            this.setState({resolvedFrame})
+        })
+    }
     render(){
         var className = "fromjs-stack-frame-selector__item " ;
         if (this.props.isSelected) {
             className += "fromjs-stack-frame-selector__item--selected"
         }
 
+        var loadingMessage = null;
+        var frameInfo = null;
+
+        var resolvedFrame = this.state.resolvedFrame;
+
+        if (resolvedFrame) {
+            var filename = getFilenameFromPath(resolvedFrame.fileName)
+            var functionName = resolvedFrame.functionName;
+            if (functionName === undefined) {
+                functionName = "(anonymous function)"
+            }
+            frameInfo = <div>
+                {functionName}
+                <div style={{float: "right"}}>{filename}</div>
+            </div>
+        } else {
+            loadingMessage = "Loading..."
+        }
+
         return <div className={className} onClick={this.props.onClick}>
-            {this.props.frameString}
+            {loadingMessage}
+            {frameInfo}
         </div>
     }
 }

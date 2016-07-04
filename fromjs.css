@@ -36,17 +36,28 @@
     padding-top: 2px;
     padding-right: 2px;
     color: #08f;
+    cursor: pointer;
+}
+.fromjs-origin-path-step__stack-frame-selector-toggle:hover {
+    color: red
 }
 
 
 .fromjs-stack-frame-selector__item {
-    font-size: 12px;
+    padding: 2px;
+    padding-left: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    overflow: hidden;
+}
+.fromjs-stack-frame-selector__item:last-child {
+    border-bottom-width: 2px;
 }
 .fromjs-stack-frame-selector__item--selected {
-    background: orange;
+    color: #0088ff;
 }
 .fromjs-stack-frame-selector__item:hover {
-    background: yellow;
+    color: red;
 }
 
 #fromjs {
