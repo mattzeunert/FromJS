@@ -184,6 +184,23 @@ class TextEl extends React.Component {
         function charIsWhitespace(char){
             return char === "\t" || char === " "
         }
+        function getValueSpan(char, extraClasses, onClick){
+            var className = extraClasses;
+            if (charIsWhitespace(char)){
+                className = "fromjs-value__whitespace-character"
+            }
+
+            var processedChar = processChar(char)
+
+
+            return <span
+                className={className}
+                onClick={onClick}
+            >
+                {processedChar}
+                {char === "\n" ? <br/> : null}
+            </span>
+        }
         function getValueSpans(val, indexOffset){
 
             var els = [];
@@ -192,24 +209,10 @@ class TextEl extends React.Component {
                 var char = val[index]
 
 
-                var className = "";
-                if (charIsWhitespace(char)){
-                    className = "fromjs-value__whitespace-character"
-                }
 
-                var processedChar = processChar(char)
-
-
-                var span = <span
-                    className={className}
-                    onClick={() => {
-                        self.props.onCharacterClick(index + indexOffset)
-                    }}
-                >
-                    {processedChar}
-                    {char === "\n" ? <br/> : null}
-                </span>
-                els.push(span)
+                els.push(getValueSpan(char, "", () => {
+                    self.props.onCharacterClick(index + indexOffset)
+                }))
             }
             return els
         }
@@ -249,9 +252,7 @@ class TextEl extends React.Component {
             return <HorizontalScrollContainer>
                 <div className="fromjs-value">
                     {beforeColumnValueSpans}
-                    <span className="fromjs-highlighted-character">
-                        {processChar(valAtColumn)}
-                    </span>
+                    {getValueSpan(valAtColumn, "fromjs-highlighted-character", function(){}) }
                     {afterColumnValueSpans}
                 </div>
             </HorizontalScrollContainer>
