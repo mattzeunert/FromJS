@@ -68,29 +68,38 @@ class OriginPathItem extends React.Component {
     constructor(props){
         super(props)
         this.state = {
+            selectedFrameString: null,
             resolvedFrame: null,
-            codeFilepath: null
+            codeFilePath: null
         }
     }
     componentDidMount(){
         var originObject = this.props.originPathItem.originObject
-        var frame = _.first(originObject.stack)
         if (originObject.isHTMLFileContent) {
-            frame = getFrameFromHTMLFileContentOriginPathItem(this.props.originPathItem)
+            this.selectFrameString(getFrameFromHTMLFileContentOriginPathItem(this.props.originPathItem))
+        } else {
+            this.selectFrameString(_.first(originObject.stack))
         }
-        if (frame){
+        this.makeSureIsResolvingFrame();
+    }
+    componentDidUpdate(){
+        this.makeSureIsResolvingFrame();
+    }
+    makeSureIsResolvingFrame(){
+        console.log("make sure", this.state)
+        var frame = this.state.selectedFrameString
+        if (frame && !this.state.resolvedFrame){
             resolveFrame(frame, (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
 
-                getCodeFilePath(resolvedFrame.fileName, (codeFilepath) => {
-                    this.setState({codeFilepath})
+                getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
+                    this.setState({codeFilePath})
                 })
             })
         }
     }
     render(){
         var originObject = this.props.originPathItem.originObject
-
 
         var filenameLink = null
         if (this.state.resolvedFrame) {
@@ -99,23 +108,47 @@ class OriginPathItem extends React.Component {
             var filenameParts = originalFilename.split("/")
             var uiFilename  = _.last(filenameParts)
 
-            var filePath =this.state.codeFilepath
-            filenameLink = <a className="origin-path-step__filename" href={filePath} target="_blank">{uiFilename}</a>
-
+            filenameLink = <a className="origin-path-step__filename" href={this.state.codeFilepath} target="_blank">{uiFilename}</a>
         }
 
 
         var stack = null;
-        if (originObject.isHTMLFileContent) {
-            filename = originObject.isHTMLFileContent.filename
-            var item = _.clone(this.props.originPathItem)
-            item.originObject = _.clone(item.originObject)
-            item.originObject.stack =  [getFrameFromHTMLFileContentOriginPathItem(item)]
+        if (this.state.selectedFrameString) {
+            var originPathItem = this.props.originPathItem;
+            // if (!originPathItem.originObject.stack) {
+            //     return <div style={{padding:5}}>(No stack)</div>
+            // }
+            //
+            // if (originPathItem.originObject.stack.length === 0) {
+            //     return <div style={{padding: 5}}>(Empty stack)</div>
+            // }
 
-            stack = <Stack originPathItem={item} />
+            var frame = this.props.frameString
+
+            var nthChar = null;
+            if (originPathItem.originObject.action === "String Literal"){
+                nthChar = "'".length + originPathItem.characterIndex
+            }
+
+            stack = <div>
+                <StackFrame
+                    frame={this.state.selectedFrameString}
+                    key={this.state.selectedFrameString}
+                    highlightStringIndex={nthChar} />
+            </div>
         } else {
-            stack = <Stack originPathItem={this.props.originPathItem} />
+            stack = <div>NOTHING</div>
         }
+        // if (originObject.isHTMLFileContent) {
+        //     filename = originObject.isHTMLFileContent.filename
+        //     var item = _.clone(this.props.originPathItem)
+        //     item.originObject = _.clone(item.originObject)
+        //     item.originObject.stack =  [getFrameFromHTMLFileContentOriginPathItem(item)]
+        //
+        //     stack = <Stack originPathItem={item} frameString={this.state.selectedFrameString}/>
+        // } else {
+        //     stack = <Stack originPathItem={this.props.originPathItem} frameString={this.state.selectedFrameString} />
+        // }
 
         return <div style={{border: "1px solid #ddd", marginBottom: 20}}>
             <div >
@@ -134,6 +167,13 @@ class OriginPathItem extends React.Component {
                     </span>
                 </div>
 
+                <StackFrameSelector
+                    stack={originObject.stack}
+                    onFrameSelected={(frameString) => {
+                        this.selectFrameString(frameString)
+                    }}
+                />
+
                 {stack}
             </div>
             <div style={{borderTop: "1px dotted #ddd"}}>
@@ -141,6 +181,36 @@ class OriginPathItem extends React.Component {
                     originPathItem={this.props.originPathItem}
                     handleValueSpanClick={this.props.handleValueSpanClick} />
             </div>
+        </div>
+    }
+    selectFrameString(frameString){
+        console.log("selecting frame string", frameString)
+        this.setState({
+            selectedFrameString: frameString,
+            resolvedFrame: null,
+            codeFilePath: null
+        })
+    }
+}
+
+class StackFrameSelector extends React.Component {
+    render(){
+        var self = this;
+        return <div>
+            {this.props.stack.map(function(frameString){
+                return <StackFrameSelectorItem
+                    frameString={frameString}
+                    onClick={() => self.props.onFrameSelected(frameString)}
+                />
+            })}
+        </div>
+    }
+}
+
+class StackFrameSelectorItem extends React.Component {
+    render(){
+        return <div className={"fromjs-stack-frame-selector__item"} onClick={this.props.onClick}>
+            {this.props.frameString}
         </div>
     }
 }
@@ -276,32 +346,6 @@ class TextEl extends React.Component {
     }
 }
 
-class Stack extends React.Component {
-    render(){
-        var originPathItem = this.props.originPathItem;
-        if (!originPathItem.originObject.stack) {
-            return <div style={{padding:5}}>(No stack)</div>
-        }
-
-        if (originPathItem.originObject.stack.length === 0) {
-            return <div style={{padding: 5}}>(Empty stack)</div>
-        }
-
-        var frame = _.first(originPathItem.originObject.stack)
-
-        var nthChar = null;
-        if (originPathItem.originObject.action === "String Literal"){
-            nthChar = "'".length + originPathItem.characterIndex
-        }
-
-        return <div>
-            <StackFrame
-                frame={frame}
-                key={frame}
-                highlightStringIndex={nthChar} />
-        </div>
-    }
-}
 
 class StackFrame extends React.Component{
     constructor(props){
