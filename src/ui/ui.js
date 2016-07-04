@@ -279,7 +279,7 @@ class Stack extends React.Component {
         var frame = _.first(originPathItem.originObject.stack)
 
         var nthChar = null;
-        if (originPathItem.originObject.action === "string literal"){
+        if (originPathItem.originObject.action === "String Literal"){
             nthChar = "'".length + originPathItem.characterIndex
         }
 

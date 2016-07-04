@@ -58,7 +58,7 @@ function goUp(step){
             originObject: step.originObject.inputValues[0],
             characterIndex: step.characterIndex
         }
-    } else if (step.originObject.action === "ancestor innerHTML") {
+    } else if (step.originObject.action === "Ancestor innerHTML") {
         var offsetAtChar = 0;
         console.warn("offsetAtCharIndex", step.originObject.offsetAtCharIndex)
         if (step.originObject.offsetAtCharIndex){

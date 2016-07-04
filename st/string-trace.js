@@ -38,7 +38,7 @@ function stringTrace(value){
     return makeTraceObject({
         value: value,
         origin: makeOrigin({
-            action: "string literal",
+            action: "String Literal",
             value: value,
             inputValues: []
         }),
@@ -102,7 +102,7 @@ function stringTraceSetInnerHTML(el, innerHTML){
     el.innerHTML = innerHTML
 
 
-    mapInnerHTMLAssignment(el, innerHTML, "ancestor innerHTML")
+    mapInnerHTMLAssignment(el, innerHTML, "Ancestor innerHTML")
 
 
 }

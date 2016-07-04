@@ -5,7 +5,7 @@ function stringTrace(value){
         },
         origin: {
             error: new Error(),
-            action: "string literal",
+            action: "String Literal",
             values: [value]
         },
         isStringTraceString: true
@@ -58,4 +58,3 @@ function stringTraceSetInnerHTML(el, innerHTML){
 
   // todo: try a+ b+ c work correctly
 })();
-

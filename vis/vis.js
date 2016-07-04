@@ -5,7 +5,7 @@ import {disableTracing} from "../src/tracing/tracing"
 import {StringTraceString} from "../src/tracing/FromJSString"
 
 function nodeIsValueSource(node){
-    return node.action === "string literal" || node.action === "localStorage.getItem"
+    return node.action === "String literal" || node.action === "localStorage.getItem"
 }
 
 function showInfo(info){
@@ -203,7 +203,7 @@ function showGraph(){
             .style("font-size", 12)
             .text(function(d) {
                 var text = d.action + (d.actionDetails ? " " + d.actionDetails : "");
-                if (d.action === "string literal"){
+                if (d.action === "String literal"){
                     text = '"' + d.value + '"'
                 }
 
