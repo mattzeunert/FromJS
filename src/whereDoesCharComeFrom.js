@@ -33,6 +33,8 @@ export default function whereDoesCharComeFrom(originObject, characterIndex){
     return steps
 }
 
+window.whereDoesCharComeFrom = whereDoesCharComeFrom
+
 function goUp(step){
     console.log("trying to handle step with action", step.originObject.action, step)
 
@@ -193,7 +195,7 @@ function goUp(step){
     else if (step.originObject.action === "initial html"){
         ret = {
             originObject: step.originObject.inputValues[0],
-            characterIndex: step.characterIndex + step.originObject.inputValuesCharacterIndex[0]
+            characterIndex: step.characterIndex - step.originObject.extraCharsAdded
         }
     }
     else {
