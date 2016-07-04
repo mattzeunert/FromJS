@@ -16,7 +16,7 @@ export default function processElementsAvailableOnInitialLoad(){
             action: "Initial Page HTML",
             inputValues: [],
             value: originalHtml,
-            isSourceFileContent: {
+            isHTMLFileContent: {
                 filename: document.getElementById("fromjs-initial-html").getAttribute("html-filename")
             }
         })

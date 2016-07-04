@@ -71,7 +71,11 @@ class OriginPathItem extends React.Component {
         }
     }
     componentDidMount(){
-        var frame = _.first(this.props.originPathItem.originObject.stack)
+        var originObject = this.props.originPathItem.originObject
+        var frame = _.first(originObject.stack)
+        if (originObject.isHTMLFileContent) {
+            frame = getFrameFromHTMLFileContentOriginPathItem(this.props.originPathItem)
+        }
         if (frame){
             resolveFrame(frame, (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
@@ -91,9 +95,13 @@ class OriginPathItem extends React.Component {
 
 
         var stack = null;
-        if (originObject.isSourceFileContent) {
-            filename = originObject.isSourceFileContent.filename
-            stack = <SourceFileContentOrigin originPathItem={this.props.originPathItem} />
+        if (originObject.isHTMLFileContent) {
+            filename = originObject.isHTMLFileContent.filename
+            var item = _.clone(this.props.originPathItem)
+            item.originObject = _.clone(item.originObject)
+            item.originObject.stack =  [getFrameFromHTMLFileContentOriginPathItem(item)]
+
+            stack = <Stack originPathItem={item} />
         } else {
             stack = <Stack originPathItem={this.props.originPathItem} />
         }
@@ -126,20 +134,15 @@ class OriginPathItem extends React.Component {
     }
 }
 
-class SourceFileContentOrigin extends React.Component {
-    render(){
-        var originObject = this.props.originPathItem.originObject
-        var valueBeforeChar = originObject.value.substr(0, this.props.originPathItem.characterIndex)
+function getFrameFromHTMLFileContentOriginPathItem(originPathItem){
+    var originObject = originPathItem.originObject
+    var valueBeforeChar = originObject.value.substr(0, originPathItem.characterIndex)
 
-        var splitIntoLines = valueBeforeChar.split("\n")
-        var line = splitIntoLines.length;
-        var charIndex = _.last(splitIntoLines).length
+    var splitIntoLines = valueBeforeChar.split("\n")
+    var line = splitIntoLines.length;
+    var charIndex = _.last(splitIntoLines).length
 
-
-        return <div style={{padding: 10}}>
-            Line {line} Column {charIndex}
-        </div>
-    }
+    return "at initialHtml (" + originObject.isHTMLFileContent.filename + ":" + line + ":" + charIndex
 }
 
 class ValueEl extends React.Component {
