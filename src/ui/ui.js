@@ -162,7 +162,7 @@ class TextEl extends React.Component {
         var self = this;
         function processChar(char){
             if (char==="\n"){
-                char = "\\n"
+                char = "\u21B5" // downwards arrow with corner leftwards
             }
             if (char===" ") {
                 char = '\xa0'
@@ -187,7 +187,8 @@ class TextEl extends React.Component {
                 if (charIsWhitespace(char)){
                     className = "fromjs-value__whitespace-character"
                 }
-                char = processChar(char)
+
+                var processedChar = processChar(char)
 
 
                 var span = <span
@@ -196,7 +197,8 @@ class TextEl extends React.Component {
                         self.props.onCharacterClick(index + indexOffset)
                     }}
                 >
-                    {char}
+                    {processedChar}
+                    {char === "\n" ? <br/> : null}
                 </span>
                 els.push(span)
             }
@@ -229,13 +231,19 @@ class TextEl extends React.Component {
                 ]
             }
 
+            var afterColumnValueSpans = getValueSpans(valAfterColumn, valBeforeColumn.length + valAtColumn.length);
+            if (afterColumnValueSpans.length > 50){
+                afterColumnValueSpans = afterColumnValueSpans.slice(0, 40)
+                afterColumnValueSpans.push(<span>...</span>)
+            }
+
             return <HorizontalScrollContainer>
                 <div className="fromjs-value">
                     {beforeColumnValueSpans}
                     <span className="fromjs-highlighted-character">
                         {processChar(valAtColumn)}
                     </span>
-                    {getValueSpans(valAfterColumn, valBeforeColumn.length + valAtColumn.length)}
+                    {afterColumnValueSpans}
                 </div>
             </HorizontalScrollContainer>
         }
