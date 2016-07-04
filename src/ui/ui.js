@@ -78,7 +78,8 @@ class OriginPathItem extends React.Component {
             selectedFrameString: null,
             resolvedFrame: null,
             codeFilePath: null,
-            showStackFrameSelector: false
+            showStackFrameSelector: false,
+            previewFrameString: null
         }
     }
     componentDidMount(){
@@ -119,16 +120,21 @@ class OriginPathItem extends React.Component {
             filenameLink = <a className="origin-path-step__filename" href={this.state.codeFilepath} target="_blank">{uiFilename}</a>
         }
 
-
         var stack = null;
         var originPathItem = this.props.originPathItem;
-        if (this.state.selectedFrameString) {
-            stack = <div>
-                <StackFrame
-                    frame={this.state.selectedFrameString}
-                    key={this.state.selectedFrameString}
-                    originPathItem={originPathItem} />
-            </div>
+        var previewStack = null;
+        if (this.state.previewFrameString){
+            previewStack = <StackFrame
+                frame={this.state.previewFrameString}
+                key={this.state.previewFrameString}
+                originPathItem={originPathItem} />
+        }
+        else if (this.state.selectedFrameString) {
+            stack = <StackFrame
+                frame={this.state.selectedFrameString}
+                key={this.state.selectedFrameString}
+                originPathItem={originPathItem}
+            />
         } else {
             if (!originPathItem.originObject.stack) {
                 stack = <div>(No stack.)</div>
@@ -145,6 +151,10 @@ class OriginPathItem extends React.Component {
                 onFrameSelected={(frameString) => {
                     this.selectFrameString(frameString)
                 }}
+                onFrameHovered={(frameString) => {
+                    this.setState({previewFrameString: frameString})
+                }}
+
             />
         }
 
@@ -173,6 +183,7 @@ class OriginPathItem extends React.Component {
                 {stackFrameSelector}
 
                 {stack}
+                {previewStack}
             </div>
             <div style={{borderTop: "1px dotted #ddd"}}>
                 <ValueEl
@@ -191,10 +202,6 @@ class OriginPathItem extends React.Component {
     }
 }
 
-class StackFrameDetailsView extends React.Component {
-
-}
-
 class StackFrameSelector extends React.Component {
     render(){
         var self = this;
@@ -202,6 +209,8 @@ class StackFrameSelector extends React.Component {
             {this.props.stack.map(function(frameString){
                 return <StackFrameSelectorItem
                     isSelected={self.props.selectedFrameString === frameString}
+                    onMouseEnter={() => self.props.onFrameHovered(frameString)}
+                    onMouseLeave={() => self.props.onFrameHovered(null)}
                     frameString={frameString}
                     onClick={() => self.props.onFrameSelected(frameString)}
                 />
@@ -247,7 +256,11 @@ class StackFrameSelectorItem extends React.Component {
             loadingMessage = "Loading..."
         }
 
-        return <div className={className} onClick={this.props.onClick}>
+        return <div
+            className={className}
+            onClick={this.props.onClick}
+            onMouseEnter={() => this.props.onMouseEnter()}
+            onMouseLeave={() => this.props.onMouseLeave()}>
             {loadingMessage}
             {frameInfo}
         </div>
@@ -327,8 +340,6 @@ class TextEl extends React.Component {
             for (let index in val){
                 index = parseFloat(index)
                 var char = val[index]
-
-
 
                 els.push(getValueSpan(char, "", () => {
                     self.props.onCharacterClick(index + indexOffset)
@@ -412,7 +423,7 @@ class StackFrame extends React.Component{
         var frame = this.state.resolvedFrame;
 
         var originPathItem = this.props.originPathItem;
-        
+
         var highlighNthCharAfterColumn = null;
         if (originPathItem.originObject.action === "String Literal" ){
             highlighNthCharAfterColumn = "'".length + originPathItem.characterIndex
