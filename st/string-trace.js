@@ -18,6 +18,7 @@ console.log("adding")
 window.addEventListener("load", function(){
     console.log("processElementsAvailableOnInitialLoad")
     if (window.isSerializedDomPage){return}
+    if (window.isVis){return}
     processElementsAvailableOnInitialLoad();
 })
 
