@@ -147,14 +147,26 @@ class TextEl extends React.Component {
             }
             return char
         }
+        function charIsWhitespace(char){
+            return char === "\t" || char === " "
+        }
         function getValueSpans(val, indexOffset){
 
             var els = [];
             for (let index in val){
                 index = parseFloat(index)
                 var char = val[index]
+
+
+                var className = "";
+                if (charIsWhitespace(char)){
+                    className = "fromjs-value__whitespace-character"
+                }
                 char = processChar(char)
+
+
                 var span = <span
+                    className={className}
                     onClick={() => {
                         self.props.onCharacterClick(index + indexOffset)
                     }}

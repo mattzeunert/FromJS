@@ -8,6 +8,9 @@
 .fromjs-value span {
     cursor: pointer;
 }
+.fromjs-value__whitespace-character:hover {
+    background: #ff1a1a;
+}
 
 #fromjs * {
     box-sizing: border-box;
