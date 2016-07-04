@@ -62,3 +62,9 @@ export default function(frame, callback){
         });
     }
 }
+
+export function getSourceFileContent(filePath, callback){
+    gps._get(filePath).then(function(src){
+        callback(src)
+    })
+}

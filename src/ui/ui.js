@@ -3,6 +3,7 @@ import _ from "underscore"
 import resolveFrame from "../resolve-frame"
 import getRootOriginAtChar from "../getRootOriginAtChar"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
+import getCodeFilePath from "./getCodeFilePath"
 
 export class OriginPath extends React.Component {
     constructor(props){
@@ -67,7 +68,8 @@ class OriginPathItem extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            resolvedFrame: null
+            resolvedFrame: null,
+            codeFilepath: null
         }
     }
     componentDidMount(){
@@ -79,6 +81,10 @@ class OriginPathItem extends React.Component {
         if (frame){
             resolveFrame(frame, (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
+
+                getCodeFilePath(resolvedFrame.fileName, (codeFilepath) => {
+                    this.setState({codeFilepath})
+                })
             })
         }
     }
@@ -86,11 +92,16 @@ class OriginPathItem extends React.Component {
         var originObject = this.props.originPathItem.originObject
 
 
-        var filename = "";
+        var filenameLink = null
         if (this.state.resolvedFrame) {
-            filename = this.state.resolvedFrame.fileName.replace("?dontprocess=yes", "");
-            var filenameParts = filename.split("/")
-            filename = _.last(filenameParts)
+            var filename = this.state.resolvedFrame.fileName;
+            var originalFilename = filename.replace("?dontprocess=yes", "");
+            var filenameParts = originalFilename.split("/")
+            var uiFilename  = _.last(filenameParts)
+
+            var filePath =this.state.codeFilepath
+            filenameLink = <a className="origin-path-step__filename" href={filePath} target="_blank">{uiFilename}</a>
+
         }
 
 
@@ -118,7 +129,7 @@ class OriginPathItem extends React.Component {
                         </span>
                         &nbsp;
                         <span>
-                            {filename}
+                            {filenameLink}
                         </span>
                     </span>
                 </div>
