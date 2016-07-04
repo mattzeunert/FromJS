@@ -528,15 +528,20 @@ class ElementOriginPath extends React.Component {
             </div>
         }
 
+        var elementCharSelector = null;
+        if (this.props.el) {
+            elementCharSelector = <div style={{border: "1px solid #ddd"}}>
+                <TextEl
+                    text={this.props.el.outerHTML}
+                    highlightedCharacterIndex={this.originComesFromElement() ? this.state.characterIndex : null}
+                    onCharacterClick={(characterIndex) => this.setState({characterIndex, rootOrigin: null})}
+                />
+            </div>
+        }
+
         return <div>
             <div style={{padding: 10}}>
-                <div style={{border: "1px solid #ddd"}}>
-                    {this.props.el ? <TextEl
-                        text={this.props.el.outerHTML}
-                        highlightedCharacterIndex={this.originComesFromElement() ? this.state.characterIndex : null}
-                        onCharacterClick={(characterIndex) => this.setState({characterIndex, rootOrigin: null})}
-                        /> : "no el"}
-                </div>
+                {elementCharSelector}
             </div>
             <hr/>
             {origin}
