@@ -70,7 +70,8 @@ class OriginPathItem extends React.Component {
         this.state = {
             selectedFrameString: null,
             resolvedFrame: null,
-            codeFilePath: null
+            codeFilePath: null,
+            showStackFrameSelector: false
         }
     }
     componentDidMount(){
@@ -139,16 +140,17 @@ class OriginPathItem extends React.Component {
         } else {
             stack = <div>NOTHING</div>
         }
-        // if (originObject.isHTMLFileContent) {
-        //     filename = originObject.isHTMLFileContent.filename
-        //     var item = _.clone(this.props.originPathItem)
-        //     item.originObject = _.clone(item.originObject)
-        //     item.originObject.stack =  [getFrameFromHTMLFileContentOriginPathItem(item)]
-        //
-        //     stack = <Stack originPathItem={item} frameString={this.state.selectedFrameString}/>
-        // } else {
-        //     stack = <Stack originPathItem={this.props.originPathItem} frameString={this.state.selectedFrameString} />
-        // }
+
+        var stackFrameSelector = null;
+        if (this.state.showStackFrameSelector){
+            stackFrameSelector = <StackFrameSelector
+                stack={originObject.stack}
+                selectedFrameString={this.state.selectedFrameString}
+                onFrameSelected={(frameString) => {
+                    this.selectFrameString(frameString)
+                }}
+            />
+        }
 
         return <div style={{border: "1px solid #ddd", marginBottom: 20}}>
             <div >
@@ -165,15 +167,14 @@ class OriginPathItem extends React.Component {
                             {filenameLink}
                         </span>
                     </span>
+                    <button
+                        className="fromjs-origin-path-step__stack-frame-selector-toggle"
+                        onClick={() => this.setState({showStackFrameSelector: !this.state.showStackFrameSelector})}>
+                        {this.state.showStackFrameSelector ? "\u25B2" : "\u25BC"}
+                    </button>
                 </div>
 
-                <StackFrameSelector
-                    stack={originObject.stack}
-                    selectedFrameString={this.state.selectedFrameString}
-                    onFrameSelected={(frameString) => {
-                        this.selectFrameString(frameString)
-                    }}
-                />
+                {stackFrameSelector}
 
                 {stack}
             </div>

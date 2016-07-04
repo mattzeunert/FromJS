@@ -30,6 +30,14 @@
 .origin-path-step__filename:hover {
     text-decoration: underline;
 }
+.fromjs-origin-path-step__stack-frame-selector-toggle {
+    float: right;
+    font-size: 20px;
+    padding-top: 2px;
+    padding-right: 2px;
+    color: #08f;
+}
+
 
 .fromjs-stack-frame-selector__item {
     font-size: 12px;
