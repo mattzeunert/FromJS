@@ -89,6 +89,15 @@ class OriginPathItem extends React.Component {
             filename = _.last(filenameParts)
         }
 
+
+        var stack = null;
+        if (originObject.isSourceFileContent) {
+            filename = originObject.isSourceFileContent.filename
+            stack = <SourceFileContentOrigin originPathItem={this.props.originPathItem} />
+        } else {
+            stack = <Stack originPathItem={this.props.originPathItem} />
+        }
+
         return <div style={{border: "1px solid #ddd", marginBottom: 20}}>
             <div >
                 <div style={{background: "aliceblue"}}>
@@ -106,13 +115,29 @@ class OriginPathItem extends React.Component {
                     </span>
                 </div>
 
-                <Stack originPathItem={this.props.originPathItem} />
+                {stack}
             </div>
             <div style={{borderTop: "1px dotted #ddd"}}>
                 <ValueEl
                     originPathItem={this.props.originPathItem}
                     handleValueSpanClick={this.props.handleValueSpanClick} />
             </div>
+        </div>
+    }
+}
+
+class SourceFileContentOrigin extends React.Component {
+    render(){
+        var originObject = this.props.originPathItem.originObject
+        var valueBeforeChar = originObject.value.substr(0, this.props.originPathItem.characterIndex)
+
+        var splitIntoLines = valueBeforeChar.split("\n")
+        var line = splitIntoLines.length;
+        var charIndex = _.last(splitIntoLines).length
+
+
+        return <div style={{padding: 10}}>
+            Line {line} Column {charIndex}
         </div>
     }
 }

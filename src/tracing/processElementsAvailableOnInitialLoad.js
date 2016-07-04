@@ -1,5 +1,6 @@
 import addElOrigin from "./addElOrigin"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
+import Origin from "../origin"
 
 export default function processElementsAvailableOnInitialLoad(){
     var originalHtml = decodeURIComponent(document.getElementById("fromjs-initial-html").innerHTML)
@@ -9,7 +10,18 @@ export default function processElementsAvailableOnInitialLoad(){
     // remove body tag
     htmlWithoutHtmlAndHeadTags = htmlWithoutHtmlAndHeadTags.substr(originalHtml.match(/\<body.*\>/)[0].length)
 
-    mapInnerHTMLAssignment(document.body, originalHtml, "initial body html",  htmlWithoutHtmlAndHeadTags.length - originalHtml.length)
+    originalHtml = {
+        value: originalHtml,
+        origin: new Origin({
+            action: "Initial Page HTML",
+            inputValues: [],
+            value: originalHtml,
+            isSourceFileContent: {
+                filename: document.getElementById("fromjs-initial-html").getAttribute("html-filename")
+            }
+        })
+    }
+    mapInnerHTMLAssignment(document.body, originalHtml, "Initial Body HTML",  htmlWithoutHtmlAndHeadTags.length - originalHtml.value.length)
 
 
     //processNode(document.body, originalHtml)
