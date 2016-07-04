@@ -29,14 +29,10 @@ export function getDefaultSourceCache(){
     }
 
     var sourceCache = {};
-    var fnEls = document.getElementsByClassName("string-trace-fn")
-    fnEls = Array.prototype.slice.call(fnEls)
-    fnEls.forEach(function(el){
-        var key = el.getAttribute("fn") + ".js"
-        sourceCache[key] = el.innerHTML
-        sourceCache[key + "?dontprocess=yes"] = decodeURIComponent(el.getAttribute("original-source"))
-        sourceCache[el.getAttribute("sm-filename")] = decodeURIComponent(el.getAttribute("sm"))
-    })
+    for (var filename in fromJSDynamicFiles){
+        sourceCache[filename] = fromJSDynamicFiles[filename]
+    }
+
     return sourceCache
 }
 

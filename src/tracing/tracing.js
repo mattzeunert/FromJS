@@ -4,6 +4,8 @@ import makeTraceObject from "./makeTraceObject"
 import Origin from "../origin"
 import _ from "underscore"
 
+window.fromJSDynamicFiles = []
+
 export function enableTracing(){
     window.tracingEnabled = true
 
@@ -132,27 +134,30 @@ export function enableTracing(){
         var filename = "DynamicFunction" + id + ".js"
         var res = stringTraceCompile(stringTraceUseValue(code), {filename: filename})
         args.push(res.code)
-        var script = document.createElement("script")
+
 
         var fnName = "DynamicFunction" + id
         var smFilename = filename + ".map"
-        script.innerHTML = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + res.code + "}" + "\n//# sourceURL=" + filename + "\n//# sourceMappingURL=" + smFilename
-        script.setAttribute("sm", encodeURIComponent(JSON.stringify(res.map)))
-        script.setAttribute("sm-filename", smFilename)
-        script.setAttribute("fn", fnName)
-        script.setAttribute("original-source", encodeURIComponent(code))
-        script.className = "string-trace-fn";
+        var evalCode = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + res.code + "}" +
+            "\n//# sourceURL=" + filename +
+            "\n//# sourceMappingURL=" + smFilename
 
-        script.originalCodeForDebugging = code
-
+        // create script tag instead of eval to prevent strict mode from propagating
+        // (I'm guessing if you call eval from code that's in strict mode  strict mode will
+        // propagate to the eval'd code.)
+        var script = document.createElement("script")
+        script.innerHTML = evalCode
         document.body.appendChild(script)
 
+        script.remove();
 
+        fromJSDynamicFiles[smFilename] = res.map
+        fromJSDynamicFiles[filename] = evalCode
+        fromJSDynamicFiles[filename + "?dontprocess=yes"] = code
 
         return function(){
             return window[fnName].apply(this, arguments)
         }
-        // return nativeFunction.apply(this, args)
     }
 
     window.nativeJSONParse = nativeJSONParse
