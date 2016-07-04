@@ -153,8 +153,16 @@ class OriginPathItem extends React.Component {
                 onFrameHovered={(frameString) => {
                     this.setState({previewFrameString: frameString})
                 }}
-
             />
+        }
+
+        var toggleFrameSelectorButton = null;
+        if (originObject.stack && originObject.stack.length > 1) {
+            toggleFrameSelectorButton = <button
+                className="fromjs-origin-path-step__stack-frame-selector-toggle"
+                onClick={() => this.setState({showStackFrameSelector: !this.state.showStackFrameSelector})}>
+                {this.state.showStackFrameSelector ? "\u25B2" : "\u25BC"}
+            </button>
         }
 
         return <div style={{border: "1px solid #ddd", marginBottom: 20}}>
@@ -172,11 +180,7 @@ class OriginPathItem extends React.Component {
                             {filenameLink}
                         </span>
                     </span>
-                    <button
-                        className="fromjs-origin-path-step__stack-frame-selector-toggle"
-                        onClick={() => this.setState({showStackFrameSelector: !this.state.showStackFrameSelector})}>
-                        {this.state.showStackFrameSelector ? "\u25B2" : "\u25BC"}
-                    </button>
+                    {toggleFrameSelectorButton}
                 </div>
 
                 {stackFrameSelector}
