@@ -136,11 +136,9 @@ class OriginPathItem extends React.Component {
                 originPathItem={originPathItem}
             />
         } else {
-            if (!originPathItem.originObject.stack) {
-                stack = <div>(No stack.)</div>
-            } else {
-                stack = <div>(Nothing selected.)</div>
-            }
+            stack = <div style={{padding: 10}}>
+                (Empty stack.)
+            </div>
         }
 
         var stackFrameSelector = null;
