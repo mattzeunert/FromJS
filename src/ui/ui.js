@@ -320,7 +320,7 @@ class TextEl extends React.Component {
         function charIsWhitespace(char){
             return char === "\t" || char === " "
         }
-        function getValueSpan(char, extraClasses, onClick){
+        function getValueSpan(char, extraClasses, onClick, onMouseEnter, onMouseLeave){
             var className = extraClasses;
             if (charIsWhitespace(char)){
                 className = "fromjs-value__whitespace-character"
@@ -332,6 +332,8 @@ class TextEl extends React.Component {
             return <span
                 className={className}
                 onClick={onClick}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
             >
                 {processedChar}
                 {char === "\n" ? <br/> : null}
@@ -346,6 +348,12 @@ class TextEl extends React.Component {
 
                 els.push(getValueSpan(char, "", () => {
                     self.props.onCharacterClick(index + indexOffset)
+                }, () => {
+                    if (!self.props.onCharacterHover) {return}
+                    self.props.onCharacterHover(index + indexOffset)
+                },() => {
+                    if (!self.props.onCharacterHover) {return}
+                    self.props.onCharacterHover(null)
                 }))
             }
             return els
@@ -386,7 +394,7 @@ class TextEl extends React.Component {
             return <HorizontalScrollContainer>
                 <div className="fromjs-value">
                     {beforeColumnValueSpans}
-                    {getValueSpan(valAtColumn, "fromjs-highlighted-character", function(){}) }
+                    {getValueSpan(valAtColumn, "fromjs-highlighted-character", function(){}, function(){}, function(){}) }
                     {afterColumnValueSpans}
                 </div>
             </HorizontalScrollContainer>
@@ -501,6 +509,7 @@ class ElementOriginPath extends React.Component {
         super(props)
         this.state = {
             characterIndex: this.getDefaultCharacterIndex(props.el),
+            previewCharacterIndex: null,
             rootOrigin: null
         }
     }
@@ -514,8 +523,13 @@ class ElementOriginPath extends React.Component {
             console.log("used origin", useful)
             console.log("has char", useful.origin.value[useful.characterIndex])
 
+            var display = "block"
+            if (this.state.previewCharacterIndex !== null){
+                display = "none"
+            }
+
             var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
-            origin = <div style={{padding: 10}}>
+            origin = <div style={{display: display}}>
                 <OriginPath
                     originPath={originPath}
                     handleValueSpanClick={(origin, characterIndex) => {
@@ -528,6 +542,16 @@ class ElementOriginPath extends React.Component {
             </div>
         }
 
+        var previewOrigin = null;
+        if (this.state.previewCharacterIndex !== null) {
+            var characterIndex = parseFloat(this.state.previewCharacterIndex);
+            var useful = getRootOriginAtChar(this.props.el, characterIndex);
+
+            var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
+            previewOrigin =  <OriginPath
+                    originPath={originPath} />
+        }
+
         var elementCharSelector = null;
         if (this.props.el) {
             elementCharSelector = <div style={{border: "1px solid #ddd"}}>
@@ -535,6 +559,7 @@ class ElementOriginPath extends React.Component {
                     text={this.props.el.outerHTML}
                     highlightedCharacterIndex={this.originComesFromElement() ? this.state.characterIndex : null}
                     onCharacterClick={(characterIndex) => this.setState({characterIndex, rootOrigin: null})}
+                    onCharacterHover={(characterIndex) => this.setState({previewCharacterIndex: characterIndex})}
                 />
             </div>
         }
@@ -544,7 +569,10 @@ class ElementOriginPath extends React.Component {
                 {elementCharSelector}
             </div>
             <hr/>
-            {origin}
+            <div style={{padding: 10}}>
+                {origin}
+                {previewOrigin}
+            </div>
         </div>
     }
     originComesFromElement(){
