@@ -121,31 +121,20 @@ class OriginPathItem extends React.Component {
 
 
         var stack = null;
+        var originPathItem = this.props.originPathItem;
         if (this.state.selectedFrameString) {
-            var originPathItem = this.props.originPathItem;
-            // if (!originPathItem.originObject.stack) {
-            //     return <div style={{padding:5}}>(No stack)</div>
-            // }
-            //
-            // if (originPathItem.originObject.stack.length === 0) {
-            //     return <div style={{padding: 5}}>(Empty stack)</div>
-            // }
-
-            var frame = this.props.frameString
-
-            var nthChar = null;
-            if (originPathItem.originObject.action === "String Literal"){
-                nthChar = "'".length + originPathItem.characterIndex
-            }
-
             stack = <div>
                 <StackFrame
                     frame={this.state.selectedFrameString}
                     key={this.state.selectedFrameString}
-                    highlightStringIndex={nthChar} />
+                    originPathItem={originPathItem} />
             </div>
         } else {
-            stack = <div>NOTHING</div>
+            if (!originPathItem.originObject.stack) {
+                stack = <div>(No stack.)</div>
+            } else {
+                stack = <div>(Nothing selected.)</div>
+            }
         }
 
         var stackFrameSelector = null;
@@ -200,6 +189,10 @@ class OriginPathItem extends React.Component {
             codeFilePath: null
         })
     }
+}
+
+class StackFrameDetailsView extends React.Component {
+
 }
 
 class StackFrameSelector extends React.Component {
@@ -418,10 +411,14 @@ class StackFrame extends React.Component{
 
         var frame = this.state.resolvedFrame;
 
-
-        var highlighNthCharAfterColumn = this.props.highlightStringIndex;
+        var originPathItem = this.props.originPathItem;
+        
+        var highlighNthCharAfterColumn = null;
+        if (originPathItem.originObject.action === "String Literal" ){
+            highlighNthCharAfterColumn = "'".length + originPathItem.characterIndex
+        }
         var highlightClass = "fromjs-highlighted-character"
-        var hasHighlight = highlighNthCharAfterColumn !== undefined && highlighNthCharAfterColumn !== null
+        var hasHighlight = highlighNthCharAfterColumn !== null
         if (!hasHighlight) {
             highlighNthCharAfterColumn = 0
             highlightClass = ""
