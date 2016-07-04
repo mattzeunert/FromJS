@@ -34,6 +34,9 @@
 .fromjs-stack-frame-selector__item {
     font-size: 12px;
 }
+.fromjs-stack-frame-selector__item--selected {
+    background: orange;
+}
 .fromjs-stack-frame-selector__item:hover {
     background: yellow;
 }

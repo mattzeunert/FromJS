@@ -169,6 +169,7 @@ class OriginPathItem extends React.Component {
 
                 <StackFrameSelector
                     stack={originObject.stack}
+                    selectedFrameString={this.state.selectedFrameString}
                     onFrameSelected={(frameString) => {
                         this.selectFrameString(frameString)
                     }}
@@ -199,6 +200,7 @@ class StackFrameSelector extends React.Component {
         return <div>
             {this.props.stack.map(function(frameString){
                 return <StackFrameSelectorItem
+                    isSelected={self.props.selectedFrameString === frameString}
                     frameString={frameString}
                     onClick={() => self.props.onFrameSelected(frameString)}
                 />
@@ -209,7 +211,12 @@ class StackFrameSelector extends React.Component {
 
 class StackFrameSelectorItem extends React.Component {
     render(){
-        return <div className={"fromjs-stack-frame-selector__item"} onClick={this.props.onClick}>
+        var className = "fromjs-stack-frame-selector__item " ;
+        if (this.props.isSelected) {
+            className += "fromjs-stack-frame-selector__item--selected"
+        }
+
+        return <div className={className} onClick={this.props.onClick}>
             {this.props.frameString}
         </div>
     }
