@@ -56,7 +56,7 @@ export default function(frame, callback){
 
     if (endsWith(frameObject.fileName, ".html")){
         // don't bother looking for source map file
-        callback(null, frame)
+        resFrame(frameObject, callback)
     } else {
         gps.pinpoint(frameObject).then(function(newFrame){
             resFrame(newFrame, callback)
