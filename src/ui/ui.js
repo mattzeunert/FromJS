@@ -161,6 +161,12 @@ class ValueEl extends React.Component {
 
 
 class TextEl extends React.Component {
+    constructor(props){
+        super(props)
+        this.state = {
+            truncateText: true
+        }
+    }
     render(){
         var self = this;
         function processChar(char){
@@ -224,20 +230,20 @@ class TextEl extends React.Component {
             // if content is too long to hide the highlight truncate text
             // cut the list of spans rather than the valBeforeColumn string
             // to maintain the correct character index on click on a char
-            if (beforeColumnValueSpans.length > 50) {
+            if (this.state.truncateText && beforeColumnValueSpans.length > 50) {
                 var beforeEllipsis = beforeColumnValueSpans.slice(0, 10)
                 var afterEllipsis = beforeColumnValueSpans.slice(beforeColumnValueSpans.length - 20)
                 beforeColumnValueSpans = [
                     ...beforeEllipsis,
-                    <span>...</span>,
+                    <span onClick={() => this.disableTruncation()}>...</span>,
                     ...afterEllipsis
                 ]
             }
 
             var afterColumnValueSpans = getValueSpans(valAfterColumn, valBeforeColumn.length + valAtColumn.length);
-            if (afterColumnValueSpans.length > 50){
+            if (this.state.truncateText && afterColumnValueSpans.length > 50){
                 afterColumnValueSpans = afterColumnValueSpans.slice(0, 40)
-                afterColumnValueSpans.push(<span>...</span>)
+                afterColumnValueSpans.push(<span onClick={() => this.disableTruncation()}>...</span>)
             }
 
             return <HorizontalScrollContainer>
@@ -252,6 +258,9 @@ class TextEl extends React.Component {
         }
 
 
+    }
+    disableTruncation(){
+        this.setState({truncateText: false})
     }
 }
 
