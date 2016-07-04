@@ -5,11 +5,14 @@ import $ from "jquery"
 // and the value you get back when reading el.innerHTML.
 // e.g. you could assign "<input type='checkbox' checked>" and get back
 // "<input type='checkbox' checked=''>"
-export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName){
+export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName, initialExtraCharsValue){
     var innerHTMLAfterAssignment = el.innerHTML
     var forDebuggingProcessedHtml = ""
     var charOffset = 0;
     var extraCharsAdded = 0;
+    if (initialExtraCharsValue !== undefined){
+        extraCharsAdded = initialExtraCharsValue
+    }
     processNewInnerHtml(el)
 
     function processNewInnerHtml(el){

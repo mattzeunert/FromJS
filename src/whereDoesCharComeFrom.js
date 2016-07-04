@@ -192,7 +192,8 @@ function goUp(step){
             throw "not handled mathc call"
         }
     }
-    else if (step.originObject.action === "initial html"){
+    else if (step.originObject.action === "initial body html"){
+        document.title = step.originObject.extraCharsAdded
         ret = {
             originObject: step.originObject.inputValues[0],
             characterIndex: step.characterIndex - step.originObject.extraCharsAdded

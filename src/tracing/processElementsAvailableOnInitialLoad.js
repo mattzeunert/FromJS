@@ -5,11 +5,11 @@ export default function processElementsAvailableOnInitialLoad(){
     var originalHtml = decodeURIComponent(document.getElementById("fromjs-initial-html").innerHTML)
 
     // replace everythign before body tag
-    originalHtml = originalHtml.substr(originalHtml.search(/\<body.*\>/))
+    var htmlWithoutHtmlAndHeadTags = originalHtml.substr(originalHtml.search(/\<body.*\>/))
     // remove body tag
-    originalHtml = originalHtml.substr(originalHtml.match(/\<body.*\>/)[0].length)
+    htmlWithoutHtmlAndHeadTags = htmlWithoutHtmlAndHeadTags.substr(originalHtml.match(/\<body.*\>/)[0].length)
 
-    mapInnerHTMLAssignment(document.body, originalHtml, "initial html")
+    mapInnerHTMLAssignment(document.body, originalHtml, "initial body html",  htmlWithoutHtmlAndHeadTags.length - originalHtml.length)
 
 
     //processNode(document.body, originalHtml)
