@@ -45,6 +45,17 @@ function stringTrace(value){
     })
 };
 
+function stringTraceUnknown(value){
+    return makeTraceObject({
+        value: value,
+        origin: makeOrigin({
+            action: "Untracked String",
+            value: value,
+            inputValues: []
+        }),
+    })
+}
+
 function stringTraceTypeOf(a){
     if (a && a.isStringTraceString) {
         return "string"
@@ -61,10 +72,13 @@ function stringTraceAdd(a, b){
         b = ""
     }
     if (!a.isStringTraceString && typeof a === "string"){
-        a = stringTrace(a);
+        console.log("untracked string", a)
+        a = stringTraceUnknown(a);
+
     }
     if (!b.isStringTraceString && typeof b === "string"){
-        b = stringTrace(b);
+        console.log("untracked string", b)
+        b = stringTraceUnknown(b);
     }
     if (!a.isStringTraceString) {
         return a + b;// not a string operation i think, could still be inferred to a stirng tho
