@@ -32,8 +32,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     inputValuesCharacterIndex: [charOffset],
                     extraCharsAdded: extraCharsAdded
                 })
-                console.log(child.textContent, " ==? ",innerHTMLAfterAssignment.substr(charOffset, child.textContent.length),
-                    innerHTMLAfterAssignment.substr(charOffset, child.textContent.length) == child.textContent)
+
                 charOffset += child.textContent.length
                 forDebuggingProcessedHtml += child.textContent
             } else {
@@ -91,7 +90,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     forDebuggingProcessedHtml += attrStr
                 }
 
-                console.log("extraCharsAdded", extraCharsAdded)
+                // console.log("extraCharsAdded", extraCharsAdded)
 
                 var openingTagEnd = ""
                 // if (!tagTypeHasClosingTag(child.tagName)) {
@@ -109,7 +108,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     forDebuggingProcessedHtml += closingTag
                 }
             }
-            console.log("processed", forDebuggingProcessedHtml, assignedInnerHTML.toString().toLowerCase().replace(/\"/g, "'") === forDebuggingProcessedHtml.toLowerCase())
+            // console.log("processed", forDebuggingProcessedHtml, assignedInnerHTML.toString().toLowerCase().replace(/\"/g, "'") === forDebuggingProcessedHtml.toLowerCase())
 
         })
     }

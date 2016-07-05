@@ -103,7 +103,6 @@ class OriginPathItem extends React.Component {
         this.makeSureIsResolvingFrame();
     }
     makeSureIsResolvingFrame(){
-        console.log("make sure", this.state)
         var frame = this.state.selectedFrameString
         if (frame && !this.state.resolvedFrame){
             resolveFrame(frame, (err, resolvedFrame) => {
@@ -232,7 +231,6 @@ class OriginPathItem extends React.Component {
         </div>
     }
     selectFrameString(frameString){
-        console.log("selecting frame string", frameString)
         this.setState({
             selectedFrameString: frameString,
             resolvedFrame: null,
@@ -491,7 +489,7 @@ class StackFrame extends React.Component{
 
         // If strings are too long and would hide highlighted content truncate them
         var strBeforeBar = frame.line.substr(0, frame.columnNumber)
-        console.log(strBeforeBar, strBeforeBar.length)
+        // console.log(strBeforeBar, strBeforeBar.length)
         if (strBeforeBar.length > 50) {
             strBeforeBar = strBeforeBar.substr(0, 10) + "..." + strBeforeBar.substr(strBeforeBar.length - 10)
         }
