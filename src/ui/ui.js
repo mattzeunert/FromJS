@@ -538,6 +538,30 @@ class HorizontalScrollContainer extends React.Component {
     }
 }
 
+class ElementOriginPathContent extends React.Component {
+    render(){
+        return <div>
+            <div style={{padding: 10}}>
+                <div style={{border: "1px solid #ddd"}}>
+                    <TextEl
+                        text={this.props.inspectedValue}
+                        highlightedCharacterIndex={this.props.inspectedValueCharacterIndex}
+                        onCharacterClick={this.props.onInspectedValueCharacterClick}
+                        onCharacterHover={this.props.onInspectedValueCharacterHover}
+                    />
+                </div>
+            </div>
+            <hr/>
+            <div style={{padding: 10}}>
+                <OriginPath
+                    originPath={this.props.originPath}
+                    handleValueSpanClick={(origin, characterIndex) => this.props.inspectValue(origin, characterIndex)}
+                />
+            </div>
+        </div>
+    }
+}
+
 class ElementOriginPath extends React.Component {
     constructor(props){
         super(props)
@@ -552,6 +576,7 @@ class ElementOriginPath extends React.Component {
 
         var origin = null;
 
+        var oPath = null;
         if (this.state.characterIndex !== null) {
             var useful = this.getOriginAndCharacterIndex(this.state.characterIndex)
             console.log("used origin", useful)
@@ -562,51 +587,38 @@ class ElementOriginPath extends React.Component {
                 display = "none"
             }
 
-            var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
-            origin = <div style={{display: display}}>
-                <OriginPath
-                    originPath={originPath}
-                    handleValueSpanClick={(origin, characterIndex) => {
-                        console.log("clicked on", characterIndex, origin)
-                        this.setState({
-                            rootOrigin: origin,
-                            characterIndex
-                        })
-                    }} />
-            </div>
+            oPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
+
         }
 
-        var previewOrigin = null;
+        var previewOriginPath = null;
         if (this.state.previewCharacterIndex !== null) {
             var useful = this.getOriginAndCharacterIndex(this.state.previewCharacterIndex);
 
-            var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
-            previewOrigin =  <OriginPath
-                    originPath={originPath} />
+            previewOriginPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
+
         }
 
-        var elementCharSelector = null;
-        if (this.getInspectedValue()){
-            elementCharSelector = <div style={{border: "1px solid #ddd"}}>
-                <TextEl
-                    text={this.getInspectedValue()}
-                    highlightedCharacterIndex={this.state.characterIndex}
-                    onCharacterClick={(characterIndex) => this.setState({characterIndex})}
-                    onCharacterHover={(characterIndex) => this.setState({previewCharacterIndex: characterIndex})}
-                />
-            </div>
+        var originPath = null;
+        if (previewOriginPath) {
+            originPath = previewOriginPath
+        } else {
+            originPath = oPath;
         }
 
-        return <div>
-            <div style={{padding: 10}}>
-                {elementCharSelector}
-            </div>
-            <hr/>
-            <div style={{padding: 10}}>
-                {origin}
-                {previewOrigin}
-            </div>
-        </div>
+        return <ElementOriginPathContent
+                inspectedValue={this.getInspectedValue()}
+                inspectedValueCharacterIndex={this.state.characterIndex}
+                onInspectedValueCharacterClick={(characterIndex) => this.setState({characterIndex})}
+                onInspectedValueCharacterHover={(characterIndex) => this.setState({previewCharacterIndex: characterIndex})}
+                originPath={originPath}
+                inspectValue={(origin, characterIndex) => {
+                    this.setState({
+                        rootOrigin: origin,
+                        characterIndex
+                    })
+                }}
+            />
     }
     originComesFromElement(){
         return this.state.rootOrigin === null
