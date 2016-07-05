@@ -357,7 +357,7 @@ class TextEl extends React.Component {
         function getValueSpan(char, extraClasses, onClick, onMouseEnter, onMouseLeave){
             var className = extraClasses;
             if (charIsWhitespace(char)){
-                className = "fromjs-value__whitespace-character"
+                className += " fromjs-value__whitespace-character"
             }
 
             var processedChar = processChar(char)

@@ -12,6 +12,10 @@
     background: #ff1a1a;
 }
 
+.fromjs-value__whitespace-character.fromjs-highlighted-character {
+    background: #9ad0ff;
+}
+
 #fromjs * {
     box-sizing: border-box;
 }
