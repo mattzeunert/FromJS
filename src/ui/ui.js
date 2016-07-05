@@ -749,10 +749,11 @@ export class FromJSView extends React.Component {
             previewMarker = <PreviewElementMarker el={this.state.previewEl}/>
             preview = <ElementOriginPath key={this.state.previewEl} el={this.state.previewEl} />
         } else  if (this.state.el) {
-            if (!this.state.nonElementOriginSelected) {
-                selectionMarker = <SelectedElementMarker el={this.state.el} />
-            }
             info = <ElementOriginPath key={this.state.el} el={this.state.el} onNonElementOriginSelected={() => this.setState({nonElementOriginSelected: true})}/>
+        }
+
+        if (this.state.el && !this.state.nonElementOriginSelected) {
+            selectionMarker = <SelectedElementMarker el={this.state.el} />
         }
 
 
