@@ -5,6 +5,7 @@ import _ from "underscore"
 
 var gps = null;
 var defaultSourceCache = null
+var resolvedFrameCache = {}
 
 function resFrame(frame, callback){
     gps._get(frame.fileName).then(function(src){
@@ -43,23 +44,38 @@ function initGPSIfNecessary(){
     window.gps = gps
 }
 
+export default function(frameString, callback){
+    // console.time("Resolve Frame " + frameString)
+    if (resolvedFrameCache[frameString]){
+        done(null, resolvedFrameCache[frameString])
+        return
+    }
 
-
-export default function(frame, callback){
     initGPSIfNecessary()
 
-    var frameObject = ErrorStackParser.parse({stack: frame})[0];
+    var frameObject = ErrorStackParser.parse({stack: frameString})[0];
 
     if (endsWith(frameObject.fileName, ".html")){
         // don't bother looking for source map file
         resFrame(frameObject, callback)
     } else {
         gps.pinpoint(frameObject).then(function(newFrame){
-            resFrame(newFrame, callback)
+            resFrame(newFrame, function(err, frame){
+                done(err, frame)
+            })
         }, function(){
-            resFrame(frameObject, callback)
+            resFrame(frameObject, function(err, callback){
+                console.timeEnd("Resolve Frame " + frameString)
+                done(err, frame)
+            })
             console.log("error", arguments)
         });
+    }
+
+    function done(err, frame){
+        // console.timeEnd("Resolve Frame " + frameString)
+        resolvedFrameCache[frameString] = frame
+        callback(err, frame)
     }
 }
 
