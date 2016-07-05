@@ -59,9 +59,6 @@ export class OriginPath extends React.Component {
         }
 
         return <div>
-            <div style={{marginBottom: 5}}>
-                <b>Character origin</b>
-            </div>
             {lastStep}
             {showFullPathButton}
 
@@ -433,8 +430,6 @@ class TextEl extends React.Component {
                 </div>
             </HorizontalScrollContainer>
         }
-
-
     }
     disableTruncation(){
         this.setState({truncateText: false})
@@ -542,6 +537,9 @@ class ElementOriginPathContent extends React.Component {
     render(){
         return <div>
             <div style={{padding: 10}}>
+                <div style={{fontWeight: "bold", fontSize: 20, marginBottom: 20}}>
+                    Where does this character come from?
+                </div>
                 <div style={{border: "1px solid #ddd"}}>
                     <TextEl
                         text={this.props.inspectedValue}
