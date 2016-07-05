@@ -101,6 +101,24 @@ export function enableTracing(){
         return parsedVal
     }
 
+    var nativeInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
+    window.nativeInnerHTMLDescriptor = nativeInnerHTMLDescriptor;
+    Object.defineProperty(Element.prototype, "innerHTML", {
+        set: nativeInnerHTMLDescriptor.set,
+        get: function(){
+            var innerHTML = nativeInnerHTMLDescriptor.get.apply(this, arguments)
+            return makeTraceObject({
+                value: innerHTML,
+                origin: new Origin({
+                    value: innerHTML,
+                    action: "Read Element innerHTML",
+                    inputValues: []
+                })
+            })
+        }
+    })
+
+
     var nativeLocalStorageGetItem = localStorage.getItem
     window.nativeLocalStorageGetItem = nativeLocalStorageGetItem
     localStorage.getItem = function(key){
