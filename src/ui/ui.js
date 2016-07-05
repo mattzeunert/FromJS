@@ -572,38 +572,19 @@ class ElementOriginPath extends React.Component {
         }
     }
     render(){
-        var info = null;
-
-        var origin = null;
-
-        var oPath = null;
+        var selectionOriginPath = null;
         if (this.state.characterIndex !== null) {
-            var useful = this.getOriginAndCharacterIndex(this.state.characterIndex)
-            console.log("used origin", useful)
-            console.log("has char", useful.origin.value[useful.characterIndex])
-
-            var display = "block"
-            if (this.state.previewCharacterIndex !== null){
-                display = "none"
-            }
-
-            oPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
-
+            selectionOriginPath = this.getOriginPath(this.state.characterIndex)
         }
 
         var previewOriginPath = null;
         if (this.state.previewCharacterIndex !== null) {
-            var useful = this.getOriginAndCharacterIndex(this.state.previewCharacterIndex);
-
-            previewOriginPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
-
+            previewOriginPath = this.getOriginPath(this.state.previewCharacterIndex);
         }
 
-        var originPath = null;
+        var originPath = selectionOriginPath;
         if (previewOriginPath) {
             originPath = previewOriginPath
-        } else {
-            originPath = oPath;
         }
 
         return <ElementOriginPathContent
@@ -630,6 +611,10 @@ class ElementOriginPath extends React.Component {
             return this.props.el.outerHTML
         }
         return null;
+    }
+    getOriginPath(characterIndex){
+        var info = this.getOriginAndCharacterIndex(characterIndex)
+        return whereDoesCharComeFrom(info.origin, info.characterIndex)
     }
     getOriginAndCharacterIndex(characterIndex){
         characterIndex = parseFloat(characterIndex);
