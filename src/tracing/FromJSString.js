@@ -36,24 +36,27 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
 
             var valueItems = null;
             if (propertyName === "replace") {
-                var valueMap = new ValueMap();
                 var oldString = oldValue.toString()
-                var inputMappedSoFar = ""
-                oldString.replace(args[0], function(matchStr, index){
-                    if (typeof args[1] !== "string") throw "not handled"
-                    var inputBeforeToKeep = oldString.substring(inputMappedSoFar.length, index)
-                    valueMap.appendString(inputBeforeToKeep , oldValue.origin, inputMappedSoFar.length)
-                    inputMappedSoFar += inputBeforeToKeep
+                if (typeof args[1] === "string") {
+                    var valueMap = new ValueMap();
+                    var inputMappedSoFar = ""
+                    oldString.replace(args[0], function(matchStr, index){
+                        var inputBeforeToKeep = oldString.substring(inputMappedSoFar.length, index)
+                        valueMap.appendString(inputBeforeToKeep , oldValue.origin, inputMappedSoFar.length)
+                        inputMappedSoFar += inputBeforeToKeep
 
-                    var replaceWith = inputValues[2].value
-                    valueMap.appendString(replaceWith, inputValues[2], 0)
-                    inputMappedSoFar += matchStr
+                        var replaceWith = inputValues[2].value
+                        valueMap.appendString(replaceWith, inputValues[2], 0)
+                        inputMappedSoFar += matchStr
 
-                    return args[1]
-                })
-                valueMap.appendString(oldString.substring(inputMappedSoFar.length), oldValue.origin, inputMappedSoFar.length)
+                        return args[1]
+                    })
+                    valueMap.appendString(oldString.substring(inputMappedSoFar.length), oldValue.origin, inputMappedSoFar.length)
 
-                valueItems = valueMap.serialize(inputValues)
+                    valueItems = valueMap.serialize(inputValues)
+                } else {
+                    
+                }
             }
 
             if (typeof newVal === "string") {

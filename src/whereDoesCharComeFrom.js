@@ -169,6 +169,11 @@ function goUp(step){
         //     }
         // }
         // throw "need to handle this"
+
+        if (!step.originObject.valueItems){
+            return null;
+        }
+
         var valueMap = ValueMap.deserialize(step.originObject.valueItems, step.originObject.inputValues)
         ret = valueMap.getItemAt(step.characterIndex)
     }

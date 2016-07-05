@@ -190,6 +190,7 @@ export function disableTracing(){
     document.createElement = window.originalCreateElement
     Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
     Element.prototype.setAttribute = window.nativeSetAttribute
+    Object.defineProperty(Element.prototype, "innerHTML", nativeInnerHTMLDescriptor)
     localStorage.getItem = window.nativeLocalStorageGetItem;
 }
 
