@@ -588,21 +588,12 @@ class ElementOriginPath extends React.Component {
         }
 
         var elementCharSelector = null;
-        if (this.state.rootOrigin){
+        if (this.getInspectedValue()){
             elementCharSelector = <div style={{border: "1px solid #ddd"}}>
                 <TextEl
-                    text={this.state.rootOrigin.value}
+                    text={this.getInspectedValue()}
                     highlightedCharacterIndex={this.state.characterIndex}
                     onCharacterClick={(characterIndex) => this.setState({characterIndex})}
-                    onCharacterHover={(characterIndex) => this.setState({previewCharacterIndex: characterIndex})}
-                />
-            </div>
-        } else if (this.props.el) {
-            elementCharSelector = <div style={{border: "1px solid #ddd"}}>
-                <TextEl
-                    text={this.props.el.outerHTML}
-                    highlightedCharacterIndex={this.originComesFromElement() ? this.state.characterIndex : null}
-                    onCharacterClick={(characterIndex) => this.setState({characterIndex, rootOrigin: null})}
                     onCharacterHover={(characterIndex) => this.setState({previewCharacterIndex: characterIndex})}
                 />
             </div>
@@ -621,6 +612,14 @@ class ElementOriginPath extends React.Component {
     }
     originComesFromElement(){
         return this.state.rootOrigin === null
+    }
+    getInspectedValue(){
+        if (this.state.rootOrigin){
+            return this.state.rootOrigin.value
+        } else if (this.props.el) {
+            return this.props.el.outerHTML
+        }
+        return null;
     }
     getOriginAndCharacterIndex(){
         if (this.originComesFromElement()) {
