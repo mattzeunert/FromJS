@@ -22,7 +22,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
         StringTraceString.prototype[propertyName] = function(){
             var oldValue = this;
             var args = unstringTracifyArguments(arguments)
-            var newVal = String.prototype[propertyName].apply(this.toString(), args)
+            var newVal;
 
 
             var argumentOrigins = Array.prototype.slice.call(arguments).map(function(arg){
@@ -38,6 +38,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
             if (propertyName === "replace") {
                 var oldString = oldValue.toString()
                 if (typeof args[1] === "string") {
+                    var newVal = String.prototype[propertyName].apply(this.toString(), args);
                     var valueMap = new ValueMap();
                     var inputMappedSoFar = ""
                     oldString.replace(args[0], function(matchStr, index){
@@ -55,8 +56,27 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
 
                     valueItems = valueMap.serialize(inputValues)
                 } else {
-                    
+                    var calculatedNewVal = oldString.replace(args[0], function(){
+                        var argumentsArray = Array.prototype.slice.apply(arguments, [])
+                        var match = argumentsArray[0];
+                        var submatches = argumentsArray.slice(1, argumentsArray.length - 2)
+                        var offset = argumentsArray[argumentsArray.length - 2]
+                        var string = argumentsArray[argumentsArray.length - 1]
+
+                        var newArgsArray = [
+                            match,
+                            ...submatches,
+                            offset,
+                            string
+                        ];
+
+                        return args[1].apply(this, newArgsArray)
+                    })
+
+                    newVal = calculatedNewVal
                 }
+            } else {
+                newVal = String.prototype[propertyName].apply(this.toString(), args);
             }
 
             if (typeof newVal === "string") {
