@@ -126,3 +126,9 @@ body {
 .fromjs-btn-link:hover {
     text-decoration: underline;
 }
+
+.fromjs-element-marker {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+}

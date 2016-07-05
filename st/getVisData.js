@@ -56,49 +56,21 @@ function doneRenderingApp(){
         return true
     }
 
-    var selectionMarkerDiv = document.createElement("div")
-    selectionMarkerDiv.setAttribute("style", "outline: 2px solid #0088ff; position: fixed;z-index: 10001;pointer-events: none")
-    document.body.appendChild(selectionMarkerDiv)
-
-    var hoverMarkerDiv = document.createElement("div")
-    hoverMarkerDiv.setAttribute("style", "outline: 1px solid green; position: fixed;z-index: 10000;pointer-events: none")
-    document.body.appendChild(hoverMarkerDiv)
-
     $("*").off("click")
     $("*").click(function(e){
         if (!shouldHandle(e)) {return}
         e.stopPropagation();
         e.preventDefault();
         component.display(this)
-
-        var rect = this.getBoundingClientRect();
-        $(selectionMarkerDiv).css({
-            left: rect.left,
-            top: rect.top,
-            height: rect.height,
-            width: rect.width
-        })
     })
     $("*").mouseenter(function(e){
         if (!shouldHandle(e)) {return}
         e.stopPropagation()
-
-        console.log("enter", e.target)
         component.setPreviewEl(e.target)
-
-        var rect = this.getBoundingClientRect();
-        $(hoverMarkerDiv).css({
-            left: rect.left,
-            top: rect.top,
-            height: rect.height,
-            width: rect.width,
-            display: "block"
-        })
     })
     $("*").mouseleave(function(e){
         if (!shouldHandle(e)) {return}
         component.setPreviewEl(null)
-        $(hoverMarkerDiv).css("display", "none")
     })
 
 

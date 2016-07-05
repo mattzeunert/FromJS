@@ -578,6 +578,7 @@ class ElementOriginPath extends React.Component {
             onInspectedValueCharacterClick: (characterIndex) => this.setState({characterIndex}),
             onInspectedValueCharacterHover: (characterIndex) => this.setState({previewCharacterIndex: characterIndex}),
             inspectValue:  (origin, characterIndex) => {
+                this.props.onNonElementOriginSelected()
                 this.setState({
                     rootOrigin: origin,
                     characterIndex
@@ -650,6 +651,31 @@ class ElementOriginPath extends React.Component {
     }
 }
 
+class ElementMarker extends React.Component {
+    render(){
+        var rect = this.props.el.getBoundingClientRect()
+        var style = {
+            ...this.props.style,
+            left: rect.left,
+            top: rect.top,
+            height: rect.height,
+            width: rect.width
+        }
+        return <div style={style} className="fromjs-element-marker"></div>
+    }
+}
+
+class SelectedElementMarker extends React.Component {
+    render(){
+        return <ElementMarker el={this.props.el} style={{outline: "2px solid #0088ff"}} />
+    }
+}
+
+class PreviewElementMarker extends React.Component {
+    render(){
+        return <ElementMarker el={this.props.el} style={{outline: "1px solid green"}} />
+    }
+}
 
 export class FromJSView extends React.Component {
     constructor(props){
@@ -657,15 +683,23 @@ export class FromJSView extends React.Component {
         this.state = {
             el: null,
             previewEl: null,
+            // this shoudldn't be needed, should just reset state.el, but right now that wouldn't work
+            nonElementOriginSelected: null
         }
     }
     render(){
         var preview = null;
         var info = null;
+        var selectionMarker = null;
+        var previewMarker = null;
         if (this.state.previewEl !== null && this.state.previewEl !== this.state.el){
+            previewMarker = <PreviewElementMarker el={this.state.previewEl}/>
             preview = <ElementOriginPath key={this.state.previewEl} el={this.state.previewEl} />
         } else  if (this.state.el) {
-            info = <ElementOriginPath key={this.state.el} el={this.state.el}/>
+            if (!this.state.nonElementOriginSelected) {
+                selectionMarker = <SelectedElementMarker el={this.state.el} />
+            }
+            info = <ElementOriginPath key={this.state.el} el={this.state.el} onNonElementOriginSelected={() => this.setState({nonElementOriginSelected: true})}/>
         }
 
 
@@ -673,11 +707,15 @@ export class FromJSView extends React.Component {
             {preview}
 
             {info}
+
+            {previewMarker}
+            {selectionMarker}
         </div>
     }
     display(el){
         this.setState({
-            el: el
+            el: el,
+            nonElementOriginSelected: false
         })
     }
     setPreviewEl(el){
