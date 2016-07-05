@@ -572,34 +572,46 @@ class ElementOriginPath extends React.Component {
         }
     }
     render(){
-        var selectionOriginPath = null;
+        var sharedProps = {
+            inspectedValue: this.getInspectedValue(),
+            inspectedValueCharacterIndex: this.state.characterIndex,
+            onInspectedValueCharacterClick: (characterIndex) => this.setState({characterIndex}),
+            onInspectedValueCharacterHover: (characterIndex) => this.setState({previewCharacterIndex: characterIndex}),
+            inspectValue:  (origin, characterIndex) => {
+                this.setState({
+                    rootOrigin: origin,
+                    characterIndex
+                })
+            }
+        }
+
+        var selectionComponent = null;
         if (this.state.characterIndex !== null) {
-            selectionOriginPath = this.getOriginPath(this.state.characterIndex)
+            var display = "block"
+            if (this.state.previewCharacterIndex !== null) {
+                display = "none"
+            }
+            selectionComponent = <div style={{display: display}}>
+                <ElementOriginPathContent
+                    {...sharedProps}
+                    originPath={this.getOriginPath(this.state.characterIndex)}
+                />
+            </div>
         }
 
-        var previewOriginPath = null;
+        var previewComponent = null;
         if (this.state.previewCharacterIndex !== null) {
-            previewOriginPath = this.getOriginPath(this.state.previewCharacterIndex);
+            previewComponent = <ElementOriginPathContent
+                    {...sharedProps}
+                    originPath={this.getOriginPath(this.state.previewCharacterIndex)}
+                />
         }
 
-        var originPath = selectionOriginPath;
-        if (previewOriginPath) {
-            originPath = previewOriginPath
-        }
+        return <div>
+            {selectionComponent}
+            {previewComponent}
+        </div>
 
-        return <ElementOriginPathContent
-                inspectedValue={this.getInspectedValue()}
-                inspectedValueCharacterIndex={this.state.characterIndex}
-                onInspectedValueCharacterClick={(characterIndex) => this.setState({characterIndex})}
-                onInspectedValueCharacterHover={(characterIndex) => this.setState({previewCharacterIndex: characterIndex})}
-                originPath={originPath}
-                inspectValue={(origin, characterIndex) => {
-                    this.setState({
-                        rootOrigin: origin,
-                        characterIndex
-                    })
-                }}
-            />
     }
     originComesFromElement(){
         return this.state.rootOrigin === null
