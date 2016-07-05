@@ -43,6 +43,15 @@
     color: red
 }
 
+.fromjs-input-value-link {
+    paddging: 4px;
+    padding-left: 10px;
+    cursor: pointer;
+}
+.fromjs-input-value-link:hover {
+    color: red;
+}
+
 .fromjs-origin-path-step .fromjs-origin-path-step__only-show-on-step-hover {
     display: none;
 }

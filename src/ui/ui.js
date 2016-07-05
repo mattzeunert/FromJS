@@ -13,6 +13,13 @@ function getFilenameFromPath(path){
     return filename
 }
 
+function truncate(str, maxLength){
+    if (str.length <= maxLength) {
+        return str
+    }
+    return str.substr(0, 40) + "..."
+}
+
 export class OriginPath extends React.Component {
     constructor(props){
         super(props)
@@ -79,7 +86,7 @@ class OriginPathItem extends React.Component {
             selectedFrameString: null,
             resolvedFrame: null,
             codeFilePath: null,
-            showStackFrameSelector: false,
+            showDetailsDropdown: false,
             previewFrameString: null
         }
     }
@@ -153,13 +160,13 @@ class OriginPathItem extends React.Component {
         }
 
         var stackFrameSelector = null;
-        if (this.state.showStackFrameSelector){
+        if (this.state.showDetailsDropdown){
             stackFrameSelector = <StackFrameSelector
                 stack={originObject.stack}
                 selectedFrameString={this.state.selectedFrameString}
                 onFrameSelected={(frameString) => {
                     this.selectFrameString(frameString)
-                    this.setState({showStackFrameSelector: false})
+                    this.setState({showDetailsDropdown: false})
                 }}
                 onFrameHovered={(frameString) => {
                     this.setState({previewFrameString: frameString})
@@ -167,12 +174,25 @@ class OriginPathItem extends React.Component {
             />
         }
 
+        var inputValueLinks = null;
+        if (this.state.showDetailsDropdown){
+            inputValueLinks = <div style={{background: "aliceblue", paddingLeft: 10}}>
+                <div>Parameters: </div>
+                {originObject.inputValues.map((iv) => {
+                    return <div className="fromjs-input-value-link"
+                        onClick={() => this.props.handleValueSpanClick(iv, 0)}>
+                        {truncate(iv.value, 40)} ({iv.action})
+                    </div>
+                })}
+            </div>
+        }
+
         var toggleFrameSelectorButton = null;
         if (originObject.stack && originObject.stack.length > 1) {
             toggleFrameSelectorButton = <button
                 className="fromjs-origin-path-step__stack-frame-selector-toggle"
-                onClick={() => this.setState({showStackFrameSelector: !this.state.showStackFrameSelector})}>
-                {this.state.showStackFrameSelector ? "\u25B2" : "\u25BC"}
+                onClick={() => this.setState({showDetailsDropdown: !this.state.showDetailsDropdown})}>
+                {this.state.showDetailsDropdown ? "\u25B2" : "\u25BC"}
             </button>
         }
 
@@ -197,7 +217,9 @@ class OriginPathItem extends React.Component {
                     {toggleFrameSelectorButton}
                 </div>
 
+                {inputValueLinks}
                 {stackFrameSelector}
+
 
                 {stack}
                 {previewStack}
