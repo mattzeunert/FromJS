@@ -642,7 +642,7 @@ class ElementOriginPath extends React.Component {
         }
     }
     getDefaultCharacterIndex(el){
-        console.log("getting default char for", el.outerHTML)
+        // console.log("getting default char for", el.outerHTML)
         var defaultCharacterIndex = el.outerHTML.indexOf(">") + 1;
         if (defaultCharacterIndex >= el.outerHTML.length) {
             defaultCharacterIndex = 1;
@@ -673,7 +673,7 @@ class SelectedElementMarker extends React.Component {
 
 class PreviewElementMarker extends React.Component {
     render(){
-        return <ElementMarker el={this.props.el} style={{outline: "1px solid green"}} />
+        return <ElementMarker el={this.props.el} style={{outline: "2px solid green"}} />
     }
 }
 
@@ -703,11 +703,12 @@ export class FromJSView extends React.Component {
         }
 
 
-        return <div id="fromjs" className="fromjs">
-            {preview}
+        return <div>
+            <div id="fromjs" className="fromjs">
+                {preview}
 
-            {info}
-
+                {info}
+            </div>
             {previewMarker}
             {selectionMarker}
         </div>
