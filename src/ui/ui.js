@@ -580,8 +580,7 @@ class ElementOriginPath extends React.Component {
 
         var previewOrigin = null;
         if (this.state.previewCharacterIndex !== null) {
-            var characterIndex = parseFloat(this.state.previewCharacterIndex);
-            var useful = getRootOriginAtChar(this.props.el, characterIndex);
+            var useful = this.getPreviewOriginAndCharacterIndex();
 
             var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
             previewOrigin =  <OriginPath
@@ -589,7 +588,16 @@ class ElementOriginPath extends React.Component {
         }
 
         var elementCharSelector = null;
-        if (this.props.el) {
+        if (this.state.rootOrigin){
+            elementCharSelector = <div style={{border: "1px solid #ddd"}}>
+                <TextEl
+                    text={this.state.rootOrigin.value}
+                    highlightedCharacterIndex={this.state.characterIndex}
+                    onCharacterClick={(characterIndex) => this.setState({characterIndex})}
+                    onCharacterHover={(characterIndex) => this.setState({previewCharacterIndex: characterIndex})}
+                />
+            </div>
+        } else if (this.props.el) {
             elementCharSelector = <div style={{border: "1px solid #ddd"}}>
                 <TextEl
                     text={this.props.el.outerHTML}
@@ -622,6 +630,18 @@ class ElementOriginPath extends React.Component {
         } else {
             return {
                 characterIndex: this.state.characterIndex,
+                origin: this.state.rootOrigin
+            }
+        }
+    }
+    getPreviewOriginAndCharacterIndex(){
+        if (this.originComesFromElement()) {
+            var characterIndex = parseFloat(this.state.previewCharacterIndex);
+            var useful = getRootOriginAtChar(this.props.el, characterIndex);
+            return useful
+        } else {
+            return {
+                characterIndex: this.state.previewCharacterIndex,
                 origin: this.state.rootOrigin
             }
         }
