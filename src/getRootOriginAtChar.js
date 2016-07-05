@@ -23,7 +23,7 @@ export default function getRootOriginAtChar(el, characterIndex){
         var vm = new ValueMap();
 
         var openingTagStart = "<" + el.tagName
-        vm.appendString(openingTagStart, el.__elOrigin.tagName, 0)
+        vm.appendString(openingTagStart, el.__elOrigin.openingTagStart, 0)
 
         for (var i = 0;i<el.attributes.length;i++) {
             var attr = el.attributes[i]
@@ -42,7 +42,7 @@ export default function getRootOriginAtChar(el, characterIndex){
             openingTagEnd +=  "/"
         }
         openingTagEnd += ">"
-        vm.appendString(openingTagEnd, el.__elOrigin.tagName, 0)
+        vm.appendString(openingTagEnd, el.__elOrigin.openingTagEnd, 0)
 
         var item = vm.getItemAt(characterIndex)
         console.log("is in opening tag at charIndex", characterIndex, "mapping to index", item.characterIndex, item)
@@ -51,10 +51,10 @@ export default function getRootOriginAtChar(el, characterIndex){
             characterIndex: item.characterIndex + (item.originObject.inputValuesCharacterIndex ? item.originObject.inputValuesCharacterIndex[0] : 0)
         }
     } else if (item.originObject === "closingTag") {
-        var ivIndex =  el.__elOrigin.tagName.inputValuesCharacterIndex
-        var indexInClosingTag = characterIndex - innerHTML.length - openingTag.length
+        var ivIndex =  el.__elOrigin.closingTag.inputValuesCharacterIndex
+        var indexInClosingTag = item.characterIndex;
         return {
-            origin: el.__elOrigin.tagName,
+            origin: el.__elOrigin.closingTag,
             characterIndex: indexInClosingTag + (ivIndex ? ivIndex[0] : 0)
         }
     } else if (item.originObject === "innerHTML") {

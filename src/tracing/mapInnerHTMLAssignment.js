@@ -37,7 +37,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 forDebuggingProcessedHtml += child.textContent
             } else {
 
-                addElOrigin(child, "tagName", {
+                addElOrigin(child, "openingTagStart", {
                     action: actionName,
                     inputValues: [assignedInnerHTML],
                     inputValuesCharacterIndex: [charOffset],
@@ -92,21 +92,33 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                 // console.log("extraCharsAdded", extraCharsAdded)
 
-                var openingTagEnd = ""
-                // if (!tagTypeHasClosingTag(child.tagName)) {
-                //     openingTagEnd +=  "/"
-                // }
-                openingTagEnd += ">"
+                var openingTagEnd = ">"
+                addElOrigin(child, "openingTagEnd", {
+                    action: actionName,
+                    inputValues: [assignedInnerHTML],
+                    inputValuesCharacterIndex: [charOffset],
+                    value: innerHTMLAfterAssignment,
+                    extraCharsAdded: extraCharsAdded
+                })
                 charOffset += openingTagEnd.length
                 forDebuggingProcessedHtml += openingTagEnd
+
 
                 processNewInnerHtml(child)
 
                 if (tagTypeHasClosingTag(child.tagName)) {
+                    addElOrigin(child, "closingTag", {
+                        action: actionName,
+                        inputValues: [assignedInnerHTML],
+                        inputValuesCharacterIndex: [charOffset],
+                        value: innerHTMLAfterAssignment,
+                        extraCharsAdded: extraCharsAdded
+                    })
                     var closingTag = "</" + child.tagName + ">"
                     charOffset += closingTag.length
                     forDebuggingProcessedHtml += closingTag
                 }
+
             }
             // console.log("processed", forDebuggingProcessedHtml, assignedInnerHTML.toString().toLowerCase().replace(/\"/g, "'") === forDebuggingProcessedHtml.toLowerCase())
 
