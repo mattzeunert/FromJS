@@ -73,7 +73,9 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                                     action: "Untracked replace match result",
                                     inputValues: []
                                 }
-                            })
+                            }).origin
+                        } else {
+                            replaceWith = replaceWith.origin
                         }
                     }
                     valueMap.appendString(replaceWith.value, replaceWith, 0)
@@ -85,6 +87,17 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 })
 
                 valueMap.appendString(oldString.substring(inputMappedSoFar.length), oldValue.origin, inputMappedSoFar.length)
+
+                valueItems = valueMap.serialize(inputValues)
+
+            } else if (propertyName === "slice"){
+                var valueMap = new ValueMap();
+                if (args[1] < 0) {throw "not handled yet"}
+
+                var oldString = oldValue.toString()
+                newVal = oldString.slice(args[0], args[1])
+
+                valueMap.appendString(newVal, oldValue.origin, args[0]) // oldvalue.origin is inputValues[0]
 
                 valueItems = valueMap.serialize(inputValues)
 

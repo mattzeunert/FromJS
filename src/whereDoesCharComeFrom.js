@@ -160,20 +160,9 @@ function goUp(step){
             characterIndex: characterIndex
         }
     } else if (step.originObject.action === "replace call") {
-        // var valueBeforeReplace= step.originObject.inputValues[0].value
-        // var replaceCallDidntChangeValue =valueBeforeReplace === step.originObject.value
-        // if (replaceCallDidntChangeValue){
-        //     return {
-        //         originObject: step.originObject.inputValues[0],
-        //         characterIndex: step.characterIndex
-        //     }
-        // }
-        // throw "need to handle this"
-
-        if (!step.originObject.valueItems){
-            return null;
-        }
-
+        var valueMap = ValueMap.deserialize(step.originObject.valueItems, step.originObject.inputValues)
+        ret = valueMap.getItemAt(step.characterIndex)
+    }else if (step.originObject.action === "slice call") {
         var valueMap = ValueMap.deserialize(step.originObject.valueItems, step.originObject.inputValues)
         ret = valueMap.getItemAt(step.characterIndex)
     }

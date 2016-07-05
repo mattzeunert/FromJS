@@ -71,8 +71,14 @@ ValueMap.prototype.debugginGetValue = function(){
 ValueMap.prototype.serialize = function(inputValues){
     // console.log("serialize with", inputValues)
     var ret = this.items.map(function(item){
+        var originObjectIndex = inputValues.indexOf(item.originObject);
+        var originObjectLiteral = null
+        if (originObjectIndex === -1) {
+            originObjectLiteral = item.originObject
+        }
         return {
-            originObjectIndex: inputValues.indexOf(item.originObject),
+            originObjectIndex,
+            originObjectLiteral,
             fromCharIndex: item.fromCharIndex,
             toCharIndex: item.toCharIndex,
             __justForDebuggingStr: item.__justForDebuggingStr,
@@ -85,11 +91,17 @@ ValueMap.deserialize = function(serializedValueMap, inputValues){
     console.log("deserialize with ", inputValues)
     var valueMap = new ValueMap();
     serializedValueMap.forEach(function(item){
+        var originObject;
+        if (item.originObjectIndex !== -1){
+            originObject = inputValues[item.originObjectIndex];
+        } else {
+            originObject = item.originObjectLiteral
+        }
         valueMap.items.push({
             fromCharIndex: item.fromCharIndex,
             toCharIndex: item.toCharIndex,
             __justForDebuggingStr: item.__justForDebuggingStr,
-            originObject: inputValues[item.originObjectIndex],
+            originObject,
             indexInOriginValue: item.indexInOriginValue
         })
     })
