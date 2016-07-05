@@ -354,9 +354,9 @@ class TextEl extends React.Component {
                         return index >= charOffsetStart && index < charOffsetEnd
                     },
                     splitAtCharIndex: function(index){
-                        var lineBeforeIndex = lineString.substr(0, highlightedCharIndex - charOffsetStart);
-                        var lineAtIndex = lineString.substr(highlightedCharIndex - charOffsetStart, 1);
-                        var lineAfterIndex = lineString.substr(highlightedCharIndex + 1 - charOffsetStart)
+                        var lineBeforeIndex = text.substr(0, highlightedCharIndex - charOffsetStart);
+                        var lineAtIndex = text.substr(highlightedCharIndex - charOffsetStart, 1);
+                        var lineAfterIndex = text.substr(highlightedCharIndex + 1 - charOffsetStart)
                         return [{
                             text: lineBeforeIndex,
                             charOffsetStart: charOffsetStart
