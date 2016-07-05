@@ -4,7 +4,8 @@ import makeTraceObject from "./makeTraceObject"
 import Origin from "../origin"
 import _ from "underscore"
 
-window.fromJSDynamicFiles = []
+window.fromJSDynamicFiles = {}
+window.fromJSDynamicFileOrigins = {}
 
 export function enableTracing(){
     window.tracingEnabled = true
@@ -153,7 +154,8 @@ export function enableTracing(){
 
         fromJSDynamicFiles[smFilename] = res.map
         fromJSDynamicFiles[filename] = evalCode
-        fromJSDynamicFiles[filename + "?dontprocess=yes"] = code
+        fromJSDynamicFiles[filename + "?dontprocess=yes"] = code.value
+        fromJSDynamicFileOrigins[filename + "?dontprocess=yes"] = code.origin
 
         return function(){
             return window[fnName].apply(this, arguments)

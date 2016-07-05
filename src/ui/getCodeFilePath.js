@@ -1,8 +1,8 @@
 import {getSourceFileContent} from "../resolve-frame"
-var stringContains = require("string-contains");
+import fileIsDynamicCode from "../fileIsDynamicCode"
 
 export default function getCodeFilePath(filename, callback){
-    if (stringContains(filename, "DynamicFunction")){
+    if (fileIsDynamicCode(filename)){
         // dynamic function doesn't exist on server (created with eval/new Function)
         // so get the cached version
         getSourceFileContent(filename, function(src){

@@ -26,6 +26,7 @@
     color: black;
     text-decoration: none;
     color: #555;
+    cursor: pointer;
 }
 .origin-path-step__filename:hover {
     text-decoration: underline;
@@ -41,6 +42,14 @@
 .fromjs-origin-path-step__stack-frame-selector-toggle:hover {
     color: red
 }
+
+.fromjs-origin-path-step .fromjs-origin-path-step__only-show-on-step-hover {
+    display: none;
+}
+.fromjs-origin-path-step:hover .fromjs-origin-path-step__only-show-on-step-hover {
+    display: inline-block;
+}
+
 
 
 .fromjs-stack-frame-selector__item {

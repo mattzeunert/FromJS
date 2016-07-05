@@ -50,7 +50,6 @@ function stringTraceTypeOf(a){
         return "string"
     }
     return typeof a
-
 }
 
 function stringTraceAdd(a, b){

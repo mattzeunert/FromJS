@@ -4,6 +4,7 @@ import resolveFrame from "../resolve-frame"
 import getRootOriginAtChar from "../getRootOriginAtChar"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getCodeFilePath from "./getCodeFilePath"
+import fileIsDynamicCode from "../fileIsDynamicCode"
 
 function getFilenameFromPath(path){
     var pathParts = path.split("/");
@@ -111,6 +112,7 @@ class OriginPathItem extends React.Component {
         var originObject = this.props.originPathItem.originObject
 
         var filenameLink = null
+        var viewSourceOriginButton = null;
         if (this.state.resolvedFrame) {
             var filename = this.state.resolvedFrame.fileName;
             var originalFilename = filename.replace("?dontprocess=yes", "");
@@ -118,6 +120,15 @@ class OriginPathItem extends React.Component {
             var uiFilename  = _.last(filenameParts)
 
             filenameLink = <a className="origin-path-step__filename" href={this.state.codeFilepath} target="_blank">{uiFilename}</a>
+        }
+        if (this.state.resolvedFrame && fileIsDynamicCode(this.state.resolvedFrame.fileName)){
+            viewSourceOriginButton = <button
+                className="fromjs-btn-link fromjs-origin-path-step__only-show-on-step-hover"
+                onClick={
+                    () => this.props.handleValueSpanClick(fromJSDynamicFileOrigins[this.state.resolvedFrame.fileName], 0)
+                }>
+                Show Source Origin
+            </button>
         }
 
         var stack = null;
@@ -165,7 +176,7 @@ class OriginPathItem extends React.Component {
             </button>
         }
 
-        return <div style={{border: "1px solid #ddd", marginBottom: 20}}>
+        return <div className="fromjs-origin-path-step" style={{border: "1px solid #ddd", marginBottom: 20}}>
             <div >
                 <div style={{background: "aliceblue"}}>
                     <span style={{
@@ -179,6 +190,9 @@ class OriginPathItem extends React.Component {
                         <span>
                             {filenameLink}
                         </span>
+                        &nbsp;{viewSourceOriginButton}
+
+
                     </span>
                     {toggleFrameSelectorButton}
                 </div>
