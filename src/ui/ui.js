@@ -555,7 +555,7 @@ class ElementOriginPath extends React.Component {
         var origin = null;
 
         if (this.state.characterIndex !== null) {
-            var useful = this.getOriginAndCharacterIndex()
+            var useful = this.getOriginAndCharacterIndex(this.state.characterIndex)
             console.log("used origin", useful)
             console.log("has char", useful.origin.value[useful.characterIndex])
 
@@ -580,7 +580,7 @@ class ElementOriginPath extends React.Component {
 
         var previewOrigin = null;
         if (this.state.previewCharacterIndex !== null) {
-            var useful = this.getPreviewOriginAndCharacterIndex();
+            var useful = this.getOriginAndCharacterIndex(this.state.previewCharacterIndex);
 
             var originPath = whereDoesCharComeFrom(useful.origin, useful.characterIndex)
             previewOrigin =  <OriginPath
@@ -621,26 +621,14 @@ class ElementOriginPath extends React.Component {
         }
         return null;
     }
-    getOriginAndCharacterIndex(){
+    getOriginAndCharacterIndex(characterIndex){
+        characterIndex = parseFloat(characterIndex);
         if (this.originComesFromElement()) {
-            var characterIndex = parseFloat(this.state.characterIndex);
             var useful = getRootOriginAtChar(this.props.el, characterIndex);
             return useful
         } else {
             return {
-                characterIndex: this.state.characterIndex,
-                origin: this.state.rootOrigin
-            }
-        }
-    }
-    getPreviewOriginAndCharacterIndex(){
-        if (this.originComesFromElement()) {
-            var characterIndex = parseFloat(this.state.previewCharacterIndex);
-            var useful = getRootOriginAtChar(this.props.el, characterIndex);
-            return useful
-        } else {
-            return {
-                characterIndex: this.state.previewCharacterIndex,
+                characterIndex: characterIndex,
                 origin: this.state.rootOrigin
             }
         }
