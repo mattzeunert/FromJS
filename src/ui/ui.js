@@ -331,11 +331,53 @@ class TextEl extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            truncateText: true
+
         }
     }
     render(){
         var self = this;
+
+        function splitLines(str){
+            var lineStrings = str.split("\n")
+            var lines = [];
+            var charOffset = 0
+            lineStrings.forEach(function(lineString, i){
+                var isLastLine = i + 1 === lineStrings.length
+                var text = lineString + (isLastLine ? "" : "\n");
+                var charOffsetStart = charOffset
+                var charOffsetEnd = charOffset + text.length;
+                lines.push({
+                    text: text,
+                    charOffsetStart: charOffsetStart,
+                    charOffsetEnd: charOffsetEnd,
+                    containsCharIndex: function(index){
+                        return index >= charOffsetStart && index < charOffsetEnd
+                    },
+                    splitAtCharIndex: function(index){
+                        var lineBeforeIndex = lineString.substr(0, highlightedCharIndex - charOffsetStart);
+                        var lineAtIndex = lineString.substr(highlightedCharIndex - charOffsetStart, 1);
+                        var lineAfterIndex = lineString.substr(highlightedCharIndex + 1 - charOffsetStart)
+                        return [{
+                            text: lineBeforeIndex,
+                            charOffsetStart: charOffsetStart
+                        }, {
+                            text: lineAtIndex,
+                            charOffsetStart: charOffsetStart + lineBeforeIndex.length
+                        }, {
+                            text: lineAfterIndex,
+                            charOffsetStart: charOffsetStart + lineBeforeIndex.length + lineAtIndex.length
+                        }]
+                    }
+                })
+                charOffset = charOffsetEnd
+            })
+
+            if (charOffset !== str.length){
+                throw "looks like sth went wrong?"
+            }
+            return lines;
+        }
+
         function processChar(char){
             if (char==="\n"){
                 char = "\u21B5" // downwards arrow with corner leftwards
@@ -367,7 +409,6 @@ class TextEl extends React.Component {
                 onMouseLeave={onMouseLeave}
             >
                 {processedChar}
-                {char === "\n" ? <br/> : null}
             </span>
         }
         function getValueSpans(val, indexOffset){
@@ -398,41 +439,55 @@ class TextEl extends React.Component {
                 {getValueSpans(val, 0)}
             </div>
         } else {
+            var lines = splitLines(val)
+
             var valBeforeColumn = val.substr(0, highlightedCharIndex);
             var valAtColumn = val.substr(highlightedCharIndex, 1);
             var valAfterColumn = val.substr(highlightedCharIndex+ 1)
 
-            var beforeColumnValueSpans = getValueSpans(valBeforeColumn, 0)
-            // if content is too long to hide the highlight truncate text
-            // cut the list of spans rather than the valBeforeColumn string
-            // to maintain the correct character index on click on a char
-            if (this.state.truncateText && beforeColumnValueSpans.length > 50) {
-                var beforeEllipsis = beforeColumnValueSpans.slice(0, 10)
-                var afterEllipsis = beforeColumnValueSpans.slice(beforeColumnValueSpans.length - 20)
-                beforeColumnValueSpans = [
-                    ...beforeEllipsis,
-                    <span onClick={() => this.disableTruncation()}>...</span>,
-                    ...afterEllipsis
-                ]
+            var highlightedCharLineIndex = valBeforeColumn.split("\n").length
+
+            var showFromLineIndex = highlightedCharLineIndex - 3;
+            if (showFromLineIndex < 0) {
+                showFromLineIndex = 0;
             }
 
-            var afterColumnValueSpans = getValueSpans(valAfterColumn, valBeforeColumn.length + valAtColumn.length);
-            if (this.state.truncateText && afterColumnValueSpans.length > 50){
-                afterColumnValueSpans = afterColumnValueSpans.slice(0, 40)
-                afterColumnValueSpans.push(<span onClick={() => this.disableTruncation()}>...</span>)
+            var linesToShow = lines.slice(showFromLineIndex, showFromLineIndex + 5)
+
+            function getLineComponent(line, beforeSpan, afterSpan){
+                var valueSpans = []
+                if (line.containsCharIndex(highlightedCharIndex)){
+                    var chunks = line.splitAtCharIndex(highlightedCharIndex)
+
+                    valueSpans = valueSpans.concat(getValueSpans(chunks[0].text, chunks[0].charOffsetStart))
+                    valueSpans = valueSpans.concat(getValueSpan(chunks[1].text, "fromjs-highlighted-character", function(){}, function(){}, function(){}))
+                    valueSpans = valueSpans.concat(getValueSpans(chunks[2].text, chunks[2].charOffsetStart))
+                } else {
+                    valueSpans = getValueSpans(line.text, line.charOffsetStart);
+                }
+                return <div>
+                    {beforeSpan}
+                    {valueSpans}
+                    {afterSpan}
+                </div>
             }
 
             return <HorizontalScrollContainer>
                 <div className="fromjs-value">
-                    {beforeColumnValueSpans}
-                    {getValueSpan(valAtColumn, "fromjs-highlighted-character", function(){}, function(){}, function(){}) }
-                    {afterColumnValueSpans}
+                    {linesToShow.map(function(line, i){
+                        var beforeSpan = null;
+                        if (i === 0 && line.charOffsetStart > 0){
+                            beforeSpan = <span>...</span>
+                        }
+                        var afterSpan = null;
+                        if (i === linesToShow.length - 1 && line.charOffsetEnd < val.length) {
+                            afterSpan = <span>...</span>
+                        }
+                        return getLineComponent(line, beforeSpan, afterSpan)
+                    })}
                 </div>
             </HorizontalScrollContainer>
         }
-    }
-    disableTruncation(){
-        this.setState({truncateText: false})
     }
 }
 
