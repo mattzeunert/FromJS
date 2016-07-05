@@ -37,44 +37,57 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
             var valueItems = null;
             if (propertyName === "replace") {
                 var oldString = oldValue.toString()
-                if (typeof args[1] === "string") {
-                    var newVal = String.prototype[propertyName].apply(this.toString(), args);
-                    var valueMap = new ValueMap();
-                    var inputMappedSoFar = ""
-                    oldString.replace(args[0], function(matchStr, index){
-                        var inputBeforeToKeep = oldString.substring(inputMappedSoFar.length, index)
-                        valueMap.appendString(inputBeforeToKeep , oldValue.origin, inputMappedSoFar.length)
-                        inputMappedSoFar += inputBeforeToKeep
 
-                        var replaceWith = inputValues[2].value
-                        valueMap.appendString(replaceWith, inputValues[2], 0)
-                        inputMappedSoFar += matchStr
+                var valueMap = new ValueMap();
+                var inputMappedSoFar = ""
 
-                        return args[1]
-                    })
-                    valueMap.appendString(oldString.substring(inputMappedSoFar.length), oldValue.origin, inputMappedSoFar.length)
+                var newVal = oldString.replace(args[0], function(){
+                    var argumentsArray = Array.prototype.slice.apply(arguments, [])
+                    var match = argumentsArray[0];
+                    var submatches = argumentsArray.slice(1, argumentsArray.length - 2)
+                    var offset = argumentsArray[argumentsArray.length - 2]
+                    var string = argumentsArray[argumentsArray.length - 1]
 
-                    valueItems = valueMap.serialize(inputValues)
-                } else {
-                    var calculatedNewVal = oldString.replace(args[0], function(){
-                        var argumentsArray = Array.prototype.slice.apply(arguments, [])
-                        var match = argumentsArray[0];
-                        var submatches = argumentsArray.slice(1, argumentsArray.length - 2)
-                        var offset = argumentsArray[argumentsArray.length - 2]
-                        var string = argumentsArray[argumentsArray.length - 1]
+                    var newArgsArray = [
+                        match,
+                        ...submatches,
+                        offset,
+                        string
+                    ];
+                    // debugger;
 
-                        var newArgsArray = [
-                            match,
-                            ...submatches,
-                            offset,
-                            string
-                        ];
+                    var inputBeforeToKeep = oldString.substring(inputMappedSoFar.length, offset)
+                    valueMap.appendString(inputBeforeToKeep , oldValue.origin, inputMappedSoFar.length)
+                    inputMappedSoFar += inputBeforeToKeep
 
-                        return args[1].apply(this, newArgsArray)
-                    })
+                    var replaceWith = null;
+                    if (typeof args[1] === "string") { // confusing... args[1] is basically inputValues[2].value
+                        replaceWith = inputValues[2]
+                    } else {
+                        replaceWith = args[1].apply(this, newArgsArray)
+                        if (!replaceWith.origin) {
+                            replaceWith = makeTraceObject({
+                                value: replaceWith,
+                                origin: {
+                                    value: replaceWith,
+                                    action: "Untracked replace match result",
+                                    inputValues: []
+                                }
+                            })
+                        }
+                    }
+                    valueMap.appendString(replaceWith.value, replaceWith, 0)
 
-                    newVal = calculatedNewVal
-                }
+
+                    inputMappedSoFar += match
+
+                    return replaceWith.value
+                })
+
+                valueMap.appendString(oldString.substring(inputMappedSoFar.length), oldValue.origin, inputMappedSoFar.length)
+
+                valueItems = valueMap.serialize(inputValues)
+
             } else {
                 newVal = String.prototype[propertyName].apply(this.toString(), args);
             }
