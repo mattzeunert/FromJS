@@ -208,6 +208,12 @@ function goUp(step, callback){
         })
         return;
     }
+    else if (step.originObject.action === "Replace Submatch"){
+        ret = {
+            originObject: step.originObject.inputValues[0],
+            characterIndex: step.characterIndex + step.originObject.inputValuesCharacterIndex[0]
+        }
+    }
     else if (step.originObject.action === "String Literal"){
         callback(null)
         resolveFrame(step.originObject.stack[0], function(err, frame){

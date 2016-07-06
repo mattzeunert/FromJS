@@ -52,13 +52,15 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                         if (typeof submatch !== "string"){
                             return submatch
                         }
+
                         return makeTraceObject({
                             value: submatch,
-                            origin: {
+                            origin: new Origin({
                                 value: submatch,
-                                action: "Untracked replace submatch",
-                                inputValues: []
-                            }
+                                action: "Replace Submatch",
+                                inputValues: [oldValue],
+                                inputValuesCharacterIndex: [offset + match.indexOf(submatch)]
+                            })
                         })
                     })
 
