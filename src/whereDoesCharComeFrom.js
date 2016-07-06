@@ -1,6 +1,6 @@
 import ValueMap from "./value-map"
 import exportElementOrigin from "./export-element-origin"
-var ErrorStackParser = require("./error-stack-parser")
+import resolveFrame from "./resolve-frame"
 import fileIsDynamicCode from "./fileIsDynamicCode"
 
 export default function whereDoesCharComeFrom(originObject, characterIndex, callback){
@@ -195,6 +195,21 @@ function goUp(step, callback){
     }
     else if (step.originObject.action === "String Literal"){
         callback(null)
+        resolveFrame(step.originObject.stack[0], function(err, frame){
+
+            if (fileIsDynamicCode(frame.fileName)){
+                callback({
+                    originObject: {
+                        action: "sttth",
+                        value: "sttth",
+                        inputValues: []
+                    },
+                    characterIndex: 2
+                })
+            } else {
+                callback(null)
+            }
+        })
         return;
     }
     else {
@@ -213,5 +228,5 @@ function goUp(step, callback){
 
 
 
-    return callback(ret);
+    callback(ret);
 }
