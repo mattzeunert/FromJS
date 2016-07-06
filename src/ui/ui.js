@@ -40,7 +40,6 @@ export class OriginPath extends React.Component {
             return;
         }
         this.setState({isGettingOriginPath: true})
-
         this.props.getOriginPath((originPath) => {
             this.setState({
                 originPath,
@@ -634,6 +633,7 @@ class ElementOriginPathContent extends React.Component {
             <div style={{padding: 10}}>
                 <OriginPath
                     getOriginPath={this.props.getOriginPath}
+                    key={this.props.originPathKey}
                     handleValueSpanClick={(origin, characterIndex) => this.props.inspectValue(origin, characterIndex)}
                 />
             </div>
@@ -647,16 +647,8 @@ class ElementOriginPath extends React.Component {
         this.state = {
             characterIndex: this.getDefaultCharacterIndex(props.el),
             previewCharacterIndex: null,
-            rootOrigin: null,
-            originPath: null,
-            previewOriginPath: null
+            rootOrigin: null
         }
-    }
-    onComponentDidMount(){
-
-    }
-    resetAndUpdateOriginPath(){
-
     }
     render(){
         var sharedProps = {
@@ -683,6 +675,7 @@ class ElementOriginPath extends React.Component {
                 <ElementOriginPathContent
                     {...sharedProps}
                     getOriginPath={(callback) => this.getOriginPath(this.state.characterIndex, callback)}
+                    originPathKey={this.getOriginPathKey(this.state.characterIndex)}
                 />
             </div>
         }
@@ -692,6 +685,7 @@ class ElementOriginPath extends React.Component {
             previewComponent = <ElementOriginPathContent
                     {...sharedProps}
                     getOriginPath={(callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)}
+                    originPathKey={this.getOriginPathKey(this.state.previewCharacterIndex)}
                 />
         }
 
@@ -715,6 +709,10 @@ class ElementOriginPath extends React.Component {
     getOriginPath(characterIndex, callback){
         var info = this.getOriginAndCharacterIndex(characterIndex)
         whereDoesCharComeFrom(info.origin, info.characterIndex, callback)
+    }
+    getOriginPathKey(characterIndex){
+        var info = this.getOriginAndCharacterIndex(characterIndex)
+        return JSON.stringify(info)
     }
     getOriginAndCharacterIndex(characterIndex){
         characterIndex = parseFloat(characterIndex);
