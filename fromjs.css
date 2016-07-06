@@ -20,6 +20,12 @@
     overflow: auto;
 }
 
+.fromjs-stack__code-column {
+    border-right: 2px solid #0088ff;
+    padding-left: 1px;
+    margin-right: 2px;
+}
+
 #fromjs * {
     box-sizing: border-box;
 }

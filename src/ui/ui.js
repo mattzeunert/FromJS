@@ -582,7 +582,7 @@ class StackFrame extends React.Component{
 
         var frame = this.state.resolvedFrame;
 
-        var barSpan = <span style={{color: "#0088ff"}}>|</span>
+        var barSpan = <span className="fromjs-stack__code-column"></span>
         var originPathItem = this.props.originPathItem;
 
         var highlighNthCharAfterColumn = null;
