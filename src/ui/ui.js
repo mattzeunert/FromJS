@@ -558,11 +558,16 @@ class StackFrame extends React.Component{
 
         var frame = this.state.resolvedFrame;
 
+        var barSpan = <span style={{color: "#0088ff"}}>|</span>
         var originPathItem = this.props.originPathItem;
 
         var highlighNthCharAfterColumn = null;
         if (originPathItem.originObject.action === "String Literal" ){
             highlighNthCharAfterColumn = "'".length + originPathItem.characterIndex
+        }
+        if (originPathItem.originObject.action === "Initial Page HTML"){
+            highlighNthCharAfterColumn = 0;
+            barSpan = null;
         }
         var highlightClass = "fromjs-highlighted-character"
         var hasHighlight = highlighNthCharAfterColumn !== null
@@ -601,7 +606,7 @@ class StackFrame extends React.Component{
                 <span>
                     {processFrameString(strBeforeBar)}
                 </span>
-                <span style={{color: "#0088ff"}}>|</span>
+                {barSpan}
                 <span>
                     {processFrameString(strBetweenBarAndHighlight)}
                 </span>
