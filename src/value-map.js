@@ -40,18 +40,13 @@ ValueMap.prototype.getItemAt = function(charIndex){
 
     var itemsBeforeMatch = this.items.slice(0, this.items.indexOf(matchingItem));
     var charCountBeforeMatch = 0;
-    var charsBelongingToMatchedOrigin = 0;
     itemsBeforeMatch.forEach(function(item){
         var len = item.toCharIndex - item.fromCharIndex
         charCountBeforeMatch += len
-        if (item.originObject === matchingItem.originObject) {
-            // an origin can be split into multiple items, e.g. <div>....</div> (item at start and end)
-            charsBelongingToMatchedOrigin += len;
-        }
     })
 
     var originObject = matchingItem.originObject
-    var characterIndex = charIndex - charCountBeforeMatch + charsBelongingToMatchedOrigin +
+    var characterIndex = charIndex - charCountBeforeMatch +
         matchingItem.indexInOriginValue;
 
 
