@@ -2,6 +2,7 @@ import ValueMap from "./value-map"
 import exportElementOrigin from "./export-element-origin"
 import resolveFrame, {getSourceFileContent} from "./resolve-frame"
 import fileIsDynamicCode from "./fileIsDynamicCode"
+import getRootOriginAtChar from "./getRootOriginAtChar"
 
 export default function whereDoesCharComeFrom(originObject, characterIndex, callback){
     characterIndex = parseFloat(characterIndex)
@@ -194,10 +195,18 @@ function goUp(step, callback){
         }
     }
     else if (step.originObject.action === "Read Element innerHTML"){
-        return {
-            originObject: step.originObject.inputValues[0],
-            characterIndex: step.characterIndex
-        }
+        var el = $("*").filter(function(){return this.innerHTML == step.originObject.value})[0]
+
+        // using an el reference is fragile, because it will create the current
+        // contents of the element rather than a snapshot from when the value was read,
+        // but oh well
+        var origin = getRootOriginAtChar(el, step.characterIndex, true);
+
+        callback({
+            originObject: origin.origin,
+            characterIndex: origin.characterIndex
+        })
+        return;
     }
     else if (step.originObject.action === "String Literal"){
         callback(null)

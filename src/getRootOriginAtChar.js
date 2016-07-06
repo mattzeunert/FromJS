@@ -6,11 +6,15 @@ function tagTypeHasClosingTag(tagName){
 
 window.getRootOriginAtChar = getRootOriginAtChar
 
-export default function getRootOriginAtChar(el, characterIndex){
+export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInnerHTML){
     var tagHtml = el.outerHTML.replace(el.innerHTML,"")
     var openingTag = tagHtml.split("></")[0] + ">"
     var closingTag = "</" +tagHtml.split("></")[1]
     var innerHTML = el.innerHTML
+
+    if (charIndexIsInInnerHTML) {
+        characterIndex += openingTag.length;
+    }
 
     var vm = new ValueMap();
     vm.appendString(openingTag, "openingTag", 0)

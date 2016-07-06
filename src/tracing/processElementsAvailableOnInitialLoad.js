@@ -2,8 +2,14 @@ import addElOrigin from "./addElOrigin"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import Origin from "../origin"
 
+var initialHTMLHasBeenProcessed =false;
+export function makeSureInitialHTMLHasBeenProcessed(){
+    if (initialHTMLHasBeenProcessed) {return}
+    processElementsAvailableOnInitialLoad()
+}
+
 export default function processElementsAvailableOnInitialLoad(){
-    var originalHtml = decodeURIComponent(document.getElementById("fromjs-initial-html").innerHTML)
+    var originalHtml = decodeURIComponent(nativeInnerHTMLDescriptor.get.call(document.getElementById("fromjs-initial-html")))
 
     // replace everythign before body tag
     var bodyContentAndAfter = originalHtml.substr(originalHtml.search(/\<body.*\>/))
@@ -25,7 +31,7 @@ export default function processElementsAvailableOnInitialLoad(){
     }
     mapInnerHTMLAssignment(document.body, originalHtml, "Initial Body HTML",  bodyContentAndAfter.length - originalHtml.value.length)
 
-
+    initialHTMLHasBeenProcessed = true;
     //processNode(document.body, originalHtml)
 }
 //

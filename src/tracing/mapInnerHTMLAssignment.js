@@ -6,7 +6,7 @@ import $ from "jquery"
 // e.g. you could assign "<input type='checkbox' checked>" and get back
 // "<input type='checkbox' checked=''>"
 export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName, initialExtraCharsValue){
-    var innerHTMLAfterAssignment = el.innerHTML
+    var innerHTMLAfterAssignment = nativeInnerHTMLDescriptor.get.call(el)
     var forDebuggingProcessedHtml = ""
     var charOffset = 0;
     var extraCharsAdded = 0;
@@ -23,7 +23,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
         })
 
         $(el).contents().each(function(i, child){
-            var isTextNode = child.innerHTML === undefined;
+            var isTextNode = child.nodeType === 3
             if (isTextNode) {
                 addElOrigin(child, "textValue", {
                     "action": actionName,

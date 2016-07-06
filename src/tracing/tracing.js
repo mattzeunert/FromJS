@@ -3,6 +3,7 @@ import unstringTracifyArguments from "./unstringTracifyArguments"
 import makeTraceObject from "./makeTraceObject"
 import Origin from "../origin"
 import _ from "underscore"
+import {makeSureInitialHTMLHasBeenProcessed} from "./processElementsAvailableOnInitialLoad"
 
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
@@ -106,6 +107,8 @@ export function enableTracing(){
     Object.defineProperty(Element.prototype, "innerHTML", {
         set: nativeInnerHTMLDescriptor.set,
         get: function(){
+            makeSureInitialHTMLHasBeenProcessed()
+
             var innerHTML = nativeInnerHTMLDescriptor.get.apply(this, arguments)
             return makeTraceObject({
                 value: innerHTML,
