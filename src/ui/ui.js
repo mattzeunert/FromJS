@@ -578,7 +578,7 @@ class StackFrame extends React.Component{
         }
 
         if (this.state.resolvedFrame === null) {
-            return <div>Loading...</div>
+            return <div style={{padding: 5, paddingLeft: 10}}>Loading...</div>
         }
 
         var frame = this.state.resolvedFrame;
