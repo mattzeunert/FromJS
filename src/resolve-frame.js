@@ -10,9 +10,10 @@ var resolvedFrameCache = {}
 function resFrame(frame, callback){
     gps._get(frame.fileName).then(function(src){
         var lines = src.split("\n")
-        frame.prevLine = lines[frame.lineNumber - 1 - 1]// adjust for lines being one-indexed
-        frame.nextLine = lines[frame.lineNumber + 1 - 1]
-        frame.line = lines[frame.lineNumber - 1];
+        var zeroIndexedLineNumber = frame.lineNumber - 1;
+        frame.prevLines = lines.slice(0, zeroIndexedLineNumber - 1)
+        frame.line = lines[zeroIndexedLineNumber];
+        frame.nextLines = lines.slice(zeroIndexedLineNumber + 1)
 
         callback(null, JSON.parse(JSON.stringify(frame)))
     })

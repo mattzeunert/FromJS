@@ -624,7 +624,7 @@ class StackFrame extends React.Component{
                 paddingBottom: 5
             }}>
                 <span className="fromjs-stack__line-number">{frame.lineNumber - 1}</span>
-                <span style={{opacity: .6}}>{processFrameString(frame.prevLine)}</span>
+                <span style={{opacity: .6}}>{processFrameString(_.last(frame.prevLines))}</span>
                 <br/>
                 <span className="fromjs-stack__line-number">{frame.lineNumber}</span>
                 <span>
@@ -642,7 +642,7 @@ class StackFrame extends React.Component{
                 </span>
                 <br/>
                 <span className="fromjs-stack__line-number">{frame.lineNumber + 1}</span>
-                <span style={{opacity: .6}}>{processFrameString(frame.nextLine)}</span>
+                <span style={{opacity: .6}}>{processFrameString(_.first(frame.nextLines))}</span>
             </code>
         </HorizontalScrollContainer>
     }
