@@ -19,6 +19,26 @@
     max-height: 112px;
     overflow: auto;
 }
+.fromjs-stack__code.fromjs-stack__code--truncated {
+    cursor: pointer;
+}
+.fromjs-stack__line-number {
+    position: relative;
+}
+.fromjs-stack__code .fromjs-stack__line-number-arrow {
+    display: none;
+    position: absolute;
+    top: 0;
+    font-family: Arial;
+}
+.fromjs-stack__code:hover .fromjs-stack__line-number--has-arrow .fromjs-stack__line-number-text{
+    visibility: hidden;
+}
+.fromjs-stack__code:hover .fromjs-stack__line-number-arrow {
+    display: block;
+
+}
+
 
 .fromjs-stack__code-column {
     border-right: 2px solid #0088ff;

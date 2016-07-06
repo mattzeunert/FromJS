@@ -621,24 +621,30 @@ class StackFrame extends React.Component{
 
         class LineNumber extends React.Component {
             render(){
+                var arrow = null;
+                if (this.props.arrow){
+                    arrow = <div className={"fromjs-stack__line-number-arrow"}>
+                        {this.props.arrow}
+                    </div>
+                }
                 return <span
-                    className="fromjs-stack__line-number"
-                    onClick={() => self.setState({truncate: false})} >
-                    {this.props.lineNumber}
+                    className={"fromjs-stack__line-number " + (this.props.arrow ? "fromjs-stack__line-number--has-arrow": "")}>
+                    <span className="fromjs-stack__line-number-text">{this.props.lineNumber}</span>
+                    {arrow}
                 </span>
             }
         }
 
-        function getLine(lineStr, firstLineNumber){
+        function getLine(lineStr, lineNumber, arrow){
             return <div>
-                <LineNumber lineNumber={firstLineNumber} />
+                <LineNumber lineNumber={lineNumber} arrow={arrow} />
                 <span style={{opacity: .6}}>{processFrameString(lineStr)}</span>
             </div>
         }
 
         function getPrevLines(){
             if (self.state.truncate) {
-                return getLine(_.last(frame.prevLines), frame.lineNumber - 1)
+                return getLine(_.last(frame.prevLines), frame.lineNumber - 1, "\u25B2")
             } else {
                 return frame.prevLines.map(function(line, i){
                     return getLine(line, i + 1)
@@ -647,7 +653,7 @@ class StackFrame extends React.Component{
         }
         function getNextLines(){
             if (self.state.truncate) {
-                return getLine(_.first(frame.nextLines), frame.lineNumber + 1)
+                return getLine(_.first(frame.nextLines), frame.lineNumber + 1, "\u25BC")
             } else {
                 return frame.nextLines.map(function(line, i){
                     return getLine(line, i + frame.lineNumber + 1)
@@ -664,9 +670,10 @@ class StackFrame extends React.Component{
             }} ref={(el) => this.scrollToLine(el, frame.lineNumber)}>
             <HorizontalScrollContainer>
                 <div>
-                    <code className="fromjs-stack__code" style={{
-
-                    }}>
+                    <code
+                        className={"fromjs-stack__code" + (self.state.truncate ? " fromjs-stack__code--truncated" :"")}
+                        onClick={() => self.setState({truncate: false})}
+                    >
                         {getPrevLines()}
                         <div>
                             <LineNumber lineNumber={frame.lineNumber} />
