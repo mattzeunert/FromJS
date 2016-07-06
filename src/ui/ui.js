@@ -217,6 +217,17 @@ class OriginPathItem extends React.Component {
             </button>
         }
 
+        var valueView = null;
+        if (originObject.action === "Initial Page HTML") {
+            valueView = <div></div>
+        } else {
+            valueView = <div style={{borderTop: "1px dotted #ddd"}}>
+                <ValueEl
+                    originPathItem={this.props.originPathItem}
+                    handleValueSpanClick={this.props.handleValueSpanClick} />
+                </div>
+        }
+
         return <div className="fromjs-origin-path-step" style={{border: "1px solid #ddd", marginBottom: 20}}>
             <div >
                 <div style={{background: "aliceblue"}}>
@@ -245,11 +256,9 @@ class OriginPathItem extends React.Component {
                 {stack}
                 {previewStack}
             </div>
-            <div style={{borderTop: "1px dotted #ddd"}}>
-                <ValueEl
-                    originPathItem={this.props.originPathItem}
-                    handleValueSpanClick={this.props.handleValueSpanClick} />
-            </div>
+
+                {valueView}
+
         </div>
     }
     selectFrameString(frameString){
