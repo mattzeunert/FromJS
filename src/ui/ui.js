@@ -365,7 +365,7 @@ class TextEl extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-
+            truncateText: true
         }
     }
     render(){
@@ -466,6 +466,7 @@ class TextEl extends React.Component {
         }
 
         var val = this.props.text
+        var self = this;
         var highlightedCharIndex = this.props.highlightedCharacterIndex
 
         if (highlightedCharIndex === undefined || highlightedCharIndex === null) {
@@ -494,10 +495,10 @@ class TextEl extends React.Component {
                     var chunks = line.splitAtCharIndex(highlightedCharIndex)
 
                     valueSpans = valueSpans.concat(getValueSpans(chunks[0].text, chunks[0].charOffsetStart))
-                    if (valueSpans.length > 40){
+                    if (valueSpans.length > 40 && self.state.truncateText){
                         valueSpans = [
                             valueSpans.slice(0, 40),
-                            <span>...</span>,
+                            <span onClick={() => self.disableTruncateText()}>...</span>,
                             valueSpans.slice(valueSpans.length - 10),
                         ]
                     }
@@ -515,20 +516,23 @@ class TextEl extends React.Component {
 
             return <HorizontalScrollContainer>
                 <div className="fromjs-value">
-                    {linesToShow.map(function(line, i){
+                    {linesToShow.map((line, i) =>{
                         var beforeSpan = null;
                         if (i === 0 && line.charOffsetStart > 0){
-                            beforeSpan = <span>...</span>
+                            beforeSpan = <span onClick={() => this.disableTruncateText()}>...</span>
                         }
                         var afterSpan = null;
                         if (i === linesToShow.length - 1 && line.charOffsetEnd < val.length) {
-                            afterSpan = <span>...</span>
+                            afterSpan = <span onClick={() => this.disableTruncateText()}>...</span>
                         }
                         return getLineComponent(line, beforeSpan, afterSpan)
                     })}
                 </div>
             </HorizontalScrollContainer>
         }
+    }
+    disableTruncateText(){
+        this.setState({truncateText: false})
     }
 }
 
