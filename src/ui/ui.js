@@ -486,8 +486,14 @@ class TextEl extends React.Component {
             if (showFromLineIndex < 0) {
                 showFromLineIndex = 0;
             }
+            var showToLineIndex = showFromLineIndex + 3
 
-            var linesToShow = lines.slice(showFromLineIndex, showFromLineIndex + 3)
+            if (!this.state.truncateText) {
+                showFromLineIndex = 0;
+                showToLineIndex = lines.length - 1;
+            }
+
+            var linesToShow = lines.slice(showFromLineIndex, showToLineIndex)
 
             function getLineComponent(line, beforeSpan, afterSpan){
                 var valueSpans = []
@@ -516,20 +522,34 @@ class TextEl extends React.Component {
 
             return <HorizontalScrollContainer>
                 <div className="fromjs-value">
-                    {linesToShow.map((line, i) =>{
-                        var beforeSpan = null;
-                        if (i === 0 && line.charOffsetStart > 0){
-                            beforeSpan = <span onClick={() => this.disableTruncateText()}>...</span>
-                        }
-                        var afterSpan = null;
-                        if (i === linesToShow.length - 1 && line.charOffsetEnd < val.length) {
-                            afterSpan = <span onClick={() => this.disableTruncateText()}>...</span>
-                        }
-                        return getLineComponent(line, beforeSpan, afterSpan)
-                    })}
+                    <div className="fromjs-value__content" ref={(el) => {
+                        this.scrollToHighlightedChar(el, highlightedCharLineIndex);
+                    }}>
+                        {linesToShow.map((line, i) =>{
+                            var beforeSpan = null;
+                            if (i === 0 && line.charOffsetStart > 0){
+                                beforeSpan = <span onClick={() => this.disableTruncateText()}>...</span>
+                            }
+                            var afterSpan = null;
+                            if (i === linesToShow.length - 1 && line.charOffsetEnd < val.length) {
+                                afterSpan = <span onClick={() => this.disableTruncateText()}>...</span>
+                            }
+                            return getLineComponent(line, beforeSpan, afterSpan)
+                        })}
+                    </div>
                 </div>
             </HorizontalScrollContainer>
         }
+    }
+    scrollToHighlightedChar(el, highlightedCharLineIndex){
+        if (!el){return}
+        var lineHeight = 19;
+        var lineAtTop = highlightedCharLineIndex - 2;
+        if (lineAtTop < 0) {
+            lineAtTop = 0;
+        }
+
+        el.scrollTop = lineAtTop * lineHeight;
     }
     disableTruncateText(){
         this.setState({truncateText: false})
