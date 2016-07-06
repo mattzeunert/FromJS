@@ -617,32 +617,43 @@ class StackFrame extends React.Component{
             strBetweenBarAndHighlight = strBetweenBarAndHighlight.substr(0, 10) + "..." + strBetweenBarAndHighlight.substr(strBetweenBarAndHighlight.length - 20)
         }
 
+        class LineNumber extends React.Component {
+            render(){
+                return <span className="fromjs-stack__line-number">{this.props.lineNumber}</span>
+            }
+        }
+
+        function getLine(lineStr, firstLineNumber){
+            return <div>
+                <LineNumber lineNumber={firstLineNumber} />
+                <span style={{opacity: .6}}>{processFrameString(lineStr)}</span>
+            </div>
+        }
+
         return <HorizontalScrollContainer>
             <code className="fromjs-stack__code" style={{
                 paddingTop: 5,
                 display: "block",
                 paddingBottom: 5
             }}>
-                <span className="fromjs-stack__line-number">{frame.lineNumber - 1}</span>
-                <span style={{opacity: .6}}>{processFrameString(_.last(frame.prevLines))}</span>
-                <br/>
-                <span className="fromjs-stack__line-number">{frame.lineNumber}</span>
-                <span>
-                    {processFrameString(strBeforeBar)}
-                </span>
-                {barSpan}
-                <span>
-                    {processFrameString(strBetweenBarAndHighlight)}
-                </span>
-                <span className={highlightClass}>
-                    {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn, 1))}
-                </span>
-                <span>
-                    {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn + 1))}
-                </span>
-                <br/>
-                <span className="fromjs-stack__line-number">{frame.lineNumber + 1}</span>
-                <span style={{opacity: .6}}>{processFrameString(_.first(frame.nextLines))}</span>
+                {getLine(_.last(frame.prevLines), frame.lineNumber - 1)}
+                <div>
+                    <LineNumber lineNumber={frame.lineNumber} />
+                    <span>
+                        {processFrameString(strBeforeBar)}
+                    </span>
+                    {barSpan}
+                    <span>
+                        {processFrameString(strBetweenBarAndHighlight)}
+                    </span>
+                    <span className={highlightClass}>
+                        {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn, 1))}
+                    </span>
+                    <span>
+                        {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn + 1))}
+                    </span>
+                </div>
+                {getLine(_.first(frame.nextLines), frame.lineNumber + 1)}
             </code>
         </HorizontalScrollContainer>
     }
