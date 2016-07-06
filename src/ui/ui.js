@@ -573,7 +573,7 @@ class StackFrame extends React.Component{
         var strBeforeBar = frame.line.substr(0, frame.columnNumber)
         // console.log(strBeforeBar, strBeforeBar.length)
         if (strBeforeBar.length > 50) {
-            strBeforeBar = strBeforeBar.substr(0, 10) + "..." + strBeforeBar.substr(strBeforeBar.length - 10)
+            strBeforeBar = strBeforeBar.substr(0, 10) + "..." + strBeforeBar.substr(strBeforeBar.length - 20)
         }
         if (strBetweenBarAndHighlight.length > 50) {
             strBetweenBarAndHighlight = strBetweenBarAndHighlight.substr(0, 10) + "..." + strBetweenBarAndHighlight.substr(strBetweenBarAndHighlight.length - 20)
