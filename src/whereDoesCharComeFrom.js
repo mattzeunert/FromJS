@@ -1,8 +1,9 @@
 import ValueMap from "./value-map"
 import exportElementOrigin from "./export-element-origin"
+var ErrorStackParser = require("./error-stack-parser")
+import fileIsDynamicCode from "./fileIsDynamicCode"
 
-export default function whereDoesCharComeFrom(originObject, characterIndex){
-    console.groupCollapsed("whereDoesCharComeFrom")
+export default function whereDoesCharComeFrom(originObject, characterIndex, callback){
     characterIndex = parseFloat(characterIndex)
 
     var steps = [];
@@ -16,27 +17,29 @@ export default function whereDoesCharComeFrom(originObject, characterIndex){
         characterIndex: characterIndex
     }
     steps.push(step)
-    while (step !== null){
-        step = goUp(step)
 
-        if (step !== null && !step.originObject){
-            throw "hmm?"
-        }
+    nextStep(step)
+    function nextStep(step){
+        goUp(step, function(newStep){
+            if (newStep !== null && !step.originObject){
+                throw "hmm?"
+            }
 
-        if (step !== null){
-            steps.push(step)
-        }
+            if (newStep !== null){
+                steps.push(newStep)
+                nextStep(newStep)
+            } else {
+                callback(steps)
+            }
+        })
     }
 
-    console.groupEnd("whereDoesCharComeFrom")
-
-    return steps
 }
 
 window.whereDoesCharComeFrom = whereDoesCharComeFrom
 
-function goUp(step){
-    console.log("trying to handle step with action", step.originObject.action, step)
+function goUp(step, callback){
+    // console.log("trying to handle step with action", step.originObject.action, step)
 
     var ret
     if (step.originObject.action === "set className"){
@@ -60,10 +63,8 @@ function goUp(step){
         }
     } else if (step.originObject.action === "Ancestor innerHTML") {
         var offsetAtChar = 0;
-        console.warn("offsetAtCharIndex", step.originObject.offsetAtCharIndex)
         if (step.originObject.offsetAtCharIndex){
             offsetAtChar = step.originObject.offsetAtCharIndex[step.characterIndex - step.originObject.inputValuesCharacterIndex[0]]
-            console.warn("offsetAtChar", offsetAtChar)
         }
         ret = {
             originObject: step.originObject.inputValues[0],
@@ -192,13 +193,15 @@ function goUp(step){
             characterIndex: step.characterIndex - step.originObject.extraCharsAdded
         }
     }
+    else if (step.originObject.action === "String Literal"){
+        callback(null)
+        return;
+    }
     else {
         console.log("not handling step", step)
-        return null
+        callback(null)
+        return
     }
-
-
-
 
     if (ret.originObject.action === "set className") {
         ret.characterIndex = ret.characterIndex - " class='".length
@@ -210,5 +213,5 @@ function goUp(step){
 
 
 
-    return ret;
+    return callback(ret);
 }

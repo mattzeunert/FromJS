@@ -24,16 +24,42 @@ export class OriginPath extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            showFullPath: false
+            showFullPath: false,
+            originPath: null,
+            isGettingOriginPath: false
         }
     }
+    componentDidMount(){
+        this.makeSureIsGettingOriginPath()
+    }
+    componentDidUpdate(){
+        this.makeSureIsGettingOriginPath()
+    }
+    makeSureIsGettingOriginPath(){
+        if (this.state.isGettingOriginPath) {
+            return;
+        }
+        this.setState({isGettingOriginPath: true})
+
+        this.props.getOriginPath((originPath) => {
+            this.setState({
+                originPath,
+                isGettingOriginPath: true
+            })
+        })
+    }
     render(){
-        window.originPath = this.props.originPath
+        if (!this.state.originPath) {
+            return <div>Getting origin path</div>
+        }
 
-        var lastOriginPathStep = _.last(this.props.originPath)
-        var firstOriginPathStep = _.first(this.props.originPath)
+        var originPath = this.state.originPath;
+        window.originPath = originPath
 
-        var inbetweenSteps = this.props.originPath.slice(1, this.props.originPath.length - 1).reverse();
+        var lastOriginPathStep = _.last(originPath)
+        var firstOriginPathStep = _.first(originPath)
+
+        var inbetweenSteps = originPath.slice(1, originPath.length - 1).reverse();
         var inbetweenStepsComponents = []
         if (this.state.showFullPath){
             for (var originPathStep of inbetweenSteps) {
@@ -43,12 +69,12 @@ export class OriginPath extends React.Component {
 
         var lastStep = this.getOriginPathItem(lastOriginPathStep);
         var firstStep = null;
-        if (this.props.originPath.length > 1) {
+        if (originPath.length > 1) {
             firstStep = this.getOriginPathItem(firstOriginPathStep)
         }
 
         var showFullPathButton = null;
-        if (!this.state.showFullPath && this.props.originPath.length > 2){
+        if (!this.state.showFullPath && originPath.length > 2){
             showFullPathButton = <div style={{marginBottom: 20}}>
                 <button
                     className="fromjs-btn-link"
@@ -607,7 +633,7 @@ class ElementOriginPathContent extends React.Component {
             <hr/>
             <div style={{padding: 10}}>
                 <OriginPath
-                    originPath={this.props.originPath}
+                    getOriginPath={this.props.getOriginPath}
                     handleValueSpanClick={(origin, characterIndex) => this.props.inspectValue(origin, characterIndex)}
                 />
             </div>
@@ -621,8 +647,16 @@ class ElementOriginPath extends React.Component {
         this.state = {
             characterIndex: this.getDefaultCharacterIndex(props.el),
             previewCharacterIndex: null,
-            rootOrigin: null
+            rootOrigin: null,
+            originPath: null,
+            previewOriginPath: null
         }
+    }
+    onComponentDidMount(){
+
+    }
+    resetAndUpdateOriginPath(){
+
     }
     render(){
         var sharedProps = {
@@ -648,7 +682,7 @@ class ElementOriginPath extends React.Component {
             selectionComponent = <div style={{display: display}}>
                 <ElementOriginPathContent
                     {...sharedProps}
-                    originPath={this.getOriginPath(this.state.characterIndex)}
+                    getOriginPath={(callback) => this.getOriginPath(this.state.characterIndex, callback)}
                 />
             </div>
         }
@@ -657,7 +691,7 @@ class ElementOriginPath extends React.Component {
         if (this.state.previewCharacterIndex !== null) {
             previewComponent = <ElementOriginPathContent
                     {...sharedProps}
-                    originPath={this.getOriginPath(this.state.previewCharacterIndex)}
+                    getOriginPath={(callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)}
                 />
         }
 
@@ -678,9 +712,9 @@ class ElementOriginPath extends React.Component {
         }
         return null;
     }
-    getOriginPath(characterIndex){
+    getOriginPath(characterIndex, callback){
         var info = this.getOriginAndCharacterIndex(characterIndex)
-        return whereDoesCharComeFrom(info.origin, info.characterIndex)
+        whereDoesCharComeFrom(info.origin, info.characterIndex, callback)
     }
     getOriginAndCharacterIndex(characterIndex){
         characterIndex = parseFloat(characterIndex);
