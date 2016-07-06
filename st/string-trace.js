@@ -79,6 +79,7 @@ function stringTraceAdd(a, b){
     }
     if (!b.isStringTraceString && typeof b === "string"){
         console.log("untracked string", b)
+        // if (b.indexOf("completed") !== -1)debugger
         b = stringTraceUnknown(b);
     }
     if (!a.isStringTraceString) {

@@ -48,13 +48,26 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     var offset = argumentsArray[argumentsArray.length - 2]
                     var string = argumentsArray[argumentsArray.length - 1]
 
+                    submatches = submatches.map(function(submatch){
+                        if (typeof submatch !== "string"){
+                            return submatch
+                        }
+                        return makeTraceObject({
+                            value: submatch,
+                            origin: {
+                                value: submatch,
+                                action: "Untracked replace submatch",
+                                inputValues: []
+                            }
+                        })
+                    })
+
                     var newArgsArray = [
                         match,
                         ...submatches,
                         offset,
                         string
                     ];
-                    // debugger;
 
                     var inputBeforeToKeep = oldString.substring(inputMappedSoFar.length, offset)
                     valueMap.appendString(inputBeforeToKeep , oldValue.origin, inputMappedSoFar.length)

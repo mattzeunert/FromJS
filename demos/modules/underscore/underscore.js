@@ -1433,6 +1433,7 @@
       if (escape) {
         source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
       } else if (interpolate) {
+
         source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
       } else if (evaluate) {
         source += "';\n" + evaluate + "\n__p+='";
