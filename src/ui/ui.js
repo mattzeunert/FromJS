@@ -561,7 +561,8 @@ class StackFrame extends React.Component{
     constructor(props){
         super(props)
         this.state = {
-            resolvedFrame: null
+            resolvedFrame: null,
+            truncate: true
         }
     }
     componentDidMount(){
@@ -581,6 +582,7 @@ class StackFrame extends React.Component{
         }
 
         var frame = this.state.resolvedFrame;
+        var self = this;
 
         var barSpan = <span className="fromjs-stack__code-column"></span>
         var originPathItem = this.props.originPathItem;
@@ -619,7 +621,11 @@ class StackFrame extends React.Component{
 
         class LineNumber extends React.Component {
             render(){
-                return <span className="fromjs-stack__line-number">{this.props.lineNumber}</span>
+                return <span
+                    className="fromjs-stack__line-number"
+                    onClick={() => self.setState({truncate: false})} >
+                    {this.props.lineNumber}
+                </span>
             }
         }
 
@@ -630,32 +636,70 @@ class StackFrame extends React.Component{
             </div>
         }
 
-        return <HorizontalScrollContainer>
-            <code className="fromjs-stack__code" style={{
-                paddingTop: 5,
+        function getPrevLines(){
+            if (self.state.truncate) {
+                return getLine(_.last(frame.prevLines), frame.lineNumber - 1)
+            } else {
+                return frame.prevLines.map(function(line, i){
+                    return getLine(line, i + 1)
+                })
+            }
+        }
+        function getNextLines(){
+            if (self.state.truncate) {
+                return getLine(_.first(frame.nextLines), frame.lineNumber + 1)
+            } else {
+                return frame.nextLines.map(function(line, i){
+                    return getLine(line, i + frame.lineNumber + 1)
+                })
+            }
+        }
+
+        return <div  style={{
+                // paddingBottom: 5,
+                // paddingTop: 5,
                 display: "block",
-                paddingBottom: 5
-            }}>
-                {getLine(_.last(frame.prevLines), frame.lineNumber - 1)}
+                maxHeight: 98,
+                overflow: "auto"
+            }} ref={(el) => this.scrollToLine(el, frame.lineNumber)}>
+            <HorizontalScrollContainer>
                 <div>
-                    <LineNumber lineNumber={frame.lineNumber} />
-                    <span>
-                        {processFrameString(strBeforeBar)}
-                    </span>
-                    {barSpan}
-                    <span>
-                        {processFrameString(strBetweenBarAndHighlight)}
-                    </span>
-                    <span className={highlightClass}>
-                        {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn, 1))}
-                    </span>
-                    <span>
-                        {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn + 1))}
-                    </span>
+                    <code className="fromjs-stack__code" style={{
+
+                    }}>
+                        {getPrevLines()}
+                        <div>
+                            <LineNumber lineNumber={frame.lineNumber} />
+                            <span>
+                                {processFrameString(strBeforeBar)}
+                            </span>
+                            {barSpan}
+                            <span>
+                                {processFrameString(strBetweenBarAndHighlight)}
+                            </span>
+                            <span className={highlightClass}>
+                                {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn, 1))}
+                            </span>
+                            <span>
+                                {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn + 1))}
+                            </span>
+                        </div>
+                        {getNextLines()}
+                    </code>
                 </div>
-                {getLine(_.first(frame.nextLines), frame.lineNumber + 1)}
-            </code>
-        </HorizontalScrollContainer>
+            </HorizontalScrollContainer>
+        </div>
+    }
+    scrollToLine(el, lineNumber){
+        if (el === null){
+            return;
+        }
+        var lineHeight = 19;
+        var scrollToLine = lineNumber - 3;
+        if (scrollToLine < 0){
+            scrollToLine = 0;
+        }
+        el.scrollTop = scrollToLine * lineHeight;
     }
 }
 
