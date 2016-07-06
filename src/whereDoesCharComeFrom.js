@@ -1,6 +1,6 @@
 import ValueMap from "./value-map"
 import exportElementOrigin from "./export-element-origin"
-import resolveFrame from "./resolve-frame"
+import resolveFrame, {getSourceFileContent} from "./resolve-frame"
 import fileIsDynamicCode from "./fileIsDynamicCode"
 
 export default function whereDoesCharComeFrom(originObject, characterIndex, callback){
@@ -198,13 +198,24 @@ function goUp(step, callback){
         resolveFrame(step.originObject.stack[0], function(err, frame){
 
             if (fileIsDynamicCode(frame.fileName)){
-                callback({
-                    originObject: {
-                        action: "sttth",
-                        value: "sttth",
-                        inputValues: []
-                    },
-                    characterIndex: 2
+                getSourceFileContent(frame.fileName, function(content){
+                    var lines = content.split("\n")
+                    var linesBeforeCurrentLine = lines.slice(0, frame.lineNumber - 1)
+                    var characterIndex = 0;
+                    linesBeforeCurrentLine.forEach(function(line){
+                        characterIndex += line.length + "\n".length;
+                    })
+                    characterIndex += frame.columnNumber
+                    characterIndex += step.characterIndex
+
+                    callback({
+                        originObject: {
+                            action: "Dynamic Script",
+                            value: content,
+                            inputValues: []
+                        },
+                        characterIndex
+                    })
                 })
             } else {
                 callback(null)
