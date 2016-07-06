@@ -193,6 +193,12 @@ function goUp(step, callback){
             characterIndex: step.characterIndex - step.originObject.extraCharsAdded
         }
     }
+    else if (step.originObject.action === "Read Element innerHTML"){
+        return {
+            originObject: step.originObject.inputValues[0],
+            characterIndex: step.characterIndex
+        }
+    }
     else if (step.originObject.action === "String Literal"){
         callback(null)
         resolveFrame(step.originObject.stack[0], function(err, frame){
@@ -219,7 +225,7 @@ function goUp(step, callback){
                         originObject: {
                             action: "Dynamic Script",
                             value: content,
-                            inputValues: []
+                            inputValues: [fromJSDynamicFileOrigins[frame.fileName]]
                         },
                         characterIndex
                     })
