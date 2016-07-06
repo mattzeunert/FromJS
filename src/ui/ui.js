@@ -485,6 +485,13 @@ class TextEl extends React.Component {
                     var chunks = line.splitAtCharIndex(highlightedCharIndex)
 
                     valueSpans = valueSpans.concat(getValueSpans(chunks[0].text, chunks[0].charOffsetStart))
+                    if (valueSpans.length > 40){
+                        valueSpans = [
+                            valueSpans.slice(0, 40),
+                            <span>...</span>,
+                            valueSpans.slice(valueSpans.length - 10),
+                        ]
+                    }
                     valueSpans = valueSpans.concat(getValueSpan(chunks[1].text, "fromjs-highlighted-character", function(){}, function(){}, function(){}))
                     valueSpans = valueSpans.concat(getValueSpans(chunks[2].text, chunks[2].charOffsetStart))
                 } else {

@@ -205,8 +205,15 @@ function goUp(step, callback){
                     linesBeforeCurrentLine.forEach(function(line){
                         characterIndex += line.length + "\n".length;
                     })
+
+
                     characterIndex += frame.columnNumber
+                    characterIndex += "'".length
+
+                    var contentBeforeChar = content.substr(characterIndex, step.characterIndex);
+
                     characterIndex += step.characterIndex
+                    characterIndex += contentBeforeChar.split("\\n").length - 1;
 
                     callback({
                         originObject: {
