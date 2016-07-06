@@ -481,12 +481,12 @@ class TextEl extends React.Component {
 
             var highlightedCharLineIndex = valBeforeColumn.split("\n").length
 
-            var showFromLineIndex = highlightedCharLineIndex - 3;
+            var showFromLineIndex = highlightedCharLineIndex - 2;
             if (showFromLineIndex < 0) {
                 showFromLineIndex = 0;
             }
 
-            var linesToShow = lines.slice(showFromLineIndex, showFromLineIndex + 5)
+            var linesToShow = lines.slice(showFromLineIndex, showFromLineIndex + 3)
 
             function getLineComponent(line, beforeSpan, afterSpan){
                 var valueSpans = []
