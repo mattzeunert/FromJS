@@ -202,7 +202,7 @@ class OriginPathItem extends React.Component {
                 {originObject.inputValues.map((iv) => {
                     return <div className="fromjs-input-value-link"
                         onClick={() => this.props.handleValueSpanClick(iv, 0)}>
-                        &quot;{truncate(iv.value, 40)}&quot; ({iv.action})
+                        &quot;{truncate(iv.value, 40)}&quot;
                     </div>
                 })}
             </div>
