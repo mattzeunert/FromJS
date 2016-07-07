@@ -7,9 +7,13 @@ import {makeSureInitialHTMLHasBeenProcessed} from "./processElementsAvailableOnI
 
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
+var tracingEnabled = false;
 
 export function enableTracing(){
-    window.tracingEnabled = true
+    if (tracingEnabled){
+        return
+    }
+    tracingEnabled = true
 
 
 
@@ -189,12 +193,17 @@ export function enableTracing(){
 
 
 export function disableTracing(){
+    if (!tracingEnabled) {
+        return;
+    }
     window.JSON.parse = window.nativeJSONParse
     document.createElement = window.originalCreateElement
     Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
     Element.prototype.setAttribute = window.nativeSetAttribute
     Object.defineProperty(Element.prototype, "innerHTML", nativeInnerHTMLDescriptor)
     localStorage.getItem = window.nativeLocalStorageGetItem;
+
+    tracingEnabled = false;
 }
 
 window._disableTracing = disableTracing

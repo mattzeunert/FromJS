@@ -127,9 +127,6 @@ function tagTypeHasClosingTag(tagName){
 }
 window.tagTypeHasClosingTag = tagTypeHasClosingTag
 
-if (!window.tracingEnabled){
-    enableTracing()
-}
 
 window.stringTraceTripleEqual = stringTraceTripleEqual
 window.stringTraceNotTripleEqual = stringTraceNotTripleEqual

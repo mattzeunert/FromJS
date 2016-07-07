@@ -1,4 +1,4 @@
-import {disableTracing} from "../src/tracing/tracing"
+import {disableTracing, enableTracing} from "../src/tracing/tracing"
 
 
 import whereDoesCharComeFrom from "../src/whereDoesCharComeFrom"
@@ -13,6 +13,11 @@ import async from "async"
 
 var ReactDOM = require("react-dom")
 var React = require("react")
+
+if (!window.isSerializedDomPage){
+    enableTracing()
+}
+
 
 setTimeout(function(){
     if (window.isSerializedDomPage){
