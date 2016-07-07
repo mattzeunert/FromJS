@@ -88,17 +88,26 @@ function saveAndSerializeDomState(){
 
     var sourceCache = getDefaultSourceCache()
 
+    $("#fromjs-initial-html").remove();
+
     $("html").find("*")
       .contents()
       .filter(function() {
         return this.nodeType === 3; //Node.TEXT_NODE
       }).each(function(){
-          var span = $("<span>")
-          span.attr("fromjs-text-node-converted-to-span", "true")
-          span[0].textContent = this.textContent
-          span[0].__elOrigin = this.__elOrigin
+          if (this.parentElement.tagName ==="SCRIPT") {
+              if (this.parentElement.contentElOrigin) {
+                  throw "two text nodes inside script tag?"
+              }
+              this.parentElement.__contentElOrigin = this.__elOrigin
+          } else {
+              var span = $("<span>")
+              span.attr("fromjs-text-node-converted-to-span", "true")
+              span[0].textContent = this.textContent
+              span[0].__elOrigin = this.__elOrigin
 
-          $(this).replaceWith(span)
+              $(this).replaceWith(span)
+          }
       });
 
     var elsWithOrigin = jQuery("*").filter(function(){
@@ -112,24 +121,32 @@ function saveAndSerializeDomState(){
         id++;
     })
     var elOrigins = {}
-    elsWithOrigin.each(function(){
-        var el = this;
-
+    function storeOrigin(origin, id){
         var serializedElOrigin = {};
-        for (var key in el.__elOrigin) {
+        for (var key in origin) {
             if (key === "contents") {
-                var contents = el.__elOrigin[key];
+                var contents = origin[key];
                 serializedElOrigin[key] = contents.map(function(el){
                     return {elId: $(el).attr("fromjs-id")}
                 })
             } else {
-                serializedElOrigin[key] = el.__elOrigin[key]
+                serializedElOrigin[key] = origin[key]
             }
-
         }
-        elOrigins[$(el).attr("fromjs-id")] = serializedElOrigin
-
+        elOrigins[id] = serializedElOrigin
+    }
+    elsWithOrigin.each(function(){
+        var el = this;
+        storeOrigin(el.__elOrigin, $(el).attr("fromjs-id"))
     })
+    jQuery("*").filter(function(){
+        return this.__contentElOrigin
+    }).each(function(){
+        var contentOriginId = id++;
+        storeOrigin(this.__contentElOrigin, contentOriginId)
+        $(this).attr("fromjs-content-origin-id", contentOriginId)
+    })
+
 
     var serializedState = {
         html: document.body.parentElement.innerHTML,

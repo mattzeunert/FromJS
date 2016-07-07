@@ -30,7 +30,11 @@ jQuery("[fromjs-id]").each(function(){
         }
         return el
     })
+})
+jQuery("[fromjs-content-origin-id]").each(function(){
+    var originId = $(this).attr("fromjs-content-origin-id");
 
+    this.childNodes[0].__elOrigin = data.elOrigins[originId]
 })
 jQuery("[fromjs-id]").each(function(){
     $(this).removeAttr("fromjs-id")
