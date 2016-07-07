@@ -490,7 +490,7 @@ class TextEl extends React.Component {
 
             if (!this.state.truncateText) {
                 showFromLineIndex = 0;
-                showToLineIndex = lines.length - 1;
+                showToLineIndex = lines.length;
             }
 
             var linesToShow = lines.slice(showFromLineIndex, showToLineIndex)
@@ -520,6 +520,8 @@ class TextEl extends React.Component {
                 </div>
             }
 
+            var ellipsisSpan = <span onClick={() => this.disableTruncateText()}>...</span>
+
             return <HorizontalScrollContainer>
                 <div className="fromjs-value">
                     <div className="fromjs-value__content" ref={(el) => {
@@ -528,11 +530,11 @@ class TextEl extends React.Component {
                         {linesToShow.map((line, i) =>{
                             var beforeSpan = null;
                             if (i === 0 && line.charOffsetStart > 0){
-                                beforeSpan = <span onClick={() => this.disableTruncateText()}>...</span>
+                                beforeSpan = ellipsisSpan
                             }
                             var afterSpan = null;
                             if (i === linesToShow.length - 1 && line.charOffsetEnd < val.length) {
-                                afterSpan = <span onClick={() => this.disableTruncateText()}>...</span>
+                                afterSpan = ellipsisSpan
                             }
                             return getLineComponent(line, beforeSpan, afterSpan)
                         })}
