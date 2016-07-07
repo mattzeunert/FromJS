@@ -8,6 +8,7 @@ var _ = require("underscore")
 var $ = require("jquery")
 import exportElementOrigin from "../src/export-element-origin"
 import {getDefaultSourceCache} from "../src/resolve-frame"
+import async from "async"
 
 
 var ReactDOM = require("react-dom")
@@ -86,7 +87,8 @@ function doneRenderingApp(){
 window.saveAndSerializeDomState = saveAndSerializeDomState
 function saveAndSerializeDomState(){
 
-    var sourceCache = getDefaultSourceCache()
+    var sourceCache = getDefaultSourceCache();
+
 
     $("#fromjs-initial-html").remove();
 
@@ -147,16 +149,43 @@ function saveAndSerializeDomState(){
         $(this).attr("fromjs-content-origin-id", contentOriginId)
     })
 
+    var additionalFilesToCache = [];
+    $("script:not([type])").each(function(){
+        if ($(this).attr("src") === "http://localhost:8080/dist/from.js") {
+            return
+        }
 
-    var serializedState = {
-        html: document.body.parentElement.innerHTML,
-        elOrigins: elOrigins,
-        sourceCache: sourceCache,
-        fromJSDynamicFileOrigins: window.fromJSDynamicFileOrigins
+        var urlParts = location.href.replace(location.hash, "").split("/")
+        urlParts.pop(); // remove html file path
+        var urlPrefix = urlParts.join("/") + "/"
+
+        additionalFilesToCache.push(urlPrefix + $(this).attr("src"))
+        additionalFilesToCache.push(urlPrefix + $(this).attr("src") + ".map")
+        additionalFilesToCache.push(urlPrefix + $(this).attr("src") + "?dontprocess=yes")
+
+    })
+    async.each(additionalFilesToCache, function(path, callback){
+        $.get(path).then(function(res){
+            sourceCache[path] = res;
+            callback(null, {});
+        })
+    }, finish)
+
+    function finish(){
+        var serializedState = {
+            html: document.body.parentElement.innerHTML,
+            elOrigins: elOrigins,
+            sourceCache: sourceCache,
+            fromJSDynamicFileOrigins: window.fromJSDynamicFileOrigins
+        }
+        console.log("state size", JSON.stringify(serializedState).length)
+        window.serializedState = serializedState
+        try {
+            localStorage.setItem("domState", JSON.stringify(serializedState))
+        } catch (err){
+            console.error(err)
+        }
+
+        document.body.innerHTML = "Done"
     }
-    console.log("state size", JSON.stringify(serializedState).length)
-    window.serializedState = serializedState
-    localStorage.setItem("domState", JSON.stringify(serializedState))
-
-    document.body.innerHTML = "Done"
 }
