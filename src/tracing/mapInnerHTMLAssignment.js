@@ -97,8 +97,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 if (assignedInnerHTML.toString()[charOffset] === " ") {
                     // something like <div > (with extra space)
                     // this char will not show up in the re-serialized innerHTML
-                    // extraCharsAdded -= 1;
-                    openingTagEnd += " "
+                    extraCharsAdded -= 1;
                 }
                 addElOrigin(child, "openingTagEnd", {
                     action: actionName,
