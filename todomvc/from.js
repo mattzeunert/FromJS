@@ -196,10 +196,6 @@
 	}
 	window.tagTypeHasClosingTag = tagTypeHasClosingTag;
 	
-	if (!window.tracingEnabled) {
-	    (0, _tracing.enableTracing)();
-	}
-	
 	window.stringTraceTripleEqual = stringTraceTripleEqual;
 	window.stringTraceNotTripleEqual = stringTraceNotTripleEqual;
 	window.stringTrace = stringTrace;
@@ -11009,9 +11005,13 @@
 	
 	window.fromJSDynamicFiles = {};
 	window.fromJSDynamicFileOrigins = {};
+	var tracingEnabled = false;
 	
 	function enableTracing() {
-	    window.tracingEnabled = true;
+	    if (tracingEnabled) {
+	        return;
+	    }
+	    tracingEnabled = true;
 	
 	    var originalCreateElement = document.createElement;
 	    window.originalCreateElement = originalCreateElement;
@@ -11181,12 +11181,17 @@
 	}
 	
 	function disableTracing() {
+	    if (!tracingEnabled) {
+	        return;
+	    }
 	    window.JSON.parse = window.nativeJSONParse;
 	    document.createElement = window.originalCreateElement;
 	    Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
 	    Element.prototype.setAttribute = window.nativeSetAttribute;
 	    Object.defineProperty(Element.prototype, "innerHTML", nativeInnerHTMLDescriptor);
 	    localStorage.getItem = window.nativeLocalStorageGetItem;
+	
+	    tracingEnabled = false;
 	}
 	
 	window._disableTracing = disableTracing;
@@ -83472,6 +83477,10 @@
 	
 	var ReactDOM = __webpack_require__(895);
 	var React = __webpack_require__(858);
+	
+	if (!window.isSerializedDomPage) {
+	    (0, _tracing.enableTracing)();
+	}
 	
 	setTimeout(function () {
 	    if (window.isSerializedDomPage) {
