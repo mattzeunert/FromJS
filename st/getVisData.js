@@ -14,10 +14,9 @@ import async from "async"
 var ReactDOM = require("react-dom")
 var React = require("react")
 
+window.doneRenderingApp =doneRenderingApp
 setTimeout(function(){
-    if (window.isSerializedDomPage){
-        doneRenderingApp()
-    } else {
+    if (!window.isSerializedDomPage){
         setTimeout(function(){
             if (window.isVis) {
                 return;
@@ -25,7 +24,6 @@ setTimeout(function(){
 
             doneRenderingApp()
         }, 4000)
-
     }
 }, 100)
 
@@ -64,7 +62,7 @@ function doneRenderingApp(){
         if (!shouldHandle(e)) {return}
         e.stopPropagation();
         e.preventDefault();
-        component.display(this)
+        component.display(e.target)
     })
     $("*").mouseenter(function(e){
         if (!shouldHandle(e)) {return}
@@ -86,9 +84,13 @@ function doneRenderingApp(){
 
 window.saveAndSerializeDomState = saveAndSerializeDomState
 function saveAndSerializeDomState(){
-
+    $("*").off()
     var sourceCache = getDefaultSourceCache();
 
+    $("link").each(function(){
+        var href = $(this).attr("href")
+        $(this).attr("href", _.last(href.split("/")))
+    })
 
     $("#fromjs-initial-html").remove();
 
@@ -150,6 +152,7 @@ function saveAndSerializeDomState(){
     })
 
     var additionalFilesToCache = [];
+    additionalFilesToCache.push("/demos/index.html?dontprocess=yes")
     $("script:not([type])").each(function(){
         if ($(this).attr("src") === "http://localhost:8080/dist/from.js") {
             return
@@ -180,12 +183,10 @@ function saveAndSerializeDomState(){
         }
         console.log("state size", JSON.stringify(serializedState).length)
         window.serializedState = serializedState
-        try {
-            localStorage.setItem("domState", JSON.stringify(serializedState))
-        } catch (err){
-            console.error(err)
-        }
 
-        document.body.innerHTML = "Done"
+        var str = JSON.stringify(serializedState)
+        var url = URL.createObjectURL(new Blob([str], {type: 'text/plain'}))
+
+        document.body.innerHTML = "<a download='data.json' href='" + url + "'>Done</a>"
     }
 }

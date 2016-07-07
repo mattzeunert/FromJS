@@ -15,7 +15,7 @@ function resFrame(frame, callback){
         frame.prevLines = lines.slice(0, zeroIndexedLineNumber)
         frame.line = lines[zeroIndexedLineNumber];
         frame.nextLines = lines.slice(zeroIndexedLineNumber + 1)
-        
+
         callback(null, frame)
     })
 
@@ -59,6 +59,7 @@ export default function(frameString, callback){
 
     if (endsWith(frameObject.fileName, ".html")){
         // don't bother looking for source map file
+        frameObject.fileName += "?dontprocess=yes"
         resFrame(frameObject, callback)
     } else {
         gps.pinpoint(frameObject).then(function(newFrame){

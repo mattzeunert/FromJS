@@ -38,6 +38,10 @@ function handleRequest(request, response){
             }
         }
 
+        if (endsWith(request.url, ".html?dontprocess=yes")){
+            // nothing i need to do actually
+        }
+
         if ((endsWith(request.url, ".js") || endsWith(request.url, ".js.map")) &&
             !stringContains(request.url, "/dontprocess") &&
             !stringContains(request.url, "/vis") &&
