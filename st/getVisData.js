@@ -83,6 +83,7 @@ function doneRenderingApp(){
     return
 }
 
+window.saveAndSerializeDomState = saveAndSerializeDomState
 function saveAndSerializeDomState(){
 
     var sourceCache = getDefaultSourceCache()
@@ -133,8 +134,11 @@ function saveAndSerializeDomState(){
     var serializedState = {
         html: document.body.parentElement.innerHTML,
         elOrigins: elOrigins,
-        sourceCache: sourceCache
+        sourceCache: sourceCache,
+        fromJSDynamicFileOrigins: window.fromJSDynamicFileOrigins
     }
+    console.log("state size", JSON.stringify(serializedState).length)
+    window.serializedState = serializedState
     localStorage.setItem("domState", JSON.stringify(serializedState))
 
     document.body.innerHTML = "Done"
