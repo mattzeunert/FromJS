@@ -557,6 +557,7 @@ class TextEl extends React.Component {
 }
 
 
+const MAX_LINES_TO_SHOW_BEFORE_AND_AFTER = 200;
 class StackFrame extends React.Component{
     constructor(props){
         super(props)
@@ -646,8 +647,13 @@ class StackFrame extends React.Component{
             if (self.state.truncate) {
                 return getLine(_.last(frame.prevLines), frame.lineNumber - 1, "\u25B2")
             } else {
-                return frame.prevLines.map(function(line, i){
-                    return getLine(line, i + 1)
+                var prevLinesToShow = frame.prevLines;
+                if (prevLinesToShow.length > MAX_LINES_TO_SHOW_BEFORE_AND_AFTER) {
+                    prevLinesToShow = frame.prevLines.slice(frame.prevLines.length - MAX_LINES_TO_SHOW_BEFORE_AND_AFTER)
+                }
+                var linesNotShown = frame.prevLines.length - prevLinesToShow.length;
+                return prevLinesToShow.map(function(line, i){
+                    return getLine(line, i + 1 + linesNotShown)
                 })
             }
         }
@@ -655,7 +661,11 @@ class StackFrame extends React.Component{
             if (self.state.truncate) {
                 return getLine(_.first(frame.nextLines), frame.lineNumber + 1, "\u25BC")
             } else {
-                return frame.nextLines.map(function(line, i){
+                var nextLinesToShow = frame.nextLines;
+                if (frame.nextLines.length > MAX_LINES_TO_SHOW_BEFORE_AND_AFTER) {
+                    nextLinesToShow = frame.nextLines.slice(0, MAX_LINES_TO_SHOW_BEFORE_AND_AFTER)
+                }
+                return nextLinesToShow.map(function(line, i){
                     return getLine(line, i + frame.lineNumber + 1)
                 })
             }
@@ -701,8 +711,13 @@ class StackFrame extends React.Component{
         if (el === null){
             return;
         }
+        var linesNotShownBefore = this.state.resolvedFrame.prevLines.length - MAX_LINES_TO_SHOW_BEFORE_AND_AFTER;
+        if (linesNotShownBefore < 0){
+            linesNotShownBefore = 0;
+        }
+
         var lineHeight = 19;
-        var scrollToLine = lineNumber - 3;
+        var scrollToLine = lineNumber - 3 - linesNotShownBefore;
         if (scrollToLine < 0){
             scrollToLine = 0;
         }
