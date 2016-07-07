@@ -886,6 +886,46 @@ class PreviewElementMarker extends React.Component {
     }
 }
 
+class Intro extends React.Component {
+    render(){
+        return <div className="fromjs-intro">
+            <h2>What is this?</h2>
+            <p>
+                FromJS helps you understand how an app works.
+                This demo allows you to explore
+                the <a href="http://todomvc.com/examples/backbone/" targt="_blank">Backbone TodoMVC</a> app.
+            </p>
+            <p>
+                Select a DOM element on the left to see where its
+                content came from. This could be a string in the JavaScript code,
+                localStorage data, or the directly from the HTML file.
+            </p>
+
+            <h2>
+                Does this work for other apps?
+            </h2>
+            <p>
+                Not yet, at least not for anything complex. I{"'"}ve written the
+                code so it has the functionaltiy required for this demo.
+                FromJS will work if you use a subset of this functionality, but
+                chances are your app won{"'"}t even render.
+            </p>
+
+            <p>
+                <a href="https://github.com/mattzeunert/fromjs">Github</a>
+                &nbsp;
+                &ndash;
+                &nbsp;
+                <a href="http://www.fromjs.com/">FromJS.com</a>
+                &nbsp;
+                &ndash;
+                &nbsp;
+                <a href="https://twitter.com/mattzeunert">Twitter</a>
+            </p>
+        </div>
+    }
+}
+
 export class FromJSView extends React.Component {
     constructor(props){
         super(props)
@@ -915,6 +955,7 @@ export class FromJSView extends React.Component {
 
         return <div>
             <div id="fromjs" className="fromjs">
+                <Intro />
                 {preview}
 
                 {info}

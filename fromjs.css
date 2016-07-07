@@ -1,3 +1,11 @@
+.fromjs-intro {
+    padding: 10px;
+}
+.fromjs-intro a {
+    color: #0088ff;
+    text-decoration: none;
+}
+
 .fromjs-value span:hover {
     color: red;
     border-bottom: 2px solid red;
