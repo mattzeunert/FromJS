@@ -1,0 +1,163 @@
+.fromjs-value span:hover {
+    color: red;
+    border-bottom: 2px solid red;
+}
+.fromjs-value {
+    padding: 10px;
+}
+.fromjs-value span {
+    cursor: pointer;
+}
+.fromjs-value__whitespace-character:hover {
+    background: #ff1a1a;
+}
+
+.fromjs-value__whitespace-character.fromjs-highlighted-character {
+    background: #9ad0ff;
+}
+.fromjs-value__content {
+    max-height: 112px;
+    overflow: auto;
+}
+.fromjs-stack__code.fromjs-stack__code--truncated {
+    cursor: pointer;
+}
+.fromjs-stack__line-number {
+    position: relative;
+}
+.fromjs-stack__code .fromjs-stack__line-number-arrow {
+    display: none;
+    position: absolute;
+    top: 0;
+    font-family: Arial;
+}
+.fromjs-stack__code:hover .fromjs-stack__line-number--has-arrow .fromjs-stack__line-number-text{
+    visibility: hidden;
+}
+.fromjs-stack__code:hover .fromjs-stack__line-number-arrow {
+    display: block;
+
+}
+
+
+.fromjs-stack__code-column {
+    border-right: 2px solid #0088ff;
+    padding-left: 1px;
+    margin-right: 2px;
+}
+
+#fromjs * {
+    box-sizing: border-box;
+}
+
+.fromjs-highlighted-character {
+    color: #0088ff;
+    font-weight: bold;
+    border-bottom: 2px solid #0088ff;
+}
+
+.origin-path-step__filename {
+    color: black;
+    text-decoration: none;
+    color: #555;
+    cursor: pointer;
+}
+.origin-path-step__filename:hover {
+    text-decoration: underline;
+}
+.fromjs-origin-path-step__stack-frame-selector-toggle {
+    float: right;
+    font-size: 20px;
+    padding-top: 2px;
+    padding-right: 2px;
+    color: #08f;
+    cursor: pointer;
+}
+.fromjs-origin-path-step__stack-frame-selector-toggle:hover {
+    color: red
+}
+
+.fromjs-input-value-link {
+    paddging: 4px;
+    padding-left: 10px;
+    cursor: pointer;
+}
+.fromjs-input-value-link:hover {
+    color: red;
+}
+
+.fromjs-origin-path-step .fromjs-origin-path-step__only-show-on-step-hover {
+    display: none;
+}
+.fromjs-origin-path-step:hover .fromjs-origin-path-step__only-show-on-step-hover {
+    display: inline-block;
+}
+
+
+
+.fromjs-stack-frame-selector__item {
+    padding: 2px;
+    padding-left: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    overflow: hidden;
+}
+.fromjs-stack-frame-selector__item:last-child {
+    border-bottom-width: 2px;
+}
+.fromjs-stack-frame-selector__item--selected {
+    color: #0088ff;
+}
+.fromjs-stack-frame-selector__item:hover {
+    color: red;
+}
+
+#fromjs {
+    position: fixed;
+    font-family: "Arial";
+    font-size: 16;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: 100vh;
+    width: 40vw;
+    background: white;
+    overflow: auto;
+}
+
+body {
+    padding-right: 40vw;
+}
+
+.fromjs-stack__line-number {
+    border-right: 1px solid #ddd;
+    padding-right: 5px;
+    padding-left: 10px;
+    margin-right: 5px;
+    text-align: right;
+    min-width: 30px;
+    display: inline-block;
+}
+
+.fromjs-horizontal-scroll-container {
+    overflow-x: auto;
+    white-space: nowrap;
+}
+.fromjs-horizontal-scroll-container > div {
+    display: inline-block;
+    min-width: 100%;
+}
+
+.fromjs-btn-link{
+    color: green;
+    cursor: pointer;
+}
+.fromjs-btn-link:hover {
+    text-decoration: underline;
+}
+
+.fromjs-element-marker {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+}
