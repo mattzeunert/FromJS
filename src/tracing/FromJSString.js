@@ -9,7 +9,7 @@ export default function StringTraceString(options){
 }
 
 function isArray(val){
-    return val.length !== undefined && val.map !== undefined;
+    return val !== null && val.length !== undefined && val.map !== undefined;
 }
 
 

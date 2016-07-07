@@ -35,6 +35,8 @@ function doneRenderingApp(){
         // saveAndSerializeDomState()
     }
 
+    var windowJQuery = window.jQuery
+
     var link = document.createElement("link")
     link.setAttribute("rel", "stylesheet")
     link.setAttribute("href", "/fromjs-internals/fromjs.css")
@@ -56,7 +58,7 @@ function doneRenderingApp(){
         return true
     }
 
-    $("*").off("click")
+    windowJQuery("*").off()
     $("*").click(function(e){
         if (!shouldHandle(e)) {return}
         e.stopPropagation();
