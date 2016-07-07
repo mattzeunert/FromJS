@@ -3,6 +3,7 @@ import exportElementOrigin from "./export-element-origin"
 import resolveFrame, {getSourceFileContent} from "./resolve-frame"
 import fileIsDynamicCode from "./fileIsDynamicCode"
 import getRootOriginAtChar from "./getRootOriginAtChar"
+import $ from "jquery"
 
 export default function whereDoesCharComeFrom(originObject, characterIndex, callback){
     characterIndex = parseFloat(characterIndex)
