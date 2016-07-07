@@ -615,10 +615,10 @@ class StackFrame extends React.Component{
         // If strings are too long and would hide highlighted content truncate them
         var strBeforeBar = frame.line.substr(0, frame.columnNumber)
         // console.log(strBeforeBar, strBeforeBar.length)
-        if (strBeforeBar.length > 50) {
+        if (strBeforeBar.length > 50 && this.state.truncate) {
             strBeforeBar = strBeforeBar.substr(0, 10) + "..." + strBeforeBar.substr(strBeforeBar.length - 20)
         }
-        if (strBetweenBarAndHighlight.length > 50) {
+        if (strBetweenBarAndHighlight.length > 50 && this.state.truncate) {
             strBetweenBarAndHighlight = strBetweenBarAndHighlight.substr(0, 10) + "..." + strBetweenBarAndHighlight.substr(strBetweenBarAndHighlight.length - 20)
         }
 
