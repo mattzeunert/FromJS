@@ -1,7 +1,6 @@
 var babel = require("babel-core")
 var Plugin = require("./plugin")
 var babylon = require("babylon")
-var btoa = require("btoa")
 
 module.exports = function processJavaScriptCode(code, options){
     const ast = babylon.parse(code, {
