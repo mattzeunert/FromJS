@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "nodemon server.js",
-    "webpack": "webpack-dev-server"
+    "webpack": "webpack-dev-server",
+    "update-website": "git subtree push  --prefix gh-pages origin gh-pages"
   },
   "author": "Matt Zeunert",
   "license": "ISC",
