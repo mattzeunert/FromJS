@@ -1,23 +1,5 @@
 var webpack = require('webpack');
 
-var mod = {
-    loaders:[
-        {
-            test: /\.js$/,
-            loader: "babel-loader",
-            exclude: /node_modules/
-        },
-        {
-            test: /\.json$/,
-            loader: "json"
-        }
-    ]
-}
-var node = {
-    fs: 'empty',
-    module: 'empty',
-    net: 'empty'
-}
 
 module.exports = [{
     entry: {
@@ -28,18 +10,22 @@ module.exports = [{
         filename: 'dist/from.js'
     },
     devtool: "source-map",
-    module: mod,
-    node: node
-},
-{
-    entry: {
-        main: ['./vis/vis.js']
+    module: {
+        loaders:[
+            {
+                test: /\.js$/,
+                loader: "babel-loader",
+                exclude: /node_modules/
+            },
+            {
+                test: /\.json$/,
+                loader: "json"
+            }
+        ]
     },
-    output: {
-        path: "./",
-        filename: 'dist/vis.js'
-    },
-    devtool: "source-map",
-    module: mod,
-    node: node
+    node: {
+        fs: 'empty',
+        module: 'empty',
+        net: 'empty'
+    }
 }]
