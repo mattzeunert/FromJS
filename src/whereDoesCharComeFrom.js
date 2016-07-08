@@ -63,7 +63,7 @@ function goUp(step, callback){
             originObject: step.originObject.inputValues[0],
             characterIndex: step.characterIndex
         }
-    } else if (step.originObject.action === "Ancestor innerHTML") {
+    } else if (step.originObject.action === "Assign InnerHTML") {
         var offsetAtChar = 0;
         if (step.originObject.offsetAtCharIndex){
             offsetAtChar = step.originObject.offsetAtCharIndex[step.characterIndex - step.originObject.inputValuesCharacterIndex[0]]
@@ -79,63 +79,64 @@ function goUp(step, callback){
 
         ret = valueMap.getItemAt(step.characterIndex)
     } else if (step.originObject.action === "Element") {
-        var valueMap = new ValueMap();
-        var createElement;
-
-        var tagOrigins = [];
-        var contentOrigins = []
-        step.originObject.inputValues.forEach(function(inputValue){
-            if (inputValue.action === "createElement" || inputValue.action === "set className" ||
-                inputValue.action === "setAttribute" ||
-                inputValue.action === "initial html tag"){
-                tagOrigins.push(inputValue)
-            } else {
-                contentOrigins.push(inputValue)
-            }
-        })
-
-
-        tagOrigins.forEach(function(tagOrigin){
-            if (tagOrigin.action === "createElement") {
-                valueMap.appendString("<" + tagOrigin.inputValues[0].value , tagOrigin, 0)
-            } else if (tagOrigin.action === "set className"){
-                valueMap.appendString(" class='" + tagOrigin.value + "'", tagOrigin, 0)
-            } else if (tagOrigin.action === "setAttribute") {
-                valueMap.appendString(" " + tagOrigin.inputValues[0].value + '="' + tagOrigin.inputValues[1].value + '"', tagOrigin, 0)
-            } else {
-                debugger
-            }
-        })
-        tagOrigins.forEach(function(tagOrigin){
-            if (tagOrigin.action === "createElement") {
-                var contentBefore = "<" + tagOrigin.inputValues[0].value
-                valueMap.appendString(">" , tagOrigin, contentBefore.length)
-            }
-        })
-        contentOrigins.forEach(function(inputValue){
-            if (inputValue.action === "createElement") {
-                return;
-            }
-            else if (inputValue.action === "appendChild"){
-                valueMap.append(inputValue)
-            }
-            else if (inputValue.action === "assign innerHTML"){
-                valueMap.append(inputValue)
-            }
-            else if (inputValue.action === "initial html content"){
-                valueMap.append(inputValue)
-            }
-            else {
-                throw "unhandled input value in elment item"
-            }
-        })
-        tagOrigins.forEach(function(tagOrigin){
-            if (tagOrigin.action === "createElement") {
-                valueMap.appendString("</" + tagOrigin.inputValues[0].value + ">", tagOrigin, 0)
-            }
-        })
-
-        ret = valueMap.getItemAt(step.characterIndex)
+        throw "dont thing I use this any more"
+        // var valueMap = new ValueMap();
+        // var createElement;
+        //
+        // var tagOrigins = [];
+        // var contentOrigins = []
+        // step.originObject.inputValues.forEach(function(inputValue){
+        //     if (inputValue.action === "createElement" || inputValue.action === "set className" ||
+        //         inputValue.action === "setAttribute" ||
+        //         inputValue.action === "initial html tag"){
+        //         tagOrigins.push(inputValue)
+        //     } else {
+        //         contentOrigins.push(inputValue)
+        //     }
+        // })
+        //
+        //
+        // tagOrigins.forEach(function(tagOrigin){
+        //     if (tagOrigin.action === "createElement") {
+        //         valueMap.appendString("<" + tagOrigin.inputValues[0].value , tagOrigin, 0)
+        //     } else if (tagOrigin.action === "set className"){
+        //         valueMap.appendString(" class='" + tagOrigin.value + "'", tagOrigin, 0)
+        //     } else if (tagOrigin.action === "setAttribute") {
+        //         valueMap.appendString(" " + tagOrigin.inputValues[0].value + '="' + tagOrigin.inputValues[1].value + '"', tagOrigin, 0)
+        //     } else {
+        //         debugger
+        //     }
+        // })
+        // tagOrigins.forEach(function(tagOrigin){
+        //     if (tagOrigin.action === "createElement") {
+        //         var contentBefore = "<" + tagOrigin.inputValues[0].value
+        //         valueMap.appendString(">" , tagOrigin, contentBefore.length)
+        //     }
+        // })
+        // contentOrigins.forEach(function(inputValue){
+        //     if (inputValue.action === "createElement") {
+        //         return;
+        //     }
+        //     else if (inputValue.action === "appendChild"){
+        //         valueMap.append(inputValue)
+        //     }
+        //     else if (inputValue.action === "assign innerHTML"){
+        //         valueMap.append(inputValue)
+        //     }
+        //     else if (inputValue.action === "initial html content"){
+        //         valueMap.append(inputValue)
+        //     }
+        //     else {
+        //         throw "unhandled input value in elment item"
+        //     }
+        // })
+        // tagOrigins.forEach(function(tagOrigin){
+        //     if (tagOrigin.action === "createElement") {
+        //         valueMap.appendString("</" + tagOrigin.inputValues[0].value + ">", tagOrigin, 0)
+        //     }
+        // })
+        //
+        // ret = valueMap.getItemAt(step.characterIndex)
     } else if (step.originObject.action === "createElement") {
         var characterIndex = step.characterIndex
         var elementType = step.originObject.inputValues[0].value;

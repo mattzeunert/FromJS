@@ -117,7 +117,7 @@ function stringTraceSetInnerHTML(el, innerHTML){
     el.innerHTML = innerHTML
 
 
-    mapInnerHTMLAssignment(el, innerHTML, "Ancestor innerHTML")
+    mapInnerHTMLAssignment(el, innerHTML, "Assign InnerHTML")
 
 
 }
