@@ -559,6 +559,7 @@ class TextEl extends React.Component {
     }
     scrollToHighlightedChar(el, highlightedCharLineIndex){
         if (!el){return}
+        if (this.state.truncateText) {return}
         var lineHeight = 19;
         var lineAtTop = highlightedCharLineIndex - 2;
         if (lineAtTop < 0) {
@@ -725,6 +726,9 @@ class StackFrame extends React.Component{
     }
     scrollToLine(el, lineNumber){
         if (el === null){
+            return;
+        }
+        if (this.state.truncate) {
             return;
         }
         var linesNotShownBefore = this.state.resolvedFrame.prevLines.length - MAX_LINES_TO_SHOW_BEFORE_AND_AFTER;
