@@ -88695,9 +88695,19 @@
 	    _createClass(Intro, [{
 	        key: "render",
 	        value: function render() {
+	            var browserIsChrome = /chrom(e|ium)/.test(navigator.userAgent.toLowerCase());
+	            var notChromeMessage = null;
+	            if (!browserIsChrome) {
+	                notChromeMessage = _react2.default.createElement(
+	                    "div",
+	                    { style: { border: "2px solid red", padding: 10 } },
+	                    "FromJS is currently built to only work in Chrome. It sort of works in other browsers too, but some things are broken."
+	                );
+	            }
 	            return _react2.default.createElement(
 	                "div",
 	                { className: "fromjs-intro" },
+	                notChromeMessage,
 	                _react2.default.createElement(
 	                    "h2",
 	                    null,
@@ -88717,7 +88727,7 @@
 	                _react2.default.createElement(
 	                    "p",
 	                    null,
-	                    "Select a DOM element on the left to see where its content came from. This could be a string in the JavaScript code, localStorage data, or the directly from the HTML file."
+	                    "Select a DOM element on the left to see where its content came from. This could be a string in the JavaScript code, localStorage data, or directly from the HTML file."
 	                ),
 	                _react2.default.createElement(
 	                    "h2",
