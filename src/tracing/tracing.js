@@ -9,6 +9,33 @@ window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
 var tracingEnabled = false;
 
+var originalCreateElement = document.createElement
+window.originalCreateElement = originalCreateElement
+
+var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild");
+window.originalAppendChildPropertyDescriptor = appendChildPropertyDescriptor
+
+var nativeSetAttribute = Element.prototype.setAttribute;
+window.nativeSetAttribute = nativeSetAttribute
+
+var nativeClassNameDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "className");
+window.nativeClassNameDescriptor = nativeClassNameDescriptor
+
+var nativeInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
+window.nativeInnerHTMLDescriptor = nativeInnerHTMLDescriptor;
+
+var nativeExec = RegExp.prototype.exec;
+window.nativeExec = nativeExec;
+
+var nativeFunction = Function
+window.nativeFunction = nativeFunction
+
+var nativeJSONParse = JSON.parse
+window.nativeJSONParse = nativeJSONParse
+
+var nativeLocalStorageGetItem = localStorage.getItem
+window.nativeLocalStorageGetItem = nativeLocalStorageGetItem
+
 export function enableTracing(){
     if (tracingEnabled){
         return
@@ -17,8 +44,6 @@ export function enableTracing(){
 
 
 
-    var originalCreateElement = document.createElement
-    window.originalCreateElement = originalCreateElement
     document.createElement = function(tagName){
 
         var el = originalCreateElement.call(this, tagName)
@@ -30,8 +55,7 @@ export function enableTracing(){
         return el;
     }
 
-    var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild");
-    window.originalAppendChildPropertyDescriptor = appendChildPropertyDescriptor
+
     Object.defineProperty(Node.prototype, "appendChild", {
         get: function(){
             return function(appendedEl){
@@ -48,8 +72,6 @@ export function enableTracing(){
         }
     })
 
-    var nativeSetAttribute = Element.prototype.setAttribute;
-    window.nativeSetAttribute = nativeSetAttribute
     Element.prototype.setAttribute = function(attrName, value){
         addElOrigin(this, "attribute_" + attrName.toString(), {
             action: "setAttribute",
@@ -69,8 +91,7 @@ export function enableTracing(){
         return nativeRemoveAttribute.apply(this, arguments)
     }
 
-    var nativeClassNameDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "className");
-    window.nativeClassNameDescriptor = nativeClassNameDescriptor
+
     Object.defineProperty(Element.prototype, "className", {
         set: function(newValue){
             addElOrigin(this, "attribute_class", {
@@ -85,8 +106,6 @@ export function enableTracing(){
         }
     })
 
-    var nativeJSONParse = JSON.parse
-    window.nativeJSONParse = nativeJSONParse
     JSON.parse = function(str){
         var parsedVal = nativeJSONParse.apply(this, arguments)
         for (var key in parsedVal) {
@@ -108,8 +127,7 @@ export function enableTracing(){
         return parsedVal
     }
 
-    var nativeInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
-    window.nativeInnerHTMLDescriptor = nativeInnerHTMLDescriptor;
+
     Object.defineProperty(Element.prototype, "innerHTML", {
         set: nativeInnerHTMLDescriptor.set,
         get: function(){
@@ -128,8 +146,6 @@ export function enableTracing(){
     })
 
 
-    var nativeLocalStorageGetItem = localStorage.getItem
-    window.nativeLocalStorageGetItem = nativeLocalStorageGetItem
     localStorage.getItem = function(key){
         var val = nativeLocalStorageGetItem.apply(this, arguments)
         if (typeof val === "string"){
@@ -146,15 +162,11 @@ export function enableTracing(){
         return val;
     }
 
-    var nativeExec = RegExp.prototype.exec;
-    window.nativeExec = nativeExec;
     RegExp.prototype.exec = function(){
         var args = unstringTracifyArguments(arguments)
         return nativeExec.apply(this, args)
     }
 
-    var nativeFunction = Function
-    window.nativeFunction = nativeFunction
     window.Function = function(code){
         var args = Array.prototype.slice.apply(arguments)
         var code = args.pop()
