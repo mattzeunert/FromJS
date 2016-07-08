@@ -90,7 +90,7 @@ function stringTraceAdd(a, b){
     return makeTraceObject({
         value: newValue,
         origin: makeOrigin({
-            action: "concat",
+            action: "Concat",
             value: newValue,
             inputValues: [a, b]
         })

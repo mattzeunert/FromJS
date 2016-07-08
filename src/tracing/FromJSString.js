@@ -12,6 +12,9 @@ function isArray(val){
     return val !== null && val.length !== undefined && val.map !== undefined;
 }
 
+function capitalizeFirstCharacter(str){
+    return str.slice(0, 1).toUpperCase() + str.slice(1)
+}
 
 // getOwnPropertyNames instead of for loop b/c props aren't enumerable
 Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
@@ -57,7 +60,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                             value: submatch,
                             origin: new Origin({
                                 value: submatch,
-                                action: "Replace Submatch",
+                                action: "Replace Call Submatch",
                                 inputValues: [oldValue],
                                 inputValuesCharacterIndex: [offset + match.indexOf(submatch)]
                             })
@@ -120,6 +123,8 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 newVal = String.prototype[propertyName].apply(this.toString(), args);
             }
 
+            var actionName = capitalizeFirstCharacter(propertyName) + " Call";
+
             if (typeof newVal === "string") {
                 return makeTraceObject(
                     {
@@ -128,7 +133,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                             value: newVal,
                             valueItems: valueItems,
                             inputValues: inputValues,
-                            action: propertyName + " call",
+                            action: actionName
                         })
                     }
                 )
@@ -141,7 +146,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                                 origin: new Origin({
                                     value: val,
                                     inputValues: inputValues,
-                                    action: propertyName + " call",
+                                    action: actionName,
                                 })
                             }
                         )

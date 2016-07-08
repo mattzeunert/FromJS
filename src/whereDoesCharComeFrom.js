@@ -72,7 +72,7 @@ function goUp(step, callback){
             originObject: step.originObject.inputValues[0],
             characterIndex: step.characterIndex - step.originObject.extraCharsAdded + offsetAtChar
         }
-    } else  if (step.originObject.action === "concat") {
+    } else  if (step.originObject.action === "Concat") {
         var valueMap = new ValueMap()
         valueMap.append(step.originObject.inputValues[0])
         valueMap.append(step.originObject.inputValues[1])
@@ -163,10 +163,10 @@ function goUp(step, callback){
             originObject: step.originObject.inputValues[0],
             characterIndex: characterIndex
         }
-    } else if (step.originObject.action === "replace call") {
+    } else if (step.originObject.action === "Replace Call") {
         var valueMap = ValueMap.deserialize(step.originObject.valueItems, step.originObject.inputValues)
         ret = valueMap.getItemAt(step.characterIndex)
-    }else if (step.originObject.action === "slice call") {
+    }else if (step.originObject.action === "Slice Call") {
         var valueMap = ValueMap.deserialize(step.originObject.valueItems, step.originObject.inputValues)
         ret = valueMap.getItemAt(step.characterIndex)
     }
@@ -180,7 +180,7 @@ function goUp(step, callback){
             throw "need to handlesss"
         }
     }
-    else if (step.originObject.action === "match call"){
+    else if (step.originObject.action === "Match Call"){
         if (step.originObject.value === step.originObject.inputValues[0].value) {
             ret = {
                 originObject: step.originObject.inputValues[0],
@@ -210,7 +210,7 @@ function goUp(step, callback){
         })
         return;
     }
-    else if (step.originObject.action === "Replace Submatch"){
+    else if (step.originObject.action === "Replace Call Submatch"){
         ret = {
             originObject: step.originObject.inputValues[0],
             characterIndex: step.characterIndex + step.originObject.inputValuesCharacterIndex[0]
