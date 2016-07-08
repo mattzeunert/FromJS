@@ -745,6 +745,21 @@ class HorizontalScrollContainer extends React.Component {
 
 class ElementOriginPathContent extends React.Component {
     render(){
+        var showPreview = new Boolean(this.props.previewGetOriginPath).valueOf();
+        var originPath = <div style={{display: showPreview ? "none" : "block"}}>
+            <OriginPath
+                getOriginPath={this.props.getOriginPath}
+                key={this.props.originPathKey}
+                handleValueSpanClick={(origin, characterIndex) => this.props.inspectValue(origin, characterIndex)}
+            />
+        </div>
+        var previewOriginPath = null;
+        if (showPreview) {
+            previewOriginPath = <OriginPath
+                getOriginPath={this.props.previewGetOriginPath}
+                key={this.props.previewOriginPathKey}
+            />
+        }
         return <div>
             <div style={{padding: 10}}>
                 <div style={{fontWeight: "bold", fontSize: 20, marginBottom: 20}}>
@@ -761,11 +776,8 @@ class ElementOriginPathContent extends React.Component {
             </div>
             <hr/>
             <div style={{padding: 10}}>
-                <OriginPath
-                    getOriginPath={this.props.getOriginPath}
-                    key={this.props.originPathKey}
-                    handleValueSpanClick={(origin, characterIndex) => this.props.inspectValue(origin, characterIndex)}
-                />
+                {originPath}
+                {previewOriginPath}
             </div>
         </div>
     }
@@ -795,33 +807,39 @@ class ElementOriginPath extends React.Component {
             }
         }
 
+        var previewGetOriginPath = null;
+        var previewOriginPathKey = null;
+        if (this.state.previewCharacterIndex !== null) {
+            previewGetOriginPath = (callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)
+            previewOriginPathKey = this.getOriginPathKey(this.state.previewCharacterIndex)
+        }
+
+        var getOriginPath = null;
+        var originPathKey = null;
+
         var selectionComponent = null;
         if (this.state.characterIndex !== null) {
-            var display = "block"
-            if (this.state.previewCharacterIndex !== null) {
-                display = "none"
-            }
-            selectionComponent = <div style={{display: display}}>
-                <ElementOriginPathContent
-                    {...sharedProps}
-                    getOriginPath={(callback) => this.getOriginPath(this.state.characterIndex, callback)}
-                    originPathKey={this.getOriginPathKey(this.state.characterIndex)}
-                />
-            </div>
+            getOriginPath = (callback) => this.getOriginPath(this.state.characterIndex, callback)
+            originPathKey = this.getOriginPathKey(this.state.characterIndex)
         }
 
-        var previewComponent = null;
-        if (this.state.previewCharacterIndex !== null) {
-            previewComponent = <ElementOriginPathContent
-                    {...sharedProps}
-                    getOriginPath={(callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)}
-                    originPathKey={this.getOriginPathKey(this.state.previewCharacterIndex)}
-                />
-        }
+        // var previewComponent = null;
+        // if (this.state.previewCharacterIndex !== null) {
+        //     previewComponent = <ElementOriginPathContent
+        //             {...sharedProps}
+        //             getOriginPath={(callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)}
+        //             originPathKey={this.getOriginPathKey(this.state.previewCharacterIndex)}
+        //         />
+        // }
 
         return <div>
-            {selectionComponent}
-            {previewComponent}
+            <ElementOriginPathContent
+                {...sharedProps}
+                getOriginPath={getOriginPath}
+                originPathKey={originPathKey}
+                previewGetOriginPath={previewGetOriginPath}
+                previewOriginPathKey={previewOriginPathKey}
+            />
         </div>
 
     }
