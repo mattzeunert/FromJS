@@ -931,7 +931,16 @@ class PreviewElementMarker extends React.Component {
 
 class Intro extends React.Component {
     render(){
+        var browserIsChrome = /chrom(e|ium)/.test(navigator.userAgent.toLowerCase());
+        var notChromeMessage = null
+        if (!browserIsChrome) {
+            notChromeMessage = <div style={{border: "2px solid red", padding: 10}}>
+                FromJS is currently built to only work in Chrome. It sort of works
+                in other browsers too, but some things are broken.
+            </div>
+        }
         return <div className="fromjs-intro">
+            {notChromeMessage}
             <h2>What is this?</h2>
             <p>
                 FromJS helps you understand how an app works.
