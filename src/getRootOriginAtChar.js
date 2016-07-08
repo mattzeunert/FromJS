@@ -49,7 +49,7 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
         vm.appendString(openingTagEnd, el.__elOrigin.openingTagEnd, 0)
 
         var item = vm.getItemAt(characterIndex)
-        console.log("is in opening tag at charIndex", characterIndex, "mapping to index", item.characterIndex, item)
+        // console.log("is in opening tag at charIndex", characterIndex, "mapping to index", item.characterIndex, item)
         return {
             origin: item.originObject,
             characterIndex: item.characterIndex + (item.originObject.inputValuesCharacterIndex ? item.originObject.inputValuesCharacterIndex[0] : 0)

@@ -83,7 +83,7 @@ ValueMap.prototype.serialize = function(inputValues){
     return ret
 }
 ValueMap.deserialize = function(serializedValueMap, inputValues){
-    console.log("deserialize with ", inputValues)
+    // console.log("deserialize with ", inputValues)
     var valueMap = new ValueMap();
     serializedValueMap.forEach(function(item){
         var originObject;
@@ -100,7 +100,7 @@ ValueMap.deserialize = function(serializedValueMap, inputValues){
             indexInOriginValue: item.indexInOriginValue
         })
     })
-    console.log("deserialized valueMap", valueMap)
+    // console.log("deserialized valueMap", valueMap)
     return valueMap
 }
 

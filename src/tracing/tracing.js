@@ -70,6 +70,7 @@ export function enableTracing(){
     }
 
     var nativeClassNameDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "className");
+    window.nativeClassNameDescriptor = nativeClassNameDescriptor
     Object.defineProperty(Element.prototype, "className", {
         set: function(newValue){
             addElOrigin(this, "attribute_class", {
@@ -85,6 +86,7 @@ export function enableTracing(){
     })
 
     var nativeJSONParse = JSON.parse
+    window.nativeJSONParse = nativeJSONParse
     JSON.parse = function(str){
         var parsedVal = nativeJSONParse.apply(this, arguments)
         for (var key in parsedVal) {
@@ -145,12 +147,14 @@ export function enableTracing(){
     }
 
     var nativeExec = RegExp.prototype.exec;
+    window.nativeExec = nativeExec;
     RegExp.prototype.exec = function(){
         var args = unstringTracifyArguments(arguments)
         return nativeExec.apply(this, args)
     }
 
     var nativeFunction = Function
+    window.nativeFunction = nativeFunction
     window.Function = function(code){
         var args = Array.prototype.slice.apply(arguments)
         var code = args.pop()
@@ -187,8 +191,6 @@ export function enableTracing(){
         }
     }
 
-    window.nativeJSONParse = nativeJSONParse
-
 }
 
 
@@ -202,6 +204,9 @@ export function disableTracing(){
     Element.prototype.setAttribute = window.nativeSetAttribute
     Object.defineProperty(Element.prototype, "innerHTML", nativeInnerHTMLDescriptor)
     localStorage.getItem = window.nativeLocalStorageGetItem;
+    RegExp.prototype.exec = window.nativeExec
+    window.Function = nativeFunction
+    Object.defineProperty(Element.prototype, "className", window.nativeClassNameDescriptor)
 
     tracingEnabled = false;
 }
