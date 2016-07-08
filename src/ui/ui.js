@@ -147,7 +147,13 @@ class OriginPathItem extends React.Component {
             var filenameParts = originalFilename.split("/")
             var uiFilename  = _.last(filenameParts)
 
-            filenameLink = <a className="origin-path-step__filename" href={this.state.codeFilePath} target="_blank">{uiFilename}</a>
+            filenameLink = <a
+                className="origin-path-step__filename"
+                href={this.state.codeFilePath}
+                target="_blank"
+            >
+                {uiFilename}
+            </a>
         }
         if (this.state.resolvedFrame && fileIsDynamicCode(this.state.resolvedFrame.fileName)){
             viewSourceOriginButton = <button
