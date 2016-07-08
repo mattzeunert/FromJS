@@ -941,7 +941,7 @@ class Intro extends React.Component {
             <p>
                 Select a DOM element on the left to see where its
                 content came from. This could be a string in the JavaScript code,
-                localStorage data, or the directly from the HTML file.
+                localStorage data, or directly from the HTML file.
             </p>
 
             <h2>
