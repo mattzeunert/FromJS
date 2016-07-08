@@ -755,10 +755,12 @@ class ElementOriginPathContent extends React.Component {
         </div>
         var previewOriginPath = null;
         if (showPreview) {
-            previewOriginPath = <OriginPath
-                getOriginPath={this.props.previewGetOriginPath}
-                key={this.props.previewOriginPathKey}
-            />
+            previewOriginPath = <div>
+                <OriginPath
+                    getOriginPath={this.props.previewGetOriginPath}
+                    key={this.props.previewOriginPathKey}
+                />
+            </div>
         }
         return <div>
             <div style={{padding: 10}}>
@@ -796,8 +798,13 @@ class ElementOriginPath extends React.Component {
         var sharedProps = {
             inspectedValue: this.getInspectedValue(),
             inspectedValueCharacterIndex: this.state.characterIndex,
-            onInspectedValueCharacterClick: (characterIndex) => this.setState({characterIndex}),
-            onInspectedValueCharacterHover: (characterIndex) => this.setState({previewCharacterIndex: characterIndex}),
+            onInspectedValueCharacterClick: (characterIndex) => this.setState({
+                characterIndex,
+                previewCharacterIndex: null
+            }),
+            onInspectedValueCharacterHover: (characterIndex) => {
+                this.setState({previewCharacterIndex: characterIndex})
+            },
             inspectValue:  (origin, characterIndex) => {
                 this.props.onNonElementOriginSelected()
                 this.setState({
@@ -957,7 +964,8 @@ export class FromJSView extends React.Component {
             el: null,
             previewEl: null,
             // this shoudldn't be needed, should just reset state.el, but right now that wouldn't work
-            nonElementOriginSelected: null
+            nonElementOriginSelected: null,
+            elId: null
         }
     }
     render(){
@@ -974,7 +982,7 @@ export class FromJSView extends React.Component {
         }
         if (this.state.el) {
             info = <div style={{display: showPreview ? "hidden" : "block"}}>
-                <ElementOriginPath key={this.state.el} el={this.state.el} onNonElementOriginSelected={() => this.setState({nonElementOriginSelected: true})}/>
+                <ElementOriginPath key={this.state.el + this.state.elId} el={this.state.el} onNonElementOriginSelected={() => this.setState({nonElementOriginSelected: true})}/>
             </div>
         }
 
@@ -1001,7 +1009,8 @@ export class FromJSView extends React.Component {
     display(el){
         this.setState({
             el: el,
-            nonElementOriginSelected: false
+            nonElementOriginSelected: false,
+            elId: Math.random() // we need to force an update... this is one way to do it.
         })
     }
     setPreviewEl(el){
