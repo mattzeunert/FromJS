@@ -941,6 +941,7 @@ export class FromJSView extends React.Component {
         var info = null;
         var selectionMarker = null;
         var previewMarker = null;
+        var intro = null;
         if (this.state.previewEl !== null && this.state.previewEl !== this.state.el){
             previewMarker = <PreviewElementMarker el={this.state.previewEl}/>
             preview = <ElementOriginPath key={this.state.previewEl} el={this.state.previewEl} />
@@ -952,10 +953,14 @@ export class FromJSView extends React.Component {
             selectionMarker = <SelectedElementMarker el={this.state.el} />
         }
 
+        if (!this.state.previewEl && !this.state.el){
+            intro = <Intro />
+        }
+
 
         return <div>
             <div id="fromjs" className="fromjs">
-                <Intro />
+                {intro}
                 {preview}
 
                 {info}
