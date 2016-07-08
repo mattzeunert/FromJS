@@ -6,6 +6,9 @@ import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getCodeFilePath from "./getCodeFilePath"
 import fileIsDynamicCode from "../fileIsDynamicCode"
 
+import Perf from "react-addons-perf"
+window.Perf = Perf
+
 function getFilenameFromPath(path){
     var pathParts = path.split("/");
     var filename = _.last(pathParts);
@@ -373,6 +376,11 @@ class TextEl extends React.Component {
         this.state = {
             truncateText: true
         }
+    }
+    shouldComponentUpdate(nextProps, nextState){
+        var shouldUpdate = JSON.stringify(nextProps) !== JSON.stringify(this.props) ||
+            JSON.stringify(nextState) !== JSON.stringify(this.state)
+        return shouldUpdate
     }
     render(){
         var self = this;
