@@ -94,6 +94,8 @@ function doneRenderingApp(){
 function initSerializedDataPage(){
     window._disableTracing();
 
+    document.body.innerHTML = "Loading data..."
+
     $.get("./data.json", function(data){
         handleData(data)
     })
