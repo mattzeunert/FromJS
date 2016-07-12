@@ -6,6 +6,7 @@ import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getCodeFilePath from "./getCodeFilePath"
 import fileIsDynamicCode from "../fileIsDynamicCode"
 import isMobile from "../isMobile"
+import "react-fastclick" // import for side effects, no export
 
 import Perf from "react-addons-perf"
 window.Perf = Perf

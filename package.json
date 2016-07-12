@@ -29,6 +29,7 @@
     "json-loader": "^0.5.4",
     "react": "^15.1.0",
     "react-dom": "^15.1.0",
+    "react-fastclick": "^2.1.2",
     "stacktrace-js": "^1.2.0",
     "starts-with": "^1.0.2",
     "string-contains": "^0.1.0",
