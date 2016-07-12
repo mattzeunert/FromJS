@@ -83586,7 +83586,10 @@
 	        var style = document.createElement("style");
 	        style.innerHTML = "body {padding-right: 56vw !important; padding-left: 1vw !important}";
 	        style.innerHTML += "#fromjs { width: 55vw !important}";
+	        // for some reason doing $("#fromjs").css() duplicates the element
+	        // no, something else is doing that, prob could just use .css
 	        $("body").append(style);
+	        $("body").addClass("fromjsIsMobile");
 	    }
 	
 	    console.log("k", (0, _isMobile2.default)());
@@ -83656,6 +83659,7 @@
 	    });
 	
 	    $("#fromjs-initial-html").remove();
+	    $("#fromjs").remove();
 	
 	    $("html").find("*").contents().filter(function () {
 	        return this.nodeType === 3; //Node.TEXT_NODE
