@@ -6,7 +6,7 @@
     text-decoration: none;
 }
 
-.fromjs-value span:hover {
+body:not(.fromjsIsMobile) .fromjs-value span:hover {
     color: red;
     border-bottom: 2px solid red;
 }
@@ -16,7 +16,7 @@
 .fromjs-value span {
     cursor: pointer;
 }
-.fromjs-value__whitespace-character:hover {
+body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     background: #ff1a1a;
 }
 
