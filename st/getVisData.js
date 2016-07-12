@@ -4,6 +4,7 @@ import {disableTracing, enableTracing} from "../src/tracing/tracing"
 import whereDoesCharComeFrom from "../src/whereDoesCharComeFrom"
 import getRootOriginAtChar from "../src/getRootOriginAtChar"
 import { OriginPath, FromJSView } from "../src/ui/ui"
+import isMobile from "../src/isMobile"
 var _ = require("underscore")
 var $ = require("jquery")
 import exportElementOrigin from "../src/export-element-origin"
@@ -17,6 +18,7 @@ var React = require("react")
 if (!window.isSerializedDomPage){
     enableTracing()
 }
+
 
 
 setTimeout(function(){
@@ -73,19 +75,21 @@ function doneRenderingApp(){
         e.preventDefault();
         component.display(e.target)
     })
-    $("*").mouseenter(function(e){
-        if (!shouldHandle(e)) {return}
-        e.stopPropagation()
-        component.setPreviewEl(e.target)
-    })
-    $("*").mouseleave(function(e){
-        if (!shouldHandle(e)) {return}
-        component.setPreviewEl(null)
-    })
+
+    if (!isMobile()){
+        $("*").mouseenter(function(e){
+            if (!shouldHandle(e)) {return}
+            e.stopPropagation()
+            component.setPreviewEl(e.target)
+        })
+        $("*").mouseleave(function(e){
+            if (!shouldHandle(e)) {return}
+            component.setPreviewEl(null)
+        })
+    }
 
 
-
-        console.log("k")
+        console.log("k", isMobile())
 
 
     return

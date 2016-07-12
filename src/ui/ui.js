@@ -5,6 +5,7 @@ import getRootOriginAtChar from "../getRootOriginAtChar"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getCodeFilePath from "./getCodeFilePath"
 import fileIsDynamicCode from "../fileIsDynamicCode"
+import isMobile from "../isMobile"
 
 import Perf from "react-addons-perf"
 window.Perf = Perf
@@ -815,6 +816,7 @@ class ElementOriginPath extends React.Component {
                 previewCharacterIndex: null
             }),
             onInspectedValueCharacterHover: (characterIndex) => {
+                if (isMobile()) { return }
                 this.setState({previewCharacterIndex: characterIndex})
             },
             inspectValue:  (origin, characterIndex) => {
