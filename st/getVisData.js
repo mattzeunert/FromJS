@@ -53,6 +53,7 @@ function doneRenderingApp(){
     var container = document.createElement("div")
     var component;
 
+
     ReactDOM.render(<FromJSView ref={(c) => component = c}/>, container)
     document.body.appendChild(container)
 
@@ -94,7 +95,9 @@ function doneRenderingApp(){
         style.innerHTML = "body {padding-right: 56vw !important; padding-left: 1vw !important}"
         style.innerHTML += "#fromjs { width: 55vw !important}"
         // for some reason doing $("#fromjs").css() duplicates the element
+        // no, something else is doing that, prob could just use .css
         $("body").append(style)
+        $("body").addClass("fromjsIsMobile")
     }
 
 
@@ -168,6 +171,7 @@ function saveAndSerializeDomState(){
     })
 
     $("#fromjs-initial-html").remove();
+    $("#fromjs").remove()
 
     $("html").find("*")
       .contents()
