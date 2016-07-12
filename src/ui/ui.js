@@ -1025,6 +1025,9 @@ export class FromJSView extends React.Component {
                 {preview}
 
                 {info}
+                
+                {/* Add some spacing since it seems you can't scroll down all the way*/}
+                {isMobile() ? <div><br/><br/><br/></div> : null}
             </div>
             {previewMarker}
             {selectionMarker}
