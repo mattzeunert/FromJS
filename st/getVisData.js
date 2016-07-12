@@ -41,6 +41,7 @@ function doneRenderingApp(){
     if (!window.isSerializedDomPage){
         // saveAndSerializeDomState()
     }
+    console.trace("doneRenderingApp")
 
     var windowJQuery = window.jQuery
 
@@ -88,6 +89,14 @@ function doneRenderingApp(){
         })
     }
 
+    if (isMobile()){
+        var style = document.createElement("style")
+        style.innerHTML = "body {padding-right: 56vw !important; padding-left: 1vw !important}"
+        style.innerHTML += "#fromjs { width: 55vw !important}"
+        // for some reason doing $("#fromjs").css() duplicates the element
+        $("body").append(style)
+    }
+
 
         console.log("k", isMobile())
 
@@ -97,6 +106,7 @@ function doneRenderingApp(){
 
 function initSerializedDataPage(){
     window._disableTracing();
+    console.log("initSerializedDataPage")
 
     document.body.innerHTML = "Loading data..."
 
