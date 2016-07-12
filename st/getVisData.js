@@ -50,7 +50,9 @@ function doneRenderingApp(){
     link.setAttribute("href", "/fromjs-internals/fromjs.css")
     document.body.appendChild(link)
 
+
     var container = document.createElement("div")
+    container.className = "fromjs-outer-container"
     var component;
 
 
@@ -171,7 +173,7 @@ function saveAndSerializeDomState(){
     })
 
     $("#fromjs-initial-html").remove();
-    $("#fromjs").remove()
+    $(".fromjs-outer-container").remove()
 
     $("html").find("*")
       .contents()
