@@ -83536,6 +83536,7 @@
 	    document.body.appendChild(link);
 	
 	    var container = document.createElement("div");
+	    container.className = "fromjs-outer-container";
 	    var component;
 	
 	    ReactDOM.render(React.createElement(_ui.FromJSView, { ref: function ref(c) {
@@ -83659,7 +83660,7 @@
 	    });
 	
 	    $("#fromjs-initial-html").remove();
-	    $("#fromjs").remove();
+	    $(".fromjs-outer-container").remove();
 	
 	    $("html").find("*").contents().filter(function () {
 	        return this.nodeType === 3; //Node.TEXT_NODE
