@@ -88861,7 +88861,14 @@
 	                    { id: "fromjs", className: "fromjs" },
 	                    intro,
 	                    preview,
-	                    info
+	                    info,
+	                    (0, _isMobile2.default)() ? _react2.default.createElement(
+	                        "div",
+	                        null,
+	                        _react2.default.createElement("br", null),
+	                        _react2.default.createElement("br", null),
+	                        _react2.default.createElement("br", null)
+	                    ) : null
 	                ),
 	                previewMarker,
 	                selectionMarker
