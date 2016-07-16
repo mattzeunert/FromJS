@@ -855,6 +855,7 @@ class ElementOriginPath extends React.Component {
         // }
 
         return <div>
+            <button onClick={() => this.props.goUpInDOM() }>up</button>
             <ElementOriginPathContent
                 {...sharedProps}
                 getOriginPath={getOriginPath}
@@ -1006,7 +1007,11 @@ export class FromJSView extends React.Component {
         }
         if (this.state.el) {
             info = <div style={{display: showPreview ? "hidden" : "block"}}>
-                <ElementOriginPath key={this.state.el + this.state.elId} el={this.state.el} onNonElementOriginSelected={() => this.setState({nonElementOriginSelected: true})}/>
+                <ElementOriginPath
+                    key={this.state.el + this.state.elId}
+                    el={this.state.el}
+                    onNonElementOriginSelected={() => this.setState({nonElementOriginSelected: true})}
+                    goUpInDOM={() => this.display(this.state.el.parentNode) }/>
             </div>
         }
 
