@@ -7,12 +7,15 @@ import getCodeFilePath from "./getCodeFilePath"
 import fileIsDynamicCode from "../fileIsDynamicCode"
 import isMobile from "../isMobile"
 import ReactTooltip from "react-tooltip"
-
 import "react-fastclick" // import for side effects, no export
 
 import Perf from "react-addons-perf"
 window.Perf = Perf
 
+// ReactTooltip doesn't respond to UI changes automatically
+setInterval(function(){
+    ReactTooltip.rebuild()
+}, 100)
 
 function getFilenameFromPath(path){
     var pathParts = path.split("/");
