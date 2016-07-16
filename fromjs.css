@@ -205,3 +205,6 @@ body {
     line-height: 16px;
     font-size: 12px;
 }
+.__react_component_tooltip {
+    transition: none !important;
+}
