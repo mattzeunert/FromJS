@@ -1021,11 +1021,15 @@ export class FromJSView extends React.Component {
         var showPreview = this.state.previewEl !== null && this.state.previewEl !== this.state.el
         if (showPreview){
             previewMarker = <PreviewElementMarker el={this.state.previewEl}/>
-            preview = <ElementOriginPath key={this.state.previewEl} el={this.state.previewEl} />
+            preview = <ElementOriginPath
+                key={this.state.previewEl}
+                el={this.state.previewEl}
+                goUpInDOM={() => "can't call this function, but needs to be there so button is shown"}
+                />
         }
         if (this.state.el) {
             var goUpInDOM = null
-            if (!this.state.nonElementOriginSelected) {
+            if (!this.state.nonElementOriginSelected && this.state.el.tagName !== "BODY") {
                 goUpInDOM = () => this.display(this.state.el.parentNode)
             }
             info = <div style={{display: showPreview ? "hidden" : "block"}}>
