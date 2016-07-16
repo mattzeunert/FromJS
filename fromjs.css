@@ -185,7 +185,7 @@ body {
 }
 
 .fromjs-info-icon {
-    background: #08f;
+    background: black;
     color: white;
     font-weight: bold;
     border-radius: 50px;
@@ -194,7 +194,12 @@ body {
     height: 16px;
     text-align: center;
     margin-left: 2px;
-    line-height: 16px;
+    line-height: 17px;
+    font-size: 12px;
+    -webkit-font-smoothing: antialiased;
+}
+[data-tip]:hover .fromjs-info-icon {
+    background: #08f;
 }
 
 [data-tip]:hover {
