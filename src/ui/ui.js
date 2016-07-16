@@ -6,10 +6,13 @@ import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getCodeFilePath from "./getCodeFilePath"
 import fileIsDynamicCode from "../fileIsDynamicCode"
 import isMobile from "../isMobile"
+import ReactTooltip from "react-tooltip"
+
 import "react-fastclick" // import for side effects, no export
 
 import Perf from "react-addons-perf"
 window.Perf = Perf
+
 
 function getFilenameFromPath(path){
     var pathParts = path.split("/");
@@ -209,7 +212,16 @@ class OriginPathItem extends React.Component {
         var inputValueLinks = null;
         if (this.state.showDetailsDropdown){
             inputValueLinks = <div style={{background: "aliceblue", paddingLeft: 10}}>
-                <div>Parameters: </div>
+                <div>
+                    <span data-multiline data-tip={
+                        "These are the input values of the string transformation.<br>"
+                        + "The parameters of a string concatenation would be the two strings being joined together.<br>"
+                        + "A replace call would show the original string, the string being replaced, and the replacement string."
+                        }>
+                        Parameters
+                        <span className="fromjs-info-icon">i</span>:
+                    </span>
+                </div>
                 {originObject.inputValues.map((iv) => {
                     return <div className="fromjs-input-value-link"
                         onClick={() => this.props.handleValueSpanClick(iv, 0)}>
@@ -1059,6 +1071,7 @@ export class FromJSView extends React.Component {
 
                 {/* Add some spacing since it seems you can't scroll down all the way*/}
                 {isMobile() ? <div><br/><br/><br/></div> : null}
+                <ReactTooltip effect="solid" />
             </div>
             {previewMarker}
             {selectionMarker}

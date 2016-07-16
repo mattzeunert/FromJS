@@ -183,3 +183,25 @@ body {
 .fromjs-go-up-button:hover {
     color: red;
 }
+
+.fromjs-info-icon {
+    background: #08f;
+    color: white;
+    font-weight: bold;
+    border-radius: 50px;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    text-align: center;
+    margin-left: 2px;
+    line-height: 16px;
+}
+
+[data-tip]:hover {
+    color: #08f;
+}
+.__react_component_tooltip .multi-line {
+    text-align: left;
+    line-height: 16px;
+    font-size: 12px;
+}
