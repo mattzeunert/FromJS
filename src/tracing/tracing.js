@@ -47,7 +47,12 @@ export function enableTracing(){
     document.createElement = function(tagName){
 
         var el = originalCreateElement.call(this, tagName)
-        addElOrigin(el, "tagName", {
+        addElOrigin(el, "openingTagStart", {
+            action: "createElement",
+            inputValues: [tagName],
+            value: el.tagName
+        })
+        addElOrigin(el, "openingTagEnd", {
             action: "createElement",
             inputValues: [tagName],
             value: el.tagName
