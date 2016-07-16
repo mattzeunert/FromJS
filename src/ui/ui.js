@@ -776,18 +776,36 @@ class ElementOriginPathContent extends React.Component {
                 />
             </div>
         }
+
+        var showUpButton = typeof this.props.goUpInDOM === "function"
+        var upButton = null;
+        if (showUpButton){
+            upButton = <div style={{position: "absolute", top: 0, right: 0, border: "1px solid #eee"}}>
+                <button
+                    onClick={() => this.props.goUpInDOM() }
+                    className={"fromjs-go-up-button"}
+                    >
+                    {"\u21e7"}
+                </button>
+            </div>
+        }
+
         return <div>
             <div style={{padding: 10}}>
                 <div style={{fontWeight: "bold", fontSize: 20, marginBottom: 20}}>
                     Where does this character come from?
                 </div>
-                <div style={{border: "1px solid #ddd"}}>
-                    <TextEl
-                        text={this.props.inspectedValue}
-                        highlightedCharacterIndex={this.props.inspectedValueCharacterIndex}
-                        onCharacterClick={this.props.onInspectedValueCharacterClick}
-                        onCharacterHover={this.props.onInspectedValueCharacterHover}
-                    />
+                <div style={{position: "relative"}}>
+                    <div style={{border: "1px solid #ddd",
+                        width: showUpButton ? "calc(100% - 30px)" : "100%"}}>
+                        <TextEl
+                            text={this.props.inspectedValue}
+                            highlightedCharacterIndex={this.props.inspectedValueCharacterIndex}
+                            onCharacterClick={this.props.onInspectedValueCharacterClick}
+                            onCharacterHover={this.props.onInspectedValueCharacterHover}
+                        />
+                    </div>
+                    {upButton}
                 </div>
             </div>
             <hr/>
@@ -855,11 +873,11 @@ class ElementOriginPath extends React.Component {
         // }
 
         return <div>
-            <button onClick={() => this.props.goUpInDOM() }>up</button>
             <ElementOriginPathContent
                 {...sharedProps}
                 getOriginPath={getOriginPath}
                 originPathKey={originPathKey}
+                goUpInDOM={this.props.goUpInDOM}
                 previewGetOriginPath={previewGetOriginPath}
                 previewOriginPathKey={previewOriginPathKey}
             />
@@ -1006,12 +1024,16 @@ export class FromJSView extends React.Component {
             preview = <ElementOriginPath key={this.state.previewEl} el={this.state.previewEl} />
         }
         if (this.state.el) {
+            var goUpInDOM = null
+            if (!this.state.nonElementOriginSelected) {
+                goUpInDOM = () => this.display(this.state.el.parentNode)
+            }
             info = <div style={{display: showPreview ? "hidden" : "block"}}>
                 <ElementOriginPath
                     key={this.state.el + this.state.elId}
                     el={this.state.el}
                     onNonElementOriginSelected={() => this.setState({nonElementOriginSelected: true})}
-                    goUpInDOM={() => this.display(this.state.el.parentNode) }/>
+                    goUpInDOM={goUpInDOM} />
             </div>
         }
 
@@ -1030,7 +1052,7 @@ export class FromJSView extends React.Component {
                 {preview}
 
                 {info}
-                
+
                 {/* Add some spacing since it seems you can't scroll down all the way*/}
                 {isMobile() ? <div><br/><br/><br/></div> : null}
             </div>
