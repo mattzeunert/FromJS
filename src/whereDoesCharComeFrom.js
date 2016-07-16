@@ -52,7 +52,9 @@ function goUp(step, callback){
         var clickedOnAttributeRightPart = newCharIndex >= step.originObject.inputValues[0].value.length
 
         if (clickedOnAttributeLeftPart || clickedOnAttributeRightPart) {
-            return null; // clicked on class=' part rather than actual class name
+            // clicked on class=' part rather than actual class name
+            callback(null)
+            return;
         }
         ret = {
             originObject: step.originObject.inputValues[0],
