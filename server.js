@@ -5,7 +5,7 @@ var startsWith = require("starts-with")
 var stringContains = require("string-contains");
 var processJavaScriptCode = require("./process-javascript-code")
 
-http.createServer(handleRequest).listen(8888)
+http.createServer(handleRequest).listen(7500)
 
 function handleRequest(request, response){
     var path = request.url.split("?")[0]
