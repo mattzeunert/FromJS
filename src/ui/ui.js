@@ -996,7 +996,7 @@ class Intro extends React.Component {
             </h2>
             <p>
                 Not yet, at least not for anything complex. I{"'"}ve written the
-                code so it has the functionaltiy required for this demo.
+                code so it has the functionality required for this demo.
                 FromJS will work if you use a subset of this functionality, but
                 chances are your app won{"'"}t even render.
             </p>
