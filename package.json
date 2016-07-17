@@ -8,7 +8,7 @@
     "server": "nodemon server.js",
     "webpack": "webpack-dev-server",
     "update-website": "git subtree push  --prefix gh-pages origin gh-pages",
-    "build": "webpack",
+    "build": "webpack --config webpack/webpack.demo.config.js",
     "update-website-demos": "sh ./scripts/copy-demo-files-to-gh-pages.sh"
   },
   "author": "Matt Zeunert",
@@ -44,6 +44,7 @@
     "babel-preset-react": "^6.11.1",
     "babel-preset-stage-0": "^6.5.0",
     "nodemon": "^1.9.2",
+    "react-addons-perf": "^15.2.1",
     "underscore": "^1.8.3",
     "webpack-dev-server": "^1.14.1"
   },

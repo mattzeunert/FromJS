@@ -1,7 +1,6 @@
 var webpack = require('webpack');
 
-
-module.exports = [{
+module.exports = {
     entry: {
         main: ['./st/string-trace.js']
     },
@@ -27,5 +26,6 @@ module.exports = [{
         fs: 'empty',
         module: 'empty',
         net: 'empty'
-    }
-}]
+    },
+    plugins: []
+}
