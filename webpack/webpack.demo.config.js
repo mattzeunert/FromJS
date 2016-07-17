@@ -3,7 +3,8 @@ var webpack = require("webpack")
 
 var definePlugin = new webpack.DefinePlugin({
     'process.env': {
-        'NODE_ENV': '"production"'
+        'NODE_ENV': '"production"',
+        'isDemo': 'true'
     }
 });
 
