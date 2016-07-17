@@ -64,6 +64,15 @@ export class OriginPath extends React.Component {
         }
 
         var originPath = this.state.originPath;
+        originPath = originPath.filter(function(pathItem){
+            // This is really an implementation detail and doesn't add any value to the user
+            // Ideally I'd clean up the code to not generate that action at all,
+            // but for now just filtering it out
+            if (pathItem.originObject.action === "Initial Body HTML") {
+                return false;
+            }
+            return true;
+        })
         window.originPath = originPath
 
         var lastOriginPathStep = _.last(originPath)
