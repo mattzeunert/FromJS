@@ -80,7 +80,19 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
 
                     var replaceWith = null;
                     if (typeof args[1] === "string") { // confusing... args[1] is basically inputValues[2].value
-                        replaceWith = inputValues[2]
+                        var value = args[1];
+                        value = value.replace(/\$([0-9]{1,2}|[$`&'])/, function(match, dollarSubmatch){
+                            if (!isNaN(parseFloat(dollarSubmatch))){
+                                return submatches[parseFloat(dollarSubmatch)]
+                            } else {
+                                throw "not handled!!"
+                            }
+                        })
+
+                        replaceWith = {
+                            origin: inputValues[2].origin,
+                            value: value
+                        }
                     } else {
                         replaceWith = args[1].apply(this, newArgsArray)
                         if (!replaceWith.origin) {
@@ -169,15 +181,16 @@ StringTraceString.prototype.toString = function(){
 StringTraceString.prototype.toJSON = function(){
     return this.value
 }
+Object.defineProperty(StringTraceString.prototype, "length", {
+    get: function(){
+        return this.value.length;
+    }
+})
 
 export function makeTraceObject(options){
     var stringTraceObject = new StringTraceString({
         value: options.value,
         origin: options.origin
     })
-    return new Proxy(stringTraceObject, {
-        ownKeys: function(){
-            return []
-        }
-    });
+    return stringTraceObject;
 }
