@@ -8,7 +8,7 @@
     "server": "nodemon server.js",
     "webpack": "webpack-dev-server",
     "update-website": "git subtree push  --prefix gh-pages origin gh-pages",
-    "build": "webpack --config webpack/webpack.demo.config.js",
+    "build": "webpack -p --config webpack/webpack.demo.config.js",
     "update-website-demos": "sh ./scripts/copy-demo-files-to-gh-pages.sh"
   },
   "author": "Matt Zeunert",
