@@ -12,7 +12,7 @@
     "update-website-demos": "sh ./scripts/copy-demo-files-to-gh-pages.sh"
   },
   "author": "Matt Zeunert",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "async": "^1.5.2",
     "babel": "^6.5.2",
