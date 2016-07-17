@@ -214,7 +214,7 @@ class OriginPathItem extends React.Component {
 
         var inputValueLinks = null;
         if (this.state.showDetailsDropdown){
-            inputValueLinks = <div style={{background: "aliceblue", paddingLeft: 10}}>
+            inputValueLinks = <div style={{background: "aliceblue", paddingLeft: 10, paddingBottom: 10}}>
                 <div>
                     <span data-multiline data-tip={
                         "These are the input values of the string transformation.<br>"
@@ -797,6 +797,7 @@ class ElementOriginPathContent extends React.Component {
         if (showUpButton){
             upButton = <div style={{position: "absolute", top: 0, right: 0, border: "1px solid #eee"}}>
                 <button
+                    data-tip={"Inspect parent element"}
                     onClick={() => this.props.goUpInDOM() }
                     className={"fromjs-go-up-button"}
                     >
