@@ -241,11 +241,7 @@ function goUp(step, callback){
                     characterIndex += contentBeforeChar.split("\\n").length - 1;
 
                     callback({
-                        originObject: {
-                            action: "Dynamic Script",
-                            value: content,
-                            inputValues: [fromJSDynamicFileOrigins[frame.fileName]]
-                        },
+                        originObject: fromJSDynamicFileOrigins[frame.fileName],
                         characterIndex
                     })
                 })
