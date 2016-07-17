@@ -172,3 +172,44 @@ body {
     z-index: 10000;
     pointer-events: none;
 }
+
+
+.fromjs-go-up-button {
+    font-size: 20px;
+    font-weight: bold;
+    color: #08f;
+    cursor: pointer;
+}
+.fromjs-go-up-button:hover {
+    color: red;
+}
+
+.fromjs-info-icon {
+    background: black;
+    color: white;
+    font-weight: bold;
+    border-radius: 50px;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    text-align: center;
+    margin-left: 2px;
+    line-height: 17px;
+    font-size: 12px;
+    -webkit-font-smoothing: antialiased;
+}
+[data-tip]:hover .fromjs-info-icon {
+    background: #08f;
+}
+
+[data-tip]:hover {
+    color: #08f;
+}
+.__react_component_tooltip .multi-line {
+    text-align: left;
+    line-height: 16px;
+    font-size: 12px;
+}
+.__react_component_tooltip {
+    transition: none !important;
+}
