@@ -4,6 +4,8 @@ import Origin from "../src/origin"
 var $ = require("jquery")
 var ValueMap = require("../src/value-map")
 var _ = require("underscore")
+window.stringTraceCompile = require("../process-javascript-code")
+
 import processElementsAvailableOnInitialLoad from "../src/tracing/processElementsAvailableOnInitialLoad"
 import StringTraceString, {makeTraceObject} from "../src/tracing/FromJSString"
 import addElOrigin from "../src/tracing/addElOrigin"
