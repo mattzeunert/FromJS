@@ -2,7 +2,7 @@ var webpack = require('webpack');
 
 module.exports = {
     entry: {
-        main: ['./st/string-trace.js']
+        main: ['./src/from.js']
     },
     output: {
         path: "./",
