@@ -24,20 +24,23 @@ window.addEventListener("load", function(){
     processElementsAvailableOnInitialLoad();
 })
 
-
-
-
-
-function stringTrace(value){
-    return makeTraceObject({
-        value: value,
-        origin: new Origin({
-            action: "String Literal",
+var functionsForProcessedCode = {
+    __StringLiteral(value){
+        return makeTraceObject({
             value: value,
-            inputValues: []
-        }),
-    })
-};
+            origin: new Origin({
+                action: "String Literal",
+                value: value,
+                inputValues: []
+            }),
+        })
+    }
+}
+
+
+Object.keys(functionsForProcessedCode).forEach(function(functionName){
+    window[functionName] = functionsForProcessedCode[functionName]
+})
 
 function stringTraceUnknown(value){
     return makeTraceObject({
@@ -124,7 +127,6 @@ window.tagTypeHasClosingTag = tagTypeHasClosingTag
 
 window.stringTraceTripleEqual = stringTraceTripleEqual
 window.stringTraceNotTripleEqual = stringTraceNotTripleEqual
-window.stringTrace = stringTrace
 window.stringTraceUseValue = stringTraceUseValue
 window.stringTraceTypeOf = stringTraceTypeOf
 window.stringTraceSetInnerHTML = stringTraceSetInnerHTML

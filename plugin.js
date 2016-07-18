@@ -138,7 +138,7 @@ module.exports = function(babel) {
         }
 
         const buildRequire = template(`
-          stringTrace(STRING)
+          __StringLiteral(STRING)
         `);
 
         var str = babel.types.stringLiteral(path.node.value)
