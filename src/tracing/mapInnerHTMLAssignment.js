@@ -1,5 +1,6 @@
 import addElOrigin from "./addElOrigin"
 import $ from "jquery"
+import tagTypeHasClosingTag from "./tagTypeHasClosingTag"
 
 // tries to describe the relationship between an assigned innerHTML value
 // and the value you get back when reading el.innerHTML.

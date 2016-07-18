@@ -5,6 +5,7 @@ import Origin from "../origin"
 import _ from "underscore"
 import stringTraceUseValue from "./stringTraceUseValue"
 import {makeSureInitialHTMLHasBeenProcessed} from "./processElementsAvailableOnInitialLoad"
+import processJavaScriptCode from "../../process-javascript-code"
 
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
@@ -180,7 +181,7 @@ export function enableTracing(){
 
         var id = _.uniqueId();
         var filename = "DynamicFunction" + id + ".js"
-        var res = stringTraceCompile(stringTraceUseValue(code), {filename: filename})
+        var res = processJavaScriptCode(stringTraceUseValue(code), {filename: filename})
         args.push(res.code)
 
 

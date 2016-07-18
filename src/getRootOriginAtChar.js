@@ -1,8 +1,5 @@
 import ValueMap from "../src/value-map"
-
-function tagTypeHasClosingTag(tagName){
-    return originalCreateElement.apply(document, [tagName]).outerHTML.indexOf("></") !== -1
-}
+import tagTypeHasClosingTag from "./tracing/tagTypeHasClosingTag"
 
 window.getRootOriginAtChar = getRootOriginAtChar
 
