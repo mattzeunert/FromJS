@@ -9,7 +9,7 @@ module.exports = function(babel) {
           if (path.node.ignore){return}
         if (path.node.left.property && path.node.left.property.name === "innerHTML") {
             path.replaceWith(babel.types.callExpression(
-                babel.types.identifier("stringTraceSetInnerHTML"),
+                babel.types.identifier("t__setInnerHTML"),
                 [path.node.left.object, path.node.right]
             ))
         }
@@ -18,7 +18,7 @@ module.exports = function(babel) {
                 "=",
                 path.node.left,
                 babel.types.callExpression(
-                    babel.types.identifier("stringTraceAdd"),
+                    babel.types.identifier("f__add"),
                     [path.node.left,path.node.right]
                 )
             )
@@ -46,7 +46,7 @@ module.exports = function(babel) {
           var replacement = babel.types.conditionalExpression(
                   binaryExpression,
                   undefinedLiteral,
-                  babel.types.callExpression(babel.types.identifier("stringTraceTypeOf"),[path.node.argument])
+                  babel.types.callExpression(babel.types.identifier("f__typeof"),[path.node.argument])
             )
         replacement.ignore = true;
 
@@ -56,7 +56,7 @@ module.exports = function(babel) {
       ConditionalExpression(path){
           if (path.node.ignore){return}
 
-          var callExpression = babel.types.callExpression(babel.types.identifier("stringTraceUseValue"),[
+          var callExpression = babel.types.callExpression(babel.types.identifier("f__useValue"),[
               path.node.test
           ])
           callExpression.ignore = true;
@@ -74,21 +74,21 @@ module.exports = function(babel) {
           if (path.node.ignore){return}
         if (path.node.operator === "+") {
             var call = babel.types.callExpression(
-                babel.types.identifier("stringTraceAdd"),
+                babel.types.identifier("f__add"),
                 [path.node.left, path.node.right]
             )
 
             path.replaceWith(call)
         } else if (path.node.operator === "!==") {
             var call = babel.types.callExpression(
-                babel.types.identifier("stringTraceNotTripleEqual"),
+                babel.types.identifier("f__notTripleEqual"),
                 [path.node.left, path.node.right]
             )
 
             path.replaceWith(call)
         } else if (path.node.operator === "===") {
             var call = babel.types.callExpression(
-                babel.types.identifier("stringTraceTripleEqual"),
+                babel.types.identifier("f__tripleEqual"),
                 [path.node.left, path.node.right]
             )
 
@@ -98,7 +98,7 @@ module.exports = function(babel) {
       SwitchStatement(path){
           if (path.node.ignore){return}
           var switchStatement = babel.types.switchStatement(
-              babel.types.callExpression(babel.types.identifier("stringTraceUseValue"), [
+              babel.types.callExpression(babel.types.identifier("f__useValue"), [
                   path.node.discriminant
               ]),
               path.node.cases
@@ -110,7 +110,7 @@ module.exports = function(babel) {
       WhileStatement(path){
           if (path.node.ignore){return}
           var whileStatement = babel.types.whileStatement(
-              babel.types.callExpression(babel.types.identifier("stringTraceUseValue"), [
+              babel.types.callExpression(babel.types.identifier("f__useValue"), [
                   path.node.test
               ]),
               path.node.body
@@ -138,7 +138,7 @@ module.exports = function(babel) {
         }
 
         const buildRequire = template(`
-          __StringLiteral(STRING)
+          f__StringLiteral(STRING)
         `);
 
         var str = babel.types.stringLiteral(path.node.value)

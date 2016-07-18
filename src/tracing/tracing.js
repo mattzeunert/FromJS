@@ -3,6 +3,7 @@ import unstringTracifyArguments from "./unstringTracifyArguments"
 import makeTraceObject from "./makeTraceObject"
 import Origin from "../origin"
 import _ from "underscore"
+import stringTraceUseValue from "./stringTraceUseValue"
 import {makeSureInitialHTMLHasBeenProcessed} from "./processElementsAvailableOnInitialLoad"
 
 window.fromJSDynamicFiles = {}
