@@ -1,4 +1,4 @@
-require("./compile")
+
 require("./getVisData")
 import Origin from "../src/origin"
 var $ = require("jquery")
@@ -28,18 +28,10 @@ window.addEventListener("load", function(){
 
 
 
-
-function makeOrigin(opts){
-    return new Origin(opts)
-
-}
-
-
-
 function stringTrace(value){
     return makeTraceObject({
         value: value,
-        origin: makeOrigin({
+        origin: new Origin({
             action: "String Literal",
             value: value,
             inputValues: []
@@ -50,7 +42,7 @@ function stringTrace(value){
 function stringTraceUnknown(value){
     return makeTraceObject({
         value: value,
-        origin: makeOrigin({
+        origin: new Origin({
             action: "Untracked String",
             value: value,
             inputValues: []
@@ -91,7 +83,7 @@ function stringTraceAdd(a, b){
     var newValue = a.toString() + b.toString();
     return makeTraceObject({
         value: newValue,
-        origin: makeOrigin({
+        origin: new Origin({
             action: "Concat",
             value: newValue,
             inputValues: [a, b]
