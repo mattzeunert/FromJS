@@ -13,6 +13,9 @@ window.addEventListener("load", function(){
 
 import babelFunctions from "../src/tracing/babelFunctions"
 
+import saveAndSerializeDOMState from "./ui/saveAndSerializeDOMState"
+window.saveAndSerializeDOMState = saveAndSerializeDOMState
+
 Object.keys(babelFunctions).forEach(function(functionName){
     window[functionName] = babelFunctions[functionName]
 })
