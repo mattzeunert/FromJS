@@ -4,6 +4,7 @@ import babelFunctions from "../src/tracing/babelFunctions"
 import saveAndSerializeDOMState from "./ui/saveAndSerializeDOMState"
 import initSerializedDataPage from "../src/ui/initSerializedDataPage"
 import showFromJSSidebar from "../src/ui/showFromJSSidebar"
+import $ from "jquery"
 
 
 document.onreadystatechange = function(e){
