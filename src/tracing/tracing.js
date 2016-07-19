@@ -43,7 +43,6 @@ window.originalLocalStorage = nativeLocalStorage
 
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
 
-
 export function enableTracing(){
     if (tracingEnabled){
         return
@@ -149,12 +148,27 @@ export function enableTracing(){
         return parsedVal
     }
 
-    Object.defineProperty(Element.prototype, "textContent", {
+    Object.defineProperty(Node.prototype, "textContent", {
         get: function(){
             return nativeNodeTextContentDescriptor.get.apply(this, arguments)
         },
         set: function(newTextContent){
-            return nativeNodeTextContentDescriptor.set.apply(this, arguments)
+            var ret = nativeNodeTextContentDescriptor.set.apply(this, arguments)
+            var el = this;
+
+            addElOrigin(el, "replaceContents", el.childNodes)
+            if (newTextContent !== ""){
+                var childNode = el.childNodes[0];
+                el.__elOrigin.contents = [childNode]
+
+                addElOrigin(childNode, "textValue", {
+                    action: "Assign textContent",
+                    inputValues: [newTextContent],
+                    value: newTextContent.toString()
+                })
+            }
+
+            return ret;
         }
     })
 
