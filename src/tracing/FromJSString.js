@@ -28,6 +28,9 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
             var newVal;
 
             var argumentOrigins = Array.prototype.slice.call(arguments).map(function(arg){
+                if (arg instanceof StringTraceString) {
+                    return arg.origin;
+                }
                 return new Origin({
                     action: "Untracked Argument",
                     value: arg.toString(),
