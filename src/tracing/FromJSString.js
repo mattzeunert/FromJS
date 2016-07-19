@@ -79,8 +79,9 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     inputMappedSoFar += inputBeforeToKeep
 
                     var replaceWith = null;
-                    if (typeof args[1] === "string") { // confusing... args[1] is basically inputValues[2].value
-                        var value = args[1];
+                    // confusing... args[1] is basically inputValues[2].value
+                    if (typeof args[1] === "string" || typeof args[1] === "number") {
+                        var value = args[1].toString();
                         value = value.replace(/\$([0-9]{1,2}|[$`&'])/g, function(match, dollarSubmatch){
                             if (!isNaN(parseFloat(dollarSubmatch))){
                                 return submatches[parseFloat(dollarSubmatch) - 1] // $n is one-based, array is zero-based
@@ -93,7 +94,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                             origin: inputValues[2].origin,
                             value: value
                         }
-                    } else {
+                    } else if (typeof args[1] === "function"){
                         replaceWith = args[1].apply(this, newArgsArray)
                         if (!replaceWith.origin) {
                             replaceWith = makeTraceObject({
@@ -107,6 +108,8 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                         } else {
                             replaceWith = replaceWith.origin
                         }
+                    } else {
+                        throw "not handled"
                     }
                     valueMap.appendString(replaceWith.value, replaceWith, 0)
 
