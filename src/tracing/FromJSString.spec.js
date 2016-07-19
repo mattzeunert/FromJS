@@ -11,14 +11,13 @@ describe("FromJSString.replace", function(){
         expect(str.value).toBe("Hi World!");
     })
 
-    // Should work at some point, but not working yet
-    // it("Supports submatch replacements with $n", function(){
-    //     var str = new FromJSString({
-    //         value: "Hello!",
-    //         origin: {}
-    //     })
-    //
-    //     str = str.replace(/(!)/, "$1");
-    //     expect(str.value).toBe("Hello!!")
-    // })
+    it("Supports submatch replacements with $n", function(){
+        var str = new FromJSString({
+            value: "Hello!",
+            origin: {}
+        })
+
+        str = str.replace(/(!)/, "$1$1");
+        expect(str.value).toBe("Hello!!")
+    })
 })

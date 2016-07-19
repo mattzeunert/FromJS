@@ -81,9 +81,9 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     var replaceWith = null;
                     if (typeof args[1] === "string") { // confusing... args[1] is basically inputValues[2].value
                         var value = args[1];
-                        value = value.replace(/\$([0-9]{1,2}|[$`&'])/, function(match, dollarSubmatch){
+                        value = value.replace(/\$([0-9]{1,2}|[$`&'])/g, function(match, dollarSubmatch){
                             if (!isNaN(parseFloat(dollarSubmatch))){
-                                return submatches[parseFloat(dollarSubmatch)]
+                                return submatches[parseFloat(dollarSubmatch) - 1] // $n is one-based, array is zero-based
                             } else {
                                 throw "not handled!!"
                             }
