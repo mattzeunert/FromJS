@@ -39,7 +39,7 @@ window.nativeJSONParse = nativeJSONParse
 var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
 
-
+var nativeArrayJoin = Array.prototype.join
 
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
 
@@ -146,6 +146,16 @@ export function enableTracing(){
         }
 
         return parsedVal
+    }
+
+    Array.prototype.join = function(separator){
+        var stringifiedItems = this.map(function(item){
+            return item.toString()
+        })
+        // .join already does stringification, but we may need to call .toString()
+        // twice if there is an object with a toString function which returns
+        // a FromJSString (an object) which needs to be converted to a native string
+        return nativeArrayJoin.apply(stringifiedItems, [separator])
     }
 
     Object.defineProperty(Node.prototype, "textContent", {
@@ -329,6 +339,7 @@ export function disableTracing(){
     Object.defineProperty(Element.prototype, "className", window.nativeClassNameDescriptor)
     Object.defineProperty(HTMLElement.prototype, "dataset", window.nativeDataSetDescriptor)
     Object.defineProperty(Node.prototype, "textContent", nativeNodeTextContentDescriptor)
+    Array.prototype.join = nativeArrayJoin
 
     tracingEnabled = false;
 }
