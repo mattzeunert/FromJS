@@ -31,7 +31,7 @@ function handleRequest(request, response){
             var files = fs.readdirSync(path);
             response.write("<html>")
             files.forEach(function(file){
-                response.write("<a href='" + encodeURI(path + "/" + file)  +"'>" + _.escape(file) + "</a><br/>")
+                response.write("<a href='" + encodeURI("/" + path + "/" + file)  +"'>" + _.escape(file) + "</a><br/>")
             })
             response.write("</html>")
         } else {
