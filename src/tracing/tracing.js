@@ -39,6 +39,11 @@ window.nativeJSONParse = nativeJSONParse
 var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
 
+
+
+var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
+
+
 export function enableTracing(){
     if (tracingEnabled){
         return
@@ -144,6 +149,14 @@ export function enableTracing(){
         return parsedVal
     }
 
+    Object.defineProperty(Element.prototype, "textContent", {
+        get: function(){
+            return nativeNodeTextContentDescriptor.get.apply(this, arguments)
+        },
+        set: function(newTextContent){
+            return nativeNodeTextContentDescriptor.set.apply(this, arguments)
+        }
+    })
 
     Object.defineProperty(Element.prototype, "innerHTML", {
         set: function(innerHTML){
@@ -301,6 +314,7 @@ export function disableTracing(){
     window.Function = nativeFunction
     Object.defineProperty(Element.prototype, "className", window.nativeClassNameDescriptor)
     Object.defineProperty(HTMLElement.prototype, "dataset", window.nativeDataSetDescriptor)
+    Object.defineProperty(Node.prototype, "textContent", nativeNodeTextContentDescriptor)
 
     tracingEnabled = false;
 }
