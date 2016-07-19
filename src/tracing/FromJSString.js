@@ -106,7 +106,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                                     action: "Untracked replace match result",
                                     inputValues: []
                                 }
-                            }).origin
+                            })
                         } else {
                             replaceWith = {
                                 value: replaceWith.value,

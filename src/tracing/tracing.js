@@ -35,8 +35,8 @@ window.nativeFunction = nativeFunction
 var nativeJSONParse = JSON.parse
 window.nativeJSONParse = nativeJSONParse
 
-var nativeLocalStorageGetItem = localStorage.getItem
-window.nativeLocalStorageGetItem = nativeLocalStorageGetItem
+var nativeLocalStorage = window.localStorage;
+window.originalLocalStorage = nativeLocalStorage
 
 export function enableTracing(){
     if (tracingEnabled){
@@ -153,21 +153,49 @@ export function enableTracing(){
     })
 
 
-    localStorage.getItem = function(key){
-        var val = nativeLocalStorageGetItem.apply(this, arguments)
-        if (typeof val === "string"){
-            val = makeTraceObject({
-                value: val,
-                origin: new Origin({
-                    action: "localStorage.getItem",
-                    actionDetails: key,
-                    value: val,
-                    inputValues: [key]
-                }),
+    Object.defineProperty(window, "localStorage", {
+        get: function(){
+            return new Proxy(nativeLocalStorage, {
+                get: function(target, name){
+                    if (name === "getItem") {
+                        return function getItem(key){
+                            var val = nativeLocalStorage.getItem.apply(target, arguments)
+                            if (typeof val === "string"){
+                                val = makeTraceObject({
+                                    value: val,
+                                    origin: new Origin({
+                                        action: "localStorage.getItem",
+                                        actionDetails: key,
+                                        value: val,
+                                        inputValues: [key]
+                                    }),
+                                })
+                            }
+                            return val;
+                        }
+                    }
+
+                    var res = nativeLocalStorage[name]
+                    var propertyValueIsLocalStorageData = nativeLocalStorage.hasOwnProperty(name)
+                    if (propertyValueIsLocalStorageData){
+
+                        debugger
+                        res = makeTraceObject({
+                            value: res,
+                            origin: new Origin({
+                                action: "localStorage.getItem",
+                                actionDetails: name,
+                                value: res,
+                                inputValues: [name]
+                            }),
+                        })
+                    }
+                    return res;
+                }
             })
         }
-        return val;
-    }
+    })
+
 
     RegExp.prototype.exec = function(){
         var args = unstringTracifyArguments(arguments)
@@ -246,7 +274,11 @@ export function disableTracing(){
     Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
     Element.prototype.setAttribute = window.nativeSetAttribute
     Object.defineProperty(Element.prototype, "innerHTML", nativeInnerHTMLDescriptor)
-    localStorage.getItem = window.nativeLocalStorageGetItem;
+    Object.defineProperty(window, "localStorage", {
+        get: function(){
+            return window.originalLocalStorage
+        }
+    })
     RegExp.prototype.exec = window.nativeExec
     window.Function = nativeFunction
     Object.defineProperty(Element.prototype, "className", window.nativeClassNameDescriptor)
