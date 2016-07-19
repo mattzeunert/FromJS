@@ -27,7 +27,8 @@ var babelFunctions = {
     },
     f__typeof(a){
         if (a && a.isStringTraceString) {
-            return "string"
+            // rather confusingly a FromJSString can have a non string value...
+            return typeof a.value
         }
         return typeof a
     },
