@@ -178,8 +178,6 @@ export function enableTracing(){
                     var res = nativeLocalStorage[name]
                     var propertyValueIsLocalStorageData = nativeLocalStorage.hasOwnProperty(name)
                     if (propertyValueIsLocalStorageData){
-
-                        debugger
                         res = makeTraceObject({
                             value: res,
                             origin: new Origin({
@@ -189,6 +187,10 @@ export function enableTracing(){
                                 inputValues: [name]
                             }),
                         })
+                    }
+
+                    if (typeof res === "function"){
+                        return res.bind(target)
                     }
                     return res;
                 }

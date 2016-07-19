@@ -1,31 +1,13 @@
 var webpack = require('webpack');
 
-module.exports = {
-    entry: {
-        main: ['./src/from.js']
-    },
-    output: {
-        path: "./",
-        filename: 'dist/from.js'
-    },
-    devtool: "source-map",
-    module: {
-        loaders:[
-            {
-                test: /\.js$/,
-                loader: "babel-loader",
-                exclude: /node_modules/
-            },
-            {
-                test: /\.json$/,
-                loader: "json"
-            }
-        ]
-    },
-    node: {
-        fs: 'empty',
-        module: 'empty',
-        net: 'empty'
-    },
-    plugins: []
-}
+var config = require("./webpack/webpack.base.config.js")
+
+config.entry = {
+    main: ['./src/from.js']
+};
+config.output = {
+    path: "./",
+    filename: 'dist/from.js'
+};
+
+module.exports = config;

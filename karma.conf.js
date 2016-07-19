@@ -1,6 +1,8 @@
 // Karma configuration
 // Generated on Mon Jul 18 2016 22:06:21 GMT+0100 (IST)
 
+var webpackTestConfig = require("./webpack/webpack.test.config.js");
+
 module.exports = function(config) {
   config.set({
 
@@ -30,17 +32,7 @@ module.exports = function(config) {
         "src/**/*.js": ["webpack"]
     },
 
-    webpack: {
-        module: {
-            loaders: [
-                {
-                    test: /\.jsx?$/,
-                    exclude: /node_modules/,
-                    loader: 'babel-loader'
-                }
-            ]
-        }
-    },
+    webpack: webpackTestConfig,
 
 
     // test results reporter to use
