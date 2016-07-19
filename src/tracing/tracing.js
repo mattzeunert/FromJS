@@ -145,7 +145,10 @@ export function enableTracing(){
 
 
     Object.defineProperty(Element.prototype, "innerHTML", {
-        set: nativeInnerHTMLDescriptor.set,
+        set: function(){
+            makeSureInitialHTMLHasBeenProcessed();
+            return nativeInnerHTMLDescriptor.set.apply(this, arguments)
+        },
         get: function(){
             makeSureInitialHTMLHasBeenProcessed()
 

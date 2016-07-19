@@ -1,9 +1,9 @@
-import processElementsAvailableOnInitialLoad from "../src/tracing/processElementsAvailableOnInitialLoad"
-import {enableTracing, disableTracing} from "../src/tracing/tracing"
-import babelFunctions from "../src/tracing/babelFunctions"
+import {makeSureInitialHTMLHasBeenProcessed} from "./tracing/processElementsAvailableOnInitialLoad"
+import {enableTracing, disableTracing} from "./tracing/tracing"
+import babelFunctions from "./tracing/babelFunctions"
 import saveAndSerializeDOMState from "./ui/saveAndSerializeDOMState"
-import initSerializedDataPage from "../src/ui/initSerializedDataPage"
-import showFromJSSidebar from "../src/ui/showFromJSSidebar"
+import initSerializedDataPage from "./ui/initSerializedDataPage"
+import showFromJSSidebar from "./ui/showFromJSSidebar"
 import $ from "jquery"
 
 
@@ -17,7 +17,7 @@ document.onreadystatechange = function(e){
         // for now I'm hoping the inspected app is waiting for document ready
         // ... maybe processing as soon as the page tries to do something
         // like appendChild or similar collect inital html
-        processElementsAvailableOnInitialLoad();
+        makeSureInitialHTMLHasBeenProcessed();
     }
 }
 
