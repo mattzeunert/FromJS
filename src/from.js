@@ -55,6 +55,6 @@ setTimeout(function(){
                 padding: "10px"
             })
             $("body").append(btn)
-        }, 4000)
+        }, 1000)
     }
 }, 100)

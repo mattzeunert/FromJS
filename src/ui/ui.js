@@ -999,7 +999,7 @@ class Intro extends React.Component {
             <p>
                 FromJS helps you understand how an app works.
                 This demo allows you to explore
-                the <a href="http://todomvc.com/examples/backbone/" targt="_blank">Backbone TodoMVC</a> app.
+                the <a href="http://todomvc.com/examples/backbone/" target="_blank">Backbone TodoMVC</a> app.
             </p>
             <p>
                 Select a DOM element on the left to see where its
@@ -1064,7 +1064,7 @@ export class FromJSView extends React.Component {
             if (!this.state.nonElementOriginSelected && this.state.el.tagName !== "BODY") {
                 goUpInDOM = () => this.display(this.state.el.parentNode)
             }
-            info = <div style={{display: showPreview ? "hidden" : "block"}}>
+            info = <div style={{display: showPreview ? "none" : "block"}}>
                 <ElementOriginPath
                     key={this.state.el + this.state.elId}
                     el={this.state.el}
