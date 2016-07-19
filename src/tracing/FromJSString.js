@@ -27,10 +27,9 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
             var args = unstringTracifyArguments(arguments)
             var newVal;
 
-
             var argumentOrigins = Array.prototype.slice.call(arguments).map(function(arg){
                 return new Origin({
-                    action: "arg_" + arg.toString(),
+                    action: "Untracked Argument",
                     value: arg.toString(),
                     inputValues: []
                 })
@@ -90,10 +89,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                             }
                         })
 
-                        replaceWith = {
-                            origin: inputValues[2].origin,
-                            value: value
-                        }
+                        replaceWith = inputValues[2]
                     } else if (typeof args[1] === "function"){
                         replaceWith = args[1].apply(this, newArgsArray)
                         if (!replaceWith.origin) {
