@@ -4,6 +4,7 @@ var endsWith = require('ends-with');
 var startsWith = require("starts-with")
 var stringContains = require("string-contains");
 var processJavaScriptCode = require("./process-javascript-code")
+var _ = require("underscore")
 
 http.createServer(handleRequest).listen(7500)
 
@@ -26,41 +27,50 @@ function handleRequest(request, response){
     }
 
     if (fs.existsSync(path)){
-        var fileContents = fs.readFileSync(path).toString()
+        if (fs.lstatSync(path).isDirectory()){
+            var files = fs.readdirSync(path);
+            response.write("<html>")
+            files.forEach(function(file){
+                response.write("<a href='" + encodeURI(path + "/" + file)  +"'>" + _.escape(file) + "</a><br/>")
+            })
+            response.write("</html>")
+        } else {
+            var fileContents = fs.readFileSync(path).toString()
 
-        if (endsWith(request.url, ".html")){
-            var originalHtmlScriptTag = "<script id='fromjs-initial-html' html-filename='" + request.url + "' type='text/template'>" + encodeURIComponent(fileContents) + "</script>"
-            var scriptTagHtml = '<script src="http://localhost:8080/dist/from.js"></script>'
-            if (stringContains(fileContents, "<head>")){
-                fileContents = fileContents.replace("<head>", "<head>" + originalHtmlScriptTag + scriptTagHtml)
-            } else {
-                fileContents = scriptTagHtml + fileContents
-            }
-        }
-
-        if (endsWith(request.url, ".html?dontprocess=yes")){
-            // nothing i need to do actually
-        }
-
-        if ((endsWith(request.url, ".js") || endsWith(request.url, ".js.map")) &&
-            !stringContains(request.url, "/dontprocess") &&
-            !stringContains(request.url, "/vis") &&
-            !stringContains(request.url, "?dontprocess=yes") &&
-            !isInternalRequest
-        ) {
-            var jsFileName = path.split("/")[path.split("/").length - 1]
-            if (endsWith(request.url, ".js")) {
-                var res = processJavaScriptCode(fileContents)
-                fileContents = res.code
-                fileContents += "\n//# sourceMappingURL=" + jsFileName + ".map"
-
-            }
-            if (endsWith(request.url, ".js.map") ){
-                fileContents = JSON.stringify(processJavaScriptCode(fileContents, {filename: jsFileName}).map, null, 4)
+            if (endsWith(request.url, ".html")){
+                var originalHtmlScriptTag = "<script id='fromjs-initial-html' html-filename='" + request.url + "' type='text/template'>" + encodeURIComponent(fileContents) + "</script>"
+                var scriptTagHtml = '<script src="http://localhost:8080/dist/from.js"></script>'
+                if (stringContains(fileContents, "<head>")){
+                    fileContents = fileContents.replace("<head>", "<head>" + originalHtmlScriptTag + scriptTagHtml)
+                } else {
+                    fileContents = scriptTagHtml + fileContents
+                }
             }
 
+            if (endsWith(request.url, ".html?dontprocess=yes")){
+                // nothing i need to do actually
+            }
+
+            if ((endsWith(request.url, ".js") || endsWith(request.url, ".js.map")) &&
+                !stringContains(request.url, "/dontprocess") &&
+                !stringContains(request.url, "/vis") &&
+                !stringContains(request.url, "?dontprocess=yes") &&
+                !isInternalRequest
+            ) {
+                var jsFileName = path.split("/")[path.split("/").length - 1]
+                if (endsWith(request.url, ".js")) {
+                    var res = processJavaScriptCode(fileContents)
+                    fileContents = res.code
+                    fileContents += "\n//# sourceMappingURL=" + jsFileName + ".map"
+
+                }
+                if (endsWith(request.url, ".js.map") ){
+                    fileContents = JSON.stringify(processJavaScriptCode(fileContents, {filename: jsFileName}).map, null, 4)
+                }
+
+            }
+            response.write(fileContents)
         }
-        response.write(fileContents)
     } else {
         response.writeHead(404, {"Content-Type": "text/plain"});
         response.write("not found")
