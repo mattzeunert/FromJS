@@ -30,4 +30,14 @@ describe("FromJSString.replace", function(){
         str = str.replace(/(!)/, "$1$1");
         expect(str.value).toBe("Hello!!")
     })
+
+    it("Supports submatch replacements with $&", function(){
+        var str = new FromJSString({
+            value: "Hi",
+            origin: {}
+        })
+
+        str = str.replace(/(i)/, "$&!")
+        expect(str.value).toBe("Hi!")
+    });
 })

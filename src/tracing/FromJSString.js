@@ -84,9 +84,11 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     // confusing... args[1] is basically inputValues[2].value
                     if (typeof args[1] === "string" || typeof args[1] === "number") {
                         var value = args[1].toString();
-                        value = value.replace(/\$([0-9]{1,2}|[$`&'])/g, function(match, dollarSubmatch){
+                        value = value.replace(/\$([0-9]{1,2}|[$`&'])/g, function(dollarMatch, dollarSubmatch){
                             if (!isNaN(parseFloat(dollarSubmatch))){
                                 return submatches[parseFloat(dollarSubmatch) - 1] // $n is one-based, array is zero-based
+                            } else if (dollarSubmatch === "&"){
+                                return match
                             } else {
                                 throw "not handled!!"
                             }
