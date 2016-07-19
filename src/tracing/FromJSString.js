@@ -92,7 +92,10 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                             }
                         })
 
-                        replaceWith = inputValues[2]
+                        replaceWith = {
+                            value: value,
+                            origin: inputValues[2]
+                        }
                     } else if (typeof args[1] === "function"){
                         replaceWith = args[1].apply(this, newArgsArray)
                         if (!replaceWith.origin) {
@@ -105,12 +108,15 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                                 }
                             }).origin
                         } else {
-                            replaceWith = replaceWith.origin
+                            replaceWith = {
+                                value: replaceWith.value,
+                                origin: replaceWith.origin
+                            }
                         }
                     } else {
                         throw "not handled"
                     }
-                    valueMap.appendString(replaceWith.value, replaceWith, 0)
+                    valueMap.appendString(replaceWith.value, replaceWith.origin, 0)
 
 
                     inputMappedSoFar += match
