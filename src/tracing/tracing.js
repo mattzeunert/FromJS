@@ -214,6 +214,26 @@ export function enableTracing(){
         }
     }
 
+
+    // try to add this once, but it turned out the .dataset[sth] assignment
+    // was in a chrome extension that uses a different HTMLElement object
+    window.nativeDataSetDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "dataset")
+    // Object.defineProperty(HTMLElement.prototype, "dataset", {
+    //     set: function(){
+    //         return nativeDataSetDescriptor.set.apply(this, arguments)
+    //     },
+    //     get: function(){
+    //         var nativeRes = nativeDataSetDescriptor.get.apply(this, arguments)
+    //
+    //         var proxy = new Proxy(nativeRes, {
+    //             set: function(target, name, value){
+    //                 nativeRes[name] = value
+    //             }
+    //         })
+    //         return proxy;
+    //     }
+    // })
+
 }
 
 
@@ -230,6 +250,7 @@ export function disableTracing(){
     RegExp.prototype.exec = window.nativeExec
     window.Function = nativeFunction
     Object.defineProperty(Element.prototype, "className", window.nativeClassNameDescriptor)
+    Object.defineProperty(HTMLElement.prototype, "dataset", window.nativeDataSetDescriptor)
 
     tracingEnabled = false;
 }
