@@ -19,4 +19,20 @@ describe("Tracing", function(){
         var value = localStorage["test"]
         expect(value.origin).not.toBe(undefined);
     });
+
+    it("JSON.parse can parse flat JSON objects", function(){
+        var parsed = JSON.parse('{"hello": "world"}')
+        expect(parsed.hello.value).toBe("world")
+    })
+
+    it("JSON.parse can handle arrays in JSON objects", function(){
+        var parsed = JSON.parse('{"hello": ["one", "two"]}')
+        expect(parsed.hello.length).toBe(2)
+        expect(parsed.hello[0].value).toBe("one")
+    })
+
+    it("JSON.parse can handle nested objects", function(){
+        var parsed = JSON.parse('{"hello": {"there": "world"}}')
+        expect(parsed.hello.there.value).toBe("world")
+    })
 })
