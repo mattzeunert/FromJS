@@ -25,6 +25,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
         $(el).contents().each(function(i, child){
             var isTextNode = child.nodeType === 3
+            var isCommentNode = child.nodeType === 8
+            var isElementNode = child.nodeType === 1
             if (isTextNode) {
                 addElOrigin(child, "textValue", {
                     "action": actionName,
@@ -36,7 +38,9 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                 charOffset += child.textContent.length
                 forDebuggingProcessedHtml += child.textContent
-            } else {
+            } else if (isCommentNode) {
+                // do nothing?
+            } else if (isElementNode) {
 
                 addElOrigin(child, "openingTagStart", {
                     action: actionName,
@@ -74,8 +78,6 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                         }
                     }
 
-
-
                     addElOrigin(child, "attribute_" + attr.name, {
                         action: actionName,
                         inputValues: [assignedInnerHTML],
@@ -87,11 +89,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                     extraCharsAdded += extraCharsAddedHere
 
-
                     forDebuggingProcessedHtml += attrStr
                 }
-
-                // console.log("extraCharsAdded", extraCharsAdded)
 
 
                 var openingTagEnd = ">"
@@ -126,6 +125,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     forDebuggingProcessedHtml += closingTag
                 }
 
+            } else {
+                throw "not handled"
             }
             // console.log("processed", forDebuggingProcessedHtml, assignedInnerHTML.toString().toLowerCase().replace(/\"/g, "'") === forDebuggingProcessedHtml.toLowerCase())
 
