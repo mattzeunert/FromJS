@@ -10,11 +10,6 @@ import {disableTracing, enableTracing} from "../tracing/tracing"
 export default function showFromJSSidebar(){
     disableTracing()
 
-    if (!window.isSerializedDomPage){
-        // saveAndSerializeDomState()
-    }
-    console.trace("doneRenderingApp")
-
     var windowJQuery = window.jQuery
 
     var link = document.createElement("link")
@@ -74,9 +69,4 @@ export default function showFromJSSidebar(){
         $("body").addClass("fromjsIsMobile")
     }
 
-
-        console.log("k", isMobile())
-
-
-    return
 }
