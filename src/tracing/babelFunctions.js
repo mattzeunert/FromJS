@@ -1,7 +1,6 @@
 import stringTraceUseValue from "./stringTraceUseValue"
 import StringTraceString, {makeTraceObject} from "./FromJSString"
 import Origin from "../origin"
-import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 
 function untrackedString(value){
     return makeTraceObject({
@@ -81,9 +80,9 @@ var babelFunctions = {
         return !babelFunctions.f__notTripleEqual(a,b)
     },
     t__setInnerHTML(el, innerHTML){
+        // no longer any processing here, hook purely based on property name
+        // isn't very robust, just monkey patch Element.prototype.innerHTML
         el.innerHTML = innerHTML
-
-        mapInnerHTMLAssignment(el, innerHTML, "Assign InnerHTML")
     }
 }
 
