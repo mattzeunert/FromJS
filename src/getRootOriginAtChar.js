@@ -34,8 +34,17 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
 
                 attrStr += "='" + attr.textContent +  "'"
 
-
-            vm.appendString(attrStr, el.__elOrigin["attribute_" + attr.name], 0)
+            var attrOrigin = el.__elOrigin["attribute_" + attr.name];
+            if (attrOrigin === undefined) {
+                // might mean we don't trace it, or we can't trace it, e.g. when
+                // Chrome extensions modify the DOM
+                attrOrigin = {
+                    action: "Unknown Origin",
+                    value: attr.textContent,
+                    inputValues: []
+                }
+            }
+            vm.appendString(attrStr, attrOrigin, 0)
         }
 
         var openingTagEnd = ""
