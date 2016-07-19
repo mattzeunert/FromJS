@@ -687,6 +687,10 @@ class StackFrame extends React.Component{
         }
 
         function getPrevLines(){
+            if (frame.prevLines.length === 0) {
+                return [];
+            }
+
             if (self.state.truncate) {
                 return getLine(_.last(frame.prevLines), frame.lineNumber - 1, "\u25B2")
             } else {
@@ -701,6 +705,9 @@ class StackFrame extends React.Component{
             }
         }
         function getNextLines(){
+            if (frame.nextLines.length === 0) {
+                return []
+            }
             if (self.state.truncate) {
                 return getLine(_.first(frame.nextLines), frame.lineNumber + 1, "\u25BC")
             } else {
