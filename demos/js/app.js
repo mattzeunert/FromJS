@@ -7,7 +7,5 @@ var ESC_KEY = 27;
 $(function () {
 	'use strict';
 	// kick things off by creating the `App`
-	setTimeout(function(){
-		new app.AppView();
-	}, 1)
+	new app.AppView();
 });

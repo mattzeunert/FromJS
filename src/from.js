@@ -6,19 +6,26 @@ import initSerializedDataPage from "../src/ui/initSerializedDataPage"
 import showFromJSSidebar from "../src/ui/showFromJSSidebar"
 
 
+document.onreadystatechange = function(e){
+    if (document.readyState === "interactive") {
+        if (window.isSerializedDomPage){return}
+        if (window.isVis){return}
+        // it's hard to know when I should do this
+        // e.g. it's possible that some JS runs inbetween the page HTML
+        // and modifies the DOM
+        // for now I'm hoping the inspected app is waiting for document ready
+        // ... maybe processing as soon as the page tries to do something
+        // like appendChild or similar collect inital html
+        processElementsAvailableOnInitialLoad();
+    }
+}
 
-window.addEventListener("load", function(){
-    if (window.isSerializedDomPage){return}
-    if (window.isVis){return}
-    processElementsAvailableOnInitialLoad();
-})
 
 window.saveAndSerializeDOMState = saveAndSerializeDOMState
 
 Object.keys(babelFunctions).forEach(function(functionName){
     window[functionName] = babelFunctions[functionName]
 })
-
 if (!window.isSerializedDomPage){
     enableTracing()
 }
