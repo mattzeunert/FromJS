@@ -167,7 +167,7 @@ export function enableTracing(){
             var el = this;
 
             addElOrigin(el, "replaceContents", el.childNodes)
-            if (newTextContent !== ""){
+            if (newTextContent.toString() !== ""){
                 var childNode = el.childNodes[0];
                 el.__elOrigin.contents = [childNode]
 
