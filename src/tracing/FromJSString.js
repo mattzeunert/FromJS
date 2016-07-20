@@ -202,5 +202,20 @@ export function makeTraceObject(options){
         value: options.value,
         origin: options.origin
     })
-    return stringTraceObject;
+    return stringTraceObject
+    return new Proxy(stringTraceObject, {
+        get: function(target, name){
+            if (name === "value") {
+                return stringTraceObject.value;
+            }
+            if (name === "origin"){
+                return stringTraceObject.origin
+            }
+            if (typeof stringTraceObject[name] === "function"){
+                return stringTraceObject[name]
+            }
+
+            return stringTraceObject.value[name]
+        }
+    });
 }

@@ -1,8 +1,8 @@
-import FromJSString from "./FromJSString"
+import {makeTraceObject} from "./FromJSString"
 
 describe("FromJSString.replace", function(){
     it("Supports basic replace calls", function(){
-        var str = new FromJSString({
+        var str = makeTraceObject({
             value: "Hello World!",
             origin: {}
         })
@@ -12,7 +12,7 @@ describe("FromJSString.replace", function(){
     })
 
     it("Supports using a number as a replacement", function(){
-        var str = new FromJSString({
+        var str = makeTraceObject({
             value: "Hi!",
             origin: {}
         })
@@ -22,7 +22,7 @@ describe("FromJSString.replace", function(){
     })
 
     it("Supports submatch replacements with $n", function(){
-        var str = new FromJSString({
+        var str = makeTraceObject({
             value: "Hello!",
             origin: {}
         })
@@ -32,7 +32,7 @@ describe("FromJSString.replace", function(){
     })
 
     it("Supports submatch replacements with $&", function(){
-        var str = new FromJSString({
+        var str = makeTraceObject({
             value: "Hi",
             origin: {}
         })
@@ -40,4 +40,14 @@ describe("FromJSString.replace", function(){
         str = str.replace(/(i)/, "$&!")
         expect(str.value).toBe("Hi!")
     });
+
+    it("Lets you access character at a specific index", function(){
+        var str = makeTraceObject({
+            value: "Hello",
+            origin: {}
+        })
+
+        var char = str[0]
+        expect(char).toBe("H")
+    })
 })
