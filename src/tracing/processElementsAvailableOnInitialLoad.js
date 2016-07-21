@@ -8,7 +8,11 @@ export function makeSureInitialHTMLHasBeenProcessed(){
     processElementsAvailableOnInitialLoad()
 }
 
+var disabled = false;
+
 export default function processElementsAvailableOnInitialLoad(){
+    if (disabled) {return}
+
     var originalHtml = decodeURIComponent(nativeInnerHTMLDescriptor.get.call(document.getElementById("fromjs-initial-html")))
 
     // replace everythign before body tag
@@ -32,4 +36,9 @@ export default function processElementsAvailableOnInitialLoad(){
     mapInnerHTMLAssignment(document.body, originalHtml, "Initial Body HTML",  bodyContentAndAfter.length - originalHtml.value.length)
 
     initialHTMLHasBeenProcessed = true;
+}
+
+export function disableProcessHTMLOnInitialLoad(){
+    // used for tests
+    disabled = true;
 }

@@ -1,8 +1,10 @@
 import {enableTracing, disableTracing} from "./tracing"
 import {makeTraceObject} from "./FromJSString"
+import {disableProcessHTMLOnInitialLoad} from "./processElementsAvailableOnInitialLoad"
 
 describe("Tracing", function(){
     beforeEach(function(){
+        disableProcessHTMLOnInitialLoad()
         enableTracing();
     })
     afterEach(function(){
@@ -35,6 +37,11 @@ describe("Tracing", function(){
     it("JSON.parse can handle nested objects", function(){
         var parsed = JSON.parse('{"hello": {"there": "world"}}')
         expect(parsed.hello.there.value).toBe("world")
+    })
+
+    fit("Processes code passed into new Function", function(){
+        var fn = new Function("return 'hi'")
+        expect(fn().value).toBe("hi")
     })
 
     it("Processes code passed into eval", function(){

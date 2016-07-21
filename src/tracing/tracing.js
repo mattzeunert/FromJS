@@ -8,6 +8,7 @@ import {makeSureInitialHTMLHasBeenProcessed} from "./processElementsAvailableOnI
 import processJavaScriptCode from "../compilation/processJavaScriptCode"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
+import trackStringIfNotTracked from "./trackStringIfNotTracked"
 
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
@@ -275,9 +276,7 @@ export function enableTracing(){
     })
 
     window.eval = function(code){
-        debugger
         var res = processJavaScriptCode(stringTraceUseValue(code), {filename: "test.js"})
-        console.log(res)
         return nativeEval(res.code)
     }
 
@@ -311,6 +310,8 @@ export function enableTracing(){
         document.body.appendChild(script)
 
         script.remove();
+
+        code = trackStringIfNotTracked(code)
 
         fromJSDynamicFiles[smFilename] = res.map
         fromJSDynamicFiles[filename] = evalCode
