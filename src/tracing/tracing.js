@@ -276,8 +276,17 @@ export function enableTracing(){
     })
 
     window.eval = function(code){
-        var res = processJavaScriptCode(stringTraceUseValue(code), {filename: "test.js"})
-        return nativeEval(res.code)
+        var id = _.uniqueId();
+        var filename = "DynamicScript" + id + ".js"
+        var res = processJavaScriptCode(stringTraceUseValue(code), {filename: filename})
+
+        var smFilename = filename + ".map"
+        var evalCode = res.code + "\n//# sourceURL=" + filename +
+            "\n//# sourceMappingURL=" + smFilename
+
+        registerDynamicFile(filename, code, evalCode, res.map)
+
+        return nativeEval(evalCode)
     }
 
     RegExp.prototype.exec = function(){
@@ -311,9 +320,19 @@ export function enableTracing(){
 
         script.remove();
 
+        registerDynamicFile(filename, code, evalCode, res.map)
+
+        return function(){
+            return window[fnName].apply(this, arguments)
+        }
+    }
+    window.Function.prototype = nativeFunction.prototype
+
+    function registerDynamicFile(filename, code, evalCode, sourceMap){
+        var smFilename = filename + ".map"
         code = trackStringIfNotTracked(code)
 
-        fromJSDynamicFiles[smFilename] = res.map
+        fromJSDynamicFiles[smFilename] = sourceMap
         fromJSDynamicFiles[filename] = evalCode
         fromJSDynamicFiles[filename + "?dontprocess=yes"] = code.value
         fromJSDynamicFileOrigins[filename + "?dontprocess=yes"] = new Origin({
@@ -321,12 +340,9 @@ export function enableTracing(){
             value: code.value,
             inputValues: [code.origin]
         })
-
-        return function(){
-            return window[fnName].apply(this, arguments)
-        }
     }
-    window.Function.prototype = nativeFunction.prototype
+
+
 
 
     // try to add this once, but it turned out the .dataset[sth] assignment

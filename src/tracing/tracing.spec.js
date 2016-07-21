@@ -52,8 +52,12 @@ describe("Tracing", function(){
 
     it("Processes code passed into eval", function(){
         spyOn(window, "f__StringLiteral")
+        var dynamicFileCountBefore = Object.keys(window.fromJSDynamicFiles).length
         eval("a = 'Hello'")
         expect(window.f__StringLiteral).toHaveBeenCalled()
+        var dynamicFileCountAfter = Object.keys(window.fromJSDynamicFiles).length
+        // 3 because we have the original code, compiled code, and source map
+        expect(dynamicFileCountAfter - dynamicFileCountBefore).toBe(3)
     })
 
     it("Array.join works with objects that have a custom toString function which returns a tracked string", function(){
