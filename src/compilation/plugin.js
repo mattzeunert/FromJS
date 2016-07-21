@@ -29,29 +29,40 @@ module.exports = function(babel) {
 
       },
       UnaryExpression(path){
-          if (path.node.operator !== "typeof") {
-              return
+
+          if (path.node.operator === "!"){
+              path.replaceWith(babel.types.callExpression(
+                  babel.types.identifier("f__not"),
+                  [path.node.argument]
+              ))
           }
 
-          if (path.node.ignore){return}
-          var typeofExpression = babel.types.unaryExpression("typeof", path.node.argument);
-          typeofExpression.ignore=true;
+          if (path.node.operator === "typeof") {
+              if (path.node.ignore){return}
+              // We can't pass a variable that doesn't exist in the scope into a function (ReferenceError)
+              // so check that the variable is defined first.
+              var typeofExpression = babel.types.unaryExpression("typeof", path.node.argument);
+              typeofExpression.ignore=true;
 
-          var undefinedLiteral = babel.types.stringLiteral("undefined");
-          undefinedLiteral.ignore = true;
+              var undefinedLiteral = babel.types.stringLiteral("undefined");
+              undefinedLiteral.ignore = true;
 
-          var binaryExpression =  babel.types.binaryExpression("===", typeofExpression, undefinedLiteral);
-          binaryExpression.ignore = true
+              var binaryExpression =  babel.types.binaryExpression("===", typeofExpression, undefinedLiteral);
+              binaryExpression.ignore = true
 
-          var replacement = babel.types.conditionalExpression(
+              var replacement = babel.types.conditionalExpression(
                   binaryExpression,
                   undefinedLiteral,
                   babel.types.callExpression(babel.types.identifier("f__typeof"),[path.node.argument])
             )
-        replacement.ignore = true;
+            replacement.ignore = true;
+            path.replaceWith(replacement)
+        }
 
 
-          path.replaceWith(replacement)
+
+
+
       },
       ConditionalExpression(path){
           if (path.node.ignore){return}
@@ -173,14 +184,6 @@ module.exports = function(babel) {
 
           path.replaceWith(whileStatement)
       },
-    //   UnaryExpression(path){
-    //       if (path.node.operator === "!"){
-    //           path.replaceWith(babel.types.callExpression(
-    //               babel.types.identifier("f__not"),
-    //               [path.node.argument]
-    //           ))
-    //       }
-    //   },
       StringLiteral(path) {
         // console.log(path.node.type)
         if (path.node.ignore) {
