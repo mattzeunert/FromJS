@@ -44,7 +44,7 @@ describe("Tracing", function(){
         expect(window.f__StringLiteral).toHaveBeenCalled();
     })
 
-    it("Array.join works with objects that have a custom toString function which returns a wrapped string", function(){
+    it("Array.join works with objects that have a custom toString function which returns a tracked string", function(){
         var obj = {
             toString: function(){
                 return makeTraceObject({
@@ -56,5 +56,16 @@ describe("Tracing", function(){
 
         var joined = [obj, obj].join("-")
         expect(joined).toBe("Hello-Hello")
+    })
+
+    it("Array.indexOf works with tracked strings", function(){
+        var str = makeTraceObject({
+            value: "Hello",
+            origin: {}
+        })
+        var arr = [{str}]
+
+        expect(arr.indexOf("Hello")).toBe(0)
+        expect(arr.indexOf("Hi")).toBe(-1)
     })
 })
