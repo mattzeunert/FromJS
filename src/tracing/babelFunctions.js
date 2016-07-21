@@ -89,6 +89,12 @@ var babelFunctions = {
             return a
         }
         return b
+    },
+    f__and(a, b){
+        if (stringTraceUseValue(a)){
+            return b
+        }
+        return a
     }
 }
 

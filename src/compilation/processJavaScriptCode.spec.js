@@ -37,5 +37,9 @@ describe("processJavaScriptCode", function(){
         expect(eval(code).value).toBe("hi")
     })
 
-    // same for &&
+    it("Returns the correct value from AND expressions on tracked strings", function(){
+        var code = "'hi' && ''"
+        code = processJavaScriptCode(code).code
+        expect(eval(code).value).toBe("")
+    })
 })
