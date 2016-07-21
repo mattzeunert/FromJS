@@ -39,9 +39,15 @@ describe("Tracing", function(){
         expect(parsed.hello.there.value).toBe("world")
     })
 
-    fit("Processes code passed into new Function", function(){
+    it("Processes code passed into new Function", function(){
+        // not very clean at all, should have a think at some point
+        // how to make it cleaner without global vars
+        var dynamicFileCountBefore = Object.keys(window.fromJSDynamicFiles).length
         var fn = new Function("return 'hi'")
         expect(fn().value).toBe("hi")
+        var dynamicFileCountAfter = Object.keys(window.fromJSDynamicFiles).length
+        // 3 because we have the original code, compiled code, and source map
+        expect(dynamicFileCountAfter - dynamicFileCountBefore).toBe(3)
     })
 
     it("Processes code passed into eval", function(){
