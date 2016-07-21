@@ -83,6 +83,12 @@ var babelFunctions = {
         // no longer any processing here, hook purely based on property name
         // isn't very robust, just monkey patch Element.prototype.innerHTML
         el.innerHTML = innerHTML
+    },
+    f__or(a,b){
+        if (stringTraceUseValue(a)){
+            return a
+        }
+        return b
     }
 }
 

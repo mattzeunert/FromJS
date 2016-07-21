@@ -24,4 +24,18 @@ describe("processJavaScriptCode", function(){
         code = processJavaScriptCode(code).code
         expect(eval(code)).toBe(false)
     })
+
+    it("Doesn't break normal OR expressions", function(){
+        var code = "var a = {} || false;a"
+        code = processJavaScriptCode(code).code
+        expect(eval(code)).toEqual({})
+    })
+
+    it("Returns the correct value from OR expressions on tracked strings", function(){
+        var code = "'' || 'hi'"
+        code = processJavaScriptCode(code).code
+        expect(eval(code).value).toBe("hi")
+    })
+
+    // same for &&
 })

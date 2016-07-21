@@ -101,6 +101,15 @@ module.exports = function(babel) {
             path.replaceWith(call)
         }
       },
+      LogicalExpression(path){
+          if(path.node.operator === "||"){
+              var call = babel.types.callExpression(
+                  babel.types.identifier("f__or"),
+                  [path.node.left, path.node.right]
+              )
+              path.replaceWith(call)
+          }
+      },
       SwitchStatement(path){
           if (path.node.ignore){return}
           var switchStatement = babel.types.switchStatement(
