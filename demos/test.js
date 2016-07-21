@@ -1,11 +1,11 @@
-function onload(){
+if (""){
+    document.write("oh no ")
+}
 
-    var el = document.createElement("div")
-    el.innerHTML = "<p><a>Hello</a> world</p>"
-    document.body.appendChild(el)
+if (("" || "cake") === "") {
+    document.write("oh no ")
+}
 
-    document.querySelector("p").className = "cake"
-    document.querySelector("a").innerHTML = "Hey"
-
-
+if (!!""){
+    document.write("oh no ")
 }

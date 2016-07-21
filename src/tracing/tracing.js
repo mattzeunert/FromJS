@@ -5,7 +5,7 @@ import Origin from "../origin"
 import _ from "underscore"
 import stringTraceUseValue from "./stringTraceUseValue"
 import {makeSureInitialHTMLHasBeenProcessed} from "./processElementsAvailableOnInitialLoad"
-import processJavaScriptCode from "../../process-javascript-code"
+import processJavaScriptCode from "../compilation/processJavaScriptCode"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 
 window.fromJSDynamicFiles = {}
