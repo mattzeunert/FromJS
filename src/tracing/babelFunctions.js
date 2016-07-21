@@ -1,17 +1,8 @@
 import stringTraceUseValue from "./stringTraceUseValue"
 import StringTraceString, {makeTraceObject} from "./FromJSString"
 import Origin from "../origin"
+import untrackedString from "./untrackedString"
 
-function untrackedString(value){
-    return makeTraceObject({
-        value: value,
-        origin: new Origin({
-            action: "Untracked String",
-            value: value,
-            inputValues: []
-        }),
-    })
-}
 
 var cachedValue;
 

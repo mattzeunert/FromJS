@@ -54,7 +54,7 @@ describe("Tracing", function(){
         }
 
         var joined = [obj, obj].join("-")
-        expect(joined).toBe("Hello-Hello")
+        expect(joined.value).toBe("Hello-Hello")
     })
 
     it("Array.indexOf works with tracked strings", function(){

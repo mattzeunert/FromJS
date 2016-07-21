@@ -7,6 +7,7 @@ import stringTraceUseValue from "./stringTraceUseValue"
 import {makeSureInitialHTMLHasBeenProcessed} from "./processElementsAvailableOnInitialLoad"
 import processJavaScriptCode from "../compilation/processJavaScriptCode"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
+import untrackedString from "./untrackedString"
 
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
@@ -155,10 +156,24 @@ export function enableTracing(){
         var stringifiedItems = this.map(function(item){
             return item.toString()
         })
+        var inputValues = stringifiedItems.map(function(item){
+            if (item.isStringTraceString){
+                return item;
+            }
+            return untrackedString(item)
+        })
         // .join already does stringification, but we may need to call .toString()
         // twice if there is an object with a toString function which returns
         // a FromJSString (an object) which needs to be converted to a native string
-        return nativeArrayJoin.apply(stringifiedItems, [separator])
+        var joinedValue = nativeArrayJoin.apply(stringifiedItems, [separator])
+        return makeTraceObject({
+            value: joinedValue,
+            origin: new Origin({
+                action: "Array Join Call",
+                inputValues: inputValues,
+                value: joinedValue
+            })
+        })
     }
 
     Array.prototype.indexOf = function(value){
