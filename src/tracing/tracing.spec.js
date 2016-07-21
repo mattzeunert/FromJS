@@ -1,4 +1,5 @@
 import {enableTracing, disableTracing} from "./tracing"
+import {makeTraceObject} from "./FromJSString"
 
 describe("Tracing", function(){
     beforeEach(function(){
@@ -41,5 +42,19 @@ describe("Tracing", function(){
         window.f__StringLiteral =  jasmine.createSpy()
         eval("a = 'Hello'")
         expect(window.f__StringLiteral).toHaveBeenCalled();
+    })
+
+    it("Array.join works with objects that have a custom toString function which returns a wrapped string", function(){
+        var obj = {
+            toString: function(){
+                return makeTraceObject({
+                    value: "Hello",
+                    origin: {}
+                })
+            }
+        }
+
+        var joined = [obj, obj].join("-")
+        expect(joined).toBe("Hello-Hello")
     })
 })

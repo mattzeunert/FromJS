@@ -198,6 +198,9 @@ Object.defineProperty(StringTraceString.prototype, "length", {
 })
 
 export function makeTraceObject(options){
+    if (options === undefined || options.value === undefined || options.origin === undefined) {
+        throw "invalid options"
+    }
     var stringTraceObject = new StringTraceString({
         value: options.value,
         origin: options.origin
