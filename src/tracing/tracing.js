@@ -42,6 +42,7 @@ window.originalLocalStorage = nativeLocalStorage
 var nativeEval = window.eval
 
 var nativeArrayJoin = Array.prototype.join
+var nativeArrayIndexOf = Array.prototype.indexOf
 
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
 
@@ -158,6 +159,11 @@ export function enableTracing(){
         // twice if there is an object with a toString function which returns
         // a FromJSString (an object) which needs to be converted to a native string
         return nativeArrayJoin.apply(stringifiedItems, [separator])
+    }
+
+    Array.prototype.indexOf = function(value){
+        var arrayItems = this.map(stringTraceUseValue)
+        return nativeArrayIndexOf.apply(arrayItems, arguments)
     }
 
     Object.defineProperty(Node.prototype, "textContent", {
@@ -349,6 +355,7 @@ export function disableTracing(){
     Object.defineProperty(HTMLElement.prototype, "dataset", window.nativeDataSetDescriptor)
     Object.defineProperty(Node.prototype, "textContent", nativeNodeTextContentDescriptor)
     Array.prototype.join = nativeArrayJoin
+    Array.prototype.indexOf = nativeArrayIndexOf
     window.eval = nativeEval
 
     tracingEnabled = false;

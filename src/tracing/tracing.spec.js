@@ -63,7 +63,7 @@ describe("Tracing", function(){
             value: "Hello",
             origin: {}
         })
-        var arr = [{str}]
+        var arr = [str]
 
         expect(arr.indexOf("Hello")).toBe(0)
         expect(arr.indexOf("Hi")).toBe(-1)
