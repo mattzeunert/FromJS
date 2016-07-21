@@ -1,15 +1,5 @@
-// if (""){
-//     document.write("oh no ")
-// }
-//
-// if (("" || "cake") === "") {
-//     document.write("oh no ")
-// }
-//
-// if (!!""){
-//     document.write("oh no ")
-// }
-
-if (typeof deps === 'string') {
-
+function onload(){
+    var el = document.createElement("p")
+    el.innerHTML = eval("'Hello'")
+    document.body.appendChild(el)
 }
