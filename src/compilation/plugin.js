@@ -110,9 +110,25 @@ module.exports = function(babel) {
               path.replaceWith(call)
           }
           if(path.node.operator === "&&"){
-              var call = babel.types.callExpression(
-                  babel.types.identifier("f__and"),
-                  [path.node.left, path.node.right]
+              var call = babel.types.conditionalExpression(
+                  babel.types.sequenceExpression([
+                      babel.types.callExpression(
+                          babel.types.identifier("f__setCachedValue"),
+                          [path.node.left]
+                      ),
+                      babel.types.callExpression(
+                          babel.types.identifier("f__useValue"),
+                          [babel.types.callExpression(
+                              babel.types.identifier("f__getCachedValue"),
+                              []
+                          )]
+                      )
+                  ]),
+                  path.node.right,
+                  babel.types.callExpression(
+                      babel.types.identifier("f__getCachedValue"),
+                      []
+                  )
               )
               path.replaceWith(call)
           }

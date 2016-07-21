@@ -43,6 +43,13 @@ describe("processJavaScriptCode", function(){
         expect(eval(code).value).toBe("")
     })
 
+    it("Doesn't try to evaluate the second part of an AND expression if the first part is falsy", function(){
+        var code = "var obj = undefined;obj && obj.hi"
+        code = processJavaScriptCode(code).code
+        console.log(code)
+        expect(eval(code)).toBe(undefined)
+    })
+
     it("Converts value to boolean when using NOT operator", function(){
         var code = "!''"
         code = processJavaScriptCode(code).code

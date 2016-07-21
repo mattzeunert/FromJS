@@ -13,6 +13,8 @@ function untrackedString(value){
     })
 }
 
+var cachedValue;
+
 var babelFunctions = {
     f__StringLiteral(value){
         return makeTraceObject({
@@ -90,14 +92,15 @@ var babelFunctions = {
         }
         return b
     },
-    f__and(a, b){
-        if (stringTraceUseValue(a)){
-            return b
-        }
-        return a
-    },
     f__not(val){
         return !stringTraceUseValue(val)
+    },
+    f__setCachedValue(val){
+        cachedValue = val
+        return val
+    },
+    f__getCachedValue(val){
+        return cachedValue
     }
 }
 
