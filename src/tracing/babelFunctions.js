@@ -95,6 +95,9 @@ var babelFunctions = {
             return b
         }
         return a
+    },
+    f__not(val){
+        return !stringTraceUseValue(val)
     }
 }
 

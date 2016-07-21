@@ -141,6 +141,14 @@ module.exports = function(babel) {
 
           path.replaceWith(whileStatement)
       },
+      UnaryExpression(path){
+          if (path.node.operator === "!"){
+              path.replaceWith(babel.types.callExpression(
+                  babel.types.identifier("f__not"),
+                  [path.node.argument]
+              ))
+          }
+      },
       StringLiteral(path) {
         // console.log(path.node.type)
         if (path.node.ignore) {

@@ -42,4 +42,14 @@ describe("processJavaScriptCode", function(){
         code = processJavaScriptCode(code).code
         expect(eval(code).value).toBe("")
     })
+
+    it("Converts value to boolean when using NOT operator", function(){
+        var code = "!''"
+        code = processJavaScriptCode(code).code
+        expect(eval(code)).toBe(true)
+
+        code = "!!''"
+        code = processJavaScriptCode(code).code
+        expect(eval(code)).toBe(false)
+    })
 })
