@@ -70,6 +70,12 @@ module.exports = function(babel) {
 
           path.replaceWith(conditionalExpression)
       },
+      IfStatement(path){
+          path.node.test = babel.types.callExpression(
+              babel.types.Identifier("f__useValue"),
+              [path.node.test]
+          )
+      },
       BinaryExpression(path){
           if (path.node.ignore){return}
         if (path.node.operator === "+") {

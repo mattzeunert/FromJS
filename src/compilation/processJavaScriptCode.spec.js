@@ -12,4 +12,16 @@ describe("processJavaScriptCode", function(){
         code = processJavaScriptCode(code).code
         expect(eval(code)).toBe(false)
     })
+
+    it("Doesn't break if statements when used with a tracked string", function(){
+        var code = `
+            var a = false
+            if ("") {
+                a = true
+            };
+            a
+        `
+        code = processJavaScriptCode(code).code
+        expect(eval(code)).toBe(false)
+    })
 })
