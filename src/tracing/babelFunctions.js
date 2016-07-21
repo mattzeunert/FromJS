@@ -86,12 +86,6 @@ var babelFunctions = {
         // isn't very robust, just monkey patch Element.prototype.innerHTML
         el.innerHTML = innerHTML
     },
-    f__or(a,b){
-        if (stringTraceUseValue(a)){
-            return a
-        }
-        return b
-    },
     f__not(val){
         return !stringTraceUseValue(val)
     },

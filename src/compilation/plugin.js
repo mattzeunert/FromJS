@@ -103,9 +103,25 @@ module.exports = function(babel) {
       },
       LogicalExpression(path){
           if(path.node.operator === "||"){
-              var call = babel.types.callExpression(
-                  babel.types.identifier("f__or"),
-                  [path.node.left, path.node.right]
+              var call = babel.types.conditionalExpression(
+                  babel.types.sequenceExpression([
+                      babel.types.callExpression(
+                          babel.types.identifier("f__setCachedValue"),
+                          [path.node.left]
+                      ),
+                      babel.types.callExpression(
+                          babel.types.identifier("f__useValue"),
+                          [babel.types.callExpression(
+                              babel.types.identifier("f__getCachedValue"),
+                              []
+                          )]
+                      )
+                  ]),
+                  babel.types.callExpression(
+                      babel.types.identifier("f__getCachedValue"),
+                      []
+                  ),
+                  path.node.right
               )
               path.replaceWith(call)
           }
@@ -157,14 +173,14 @@ module.exports = function(babel) {
 
           path.replaceWith(whileStatement)
       },
-      UnaryExpression(path){
-          if (path.node.operator === "!"){
-              path.replaceWith(babel.types.callExpression(
-                  babel.types.identifier("f__not"),
-                  [path.node.argument]
-              ))
-          }
-      },
+    //   UnaryExpression(path){
+    //       if (path.node.operator === "!"){
+    //           path.replaceWith(babel.types.callExpression(
+    //               babel.types.identifier("f__not"),
+    //               [path.node.argument]
+    //           ))
+    //       }
+    //   },
       StringLiteral(path) {
         // console.log(path.node.type)
         if (path.node.ignore) {
