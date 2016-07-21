@@ -1,2 +1,3 @@
 debugger
-esprima.parse("var a = hi")
+var res = esprima.parse("var a = hi")
+console.log(res)

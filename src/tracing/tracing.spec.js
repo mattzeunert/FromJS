@@ -35,4 +35,11 @@ describe("Tracing", function(){
         var parsed = JSON.parse('{"hello": {"there": "world"}}')
         expect(parsed.hello.there.value).toBe("world")
     })
+
+    it("Processes code passed into eval", function(){
+        // overwriting globally isn't great, but will find better solution later
+        window.f__StringLiteral =  jasmine.createSpy()
+        eval("a = 'Hello'")
+        expect(window.f__StringLiteral).toHaveBeenCalled();
+    })
 })

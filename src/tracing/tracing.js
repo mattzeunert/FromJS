@@ -39,6 +39,8 @@ window.nativeJSONParse = nativeJSONParse
 var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
 
+var nativeEval = window.eval
+
 var nativeArrayJoin = Array.prototype.join
 
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
@@ -251,6 +253,12 @@ export function enableTracing(){
         }
     })
 
+    window.eval = function(code){
+        debugger
+        var res = processJavaScriptCode(stringTraceUseValue(code), {filename: "test.js"})
+        console.log(res)
+        return nativeEval(res.code)
+    }
 
     RegExp.prototype.exec = function(){
         var args = unstringTracifyArguments(arguments)
@@ -296,6 +304,7 @@ export function enableTracing(){
             return window[fnName].apply(this, arguments)
         }
     }
+    window.Function.prototype = nativeFunction.prototype
 
 
     // try to add this once, but it turned out the .dataset[sth] assignment
@@ -340,6 +349,7 @@ export function disableTracing(){
     Object.defineProperty(HTMLElement.prototype, "dataset", window.nativeDataSetDescriptor)
     Object.defineProperty(Node.prototype, "textContent", nativeNodeTextContentDescriptor)
     Array.prototype.join = nativeArrayJoin
+    window.eval = nativeEval
 
     tracingEnabled = false;
 }
