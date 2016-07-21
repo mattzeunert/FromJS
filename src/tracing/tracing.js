@@ -187,13 +187,34 @@ export function enableTracing(){
         return nativeArrayIndexOf.apply(arrayItems, arguments)
     }
 
+    function processScriptTagCodeAssignment(code){
+        var id = _.uniqueId();
+        var filename = "ScriptTag" + id + ".js"
+        var res = processJavaScriptCode(stringTraceUseValue(code), {filename: filename})
+
+        var fnName = "DynamicFunction" + id
+        var smFilename = filename + ".map"
+        var evalCode = res.code + "\n" +
+            "\n//# sourceURL=" + filename +
+            "\n//# sourceMappingURL=" + smFilename
+
+        registerDynamicFile(filename, code, evalCode, res.map)
+
+        return evalCode
+    }
+
     Object.defineProperty(Node.prototype, "textContent", {
         get: function(){
             return nativeNodeTextContentDescriptor.get.apply(this, arguments)
         },
         set: function(newTextContent){
-            var ret = nativeNodeTextContentDescriptor.set.apply(this, arguments)
             var el = this;
+
+            if (el.tagName === "SCRIPT") {
+                newTextContent = processScriptTagCodeAssignment(newTextContent)
+            }
+
+            var ret = nativeNodeTextContentDescriptor.set.apply(this, [newTextContent])
 
             addElOrigin(el, "replaceContents", el.childNodes)
             if (newTextContent.toString() !== ""){

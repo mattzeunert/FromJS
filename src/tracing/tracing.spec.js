@@ -60,6 +60,21 @@ describe("Tracing", function(){
         expect(dynamicFileCountAfter - dynamicFileCountBefore).toBe(3)
     })
 
+    it("Processes code when it's added to a script tag with textContent", function(){
+        spyOn(window, "f__StringLiteral")
+        var dynamicFileCountBefore = Object.keys(window.fromJSDynamicFiles).length
+
+        var el = document.createElement("script")
+        // It's an imperfect solution, but it sorta works for now
+        // Would be bad if the inspected app would try to read the
+        // textContent later for example
+        el.textContent = "a = 'Hello'"
+        document.body.appendChild(el)
+        expect(window.f__StringLiteral).toHaveBeenCalled()
+        var dynamicFileCountAfter = Object.keys(window.fromJSDynamicFiles).length
+        expect(dynamicFileCountAfter - dynamicFileCountBefore).toBe(3)
+    })
+
     it("Array.join works with objects that have a custom toString function which returns a tracked string", function(){
         var obj = {
             toString: function(){
