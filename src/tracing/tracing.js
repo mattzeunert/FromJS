@@ -69,6 +69,11 @@ export function enableTracing(){
             inputValues: [tagName],
             value: el.tagName
         })
+        addElOrigin(el, "closingTag", {
+            action: "createElement",
+            inputValues: [tagName],
+            value: el.tagName
+        })
         return el;
     }
 
