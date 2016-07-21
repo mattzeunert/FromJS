@@ -38,10 +38,9 @@ describe("Tracing", function(){
     })
 
     it("Processes code passed into eval", function(){
-        // overwriting globally isn't great, but will find better solution later
-        window.f__StringLiteral =  jasmine.createSpy()
+        spyOn(window, "f__StringLiteral")
         eval("a = 'Hello'")
-        expect(window.f__StringLiteral).toHaveBeenCalled();
+        expect(window.f__StringLiteral).toHaveBeenCalled()
     })
 
     it("Array.join works with objects that have a custom toString function which returns a tracked string", function(){

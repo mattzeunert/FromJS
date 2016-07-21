@@ -1,6 +1,6 @@
 import {makeSureInitialHTMLHasBeenProcessed} from "./tracing/processElementsAvailableOnInitialLoad"
 import {enableTracing, disableTracing} from "./tracing/tracing"
-import babelFunctions from "./tracing/babelFunctions"
+import {addBabelFunctionsToGlobalObject} from "./tracing/babelFunctions"
 import saveAndSerializeDOMState from "./ui/saveAndSerializeDOMState"
 import initSerializedDataPage from "./ui/initSerializedDataPage"
 import showFromJSSidebar from "./ui/showFromJSSidebar"
@@ -24,9 +24,8 @@ document.onreadystatechange = function(e){
 
 window.saveAndSerializeDOMState = saveAndSerializeDOMState
 
-Object.keys(babelFunctions).forEach(function(functionName){
-    window[functionName] = babelFunctions[functionName]
-})
+addBabelFunctionsToGlobalObject();
+
 if (!window.isSerializedDomPage){
     enableTracing()
 }

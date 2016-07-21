@@ -87,3 +87,9 @@ var babelFunctions = {
 }
 
 export default babelFunctions
+
+export function addBabelFunctionsToGlobalObject(){
+    Object.keys(babelFunctions).forEach(function(functionName){
+        window[functionName] = babelFunctions[functionName]
+    })
+}
