@@ -35,7 +35,7 @@ export default function saveAndSerializeDOMState(){
           }
       });
 
-    var elsWithOrigin = jQuery("*").filter(function(){
+    var elsWithOrigin = $("*").filter(function(){
         return this.__elOrigin
     })
     var id=1;
@@ -64,7 +64,7 @@ export default function saveAndSerializeDOMState(){
         var el = this;
         storeOrigin(el.__elOrigin, $(el).attr("fromjs-id"))
     })
-    jQuery("*").filter(function(){
+    $("*").filter(function(){
         return this.__contentElOrigin
     }).each(function(){
         var contentOriginId = id++;
