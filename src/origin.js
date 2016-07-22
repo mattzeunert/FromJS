@@ -50,6 +50,12 @@ export default function Origin(opts){
     }
     this.actionDetails = opts.actionDetails;
     Error.stackTraceLimit = 500;
+    // Perf note: probably will be easier to just do new Error() here and then process later
+    // Measurements on a relatively short call stack (1000 times):
+    // 7.5ms for new Error()
+    // 19.7ms for new Error().stack
+    // 21.5ms for new Error().stack.split()
+    // 26.5ms for new Error().stack.split().filter()
     this.stack = new Error().stack.split("\n").filter(function(frame){
         if (frame.indexOf("/fromjs-internals/from.js") !== -1) {
             return false;
