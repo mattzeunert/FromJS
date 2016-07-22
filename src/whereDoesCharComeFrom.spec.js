@@ -25,4 +25,36 @@ describe("whereDoesCharComeFrom", function(){
             })
         })
     })
+
+    it("Can traverse array joins", function(done){
+        var origin = {
+            action: "Array Join Call",
+            value: "a-b",
+            inputValues: [{
+                action: "String Literal",
+                inputValues: [],
+                value: "-"
+            },{
+                action: "String Literal",
+                inputValues: [],
+                value: "a"
+            },{
+                action: "String Literal",
+                inputValues: [],
+                value: "b"
+            }]
+        }
+
+        whereDoesCharComeFrom(origin, 0, function(steps){
+            console.log("Steps", _.last(steps))
+            expect(_.last(steps).originObject.value).toBe("a")
+            whereDoesCharComeFrom(origin, 1, function(steps){
+                expect(_.last(steps).originObject.value).toBe("-")
+                whereDoesCharComeFrom(origin, 2, function(steps){
+                    expect(_.last(steps).originObject.value).toBe("b")
+                    done();
+                })
+            })
+        })
+    })
 })

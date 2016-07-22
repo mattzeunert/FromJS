@@ -4,6 +4,7 @@ import resolveFrame, {getSourceFileContent} from "./resolve-frame"
 import fileIsDynamicCode from "./fileIsDynamicCode"
 import getRootOriginAtChar from "./getRootOriginAtChar"
 import $ from "jquery"
+import _ from "underscore"
 
 export default function whereDoesCharComeFrom(originObject, characterIndex, callback){
     characterIndex = parseFloat(characterIndex)
@@ -80,8 +81,23 @@ function goUp(step, callback){
         valueMap.append(step.originObject.inputValues[1])
 
         ret = valueMap.getItemAt(step.characterIndex)
+    } else if (step.originObject.action === "Array Join Call"){
+        var inputValues = step.originObject.inputValues
+        var separator = _.first(inputValues)
+        var items = inputValues.slice(1)
+
+        var valueMap = new ValueMap()
+        items.forEach(function(item, i){
+            var isLastItem = i === items.length - 1;
+            valueMap.append(item)
+            if (!isLastItem) {
+                valueMap.append(separator)
+            }
+        })
+        console.log("aaa")
+        ret = valueMap.getItemAt(step.characterIndex)
     } else if (step.originObject.action === "Element") {
-        throw "dont thing I use this any more"
+        throw "dont think I use this any more"
         // var valueMap = new ValueMap();
         // var createElement;
         //
