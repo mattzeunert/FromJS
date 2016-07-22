@@ -46,7 +46,6 @@ describe("whereDoesCharComeFrom", function(){
         }
 
         whereDoesCharComeFrom(origin, 0, function(steps){
-            console.log("Steps", _.last(steps))
             expect(_.last(steps).originObject.value).toBe("a")
             whereDoesCharComeFrom(origin, 1, function(steps){
                 expect(_.last(steps).originObject.value).toBe("-")
