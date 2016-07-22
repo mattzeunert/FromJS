@@ -162,12 +162,9 @@ export function enableTracing(){
         var stringifiedItems = this.map(function(item){
             return item.toString()
         })
-        var inputValues = this.map(function(item){
-            if (item.isStringTraceString){
-                return item;
-            }
-            return untrackedString(item)
-        })
+        var trackedInputItems = this.map(trackStringIfNotTracked)
+        var trackedSeparator = trackStringIfNotTracked(separator)
+        var inputValues = [trackedSeparator].concat(trackedInputItems)
         // .join already does stringification, but we may need to call .toString()
         // twice if there is an object with a toString function which returns
         // a FromJSString (an object) which needs to be converted to a native string
