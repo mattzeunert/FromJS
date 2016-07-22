@@ -1,4 +1,5 @@
 import $ from "jquery"
+import _ from "underscore"
 import {getDefaultSourceCache} from "../resolve-frame"
 import async from "async"
 
