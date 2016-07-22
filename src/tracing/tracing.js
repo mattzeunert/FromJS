@@ -162,7 +162,7 @@ export function enableTracing(){
         var stringifiedItems = this.map(function(item){
             return item.toString()
         })
-        var inputValues = stringifiedItems.map(function(item){
+        var inputValues = this.map(function(item){
             if (item.isStringTraceString){
                 return item;
             }
