@@ -50,29 +50,28 @@ export default function Origin(opts){
     }
     this.actionDetails = opts.actionDetails;
     Error.stackTraceLimit = 500;
-    // Perf note: probably will be easier to just do new Error() here and then process later
-    // Measurements on a relatively short call stack (1000 times):
-    // 7.5ms for new Error()
-    // 19.7ms for new Error().stack
-    // 21.5ms for new Error().stack.split()
-    // 26.5ms for new Error().stack.split().filter()
-    this.stack = new Error().stack.split("\n").filter(function(frame){
-        if (frame.indexOf("/fromjs-internals/from.js") !== -1) {
-            return false;
-        }
-        if (frame.indexOf("http://localhost:8080/dist/from.js") !== -1) {
-            return false;
-        }
-        if (frame.indexOf("webpack://") !== -1) {
-            // loading from webpack-dev-server
-            return false;
-        }
-        if (frame.indexOf("(native)") !== -1) {
-            return false;
-        }
-        if (frame === "Error"){
-            return false;
-        }
-        return true
-    });
+    
+    this.error = new Error()
+
+    this.getStackFrames = function(){
+        return this.error.stack.split("\n").filter(function(frame){
+            if (frame.indexOf("/fromjs-internals/from.js") !== -1) {
+                return false;
+            }
+            if (frame.indexOf("http://localhost:8080/dist/from.js") !== -1) {
+                return false;
+            }
+            if (frame.indexOf("webpack://") !== -1) {
+                // loading from webpack-dev-server
+                return false;
+            }
+            if (frame.indexOf("(native)") !== -1) {
+                return false;
+            }
+            if (frame === "Error"){
+                return false;
+            }
+            return true
+        });
+    }
 }

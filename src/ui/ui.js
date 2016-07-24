@@ -137,7 +137,7 @@ class OriginPathItem extends React.Component {
         if (originObject.isHTMLFileContent) {
             this.selectFrameString(getFrameFromHTMLFileContentOriginPathItem(this.props.originPathItem))
         } else {
-            this.selectFrameString(_.first(originObject.stack))
+            this.selectFrameString(_.first(originObject.getStackFrames()))
         }
         this.makeSureIsResolvingFrame();
     }
@@ -209,7 +209,7 @@ class OriginPathItem extends React.Component {
         var stackFrameSelector = null;
         if (this.state.showDetailsDropdown){
             stackFrameSelector = <StackFrameSelector
-                stack={originObject.stack}
+                stack={originObject.getStackFrames()}
                 selectedFrameString={this.state.selectedFrameString}
                 onFrameSelected={(frameString) => {
                     this.selectFrameString(frameString)
@@ -244,7 +244,7 @@ class OriginPathItem extends React.Component {
         }
 
         var toggleFrameSelectorButton = null;
-        if (originObject.stack && originObject.stack.length > 1) {
+        if (originObject.getStackFrames() && originObject.getStackFrames().length > 1) {
             toggleFrameSelectorButton = <button
                 className="fromjs-origin-path-step__stack-frame-selector-toggle"
                 onClick={() => this.setState({showDetailsDropdown: !this.state.showDetailsDropdown})}>

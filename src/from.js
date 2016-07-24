@@ -19,8 +19,10 @@ document.onreadystatechange = function(e){
         // like appendChild or similar collect inital html
         makeSureInitialHTMLHasBeenProcessed();
 
+        console.profile()
         onDoneProcessing(function(){
             console.timeEnd("Page Load")
+            console.profileEnd()
         })
     }
 }
