@@ -42,36 +42,38 @@ export default function Origin(opts){
     this.value = opts.value && opts.value.toString();
     this.valueOfEl = opts.valueOfEl
     this.valueItems = opts.valueItems
-    this.getValue = function(){
-        if (this.valueOfEl) {
-            return this.valueOfEl.outerHTML
-        }
-        return this.value
-    }
     this.actionDetails = opts.actionDetails;
     Error.stackTraceLimit = 500;
-    
+
     this.error = new Error()
 
-    this.getStackFrames = function(){
-        return this.error.stack.split("\n").filter(function(frame){
-            if (frame.indexOf("/fromjs-internals/from.js") !== -1) {
-                return false;
-            }
-            if (frame.indexOf("http://localhost:8080/dist/from.js") !== -1) {
-                return false;
-            }
-            if (frame.indexOf("webpack://") !== -1) {
-                // loading from webpack-dev-server
-                return false;
-            }
-            if (frame.indexOf("(native)") !== -1) {
-                return false;
-            }
-            if (frame === "Error"){
-                return false;
-            }
-            return true
-        });
+}
+
+Origin.prototype.getValue = function(){
+    if (this.valueOfEl) {
+        return this.valueOfEl.outerHTML
     }
+    return this.value
+}
+
+Origin.prototype.getStackFrames = function(){
+    return this.error.stack.split("\n").filter(function(frame){
+        if (frame.indexOf("/fromjs-internals/from.js") !== -1) {
+            return false;
+        }
+        if (frame.indexOf("http://localhost:8080/dist/from.js") !== -1) {
+            return false;
+        }
+        if (frame.indexOf("webpack://") !== -1) {
+            // loading from webpack-dev-server
+            return false;
+        }
+        if (frame.indexOf("(native)") !== -1) {
+            return false;
+        }
+        if (frame === "Error"){
+            return false;
+        }
+        return true
+    });
 }
