@@ -6,7 +6,7 @@ import initSerializedDataPage from "./ui/initSerializedDataPage"
 import showFromJSSidebar from "./ui/showFromJSSidebar"
 import $ from "jquery"
 
-
+console.time("Page Load")
 document.onreadystatechange = function(e){
     if (document.readyState === "interactive") {
         if (window.isSerializedDomPage){return}
@@ -18,6 +18,39 @@ document.onreadystatechange = function(e){
         // ... maybe processing as soon as the page tries to do something
         // like appendChild or similar collect inital html
         makeSureInitialHTMLHasBeenProcessed();
+
+        onDoneProcessing(function(){
+            console.timeEnd("Page Load")
+        })
+    }
+}
+
+function onDoneProcessing(doneProcessing){
+    var lastTimes = [];
+
+    function measure(done){
+        var lastDate = new Date();
+        setTimeout(function(){
+            var now = new Date();
+            lastTimes.push(now.valueOf() - lastDate.valueOf());
+            if (lastTimes.length > 10){
+                lastTimes.shift();
+            }
+            done()
+        }, 10)
+    }
+
+    measure(doneMeasuring)
+    function doneMeasuring(){
+        console.log(lastTimes)
+        var hasValuesOver15ms = lastTimes.filter((n) => n > 15).length > 0
+        if (lastTimes.length < 5 || hasValuesOver15ms) {
+            measure(doneMeasuring)
+        }
+        else {
+            doneProcessing()
+        }
+
     }
 }
 
