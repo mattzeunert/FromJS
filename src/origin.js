@@ -1,3 +1,9 @@
+// Storing lots of arrays costs lots of memory, and
+// since many inputValues arrays are empty we can just
+// re-use the same array every time.
+var emptyInputValuesArray = []
+Object.freeze(emptyInputValuesArray)
+
 export default function Origin(opts){
     var inputValues = opts.inputValues.map(function(inputValue){
         if (inputValue instanceof Origin){
@@ -27,6 +33,9 @@ export default function Origin(opts){
     })
 
     this.action = opts.action;
+    if (inputValues.length === 0) {
+        inputValues = emptyInputValuesArray
+    }
     this.inputValues = inputValues;
 
     this.extraCharsAdded = 0;
