@@ -94,7 +94,6 @@ function goUp(step, callback){
                 valueMap.append(separator)
             }
         })
-        console.log("aaa")
         ret = valueMap.getItemAt(step.characterIndex)
     } else if (step.originObject.action === "Element") {
         throw "dont think I use this any more"

@@ -404,8 +404,10 @@ class TextEl extends React.Component {
         }
     }
     shouldComponentUpdate(nextProps, nextState){
+        console.time("TextEl shouldUpdate")
         var shouldUpdate = JSON.stringify(nextProps) !== JSON.stringify(this.props) ||
             JSON.stringify(nextState) !== JSON.stringify(this.state)
+        console.timeEnd("TextEl shouldUpdate")
         return shouldUpdate
     }
     render(){
@@ -467,7 +469,7 @@ class TextEl extends React.Component {
         function charIsWhitespace(char){
             return char === "\t" || char === " "
         }
-        function getValueSpan(char, extraClasses, onClick, onMouseEnter, onMouseLeave){
+        function getValueSpan(char, extraClasses, key, onClick, onMouseEnter, onMouseLeave){
             var className = extraClasses;
             if (charIsWhitespace(char)){
                 className += " fromjs-value__whitespace-character"
@@ -481,6 +483,7 @@ class TextEl extends React.Component {
                 onClick={onClick}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
+                key={key}
             >
                 {processedChar}
             </span>
@@ -492,7 +495,7 @@ class TextEl extends React.Component {
                 index = parseFloat(index)
                 var char = val[index]
 
-                els.push(getValueSpan(char, "", () => {
+                els.push(getValueSpan(char, "", index + indexOffset, () => {
                     self.props.onCharacterClick(index + indexOffset)
                 }, () => {
                     if (!self.props.onCharacterHover) {return}
@@ -548,7 +551,7 @@ class TextEl extends React.Component {
                             valueSpans.slice(valueSpans.length - 10),
                         ]
                     }
-                    valueSpans = valueSpans.concat(getValueSpan(chunks[1].text, "fromjs-highlighted-character", function(){}, function(){}, function(){}))
+                    valueSpans = valueSpans.concat(getValueSpan(chunks[1].text, "fromjs-highlighted-character", "highlighted-char-key", function(){}, function(){}, function(){}))
                     valueSpans = valueSpans.concat(getValueSpans(chunks[2].text, chunks[2].charOffsetStart))
                 } else {
                     valueSpans = getValueSpans(line.text, line.charOffsetStart);
@@ -560,7 +563,9 @@ class TextEl extends React.Component {
                 </div>
             }
 
-            var ellipsisSpan = <span onClick={() => this.disableTruncateText()}>...</span>
+            function getEllipsisSpan(key){
+                return <span onClick={() => this.disableTruncateText()} key={key}>...</span>
+            }
 
             return <HorizontalScrollContainer>
                 <div className="fromjs-value">
@@ -570,11 +575,11 @@ class TextEl extends React.Component {
                         {linesToShow.map((line, i) =>{
                             var beforeSpan = null;
                             if (i === 0 && line.charOffsetStart > 0){
-                                beforeSpan = ellipsisSpan
+                                beforeSpan = getEllipsisSpan("beforeEllipsis")
                             }
                             var afterSpan = null;
                             if (i === linesToShow.length - 1 && line.charOffsetEnd < val.length) {
-                                afterSpan = ellipsisSpan
+                                afterSpan = getEllipsisSpan("afterEllipsis")
                             }
                             return getLineComponent(line, beforeSpan, afterSpan)
                         })}
