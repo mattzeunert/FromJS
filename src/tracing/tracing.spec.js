@@ -1,10 +1,8 @@
 import {enableTracing, disableTracing} from "./tracing"
 import {makeTraceObject} from "./FromJSString"
-import {disableProcessHTMLOnInitialLoad} from "./processElementsAvailableOnInitialLoad"
 
 describe("Tracing", function(){
     beforeEach(function(){
-        disableProcessHTMLOnInitialLoad()
         enableTracing();
     })
     afterEach(function(){

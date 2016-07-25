@@ -8,10 +8,8 @@ export function makeSureInitialHTMLHasBeenProcessed(){
     processElementsAvailableOnInitialLoad()
 }
 
-var disabled = false;
-
 export default function processElementsAvailableOnInitialLoad(){
-    if (disabled) {return}
+    if (window.processElementsAvailableOnInitialLoadDisabled) {return}
 
     var originalHtml = decodeURIComponent(nativeInnerHTMLDescriptor.get.call(document.getElementById("fromjs-initial-html")))
 
@@ -40,5 +38,8 @@ export default function processElementsAvailableOnInitialLoad(){
 
 export function disableProcessHTMLOnInitialLoad(){
     // used for tests
-    disabled = true;
+    // put on window because karma seems to load different bundles
+    // for different specs
+    // will see if I end up find a proper modular solution
+    window.processElementsAvailableOnInitialLoadDisabled = true;
 }
