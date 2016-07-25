@@ -568,12 +568,18 @@ class TextEl extends React.Component {
                     if (valueSpans.length > 40 && self.state.truncateText){
                         valueSpans = [
                             valueSpans.slice(0, 40),
-                            <span onClick={() => self.disableTruncateText()}>...</span>,
-                            valueSpans.slice(valueSpans.length - 10),
+                            getEllipsisSpan("ellipsis-line-before-highlight"),
+                            valueSpans.slice(valueSpans.length - 10)
                         ]
                     }
                     valueSpans = valueSpans.concat(getValueSpan(chunks[1].text, "fromjs-highlighted-character", "highlighted-char-key", function(){}, function(){}, function(){}))
-                    valueSpans = valueSpans.concat(getValueSpans(chunks[2].text, chunks[2].charOffsetStart))
+                    var restofLineValueSpans = getValueSpans(chunks[2].text, chunks[2].charOffsetStart)
+                    if (restofLineValueSpans.length > 30 && line.text.length > 60 && self.state.truncateText){
+                        restofLineValueSpans = restofLineValueSpans.slice(0, 30)
+                        restofLineValueSpans.push(getEllipsisSpan("ellipsis-line-after-highlight"))
+                    }
+                    valueSpans = valueSpans.concat(restofLineValueSpans)
+
                 } else {
                     valueSpans = getValueSpans(line.text, line.charOffsetStart);
                 }
