@@ -236,6 +236,11 @@ function goUp(step, callback){
         }
     }
     else if (step.originObject.action === "String Literal"){
+        if (!step.originObject.getStackFrames) {
+            // This is the case in some test specs
+            callback(null)
+            return;
+        }
         resolveFrame(step.originObject.getStackFrames()[0], function(err, frame){
 
             if (fileIsDynamicCode(frame.fileName)){

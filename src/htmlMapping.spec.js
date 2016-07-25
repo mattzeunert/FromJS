@@ -5,7 +5,7 @@ import whereDoesCharComeFrom from "./whereDoesCharComeFrom"
 import {disableProcessHTMLOnInitialLoad} from "./tracing/processElementsAvailableOnInitialLoad"
 disableProcessHTMLOnInitialLoad()
 
-fdescribe("HTML Mapping", function(){
+describe("HTML Mapping", function(){
     beforeEach(function(){
         enableTracing()
     })
@@ -37,7 +37,7 @@ fdescribe("HTML Mapping", function(){
         expect(originAndChar.origin.value[originAndChar.characterIndex]).toBe("W")
     })
 
-    fit("Traces attributes without a value correctly", function(done){
+    it("Traces attributes without a value correctly", function(done){
         var el = document.createElement("div")
         el.innerHTML = '<span hello world>Hi</span>'
         var span = el.children[0]
