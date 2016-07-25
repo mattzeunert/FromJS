@@ -61,11 +61,6 @@ function goUp(step, callback){
             originObject: step.originObject.inputValues[0],
             characterIndex: newCharIndex
         }
-    } else if (step.originObject.inputValues.length === 1 && step.originObject.inputValues[0].value === step.originObject.value) {
-        ret = {
-            originObject: step.originObject.inputValues[0],
-            characterIndex: step.characterIndex
-        }
     } else if (step.originObject.action === "Assign InnerHTML") {
         var offsetAtChar = 0;
         if (step.originObject.offsetAtCharIndex){
@@ -74,6 +69,13 @@ function goUp(step, callback){
         ret = {
             originObject: step.originObject.inputValues[0],
             characterIndex: step.characterIndex - step.originObject.extraCharsAdded + offsetAtChar
+        }
+    } else if (step.originObject.inputValues.length === 1 && step.originObject.inputValues[0].value === step.originObject.value) {
+        // This makes stuff work but it can be a bit misleading
+        // because it suggests actions are explicitly handled even though they are not
+        ret = {
+            originObject: step.originObject.inputValues[0],
+            characterIndex: step.characterIndex
         }
     } else  if (step.originObject.action === "Concat") {
         var valueMap = new ValueMap()

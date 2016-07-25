@@ -61,6 +61,26 @@ fdescribe("HTML Mapping", function(){
         })
     })
 
+    it("Traces attributes with an empty value correctly", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<span hello="">Hi</span>'
+        var span = el.children[0]
+
+        disableTracing()
+
+        // <span hello="">[H]i</span>
+        var originAndChar = getRootOriginAtChar(span, 15);
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            // correctly traces back to assigned string
+            expect(value).toBe("<span hello=\"\">Hi</span>")
+            expect(value[characterIndex]).toBe("H")
+            done()
+        })
+    })
+
     it("Traces an extra space at the end of a tag correctly", function(done){
         var el = document.createElement("div")
         el.innerHTML = '<span >Hi</span>'
