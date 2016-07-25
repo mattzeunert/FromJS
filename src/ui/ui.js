@@ -591,7 +591,7 @@ class TextEl extends React.Component {
             }
 
             function getEllipsisSpan(key){
-                return <span onClick={() => this.disableTruncateText()} key={key}>...</span>
+                return <span onClick={() => self.disableTruncateText()} key={key}>...</span>
             }
 
             return <HorizontalScrollContainer>
