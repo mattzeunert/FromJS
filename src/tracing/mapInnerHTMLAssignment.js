@@ -9,12 +9,17 @@ import tagTypeHasClosingTag from "./tagTypeHasClosingTag"
 export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName, initialExtraCharsValue){
     var innerHTMLAfterAssignment = nativeInnerHTMLDescriptor.get.call(el)
     var forDebuggingProcessedHtml = ""
+    // charOffset in the resulting HTML, not the assigned HTML
     var charOffset = 0;
     var extraCharsAdded = 0;
     if (initialExtraCharsValue !== undefined){
         extraCharsAdded = initialExtraCharsValue
     }
     processNewInnerHtml(el)
+
+    function getCharOffsetInAssignedHTML(){
+        return charOffset - extraCharsAdded
+    }
 
     function processNewInnerHtml(el){
         var children = Array.prototype.slice.apply(el.childNodes, [])
@@ -61,10 +66,13 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     var attrStr = " " + attr.name
                     attrStr += "='" + attr.textContent +  "'"
 
+                    var assignedAttrStr = assignedInnerHTML.toString().substr(getCharOffsetInAssignedHTML(), attrStr.length)
+
                     charOffset += attrStr.length
                     var offsetAtCharIndex = null
                     var extraCharsAddedHere = 0;
-                    if (attr.textContent === ""){
+
+                    if (attr.textContent === "" && !attrStrContainsEmptyValue(assignedAttrStr)){
                         //charOffset += "'='".length
                         extraCharsAddedHere = "=''".length
 
@@ -132,4 +140,9 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
         })
     }
+}
+
+var emptyAttrStrRegex = /.*=['"]{2}/
+function attrStrContainsEmptyValue(attrStr) {
+    return emptyAttrStrRegex.test(attrStr)
 }

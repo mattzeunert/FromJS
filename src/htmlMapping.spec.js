@@ -37,17 +37,17 @@ fdescribe("HTML Mapping", function(){
         expect(originAndChar.origin.value[originAndChar.characterIndex]).toBe("W")
     })
 
-    it("Traces attributes without a value correctly", function(done){
+    fit("Traces attributes without a value correctly", function(done){
         var el = document.createElement("div")
-        el.innerHTML = '<span hello>Hi</span>'
+        el.innerHTML = '<span hello world>Hi</span>'
         var span = el.children[0]
 
         disableTracing()
         // just to clarify what's going on, Chrome is adding the "" to the attribute
-        expect(el.innerHTML).toBe('<span hello="">Hi</span>')
+        expect(el.innerHTML).toBe('<span hello="" world="">Hi</span>')
 
-        // <span hello="">[H]i</span>
-        var originAndChar = getRootOriginAtChar(span, 15);
+        // <span hello="" world="">[H]i</span>
+        var originAndChar = getRootOriginAtChar(span, 24);
         expect(originAndChar.origin.action).toBe("Assign InnerHTML")
         expect(originAndChar.origin.value[originAndChar.characterIndex]).toBe("H")
 
@@ -55,7 +55,7 @@ fdescribe("HTML Mapping", function(){
             var value = steps[1].originObject.value;
             var characterIndex = steps[1].characterIndex
             // correctly traces back to assigned string
-            expect(value).toBe("<span hello>Hi</span>")
+            expect(value).toBe("<span hello world>Hi</span>")
             expect(value[characterIndex]).toBe("H")
             done()
         })
@@ -70,7 +70,6 @@ fdescribe("HTML Mapping", function(){
 
         // <span hello="">[H]i</span>
         var originAndChar = getRootOriginAtChar(span, 15);
-
         whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
             var value = steps[1].originObject.value;
             var characterIndex = steps[1].characterIndex
