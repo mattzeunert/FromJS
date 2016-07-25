@@ -43,6 +43,11 @@ export class OriginPath extends React.Component {
     componentDidMount(){
         this.makeSureIsGettingOriginPath()
     }
+    componentWillUnmount(){
+        if (this.cancelGetOriginPath) {
+            this.cancelGetOriginPath()
+        }
+    }
     componentDidUpdate(){
         this.makeSureIsGettingOriginPath()
     }
@@ -51,7 +56,7 @@ export class OriginPath extends React.Component {
             return;
         }
         this.setState({isGettingOriginPath: true})
-        this.props.getOriginPath((originPath) => {
+        this.cancelGetOriginPath = this.props.getOriginPath((originPath) => {
             this.setState({
                 originPath,
                 isGettingOriginPath: true
@@ -147,13 +152,24 @@ class OriginPathItem extends React.Component {
     makeSureIsResolvingFrame(){
         var frame = this.state.selectedFrameString
         if (frame && !this.state.resolvedFrame){
-            resolveFrame(frame, (err, resolvedFrame) => {
+            if (this.cancelFrameResolution) {
+                this.cancelFrameResolution()
+            }
+            this.cancelFrameResolution = resolveFrame(frame, (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
 
-                getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
+                this.cancelGetCodeFilePath = getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
                     this.setState({codeFilePath})
                 })
             })
+        }
+    }
+    componentWillUnmount(){
+        if (this.cancelFrameResolution){
+            this.cancelFrameResolution()
+        }
+        if (this.cancelGetCodeFilePath){
+            this.cancelGetCodeFilePath()
         }
     }
     render(){
@@ -330,9 +346,14 @@ class StackFrameSelectorItem extends React.Component {
         }
     }
     componentDidMount(){
-        resolveFrame(this.props.frameString, (err, resolvedFrame) => {
+        this.cancelFrameResolution = resolveFrame(this.props.frameString, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
+    }
+    componentWillUnmount(){
+        if (this.cancelFrameResolution){
+            this.cancelFrameResolution()
+        }
     }
     render(){
         var className = "fromjs-stack-frame-selector__item " ;
@@ -404,10 +425,10 @@ class TextEl extends React.Component {
         }
     }
     shouldComponentUpdate(nextProps, nextState){
-        console.time("TextEl shouldUpdate")
+        // console.time("TextEl shouldUpdate")
         var shouldUpdate = JSON.stringify(nextProps) !== JSON.stringify(this.props) ||
             JSON.stringify(nextState) !== JSON.stringify(this.state)
-        console.timeEnd("TextEl shouldUpdate")
+        // console.timeEnd("TextEl shouldUpdate")
         return shouldUpdate
     }
     render(){
@@ -615,9 +636,14 @@ class StackFrame extends React.Component{
         }
     }
     componentDidMount(){
-        resolveFrame(this.props.frame, (err, resolvedFrame) => {
+        this.cancelFrameResolution = resolveFrame(this.props.frame, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
+    }
+    componentWillUnmount(){
+        if (this.cancelFrameResolution){
+            this.cancelFrameResolution()
+        }
     }
     render(){
         function processFrameString(str){
@@ -933,8 +959,18 @@ class ElementOriginPath extends React.Component {
         return null;
     }
     getOriginPath(characterIndex, callback){
+        var isCanceled = false
+
         var info = this.getOriginAndCharacterIndex(characterIndex)
-        whereDoesCharComeFrom(info.origin, info.characterIndex, callback)
+        whereDoesCharComeFrom(info.origin, info.characterIndex, function(){
+            if (!isCanceled) {
+                callback.apply(this, arguments)
+            }
+        })
+
+        return function cancel(){
+            isCanceled = true;
+        }
     }
     getOriginPathKey(characterIndex){
         var info = this.getOriginAndCharacterIndex(characterIndex)

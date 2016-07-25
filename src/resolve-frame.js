@@ -47,11 +47,13 @@ function initGPSIfNecessary(){
 }
 
 export default function(frameString, callback){
-    // console.time("Resolve Frame " + frameString)
+    console.time("Resolve Frame " + frameString)
     if (resolvedFrameCache[frameString]){
         done(null, resolvedFrameCache[frameString])
         return
     }
+
+    var isCanceled = false
 
     initGPSIfNecessary()
 
@@ -68,7 +70,6 @@ export default function(frameString, callback){
             })
         }, function(){
             resFrame(frameObject, function(err, callback){
-                console.timeEnd("Resolve Frame " + frameString)
                 done(err, frame)
             })
             console.log("error", arguments)
@@ -76,9 +77,15 @@ export default function(frameString, callback){
     }
 
     function done(err, frame){
-        // console.timeEnd("Resolve Frame " + frameString)
+        console.timeEnd("Resolve Frame " + frameString)
         resolvedFrameCache[frameString] = frame
-        callback(err, frame)
+        if (!isCanceled) {
+            callback(err, frame)
+        }
+    }
+
+    return function cancel(){
+        isCanceled = true;
     }
 }
 
