@@ -25,5 +25,14 @@ fdescribe("HTML Mapping", function(){
         expect(originAndChar.origin.value[originAndChar.characterIndex]).toBe("H")
     })
 
-    
+    it("Traces nested HTML assignments", function(){
+        var el = document.createElement("div")
+        el.innerHTML = 'Hello <b>World</b>!'
+        var bTag = el.children[0]
+
+        // <b>[W]orld</b>
+        var originAndChar = getRootOriginAtChar(bTag, 3);
+        expect(originAndChar.origin.action).toBe("Assign InnerHTML")
+        expect(originAndChar.origin.value[originAndChar.characterIndex]).toBe("W")
+    })
 })
