@@ -169,11 +169,15 @@ module.exports = function(babel) {
           )
       },
       ObjectExpression(path){
-          console.log(path.node.properties.map)
-
           path.node.properties.forEach(function(prop){
               if (prop.key.type === "Identifier") {
+                  var keyLoc = prop.key.loc
                   prop.key = babel.types.stringLiteral(prop.key.name)
+                  prop.key.loc = keyLoc
+                  // move start a bit to left to compensate for there not
+                  // being quotes in the original "string", since
+                  // it's just an identifier
+                  prop.key.loc.start.column--;
               }
           })
 

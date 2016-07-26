@@ -6,24 +6,32 @@ function onload(){
     // el.innerHTML = JSON.parse('{"hello": {"world": {"cake": "cookie"}}}').hello.world.cake
 
 
-    var key = "h" + "i"
-    var obj = {
-        sth: "make sure this is still tracked"
-    }
-    obj[key] = "world"
-    obj.aa = "hey"
-    var str = ""
-    for (k in obj){
-        // debugger
-        var value = obj[k]
-        str += k
-    }
+    // var key = "h" + "i"
+    // var obj = {
+    //     sth: "make sure this is still tracked"
+    // }
+    // obj[key] = "world"
+    // obj.aa = "hey"
+    // var str = ""
+    // for (k in obj){
+    //     // debugger
+    //     var value = obj[k]
+    //     str += k
+    // }
+    //
+    // switch("hey"){
+    //     case obj.aa:
+    //         break;
+    //     default:
+    //         throw "no"
+    // }
 
-    switch("hey"){
-        case obj.aa:
-            break;
-        default:
-            throw "no"
+    var str = "";
+    var obj = {
+        hello: "world"
+    }
+    for (var k in obj){
+        str += k
     }
 
     el.innerHTML = str
