@@ -190,7 +190,7 @@ export function enableTracing(){
 
     Array.prototype.indexOf = function(value){
         var arrayItems = this.map(stringTraceUseValue)
-        return nativeArrayIndexOf.apply(arrayItems, arguments)
+        return nativeArrayIndexOf.apply(arrayItems, [stringTraceUseValue(value)])
     }
 
     function processScriptTagCodeAssignment(code){

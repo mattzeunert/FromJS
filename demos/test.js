@@ -18,7 +18,7 @@ function onload(){
     //     var value = obj[k]
     //     str += value
     // }
-    for (k in obj) str += obj[k]
+    for (var k in obj) str += obj[k]
     el.innerHTML = str
     window.obj = obj
     document.body.appendChild(el)

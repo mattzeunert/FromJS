@@ -47,9 +47,12 @@ module.exports = function(babel) {
           var newVarName = "__fromJSForIn" + _.uniqueId()
 
           var untrackedProperty;
+          var originalVariableDeclaration
           if (path.node.left.type === "VariableDeclaration") {
               if (path.node.left.declarations.length === 1) {
                   untrackedProperty = babel.types.identifier(path.node.left.declarations[0].id.name)
+                  originalVariableDeclaration = oldLeft
+                  originalVariableDeclaration.declarations[0].init = undefined
               }
               else {
                   console.log("aaa",path.node.left.declarations)
@@ -100,6 +103,9 @@ module.exports = function(babel) {
                           )
                       )
                   )
+                  if (originalVariableDeclaration) {
+                      blockStatementPath.node.body.unshift(originalVariableDeclaration)
+                  }
               }
          })
       },
