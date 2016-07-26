@@ -30,11 +30,14 @@ function onload(){
     var obj = {
         hello: "world"
     }
+    var key = "something"
+    obj[key] = "cake"
+
     for (var k in obj){
         str += k
     }
 
-    el.innerHTML = str
+    el.innerHTML = str + key
     window.obj = obj
     document.body.appendChild(el)
 }

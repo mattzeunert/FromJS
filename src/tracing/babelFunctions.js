@@ -90,17 +90,27 @@ var babelFunctions = {
     },
     f__assign(object, property, value){
         var storagePropName = property.toString() + "_trackedName"
+
+        property = makeTraceObject({
+            value: property,
+            origin: new Origin({
+                value: property,
+                inputValues: [property],
+                action: "Property Assignment"
+            })
+        })
+
         if (object[storagePropName] === undefined){
             Object.defineProperty(object, storagePropName, {
                 value: property,
                 enumerable: false,
                 writable: true
             })
-        }else {
+        } else {
             object[storagePropName] = property
         }
 
-        return object[property] = value
+        return object[property.toString().toString()] = value
     },
     f__getTrackedPropertyName(object, propertyName){
         var trackedPropertyName = object[propertyName + "_trackedName"]
