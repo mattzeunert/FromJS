@@ -30,6 +30,7 @@ module.exports = function processJavaScriptCode(code, options){
 
     var res = babel.transformFromAst(ast, code, {
         sourceMap: true,
+        compact: false,
         plugins: [
             Plugin,
         ]

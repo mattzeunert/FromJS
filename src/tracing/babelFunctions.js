@@ -2,6 +2,7 @@ import stringTraceUseValue from "./stringTraceUseValue"
 import StringTraceString, {makeTraceObject} from "./FromJSString"
 import Origin from "../origin"
 import untrackedString from "./untrackedString"
+import untrackedPropertyName from "./untrackedPropertyName"
 
 
 var cachedValue;
@@ -81,7 +82,53 @@ var babelFunctions = {
     },
     f__getCachedValue(val){
         return cachedValue
+    },
+    f__assign(object, property, value){
+        var storagePropName = property.toString() + "_trackedName"
+
+        // This would be a nice to have, but
+        // 1) it costs a lot of memory
+        // 2) it's not something that happens to the string,
+        //    it just shows where the string is used/
+        // property = makeTraceObject({
+        //     value: property,
+        //     origin: new Origin({
+        //         value: property,
+        //         inputValues: [property],
+        //         action: "Property Assignment"
+        //     })
+        // })
+
+        if (object[storagePropName] === undefined){
+            Object.defineProperty(object, storagePropName, {
+                value: property,
+                enumerable: false,
+                writable: true
+            })
+        } else {
+            object[storagePropName] = property
+        }
+
+        return object[property] = value
+    },
+    f__getTrackedPropertyName(object, propertyName){
+        var trackedPropertyName = object[propertyName + "_trackedName"]
+
+        if (!trackedPropertyName) {
+            console.log("property name not tracked", propertyName)
+            return untrackedPropertyName(propertyName)
+        }
+        return trackedPropertyName
+    },
+    f__makeObject(properties){
+        var obj = {}
+        for (var i=0; i< properties.length ;i++){
+            var property =  properties[i]
+            f__assign(obj, property[0], property[1])
+        }
+        return obj
     }
+
 }
 
 export default babelFunctions

@@ -1,6 +1,6 @@
 import addElOrigin from "./addElOrigin"
 import unstringTracifyArguments from "./unstringTracifyArguments"
-import makeTraceObject from "./makeTraceObject"
+import {makeTraceObject} from "./FromJSString"
 import Origin from "../origin"
 import _ from "underscore"
 import stringTraceUseValue from "./stringTraceUseValue"
@@ -228,7 +228,7 @@ export function enableTracing(){
 
     Array.prototype.indexOf = function(value){
         var arrayItems = this.map(stringTraceUseValue)
-        return nativeArrayIndexOf.apply(arrayItems, arguments)
+        return nativeArrayIndexOf.apply(arrayItems, [stringTraceUseValue(value)])
     }
 
     function processScriptTagCodeAssignment(code){

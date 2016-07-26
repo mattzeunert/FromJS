@@ -1,4 +1,5 @@
 var template = require("babel-template");
+var _ = require("underscore")
 // var babylon = require("babylon")
 // var generate = require("babel-generator").default;
 
@@ -7,7 +8,7 @@ module.exports = function(babel) {
     visitor: {
       AssignmentExpression(path){
           if (path.node.ignore){return}
-        if (path.node.left.property && path.node.left.property.name === "innerHTML") {
+        if (path.node.left.property && path.node.left.property.name === "innerHTML" ) {
             path.replaceWith(babel.types.callExpression(
                 babel.types.identifier("t__setInnerHTML"),
                 [path.node.left.object, path.node.right]
@@ -26,7 +27,87 @@ module.exports = function(babel) {
 
             path.replaceWith(assignmentExpression)
         }
+        if (path.node.operator === "=" && path.node.left.type === "MemberExpression" &&
+        path.node.left.computed === true) {
+            path.replaceWith(babel.types.callExpression(
+                babel.types.identifier("f__assign"),
+                [
+                    path.node.left.object,
+                    path.node.left.property,
+                    path.node.right
+                ]
+            ))
+        }
 
+      },
+      ForInStatement(path){
+          if (path.node.ignore)return
+
+          var oldLeft = path.node.left
+          var newVarName = "__fromJSForIn" + _.uniqueId()
+
+          var untrackedProperty;
+          var originalVariableDeclaration
+          if (path.node.left.type === "VariableDeclaration") {
+              if (path.node.left.declarations.length === 1) {
+                  untrackedProperty = babel.types.identifier(path.node.left.declarations[0].id.name)
+                  originalVariableDeclaration = oldLeft
+                  originalVariableDeclaration.declarations[0].init = undefined
+              }
+              else {
+                  console.log("aaa",path.node.left.declarations)
+                  throw "no"
+              }
+          } else if (path.node.left.type === "Identifier"){
+                untrackedProperty = babel.types.identifier(path.node.left.name)
+          } else {
+              console.log("bb", path.node.left.type)
+              throw "no"
+          }
+
+          path.node.left = babel.types.variableDeclaration(
+              "var",
+              [babel.types.variableDeclarator(
+                  babel.types.identifier(newVarName)
+              )]
+          )
+
+          // replace `for (i in k) sth` with `for (i in k) {sth}`
+          path.traverse({
+              ExpressionStatement(path){
+                  if (path.parent.type !== "ForInStatement"){
+                      return
+                  }
+                  path.replaceWith(babel.types.blockStatement(
+                      [
+                          path.node
+                      ]
+                  ))
+              }
+          })
+
+          path.traverse({
+              BlockStatement: function(blockStatementPath){
+                  blockStatementPath.node.body.unshift(
+                      babel.types.expressionStatement(
+                          babel.types.assignmentExpression(
+                              "=",
+                              untrackedProperty,
+                              babel.types.callExpression(
+                                  babel.types.identifier("f__getTrackedPropertyName"),
+                                  [
+                                      path.node.right,
+                                      babel.types.identifier(newVarName)
+                                  ]
+                              )
+                          )
+                      )
+                  )
+                  if (originalVariableDeclaration) {
+                      blockStatementPath.node.body.unshift(originalVariableDeclaration)
+                  }
+              }
+         })
       },
       UnaryExpression(path){
 
@@ -86,6 +167,34 @@ module.exports = function(babel) {
               babel.types.Identifier("f__useValue"),
               [path.node.test]
           )
+      },
+      ObjectExpression(path){
+          path.node.properties.forEach(function(prop){
+              if (prop.key.type === "Identifier") {
+                  var keyLoc = prop.key.loc
+                  prop.key = babel.types.stringLiteral(prop.key.name)
+                  prop.key.loc = keyLoc
+                  // move start a bit to left to compensate for there not
+                  // being quotes in the original "string", since
+                  // it's just an identifier
+                  prop.key.loc.start.column--;
+              }
+          })
+
+          var call = babel.types.callExpression(
+              babel.types.identifier("f__makeObject"),
+              [babel.types.arrayExpression(
+                   path.node.properties.map(function(prop){
+                       var propArray = babel.types.arrayExpression([
+                           prop.key,
+                           prop.value
+                       ])
+                       return propArray
+                   })
+               )
+            ]
+          )
+          path.replaceWith(call)
       },
       BinaryExpression(path){
           if (path.node.ignore){return}
@@ -162,12 +271,25 @@ module.exports = function(babel) {
       },
       SwitchStatement(path){
           if (path.node.ignore){return}
+
+          var cases = path.node.cases;
+          cases.forEach(function(ccase){
+              if (ccase.test ===null){
+                  return // e.g. default case
+              }
+              ccase.test = babel.types.callExpression(
+                  babel.types.identifier("f__useValue"),
+                  [ccase.test]
+              )
+          })
           var switchStatement = babel.types.switchStatement(
               babel.types.callExpression(babel.types.identifier("f__useValue"), [
                   path.node.discriminant
               ]),
-              path.node.cases
+              cases
           );
+
+
 
           switchStatement.ignore = true
           path.replaceWith(switchStatement)
