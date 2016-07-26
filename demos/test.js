@@ -18,6 +18,14 @@ function onload(){
         var value = obj[k]
         str += k
     }
+
+    switch("hey"){
+        case obj.aa:
+            break;
+        default:
+            throw "no"
+    }
+
     el.innerHTML = str
     window.obj = obj
     document.body.appendChild(el)

@@ -267,12 +267,25 @@ module.exports = function(babel) {
       },
       SwitchStatement(path){
           if (path.node.ignore){return}
+
+          var cases = path.node.cases;
+          cases.forEach(function(ccase){
+              if (ccase.test ===null){
+                  return // e.g. default case
+              }
+              ccase.test = babel.types.callExpression(
+                  babel.types.identifier("f__useValue"),
+                  [ccase.test]
+              )
+          })
           var switchStatement = babel.types.switchStatement(
               babel.types.callExpression(babel.types.identifier("f__useValue"), [
                   path.node.discriminant
               ]),
-              path.node.cases
+              cases
           );
+
+
 
           switchStatement.ignore = true
           path.replaceWith(switchStatement)
