@@ -2,6 +2,7 @@ import stringTraceUseValue from "./stringTraceUseValue"
 import StringTraceString, {makeTraceObject} from "./FromJSString"
 import Origin from "../origin"
 import untrackedString from "./untrackedString"
+import untrackedPropertyName from "./untrackedPropertyName"
 
 
 var cachedValue;
@@ -86,7 +87,31 @@ var babelFunctions = {
     },
     f__getCachedValue(val){
         return cachedValue
-    }
+    },
+    f__assign(object, property, value){
+        var storagePropName = property.toString() + "_trackedName"
+        if (object[storagePropName] === undefined){
+            Object.defineProperty(object, storagePropName, {
+                value: property,
+                enumerable: false,
+                writable: true
+            })
+        }else {
+            object[storagePropName] = property
+        }
+
+        return object[property] = value
+    },
+    f__getTrackedPropertyName(object, propertyName){
+        var trackedPropertyName = object[propertyName + "_trackedName"]
+
+        if (!trackedPropertyName) {
+            console.log("property name not tracked", propertyName)
+            return untrackedPropertyName(propertyName)
+        }
+        return trackedPropertyName
+    },
+
 }
 
 export default babelFunctions

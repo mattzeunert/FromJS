@@ -1,4 +1,5 @@
 var template = require("babel-template");
+var _ = require("underscore")
 // var babylon = require("babylon")
 // var generate = require("babel-generator").default;
 
@@ -7,7 +8,7 @@ module.exports = function(babel) {
     visitor: {
       AssignmentExpression(path){
           if (path.node.ignore){return}
-        if (path.node.left.property && path.node.left.property.name === "innerHTML") {
+        if (path.node.left.property && path.node.left.property.name === "innerHTML" ) {
             path.replaceWith(babel.types.callExpression(
                 babel.types.identifier("t__setInnerHTML"),
                 [path.node.left.object, path.node.right]
@@ -26,7 +27,81 @@ module.exports = function(babel) {
 
             path.replaceWith(assignmentExpression)
         }
+        if (path.node.operator === "=" && path.node.left.type === "MemberExpression" &&
+        path.node.left.computed === true) {
+            path.replaceWith(babel.types.callExpression(
+                babel.types.identifier("f__assign"),
+                [
+                    path.node.left.object,
+                    path.node.left.property,
+                    path.node.right
+                ]
+            ))
+        }
 
+      },
+      ForInStatement(path){
+          if (path.node.ignore)return
+
+          var oldLeft = path.node.left
+          var newVarName = "__fromJSForIn" + _.uniqueId()
+
+          var untrackedProperty;
+          if (path.node.left.type === "VariableDeclaration") {
+              if (path.node.left.declarations.length === 1) {
+                  untrackedProperty = babel.types.identifier(path.node.left.declarations[0].id.name)
+              }
+              else {
+                  console.log("aaa",path.node.left.declarations)
+                  throw "no"
+              }
+          } else if (path.node.left.type === "Identifier"){
+                untrackedProperty = babel.types.identifier(path.node.left.name)
+          } else {
+              console.log("bb", path.node.left.type)
+              throw "no"
+          }
+
+          path.node.left = babel.types.variableDeclaration(
+              "var",
+              [babel.types.variableDeclarator(
+                  babel.types.identifier(newVarName)
+              )]
+          )
+
+          // replace `for (i in k) sth` with `for (i in k) {sth}`
+          path.traverse({
+              ExpressionStatement(path){
+                  if (path.parent.type !== "ForInStatement"){
+                      return
+                  }
+                  path.replaceWith(babel.types.blockStatement(
+                      [
+                          path.node
+                      ]
+                  ))
+              }
+          })
+
+          path.traverse({
+              BlockStatement: function(blockStatementPath){
+                  blockStatementPath.node.body.unshift(
+                      babel.types.expressionStatement(
+                          babel.types.assignmentExpression(
+                              "=",
+                              untrackedProperty,
+                              babel.types.callExpression(
+                                  babel.types.identifier("f__getTrackedPropertyName"),
+                                  [
+                                      path.node.right,
+                                      babel.types.identifier(newVarName)
+                                  ]
+                              )
+                          )
+                      )
+                  )
+              }
+         })
       },
       UnaryExpression(path){
 
