@@ -43,8 +43,16 @@ describe("Tracing", function(){
     })
 
     it("JSON.parse can handle nested objects", function(){
-        var parsed = JSON.parse('{"hello": {"there": "world"}}')
+        var parsed = JSON.parse({
+            toString(){
+                return '{"hello": {"there": "world"}}'
+            },
+            origin: {
+                action: "Some Action"
+            }
+        })
         expect(parsed.hello.there.value).toBe("world")
+        expect(parsed.hello.there.origin.inputValues[0].action).toBe("Some Action")
     })
 
     it("Processes code passed into new Function", function(){
