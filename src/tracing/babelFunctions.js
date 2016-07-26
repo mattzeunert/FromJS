@@ -36,14 +36,9 @@ var babelFunctions = {
             b = ""
         }
         if (!a.isStringTraceString && typeof a === "string"){
-            console.log("untracked string", a)
-
             a = untrackedString(a);
-
         }
         if (!b.isStringTraceString && typeof b === "string"){
-            console.log("untracked string", b)
-            // if (b.indexOf("completed") !== -1)debugger
             b = untrackedString(b);
         }
         if (!a.isStringTraceString) {
