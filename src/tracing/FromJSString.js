@@ -2,7 +2,7 @@ import Origin from "../origin"
 import ValueMap from "../value-map"
 import unstringTracifyArguments from "./unstringTracifyArguments"
 
-export default function StringTraceString(options){
+function StringTraceString(options){
     this.origin = options.origin
     this.value = options.value
     this.isStringTraceString = true

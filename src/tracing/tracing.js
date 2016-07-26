@@ -43,6 +43,8 @@ window.nativeJSONParse = nativeJSONParse
 var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
 
+var originalXMLHttpRequest = window.XMLHttpRequest
+
 var nativeEval = window.eval
 
 var nativeArrayJoin = Array.prototype.join
@@ -95,6 +97,42 @@ export function enableTracing(){
             }
         }
     })
+
+    window.XMLHttpRequest = function(){
+        var self = this;
+        this.open = function(){
+            self.xhr = new originalXMLHttpRequest()
+            self.xhr.onreadystatechange = function(e){
+                if (self.xhr.readyState === originalXMLHttpRequest.DONE) {
+                    self.responseText = makeTraceObject({
+                        value: self.xhr.responseText,
+                        origin: new Origin({
+                            value: self.xhr.responseText,
+                            inputValues: [],
+                            action: "XHR Response"
+                        })
+                    })
+                    self.status = self.xhr.status
+                    self.readyState = self.xhr.readyState
+                    if (self.onreadystatechange) {
+                        // debugger
+                        self.onreadystatechange(e)
+                    }
+
+                    if (self.onload){
+                        // debugger
+                        self.onload()
+                    }
+                } else {
+                    console.log("ignoreing ajax result")
+                }
+            }
+            this.xhr.open.apply(self.xhr, arguments)
+        }
+        this.send = function(){
+            this.xhr.send.apply(self.xhr, arguments)
+        }
+    }
 
     Element.prototype.setAttribute = function(attrName, value){
         addElOrigin(this, "attribute_" + attrName.toString(), {
@@ -429,6 +467,7 @@ export function disableTracing(){
     Object.defineProperty(HTMLElement.prototype, "dataset", window.nativeDataSetDescriptor)
     Object.defineProperty(Node.prototype, "textContent", nativeNodeTextContentDescriptor)
     Object.defineProperty(HTMLScriptElement.prototype, "text", nativeHTMLScriptElementTextDescriptor)
+    window.XMLHTTPRequest = originalXMLHttpRequest
     Array.prototype.join = nativeArrayJoin
     Array.prototype.indexOf = nativeArrayIndexOf
     window.eval = nativeEval
