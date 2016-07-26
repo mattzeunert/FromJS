@@ -22,8 +22,18 @@ describe("Tracing", function(){
     });
 
     it("JSON.parse can parse flat JSON objects", function(){
-        var parsed = JSON.parse('{"hello": "world"}')
+        var parsed = JSON.parse({
+            value: '{"hello": "world"}',
+            origin: {
+                action: "Some Action"
+            },
+            toString: function(){
+                return this.value
+            }
+        })
         expect(parsed.hello.value).toBe("world")
+        expect(parsed.hello.origin.action).toBe("JSON.parse")
+        expect(parsed.hello.origin.inputValues[0].action).toBe("Some Action")
     })
 
     it("JSON.parse can handle arrays in JSON objects", function(){

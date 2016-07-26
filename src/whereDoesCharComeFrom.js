@@ -32,6 +32,7 @@ export default function whereDoesCharComeFrom(originObject, characterIndex, call
                 steps.push(newStep)
                 nextStep(newStep)
             } else {
+                console.log("steps are", steps)
                 callback(steps)
             }
         })

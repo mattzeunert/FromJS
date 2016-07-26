@@ -47,7 +47,7 @@ function initGPSIfNecessary(){
 }
 
 export default function(frameString, callback){
-    console.time("Resolve Frame " + frameString)
+    // console.time("Resolve Frame " + frameString)
     if (resolvedFrameCache[frameString]){
         done(null, resolvedFrameCache[frameString])
         return
@@ -77,7 +77,7 @@ export default function(frameString, callback){
     }
 
     function done(err, frame){
-        console.timeEnd("Resolve Frame " + frameString)
+        // console.timeEnd("Resolve Frame " + frameString)
         resolvedFrameCache[frameString] = frame
         if (!isCanceled) {
             callback(err, frame)
