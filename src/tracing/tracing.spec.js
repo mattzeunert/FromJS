@@ -53,6 +53,8 @@ describe("Tracing", function(){
         })
         expect(parsed.hello.there.value).toBe("world")
         expect(parsed.hello.there.origin.inputValues[0].action).toBe("Some Action")
+        // {"hello": {"there": "[w]orld"}}
+        expect(parsed.hello.there.origin.inputValuesCharacterIndex[0]).toBe(21)
     })
 
     it("Processes code passed into new Function", function(){

@@ -128,23 +128,30 @@ export function enableTracing(){
         }
     })
 
-    JSON.parse = function(str){
+    JSON.parse = function(str, rootStr){
         var parsedVal = nativeJSONParse.apply(this, arguments)
+        if (rootStr === undefined) {
+            rootStr = str
+        }
 
         for (var key in parsedVal) {
             var value = parsedVal[key]
             if (_.isArray(value) || _.isObject(value)){
-                parsedVal[key] = JSON.parse(JSON.stringify(value))
+                parsedVal[key] = JSON.parse(makeTraceObject({
+                    value: JSON.stringify(value),
+                    origin: str.origin
+                }), rootStr)
             } else if (typeof value === "string" ||
                 typeof value === "boolean" ||
                 typeof value === "number") {
+
                 parsedVal[key] =  makeTraceObject(
                     {
                         value: parsedVal[key],
                         origin: new Origin({
                             value: parsedVal[key],
                             inputValues: [str],
-                            inputValuesCharacterIndex: [str.toString().indexOf(parsedVal[key])], // not very accurate, but better than nothing/always using char 0
+                            inputValuesCharacterIndex: [rootStr.toString().indexOf(parsedVal[key])], // not very accurate, but better than nothing/always using char 0
                             action: "JSON.parse",
                             actionDetails: key
                         })
