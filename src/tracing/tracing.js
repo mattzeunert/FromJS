@@ -467,7 +467,7 @@ export function disableTracing(){
     Object.defineProperty(HTMLElement.prototype, "dataset", window.nativeDataSetDescriptor)
     Object.defineProperty(Node.prototype, "textContent", nativeNodeTextContentDescriptor)
     Object.defineProperty(HTMLScriptElement.prototype, "text", nativeHTMLScriptElementTextDescriptor)
-    window.XMLHTTPRequest = originalXMLHttpRequest
+    window.XMLHttpRequest = originalXMLHttpRequest
     Array.prototype.join = nativeArrayJoin
     Array.prototype.indexOf = nativeArrayIndexOf
     window.eval = nativeEval
