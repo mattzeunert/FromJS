@@ -1,6 +1,6 @@
 import addElOrigin from "./addElOrigin"
 import unstringTracifyArguments from "./unstringTracifyArguments"
-import makeTraceObject from "./makeTraceObject"
+import {makeTraceObject} from "./FromJSString"
 import Origin from "../origin"
 import _ from "underscore"
 import stringTraceUseValue from "./stringTraceUseValue"

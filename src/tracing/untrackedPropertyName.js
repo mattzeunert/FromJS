@@ -1,5 +1,5 @@
 import Origin from "../origin"
-import makeTraceObject from "./makeTraceObject"
+import {makeTraceObject} from "./FromJSString"
 
 export default function untrackedString(value){
     return makeTraceObject({

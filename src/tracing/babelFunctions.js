@@ -91,14 +91,18 @@ var babelFunctions = {
     f__assign(object, property, value){
         var storagePropName = property.toString() + "_trackedName"
 
-        property = makeTraceObject({
-            value: property,
-            origin: new Origin({
-                value: property,
-                inputValues: [property],
-                action: "Property Assignment"
-            })
-        })
+        // This would be a nice to have, but
+        // 1) it costs a lot of memory
+        // 2) it's not something that happens to the string,
+        //    it just shows where the string is used/
+        // property = makeTraceObject({
+        //     value: property,
+        //     origin: new Origin({
+        //         value: property,
+        //         inputValues: [property],
+        //         action: "Property Assignment"
+        //     })
+        // })
 
         if (object[storagePropName] === undefined){
             Object.defineProperty(object, storagePropName, {
@@ -110,7 +114,7 @@ var babelFunctions = {
             object[storagePropName] = property
         }
 
-        return object[property.toString().toString()] = value
+        return object[property] = value
     },
     f__getTrackedPropertyName(object, propertyName){
         var trackedPropertyName = object[propertyName + "_trackedName"]

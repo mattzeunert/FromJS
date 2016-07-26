@@ -1,6 +1,7 @@
 import Origin from "../origin"
 import ValueMap from "../value-map"
 import unstringTracifyArguments from "./unstringTracifyArguments"
+import stringTraceUseValue from "./stringTraceUseValue"
 
 export default function StringTraceString(options){
     this.origin = options.origin
@@ -202,7 +203,7 @@ export function makeTraceObject(options){
         throw "invalid options"
     }
     var stringTraceObject = new StringTraceString({
-        value: options.value,
+        value: stringTraceUseValue(options.value),
         origin: options.origin
     })
 
