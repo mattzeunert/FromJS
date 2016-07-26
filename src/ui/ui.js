@@ -574,8 +574,8 @@ class TextEl extends React.Component {
                     }
                     valueSpans = valueSpans.concat(getValueSpan(chunks[1].text, "fromjs-highlighted-character", "highlighted-char-key", function(){}, function(){}, function(){}))
                     var restofLineValueSpans = getValueSpans(chunks[2].text, chunks[2].charOffsetStart)
-                    if (restofLineValueSpans.length > 30 && line.text.length > 60 && self.state.truncateText){
-                        restofLineValueSpans = restofLineValueSpans.slice(0, 30)
+                    if (restofLineValueSpans.length > 60 && line.text.length > 60 && self.state.truncateText){
+                        restofLineValueSpans = restofLineValueSpans.slice(0, 60)
                         restofLineValueSpans.push(getEllipsisSpan("ellipsis-line-after-highlight"))
                     }
                     valueSpans = valueSpans.concat(restofLineValueSpans)
