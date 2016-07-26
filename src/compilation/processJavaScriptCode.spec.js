@@ -46,7 +46,6 @@ describe("processJavaScriptCode", function(){
     it("Doesn't try to evaluate the second part of an AND expression if the first part is falsy", function(){
         var code = "var obj = undefined;obj && obj.hi"
         code = processJavaScriptCode(code).code
-        console.log(code)
         expect(eval(code)).toBe(undefined)
     })
 
@@ -58,5 +57,14 @@ describe("processJavaScriptCode", function(){
         code = "!!''"
         code = processJavaScriptCode(code).code
         expect(eval(code)).toBe(false)
+    })
+
+    it("Works correctly when nesting AND and OR expressions", function(){
+        // I used to have suspicions that the cached value could break something like this,
+        // but it seems to work.
+        var code = "(1 && 2) || 3"
+
+        code = processJavaScriptCode(code).code
+        expect(eval(code)).toBe(2)
     })
 })
