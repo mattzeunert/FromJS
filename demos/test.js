@@ -8,17 +8,16 @@ function onload(){
 
     var key = "h" + "i"
     var obj = {
-        "sth": "make sure this is still tracked"
+        sth: "make sure this is still tracked"
     }
     obj[key] = "world"
     obj.aa = "hey"
     var str = ""
-    // for (k in obj){
-    //     // debugger
-    //     var value = obj[k]
-    //     str += value
-    // }
-    for (var k in obj) str += obj[k]
+    for (k in obj){
+        // debugger
+        var value = obj[k]
+        str += k
+    }
     el.innerHTML = str
     window.obj = obj
     document.body.appendChild(el)

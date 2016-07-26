@@ -111,6 +111,14 @@ var babelFunctions = {
         }
         return trackedPropertyName
     },
+    f__makeObject(properties){
+        var obj = {}
+        for (var i=0; i< properties.length ;i++){
+            var property =  properties[i]
+            f__assign(obj, property[0], property[1])
+        }
+        return obj
+    }
 
 }
 

@@ -168,6 +168,30 @@ module.exports = function(babel) {
               [path.node.test]
           )
       },
+      ObjectExpression(path){
+          console.log(path.node.properties.map)
+
+          path.node.properties.forEach(function(prop){
+              if (prop.key.type === "Identifier") {
+                  prop.key = babel.types.stringLiteral(prop.key.name)
+              }
+          })
+
+          var call = babel.types.callExpression(
+              babel.types.identifier("f__makeObject"),
+              [babel.types.arrayExpression(
+                   path.node.properties.map(function(prop){
+                       var propArray = babel.types.arrayExpression([
+                           prop.key,
+                           prop.value
+                       ])
+                       return propArray
+                   })
+               )
+            ]
+          )
+          path.replaceWith(call)
+      },
       BinaryExpression(path){
           if (path.node.ignore){return}
         if (path.node.operator === "+") {
