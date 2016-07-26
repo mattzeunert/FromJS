@@ -29,6 +29,8 @@ window.nativeClassNameDescriptor = nativeClassNameDescriptor
 var nativeInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
 window.nativeInnerHTMLDescriptor = nativeInnerHTMLDescriptor;
 
+var nativeHTMLScriptElementTextDescriptor = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, "text")
+
 var nativeExec = RegExp.prototype.exec;
 window.nativeExec = nativeExec;
 
@@ -236,6 +238,16 @@ export function enableTracing(){
         }
     })
 
+    Object.defineProperty(HTMLScriptElement.prototype, "text", {
+        get: function(){
+            return nativeHTMLScriptElementTextDescriptor.get.apply(this, arguments)
+        },
+        set: function(text){
+            text = processScriptTagCodeAssignment(text)
+            return nativeHTMLScriptElementTextDescriptor.set.apply(this, [text])
+        }
+    })
+
     Object.defineProperty(Element.prototype, "innerHTML", {
         set: function(innerHTML){
             makeSureInitialHTMLHasBeenProcessed();
@@ -416,6 +428,7 @@ export function disableTracing(){
     Object.defineProperty(Element.prototype, "className", window.nativeClassNameDescriptor)
     Object.defineProperty(HTMLElement.prototype, "dataset", window.nativeDataSetDescriptor)
     Object.defineProperty(Node.prototype, "textContent", nativeNodeTextContentDescriptor)
+    Object.defineProperty(HTMLScriptElement.prototype, "text", nativeHTMLScriptElementTextDescriptor)
     Array.prototype.join = nativeArrayJoin
     Array.prototype.indexOf = nativeArrayIndexOf
     window.eval = nativeEval
