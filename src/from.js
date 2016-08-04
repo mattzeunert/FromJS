@@ -1,3 +1,4 @@
+console.log("at top of from.js")
 import {makeSureInitialHTMLHasBeenProcessed} from "./tracing/processElementsAvailableOnInitialLoad"
 import {enableTracing, disableTracing} from "./tracing/tracing"
 import {addBabelFunctionsToGlobalObject} from "./tracing/babelFunctions"
@@ -6,6 +7,7 @@ import initSerializedDataPage from "./ui/initSerializedDataPage"
 import showFromJSSidebar from "./ui/showFromJSSidebar"
 import $ from "jquery"
 
+console.log("in from.js")
 console.time("Page Load")
 document.onreadystatechange = function(e){
     if (document.readyState === "interactive") {
