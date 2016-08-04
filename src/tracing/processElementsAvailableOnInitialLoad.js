@@ -11,7 +11,12 @@ export function makeSureInitialHTMLHasBeenProcessed(){
 export default function processElementsAvailableOnInitialLoad(){
     if (window.processElementsAvailableOnInitialLoadDisabled) {return}
 
-    var originalHtml = decodeURIComponent(nativeInnerHTMLDescriptor.get.call(document.getElementById("fromjs-initial-html")))
+    var initialHTMLContainer = document.getElementById("fromjs-initial-html")
+    if (initialHTMLContainer === null) {
+        return
+    }
+
+    var originalHtml = decodeURIComponent(nativeInnerHTMLDescriptor.get.call(initialHTMLContainer))
 
     // replace everythign before body tag
     var bodyContentAndAfter = originalHtml.substr(originalHtml.search(/\<body.*\>/))

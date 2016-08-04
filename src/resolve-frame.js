@@ -69,7 +69,7 @@ export default function(frameString, callback){
                 done(err, frame)
             })
         }, function(){
-            resFrame(frameObject, function(err, callback){
+            resFrame(frameObject, function(err, frame){
                 done(err, frame)
             })
             console.log("error", arguments)
