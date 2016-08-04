@@ -70,6 +70,9 @@ Origin.prototype.getStackFrames = function(){
         if (frame.indexOf("/fromjs-internals/from.js") !== -1) {
             return false;
         }
+        if (frame.indexOf("chrome-extension://") !== -1 && frame.indexOf("from.js") !== -1) {
+            return false;
+        }
         if (frame.indexOf("http://localhost:8080/dist/from.js") !== -1) {
             return false;
         }
