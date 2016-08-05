@@ -5,7 +5,7 @@ var tabsToProcess = [];
 chrome.browserAction.onClicked.addListener(function (tab) {
     console.log("clicked on tab", tab)
     tabsToProcess.push(tab.id)
-    
+
 
 });
 
@@ -59,13 +59,13 @@ chrome.webRequest.onBeforeRequest.addListener(
         return {
           redirectUrl: "data:," + encodeURI(sourceMaps[info.url])
         }
-      } 
-      if (info.url.slice(info.url.length - ".html".length) === ".html") {
+      }
+      if (info.type === "main_frame") {
         var xhr = new XMLHttpRequest()
         xhr.open('GET', info.url, false);
         xhr.send(null);
         initialHTMLForNextLoadedPage = xhr.responseText
-        
+
       }
       if (info.url.slice(info.url.length - ".js".length) === ".js") {
           var xhr = new XMLHttpRequest()

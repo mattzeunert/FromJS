@@ -1,6 +1,8 @@
-console.log("xxx")
+import js from "./dist/fromjs-string"
+console.log("in content script")
 var el = document.createElement("script")
-el.src = chrome.extension.getURL("from.js")
+// el.src = chrome.extension.getURL("from.js")
+el.text = decodeURI(js)
 
 
 el.onload = function(){

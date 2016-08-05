@@ -84,6 +84,9 @@ var babelFunctions = {
         return cachedValue
     },
     f__assign(object, property, value){
+        if (typeof property === "undefined") {
+            property = "undefined"
+        }
         var storagePropName = property.toString() + "_trackedName"
 
         // This would be a nice to have, but
