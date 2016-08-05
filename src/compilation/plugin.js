@@ -72,9 +72,21 @@ module.exports = function(babel) {
               )]
           )
 
-          // replace `for (i in k) sth` with `for (i in k) {sth}`
+          
           path.traverse({
               ExpressionStatement(path){
+                // replace `for (i in k) sth` with `for (i in k) {sth}`
+                  if (path.parent.type !== "ForInStatement"){
+                      return
+                  }
+                  path.replaceWith(babel.types.blockStatement(
+                      [
+                          path.node
+                      ]
+                  ))
+              },
+              IfStatement(path){
+                // replace `for (i in k) if () sth` with `for (i in k) {if () sth}`
                   if (path.parent.type !== "ForInStatement"){
                       return
                   }
@@ -84,6 +96,7 @@ module.exports = function(babel) {
                       ]
                   ))
               }
+              // are there other statement types I need to handle???
           })
 
           path.traverse({
