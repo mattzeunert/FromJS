@@ -9,6 +9,8 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 
 });
 
+var initialHTMLForNextLoadedPage = "";
+
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
   console.log("onUpdated", arguments)
    if (changeInfo.status !== "loading") {
@@ -21,6 +23,18 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     }
 
   console.log("running")
+  chrome.tabs.executeScript(tab.id, {
+    code: `
+      var script = document.createElement("script");
+      var initialPageHtml = \`${initialHTMLForNextLoadedPage}\`.replace(/\`/g, "\\\`")
+      script.innerHTML = "window.fromJSInitialPageHtml = \`" + initialPageHtml + "\`"
+      document.documentElement.appendChild(script)
+    `,
+    runAt: "document_start"
+  }, function(){
+    console.log("ran fromJSinitialPageHtml", arguments)
+  })
+
   chrome.tabs.executeScript(tab.id, {
         "file": "contentScript.js",
         runAt: "document_start"
@@ -46,6 +60,13 @@ chrome.webRequest.onBeforeRequest.addListener(
           redirectUrl: "data:," + encodeURI(sourceMaps[info.url])
         }
       } 
+      if (info.url.slice(info.url.length - ".html".length) === ".html") {
+        var xhr = new XMLHttpRequest()
+        xhr.open('GET', info.url, false);
+        xhr.send(null);
+        initialHTMLForNextLoadedPage = xhr.responseText
+        
+      }
       if (info.url.slice(info.url.length - ".js".length) === ".js") {
           var xhr = new XMLHttpRequest()
           xhr.open('GET', info.url, false);

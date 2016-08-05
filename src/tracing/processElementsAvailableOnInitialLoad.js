@@ -12,11 +12,14 @@ export default function processElementsAvailableOnInitialLoad(){
     if (window.processElementsAvailableOnInitialLoadDisabled) {return}
 
     var initialHTMLContainer = document.getElementById("fromjs-initial-html")
-    if (initialHTMLContainer === null) {
-        return
+    var htmlFilename = "htmlfile"
+    if (initialHTMLContainer !== null) {
+        // would make sense to get rid of that HTML tag completely and just assign to the fromJSIniitalPageHTml variable directly
+        window.fromJSInitialPageHtml = decodeURIComponent(nativeInnerHTMLDescriptor.get.call(initialHTMLContainer))
+        htmlFilename =document.getElementById("fromjs-initial-html").getAttribute("html-filename")
     }
 
-    var originalHtml = decodeURIComponent(nativeInnerHTMLDescriptor.get.call(initialHTMLContainer))
+    var originalHtml = window.fromJSInitialPageHtml
 
     // replace everythign before body tag
     var bodyContentAndAfter = originalHtml.substr(originalHtml.search(/\<body.*\>/))
@@ -32,7 +35,7 @@ export default function processElementsAvailableOnInitialLoad(){
             inputValues: [],
             value: originalHtml,
             isHTMLFileContent: {
-                filename: document.getElementById("fromjs-initial-html").getAttribute("html-filename")
+                filename: htmlFilename
             }
         })
     }
