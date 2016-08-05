@@ -49,6 +49,12 @@ export default function Origin(opts){
     this.isHTMLFileContent = opts.isHTMLFileContent
 
     this.value = opts.value && opts.value.toString();
+    if (typeof this.value !== "string") {
+        // not sure exactly when this happens, something like
+        // this maybe?  
+        // a = [[333], 55] + [444]
+        this.value = this.value.toString();
+    }
     this.valueOfEl = opts.valueOfEl
     this.valueItems = opts.valueItems
     this.actionDetails = opts.actionDetails;

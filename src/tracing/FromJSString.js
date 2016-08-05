@@ -6,6 +6,9 @@ import stringTraceUseValue from "./stringTraceUseValue"
 function StringTraceString(options){
     this.origin = options.origin
     this.value = options.value
+    if (typeof this.value.toString() !== "string") {
+        this.value = this.value.toString()
+    }
     this.isStringTraceString = true
 }
 

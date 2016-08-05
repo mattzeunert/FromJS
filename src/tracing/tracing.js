@@ -206,8 +206,17 @@ export function enableTracing(){
     }
 
     Array.prototype.join = function(separator){
+        var separatorArgumentIsUndefined = separator === undefined;
+        if (separatorArgumentIsUndefined){
+            separator = "";
+        }
         var stringifiedItems = this.map(function(item){
-            return item.toString()
+            var stringifiedItem = item;
+
+            while (typeof stringifiedItem !== "string") {
+                stringifiedItem = stringifiedItem.toString()
+            }
+            return stringifiedItem
         })
         var trackedInputItems = this.map(trackStringIfNotTracked)
         var trackedSeparator = trackStringIfNotTracked(separator)
@@ -216,7 +225,14 @@ export function enableTracing(){
         // twice if there is an object with a toString function which returns
         // a FromJSString (an object) which needs to be converted to a native string
         var joinedValue = nativeArrayJoin.apply(stringifiedItems, [separator])
-        return makeTraceObject({
+        if (separatorArgumentIsUndefined){
+            // just bail out, I think there are issues with unprocessed code trying to
+            // use array join with nested arrays and stuff, which just
+            // breaks everything and gives a "Cannot convert object to primitive value"
+            // error
+            return joinedValue;
+        }
+        var ret = makeTraceObject({
             value: joinedValue,
             origin: new Origin({
                 action: "Array Join Call",
@@ -224,6 +240,7 @@ export function enableTracing(){
                 value: joinedValue
             })
         })
+        return ret
     }
 
     Array.prototype.indexOf = function(value){
@@ -288,14 +305,19 @@ export function enableTracing(){
 
     Object.defineProperty(Element.prototype, "innerHTML", {
         set: function(innerHTML){
-            makeSureInitialHTMLHasBeenProcessed();
+            if (document.contains(this)){
+                makeSureInitialHTMLHasBeenProcessed();    
+            }
+            
 
             var ret = nativeInnerHTMLDescriptor.set.apply(this, arguments)
             mapInnerHTMLAssignment(this, innerHTML, "Assign InnerHTML")
             return ret
         },
         get: function(){
-            makeSureInitialHTMLHasBeenProcessed()
+            if (document.contains(this)){
+                makeSureInitialHTMLHasBeenProcessed()
+            }
 
             var innerHTML = nativeInnerHTMLDescriptor.get.apply(this, arguments)
             return makeTraceObject({

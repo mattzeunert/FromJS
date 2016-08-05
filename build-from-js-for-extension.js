@@ -8,7 +8,7 @@ function removeSourceMapIfAny(code){
 }
 
 var fs = require("fs");
-var from = fs.readFileSync("./chrome-extension/dist/from.js")
+var from = fs.readFileSync("./chrome-extension/dist/from.js").toString()
 from = removeSourceMapIfAny(from)
 from += "\n//# sourceURL=chrome-extension-from-string/from.js"
 console.log(from.substring(from.length - 20))
