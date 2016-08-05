@@ -2,10 +2,28 @@ import processJavaScriptCode from "../src/compilation/processJavaScriptCode"
 
 var tabsToProcess = [];
 
+function isEnabledInTab(tabId){
+    return tabsToProcess.indexOf(tabId) !== -1
+}
+
 chrome.browserAction.onClicked.addListener(function (tab) {
     console.log("clicked on tab", tab)
-    tabsToProcess.push(tab.id)
+    if (isEnabledInTab(tab.id)) {
+      tabsToProcess = tabsToProcess.filter(function(tabId){
+          return tabId !== tab.id
+      })
+    } else {
+      tabsToProcess.push(tab.id)
+    }
 
+    var text = ""
+    if (isEnabledInTab(tab.id)) {
+      text = "ON"
+    }
+    chrome.browserAction.setBadgeText({
+      text: text,
+      tabId: tab.id
+    });
 
 });
 
@@ -17,8 +35,8 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     console.log("not loadign ")
     return
   }
-   if (tabsToProcess.indexOf(tabId) === -1){
-      console.log("not injecting", info.tabId, tabsToProcess)
+   if (!isEnabledInTab(tabId)){
+      console.log("not injecting", tabId, tabsToProcess)
       return
     }
 
