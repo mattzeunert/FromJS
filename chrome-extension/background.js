@@ -41,6 +41,10 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
       console.log("not injecting", tabId, tabsToProcess)
       return
     }
+chrome.browserAction.setBadgeText({
+      text: "ON",
+      tabId: tabId
+    });
 
   console.log("running")
   chrome.tabs.insertCSS(tab.id, {
