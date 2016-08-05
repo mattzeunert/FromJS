@@ -95,6 +95,17 @@ module.exports = function(babel) {
                           path.node
                       ]
                   ))
+              },
+              ReturnStatement(path){
+                
+                  if (path.parent.type !== "ForInStatement"){
+                      return
+                  }
+                  path.replaceWith(babel.types.blockStatement(
+                      [
+                          path.node
+                      ]
+                  ))
               }
               // are there other statement types I need to handle???
           })
