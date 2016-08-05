@@ -67,7 +67,7 @@ if (!window.isSerializedDomPage){
     enableTracing()
 }
 
-setTimeout(function(){
+$(document).ready(function(){
     if (window.isSerializedDomPage){
         initSerializedDataPage(showFromJSSidebar);
     } else {
@@ -93,4 +93,4 @@ setTimeout(function(){
             $("body").append(btn)
         }, 1000)
     }
-}, 100)
+})
