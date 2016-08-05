@@ -16,7 +16,8 @@ config.output = {
 config.plugins.push(new WebpackShellPlugin({
     onBuildEnd: [
         "cp chrome-extension/manifest.json chrome-extension/dist/manifest.json",
-        "cp fromjs.css chrome-extension/dist/fromjs.css"
+        "cp fromjs.css chrome-extension/dist/fromjs.css",
+        "node build-from-js-for-extension.js"
     ]
 }))
 
