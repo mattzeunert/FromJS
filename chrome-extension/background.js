@@ -25,6 +25,8 @@ chrome.browserAction.onClicked.addListener(function (tab) {
       tabId: tab.id
     });
 
+    chrome.tabs.reload(tab.id)
+
 });
 
 var initialHTMLForNextLoadedPage = "";
