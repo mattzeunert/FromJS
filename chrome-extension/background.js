@@ -23,6 +23,10 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     }
 
   console.log("running")
+  chrome.tabs.insertCSS(tab.id, {
+    file: "fromjs.css"
+  })
+
   chrome.tabs.executeScript(tab.id, {
     code: `
       var script = document.createElement("script");

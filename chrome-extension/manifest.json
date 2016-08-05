@@ -7,11 +7,7 @@
     "scripts": ["background.js"]
   },
   "content_scripts": [
-    {
-      "matches": ["http://*/*", "https://*/*", "file://*/*"],
-      "css": ["fromjs.css"],
-      "run_at": "document_start"
-    }
+
   ],
   "browser_action": {
     "name": "Run FromJS here"

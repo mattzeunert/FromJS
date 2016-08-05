@@ -137,7 +137,7 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
 }
 
 body {
-    padding-right: 40vw;
+    padding-right: 40vw !important;
 }
 
 .fromjs-stack__line-number {
