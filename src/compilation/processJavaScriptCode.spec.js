@@ -73,4 +73,17 @@ describe("processJavaScriptCode", function(){
         var res = f__assign(obj, "prop", "value")
         expect(res).toBe("value")
     })
+
+    it("Gives access to the tracked property names in a for...in loop", function(){
+        var code = `
+            var obj = {"hi": "there"};
+            var key;
+            for (key in obj){};
+            key;
+        `
+        code = processJavaScriptCode(code).code;
+        var evalRes = eval(code)
+        expect(evalRes.value).toBe("hi")
+        expect(evalRes.origin.action).toBe("String Literal")
+    });
 })
