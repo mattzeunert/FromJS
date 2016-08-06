@@ -1,7 +1,9 @@
 import processJavaScriptCode from "../src/compilation/processJavaScriptCode"
 import startsWith from "starts-with"
+import fromJSCss from "../fromjs.css"
 
 var tabsToProcess = [];
+
 
 function isEnabledInTab(tabId){
     return tabsToProcess.indexOf(tabId) !== -1
@@ -49,7 +51,7 @@ chrome.browserAction.setBadgeText({
 
   console.log("running")
   chrome.tabs.insertCSS(tab.id, {
-    file: "fromjs.css"
+    code: fromJSCss[0][1]
   })
 
   chrome.tabs.executeScript(tab.id, {

@@ -140,8 +140,8 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     width: 40vw;
     background: white;
     overflow: auto;
-    // without this scrolling the sidebar doesn't work on iOS
-    // if the page content is also scrollable
+    /* without this scrolling the sidebar doesn't work on iOS
+    if the page content is also scrollable */
     -webkit-overflow-scrolling: touch;
 }
 
