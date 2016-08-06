@@ -9,8 +9,11 @@ import $ from "jquery"
 
 console.log("in from.js")
 console.time("Page Load")
-document.onreadystatechange = function(e){
-    if (document.readyState === "interactive") {
+document.addEventListener("readystatechange", onReadyStateChange)
+
+function onReadyStateChange(e){
+    // we might be listenting too late for "interactive", so on some pages we might just get "complete"
+    if (document.readyState === "interactive" || document.readyState === "complete") {
         if (window.isSerializedDomPage){return}
         if (window.isVis){return}
         // it's hard to know when I should do this
@@ -26,6 +29,8 @@ document.onreadystatechange = function(e){
             console.timeEnd("Page Load")
             console.profileEnd()
         })
+
+        document.removeEventListener("readystatechange", onReadyStateChange)
     }
 }
 

@@ -9,7 +9,10 @@ export function makeSureInitialHTMLHasBeenProcessed(){
 }
 
 export default function processElementsAvailableOnInitialLoad(){
+
     if (window.processElementsAvailableOnInitialLoadDisabled) {return}
+
+    console.log("processElementsAvailableOnInitialLoad")
 
     var initialHTMLContainer = document.getElementById("fromjs-initial-html")
     var htmlFilename = "htmlfile"
