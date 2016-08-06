@@ -37,7 +37,10 @@ describe("Tracing", function(){
     })
 
     it("JSON.parse can handle arrays in JSON objects", function(){
-        var parsed = JSON.parse('{"hello": ["one", "two"]}')
+        var parsed = JSON.parse({
+            toString: () => '{"hello": ["one", "two"]}',
+            origin: {}
+        })
         expect(parsed.hello.length).toBe(2)
         expect(parsed.hello[0].value).toBe("one")
     })
