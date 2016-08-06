@@ -86,4 +86,32 @@ describe("processJavaScriptCode", function(){
         expect(evalRes.value).toBe("hi")
         expect(evalRes.origin.action).toBe("String Literal")
     });
+
+    it("For...in loops work without a block statement body", function(){
+        var code = `
+            var obj = {"hi": "there"};
+            var key;
+            for (key in obj) false ? "cake": "cookie";
+            key;
+        `
+        code = processJavaScriptCode(code).code;
+        var evalRes = eval(code)
+        expect(evalRes.value).toBe("hi")
+        expect(evalRes.origin.action).toBe("String Literal")
+    });
+
+    it("For...in loops work when accessing a property name from a member expression", function(){
+        var code = `
+            var obj = {
+                sth: {"hi": "there"}
+            }
+            var key;
+            for (key in obj.sth) if (false) {};
+            key;
+        `
+        code = processJavaScriptCode(code).code;
+        var evalRes = eval(code)
+        expect(evalRes.value).toBe("hi")
+        expect(evalRes.origin.action).toBe("String Literal")
+    });
 })
