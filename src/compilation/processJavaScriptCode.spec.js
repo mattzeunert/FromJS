@@ -67,4 +67,10 @@ describe("processJavaScriptCode", function(){
         code = processJavaScriptCode(code).code
         expect(eval(code)).toBe(2)
     })
+
+    it("f__assign returns the assigned value", function(){
+        var obj = {};
+        var res = f__assign(obj, "prop", "value")
+        expect(res).toBe("value")
+    })
 })
