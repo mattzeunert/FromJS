@@ -1,4 +1,5 @@
 import processJavaScriptCode from "../src/compilation/processJavaScriptCode"
+import startsWith from "starts-with"
 
 var tabsToProcess = [];
 
@@ -76,7 +77,7 @@ chrome.webRequest.onBeforeRequest.addListener(
   function(info){
       console.log("Intercepted: " + info.url, info);
 
-      if (tabsToProcess.indexOf(info.tabId) === -1){
+      if (!isEnabledInTab(info.tabId)){
         console.log("skiipping", info.tabId, tabsToProcess)
         return
       }
@@ -89,6 +90,15 @@ chrome.webRequest.onBeforeRequest.addListener(
         }
       }
       if (info.type === "main_frame") {
+          if (startsWith(info.url, "https://")) {
+              return {
+                  redirectUrl: "data:text/html," + encodeURI(`<!doctype html><html><body>
+                      HTTPS isn't supported yet. <a target="_blank" href='https://github.com/mattzeunert/fromjs/issues'>Ask for it.</a>
+                      <br/><br/>
+                      URL attempted: ${info.url}
+                  </body></html`)
+              }
+          }
         var xhr = new XMLHttpRequest()
         xhr.open('GET', info.url, false);
         xhr.send(null);
