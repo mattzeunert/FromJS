@@ -10,6 +10,10 @@
 }
 .fromjs-outer-container code{
     font-size: 14px;
+    padding: 0;
+    margin: 0;
+    border-radius: 0;
+    background: white;
 }
 
 
