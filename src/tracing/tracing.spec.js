@@ -144,4 +144,18 @@ describe("Tracing", function(){
         expect(el.__elOrigin.contents[0]).not.toBe(frag)
         expect(el.__elOrigin.contents[0]).toBe(child)
     })
+
+    it("appendChild supports appending document fragments with multiple children", function(){
+        var el = document.createElement("div")
+        var frag = document.createDocumentFragment();
+        var child = document.createElement("span")
+        var child2 = document.createElement("p")
+
+        frag.appendChild(child);
+        frag.appendChild(child2)
+        el.appendChild(frag)
+
+        expect(el.__elOrigin.contents[0]).toBe(child)
+        expect(el.__elOrigin.contents[1]).toBe(child2)
+    })
 })

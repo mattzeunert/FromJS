@@ -102,7 +102,14 @@ export function enableTracing(){
         get: function(){
             return function(appendedEl){
                 if (appendedEl instanceof DocumentFragment){
+                    var childNodes = []
+                    // appending a child from a doc fragment to the DOM
+                    // means it's removed from the doc fragment, so
+                    // make a list that won't change when calling appendChild
                     appendedEl.childNodes.forEach((child) => {
+                        childNodes.push(child)
+                    })
+                    childNodes.forEach((child) => {
                         this.appendChild(child)
                     })
                 } else {
