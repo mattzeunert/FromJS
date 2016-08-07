@@ -8,6 +8,9 @@
     background: transparent;
     -webkit-font-smoothing: antialiased;
 }
+.fromjs-outer-container code{
+    font-size: 14px;
+}
 
 
 #fromjs .fromjs-intro {
@@ -174,6 +177,8 @@ body {
 .fromjs-btn-link{
     color: green;
     cursor: pointer;
+    border: none;
+    background: transparent;
 }
 .fromjs-btn-link:hover {
     text-decoration: underline;
