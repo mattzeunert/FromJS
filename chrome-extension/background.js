@@ -119,7 +119,7 @@ chrome.webRequest.onBeforeRequest.addListener(
         code += "\n//# sourceURL=" + info.url
         code += "\n//# sourceMappingURL=" + info.url + ".map"
         sourceMaps[info.url + ".map"] = JSON.stringify(res.map)
-        var url = "data:," + encodeURI(code)
+        var url = "data:application/javascript;charset=utf-8," + encodeURI(code)
         return {redirectUrl: url}
       }
   }, {urls: ["<all_urls>"]}, ["blocking"]);
