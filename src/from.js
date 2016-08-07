@@ -7,7 +7,11 @@ import initSerializedDataPage from "./ui/initSerializedDataPage"
 import showFromJSSidebar from "./ui/showFromJSSidebar"
 import $ from "jquery"
 
+// console.log = function(){}
+// console.trace = function(){}
+
 console.log("in from.js")
+console.profile()
 console.time("Page Load")
 document.addEventListener("readystatechange", onReadyStateChange)
 
@@ -24,7 +28,7 @@ function onReadyStateChange(e){
         // like appendChild or similar collect inital html
         makeSureInitialHTMLHasBeenProcessed();
 
-        console.profile()
+
         onDoneProcessing(function(){
             console.timeEnd("Page Load")
             console.profileEnd()

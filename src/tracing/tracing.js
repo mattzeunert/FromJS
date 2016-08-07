@@ -10,6 +10,10 @@ import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
 import trackStringIfNotTracked from "./trackStringIfNotTracked"
 
+
+// this is just doing both window.sth and var sth because I've been inconsistent in the past, not because it's good...
+// should be easy ish to change, however some FromJS functions run while
+// tracing is enabled, so they use window.nativeSth to access it
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
 var tracingEnabled = false;
@@ -51,6 +55,18 @@ var nativeArrayJoin = Array.prototype.join
 var nativeArrayIndexOf = Array.prototype.indexOf
 
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
+
+function processJavaScriptCodeWithTracingDisabled(){
+    var tracingEnabledAtStart = tracingEnabled;
+    if (tracingEnabledAtStart) {
+        disableTracing();
+    }
+    var ret = processJavaScriptCode.apply(this, arguments)
+    if (tracingEnabledAtStart) {
+        enableTracing();
+    }
+    return ret
+}
 
 export function enableTracing(){
     if (tracingEnabled){
@@ -251,7 +267,7 @@ export function enableTracing(){
     function processScriptTagCodeAssignment(code){
         var id = _.uniqueId();
         var filename = "ScriptTag" + id + ".js"
-        var res = processJavaScriptCode(stringTraceUseValue(code), {filename: filename})
+        var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
 
         var fnName = "DynamicFunction" + id
         var smFilename = filename + ".map"
@@ -306,9 +322,9 @@ export function enableTracing(){
     Object.defineProperty(Element.prototype, "innerHTML", {
         set: function(innerHTML){
             if (document.contains(this)){
-                makeSureInitialHTMLHasBeenProcessed();    
+                makeSureInitialHTMLHasBeenProcessed();
             }
-            
+
 
             var ret = nativeInnerHTMLDescriptor.set.apply(this, arguments)
             mapInnerHTMLAssignment(this, innerHTML, "Assign InnerHTML")
@@ -380,7 +396,7 @@ export function enableTracing(){
     window.eval = function(code){
         var id = _.uniqueId();
         var filename = "DynamicScript" + id + ".js"
-        var res = processJavaScriptCode(stringTraceUseValue(code), {filename: filename})
+        var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
 
         var smFilename = filename + ".map"
         var evalCode = res.code + "\n//# sourceURL=" + filename +
@@ -403,7 +419,7 @@ export function enableTracing(){
 
         var id = _.uniqueId();
         var filename = "DynamicFunction" + id + ".js"
-        var res = processJavaScriptCode(stringTraceUseValue(code), {filename: filename})
+        var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
         args.push(res.code)
 
 
