@@ -158,4 +158,9 @@ describe("Tracing", function(){
         expect(el.__elOrigin.contents[0]).toBe(child)
         expect(el.__elOrigin.contents[1]).toBe(child2)
     })
+
+    it("Traces newly created text nodes", function(){
+        var node = document.createTextNode("hi")
+        expect(node.__elOrigin.textValue.action).toBe("createTextNode")
+    })
 })

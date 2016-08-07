@@ -49,6 +49,8 @@ window.originalLocalStorage = nativeLocalStorage
 
 var originalXMLHttpRequest = window.XMLHttpRequest
 
+var nativeCreateTextNode = document.createTextNode
+
 var nativeEval = window.eval
 
 var nativeArrayJoin = Array.prototype.join
@@ -97,6 +99,15 @@ export function enableTracing(){
         return el;
     }
 
+    document.createTextNode = function(text){
+        var node = nativeCreateTextNode.apply(this, arguments)
+        addElOrigin(node, "textValue", {
+            action: "createTextNode",
+            value: text.toString(),
+            inputValues: [text]
+        })
+        return node;
+    }
 
     Object.defineProperty(Node.prototype, "appendChild", {
         get: function(){
@@ -522,6 +533,7 @@ export function disableTracing(){
     window.XMLHttpRequest = originalXMLHttpRequest
     Array.prototype.join = nativeArrayJoin
     Array.prototype.indexOf = nativeArrayIndexOf
+    document.createTextNode = nativeCreateTextNode
     window.eval = nativeEval
 
     tracingEnabled = false;
