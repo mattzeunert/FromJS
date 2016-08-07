@@ -29,7 +29,6 @@ var babelFunctions = {
         return stringTraceUseValue(thing)
     },
     f__add(a, b){
-        var stack = new Error().stack.split("\n")
         if (a == null){
             a = ""
         }
