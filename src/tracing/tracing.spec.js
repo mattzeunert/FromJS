@@ -132,4 +132,16 @@ describe("Tracing", function(){
         expect(arr.indexOf("Hello")).toBe(0)
         expect(arr.indexOf("Hi")).toBe(-1)
     })
+
+    it("appendChild supports appending document fragments", function(){
+        var el = document.createElement("div")
+        var frag = document.createDocumentFragment();
+        var child = document.createElement("span")
+
+        frag.appendChild(child);
+        el.appendChild(frag)
+
+        expect(el.__elOrigin.contents[0]).not.toBe(frag)
+        expect(el.__elOrigin.contents[0]).toBe(child)
+    })
 })

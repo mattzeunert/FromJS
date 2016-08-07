@@ -101,15 +101,22 @@ export function enableTracing(){
     Object.defineProperty(Node.prototype, "appendChild", {
         get: function(){
             return function(appendedEl){
-                addElOrigin(this, "appendChild",{
-                    action: "appendChild",
-                    stack: new Error().stack.split("\n"),
-                    inputValues: [appendedEl],
-                    valueOfEl: appendedEl,
-                    child: appendedEl
-                })
+                if (appendedEl instanceof DocumentFragment){
+                    appendedEl.childNodes.forEach((child) => {
+                        this.appendChild(child)
+                    })
+                } else {
+                    addElOrigin(this, "appendChild",{
+                        action: "appendChild",
+                        stack: new Error().stack.split("\n"),
+                        inputValues: [appendedEl],
+                        valueOfEl: appendedEl,
+                        child: appendedEl
+                    })
 
-                return appendChildPropertyDescriptor.value.apply(this, arguments)
+                    appendChildPropertyDescriptor.value.apply(this, arguments)
+                }
+                return appendedEl;
             }
         }
     })
