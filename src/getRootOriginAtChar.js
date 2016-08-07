@@ -3,10 +3,11 @@ import tagTypeHasClosingTag from "./tracing/tagTypeHasClosingTag"
 
 window.getRootOriginAtChar = getRootOriginAtChar
 
+var closingTagRegExp = /\<\/\w+\>$/;
+
 export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInnerHTML){
-    var tagHtmlParts = el.outerHTML.match(/^(\<.*\>).*(\<.*\>)$/)
-    var openingTag = tagHtmlParts[1]
-    var closingTag = tagHtmlParts[2]
+    var closingTag = el.outerHTML.match(closingTagRegExp)[0]
+    var openingTag = el.outerHTML.substr(0,el.outerHTML.length - el.innerHTML.length - closingTag.length)
     var innerHTML = el.innerHTML
 
     if (charIndexIsInInnerHTML) {
