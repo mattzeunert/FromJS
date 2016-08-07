@@ -58,7 +58,7 @@ chrome.browserAction.setBadgeText({
   chrome.tabs.executeScript(tab.id, {
     code: `
       var script = document.createElement("script");
-      var initialPageHtml = \`${initialHTMLForNextLoadedPage}\`.replace(/\`/g, "\\\`")
+      var initialPageHtml = \`${initialHTMLForNextLoadedPage.replace(/\`/g, "\\\\u0060")}\`
       script.innerHTML = "window.fromJSInitialPageHtml = \`" + initialPageHtml + "\`"
       document.documentElement.appendChild(script)
     `,
