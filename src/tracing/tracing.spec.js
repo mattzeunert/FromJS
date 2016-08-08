@@ -163,4 +163,24 @@ describe("Tracing", function(){
         var node = document.createTextNode("hi")
         expect(node.__elOrigin.textValue.action).toBe("createTextNode")
     })
+
+    it("Maintains __elOrigin properties when calling .cloneNode", function(){
+        var el = document.createElement("div")
+        el.__elOrigin = "test"
+        var clone = el.cloneNode();
+        expect(clone.__elOrigin).toBe("test")
+    })
+
+    it("Maintains __elOrigin properties when calling .cloneNode with deep being set to true", function(){
+        var parent = document.createElement("div")
+        parent.__elOrigin = {action: "test"}
+        var child = document.createElement("p")
+        child.__elOrigin = {action: "cake"}
+        parent.appendChild(child)
+
+        var clone = parent.cloneNode(true)
+        expect(clone.__elOrigin.action).toBe("test")
+        expect(clone.children[0].__elOrigin.action).toBe("cake")
+
+    })
 })
