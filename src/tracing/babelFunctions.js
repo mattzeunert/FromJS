@@ -117,7 +117,6 @@ var babelFunctions = {
         var trackedPropertyName = object[propertyName + "_trackedName"]
 
         if (!trackedPropertyName) {
-            console.log("property name not tracked", propertyName)
             return untrackedPropertyName(propertyName)
         }
         return trackedPropertyName

@@ -1,7 +1,11 @@
 import Origin from "../origin"
 import {makeTraceObject} from "./FromJSString"
+import config from "../config"
 
 export default function untrackedString(value){
+    if (config.logUntrackedPropertyNames) {
+        console.trace("property name not tracked", propertyName)
+    }
     return makeTraceObject({
         value: value,
         origin: new Origin({
