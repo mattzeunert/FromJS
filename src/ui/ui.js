@@ -119,7 +119,10 @@ export class OriginPath extends React.Component {
     }
     getOriginPathItem(originPathStep){
         return <OriginPathItem
-            key={JSON.stringify(originPathStep)}
+            key={JSON.stringify({
+                originId: originPathStep.originObject.id,
+                characterIndex: originPathStep.characterIndex
+            })}
             originPathItem={originPathStep}
             handleValueSpanClick={this.props.handleValueSpanClick}
         />
@@ -980,7 +983,10 @@ class ElementOriginPath extends React.Component {
     }
     getOriginPathKey(characterIndex){
         var info = this.getOriginAndCharacterIndex(characterIndex)
-        return JSON.stringify(info)
+        return JSON.stringify({
+            originId: info.origin.id,
+            characterIndex: info.characterIndex
+        })
     }
     getOriginAndCharacterIndex(characterIndex){
         characterIndex = parseFloat(characterIndex);

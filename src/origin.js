@@ -1,3 +1,5 @@
+import _ from "underscore"
+
 // Storing lots of arrays costs lots of memory, and
 // since many inputValues arrays are empty we can just
 // re-use the same array every time.
@@ -32,6 +34,8 @@ export default function Origin(opts){
         return inputValue.origin
     })
 
+    this.id = _.uniqueId();
+
     this.action = opts.action;
     if (inputValues.length === 0) {
         inputValues = emptyInputValuesArray
@@ -51,7 +55,7 @@ export default function Origin(opts){
     this.value = opts.value && opts.value.toString();
     if (typeof this.value !== "string") {
         // not sure exactly when this happens, something like
-        // this maybe?  
+        // this maybe?
         // a = [[333], 55] + [444]
         this.value = this.value.toString();
     }
