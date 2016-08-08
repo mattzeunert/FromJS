@@ -86,19 +86,12 @@ $(document).ready(function(){
             }
 
             var btn = $("<button>")
-            btn.text("Disable interactions and show analysis")
+            btn.text("Show FromJS Inspector")
             btn.click(function(e){
                 showFromJSSidebar()
                 e.stopPropagation();
             })
-            btn.css({
-                position: "fixed",
-                top: 0,
-                right: 0,
-                background: "blue",
-                color: "white",
-                padding: "10px"
-            })
+            btn.addClass("fromjs-show-inspector-button")
             $("body").append(btn)
         }, 1000)
     }

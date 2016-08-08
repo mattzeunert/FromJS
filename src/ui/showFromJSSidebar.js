@@ -12,12 +12,6 @@ export default function showFromJSSidebar(){
 
     var windowJQuery = window.jQuery
 
-    var link = document.createElement("link")
-    link.setAttribute("rel", "stylesheet")
-    link.setAttribute("href", "/fromjs-internals/fromjs.css")
-    document.body.appendChild(link)
-
-
     var container = document.createElement("div")
     container.className = "fromjs-outer-container"
     var component;

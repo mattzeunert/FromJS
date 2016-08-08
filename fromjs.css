@@ -20,6 +20,19 @@
     background: transparent;
 }
 
+.fromjs-show-inspector-button {
+    position: fixed;
+    top: 0;
+    right: 0;
+    background: #333;
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.fromjs-show-inspector-button:hover {
+    background: #0088ff;
+}
 
 #fromjs .fromjs-intro {
     padding: 10px;

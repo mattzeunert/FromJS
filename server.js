@@ -40,10 +40,12 @@ function handleRequest(request, response){
             if (endsWith(request.url, ".html")){
                 var originalHtmlScriptTag = "<script id='fromjs-initial-html' html-filename='" + request.url + "' type='text/template'>" + encodeURIComponent(fileContents) + "</script>"
                 var scriptTagHtml = '<script src="http://localhost:8080/dist/from.js" charset="utf-8"></script>'
+                var linkTagHtml = '<link rel="stylesheet" href="' + "/fromjs-internals/fromjs.css" + '"/>'
+                var insertedHtml = originalHtmlScriptTag + scriptTagHtml + linkTagHtml
                 if (stringContains(fileContents, "<head>")){
-                    fileContents = fileContents.replace("<head>", "<head>" + originalHtmlScriptTag + scriptTagHtml)
+                    fileContents = fileContents.replace("<head>", "<head>" + insertedHtml)
                 } else {
-                    fileContents = scriptTagHtml + fileContents
+                    fileContents = insertedHtml + fileContents
                 }
             }
 
