@@ -368,7 +368,7 @@ export function enableTracing(){
                 origin: new Origin({
                     value: innerHTML,
                     action: "Read Element innerHTML",
-                    inputValues: []
+                    inputValues: [this]
                 })
             })
         }
@@ -381,7 +381,7 @@ export function enableTracing(){
         }
     }
     Node.prototype.cloneNode = function(deep){
-        var clone = nativeCloneNode.call(this, [deep]);
+        var clone = nativeCloneNode.apply(this, [deep]);
         if (!deep){
             clone.__elOrigin = this.__elOrigin
         } else {

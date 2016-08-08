@@ -217,7 +217,9 @@ function goUp(step, callback){
         }
     }
     else if (step.originObject.action === "Read Element innerHTML"){
-        var el = $("*").filter(function(){return this.innerHTML == step.originObject.value})[0]
+
+        // var el = $("*").filter(function(){return this.innerHTML == step.originObject.value})[0]
+        var el = step.originObject.inputValues[0]
 
         // using an el reference is fragile, because it will create the current
         // contents of the element rather than a snapshot from when the value was read,
