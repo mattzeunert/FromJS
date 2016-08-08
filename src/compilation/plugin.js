@@ -72,7 +72,7 @@ module.exports = function(babel) {
               )]
           )
 
-          
+
           path.traverse({
               ExpressionStatement(path){
                 // replace `for (i in k) sth` with `for (i in k) {sth}`
@@ -97,7 +97,7 @@ module.exports = function(babel) {
                   ))
               },
               ReturnStatement(path){
-                
+
                   if (path.parent.type !== "ForInStatement"){
                       return
                   }
@@ -201,7 +201,9 @@ module.exports = function(babel) {
                   // move start a bit to left to compensate for there not
                   // being quotes in the original "string", since
                   // it's just an identifier
-                  prop.key.loc.start.column--;
+                  if (prop.key.loc.start.column > 0) {
+                      prop.key.loc.start.column--;
+                  }
               }
           })
 
