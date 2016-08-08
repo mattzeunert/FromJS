@@ -47,6 +47,8 @@ window.nativeJSONParse = nativeJSONParse
 var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
 
+var nativeCloneNode = Node.prototype.cloneNode;
+
 var originalXMLHttpRequest = window.XMLHttpRequest
 
 var nativeCreateTextNode = document.createTextNode
@@ -372,6 +374,21 @@ export function enableTracing(){
         }
     })
 
+    function copyElOriginsToClonedNode(el, clone){
+        clone.__elOrigin = el.__elOrigin
+        for (var i=0; i<el.childNodes.length; i++) {
+            copyElOriginsToClonedNode(el.childNodes[i], clone.childNodes[i])
+        }
+    }
+    Node.prototype.cloneNode = function(deep){
+        var clone = nativeCloneNode.call(this, [deep]);
+        if (!deep){
+            clone.__elOrigin = this.__elOrigin
+        } else {
+            copyElOriginsToClonedNode(this, clone)
+        }
+        return clone
+    }
 
     Object.defineProperty(window, "localStorage", {
         get: function(){
@@ -535,6 +552,7 @@ export function disableTracing(){
     Array.prototype.indexOf = nativeArrayIndexOf
     document.createTextNode = nativeCreateTextNode
     window.eval = nativeEval
+    Node.prototype.cloneNode = nativeCloneNode
 
     tracingEnabled = false;
 }
