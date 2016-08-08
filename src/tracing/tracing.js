@@ -127,10 +127,10 @@ export function enableTracing(){
                     })
                 } else {
                     addElOrigin(this, "appendChild",{
-                        action: "appendChild",
-                        stack: new Error().stack.split("\n"),
-                        inputValues: [appendedEl],
-                        valueOfEl: appendedEl,
+                        // looks like at least for now none of this is used
+                        // action: "appendChild",
+                        // inputValues: [appendedEl],
+                        // valueOfEl: appendedEl,
                         child: appendedEl
                     })
 
