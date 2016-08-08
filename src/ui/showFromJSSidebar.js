@@ -54,13 +54,12 @@ export default function showFromJSSidebar(){
     }
 
     if (isMobile()){
-        var style = document.createElement("style")
-        style.innerHTML = "body {padding-right: 56vw !important; padding-left: 1vw !important}"
-        style.innerHTML += "#fromjs { width: 55vw !important}"
-        // for some reason doing $("#fromjs").css() duplicates the element
-        // no, something else is doing that, prob could just use .css
-        $("body").append(style)
+        $("body").css("padding-right", "56vw")
+        $("body").css("padding-left", "1vw")
+        $("#fromjs").css("width", "55vw")
         $("body").addClass("fromjsIsMobile")
+    } else {
+        $("body").css("padding-right", "40vw")
     }
 
 }

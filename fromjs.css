@@ -172,10 +172,6 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     -webkit-overflow-scrolling: touch;
 }
 
-body {
-    padding-right: 40vw !important;
-}
-
 .fromjs-stack__line-number {
     border-right: 1px solid #ddd;
     padding-right: 5px;
