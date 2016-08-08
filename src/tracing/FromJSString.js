@@ -135,11 +135,17 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 valueItems = valueMap.serialize(inputValues)
 
             } else if (propertyName === "slice"){
-                var valueMap = new ValueMap();
-                if (args[1] < 0) {throw "not handled yet"}
-
                 var oldString = oldValue.toString()
-                newVal = oldString.slice(args[0], args[1])
+
+                var valueMap = new ValueMap();
+                var from = args[0]
+                var to = args[1]
+
+                if (to < 0) {
+                    to = oldString.length + to;
+                }
+
+                newVal = oldString.slice(from, to)
 
                 valueMap.appendString(newVal, oldValue.origin, args[0]) // oldvalue.origin is inputValues[0]
 
