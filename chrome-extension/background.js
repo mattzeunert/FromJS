@@ -29,11 +29,96 @@ chrome.browserAction.onClicked.addListener(function (tab) {
       tabId: tab.id
     });
 
-    chrome.tabs.reload(tab.id)
+    chrome.tabs.executeScript(tab.id, {
+          "file": "contentScript.js",
+          runAt: "document_start"
+      }, function () {
+          console.log("Script Executed .. ");
+      });
+
+      chrome.tabs.insertCSS(tab.id, {
+      code: fromJSCss[0][1]
+      })
+    chrome.tabs.executeScript(tab.id, {
+      code: `
+        var script = document.createElement("script");
+        var pageHtml = \`${pageHtml.replace(/\`/g, "\\\\u0060")}\`
+        script.innerHTML = "window.pageHtml = \`" + pageHtml + "\`;";
+
+
+
+
+        script.innerHTML += \`
+        window.fromJSInitialPageHtml = pageHtml;
+        var bodyContent = pageHtml.split(/<body.*?>/)[1].split("</body>")[0]
+        var headContent = pageHtml.split(/<head.*?>/)[1].split("</head>")[0]
+
+        function getHtmlAndScriptTags(html){
+            var scripts = []
+            html = html.replace(/(\\\\<script).*?\\\\>[\\\\s\\\\S]*?\\\\<\\\\/script\\\\>/g, function(match){
+                var script = document.createElement("script")
+                if (match.indexOf("></script>") !== -1) {
+                    script.src = match.match(/\<script.*src=['"](.*?)['"]/)[1]
+
+                } else {
+                    if (match.match(/\<script.*type=['"](.*?)['"]/) !== null){
+                        script.setAttribute("type", match.match(/\<script.*type=['"](.*?)['"]/)[1])
+                    }
+                    if (match.match(/\<script.*id=['"](.*?)['"]/) !==null){
+                        script.setAttribute("id", match.match(/\<script.*id=['"](.*?)['"]/)[1])
+                    }
+                    script.text = match.match(/<script.*?>([\\\\s\\\\S]*)</)[1]
+
+                }
+                scripts.push(script)
+                return "";
+            })
+            return {
+                html: html,
+                scripts: scripts
+            }
+
+        }
+
+
+        var h = getHtmlAndScriptTags(headContent);
+        document.head.innerHTML = h.html
+        h.scripts.forEach(function(script, i){
+            setTimeout(function(){
+                document.head.appendChild(script)
+            },  i * 2000)
+        })
+        console.log("headscripts", h.scripts)
+
+        var b = getHtmlAndScriptTags(bodyContent)
+        bodyContent = b.html
+
+        document.body.innerHTML = bodyContent
+        b.scripts.forEach(function(script, i){
+            setTimeout(function(){
+                document.body.appendChild(script)
+            }, 10000 + i * 2000)
+        })
+
+        \`
+
+        document.documentElement.appendChild(script)
+      `,
+      runAt: "document_start"
+    }, function(){
+      console.log("ran fromJSinitialPageHtml", arguments)
+    })
+
+
+
+
+    // chrome.tabs.reload(tab.id)
 
 });
 
 var initialHTMLForNextLoadedPage = "";
+
+var pageHtml = ""
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
   console.log("onUpdated", arguments)
@@ -50,16 +135,13 @@ chrome.browserAction.setBadgeText({
       tabId: tabId
     });
 
-  console.log("running")
-  chrome.tabs.insertCSS(tab.id, {
-    code: fromJSCss[0][1]
-  })
+
 
   chrome.tabs.executeScript(tab.id, {
     code: `
       var script = document.createElement("script");
-      var initialPageHtml = \`${initialHTMLForNextLoadedPage.replace(/\`/g, "\\\\u0060")}\`
-      script.innerHTML = "window.fromJSInitialPageHtml = \`" + initialPageHtml + "\`"
+      var pageHtml = \`${pageHtml.replace(/\`/g, "\\\\u0060")}\`
+      script.innerHTML = "window.pageHtml = \`" + pageHtml + "\`"
       document.documentElement.appendChild(script)
     `,
     runAt: "document_start"
@@ -67,23 +149,30 @@ chrome.browserAction.setBadgeText({
     console.log("ran fromJSinitialPageHtml", arguments)
   })
 
-  chrome.tabs.executeScript(tab.id, {
-        "file": "contentScript.js",
-        runAt: "document_start"
-    }, function () {
-        console.log("Script Executed .. ");
-    });
+  // chrome.tabs.executeScript(tab.id, {
+  //   code: `
+  //     var script = document.createElement("script");
+  //     var initialPageHtml = \`${initialHTMLForNextLoadedPage.replace(/\`/g, "\\\\u0060")}\`
+  //     script.innerHTML = "window.fromJSInitialPageHtml = \`" + initialPageHtml + "\`"
+  //     document.documentElement.appendChild(script)
+  //   `,
+  //   runAt: "document_start"
+  // }, function(){
+  //   console.log("ran fromJSinitialPageHtml", arguments)
+  // })
+
+  // chrome.tabs.executeScript(tab.id, {
+  //       "file": "contentScript.js",
+  //       runAt: "document_start"
+  //   }, function () {
+  //       console.log("Script Executed .. ");
+  //   });
 })
 
 var sourceMaps = {}
 chrome.webRequest.onBeforeRequest.addListener(
   function(info){
-      console.log("Intercepted: " + info.url, info);
 
-      if (!isEnabledInTab(info.tabId)){
-        console.log("skiipping", info.tabId, tabsToProcess)
-        return
-      }
       if (info.url.slice(0, "chrome-extension://".length ) === "chrome-extension://") {
         return
       }
@@ -93,20 +182,22 @@ chrome.webRequest.onBeforeRequest.addListener(
         }
       }
       if (info.type === "main_frame") {
-          if (startsWith(info.url, "https://")) {
-              return {
-                  redirectUrl: "data:text/html," + encodeURI(`<!doctype html><html><body>
-                      HTTPS isn't supported yet. <a target="_blank" href='https://github.com/mattzeunert/fromjs/issues'>Ask for it.</a>
-                      <br/><br/>
-                      URL attempted: ${info.url}
-                  </body></html`)
-              }
-          }
         var xhr = new XMLHttpRequest()
         xhr.open('GET', info.url, false);
         xhr.send(null);
         initialHTMLForNextLoadedPage = xhr.responseText
 
+        pageHtml = xhr.responseText
+        var headCode = "<base href='http://todomvc.com/examples/backbone/'>"
+        var fromJsUrl = chrome.extension.getURL("from.js")
+        // headCode += `<script src="${fromJsUrl}" charset="utf-8"></script>`
+        pageHtml = pageHtml.replace("<head>", "<head>" + headCode)
+        // return {
+        //     redirectUrl: "data:text/html," + encodeURI(pageHtml)
+        // }
+      }
+      if (!isEnabledInTab(info.tabId)){
+        return
       }
       if (info.url.slice(info.url.length - ".js".length) === ".js") {
           var xhr = new XMLHttpRequest()
