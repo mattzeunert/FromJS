@@ -85,7 +85,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 
                 }
                 scripts.push(script)
-                return match; // ... not really a replace 
+                return match; // ... not really a replace
             })
             return {
                 html: html,
@@ -214,7 +214,10 @@ chrome.webRequest.onBeforeRequest.addListener(
         initialHTMLForNextLoadedPage = xhr.responseText
 
         pageHtml = xhr.responseText
-        var headCode = "<base href='http://todomvc.com/examples/backbone/'>"
+        var parts = info.url.split("/");parts.pop(); parts.push("");
+        var basePath = parts.join("/")
+
+        var headCode = "<base href='" + basePath + "'>"
         var fromJsUrl = chrome.extension.getURL("from.js")
         // headCode += `<script src="${fromJsUrl}" charset="utf-8"></script>`
         pageHtml = pageHtml.replace("<head>", "<head>" + headCode)

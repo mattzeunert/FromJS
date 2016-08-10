@@ -32,6 +32,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
             var isTextNode = child.nodeType === 3
             var isCommentNode = child.nodeType === 8
             var isElementNode = child.nodeType === 1
+            var isIframe = child
             if (isTextNode) {
                 addElOrigin(child, "textValue", {
                     "action": actionName,
@@ -117,8 +118,12 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 charOffset += openingTagEnd.length
                 forDebuggingProcessedHtml += openingTagEnd
 
-
-                processNewInnerHtml(child)
+                if (child.tagName === "IFRAME") {
+                    forDebuggingProcessedHtml += child.outerHTML;
+                    charOffset += child.outerHTML
+                } else {
+                    processNewInnerHtml(child)
+                }
 
                 if (tagTypeHasClosingTag(child.tagName)) {
                     addElOrigin(child, "closingTag", {
