@@ -206,11 +206,7 @@ chrome.webRequest.onBeforeRequest.addListener(
       if (info.url.slice(0, "chrome-extension://".length ) === "chrome-extension://") {
         return
       }
-      if (info.url.slice(info.url.length - ".js.map".length) === ".js.map") {
-        return {
-          redirectUrl: "data:," + encodeURI(sourceMaps[info.url])
-        }
-      }
+
       if (info.type === "main_frame") {
         var xhr = new XMLHttpRequest()
         xhr.open('GET', info.url, false);
@@ -231,6 +227,11 @@ chrome.webRequest.onBeforeRequest.addListener(
       }
       if (!isEnabledInTab(info.tabId)){
         return
+      }
+      if (info.url.slice(info.url.length - ".js.map".length) === ".js.map") {
+        return {
+          redirectUrl: "data:," + encodeURI(sourceMaps[info.url])
+        }
       }
       if (info.url.slice(info.url.length - ".js".length) === ".js") {
           var xhr = new XMLHttpRequest()
