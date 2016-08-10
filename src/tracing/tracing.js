@@ -34,6 +34,7 @@ var nativeInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototyp
 window.nativeInnerHTMLDescriptor = nativeInnerHTMLDescriptor;
 
 var nativeHTMLScriptElementTextDescriptor = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, "text")
+window.nativeHTMLScriptElementTextDescriptor = nativeHTMLScriptElementTextDescriptor
 
 var nativeExec = RegExp.prototype.exec;
 window.nativeExec = nativeExec;

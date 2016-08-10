@@ -5,6 +5,12 @@ import manifest from "./manifest" // we don't use it but we want manifest change
 
 var tabsToProcess = [];
 
+/*
+process:
+1) laod example.com
+2) load other page
+3) click on browser action for example.com tab
+*/
 
 function isEnabledInTab(tabId){
     return tabsToProcess.indexOf(tabId) !== -1
@@ -67,7 +73,15 @@ chrome.browserAction.onClicked.addListener(function (tab) {
                     if (match.match(/\<script.*id=['"](.*?)['"]/) !==null){
                         script.setAttribute("id", match.match(/\<script.*id=['"](.*?)['"]/)[1])
                     }
-                    script.text = match.match(/<script.*?>([\\\\s\\\\S]*)</)[1]
+                    var content = match.match(/<script.*?>([\\\\s\\\\S]*)</)[1]
+                    // just to make it work for now...
+                    // the problem is that we might be assigning non javascript script tag content
+                    // also, from.js is loaded late, so might not be loaded yet when we create this script element
+                    if (typeof nativeHTMLScriptElementTextDescriptor !== "undefined") {
+                        nativeHTMLScriptElementTextDescriptor.set.apply(script, [content])
+                    } else {
+                        script.text = content
+                    }
 
                 }
                 scripts.push(script)
@@ -80,24 +94,36 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 
         }
 
+        function appendScriptsOneAfterAnother(scripts, container, done){
+            next()
+            function next(){
+                if (scripts.length === 0) {
+                    done();
+                    return
+                }
+                var script = scripts.shift()
+                console.log("appending")
+                if (script.innerHTML.toString() === ""){
+                    script.onload = function(){
+                        console.log("onload")
+                        next();
+                    }
+                } else {
+                    next();
+                }
+
+                container.appendChild(script)
+            }
+        }
 
         var h = getHtmlAndScriptTags(headContent);
         document.head.innerHTML = h.html
-        h.scripts.forEach(function(script, i){
-            setTimeout(function(){
-                document.head.appendChild(script)
-            },  i * 2000)
-        })
-        console.log("headscripts", h.scripts)
+        appendScriptsOneAfterAnother(h.scripts, document.head, function(){
+            var b = getHtmlAndScriptTags(bodyContent)
+            bodyContent = b.html
 
-        var b = getHtmlAndScriptTags(bodyContent)
-        bodyContent = b.html
-
-        document.body.innerHTML = bodyContent
-        b.scripts.forEach(function(script, i){
-            setTimeout(function(){
-                document.body.appendChild(script)
-            }, 10000 + i * 2000)
+            document.body.innerHTML = bodyContent
+            appendScriptsOneAfterAnother(b.scripts, document.body, function(){})
         })
 
         \`

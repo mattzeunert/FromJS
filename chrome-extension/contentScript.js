@@ -1,3 +1,8 @@
+// i don't think I'm still using it, it think i'm injecting fromjs into the page as a string
+
+
+
+
 import js from "./dist/fromjs-string"
 console.log("in content script")
 var el = document.createElement("script")
