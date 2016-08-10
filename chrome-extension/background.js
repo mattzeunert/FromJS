@@ -122,7 +122,11 @@ chrome.browserAction.onClicked.addListener(function (tab) {
             var b = getHtmlAndScriptTags(bodyContent)
             bodyContent = b.html
 
+            var fromJSButton = document.querySelector(".fromjs-show-inspector-button")
             document.body.innerHTML = bodyContent
+            if (fromJSButton) {
+                document.body.appendChild(fromJSButton)
+            }
             appendScriptsOneAfterAnother(b.scripts, document.body, function(){})
         })
 
