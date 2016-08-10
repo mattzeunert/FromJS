@@ -1,5 +1,5 @@
 function onload(){
-    document.body.innerHTML = "<span>Hello</span><pre>cake\nnew line</pre><span>&amp;&amp;stuff</span>"
+    document.body.innerHTML = "<div><span>Hello</span><pre>cake\nnew line</pre><span>&amp;&amp;stuff&&does this works</span></div>"
 }
 
 

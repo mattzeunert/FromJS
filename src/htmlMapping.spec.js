@@ -99,4 +99,23 @@ describe("HTML Mapping", function(){
             done()
         })
     })
+
+    it("Traces unescaped HTML entities correctly", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '&'
+
+        disableTracing()
+        expect(el.innerHTML).toBe('&amp;')
+
+        // <div>&a[m]p;</div>
+        var originAndChar = getRootOriginAtChar(el, 7);
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value).toBe("&")
+            expect(characterIndex).toBe(0)
+            done()
+        })
+    })
 })
