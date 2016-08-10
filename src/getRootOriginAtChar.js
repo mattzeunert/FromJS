@@ -4,6 +4,12 @@ import tagTypeHasClosingTag from "./tracing/tagTypeHasClosingTag"
 window.getRootOriginAtChar = getRootOriginAtChar
 
 var closingTagRegExp = /\<\/\w+\>$/;
+var div = document.createElement("div")
+function getHtmlFromString(str){
+    // convert stuff like & to &amp;
+    div.innerHTML = str;
+    return div.innerHTML;
+}
 
 export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInnerHTML){
     var innerHTML = el.innerHTML
@@ -79,7 +85,8 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
         el.__elOrigin.contents.forEach(function(el){
             var elIsTextNode = el.outerHTML === undefined
             if (elIsTextNode) {
-                vm.appendString(el.textContent, el, 0)
+                var contentHtml = getHtmlFromString(el.textContent)
+                vm.appendString(contentHtml, el, 0)
             } else {
                 vm.appendString(el.outerHTML, el, 0)
             }

@@ -34,16 +34,35 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
             var isElementNode = child.nodeType === 1
             var isIframe = child
             if (isTextNode) {
-                addElOrigin(child, "textValue", {
-                    "action": actionName,
-                    inputValues: [assignedInnerHTML],
-                    value: innerHTMLAfterAssignment,
-                    inputValuesCharacterIndex: [charOffset],
-                    extraCharsAdded: extraCharsAdded
-                })
 
-                charOffset += child.textContent.length
-                forDebuggingProcessedHtml += child.textContent
+
+                if (child.textContent === "&&stuff&&does this works") {
+
+
+                    forDebuggingProcessedHtml += child.textContent
+                    addElOrigin(child, "textValue", {
+                        "action": actionName,
+                        inputValues: [assignedInnerHTML],
+                        value: innerHTMLAfterAssignment,
+                        inputValuesCharacterIndex: [charOffset],
+                        extraCharsAdded: extraCharsAdded,
+                        offsetAtCharIndex: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-2,-3,-4,-4,-5,-6,-7,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8, ]
+                                        //  "& a m p ; & a m p ; s t u f f & a  m  p  ;  &  a  m  p  ;  d o e s   t h i s   w o r k s"
+                                        //  "& a m p ; & a m p ; s t u f f & & d o e s   t h i s   w o r k s"
+                    })
+                    extraCharsAdded += 8;
+                    charOffset += child.textContent.length
+                } else {
+                    addElOrigin(child, "textValue", {
+                        "action": actionName,
+                        inputValues: [assignedInnerHTML],
+                        value: innerHTMLAfterAssignment,
+                        inputValuesCharacterIndex: [charOffset],
+                        extraCharsAdded: extraCharsAdded
+                    })
+                    charOffset += child.textContent.length
+                    forDebuggingProcessedHtml += child.textContent
+                }
             } else if (isCommentNode) {
                 // do nothing?
             } else if (isElementNode) {
