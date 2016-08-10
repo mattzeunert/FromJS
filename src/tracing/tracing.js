@@ -4,7 +4,6 @@ import {makeTraceObject} from "./FromJSString"
 import Origin from "../origin"
 import _ from "underscore"
 import stringTraceUseValue from "./stringTraceUseValue"
-import {makeSureInitialHTMLHasBeenProcessed} from "./processElementsAvailableOnInitialLoad"
 import processJavaScriptCode from "../compilation/processJavaScriptCode"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
@@ -349,20 +348,11 @@ export function enableTracing(){
 
     Object.defineProperty(Element.prototype, "innerHTML", {
         set: function(innerHTML){
-            if (document.contains(this)){
-                makeSureInitialHTMLHasBeenProcessed();
-            }
-
-
             var ret = nativeInnerHTMLDescriptor.set.apply(this, arguments)
             mapInnerHTMLAssignment(this, innerHTML, "Assign InnerHTML")
             return ret
         },
         get: function(){
-            if (document.contains(this)){
-                makeSureInitialHTMLHasBeenProcessed()
-            }
-
             var innerHTML = nativeInnerHTMLDescriptor.get.apply(this, arguments)
             return makeTraceObject({
                 value: innerHTML,
