@@ -85,7 +85,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 
                 }
                 scripts.push(script)
-                return "";
+                return match; // ... not really a replace 
             })
             return {
                 html: html,
