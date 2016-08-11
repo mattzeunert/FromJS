@@ -19,6 +19,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
     if (contentEndIndex === 0) {
         contentEndIndex = assignedInnerHTML.toString().length
     }
+    var assigned = assignedInnerHTML.value ? assignedInnerHTML.value : assignedInnerHTML; // somehow  getting weird non-string, non fromjs-string values
     processNewInnerHtml(el)
 
     function getCharOffsetInAssignedHTML(){
@@ -55,11 +56,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                         // http://stackoverflow.com/questions/38892536/why-do-browsers-append-extra-line-breaks-at-the-end-of-the-body-tag
                         break; // just don't bother for now
                     }
-                    var assigned = assignedInnerHTML.value ? assignedInnerHTML.value : assignedInnerHTML; // somehow  getting weird non-string, non fromjs-string values
                     var textIncludingAndFollowingChar = assigned.substr(posInAssignedString, 30); // assuming that no html entity is longer than 30 chars
                     var htmlEntityMatch = textIncludingAndFollowingChar.match(/^\&[a-z]+\;/)
-
-                    if (char === "&") debugger
 
                     offsets.push(extraCharsAddedHere)
 
@@ -142,7 +140,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     var attrStr = " " + attr.name
                     attrStr += "='" + attr.textContent +  "'"
 
-                    var assignedAttrStr = assignedInnerHTML.toString().substr(getCharOffsetInAssignedHTML(), attrStr.length)
+                    var assignedAttrStr = assigned.toString().substr(getCharOffsetInAssignedHTML(), attrStr.length)
 
                     charOffset += attrStr.length
                     var offsetAtCharIndex = null
