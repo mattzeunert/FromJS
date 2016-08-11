@@ -30,7 +30,7 @@ export default function processElementsAvailableOnInitialLoad(){
     // replace everythign before body tag
     var bodyContentAndAfter = originalHtml.substr(originalHtml.search(/\<body.*\>/))
     // remove body tag
-    bodyContentAndAfter = bodyContentAndAfter.substr(originalHtml.match(/\<body.*\>/)[0].length)
+    bodyContentAndAfter = bodyContentAndAfter.substr(originalHtml.match(/\<body.*?\>/)[0].length)
     // remove closing body tag
     var bodyContent = bodyContentAndAfter.substr(0, bodyContentAndAfter.indexOf("</body>"))
 
@@ -45,7 +45,9 @@ export default function processElementsAvailableOnInitialLoad(){
             }
         })
     }
-    mapInnerHTMLAssignment(document.body, originalHtml, "Initial Body HTML",  bodyContentAndAfter.length - originalHtml.value.length)
+    var headEtcRemovedCharCount = originalHtml.value.length -bodyContentAndAfter.length
+    var bodyEndIndex = headEtcRemovedCharCount + bodyContent.length
+    mapInnerHTMLAssignment(document.body, originalHtml, "Initial Body HTML",  -headEtcRemovedCharCount, bodyEndIndex)
 
     initialHTMLHasBeenProcessed = true;
 }
