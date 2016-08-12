@@ -62,7 +62,7 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     background: #9ad0ff;
 }
 #fromjs .fromjs-value__content {
-    max-height: 112px;
+    max-height: 131px;
     overflow: auto;
 }
 #fromjs .fromjs-stack__code.fromjs-stack__code--truncated {

@@ -631,7 +631,7 @@ class TextEl extends React.Component {
         if (!el){return}
         if (this.state.truncateText) {return}
         var lineHeight = 19;
-        var lineAtTop = highlightedCharLineIndex - 2;
+        var lineAtTop = highlightedCharLineIndex - 4;
         if (lineAtTop < 0) {
             lineAtTop = 0;
         }
