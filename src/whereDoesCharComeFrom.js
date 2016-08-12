@@ -42,7 +42,7 @@ export default function whereDoesCharComeFrom(originObject, characterIndex, call
 }
 
 window.whereDoesCharComeFrom = whereDoesCharComeFrom
-
+export {goUp as goUpForDebugging}
 function goUp(step, callback){
     // console.log("trying to handle step with action", step.originObject.action, step)
 
@@ -289,6 +289,9 @@ function goUp(step, callback){
         }
     }
 
+    if (ret.characterIndex <0 ){
+        debugger
+    }
 
 
     callback(ret);

@@ -2,28 +2,53 @@ import addElOrigin from "./addElOrigin"
 import $ from "jquery"
 import tagTypeHasClosingTag from "./tagTypeHasClosingTag"
 import stringTraceUseValue from "./stringTraceUseValue"
+import {goUpForDebugging} from "../whereDoesCharComeFrom"
 
 // tries to describe the relationship between an assigned innerHTML value
 // and the value you get back when reading el.innerHTML.
 // e.g. you could assign "<input type='checkbox' checked>" and get back
 // "<input type='checkbox' checked=''>"
+// essentially this function serializes the elements content and compares it to the 
+// assigned value
 export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName, initialExtraCharsValue, contentEndIndex){
-    var innerHTMLAfterAssignment = nativeInnerHTMLDescriptor.get.call(el)
+    var serializedHtml = nativeInnerHTMLDescriptor.get.call(el)
     var forDebuggingProcessedHtml = ""
-    // charOffset in the resulting HTML, not the assigned HTML
-    var charOffset = 0;
-    var extraCharsAdded = 0;
+    var charOffsetInSerializedHtml = 0;
+    var charsAddedInSerializedHtml = 0;
     if (initialExtraCharsValue !== undefined){
-        extraCharsAdded = initialExtraCharsValue
+        charsAddedInSerializedHtml = initialExtraCharsValue
     }
+    var assignedString = assignedInnerHTML.value ? assignedInnerHTML.value : assignedInnerHTML; // somehow  getting weird non-string, non fromjs-string values
     if (contentEndIndex === 0) {
-        contentEndIndex = assignedInnerHTML.toString().length
+        contentEndIndex = assignedString.length
     }
-    var assigned = assignedInnerHTML.value ? assignedInnerHTML.value : assignedInnerHTML; // somehow  getting weird non-string, non fromjs-string values
     processNewInnerHtml(el)
 
     function getCharOffsetInAssignedHTML(){
-        return charOffset - extraCharsAdded
+        return charOffsetInSerializedHtml - charsAddedInSerializedHtml
+    }
+
+    function validateMapping(mostRecentOrigin){
+        var step = {
+            originObject: mostRecentOrigin,
+            characterIndex: charOffsetInSerializedHtml - 1
+        }
+        
+        goUpForDebugging(step, function(newStep){
+            if (assignedString[newStep.characterIndex] !== serializedHtml[charOffsetInSerializedHtml - 1]){
+                // This doesn't necessarily mean anything is going wrong.
+                // For example, you'll get this warning every time you assign an 
+                // attribute like this: <a checked>
+                // because it'll be changed into: <a checked="">
+                // and then we compare the last char of the attribute,
+                // which will be 'd' in the assigned string and '"' in
+                // the serialized string
+                // however, I don't think there's ever a reason for this to be
+                // called repeatedly. That would indicate a offset problem that 
+                // gets carried through the rest of the assigned string
+                console.warn("strings don't match", assignedString[newStep.characterIndex], serializedHtml[charOffsetInSerializedHtml - 1])
+            }
+        })
     }
 
     function processNewInnerHtml(el){
@@ -54,12 +79,12 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                     var htmlEntityMatchAfterAssignment = text.substr(i,30).match(/^\&[a-z]+\;/)
 
-                    var posInAssignedString = charOffset + i - extraCharsAdded - extraCharsAddedHere;
+                    var posInAssignedString = charOffsetInSerializedHtml + i - charsAddedInSerializedHtml - extraCharsAddedHere;
                     if (contentEndIndex >= posInAssignedString) {
                         // http://stackoverflow.com/questions/38892536/why-do-browsers-append-extra-line-breaks-at-the-end-of-the-body-tag
                         break; // just don't bother for now
                     }
-                    var textIncludingAndFollowingChar = assigned.substr(posInAssignedString, 30); // assuming that no html entity is longer than 30 chars
+                    var textIncludingAndFollowingChar = assignedString.substr(posInAssignedString, 30); // assuming that no html entity is longer than 30 chars
                     var htmlEntityMatch = textIncludingAndFollowingChar.match(/^\&[a-z]+\;/)
 
                     offsets.push(-extraCharsAddedHere)
@@ -84,15 +109,17 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 addElOrigin(child, "textValue", {
                     action: actionName,
                     inputValues: [assignedInnerHTML],
-                    value: innerHTMLAfterAssignment,
-                    inputValuesCharacterIndex: [charOffset],
-                    extraCharsAdded: extraCharsAdded,
+                    value: serializedHtml,
+                    inputValuesCharacterIndex: [charOffsetInSerializedHtml],
+                    extraCharsAdded: charsAddedInSerializedHtml,
                     offsetAtCharIndex: offsets
                 })
 
-                extraCharsAdded += extraCharsAddedHere
-                charOffset += text.length
+                charsAddedInSerializedHtml += extraCharsAddedHere
+                charOffsetInSerializedHtml += text.length
                 forDebuggingProcessedHtml += text
+
+                validateMapping(child.__elOrigin.textValue)
             } else if (isCommentNode) {
                 // do nothing?
             } else if (isElementNode) {
@@ -100,30 +127,31 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 addElOrigin(child, "openingTagStart", {
                     action: actionName,
                     inputValues: [assignedInnerHTML],
-                    inputValuesCharacterIndex: [charOffset],
-                    value: innerHTMLAfterAssignment,
-                    extraCharsAdded: extraCharsAdded
+                    inputValuesCharacterIndex: [charOffsetInSerializedHtml],
+                    value: serializedHtml,
+                    extraCharsAdded: charsAddedInSerializedHtml
                 })
                 var openingTagStart = "<" + child.tagName
-                charOffset += openingTagStart.length
+                charOffsetInSerializedHtml += openingTagStart.length
                 forDebuggingProcessedHtml += openingTagStart
+
+                validateMapping(child.__elOrigin.openingTagStart)
 
                 for (var i = 0;i<child.attributes.length;i++) {
                     var attr = child.attributes[i]
 
-                    var charOffsetBefore = charOffset
+                    var charOffsetInSerializedHtmlBefore = charOffsetInSerializedHtml
 
                     var attrStr = " " + attr.name
                     attrStr += "='" + attr.textContent +  "'"
 
-                    var assignedAttrStr = assigned.toString().substr(getCharOffsetInAssignedHTML(), attrStr.length)
+                    var assignedAttrStr = assignedString.substr(getCharOffsetInAssignedHTML(), attrStr.length)
 
-                    charOffset += attrStr.length
+                    charOffsetInSerializedHtml += attrStr.length
                     var offsetAtCharIndex = null
                     var extraCharsAddedHere = 0;
 
                     if (attr.textContent === "" && !attrStrContainsEmptyValue(assignedAttrStr)){
-                        //charOffset += "'='".length
                         extraCharsAddedHere = "=''".length
 
                         offsetAtCharIndex = []
@@ -139,37 +167,44 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     addElOrigin(child, "attribute_" + attr.name, {
                         action: actionName,
                         inputValues: [assignedInnerHTML],
-                        value: innerHTMLAfterAssignment,
-                        inputValuesCharacterIndex: [charOffsetBefore],
-                        extraCharsAdded: extraCharsAdded,
+                        value: serializedHtml,
+                        inputValuesCharacterIndex: [charOffsetInSerializedHtmlBefore],
+                        extraCharsAdded: charsAddedInSerializedHtml,
                         offsetAtCharIndex: offsetAtCharIndex
                     })
 
-                    extraCharsAdded += extraCharsAddedHere
+                    charsAddedInSerializedHtml += extraCharsAddedHere
 
                     forDebuggingProcessedHtml += attrStr
+
+                    var attrPropName = "attribute_" + attr.name;
+                    validateMapping(child.__elOrigin[attrPropName])
                 }
 
 
+
                 var openingTagEnd = ">"
-                if (assignedInnerHTML.toString()[charOffset] === " ") {
+                if (assignedInnerHTML.toString()[getCharOffsetInAssignedHTML()] === " ") {
                     // something like <div > (with extra space)
                     // this char will not show up in the re-serialized innerHTML
-                    extraCharsAdded -= 1;
+                    charsAddedInSerializedHtml -= 1;
                 }
                 addElOrigin(child, "openingTagEnd", {
                     action: actionName,
                     inputValues: [assignedInnerHTML],
-                    inputValuesCharacterIndex: [charOffset],
-                    value: innerHTMLAfterAssignment,
-                    extraCharsAdded: extraCharsAdded
+                    inputValuesCharacterIndex: [charOffsetInSerializedHtml],
+                    value: serializedHtml,
+                    extraCharsAdded: charsAddedInSerializedHtml
                 })
-                charOffset += openingTagEnd.length
+                charOffsetInSerializedHtml += openingTagEnd.length
                 forDebuggingProcessedHtml += openingTagEnd
+
+                validateMapping(child.__elOrigin.openingTagEnd)
+
 
                 if (child.tagName === "IFRAME") {
                     forDebuggingProcessedHtml += child.outerHTML;
-                    charOffset += child.outerHTML
+                    charOffsetInSerializedHtml += child.outerHTML.length
                 } else {
                     processNewInnerHtml(child)
                 }
@@ -178,12 +213,12 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     addElOrigin(child, "closingTag", {
                         action: actionName,
                         inputValues: [assignedInnerHTML],
-                        inputValuesCharacterIndex: [charOffset],
-                        value: innerHTMLAfterAssignment,
-                        extraCharsAdded: extraCharsAdded
+                        inputValuesCharacterIndex: [charOffsetInSerializedHtml],
+                        value: serializedHtml,
+                        extraCharsAdded: charsAddedInSerializedHtml
                     })
                     var closingTag = "</" + child.tagName + ">"
-                    charOffset += closingTag.length
+                    charOffsetInSerializedHtml += closingTag.length
                     forDebuggingProcessedHtml += closingTag
                 }
 
