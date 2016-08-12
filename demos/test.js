@@ -1,8 +1,8 @@
 function onload(){
     // document.body.innerHTML = "<div><span>Hello</span><pre>cake\nnew line</pre><span>&amp;&amp;stuff&&does this works</span></div>"
-    debugger
+    debugger   
     // document.body.innerHTML = "<div>&amp;&amp;stuff&&does this works</div>"
-    document.body.innerHTML = "<div>a&raquo;b</div>"
+    document.body.innerHTML = "<div>a&raquo;b<span>cake</span></div>"
 }
 
 

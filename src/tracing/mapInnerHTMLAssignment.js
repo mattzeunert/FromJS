@@ -59,22 +59,22 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     var textIncludingAndFollowingChar = assigned.substr(posInAssignedString, 30); // assuming that no html entity is longer than 30 chars
                     var htmlEntityMatch = textIncludingAndFollowingChar.match(/^\&[a-z]+\;/)
 
-                    offsets.push(extraCharsAddedHere)
+                    offsets.push(-extraCharsAddedHere)
 
                     if (htmlEntityMatchAfterAssignment !== null && htmlEntityMatch === null) {
                         // assigned a character, but now it shows up as an entity (e.g. & ==> &amp;)
                         var entity = htmlEntityMatchAfterAssignment[0]
                         for (var n=0; n<entity.length-1;n++){
                             i++
-                            extraCharsAddedHere--;
-                            offsets.push(extraCharsAddedHere)
+                            extraCharsAddedHere++;
+                            offsets.push(-extraCharsAddedHere)
                         }
                     }
 
                     if (htmlEntityMatchAfterAssignment === null && htmlEntityMatch !== null) {
                         // assigned an html entity but now getting character back (e.g. &raquo; => »)
                         var entity = htmlEntityMatch[0]
-                        extraCharsAddedHere += entity.length - 1;
+                        extraCharsAddedHere -= entity.length - 1;
                     }
                 }
 
@@ -88,35 +88,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 })
 
                 extraCharsAdded += extraCharsAddedHere
-                charOffset += child.textContent.length
-                forDebuggingProcessedHtml += child.textContent
-//                 if (child.textContent === "&&stuff&&does this works") {
-//
-// debugger
-//                     forDebuggingProcessedHtml += child.textContent
-//                     addElOrigin(child, "textValue", {
-//                         "action": actionName,
-//                         inputValues: [assignedInnerHTML],
-//                         value: innerHTMLAfterAssignment,
-//                         inputValuesCharacterIndex: [charOffset],
-//                         extraCharsAdded: extraCharsAdded,
-//                         offsetAtCharIndex: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-2,-3,-4,-4,-5,-6,-7,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8,-8, ]
-//                                         //  "& a m p ; & a m p ; s t u f f & a  m  p  ;  &  a  m  p  ;  d o e s   t h i s   w o r k s"
-//                                         //  "& a m p ; & a m p ; s t u f f & & d o e s   t h i s   w o r k s"
-//                     })
-//                     extraCharsAdded += 8;
-//                     charOffset += child.textContent.length
-//                 } else {
-//                     addElOrigin(child, "textValue", {
-//                         "action": actionName,
-//                         inputValues: [assignedInnerHTML],
-//                         value: innerHTMLAfterAssignment,
-//                         inputValuesCharacterIndex: [charOffset],
-//                         extraCharsAdded: extraCharsAdded
-//                     })
-//                     charOffset += child.textContent.length
-//                     forDebuggingProcessedHtml += child.textContent
-//                 }
+                charOffset += text.length
+                forDebuggingProcessedHtml += text
             } else if (isCommentNode) {
                 // do nothing?
             } else if (isElementNode) {
