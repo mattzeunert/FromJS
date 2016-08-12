@@ -571,7 +571,6 @@ class TextEl extends React.Component {
             var linesToShow = lines.slice(showFromLineIndex, showToLineIndex)
 
             function getLineComponent(line, beforeSpan, afterSpan){
-                console.time(line.text)
                 var valueSpans = []
                 if (line.containsCharIndex(highlightedCharIndex)){
                     var chunks = line.splitAtCharIndex(highlightedCharIndex)
@@ -605,7 +604,6 @@ class TextEl extends React.Component {
                 } else {
                     valueSpans = getValueSpans(line.text, line.charOffsetStart);
                 }
-                console.timeEnd(line.text)
                 return <div>
                     {beforeSpan}
                     {valueSpans}
@@ -1030,6 +1028,9 @@ class ElementOriginPath extends React.Component {
 }
 
 class ElementMarker extends React.Component {
+    shouldComponentUpdate(newProps){
+        return this.props.el !== newProps.el;
+    }
     render(){
         var rect = this.props.el.getBoundingClientRect()
         var style = {
