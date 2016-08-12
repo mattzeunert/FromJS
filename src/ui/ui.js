@@ -103,7 +103,13 @@ export class OriginPath extends React.Component {
             showFullPathButton = <div style={{marginBottom: 20}}>
                 <button
                     className="fromjs-btn-link"
-                    onClick={() => this.setState({showFullPath: true})}>
+                    ref="showFullPathButton"
+                    onClick={() => {
+                        this.refs.showFullPathButton.textContent = "Rendering additional steps may take a few seconds."
+                        setTimeout(() => {
+                            this.setState({showFullPath: true})
+                        }, 10)
+                    }}>
                     =&gt; Show {inbetweenSteps.length} steps in-between
                 </button>
             </div>
