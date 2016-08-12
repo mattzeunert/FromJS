@@ -43,14 +43,19 @@ function handleRequest(request, response){
                 var linkTagHtml = '<link rel="stylesheet" href="' + "/fromjs-internals/fromjs.css" + '"/>'
                 var insertedHtml = originalHtmlScriptTag + scriptTagHtml + linkTagHtml
 
-                
+                // we need a  proper solution for processing initial page html... but for now this has to do
                 var script = "<script>makeSureInitialHTMLHasBeenProcessed()</script>"
                 var hasBody = false;
                 fileContents = fileContents.replace(/<body[\w\W]*?>[\w\W]*?<\/body>/, function(match){
                     var hasScriptTag = false;
                     hasBody = true;
                     
-                    match = match.replace(/<script[\w\W]*?>[\w\W]*?<\/script>/, function(scriptMatch){
+                    match = match.replace(/<script[\w\W]*?>[\w\W]*?<\/script>/g, function(scriptMatch){
+                        if (scriptMatch.split(">")[0].indexOf("template") !== -1) {
+                            // skip script tag that look like templates
+                            return scriptMatch
+                        }
+                        if (hasScriptTag) {return scriptMatch}
                         hasScriptTag = true;
                         return script + scriptMatch
                     })    
