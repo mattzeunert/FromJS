@@ -30,9 +30,10 @@
     padding: 10px;
     font-weight: bold;
     cursor: pointer;
+    border: none;
 }
 .fromjs-show-inspector-button:hover {
-    background: #0088ff;
+    background: #1b0d80;
 }
 
 #fromjs .fromjs-intro {
