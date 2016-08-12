@@ -695,14 +695,11 @@ class StackFrame extends React.Component{
             highlightClass = ""
         }
 
-        highlighNthCharAfterColumn = adjustColumnForLineBreaks(frame.line.substr(frame.columnNumber), highlighNthCharAfterColumn)                    
-        // var strBetweenBarAndHighlight = frame.line.substring(frame.columnNumber, frame.columnNumber + highlighNthCharAfterColumn)
-        // highlighNthCharAfterColumn += strBetweenBarAndHighlight.split("\\").length -1
+        highlighNthCharAfterColumn = adjustColumnForLineBreaks(frame.line.substr(frame.columnNumber), highlighNthCharAfterColumn)
         var strBetweenBarAndHighlight = frame.line.substring(frame.columnNumber, frame.columnNumber + highlighNthCharAfterColumn)
 
         // If strings are too long and would hide highlighted content truncate them
         var strBeforeBar = frame.line.substr(0, frame.columnNumber)
-        // console.log(strBeforeBar, strBeforeBar.length)
         if (strBeforeBar.length > 50 && this.state.truncate) {
             strBeforeBar = strBeforeBar.substr(0, 10) + "..." + strBeforeBar.substr(strBeforeBar.length - 20)
         }
@@ -729,7 +726,7 @@ class StackFrame extends React.Component{
         function getLine(lineStr, lineNumber, arrow){
             return <div>
                 <LineNumber lineNumber={lineNumber} arrow={arrow} />
-                <span style={{opacity: .6}}>{processFrameString(lineStr)}</span>
+                <span style={{opacity: .75}}>{processFrameString(lineStr)}</span>
             </div>
         }
 
@@ -769,10 +766,8 @@ class StackFrame extends React.Component{
         }
 
         return <div  style={{
-                // paddingBottom: 5,
-                // paddingTop: 5,
                 display: "block",
-                maxHeight: 98,
+                maxHeight: 19 * 7,
                 overflow: "auto"
             }} ref={(el) => this.scrollToLine(el, frame.lineNumber)}>
             <HorizontalScrollContainer>
@@ -817,7 +812,7 @@ class StackFrame extends React.Component{
         }
 
         var lineHeight = 19;
-        var scrollToLine = lineNumber - 3 - linesNotShownBefore;
+        var scrollToLine = lineNumber - 4 - linesNotShownBefore;
         if (scrollToLine < 0){
             scrollToLine = 0;
         }
