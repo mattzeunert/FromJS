@@ -40,10 +40,13 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
             var isIframe = child
             var extraCharsAddedHere = 0;
             if (isTextNode) {
+
                 var text = child.textContent
-                var div = document.createElement("div")
-                nativeInnerHTMLDescriptor.set.call(div, text)
-                text = div.innerHTML.toString()
+                if (child.parentNode.tagName !== "SCRIPT") {
+                    var div = document.createElement("div")
+                    nativeInnerHTMLDescriptor.set.call(div, text)
+                    text = div.innerHTML.toString()
+                }
                 var offsets = []
 
                 for (var i=0; i<text.length; i++) {
