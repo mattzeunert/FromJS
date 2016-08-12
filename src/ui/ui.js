@@ -246,6 +246,10 @@ class OriginPathItem extends React.Component {
 
         var inputValueLinks = null;
         if (this.state.showDetailsDropdown){
+            var noParametersMessage = null;
+            if (originObject.inputValues.length === 0){
+                noParametersMessage = <div style={{color: "#777"}}>(No parameters.)</div>
+            }
             inputValueLinks = <div style={{background: "aliceblue", paddingLeft: 10, paddingBottom: 10}}>
                 <div>
                     <span data-multiline data-tip={
@@ -257,6 +261,7 @@ class OriginPathItem extends React.Component {
                         <span className="fromjs-info-icon">i</span>:
                     </span>
                 </div>
+                {noParametersMessage}
                 {originObject.inputValues.map((iv) => {
                     return <div className="fromjs-input-value-link"
                         onClick={() => this.props.handleValueSpanClick(iv, 0)}>
