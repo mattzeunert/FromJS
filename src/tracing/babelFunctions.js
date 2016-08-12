@@ -67,11 +67,6 @@ var babelFunctions = {
     f__tripleEqual(a,b){
         return !babelFunctions.f__notTripleEqual(a,b)
     },
-    t__setInnerHTML(el, innerHTML){
-        // no longer any processing here, hook purely based on property name
-        // isn't very robust, just monkey patch Element.prototype.innerHTML
-        el.innerHTML = innerHTML
-    },
     f__not(val){
         return !stringTraceUseValue(val)
     },

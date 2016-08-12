@@ -8,12 +8,6 @@ module.exports = function(babel) {
     visitor: {
       AssignmentExpression(path){
           if (path.node.ignore){return}
-        if (path.node.left.property && path.node.left.property.name === "innerHTML" ) {
-            path.replaceWith(babel.types.callExpression(
-                babel.types.identifier("t__setInnerHTML"),
-                [path.node.left.object, path.node.right]
-            ))
-        }
         if (path.node.operator === "+=") {
             var assignmentExpression = babel.types.assignmentExpression(
                 "=",
