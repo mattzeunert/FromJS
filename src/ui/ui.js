@@ -510,7 +510,6 @@ class TextEl extends React.Component {
 
             var processedChar = processChar(char)
 
-
             return <span
                 className={className}
                 onClick={onClick}
@@ -572,29 +571,41 @@ class TextEl extends React.Component {
             var linesToShow = lines.slice(showFromLineIndex, showToLineIndex)
 
             function getLineComponent(line, beforeSpan, afterSpan){
+                console.time(line.text)
                 var valueSpans = []
                 if (line.containsCharIndex(highlightedCharIndex)){
                     var chunks = line.splitAtCharIndex(highlightedCharIndex)
 
-                    valueSpans = valueSpans.concat(getValueSpans(chunks[0].text, chunks[0].charOffsetStart))
-                    if (valueSpans.length > 40 && self.state.truncateText){
+                    var textBeforeHighlight = chunks[0].text
+                    if (textBeforeHighlight.length > 40 && self.state.truncateText) {
+                        var textA = textBeforeHighlight.slice(0, 40)
+                        var textB = textBeforeHighlight.slice(textBeforeHighlight.length - 10)
                         valueSpans = [
-                            valueSpans.slice(0, 40),
+                            getValueSpans(textA, chunks[0].charOffsetStart),
                             getEllipsisSpan("ellipsis-line-before-highlight"),
-                            valueSpans.slice(valueSpans.length - 10)
+                            getValueSpans(textB, chunks[0].charOffsetStart + textBeforeHighlight.length - textB.length)
                         ]
+                    } else {
+                        valueSpans = valueSpans.concat(getValueSpans(chunks[0].text, chunks[0].charOffsetStart))
                     }
+
                     valueSpans = valueSpans.concat(getValueSpan(chunks[1].text, "fromjs-highlighted-character", "highlighted-char-key", function(){}, function(){}, function(){}))
-                    var restofLineValueSpans = getValueSpans(chunks[2].text, chunks[2].charOffsetStart)
-                    if (restofLineValueSpans.length > 60 && line.text.length > 60 && self.state.truncateText){
-                        restofLineValueSpans = restofLineValueSpans.slice(0, 60)
-                        restofLineValueSpans.push(getEllipsisSpan("ellipsis-line-after-highlight"))
+
+                    var restofLineValueSpans;
+                    var textAfterHighlight = chunks[2].text;
+                    if (textAfterHighlight.length > 60 && self.state.truncateText){
+                        restofLineValueSpans = [
+                            getValueSpans(chunks[2].text.slice(0, 60), chunks[2].charOffsetStart),
+                            getEllipsisSpan("ellipsis-line-after-highlight")
+                        ]
+                    } else {
+                         restofLineValueSpans = getValueSpans(chunks[2].text, chunks[2].charOffsetStart)
                     }
                     valueSpans = valueSpans.concat(restofLineValueSpans)
-
                 } else {
                     valueSpans = getValueSpans(line.text, line.charOffsetStart);
                 }
+                console.timeEnd(line.text)
                 return <div>
                     {beforeSpan}
                     {valueSpans}
@@ -606,7 +617,8 @@ class TextEl extends React.Component {
                 return <span onClick={() => self.disableTruncateText()} key={key}>...</span>
             }
 
-            return <HorizontalScrollContainer>
+
+            var ret = <HorizontalScrollContainer>
                 <div className="fromjs-value">
                     <div className="fromjs-value__content" ref={(el) => {
                         this.scrollToHighlightedChar(el, highlightedCharLineIndex);
@@ -625,6 +637,7 @@ class TextEl extends React.Component {
                     </div>
                 </div>
             </HorizontalScrollContainer>
+            return ret;
         }
     }
     scrollToHighlightedChar(el, highlightedCharLineIndex){
