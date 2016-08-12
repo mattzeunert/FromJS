@@ -88,6 +88,7 @@ $(document).ready(function(){
             var btn = $("<button>")
             btn.text("Show FromJS Inspector")
             btn.click(function(e){
+                btn.remove()
                 showFromJSSidebar()
                 e.stopPropagation();
             })

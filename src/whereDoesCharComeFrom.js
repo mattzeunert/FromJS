@@ -5,6 +5,7 @@ import fileIsDynamicCode from "./fileIsDynamicCode"
 import getRootOriginAtChar from "./getRootOriginAtChar"
 import $ from "jquery"
 import _ from "underscore"
+import adjustColumnForLineBreaks from "./adjustColumnForLineBreaks"
 
 export default function whereDoesCharComeFrom(originObject, characterIndex, callback){
     characterIndex = parseFloat(characterIndex)
@@ -258,15 +259,6 @@ function goUp(step, callback){
 
                     characterIndex += frame.columnNumber
                     characterIndex += "'".length
-
-                    function adjustColumnForLineBreaks(line, columnNumber){
-                        for (var i=0;i<columnNumber;i++){
-                            if(line[i] === "\\" && line[i + 1] === "n"){
-                                columnNumber++;
-                            }
-                        }
-                        return columnNumber
-                    }
 
                     var contentFromThisLine = content.substr(characterIndex);
 

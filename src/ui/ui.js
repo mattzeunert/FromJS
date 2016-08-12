@@ -8,6 +8,7 @@ import fileIsDynamicCode from "../fileIsDynamicCode"
 import isMobile from "../isMobile"
 import ReactTooltip from "react-tooltip"
 import "react-fastclick" // import for side effects, no export
+import adjustColumnForLineBreaks from "../adjustColumnForLineBreaks"
 
 import Perf from "react-addons-perf"
 window.Perf = Perf
@@ -689,13 +690,10 @@ class StackFrame extends React.Component{
             highlightClass = ""
         }
 
-        // OMG this is so fragile and edge case buggy!
-        // probalby already have a solution, search for adjustColumnForLineBreaks
-        // two chars in a string literal can map to one char in the actual string value (i.e. if there's an escape sequence like
-        // "\n" that becomes one new line character)
+        highlighNthCharAfterColumn = adjustColumnForLineBreaks(frame.line.substr(frame.columnNumber), highlighNthCharAfterColumn)                    
+        // var strBetweenBarAndHighlight = frame.line.substring(frame.columnNumber, frame.columnNumber + highlighNthCharAfterColumn)
+        // highlighNthCharAfterColumn += strBetweenBarAndHighlight.split("\\").length -1
         var strBetweenBarAndHighlight = frame.line.substring(frame.columnNumber, frame.columnNumber + highlighNthCharAfterColumn)
-        highlighNthCharAfterColumn += strBetweenBarAndHighlight.split("\\").length -1
-        strBetweenBarAndHighlight = frame.line.substring(frame.columnNumber, frame.columnNumber + highlighNthCharAfterColumn)
 
         // If strings are too long and would hide highlighted content truncate them
         var strBeforeBar = frame.line.substr(0, frame.columnNumber)
