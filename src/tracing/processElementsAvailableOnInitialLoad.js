@@ -8,6 +8,8 @@ export function makeSureInitialHTMLHasBeenProcessed(){
     processElementsAvailableOnInitialLoad()
 }
 
+window.makeSureInitialHTMLHasBeenProcessed = makeSureInitialHTMLHasBeenProcessed
+
 export default function processElementsAvailableOnInitialLoad(){
 
     if (window.processElementsAvailableOnInitialLoadDisabled) {return}

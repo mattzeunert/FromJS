@@ -42,6 +42,27 @@ function handleRequest(request, response){
                 var scriptTagHtml = '<script src="http://localhost:8080/dist/from.js" charset="utf-8"></script>'
                 var linkTagHtml = '<link rel="stylesheet" href="' + "/fromjs-internals/fromjs.css" + '"/>'
                 var insertedHtml = originalHtmlScriptTag + scriptTagHtml + linkTagHtml
+
+                
+                var script = "<script>makeSureInitialHTMLHasBeenProcessed()</script>"
+                var hasBody = false;
+                fileContents = fileContents.replace(/<body[\w\W]*?>[\w\W]*?<\/body>/, function(match){
+                    var hasScriptTag = false;
+                    hasBody = true;
+                    
+                    match = match.replace(/<script[\w\W]*?>[\w\W]*?<\/script>/, function(scriptMatch){
+                        hasScriptTag = true;
+                        return script + scriptMatch
+                    })    
+                    if (!hasScriptTag) {
+                        match = match.replace(/<\/body>$/, script + "</body>") 
+                    }
+                    return match
+                })
+                if (!hasBody) {
+                    fileContents += script
+                }
+
                 if (stringContains(fileContents, "<head>")){
                     fileContents = fileContents.replace("<head>", "<head>" + insertedHtml)
                 } else {
