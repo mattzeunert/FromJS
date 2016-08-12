@@ -184,10 +184,10 @@ function goUp(step, callback){
             originObject: step.originObject.inputValues[0],
             characterIndex: characterIndex
         }
-    } else if (step.originObject.action === "Replace Call") {
-        var valueMap = ValueMap.deserialize(step.originObject.valueItems, step.originObject.inputValues)
-        ret = valueMap.getItemAt(step.characterIndex)
-    }else if (step.originObject.action === "Slice Call") {
+    } else if (step.originObject.action === "Replace Call" ||
+        step.originObject.action === "Slice Call" ||
+        step.originObject.action === "Substr Call"
+            ) {
         var valueMap = ValueMap.deserialize(step.originObject.valueItems, step.originObject.inputValues)
         ret = valueMap.getItemAt(step.characterIndex)
     }

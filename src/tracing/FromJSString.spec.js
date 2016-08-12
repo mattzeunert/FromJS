@@ -50,4 +50,15 @@ describe("FromJSString.replace", function(){
         var char = str[0]
         expect(char).toBe("H")
     })
+
+    it("Supports substr calls", function(){
+        var str = makeTraceObject({
+            value: "Hello",
+            origin: {}
+        })
+
+        str = str.substr(1)
+        expect(str.value).toBe("ello")
+        expect(str.origin.action).toBe("Substr Call")
+    })
 })

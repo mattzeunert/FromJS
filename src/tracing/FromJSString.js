@@ -2,6 +2,8 @@ import Origin from "../origin"
 import ValueMap from "../value-map"
 import unstringTracifyArguments from "./unstringTracifyArguments"
 import stringTraceUseValue from "./stringTraceUseValue"
+import untrackedArgument from "./untrackedArgument"
+import config from "../config"
 
 function StringTraceString(options){
     this.origin = options.origin
@@ -35,11 +37,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 if (arg instanceof StringTraceString) {
                     return arg.origin;
                 }
-                return new Origin({
-                    action: "Untracked Argument",
-                    value: arg.toString(),
-                    inputValues: []
-                })
+                return untrackedArgument(arg)
             })
             var inputValues = [oldValue.origin].concat(argumentOrigins)
 
@@ -147,11 +145,29 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
 
                 newVal = oldString.slice(from, to)
 
-                valueMap.appendString(newVal, oldValue.origin, args[0]) // oldvalue.origin is inputValues[0]
+                valueMap.appendString(newVal, oldValue.origin, from) // oldvalue.origin is inputValues[0]
 
+                valueItems = valueMap.serialize(inputValues)
+            } else if (propertyName === "substr"){
+                var oldString = oldValue.toString();
+                var start = args[0]
+                if (start < 0){
+                    start = oldString.length + start
+                }
+                var length = args[1]
+                if (length === undefined){
+                    length = oldString.length - start;
+                }
+
+                newVal = oldString.substr(start, length)
+                var valueMap = new ValueMap()
+                valueMap.appendString(newVal, oldValue.origin, start)
                 valueItems = valueMap.serialize(inputValues)
 
             } else {
+                if (config.logUntrackedStrings) {
+                    console.trace("string not tracked after ",propertyName ,"call")
+                }
                 newVal = String.prototype[propertyName].apply(this.toString(), args);
             }
 
