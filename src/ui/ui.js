@@ -690,6 +690,7 @@ class StackFrame extends React.Component{
         }
 
         // OMG this is so fragile and edge case buggy!
+        // probalby already have a solution, search for adjustColumnForLineBreaks
         // two chars in a string literal can map to one char in the actual string value (i.e. if there's an escape sequence like
         // "\n" that becomes one new line character)
         var strBetweenBarAndHighlight = frame.line.substring(frame.columnNumber, frame.columnNumber + highlighNthCharAfterColumn)

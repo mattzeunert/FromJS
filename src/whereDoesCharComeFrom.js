@@ -259,10 +259,18 @@ function goUp(step, callback){
                     characterIndex += frame.columnNumber
                     characterIndex += "'".length
 
-                    var contentBeforeChar = content.substr(characterIndex, step.characterIndex);
+                    function adjustColumnForLineBreaks(line, columnNumber){
+                        for (var i=0;i<columnNumber;i++){
+                            if(line[i] === "\\" && line[i + 1] === "n"){
+                                columnNumber++;
+                            }
+                        }
+                        return columnNumber
+                    }
 
-                    characterIndex += step.characterIndex
-                    characterIndex += contentBeforeChar.split("\\n").length - 1;
+                    var contentFromThisLine = content.substr(characterIndex);
+
+                    characterIndex += adjustColumnForLineBreaks(contentFromThisLine, step.characterIndex)
 
                     callback({
                         originObject: fromJSDynamicFileOrigins[frame.fileName],
