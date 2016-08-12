@@ -765,7 +765,7 @@ class StackFrame extends React.Component{
             }
         }
 
-        return <div  style={{
+        return <div style={{
                 display: "block",
                 maxHeight: 19 * 7,
                 overflow: "auto"
@@ -774,7 +774,11 @@ class StackFrame extends React.Component{
                 <div>
                     <code
                         className={"fromjs-stack__code" + (self.state.truncate ? " fromjs-stack__code--truncated" :"")}
-                        onClick={() => self.setState({truncate: false})}
+                        onClick={() => {
+                            if (self.state.truncate){
+                                self.setState({truncate: false})
+                            }
+                        }}
                     >
                         {getPrevLines()}
                         <div>
