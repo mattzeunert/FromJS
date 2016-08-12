@@ -59,7 +59,7 @@ function showInfo(info){
         info.resolvedStack.forEach(function(frame){
             var fileNameParts = frame.fileName.split("/")
             var fileName = fileNameParts[fileNameParts.length - 1]
-            var fileName = fileName.replace("?dontprocess=yes","")
+            var fileName = fileName.replace(".dontprocess","")
 
             var isLibrary = fileName.indexOf("underscore") !== -1 || fileName.indexOf("jquery") !== -1
 

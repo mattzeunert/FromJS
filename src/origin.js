@@ -77,7 +77,7 @@ Origin.prototype.getValue = function(){
 
 Origin.prototype.getStackFrames = function(){
     return this.error.stack.split("\n").filter(function(frame){
-        if (frame.indexOf("/fromjs-internals/from.js") !== -1) {
+        if (frame.indexOf("fromjs-internals/from.js") !== -1) {
             return false;
         }
         if (frame.indexOf("chrome-extension://") !== -1 && frame.indexOf("from.js") !== -1) {

@@ -27,7 +27,7 @@ export default function processElementsAvailableOnInitialLoad(){
     var originalHtml = window.fromJSInitialPageHtml
 
     fromJSDynamicFiles[htmlFilename] = window.fromJSInitialPageHtml
-    fromJSDynamicFiles[htmlFilename + "?dontprocess=yes"] = window.fromJSInitialPageHtml
+    fromJSDynamicFiles[htmlFilename + ".dontprocess"] = window.fromJSInitialPageHtml
 
     // replace everythign before body tag
     var bodyContentAndAfter = originalHtml.substr(originalHtml.search(/\<body.*\>/))

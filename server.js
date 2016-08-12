@@ -21,9 +21,12 @@ function handleRequest(request, response){
         path = "." + path
     }
 
-    console.log("Request for path ", path)
+    console.log("Request for path ", request.url)
     if (endsWith(path, ".js.map") && !isInternalRequest){
         path = path.substr(0, path.length - ".map".length)
+    }
+    if (endsWith(path, ".dontprocess")){
+        path = path.substr(0, path.length - ".dontprocess".length)
     }
 
     if (fs.existsSync(path)){
@@ -75,14 +78,14 @@ function handleRequest(request, response){
                 }
             }
 
-            if (endsWith(request.url, ".html?dontprocess=yes")){
+            if (endsWith(request.url, ".html.dontprocess")){
                 // nothing i need to do actually
             }
 
             if ((endsWith(request.url, ".js") || endsWith(request.url, ".js.map")) &&
                 !stringContains(request.url, "/dontprocess") &&
                 !stringContains(request.url, "/vis") &&
-                !stringContains(request.url, "?dontprocess=yes") &&
+                !stringContains(request.url, ".dontprocess") &&
                 !isInternalRequest
             ) {
                 var jsFileName = path.split("/")[path.split("/").length - 1]

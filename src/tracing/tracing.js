@@ -485,8 +485,8 @@ export function enableTracing(){
 
         fromJSDynamicFiles[smFilename] = sourceMap
         fromJSDynamicFiles[filename] = evalCode
-        fromJSDynamicFiles[filename + "?dontprocess=yes"] = code.value
-        fromJSDynamicFileOrigins[filename + "?dontprocess=yes"] = new Origin({
+        fromJSDynamicFiles[filename + ".dontprocess"] = code.value
+        fromJSDynamicFileOrigins[filename + ".dontprocess"] = new Origin({
             action: "Dynamic Script",
             value: code.value,
             inputValues: [code.origin]

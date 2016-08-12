@@ -73,7 +73,7 @@ export default function saveAndSerializeDOMState(){
     })
 
     var additionalFilesToCache = [];
-    additionalFilesToCache.push("/demos/index.html?dontprocess=yes")
+    additionalFilesToCache.push("/demos/index.html.dontprocess")
     $("script:not([type])").each(function(){
         if ($(this).attr("src") === "http://localhost:8080/dist/from.js") {
             return
@@ -85,7 +85,7 @@ export default function saveAndSerializeDOMState(){
 
         additionalFilesToCache.push(urlPrefix + $(this).attr("src"))
         additionalFilesToCache.push(urlPrefix + $(this).attr("src") + ".map")
-        additionalFilesToCache.push(urlPrefix + $(this).attr("src") + "?dontprocess=yes")
+        additionalFilesToCache.push(urlPrefix + $(this).attr("src") + ".dontprocess")
 
     })
     async.each(additionalFilesToCache, function(path, callback){

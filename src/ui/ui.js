@@ -21,7 +21,7 @@ setInterval(function(){
 function getFilenameFromPath(path){
     var pathParts = path.split("/");
     var filename = _.last(pathParts);
-    filename = filename.replace("?dontprocess=yes", "");
+    filename = filename.replace(".dontprocess", "");
     return filename
 }
 
@@ -192,7 +192,7 @@ class OriginPathItem extends React.Component {
         var viewSourceOriginButton = null;
         if (this.state.resolvedFrame) {
             var filename = this.state.resolvedFrame.fileName;
-            var originalFilename = filename.replace("?dontprocess=yes", "");
+            var originalFilename = filename.replace(".dontprocess", "");
             var filenameParts = originalFilename.split("/")
             var uiFilename  = _.last(filenameParts)
 
