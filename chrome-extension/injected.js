@@ -1,5 +1,4 @@
 console.log("in injected.js")
-debugger
 window.fromJSInitialPageHtml = pageHtml;
 var bodyContent = pageHtml.split(/<body.*?>/)[1].split("</body>")[0]
 var headContent = pageHtml.split(/<head.*?>/)[1].split("</head>")[0]

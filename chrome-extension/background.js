@@ -17,7 +17,6 @@ function isEnabledInTab(tabId){
 }
 
 chrome.browserAction.onClicked.addListener(function (tab) {
-    console.log("clicked on tab", tab)
     if (isEnabledInTab(tab.id)) {
       tabsToProcess = tabsToProcess.filter(function(tabId){
           return tabId !== tab.id
@@ -26,6 +25,12 @@ chrome.browserAction.onClicked.addListener(function (tab) {
       tabsToProcess.push(tab.id)
     }
 
+    updateBadge(tab)
+
+    chrome.tabs.reload(tab.id)
+});
+
+function updateBadge(tab){
     var text = ""
     if (isEnabledInTab(tab.id)) {
       text = "ON"
@@ -34,12 +39,30 @@ chrome.browserAction.onClicked.addListener(function (tab) {
       text: text,
       tabId: tab.id
     });
+    chrome.browserAction.setBadgeBackgroundColor({
+      tabId: tab.id, 
+      color: "#08f"
+    })
+}
 
-    
+var initialHTMLForNextLoadedPage = "";
 
-      chrome.tabs.insertCSS(tab.id, {
+var pageHtml = ""
+
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
+  console.log("onUpdated", arguments)
+   if (changeInfo.status !== "loading") {
+    return
+  }
+
+  console.log("Tab", tab)
+  if (tab.url !== hostUrl) {
+    return
+  }
+
+  chrome.tabs.insertCSS(tab.id, {
       code: fromJSCss[0][1]
-      })
+    })
     chrome.tabs.executeScript(tab.id, {
       code: `
         var script = document.createElement("script");
@@ -52,84 +75,36 @@ chrome.browserAction.onClicked.addListener(function (tab) {
         document.documentElement.appendChild(script2)
       `,
       runAt: "document_start"
-    }, function(){
-      console.log("ran fromJSinitialPageHtml", arguments)
     })
 
-chrome.tabs.executeScript(tab.id, {
-          "file": "contentScript.js",
-          runAt: "document_start"
-      }, function () {
-          console.log("Script Executed .. ");
-      });
-
-
-    // chrome.tabs.reload(tab.id)
-
-});
-
-var initialHTMLForNextLoadedPage = "";
-
-var pageHtml = ""
-
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-  console.log("onUpdated", arguments)
-   if (changeInfo.status !== "loading") {
-    console.log("not loadign ")
-    return
-  }
-   if (!isEnabledInTab(tabId)){
-      console.log("not injecting", tabId, tabsToProcess)
-      return
-    }
-chrome.browserAction.setBadgeText({
-      text: "ON",
-      tabId: tabId
+    chrome.tabs.executeScript(tab.id, {
+        "file": "contentScript.js",
+        runAt: "document_start"
+    }, function () {
+        console.log("Script Executed .. ");
     });
 
+    updateBadge(tab)
 
-
-  chrome.tabs.executeScript(tab.id, {
-    code: `
-      var script = document.createElement("script");
-      var pageHtml = \`${pageHtml.replace(/\`/g, "\\\\u0060")}\`
-      script.innerHTML = "window.pageHtml = \`" + pageHtml + "\`"
-      document.documentElement.appendChild(script)
-    `,
-    runAt: "document_start"
-  }, function(){
-    console.log("ran fromJSinitialPageHtml", arguments)
-  })
-
-  // chrome.tabs.executeScript(tab.id, {
-  //   code: `
-  //     var script = document.createElement("script");
-  //     var initialPageHtml = \`${initialHTMLForNextLoadedPage.replace(/\`/g, "\\\\u0060")}\`
-  //     script.innerHTML = "window.fromJSInitialPageHtml = \`" + initialPageHtml + "\`"
-  //     document.documentElement.appendChild(script)
-  //   `,
-  //   runAt: "document_start"
-  // }, function(){
-  //   console.log("ran fromJSinitialPageHtml", arguments)
-  // })
-
-  // chrome.tabs.executeScript(tab.id, {
-  //       "file": "contentScript.js",
-  //       runAt: "document_start"
-  //   }, function () {
-  //       console.log("Script Executed .. ");
-  //   });
 })
+
+var hostUrl = "http://example.com/"
 
 var sourceMaps = {}
 chrome.webRequest.onBeforeRequest.addListener(
   function(info){
-
+    
+  if (!isEnabledInTab(info.tabId)){
+        return
+      }
       if (info.url.slice(0, "chrome-extension://".length ) === "chrome-extension://") {
         return
       }
 
       if (info.type === "main_frame") {
+        if (info.url === hostUrl) {
+          return;
+        }
         var xhr = new XMLHttpRequest()
         xhr.open('GET', info.url, false);
         xhr.send(null);
@@ -140,16 +115,12 @@ chrome.webRequest.onBeforeRequest.addListener(
         var basePath = parts.join("/")
 
         var headCode = "<base href='" + basePath + "'>"
-        var fromJsUrl = chrome.extension.getURL("from.js")
-        // headCode += `<script src="${fromJsUrl}" charset="utf-8"></script>`
         pageHtml = pageHtml.replace("<head>", "<head>" + headCode)
-        // return {
-        //     redirectUrl: "data:text/html," + encodeURI(pageHtml)
-        // }
+        return {
+          redirectUrl: hostUrl
+        }
       }
-      if (!isEnabledInTab(info.tabId)){
-        return
-      }
+    
       if (info.url.slice(info.url.length - ".js.map".length) === ".js.map") {
         return {
           redirectUrl: "data:," + encodeURI(sourceMaps[info.url])
@@ -173,9 +144,12 @@ chrome.webRequest.onBeforeRequest.addListener(
             code += "\n//# sourceURL=" + info.url
             code += "\n//# sourceMappingURL=" + info.url + ".map"
             sourceMaps[info.url + ".map"] = JSON.stringify(res.map)
-            url = "data:application/javascript;charset=utf-8," + encodeURI(code)
+            
 
+          } else {
+            var code = xhr.responseText
           }
+          url = "data:application/javascript;charset=utf-8," + encodeURI(code)
         return {redirectUrl: url}
       }
   }, {urls: ["<all_urls>"]}, ["blocking"]);
