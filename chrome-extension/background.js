@@ -18,9 +18,7 @@ function isEnabledInTab(tabId){
 
 chrome.browserAction.onClicked.addListener(function (tab) {
     if (isEnabledInTab(tab.id)) {
-      tabsToProcess = tabsToProcess.filter(function(tabId){
-          return tabId !== tab.id
-      })
+      disableInTab(tab.id)
     } else {
       tabsToProcess.push(tab.id)
     }
@@ -29,6 +27,12 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 
     chrome.tabs.reload(tab.id)
 });
+
+function disableInTab(tabId){
+  tabsToProcess = tabsToProcess.filter(function(id){
+      return tabId !== id
+  })
+}
 
 function updateBadge(tab){
     var text = ""
@@ -45,19 +49,15 @@ function updateBadge(tab){
     })
 }
 
-var initialHTMLForNextLoadedPage = "";
-
 var pageHtml = ""
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-  console.log("onUpdated", arguments)
    if (changeInfo.status !== "loading") {
-    return
+      return
   }
 
-  console.log("Tab", tab)
   if (tab.url !== hostUrl) {
-    return
+      return
   }
 
   chrome.tabs.insertCSS(tab.id, {
@@ -89,7 +89,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
 })
 
 var hostUrl = "http://example.com/"
-
+var idsToDisableOnNextMainFrameLoad = []
 var sourceMaps = {}
 chrome.webRequest.onBeforeRequest.addListener(
   function(info){
@@ -97,6 +97,7 @@ chrome.webRequest.onBeforeRequest.addListener(
   if (!isEnabledInTab(info.tabId)){
         return
       }
+
       if (info.url.slice(0, "chrome-extension://".length ) === "chrome-extension://") {
         return
       }
@@ -105,10 +106,19 @@ chrome.webRequest.onBeforeRequest.addListener(
         if (info.url === hostUrl) {
           return;
         }
+        if (idsToDisableOnNextMainFrameLoad.indexOf(info.tabId) !== -1) {
+            idsToDisableOnNextMainFrameLoad = idsToDisableOnNextMainFrameLoad.filter(id => id !== info.tabId)
+            disableInTab(info.tabId)
+            return  
+        } else {
+          
+          idsToDisableOnNextMainFrameLoad.push(info.tabId)  
+
+        }
+        
         var xhr = new XMLHttpRequest()
         xhr.open('GET', info.url, false);
         xhr.send(null);
-        initialHTMLForNextLoadedPage = xhr.responseText
 
         pageHtml = xhr.responseText
         var parts = info.url.split("/");parts.pop(); parts.push("");
