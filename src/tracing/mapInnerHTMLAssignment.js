@@ -151,7 +151,16 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                     var whiteSpaceBeforeAttributeInSerializedHtml = " "; // always the same
                     var assignedValueFromAttrStartOnwards = assignedString.substr(getCharOffsetInAssignedHTML(), 100)
-                    var whiteSpaceBeforeAttributeInAssignedHtml = assignedValueFromAttrStartOnwards.match(/^[\W]+/)[0]
+                    var whiteSpaceMatches = assignedValueFromAttrStartOnwards.match(/^[\W]+/)
+
+                    var whiteSpaceBeforeAttributeInAssignedHtml;
+                    if (whiteSpaceMatches !== null) {
+                        whiteSpaceBeforeAttributeInAssignedHtml = whiteSpaceMatches[0]
+                    } else {
+                        // something broke, but better to show a broken result than nothing at all
+                        console.warn("no whitespace found at start of", assignedValueFromAttrStartOnwards)
+                        whiteSpaceBeforeAttributeInAssignedHtml = "";
+                    }
                     
                     var attrStr = attr.name
                     attrStr += "='" + attr.textContent +  "'"
