@@ -1077,9 +1077,7 @@ class Intro extends React.Component {
             {notChromeMessage}
             <h2>What is this?</h2>
             <p>
-                FromJS helps you understand how an app works.
-                This demo allows you to explore
-                the <a href="http://todomvc.com/examples/backbone/" target="_blank">Backbone TodoMVC</a> app.
+                FromJS helps you understand how an app works and how its UI relates to the source code.
             </p>
             <p>
                 Select a DOM element on the left to see where its
@@ -1088,13 +1086,12 @@ class Intro extends React.Component {
             </p>
 
             <h2>
-                Does this work for other apps?
+                Does this work for all apps?
             </h2>
             <p>
-                Not yet, at least not for anything complex. I{"'"}ve written the
-                code so it has the functionality required for this demo.
-                FromJS will work if you use a subset of this functionality, but
-                chances are your app won{"'"}t even render.
+                Sometimes it works, but most of the time it doesn{"'"}t. I slowly trying to support more
+                JS functionality. I'm also working on a
+                Chrome extension to make it easier to run FromJS on any page.
             </p>
 
             <p>
