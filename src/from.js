@@ -2,7 +2,7 @@ if (isMobile() && location.href.indexOf("/react-") !== -1){
     var div = document.createElement("div")
     div.innerHTML = `<div class="fromjs-no-phone-support-warning">
         If you're on a phone,
-        <a href="/react-todomvc">this demo might work better<a>.<br/>
+        <a href="/todomvc">this demo might work better<a>.<br/>
         Or go to the <a href="/">FromJS homepage</a>.
     </div>`
     document.documentElement.appendChild(div)

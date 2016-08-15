@@ -83,7 +83,7 @@
 	
 	if ((0, _isMobile2.default)() && location.href.indexOf("/react-") !== -1) {
 	    var div = document.createElement("div");
-	    div.innerHTML = "<div class=\"fromjs-no-phone-support-warning\">\n        If you're on a phone,\n        <a href=\"/react-todomvc\">this demo might work better<a>.<br/>\n        Or go to the <a href=\"/\">FromJS homepage</a>.\n    </div>";
+	    div.innerHTML = "<div class=\"fromjs-no-phone-support-warning\">\n        If you're on a phone,\n        <a href=\"/todomvc\">this demo might work better<a>.<br/>\n        Or go to the <a href=\"/\">FromJS homepage</a>.\n    </div>";
 	    document.documentElement.appendChild(div);
 	}
 	
