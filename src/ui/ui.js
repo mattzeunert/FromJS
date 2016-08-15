@@ -58,6 +58,7 @@ export class OriginPath extends React.Component {
         }
         this.setState({isGettingOriginPath: true})
         this.cancelGetOriginPath = this.props.getOriginPath((originPath) => {
+            console.log("got OP", originPath)
             this.setState({
                 originPath,
                 isGettingOriginPath: true

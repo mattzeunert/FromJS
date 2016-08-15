@@ -19,5 +19,5 @@
       "https://*/*",
       "file://*/*"
   ],
-  "web_accessible_resources": ["from.js"]
+  "web_accessible_resources": ["from.js", "injected.js"]
 }

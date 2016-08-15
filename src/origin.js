@@ -102,3 +102,5 @@ Origin.prototype.getStackFrames = function(){
         return true
     });
 }
+
+window.Origin = Origin

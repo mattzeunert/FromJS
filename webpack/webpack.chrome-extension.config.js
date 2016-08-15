@@ -6,7 +6,8 @@ var config = require("./webpack.base.config.js")
 config.entry = {
     background: ['./chrome-extension/background.js'],
     contentScript: ['./chrome-extension/contentScript.js'],
-    from: ['./src/from.js']
+    from: ['./src/from.js'],
+    injected: ["./chrome-extension/injected.js"]
 };
 config.output = {
     path: "./",
