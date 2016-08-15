@@ -271,7 +271,7 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
 .fromjs-no-phone-support-warning {
     position: fixed;
     top: 0;
-    pointer-events: none;
+    font-size: 20px;
 }
 
 
