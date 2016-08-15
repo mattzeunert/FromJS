@@ -85133,13 +85133,7 @@
 	                _react2.default.createElement(
 	                    "p",
 	                    null,
-	                    "FromJS helps you understand how an app works. This demo allows you to explore the ",
-	                    _react2.default.createElement(
-	                        "a",
-	                        { href: "http://todomvc.com/examples/backbone/", target: "_blank" },
-	                        "Backbone TodoMVC"
-	                    ),
-	                    " app."
+	                    "FromJS helps you understand how an app works and how its UI relates to the source code."
 	                ),
 	                _react2.default.createElement(
 	                    "p",
@@ -85149,16 +85143,14 @@
 	                _react2.default.createElement(
 	                    "h2",
 	                    null,
-	                    "Does this work for other apps?"
+	                    "Does this work for all apps?"
 	                ),
 	                _react2.default.createElement(
 	                    "p",
 	                    null,
-	                    "Not yet, at least not for anything complex. I",
+	                    "Sometimes it works, but most of the time it doesn",
 	                    "'",
-	                    "ve written the code so it has the functionality required for this demo. FromJS will work if you use a subset of this functionality, but chances are your app won",
-	                    "'",
-	                    "t even render."
+	                    "t. I slowly trying to support more JS functionality. I'm also working on a Chrome extension to make it easier to run FromJS on any page."
 	                ),
 	                _react2.default.createElement(
 	                    "p",
