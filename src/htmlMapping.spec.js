@@ -100,6 +100,48 @@ describe("HTML Mapping", function(){
         })
     })
 
+    it("Traces attributes correctly", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<span hi="hey" cake="cookie"></span>'
+
+        var span = el.children[0]
+
+        disableTracing()
+        expect(el.innerHTML).toBe('<span hi="hey" cake="cookie"></span>')
+
+        // <span hi="hey" ca[k]e="cookie"></span>
+        var originAndChar = getRootOriginAtChar(span, 17);
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value).toBe('<span hi="hey" cake="cookie"></span>')
+            expect(value[characterIndex]).toBe("k")
+            done()
+        })  
+    })
+
+    it("Traces extra spaces between attributes correctly", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<span hi="hey"       \ncake="cookie"></span>'
+
+        var span = el.children[0]
+
+        disableTracing()
+        expect(el.innerHTML).toBe('<span hi="hey" cake="cookie"></span>')
+
+        // <span hi="hey" ca[k]e="cookie"></span>
+        var originAndChar = getRootOriginAtChar(span, 17);
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value).toBe('<span hi="hey"       \ncake="cookie"></span>')
+            expect(value[characterIndex]).toBe("k")
+            done()
+        })  
+    })
+
     it("Traces unescaped HTML &/</> correctly", function(done){
         var el = document.createElement("div")
         el.innerHTML = '&'

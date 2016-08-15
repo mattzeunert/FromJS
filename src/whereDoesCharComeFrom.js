@@ -25,11 +25,16 @@ export default function whereDoesCharComeFrom(originObject, characterIndex, call
     nextStep(step)
     function nextStep(step){
         goUp(step, function(newStep){
+
             if (newStep !== null && !step.originObject){
                 throw "hmm?"
             }
 
             if (newStep !== null){
+                if (isNaN(newStep.characterIndex)){
+                    console.error("characterIndex is NaN")
+                    debugger;
+                }
                 steps.push(newStep)
                 nextStep(newStep)
             } else {
@@ -66,7 +71,8 @@ function goUp(step, callback){
     } else if (step.originObject.action === "Assign InnerHTML") {
         var offsetAtChar = 0;
         if (step.originObject.offsetAtCharIndex){
-            offsetAtChar = step.originObject.offsetAtCharIndex[step.characterIndex - step.originObject.inputValuesCharacterIndex[0]]
+            var index = step.characterIndex - step.originObject.inputValuesCharacterIndex[0]
+            offsetAtChar = step.originObject.offsetAtCharIndex[index]
         }
         ret = {
             originObject: step.originObject.inputValues[0],

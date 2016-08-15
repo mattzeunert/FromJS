@@ -142,32 +142,42 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                     var charOffsetInSerializedHtmlBefore = charOffsetInSerializedHtml
 
-                    var attrStr = " " + attr.name
+                    var whiteSpaceBeforeAttributeInSerializedHtml = " "; // always the same
+                    var assignedValueFromAttrStartOnwards = assignedString.substr(getCharOffsetInAssignedHTML(), 100)
+                    var whiteSpaceBeforeAttributeInAssignedHtml = assignedValueFromAttrStartOnwards.match(/^[\W]+/)[0]
+                    
+                    var attrStr = attr.name
                     attrStr += "='" + attr.textContent +  "'"
 
-                    var assignedAttrStr = assignedString.substr(getCharOffsetInAssignedHTML(), attrStr.length)
+                    var assignedAttrStr = assignedString.substr(getCharOffsetInAssignedHTML() + whiteSpaceBeforeAttributeInAssignedHtml.length, attrStr.length)
 
-                    charOffsetInSerializedHtml += attrStr.length
-                    var offsetAtCharIndex = null
+                    var offsetAtCharIndex = []
                     var extraCharsAddedHere = 0;
 
-                    if (attr.textContent === "" && !attrStrContainsEmptyValue(assignedAttrStr)){
-                        extraCharsAddedHere = "=''".length
+                    var extraWhitespaceInAssignedHtml = whiteSpaceBeforeAttributeInAssignedHtml.length - whiteSpaceBeforeAttributeInSerializedHtml.length
+                    extraCharsAddedHere -= extraWhitespaceInAssignedHtml
 
-                        offsetAtCharIndex = []
+                    offsetAtCharIndex.push(-extraCharsAddedHere); // char index for " " before attr
+
+                    if (attr.textContent === "" && !attrStrContainsEmptyValue(assignedAttrStr)){
                         for (var charIndex in attrStr){
                             if (charIndex >= attrStr.length - '=""'.length){
-                                offsetAtCharIndex.push(attrStr.length - "=''".length - charIndex - 1)
+                                extraCharsAddedHere++;
+                                offsetAtCharIndex.push(-extraCharsAddedHere)
                             } else {
-                                offsetAtCharIndex.push(0)
+                                offsetAtCharIndex.push(-extraCharsAddedHere)
                             }
+                        }
+                    } else {
+                        for (var charIndex in attrStr){
+                            offsetAtCharIndex.push(-extraCharsAddedHere)
                         }
                     }
 
                     addElOrigin(child, "attribute_" + attr.name, {
                         action: actionName,
                         inputValues: [assignedInnerHTML],
-                        value: serializedHtml,
+                        value: whiteSpaceBeforeAttributeInSerializedHtml + attrStr,
                         inputValuesCharacterIndex: [charOffsetInSerializedHtmlBefore],
                         extraCharsAdded: charsAddedInSerializedHtml,
                         offsetAtCharIndex: offsetAtCharIndex
@@ -175,7 +185,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                     charsAddedInSerializedHtml += extraCharsAddedHere
 
-                    forDebuggingProcessedHtml += attrStr
+                     charOffsetInSerializedHtml += whiteSpaceBeforeAttributeInSerializedHtml.length + attrStr.length
+                    forDebuggingProcessedHtml += whiteSpaceBeforeAttributeInSerializedHtml + attrStr
 
                     var attrPropName = "attribute_" + attr.name;
                     validateMapping(child.__elOrigin[attrPropName])
