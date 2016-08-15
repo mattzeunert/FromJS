@@ -7,9 +7,6 @@ import initSerializedDataPage from "./ui/initSerializedDataPage"
 import showFromJSSidebar from "./ui/showFromJSSidebar"
 import $ from "jquery"
 
-// console.log = function(){}
-// console.trace = function(){}
-
 console.log("in from.js")
 console.profile()
 console.time("Page Load")
@@ -67,6 +64,11 @@ function onDoneProcessing(doneProcessing){
     }
 }
 
+setTimeout(function(){
+    if (window.onFromJSReady) {
+        window.onFromJSReady();
+    }
+},0)
 
 window.saveAndSerializeDOMState = saveAndSerializeDOMState
 

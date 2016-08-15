@@ -15,11 +15,13 @@ process:
 function isEnabledInTab(tabId){
     return tabsToProcess.indexOf(tabId) !== -1
 }
-
+// disabled ==> enabled ==> initializing 
 chrome.browserAction.onClicked.addListener(function (tab) {
     if (isEnabledInTab(tab.id)) {
+
       disableInTab(tab.id)
     } else {
+      tabStage[tab.id] = "enabled"
       tabsToProcess.push(tab.id)
     }
 
@@ -29,6 +31,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 });
 
 function disableInTab(tabId){
+  tabStage[tabId] = "disabled"
   tabsToProcess = tabsToProcess.filter(function(id){
       return tabId !== id
   })
@@ -56,43 +59,56 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
       return
   }
 
-  if (tab.url !== hostUrl) {
-      return
+      updateBadge(tabId)
+
+
+  if (!isEnabledInTab(tabId)){
+    return
   }
 
-  chrome.tabs.insertCSS(tab.id, {
-      code: fromJSCss[0][1]
-    })
-    chrome.tabs.executeScript(tab.id, {
-      code: `
-        var script = document.createElement("script");
-        var pageHtml = \`${pageHtml.replace(/\`/g, "\\\\u0060")}\`
-        script.innerHTML = "window.pageHtml = \`" + pageHtml + "\`;";
-        document.documentElement.appendChild(script)
+  setTimeout(activate, 10000)
 
-        var script2 = document.createElement("script")
-        script2.src = '${chrome.extension.getURL("from.js")}'
-        document.documentElement.appendChild(script2)
-      `,
-      runAt: "document_start"
-    })
+  function activate(){
+    tabStage[tabId] = "active"
+      chrome.tabs.insertCSS(tab.id, {
+        code: fromJSCss[0][1]
+      })
 
-    chrome.tabs.executeScript(tab.id, {
-        "file": "contentScript.js",
+      chrome.tabs.executeScript(tab.id, {
+          "file": "contentScript.js",
+          runAt: "document_start"
+      }, function () {
+          console.log("Script Executed .. ");
+      });
+
+      chrome.tabs.executeScript(tab.id, {
+        code: `
+          var script = document.createElement("script");
+          var pageHtml = \`${pageHtml.replace(/\`/g, "\\\\u0060")}\`
+          script.innerHTML = "window.pageHtml = \`" + pageHtml + "\`;";
+          document.documentElement.appendChild(script)
+
+          var script2 = document.createElement("script")
+          script2.src = '${chrome.extension.getURL("from.js")}'
+          document.documentElement.appendChild(script2)
+        `,
         runAt: "document_start"
-    }, function () {
-        console.log("Script Executed .. ");
-    });
+      })
 
-    updateBadge(tab)
+
+  }
+
+
 
 })
 
-var hostUrl = "http://example.com/"
+var tabStage = {}
+
 var idsToDisableOnNextMainFrameLoad = []
 var sourceMaps = {}
 chrome.webRequest.onBeforeRequest.addListener(
   function(info){
+    
     
   if (!isEnabledInTab(info.tabId)){
         return
@@ -103,9 +119,6 @@ chrome.webRequest.onBeforeRequest.addListener(
       }
 
       if (info.type === "main_frame") {
-        if (info.url === hostUrl) {
-          return;
-        }
         if (idsToDisableOnNextMainFrameLoad.indexOf(info.tabId) !== -1) {
             idsToDisableOnNextMainFrameLoad = idsToDisableOnNextMainFrameLoad.filter(id => id !== info.tabId)
             disableInTab(info.tabId)
@@ -123,19 +136,23 @@ chrome.webRequest.onBeforeRequest.addListener(
         pageHtml = xhr.responseText
         var parts = info.url.split("/");parts.pop(); parts.push("");
         var basePath = parts.join("/")
-
-        var headCode = "<base href='" + basePath + "'>"
-        pageHtml = pageHtml.replace("<head>", "<head>" + headCode)
-        return {
-          redirectUrl: hostUrl
-        }
+        return
+        // var headCode = "<base href='" + basePath + "'>"
+        // pageHtml = pageHtml.replace("<head>", "<head>" + headCode)
       }
-    
+      debugger
+      if (tabStage[info.tabId] !== "active") {
+        return {cancel: true}
+      }
+
+
       if (info.url.slice(info.url.length - ".js.map".length) === ".js.map") {
         return {
           redirectUrl: "data:," + encodeURI(sourceMaps[info.url])
         }
       }
+
+
 
       var url = info.url;
       var dontProcess = false
@@ -144,6 +161,7 @@ chrome.webRequest.onBeforeRequest.addListener(
         url = url.slice(0, - ".dontprocess".length)
       }
       if (url.slice(url.length - ".js".length) === ".js") {
+
           var xhr = new XMLHttpRequest()
           xhr.open('GET', url, false);
           xhr.send(null);

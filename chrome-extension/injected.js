@@ -1,7 +1,24 @@
 console.log("in injected.js")
-window.fromJSInitialPageHtml = pageHtml;
-var bodyContent = pageHtml.split(/<body.*?>/)[1].split("</body>")[0]
-var headContent = pageHtml.split(/<head.*?>/)[1].split("</head>")[0]
+window.onFromJSReady = function(){
+    window.fromJSInitialPageHtml = pageHtml;
+    var bodyContent = pageHtml.split(/<body.*?>/)[1].split("</body>")[0]
+    var headContent = pageHtml.split(/<head.*?>/)[1].split("</head>")[0]    
+
+    var h = getHtmlAndScriptTags(headContent);
+    document.head.innerHTML = h.html
+    appendScriptsOneAfterAnother(h.scripts, document.head, function(){
+        var b = getHtmlAndScriptTags(bodyContent)
+        bodyContent = b.html
+
+        var fromJSButton = document.querySelector(".fromjs-show-inspector-button")
+        document.body.innerHTML = bodyContent
+        if (fromJSButton) {
+            document.body.appendChild(fromJSButton)
+        }
+        makeSureInitialHTMLHasBeenProcessed()
+        appendScriptsOneAfterAnother(b.scripts, document.body, function(){})
+    })
+}
 
 function getHtmlAndScriptTags(html){
     var scripts = []
@@ -60,16 +77,3 @@ function appendScriptsOneAfterAnother(scripts, container, done){
 }
 
 
-var h = getHtmlAndScriptTags(headContent);
-document.head.innerHTML = h.html
-appendScriptsOneAfterAnother(h.scripts, document.head, function(){
-    var b = getHtmlAndScriptTags(bodyContent)
-    bodyContent = b.html
-
-    var fromJSButton = document.querySelector(".fromjs-show-inspector-button")
-    document.body.innerHTML = bodyContent
-    if (fromJSButton) {
-        document.body.appendChild(fromJSButton)
-    }
-    appendScriptsOneAfterAnother(b.scripts, document.body, function(){})
-})
