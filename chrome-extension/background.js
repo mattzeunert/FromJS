@@ -15,7 +15,7 @@ process:
 function isEnabledInTab(tabId){
     return tabsToProcess.indexOf(tabId) !== -1
 }
-// disabled ==> enabled ==> initializing 
+// disabled ==> enabled ==> active 
 chrome.browserAction.onClicked.addListener(function (tab) {
     if (isEnabledInTab(tab.id)) {
 
@@ -55,52 +55,46 @@ function updateBadge(tab){
 var pageHtml = ""
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-   if (changeInfo.status !== "loading") {
+    updateBadge(tabId)
+
+    if (changeInfo.status !== "complete") {
+        return
+    }
+
+    if (!isEnabledInTab(tabId)){
       return
-  }
+    }
 
-      updateBadge(tabId)
-
-
-  if (!isEnabledInTab(tabId)){
-    return
-  }
-
-  setTimeout(activate, 10000)
-
-  function activate(){
-    tabStage[tabId] = "active"
-      chrome.tabs.insertCSS(tab.id, {
-        code: fromJSCss[0][1]
-      })
-
-      chrome.tabs.executeScript(tab.id, {
-          "file": "contentScript.js",
-          runAt: "document_start"
-      }, function () {
-          console.log("Script Executed .. ");
-      });
-
-      chrome.tabs.executeScript(tab.id, {
-        code: `
-          var script = document.createElement("script");
-          var pageHtml = \`${pageHtml.replace(/\`/g, "\\\\u0060")}\`
-          script.innerHTML = "window.pageHtml = \`" + pageHtml + "\`;";
-          document.documentElement.appendChild(script)
-
-          var script2 = document.createElement("script")
-          script2.src = '${chrome.extension.getURL("from.js")}'
-          document.documentElement.appendChild(script2)
-        `,
-        runAt: "document_start"
-      })
-
-
-  }
-
-
-
+    activate(tabId)
 })
+
+function activate(tabId){
+  tabStage[tabId] = "active"
+    chrome.tabs.insertCSS(tabId, {
+      code: fromJSCss[0][1]
+    })
+
+    chrome.tabs.executeScript(tabId, {
+        "file": "contentScript.js",
+        runAt: "document_start"
+    }, function () {
+        console.log("Script Executed .. ");
+    });
+
+    chrome.tabs.executeScript(tabId, {
+      code: `
+        var script = document.createElement("script");
+        var pageHtml = \`${pageHtml.replace(/\`/g, "\\\\u0060")}\`
+        script.innerHTML = "window.pageHtml = \`" + pageHtml + "\`;";
+        document.documentElement.appendChild(script)
+
+        var script2 = document.createElement("script")
+        script2.src = '${chrome.extension.getURL("from.js")}'
+        document.documentElement.appendChild(script2)
+      `,
+      runAt: "document_start"
+    })
+}
 
 var tabStage = {}
 
