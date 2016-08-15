@@ -267,3 +267,11 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     border-radius: 3px;
     padding: 8px 21px;
 }
+
+.fromjs-no-phone-support-warning {
+    position: fixed;
+    top: 0;
+    pointer-events: none;
+}
+
+

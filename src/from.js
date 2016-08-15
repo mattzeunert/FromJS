@@ -6,13 +6,23 @@ import saveAndSerializeDOMState from "./ui/saveAndSerializeDOMState"
 import initSerializedDataPage from "./ui/initSerializedDataPage"
 import showFromJSSidebar from "./ui/showFromJSSidebar"
 import $ from "jquery"
+import isMobile from "./isMobile"
 
 console.log("in from.js")
 console.profile()
 console.time("Page Load")
 document.addEventListener("readystatechange", onReadyStateChange)
 
+
 function onReadyStateChange(e){
+    if (isMobile() && location.href.indexOf("/react-") !== -1){
+        $("body").append(`<div class="fromjs-no-phone-support-warning">
+            If you're on a phone,
+            <a href="/react-todomvc">this demo might work better<a>.<br/>
+            Or go to the <a href="/">FromJS homepage</a>.
+        </div>`)   
+    }
+
     // we might be listenting too late for "interactive", so on some pages we might just get "complete"
     if (document.readyState === "interactive" || document.readyState === "complete") {
         if (window.isSerializedDomPage){return}
@@ -63,6 +73,8 @@ function onDoneProcessing(doneProcessing){
 
     }
 }
+
+
 
 setTimeout(function(){
     if (window.onFromJSReady) {
