@@ -74,10 +74,12 @@ function activate(tabId){
         console.log("Script Executed .. ");
     });
 
+    var escapedPageHtml = pageHtml.replace(/\`/g, "\\\\u0060").replace(/\\/g, "\\\\\\\\");
     chrome.tabs.executeScript(tabId, {
       code: `
         var script = document.createElement("script");
-        var pageHtml = \`${pageHtml.replace(/\`/g, "\\\\u0060")}\`
+
+        var pageHtml = \`${escapedPageHtml}\`
         script.innerHTML = "window.pageHtml = \`" + pageHtml + "\`;";
         document.documentElement.appendChild(script)
 
