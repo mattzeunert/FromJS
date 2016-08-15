@@ -217,11 +217,19 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     // TODO: make it work if there's more than one space!!!
                     charsAddedInSerializedHtml -= 1;
                 }
-                debugger
-                if (assignedString[getCharOffsetInAssignedHTML()] === "/") {
-                    // something like <div/> (with extra space)
-                    // this char will not show up in the re-serialized innerHTML
-                    charsAddedInSerializedHtml -= 1;
+                if (!tagTypeHasClosingTag(child.tagName)) {
+                    if (assignedString[getCharOffsetInAssignedHTML()] === "/") {
+                        // something like <div/> (with extra space)
+                        // this char will not show up in the re-serialized innerHTML
+                        charsAddedInSerializedHtml -= 1;
+                    }
+                    var explicitClosingTag = "</" + child.tagName.toLowerCase() + ">"
+                    var explicitClosingTagAndOpeningTagEnd = ">" + explicitClosingTag
+                    if (assignedString.substr(getCharOffsetInAssignedHTML(), explicitClosingTagAndOpeningTagEnd.length).toLowerCase() === explicitClosingTagAndOpeningTagEnd) {
+                        // something like <div/> (with extra space)
+                        // this char will not show up in the re-serialized innerHTML
+                        charsAddedInSerializedHtml -= explicitClosingTag.length;
+                    }                
                 }
                 addElOrigin(child, "openingTagEnd", {
                     action: actionName,

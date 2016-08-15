@@ -237,4 +237,23 @@ describe("HTML Mapping", function(){
         })  
     })
 
+    it("Doesn't get confused by closed self-closing tags with an explicit end tag", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<input></input>Hello'
+
+        disableTracing()
+        expect(el.innerHTML).toBe('<input>Hello')
+
+        // <div><input>H[e]llo</div>
+        var originAndChar = getRootOriginAtChar(el, 13);
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value).toBe("<input></input>Hello")
+            expect(value[characterIndex]).toBe("e")
+            done()
+        })  
+    })
+
 })
