@@ -1,4 +1,3 @@
-console.log("in injected.js")
 window.onFromJSReady = function(){
     window.fromJSInitialPageHtml = pageHtml;
     var bodyContent = pageHtml.split(/<body.*?>/)[1].split("</body>")[0]
@@ -34,15 +33,16 @@ function getHtmlAndScriptTags(html){
                 script.setAttribute("id", match.match(/\<script.*id=['"](.*?)['"]/)[1])
             }
             var content = match.match(/<script.*?>([\s\S]*)</)[1]
-            // just to make it work for now...
-            // the problem is that we might be assigning non javascript script tag content
-            // also, from.js is loaded late, so might not be loaded yet when we create this script element
-            if (typeof nativeHTMLScriptElementTextDescriptor !== "undefined") {
-                nativeHTMLScriptElementTextDescriptor.set.apply(script, [content])
-            } else {
+            var type = script.getAttribute("type")
+            var contentIsJs = type === null || type === "text/javascript"
+            debugger
+            if (contentIsJs) {
+                // FromJS will call processJavaScript code in this case
                 script.text = content
+            } else {
+                nativeHTMLScriptElementTextDescriptor.set.apply(script, [content])    
             }
-
+            
         }
         scripts.push(script)
         return match; // ... not really a replace
@@ -62,7 +62,6 @@ function appendScriptsOneAfterAnother(scripts, container, done){
             return
         }
         var script = scripts.shift()
-        console.log("appending")
         if (script.innerHTML.toString() === ""){
             script.onload = function(){
                 console.log("onload")
