@@ -35,7 +35,6 @@ function getHtmlAndScriptTags(html){
             var content = match.match(/<script.*?>([\s\S]*)</)[1]
             var type = script.getAttribute("type")
             var contentIsJs = type === null || type === "text/javascript"
-            debugger
             if (contentIsJs) {
                 // FromJS will call processJavaScript code in this case
                 script.text = content
