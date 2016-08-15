@@ -206,7 +206,7 @@ describe("HTML Mapping", function(){
         disableTracing()
         expect(el.innerHTML).toBe('ab<!-- hi -->cd')
 
-        // <div>ab<!-- hi -->cd</div>
+        // <div>ab<!-- hi -->[c]d</div>
         var originAndChar = getRootOriginAtChar(el, 18);
 
         whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
@@ -216,6 +216,25 @@ describe("HTML Mapping", function(){
             expect(value[characterIndex]).toBe("c")
             done()
         })
+    })
+
+    it("Doesn't get confused by closed self-closing tags", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<input/>Hello'
+
+        disableTracing()
+        expect(el.innerHTML).toBe('<input>Hello')
+
+        // <div><input>H[e]llo</div>
+        var originAndChar = getRootOriginAtChar(el, 13);
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value).toBe("<input/>Hello")
+            expect(value[characterIndex]).toBe("e")
+            done()
+        })  
     })
 
 })

@@ -211,8 +211,15 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
 
                 var openingTagEnd = ">"
-                if (assignedInnerHTML.toString()[getCharOffsetInAssignedHTML()] === " ") {
+                if (assignedString[getCharOffsetInAssignedHTML()] === " ") {
                     // something like <div > (with extra space)
+                    // this char will not show up in the re-serialized innerHTML
+                    // TODO: make it work if there's more than one space!!!
+                    charsAddedInSerializedHtml -= 1;
+                }
+                debugger
+                if (assignedString[getCharOffsetInAssignedHTML()] === "/") {
+                    // something like <div/> (with extra space)
                     // this char will not show up in the re-serialized innerHTML
                     charsAddedInSerializedHtml -= 1;
                 }
