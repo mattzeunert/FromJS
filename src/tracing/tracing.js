@@ -237,8 +237,7 @@ export function enableTracing(){
                             value: parsedVal[key],
                             inputValues: [str],
                             inputValuesCharacterIndex: [rootStr.toString().indexOf(parsedVal[key])], // not very accurate, but better than nothing/always using char 0
-                            action: "JSON.parse",
-                            actionDetails: key
+                            action: "JSON.parse"
                         })
                     }
                 )
@@ -395,7 +394,6 @@ export function enableTracing(){
                                     value: val,
                                     origin: new Origin({
                                         action: "localStorage.getItem",
-                                        actionDetails: key,
                                         value: val,
                                         inputValues: [key]
                                     }),
@@ -412,7 +410,6 @@ export function enableTracing(){
                             value: res,
                             origin: new Origin({
                                 action: "localStorage.getItem",
-                                actionDetails: name,
                                 value: res,
                                 inputValues: [name]
                             }),

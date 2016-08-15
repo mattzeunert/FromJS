@@ -61,7 +61,6 @@ export default function Origin(opts){
     }
     this.valueOfEl = opts.valueOfEl
     this.valueItems = opts.valueItems
-    this.actionDetails = opts.actionDetails;
     Error.stackTraceLimit = 500;
 
     this.error = new Error()
