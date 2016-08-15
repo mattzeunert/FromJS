@@ -75,7 +75,17 @@
 	
 	var _jquery2 = _interopRequireDefault(_jquery);
 	
+	var _isMobile = __webpack_require__(701);
+	
+	var _isMobile2 = _interopRequireDefault(_isMobile);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	if ((0, _isMobile2.default)() && location.href.indexOf("/react-") !== -1) {
+	    var div = document.createElement("div");
+	    div.innerHTML = "<div class=\"fromjs-no-phone-support-warning\">\n        If you're on a phone,\n        <a href=\"/react-todomvc\">this demo might work better<a>.<br/>\n        Or go to the <a href=\"/\">FromJS homepage</a>.\n    </div>";
+	    document.documentElement.appendChild(div);
+	}
 	
 	console.log("at top of from.js");
 	
@@ -86,6 +96,7 @@
 	document.addEventListener("readystatechange", onReadyStateChange);
 	
 	function onReadyStateChange(e) {
+	
 	    // we might be listenting too late for "interactive", so on some pages we might just get "complete"
 	    if (document.readyState === "interactive" || document.readyState === "complete") {
 	        if (window.isSerializedDomPage) {

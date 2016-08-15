@@ -1,3 +1,13 @@
+if (isMobile() && location.href.indexOf("/react-") !== -1){
+    var div = document.createElement("div")
+    div.innerHTML = `<div class="fromjs-no-phone-support-warning">
+        If you're on a phone,
+        <a href="/react-todomvc">this demo might work better<a>.<br/>
+        Or go to the <a href="/">FromJS homepage</a>.
+    </div>`
+    document.documentElement.appendChild(div)
+}
+
 console.log("at top of from.js")
 import {makeSureInitialHTMLHasBeenProcessed} from "./tracing/processElementsAvailableOnInitialLoad"
 import {enableTracing, disableTracing} from "./tracing/tracing"
@@ -15,13 +25,7 @@ document.addEventListener("readystatechange", onReadyStateChange)
 
 
 function onReadyStateChange(e){
-    if (isMobile() && location.href.indexOf("/react-") !== -1){
-        $("body").append(`<div class="fromjs-no-phone-support-warning">
-            If you're on a phone,
-            <a href="/react-todomvc">this demo might work better<a>.<br/>
-            Or go to the <a href="/">FromJS homepage</a>.
-        </div>`)   
-    }
+    
 
     // we might be listenting too late for "interactive", so on some pages we might just get "complete"
     if (document.readyState === "interactive" || document.readyState === "complete") {
