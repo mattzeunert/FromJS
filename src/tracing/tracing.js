@@ -58,6 +58,8 @@ var nativeEval = window.eval
 var nativeArrayJoin = Array.prototype.join
 var nativeArrayIndexOf = Array.prototype.indexOf
 
+var nativeHTMLInputElementValueDescriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")
+
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
 
 function processJavaScriptCodeWithTracingDisabled(){
@@ -426,6 +428,23 @@ export function enableTracing(){
         }
     })
 
+    Object.defineProperty(HTMLInputElement.prototype, "value", {
+        get: function(){
+            var res = nativeHTMLInputElementValueDescriptor.get.apply(this, arguments)
+            return makeTraceObject({
+                value: res,
+                origin: new Origin({
+                    action: "HTMLInputElement Value",
+                    value: res,
+                    inputValues: []
+                })
+            })
+        },
+        set: function(){
+            return nativeHTMLInputElementValueDescriptor.set.apply(this, arguments)
+        }   
+    })
+
     window.eval = function(code){
         var id = _.uniqueId();
         var filename = "DynamicScript" + id + ".js"
@@ -532,6 +551,7 @@ export function disableTracing(){
             return window.originalLocalStorage
         }
     })
+    Object.defineProperty(HTMLInputElement.prototype, "value", nativeHTMLInputElementValueDescriptor)
     RegExp.prototype.exec = window.nativeExec
     window.Function = nativeFunction
     Object.defineProperty(Element.prototype, "className", window.nativeClassNameDescriptor)
