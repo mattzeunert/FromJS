@@ -5,7 +5,7 @@ function onload(){
     // document.body.innerHTML = "<div>a&raquo;b<span>cake</span></div>"
     // document.body.innerHTML = "<div>Hi\n\n\n\nw\nor\n\nld</div>"
 
-    document.body.innerHTML = '<span hi="hey"       cake="cookie">sssss</span>'
+    document.body.innerHTML = '<span hi="hey"       cake="cookie">ss<!-- yolo\n\n end -->sss</span>'
 }
 
 

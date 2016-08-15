@@ -121,7 +121,14 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                 validateMapping(child.__elOrigin.textValue)
             } else if (isCommentNode) {
-                // do nothing?
+                var comment = "<!--" + child.textContent + "-->"
+                addElOrigin(child, "textValue", {
+                    value: comment,
+                    inputValues: [],
+                    action: "HTML Comment"
+                })
+                charOffsetInSerializedHtml += comment.length;
+                forDebuggingProcessedHtml += comment;
             } else if (isElementNode) {
 
                 addElOrigin(child, "openingTagStart", {

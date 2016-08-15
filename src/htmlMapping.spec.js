@@ -199,4 +199,23 @@ describe("HTML Mapping", function(){
         })
     })
 
+    it("Doesn't get confused by comments", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = 'ab<!-- hi -->cd'
+
+        disableTracing()
+        expect(el.innerHTML).toBe('ab<!-- hi -->cd')
+
+        // <div>ab<!-- hi -->cd</div>
+        var originAndChar = getRootOriginAtChar(el, 18);
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value).toBe("ab<!-- hi -->cd")
+            expect(value[characterIndex]).toBe("c")
+            done()
+        })
+    })
+
 })

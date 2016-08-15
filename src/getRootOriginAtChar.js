@@ -83,18 +83,23 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
         var vm = new ValueMap();
         characterIndex -= openingTag.length;
         el.__elOrigin.contents.forEach(function(el){
-            var elIsTextNode = el.outerHTML === undefined
+            var elIsTextNode = el.nodeType === Node.TEXT_NODE
+            var elIsCommentNode = el.nodeType === Node.COMMENT_NODE
             if (elIsTextNode) {
                 var contentHtml = getHtmlFromString(el.textContent)
                 vm.appendString(contentHtml, el, 0)
-            } else {
+            } else if (elIsCommentNode){
+                var contentHtml = "<!--" + el.textContent + "-->"
+                vm.appendString(contentHtml, el, 0)
+            }else {
                 vm.appendString(el.outerHTML, el, 0)
             }
         })
         var item = vm.getItemAt(characterIndex)
-        var isTextNode = item.originObject.outerHTML === undefined;
+        var itemNodeType = item.originObject.nodeType
+        var isTextOrCommentNode = itemNodeType === Node.COMMENT_NODE || itemNodeType === Node.TEXT_NODE
 
-        if (isTextNode) {
+        if (isTextOrCommentNode) {
             var origin = item.originObject.__elOrigin.textValue
             return {
                 characterIndex: item.characterIndex + (origin.inputValuesCharacterIndex ? origin.inputValuesCharacterIndex[0] : 0),
