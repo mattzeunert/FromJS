@@ -5,13 +5,6 @@ import manifest from "./manifest" // we don't use it but we want manifest change
 
 var tabsToProcess = [];
 
-/*
-process:
-1) laod example.com
-2) load other page
-3) click on browser action for example.com tab
-*/
-
 function isEnabledInTab(tabId){
     return tabsToProcess.indexOf(tabId) !== -1
 }
@@ -131,10 +124,8 @@ chrome.webRequest.onBeforeRequest.addListener(
         var parts = info.url.split("/");parts.pop(); parts.push("");
         var basePath = parts.join("/")
         return
-        // var headCode = "<base href='" + basePath + "'>"
-        // pageHtml = pageHtml.replace("<head>", "<head>" + headCode)
       }
-      debugger
+      
       if (tabStage[info.tabId] !== "active") {
         return {cancel: true}
       }
