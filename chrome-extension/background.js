@@ -48,8 +48,7 @@ function updateBadge(tab){
 var pageHtml = ""
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-    updateBadge(tabId)
-
+    updateBadge(tab)
     if (changeInfo.status !== "complete") {
         return
     }
