@@ -94,10 +94,7 @@ var tabStage = {}
 
 var idsToDisableOnNextMainFrameLoad = []
 var sourceMaps = {}
-chrome.webRequest.onBeforeRequest.addListener(
-  function(info){
-    
-    
+chrome.webRequest.onBeforeRequest.addListener(function(info){  
   if (!isEnabledInTab(info.tabId)){
         return
       }
@@ -137,7 +134,6 @@ chrome.webRequest.onBeforeRequest.addListener(
           redirectUrl: "data:," + encodeURI(sourceMaps[info.url])
         }
       }
-
 
 
       var url = info.url;
