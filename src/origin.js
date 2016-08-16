@@ -21,14 +21,16 @@ export default function Origin(opts){
             return new Origin({
                 action: "Untracked number",
                 inputValues: [],
-                value: inputValue.toString()
+                value: inputValue.toString(),
+                error: opts.error
             })
         }
         if (typeof inputValue === "string") {
             return new Origin({
                 action: "Untracked string",
                 inputValues: [],
-                value: inputValue
+                value: inputValue,
+                error: opts.error
             })
         }
         return inputValue.origin
@@ -63,7 +65,12 @@ export default function Origin(opts){
     this.valueItems = opts.valueItems
     Error.stackTraceLimit = 500;
 
-    this.error = new Error()
+    if (opts.error) {
+        this.error = opts.error;
+    } else {
+        this.error = new Error()    
+    }
+    
 
 }
 

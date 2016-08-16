@@ -61,7 +61,7 @@ function appendScriptsOneAfterAnother(scripts, container, done){
             return
         }
         var script = scripts.shift()
-        if (script.innerHTML.toString() === ""){
+        if (nativeInnerHTMLDescriptor.get.call(script) === ""){
             script.onload = function(){
                 console.log("onload")
                 next();

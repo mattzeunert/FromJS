@@ -23,7 +23,11 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
     if (contentEndIndex === 0) {
         contentEndIndex = assignedString.length
     }
+
+    console.time("mapInnerHTMLAssignment")
+    var error = Error() // used to get stack trace, rather than creating a new one every time
     processNewInnerHtml(el)
+    console.timeEnd("mapInnerHTMLAssignment")
 
     function getCharOffsetInAssignedHTML(){
         return charOffsetInSerializedHtml - charsAddedInSerializedHtml
@@ -55,6 +59,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
         })
     }
 
+
     function processNewInnerHtml(el){
         var children = Array.prototype.slice.apply(el.childNodes, [])
         addElOrigin(el, "replaceContents", {
@@ -72,9 +77,9 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                 var text = child.textContent
                 if (child.parentNode.tagName !== "SCRIPT") {
-                    var div = document.createElement("div")
+                    var div = originalCreateElement.apply(document, ["div"])
                     nativeInnerHTMLDescriptor.set.call(div, text)
-                    text = div.innerHTML.toString()
+                    text = nativeInnerHTMLDescriptor.get.call(div)
                 }
                 var offsets = []
 
@@ -116,7 +121,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     value: serializedHtml,
                     inputValuesCharacterIndex: [charOffsetInSerializedHtml],
                     extraCharsAdded: charsAddedInSerializedHtml,
-                    offsetAtCharIndex: offsets
+                    offsetAtCharIndex: offsets,
+                    error: error
                 })
 
                 charsAddedInSerializedHtml += extraCharsAddedHere
@@ -129,7 +135,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 addElOrigin(child, "textValue", {
                     value: comment,
                     inputValues: [],
-                    action: "HTML Comment"
+                    action: "HTML Comment",
+                    error: error
                 })
                 charOffsetInSerializedHtml += comment.length;
                 forDebuggingProcessedHtml += comment;
@@ -140,7 +147,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     inputValues: [assignedInnerHTML],
                     inputValuesCharacterIndex: [charOffsetInSerializedHtml],
                     value: serializedHtml,
-                    extraCharsAdded: charsAddedInSerializedHtml
+                    extraCharsAdded: charsAddedInSerializedHtml,
+                    error: error
                 })
                 var openingTagStart = "<" + child.tagName
                 charOffsetInSerializedHtml += openingTagStart.length
@@ -202,7 +210,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                         value: whiteSpaceBeforeAttributeInSerializedHtml + attrStr,
                         inputValuesCharacterIndex: [charOffsetInSerializedHtmlBefore],
                         extraCharsAdded: charsAddedInSerializedHtml,
-                        offsetAtCharIndex: offsetAtCharIndex
+                        offsetAtCharIndex: offsetAtCharIndex,
+                        error: error
                     })
 
                     charsAddedInSerializedHtml += extraCharsAddedHere
@@ -242,7 +251,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     inputValues: [assignedInnerHTML],
                     inputValuesCharacterIndex: [charOffsetInSerializedHtml],
                     value: serializedHtml,
-                    extraCharsAdded: charsAddedInSerializedHtml
+                    extraCharsAdded: charsAddedInSerializedHtml,
+                    error: error
                 })
                 charOffsetInSerializedHtml += openingTagEnd.length
                 forDebuggingProcessedHtml += openingTagEnd
@@ -263,7 +273,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                         inputValues: [assignedInnerHTML],
                         inputValuesCharacterIndex: [charOffsetInSerializedHtml],
                         value: serializedHtml,
-                        extraCharsAdded: charsAddedInSerializedHtml
+                        extraCharsAdded: charsAddedInSerializedHtml,
+                        error: error
                     })
                     var closingTag = "</" + child.tagName + ">"
                     charOffsetInSerializedHtml += closingTag.length
