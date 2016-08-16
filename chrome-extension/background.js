@@ -147,7 +147,8 @@ chrome.webRequest.onBeforeRequest.addListener(
         dontProcess = true
         url = url.slice(0, - ".dontprocess".length)
       }
-      if (url.slice(url.length - ".js".length) === ".js") {
+      var urlWithoutQueryParameters = url.split("?")[0]
+      if (endsWith(urlWithoutQueryParameters, ".js")) {
 
           var xhr = new XMLHttpRequest()
           xhr.open('GET', url, false);
@@ -168,3 +169,7 @@ chrome.webRequest.onBeforeRequest.addListener(
         return {redirectUrl: url}
       }
   }, {urls: ["<all_urls>"]}, ["blocking"]);
+
+function endsWith(str, strEnd){
+  return str.slice(str.length - strEnd.length) === strEnd
+}
