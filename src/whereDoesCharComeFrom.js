@@ -68,7 +68,8 @@ function goUp(step, callback){
             originObject: step.originObject.inputValues[0],
             characterIndex: newCharIndex
         }
-    } else if (step.originObject.action === "Assign InnerHTML") {
+    } else if (step.originObject.action === "Assign InnerHTML" || 
+        step.originObject.action === "Initial Body HTML") {
         var offsetAtChar = 0;
         if (step.originObject.offsetAtCharIndex){
             var index = step.characterIndex - step.originObject.inputValuesCharacterIndex[0]
@@ -215,12 +216,6 @@ function goUp(step, callback){
             }
         } else {
             throw "not handled mathc call"
-        }
-    }
-    else if (step.originObject.action === "Initial Body HTML"){
-        ret = {
-            originObject: step.originObject.inputValues[0],
-            characterIndex: step.characterIndex - step.originObject.extraCharsAdded
         }
     }
     else if (step.originObject.action === "Read Element innerHTML"){

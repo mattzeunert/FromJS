@@ -51,6 +51,9 @@ export default function Origin(opts){
 
     this.inputValuesCharacterIndex = opts.inputValuesCharacterIndex
     this.offsetAtCharIndex = opts.offsetAtCharIndex
+    if (this.offsetAtCharIndex && this.offsetAtCharIndex.length == 0){
+        debugger
+    }
 
     this.isHTMLFileContent = opts.isHTMLFileContent
 

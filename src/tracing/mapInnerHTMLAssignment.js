@@ -115,6 +115,10 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     }
                 }
 
+                if (offsets.length === 0) {
+                    offsets = undefined
+                }
+
                 addElOrigin(child, "textValue", {
                     action: actionName,
                     inputValues: [assignedInnerHTML],
@@ -222,8 +226,6 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     var attrPropName = "attribute_" + attr.name;
                     validateMapping(child.__elOrigin[attrPropName])
                 }
-
-
 
                 var openingTagEnd = ">"
                 if (assignedString[getCharOffsetInAssignedHTML()] === " ") {
