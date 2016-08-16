@@ -114,4 +114,10 @@ describe("processJavaScriptCode", function(){
         expect(evalRes.value).toBe("hi")
         expect(evalRes.origin.action).toBe("String Literal")
     });
+
+    it("Can handle nested conditional operators", function(){
+         var code = "var a = true ? ('' ? null : ({} ? 'yes' : null)) : null;a"
+        code = processJavaScriptCode(code).code
+        expect(eval(code).value).toBe("yes")
+    })
 })
