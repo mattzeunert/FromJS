@@ -1,4 +1,5 @@
 export default {
     logUntrackedStrings: false,
-    logUntrackedPropertyNames: false
+    logUntrackedPropertyNames: false,
+    validateHtmlMapping: false
 }

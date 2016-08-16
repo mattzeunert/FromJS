@@ -3,6 +3,7 @@ import $ from "jquery"
 import tagTypeHasClosingTag from "./tagTypeHasClosingTag"
 import stringTraceUseValue from "./stringTraceUseValue"
 import {goUpForDebugging} from "../whereDoesCharComeFrom"
+import config from "../config"
 
 // tries to describe the relationship between an assigned innerHTML value
 // and the value you get back when reading el.innerHTML.
@@ -29,6 +30,9 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
     }
 
     function validateMapping(mostRecentOrigin){
+        if (!config.validateHtmlMapping) {
+            return
+        }
         var step = {
             originObject: mostRecentOrigin,
             characterIndex: charOffsetInSerializedHtml - 1
@@ -158,7 +162,9 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                         whiteSpaceBeforeAttributeInAssignedHtml = whiteSpaceMatches[0]
                     } else {
                         // something broke, but better to show a broken result than nothing at all
-                        console.warn("no whitespace found at start of", assignedValueFromAttrStartOnwards)
+                        if (config.validateHtmlMapping) {
+                            console.warn("no whitespace found at start of", assignedValueFromAttrStartOnwards)
+                        }
                         whiteSpaceBeforeAttributeInAssignedHtml = "";
                     }
                     
