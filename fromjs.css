@@ -18,6 +18,10 @@
 .fromjs-outer-container button {
     border: none;
     background: transparent;
+    box-shadow: none;
+    min-height: none;
+    padding: auto;
+    border-radius: 0;
 }
 
 .fromjs-show-inspector-button {
