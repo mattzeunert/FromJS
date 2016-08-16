@@ -5,7 +5,7 @@ import stringTraceUseValue from "./stringTraceUseValue"
 import untrackedArgument from "./untrackedArgument"
 import config from "../config"
 
-function StringTraceString(options){
+function FromJSString(options){
     this.origin = options.origin
     this.value = options.value
     if (typeof this.value.toString() !== "string") {
@@ -28,13 +28,13 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
     // can't use .apply on valueOf function (" String.prototype.valueOf is not generic")
     if (propertyName === "valueOf") { return }
     if (typeof String.prototype[propertyName] === "function") {
-        StringTraceString.prototype[propertyName] = function(){
+        FromJSString.prototype[propertyName] = function(){
             var oldValue = this;
             var args = unstringTracifyArguments(arguments)
             var newVal;
 
             var argumentOrigins = Array.prototype.slice.call(arguments).map(function(arg){
-                if (arg instanceof StringTraceString) {
+                if (arg instanceof FromJSString) {
                     return arg.origin;
                 }
                 return untrackedArgument(arg)
@@ -208,16 +208,16 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
         }
     }
 })
-StringTraceString.prototype.valueOf = function(){
+FromJSString.prototype.valueOf = function(){
     return this.value;
 }
-StringTraceString.prototype.toString = function(){
+FromJSString.prototype.toString = function(){
     return this.value
 }
-StringTraceString.prototype.toJSON = function(){
+FromJSString.prototype.toJSON = function(){
     return this.value
 }
-Object.defineProperty(StringTraceString.prototype, "length", {
+Object.defineProperty(FromJSString.prototype, "length", {
     get: function(){
         return this.value.length;
     }
@@ -227,7 +227,7 @@ export function makeTraceObject(options){
     if (options === undefined || options.value === undefined || options.origin === undefined) {
         throw "invalid options"
     }
-    var stringTraceObject = new StringTraceString({
+    var stringTraceObject = new FromJSString({
         value: stringTraceUseValue(options.value),
         origin: options.origin
     })
