@@ -9,11 +9,7 @@ window.onFromJSReady = function(){
         var b = getHtmlAndScriptTags(bodyContent)
         bodyContent = b.html
 
-        var fromJSButton = document.querySelector(".fromjs-show-inspector-button")
         document.body.innerHTML = bodyContent
-        if (fromJSButton) {
-            document.body.appendChild(fromJSButton)
-        }
         makeSureInitialHTMLHasBeenProcessed()
         appendScriptsOneAfterAnother(b.scripts, document.body, function(){})
     })

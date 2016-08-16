@@ -349,8 +349,17 @@ export function enableTracing(){
 
     Object.defineProperty(Element.prototype, "innerHTML", {
         set: function(innerHTML){
+            var fromJSButton;
+            if (this === document.body) {
+                // body assignments by the app can overwrite the button, 
+                // so keep a reference and restore it later
+                fromJSButton = document.querySelector(".fromjs-show-inspector-button")
+            }
             var ret = nativeInnerHTMLDescriptor.set.apply(this, arguments)
             mapInnerHTMLAssignment(this, innerHTML, "Assign InnerHTML")
+            if (fromJSButton){
+                document.body.appendChild(fromJSButton)
+            }
             return ret
         },
         get: function(){
