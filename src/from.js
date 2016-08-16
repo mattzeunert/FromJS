@@ -8,7 +8,6 @@ if (isMobile() && location.href.indexOf("/react-") !== -1){
     document.documentElement.appendChild(div)
 }
 
-console.log("at top of from.js")
 import {makeSureInitialHTMLHasBeenProcessed} from "./tracing/processElementsAvailableOnInitialLoad"
 import {enableTracing, disableTracing} from "./tracing/tracing"
 import {addBabelFunctionsToGlobalObject} from "./tracing/babelFunctions"
@@ -21,33 +20,11 @@ import isMobile from "./isMobile"
 console.log("in from.js")
 console.profile()
 console.time("Page Load")
-document.addEventListener("readystatechange", onReadyStateChange)
 
-
-function onReadyStateChange(e){
-    
-
-    // we might be listenting too late for "interactive", so on some pages we might just get "complete"
-    if (document.readyState === "interactive" || document.readyState === "complete") {
-        if (window.isSerializedDomPage){return}
-        if (window.isVis){return}
-        // it's hard to know when I should do this
-        // e.g. it's possible that some JS runs inbetween the page HTML
-        // and modifies the DOM
-        // for now I'm hoping the inspected app is waiting for document ready
-        // ... maybe processing as soon as the page tries to do something
-        // like appendChild or similar collect inital html
-        makeSureInitialHTMLHasBeenProcessed();
-
-
-        onDoneProcessing(function(){
-            console.timeEnd("Page Load")
-            console.profileEnd()
-        })
-
-        document.removeEventListener("readystatechange", onReadyStateChange)
-    }
-}
+onDoneProcessing(function(){
+    console.timeEnd("Page Load")
+    console.profileEnd()
+})
 
 function onDoneProcessing(doneProcessing){
     var lastTimes = [];
