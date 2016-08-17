@@ -6,6 +6,7 @@ import getRootOriginAtChar from "./getRootOriginAtChar"
 import $ from "jquery"
 import _ from "underscore"
 import adjustColumnForLineBreaks from "./adjustColumnForLineBreaks"
+import config from "./config"
 
 export default function whereDoesCharComeFrom(originObject, characterIndex, callback){
     characterIndex = parseFloat(characterIndex)
@@ -38,7 +39,9 @@ export default function whereDoesCharComeFrom(originObject, characterIndex, call
                 steps.push(newStep)
                 nextStep(newStep)
             } else {
-                console.log("steps are", steps)
+                if (config.logTracingSteps) {
+                    console.log("steps are", steps)
+                }
                 callback(steps)
             }
         })
@@ -68,7 +71,7 @@ function goUp(step, callback){
             originObject: step.originObject.inputValues[0],
             characterIndex: newCharIndex
         }
-    } else if (step.originObject.action === "Assign InnerHTML" || 
+    } else if (step.originObject.action === "Assign InnerHTML" ||
         step.originObject.action === "Initial Body HTML") {
         var offsetAtChar = 0;
         if (step.originObject.offsetAtCharIndex){
@@ -277,7 +280,9 @@ function goUp(step, callback){
         return;
     }
     else {
-        console.log("not handling step", step)
+        if (config.logTracingSteps) {
+            console.log("not handling step", step)
+        }
         callback(null)
         return
     }

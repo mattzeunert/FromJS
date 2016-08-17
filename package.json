@@ -25,6 +25,7 @@
     "babel-template": "^6.7.0",
     "babel-types": "^6.7.2",
     "babylon": "^6.8.0",
+    "cheerio": "^0.20.0",
     "d3": "^3.5.17",
     "ends-with": "^0.2.0",
     "jquery": "^3.0.0",
@@ -36,8 +37,8 @@
     "stacktrace-js": "^1.2.0",
     "starts-with": "^1.0.2",
     "string-contains": "^0.1.0",
-    "webpack": "^1.13.1",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "webpack": "^1.13.1"
   },
   "devDependencies": {
     "babel-loader": "^6.2.4",

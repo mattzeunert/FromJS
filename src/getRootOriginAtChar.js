@@ -1,9 +1,10 @@
 import ValueMap from "../src/value-map"
 import tagTypeHasClosingTag from "./tracing/tagTypeHasClosingTag"
+import getOpeningAndClosingTags from "./getOpeningAndClosingTags"
 
 window.getRootOriginAtChar = getRootOriginAtChar
 
-var closingTagRegExp = /\<\/\w+\>$/;
+
 var div = document.createElement("div")
 function getHtmlFromString(str){
     // convert stuff like & to &amp;
@@ -11,15 +12,13 @@ function getHtmlFromString(str){
     return div.innerHTML;
 }
 
+
+
 export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInnerHTML){
     var innerHTML = el.innerHTML
-    var closingTagMatches = el.outerHTML.match(closingTagRegExp)
-    var closingTag = ""
-    var tagIsSelfClosing = closingTagMatches === null
-    if (!tagIsSelfClosing){
-        closingTag = closingTagMatches[0]
-    }
-    var openingTag = el.outerHTML.substr(0,el.outerHTML.length - innerHTML.length - closingTag.length)
+    var parts = getOpeningAndClosingTags(el.outerHTML, el.innerHTML)
+    var openingTag = parts.openingTag;
+    var closingTag = parts.closingTag
 
     if (charIndexIsInInnerHTML) {
         characterIndex += openingTag.length;
