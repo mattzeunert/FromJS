@@ -9,7 +9,7 @@ import config from "../config"
 // and the value you get back when reading el.innerHTML.
 // e.g. you could assign "<input type='checkbox' checked>" and get back
 // "<input type='checkbox' checked=''>"
-// essentially this function serializes the elements content and compares it to the 
+// essentially this function serializes the elements content and compares it to the
 // assigned value
 export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName, initialExtraCharsValue, contentEndIndex){
     var serializedHtml = nativeInnerHTMLDescriptor.get.call(el)
@@ -24,10 +24,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
         contentEndIndex = assignedString.length
     }
 
-    console.time("mapInnerHTMLAssignment")
     var error = Error() // used to get stack trace, rather than creating a new one every time
     processNewInnerHtml(el)
-    console.timeEnd("mapInnerHTMLAssignment")
 
     function getCharOffsetInAssignedHTML(){
         return charOffsetInSerializedHtml - charsAddedInSerializedHtml
@@ -41,18 +39,18 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
             originObject: mostRecentOrigin,
             characterIndex: charOffsetInSerializedHtml - 1
         }
-        
+
         goUpForDebugging(step, function(newStep){
             if (assignedString[newStep.characterIndex] !== serializedHtml[charOffsetInSerializedHtml - 1]){
                 // This doesn't necessarily mean anything is going wrong.
-                // For example, you'll get this warning every time you assign an 
+                // For example, you'll get this warning every time you assign an
                 // attribute like this: <a checked>
                 // because it'll be changed into: <a checked="">
                 // and then we compare the last char of the attribute,
                 // which will be 'd' in the assigned string and '"' in
                 // the serialized string
                 // however, I don't think there's ever a reason for this to be
-                // called repeatedly. That would indicate a offset problem that 
+                // called repeatedly. That would indicate a offset problem that
                 // gets carried through the rest of the assigned string
                 console.warn("strings don't match", assignedString[newStep.characterIndex], serializedHtml[charOffsetInSerializedHtml - 1])
             }
@@ -179,7 +177,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                         }
                         whiteSpaceBeforeAttributeInAssignedHtml = "";
                     }
-                    
+
                     var attrStr = attr.name
                     attrStr += "='" + attr.textContent +  "'"
 
@@ -246,7 +244,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                         // something like <div/> (with extra space)
                         // this char will not show up in the re-serialized innerHTML
                         charsAddedInSerializedHtml -= explicitClosingTag.length;
-                    }                
+                    }
                 }
                 addElOrigin(child, "openingTagEnd", {
                     action: actionName,

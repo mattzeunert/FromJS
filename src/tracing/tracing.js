@@ -169,7 +169,7 @@ export function enableTracing(){
                         self.onload()
                     }
                 } else {
-                    console.log("ignoreing ajax result")
+                    console.log("Ignoring Ajax State Change")
                 }
             }
             this.xhr.open.apply(self.xhr, arguments)
@@ -351,7 +351,7 @@ export function enableTracing(){
         set: function(innerHTML){
             var fromJSButton;
             if (this === document.body) {
-                // body assignments by the app can overwrite the button, 
+                // body assignments by the app can overwrite the button,
                 // so keep a reference and restore it later
                 fromJSButton = document.querySelector(".fromjs-show-inspector-button")
             }
@@ -448,7 +448,7 @@ export function enableTracing(){
         },
         set: function(){
             return nativeHTMLInputElementValueDescriptor.set.apply(this, arguments)
-        }   
+        }
     })
 
     window.eval = function(code){
