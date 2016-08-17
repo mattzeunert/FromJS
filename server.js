@@ -7,6 +7,7 @@ var processJavaScriptCode = require("./src/compilation/processJavaScriptCode")
 var _ = require("underscore")
 
 http.createServer(handleRequest).listen(7500)
+var isDev = process.argv[2] === "dev"
 
 function handleRequest(request, response){
     var path = request.url.split("?")[0]
@@ -16,7 +17,12 @@ function handleRequest(request, response){
         if (endsWith(path, "fromjs.css")) {
             path = __dirname + "/fromjs.css"
         }
-        // path = path.replace("/fromjs-internals/", __dirname + "/" + "dist/")
+        if (isDev) {
+
+        } else {
+            path = path.replace("/fromjs-internals/", __dirname + "/" + "dist/")
+        }
+
     } else {
         path = "." + path
     }
@@ -42,7 +48,11 @@ function handleRequest(request, response){
 
             if (endsWith(request.url, ".html")){
                 var originalHtmlScriptTag = "<script id='fromjs-initial-html' html-filename='" + request.url + "' type='text/template'>" + encodeURIComponent(fileContents) + "</script>"
-                var scriptTagHtml = '<script src="http://localhost:8080/dist/from.js" charset="utf-8"></script>'
+                var fromJSUrl = "/fromjs-internals/from.js"
+                if (isDev){
+                    fromJSUrl = "http://localhost:8080/dist/from.js"
+                }
+                var scriptTagHtml = '<script src="' + fromJSUrl + '" charset="utf-8"></script>'
                 var linkTagHtml = '<link rel="stylesheet" href="' + "/fromjs-internals/fromjs.css" + '"/>'
                 var insertedHtml = originalHtmlScriptTag + scriptTagHtml + linkTagHtml
 
@@ -52,7 +62,7 @@ function handleRequest(request, response){
                 fileContents = fileContents.replace(/<body[\w\W]*?>[\w\W]*?<\/body>/, function(match){
                     var hasScriptTag = false;
                     hasBody = true;
-                    
+
                     match = match.replace(/<script[\w\W]*?>[\w\W]*?<\/script>/g, function(scriptMatch){
                         if (scriptMatch.split(">")[0].indexOf("template") !== -1) {
                             // skip script tag that look like templates
@@ -61,9 +71,9 @@ function handleRequest(request, response){
                         if (hasScriptTag) {return scriptMatch}
                         hasScriptTag = true;
                         return script + scriptMatch
-                    })    
+                    })
                     if (!hasScriptTag) {
-                        match = match.replace(/<\/body>$/, script + "</body>") 
+                        match = match.replace(/<\/body>$/, script + "</body>")
                     }
                     return match
                 })
