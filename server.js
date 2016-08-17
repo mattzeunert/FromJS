@@ -4,6 +4,7 @@ var endsWith = require('ends-with');
 var startsWith = require("starts-with")
 var stringContains = require("string-contains");
 var processJavaScriptCode = require("./src/compilation/processJavaScriptCode")
+import { replaceJSScriptTags } from "./src/getJSScriptTags"
 var _ = require("underscore")
 
 http.createServer(handleRequest).listen(7500)
@@ -15,25 +16,29 @@ function handleRequest(request, response){
 
     if (isInternalRequest){
         if (endsWith(path, "fromjs.css")) {
-            path = __dirname + "/fromjs.css"
+            path = require("path").normalize(__dirname + "/../fromjs.css")
+            console.log("__dirname", __dirname)
+            console.log("__filename", __filename)
+            console.log("path is ", path)
         }
         if (isDev) {
 
         } else {
-            path = path.replace("/fromjs-internals/", __dirname + "/" + "dist/")
+            path = path.replace("/fromjs-internals/", __dirname + "/../" + "dist/")
         }
 
     } else {
         path = "." + path
     }
 
-    console.log("Request for path ", request.url)
+    console.log("Request for", request.url)
     if (endsWith(path, ".js.map") && !isInternalRequest){
         path = path.substr(0, path.length - ".map".length)
     }
     if (endsWith(path, ".dontprocess")){
         path = path.substr(0, path.length - ".dontprocess".length)
     }
+
 
     if (fs.existsSync(path)){
         if (fs.lstatSync(path).isDirectory()){
@@ -55,6 +60,13 @@ function handleRequest(request, response){
                 var scriptTagHtml = '<script src="' + fromJSUrl + '" charset="utf-8"></script>'
                 var linkTagHtml = '<link rel="stylesheet" href="' + "/fromjs-internals/fromjs.css" + '"/>'
                 var insertedHtml = originalHtmlScriptTag + scriptTagHtml + linkTagHtml
+
+                var uid = 1;
+                fileContents = replaceJSScriptTags(fileContents, function(content) {
+                    var filename = "ScriptTag" + uid + ".js";
+                    uid++;
+                    return processJavaScriptCode(content, {filename: filename}).code
+                })
 
                 // we need a  proper solution for processing initial page html... but for now this has to do
                 var script = "<script>makeSureInitialHTMLHasBeenProcessed()</script>"
