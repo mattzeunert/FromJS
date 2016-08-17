@@ -1,6 +1,6 @@
 {
   "name": "from-js",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -36,7 +36,8 @@
     "stacktrace-js": "^1.2.0",
     "starts-with": "^1.0.2",
     "string-contains": "^0.1.0",
-    "webpack": "^1.13.1"
+    "webpack": "^1.13.1",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "babel-loader": "^6.2.4",
@@ -55,7 +56,6 @@
     "mkdirp": "^0.5.1",
     "nodemon": "^1.9.2",
     "react-addons-perf": "^15.2.1",
-    "underscore": "^1.8.3",
     "webpack-dev-server": "^1.14.1"
   },
   "bin": {
