@@ -783,6 +783,17 @@ class StackFrame extends React.Component{
             }
         }
 
+        console.log("highlight", "'" + frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn, 1) + "'")
+        var highlightIndexInLine = frame.columnNumber + highlighNthCharAfterColumn
+        var highlightedString = processFrameString(frame.line.substr(highlightIndexInLine, 1));
+        if (frame.line.length == highlightIndexInLine) {
+            // after last proper char in line, display new line
+            highlightedString = "\u21B5"
+        }
+        if (frame.line.length < highlightIndexInLine) {
+            debugger // shoudn't happen
+        }
+
         return <div style={{
                 display: "block",
                 maxHeight: 19 * 7,
@@ -809,7 +820,7 @@ class StackFrame extends React.Component{
                                 {processFrameString(strBetweenBarAndHighlight)}
                             </span>
                             <span className={highlightClass}>
-                                {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn, 1))}
+                                {highlightedString}
                             </span>
                             <span>
                                 {processFrameString(frame.line.substr(frame.columnNumber + highlighNthCharAfterColumn + 1))}
