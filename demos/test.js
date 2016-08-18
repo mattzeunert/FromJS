@@ -6,9 +6,15 @@ function onload(){
     // document.body.innerHTML = "<div>Hi\n\n\n\nw\nor\n\nld</div>"
 
     // document.body.innerHTML = '<span hi="hey"       cake="cookie">ss<!-- yolo\n\n end -->sss</span>'
-    // document.body.innerHTML = "<div><img></img>aaa</div>"
+    document.body.innerHTML = "<div><img></img>aaa</div>"
 }
 
+document.onreadystatechange = function(){
+    console.log("document.onreadystatechange")
+}
+document.addEventListener("readystatechange", function(arg){
+    console.log("readystatechange", document.readyState)
+})
 
 //
 // console.log(333)

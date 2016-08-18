@@ -31,8 +31,19 @@ window.onFromJSReady = function(){
 
         document.body.innerHTML = bodyContent
         makeSureInitialHTMLHasBeenProcessed()
-        appendScriptsOneAfterAnother(bodyScripts, document.body, function(){})
+        appendScriptsOneAfterAnother(bodyScripts, document.body, function(){
+            simulateOnLoad()
+        })
     })
+}
+
+function simulateOnLoad(){
+    if (document.body.onload) {
+        document.body.onload({});
+    }
+
+    // I can't override document.readyState, so it will always be "complete" and never "loading"
+    document.dispatchEvent(new Event("readystatechange"))
 }
 
 
