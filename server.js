@@ -17,9 +17,6 @@ function handleRequest(request, response){
     if (isInternalRequest){
         if (endsWith(path, "fromjs.css")) {
             path = require("path").normalize(__dirname + "/../fromjs.css")
-            console.log("__dirname", __dirname)
-            console.log("__filename", __filename)
-            console.log("path is ", path)
         }
 
         path = path.replace("/fromjs-internals/", __dirname + "/../" + "dist/")
@@ -62,9 +59,12 @@ function handleRequest(request, response){
 
                 var uid = 1;
                 fileContents = replaceJSScriptTags(fileContents, function(content) {
-                    var filename = "ScriptTag" + uid + ".js";
-                    uid++;
-                    return processJavaScriptCode(content, {filename: filename}).code
+                    var encodedScript = encodeURI(content)
+                    return `
+                        var script = originalCreateElement.call(document, "script")
+                        script.text = decodeURI("${encodedScript}")
+                        document.body.appendChild(script)
+                    `
                 })
 
                 // we need a  proper solution for processing initial page html... but for now this has to do
