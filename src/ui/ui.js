@@ -463,6 +463,7 @@ class TextEl extends React.Component {
                 var charOffsetEnd = charOffset + text.length;
                 lines.push({
                     text: text,
+                    lineNumber: i,
                     charOffsetStart: charOffsetStart,
                     charOffsetEnd: charOffsetEnd,
                     containsCharIndex: function(index){
@@ -610,7 +611,7 @@ class TextEl extends React.Component {
                 } else {
                     valueSpans = getValueSpans(line.text, line.charOffsetStart);
                 }
-                return <div>
+                return <div key={"Line" + line.lineNumber}>
                     {beforeSpan}
                     {valueSpans}
                     {afterSpan}
@@ -1089,7 +1090,7 @@ class Intro extends React.Component {
             </h2>
             <p>
                 Sometimes it works, but most of the time it doesn{"'"}t. I slowly trying to support more
-                JS functionality. I'm also working on a
+                JS functionality. I{"'"}m also working on a
                 Chrome extension to make it easier to run FromJS on any page.
             </p>
 
