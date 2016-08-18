@@ -50,7 +50,7 @@ function initGPSIfNecessary(){
     window.gps = gps
 }
 
-export default function(frameString, callback){
+function resolveFrame(frameString, callback){
     // console.time("Resolve Frame " + frameString)
     if (resolvedFrameCache[frameString]){
         done(null, resolvedFrameCache[frameString])
@@ -92,6 +92,9 @@ export default function(frameString, callback){
         isCanceled = true;
     }
 }
+
+window.resolveFrame = resolveFrame
+export default resolveFrame
 
 export function getSourceFileContent(filePath, callback){
     gps._get(filePath).then(function(src){

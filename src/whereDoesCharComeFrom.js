@@ -77,6 +77,7 @@ function goUp(step, callback){
         if (step.originObject.offsetAtCharIndex){
             var index = step.characterIndex - step.originObject.inputValuesCharacterIndex[0]
             offsetAtChar = step.originObject.offsetAtCharIndex[index]
+            if (offsetAtChar === undefined) debugger
         }
         ret = {
             originObject: step.originObject.inputValues[0],
