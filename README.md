@@ -18,10 +18,9 @@ Then open a static HTML file from there.
 
 ## Development
 
+Run `npm run webpack` and `npm run server` to start, then go to [http://localhost:7500/demos/index.html](http://localhost:7500/demos/index.html).
 
-Run `npm run server` and `npm run webpack` to start, then go to [http://localhost:7500/demos/index.html](http://localhost:7500/demos/index.html).
-
-### Integration Tests
+### Unit / Integration Tests
 
 `npm run test`
 

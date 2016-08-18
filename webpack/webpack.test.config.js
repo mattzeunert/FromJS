@@ -1,3 +1,3 @@
-var config = require("./webpack.base.config")
+var config = require("./getBaseConfig")()
 
 module.exports = config;

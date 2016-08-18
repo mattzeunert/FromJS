@@ -1,3 +1,6 @@
+// This doesn't really work anymore, but I don't think I really need
+// to update the pre-rendered Backbone TodoMVC demo.
+
 var config = require("../webpack.config.js")
 var webpack = require("webpack")
 

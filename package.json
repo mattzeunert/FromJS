@@ -6,10 +6,8 @@
   "scripts": {
     "test": "karma start",
     "server": "nodemon dist/server.js dev",
-    "webpack": "webpack-dev-server",
+    "webpack": "webpack --config webpack/webpack.dev.config --watch",
     "update-website": "git subtree push  --prefix gh-pages origin gh-pages",
-    "webpack-chrome-extension": "webpack --config webpack/webpack.chrome-extension.config.js --watch",
-    "webpack-server": "webpack --config webpack/webpack.server.config.js --watch",
     "build-demo": "webpack -p --config webpack/webpack.demo.config.js",
     "build-npm": "webpack --config webpack/webpack.npm.config.js",
     "update-website-demos": "sh ./scripts/copy-demo-files-to-gh-pages.sh"
