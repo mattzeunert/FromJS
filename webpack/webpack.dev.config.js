@@ -15,7 +15,7 @@ webConfig.output = {
 };
 webConfig.plugins.push(new WebpackShellPlugin({
     onBuildEnd: [
-        "cp chrome-extension/manifest.json chrome-extension/dist/manifest.json",
+        "cp fromjs.css chrome-extension/dist/fromjs.css",
         "cp chrome-extension/dist/from.js dist/from.js",
         "cp chrome-extension/dist/from.js.map dist/from.js.map",
     ]

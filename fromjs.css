@@ -70,6 +70,11 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     max-height: 131px;
     overflow: auto;
 }
+#fromjs .fromjs-stack__code {
+    word-wrap: nowrap;
+    white-space: nowrap;
+    background: red;
+}
 #fromjs .fromjs-stack__code.fromjs-stack__code--truncated {
     cursor: pointer;
 }
