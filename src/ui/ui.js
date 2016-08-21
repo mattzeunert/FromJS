@@ -8,7 +8,7 @@ import fileIsDynamicCode from "../fileIsDynamicCode"
 import isMobile from "../isMobile"
 import ReactTooltip from "react-tooltip"
 import "react-fastclick" // import for side effects, no export
-import adjustColumnForLineBreaks from "../adjustColumnForLineBreaks"
+import adjustColumnForEscapeSequences from "../adjustColumnForEscapeSequences"
 
 import Perf from "react-addons-perf"
 window.Perf = Perf
@@ -713,7 +713,7 @@ class StackFrame extends React.Component{
             highlightClass = ""
         }
 
-        highlighNthCharAfterColumn = adjustColumnForLineBreaks(frame.line.substr(frame.columnNumber), highlighNthCharAfterColumn)
+        highlighNthCharAfterColumn = adjustColumnForEscapeSequences(frame.line.substr(frame.columnNumber), highlighNthCharAfterColumn)
         var strBetweenBarAndHighlight = frame.line.substring(frame.columnNumber, frame.columnNumber + highlighNthCharAfterColumn)
 
         // If strings are too long and would hide highlighted content truncate them

@@ -5,7 +5,7 @@ import fileIsDynamicCode from "./fileIsDynamicCode"
 import getRootOriginAtChar from "./getRootOriginAtChar"
 import $ from "jquery"
 import _ from "underscore"
-import adjustColumnForLineBreaks from "./adjustColumnForLineBreaks"
+import adjustColumnForEscapeSequences from "./adjustColumnForEscapeSequences"
 import config from "./config"
 
 export default function whereDoesCharComeFrom(originObject, characterIndex, callback){
@@ -267,7 +267,7 @@ function goUp(step, callback){
 
                     var contentFromThisLine = content.substr(characterIndex);
 
-                    characterIndex += adjustColumnForLineBreaks(contentFromThisLine, step.characterIndex)
+                    characterIndex += adjustColumnForEscapeSequences(contentFromThisLine, step.characterIndex)
 
                     callback({
                         originObject: fromJSDynamicFileOrigins[frame.fileName],
