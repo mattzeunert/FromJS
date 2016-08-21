@@ -6,6 +6,7 @@ import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getCodeFilePath from "./getCodeFilePath"
 import fileIsDynamicCode from "../fileIsDynamicCode"
 import isMobile from "../isMobile"
+import config from "../config"
 import ReactTooltip from "react-tooltip"
 import "react-fastclick" // import for side effects, no export
 import adjustColumnForEscapeSequences from "../adjustColumnForEscapeSequences"
@@ -287,7 +288,7 @@ class OriginPathItem extends React.Component {
         }
 
         var valueView = null;
-        if (originObject.action === "Initial Page HTML") {
+        if (!config.alwaysShowValue && originObject.action === "Initial Page HTML") {
             valueView = <div></div>
         } else {
             valueView = <div style={{borderTop: "1px dotted #ddd"}}>
