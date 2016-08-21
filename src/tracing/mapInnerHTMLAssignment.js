@@ -163,30 +163,30 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                     var charOffsetInSerializedHtmlBefore = charOffsetInSerializedHtml
 
-                    var whiteSpaceBeforeAttributeInSerializedHtml = " "; // always the same
+                    var whitespaceBeforeAttributeInSerializedHtml = " "; // always the same
                     var assignedValueFromAttrStartOnwards = assignedString.substr(getCharOffsetInAssignedHTML(), 100)
-                    var whiteSpaceMatches = assignedValueFromAttrStartOnwards.match(/^[\W]+/)
+                    var whitespaceMatches = assignedValueFromAttrStartOnwards.match(/^[\W]+/)
 
-                    var whiteSpaceBeforeAttributeInAssignedHtml;
-                    if (whiteSpaceMatches !== null) {
-                        whiteSpaceBeforeAttributeInAssignedHtml = whiteSpaceMatches[0]
+                    var whitespaceBeforeAttributeInAssignedHtml;
+                    if (whitespaceMatches !== null) {
+                        whitespaceBeforeAttributeInAssignedHtml = whitespaceMatches[0]
                     } else {
                         // something broke, but better to show a broken result than nothing at all
                         if (config.validateHtmlMapping) {
                             console.warn("no whitespace found at start of", assignedValueFromAttrStartOnwards)
                         }
-                        whiteSpaceBeforeAttributeInAssignedHtml = "";
+                        whitespaceBeforeAttributeInAssignedHtml = "";
                     }
 
                     var attrStr = attr.name
                     attrStr += "='" + attr.textContent +  "'"
 
-                    var assignedAttrStr = assignedString.substr(getCharOffsetInAssignedHTML() + whiteSpaceBeforeAttributeInAssignedHtml.length, attrStr.length)
+                    var assignedAttrStr = assignedString.substr(getCharOffsetInAssignedHTML() + whitespaceBeforeAttributeInAssignedHtml.length, attrStr.length)
 
                     var offsetAtCharIndex = []
                     var extraCharsAddedHere = 0;
 
-                    var extraWhitespaceInAssignedHtml = whiteSpaceBeforeAttributeInAssignedHtml.length - whiteSpaceBeforeAttributeInSerializedHtml.length
+                    var extraWhitespaceInAssignedHtml = whitespaceBeforeAttributeInAssignedHtml.length - whitespaceBeforeAttributeInSerializedHtml.length
                     extraCharsAddedHere -= extraWhitespaceInAssignedHtml
 
                     offsetAtCharIndex.push(-extraCharsAddedHere); // char index for " " before attr
@@ -209,7 +209,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     addElOrigin(child, "attribute_" + attr.name, {
                         action: actionName,
                         inputValues: [assignedInnerHTML],
-                        value: whiteSpaceBeforeAttributeInSerializedHtml + attrStr,
+                        value: whitespaceBeforeAttributeInSerializedHtml + attrStr,
                         inputValuesCharacterIndex: [charOffsetInSerializedHtmlBefore],
                         extraCharsAdded: charsAddedInSerializedHtml,
                         offsetAtCharIndex: offsetAtCharIndex,
@@ -218,20 +218,25 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                     charsAddedInSerializedHtml += extraCharsAddedHere
 
-                     charOffsetInSerializedHtml += whiteSpaceBeforeAttributeInSerializedHtml.length + attrStr.length
-                    forDebuggingProcessedHtml += whiteSpaceBeforeAttributeInSerializedHtml + attrStr
+                     charOffsetInSerializedHtml += whitespaceBeforeAttributeInSerializedHtml.length + attrStr.length
+                    forDebuggingProcessedHtml += whitespaceBeforeAttributeInSerializedHtml + attrStr
 
                     var attrPropName = "attribute_" + attr.name;
                     validateMapping(child.__elOrigin[attrPropName])
                 }
 
                 var openingTagEnd = ">"
-                if (assignedString[getCharOffsetInAssignedHTML()] === " ") {
+
+                var assignedStringFromCurrentOffset = assignedString.slice(getCharOffsetInAssignedHTML(), 200)
+                var matches = assignedStringFromCurrentOffset.match(/^(\s+)>/);
+                var whitespaceBeforeClosingAngleBracketInAssignedHTML = "";
+                if (matches !== null){
                     // something like <div > (with extra space)
                     // this char will not show up in the re-serialized innerHTML
-                    // TODO: make it work if there's more than one space!!!
-                    charsAddedInSerializedHtml -= 1;
+                    whitespaceBeforeClosingAngleBracketInAssignedHTML =  matches[1]
                 }
+                charsAddedInSerializedHtml -= whitespaceBeforeClosingAngleBracketInAssignedHTML.length;
+                
                 if (!tagTypeHasClosingTag(child.tagName)) {
                     if (assignedString[getCharOffsetInAssignedHTML()] === "/") {
                         // something like <div/> (with extra space)

@@ -6,7 +6,7 @@ function onload(){
     // document.body.innerHTML = "<div>Hi\n\n\n\nw\nor\n\nld</div>"
 
     // document.body.innerHTML = '<span hi="hey"       cake="cookie">ss<!-- yolo\n\n end -->sss</span>'
-    document.body.innerHTML = "<div><img></img>aaa</div>"
+    document.body.innerHTML = "<div \t\t\n>aaa</div>"
 }
 
 document.onreadystatechange = function(){

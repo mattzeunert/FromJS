@@ -100,6 +100,26 @@ describe("HTML Mapping", function(){
         })
     })
 
+    it("Traces extra whitespace at the end of a tag correctly", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<span \n\n\t>Hi</span>'
+        var span = el.children[0]
+
+        disableTracing()
+        expect(el.innerHTML).toBe('<span>Hi</span>')
+
+        // <span>[H]i</span>
+        var originAndChar = getRootOriginAtChar(span, 6);
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value).toBe("<span \n\n\t>Hi</span>")
+            expect(value[characterIndex]).toBe("H")
+            done()
+        })
+    })
+
     it("Traces attributes correctly", function(done){
         var el = document.createElement("div")
         el.innerHTML = '<span hi="hey" cake="cookie"></span>'
