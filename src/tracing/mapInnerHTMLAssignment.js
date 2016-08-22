@@ -199,15 +199,6 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     var textAfterAssignment = normalizeHtml(attr.textContent)
                     attrStr += "='" + textAfterAssignment +  "'"
 
-                    var offsetInAssigned = getCharOffsetInAssignedHTML() + whitespaceBeforeAttributeInAssignedHtml.length
-
-
-
-
-
-                    //TODO: FIX THIS, attrstr.length may be different in assigned vs serialized
-                    var assignedAttrStr = assignedString.substr(offsetInAssigned, attrStr.length)
-
                     var offsetAtCharIndex = []
 
                     var extraWhitespaceInAssignedHtml = whitespaceBeforeAttributeInAssignedHtml.length - whitespaceBeforeAttributeInSerializedHtml.length
@@ -216,7 +207,10 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     offsetAtCharIndex.push(-extraCharsAddedHere); // char index for " " before attr
 
                     if (attr.textContent === ""){
-                        if (attrStrContainsEmptyValue(assignedAttrStr)) {
+                        var offsetInAssigned = getCharOffsetInAssignedHTML() + whitespaceBeforeAttributeInAssignedHtml.length
+                        offsetInAssigned += attr.name.length + "=".length
+                        var firstTwoValueChars = assignedString.substr(offsetInAssigned, 2)
+                        if (/^['"]{2}/.test(firstTwoValueChars)) {
                             for (var charIndex in attrStr){
                                 offsetAtCharIndex.push(-extraCharsAddedHere)
                             }
@@ -342,7 +336,3 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
     }
 }
 
-var emptyAttrStrRegex = /.*=['"]{2}/
-function attrStrContainsEmptyValue(attrStr) {
-    return emptyAttrStrRegex.test(attrStr)
-}
