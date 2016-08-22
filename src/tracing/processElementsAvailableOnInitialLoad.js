@@ -17,7 +17,7 @@ export default function processElementsAvailableOnInitialLoad(){
     console.log("processElementsAvailableOnInitialLoad")
 
     var initialHTMLContainer = document.getElementById("fromjs-initial-html")
-    var htmlFilename = "htmlfile"
+    var htmlFilename = "page.html"
     if (initialHTMLContainer !== null) {
         // would make sense to get rid of that HTML tag completely and just assign to the fromJSIniitalPageHTml variable directly
         window.fromJSInitialPageHtml = decodeURIComponent(nativeInnerHTMLDescriptor.get.call(initialHTMLContainer))
