@@ -60,12 +60,9 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
         })
     }
 
-    function getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml, charOffsetAdjustmentInSerializedHtml) {
+    function getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml) {
         if (charOffsetAdjustmentInAssignedHtml === undefined) {
             charOffsetAdjustmentInAssignedHtml = 0;
-        }
-        if (charOffsetAdjustmentInSerializedHtml === undefined) {
-            charOffsetAdjustmentInSerializedHtml = 0;
         }
         var offsets = [];
         var extraCharsAddedHere = 0;
@@ -233,9 +230,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                             offsetAtCharIndex.push(-extraCharsAddedHere)
                         }
 
-                        var charOffsetAdjustmentInSerializedHtml = whitespaceBeforeAttributeInSerializedHtml.length + attrStrStart.length
                         var charOffsetAdjustmentInAssignedHtml = whitespaceBeforeAttributeInAssignedHtml.length + attrStrStart.length
-                        var res = getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml, charOffsetAdjustmentInSerializedHtml)
+                        var res = getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml)
 
                         if (res.offsets === undefined){
                             // Pretty sure this can only happen if there is a bug further up, but for now 
