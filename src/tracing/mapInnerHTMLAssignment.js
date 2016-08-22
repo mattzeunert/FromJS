@@ -72,7 +72,9 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
         for (var i=0; i<textAfterAssignment.length; i++) {
             var char = textAfterAssignment[i];
 
-            var htmlEntityMatchAfterAssignment = textAfterAssignment.substr(i,30).match(/^\&[a-z]+\;/)
+            var htmlEntityRegex = /^\&[#a-z0-9]+\;/
+
+            var htmlEntityMatchAfterAssignment = textAfterAssignment.substr(i,30).match(htmlEntityRegex)
 
             var posInAssignedString = charOffsetInSerializedHtml + i - charsAddedInSerializedHtml + charOffsetAdjustmentInAssignedHtml - extraCharsAddedHere;
             if (contentEndIndex <= posInAssignedString) {
@@ -80,7 +82,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 break; // just don't bother for now
             }
             var textIncludingAndFollowingChar = assignedString.substr(posInAssignedString, 30); // assuming that no html entity is longer than 30 chars
-            var htmlEntityMatch = textIncludingAndFollowingChar.match(/^\&[a-z]+\;/)
+            var htmlEntityMatch = textIncludingAndFollowingChar.match(htmlEntityRegex)
 
             offsets.push(-extraCharsAddedHere)
 
