@@ -215,7 +215,6 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                     offsetAtCharIndex.push(-extraCharsAddedHere); // char index for " " before attr
 
-
                     if (attr.textContent === ""){
                         if (attrStrContainsEmptyValue(assignedAttrStr)) {
                             for (var charIndex in attrStr){
@@ -271,7 +270,10 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                 var openingTagEnd = ">"
 
-                var assignedStringFromCurrentOffset = assignedString.slice(getCharOffsetInAssignedHTML(), 200)
+                var assignedStringFromCurrentOffset = assignedString.substr(getCharOffsetInAssignedHTML(), 200)
+                if (assignedStringFromCurrentOffset === "") {
+                    debugger;
+                }
                 var matches = assignedStringFromCurrentOffset.match(/^(\s+)\/?>/);
                 var whitespaceBeforeClosingAngleBracketInAssignedHTML = "";
                 if (matches !== null){
