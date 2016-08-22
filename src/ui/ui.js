@@ -529,10 +529,8 @@ class TextEl extends React.Component {
             </span>
         }
         function getValueSpans(val, indexOffset){
-
             var els = [];
-            for (let index in val){
-                index = parseFloat(index)
+            for (let index=0; index<val.length; index++){
                 var char = val[index]
 
                 els.push(getValueSpan(char, "", index + indexOffset, () => {
