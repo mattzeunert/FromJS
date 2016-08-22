@@ -1,16 +1,11 @@
 import ValueMap from "../src/value-map"
 import tagTypeHasClosingTag from "./tracing/tagTypeHasClosingTag"
 import getOpeningAndClosingTags from "./getOpeningAndClosingTags"
+import normalizeHtml from "./normalizeHtml"
 
 window.getRootOriginAtChar = getRootOriginAtChar
 
 
-var div = document.createElement("div")
-function getHtmlFromString(str){
-    // convert stuff like & to &amp;
-    div.innerHTML = str;
-    return div.innerHTML;
-}
 
 
 
@@ -40,10 +35,9 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
         for (var i = 0;i<el.attributes.length;i++) {
             var attr = el.attributes[i]
 
-
             var attrStr = " " + attr.name
-
-                attrStr += "='" + attr.textContent +  "'"
+            attrStr += "='" + normalizeHtml(attr.textContent) +  "'"
+            debugger
 
             var attrOrigin = el.__elOrigin["attribute_" + attr.name];
             if (attrOrigin === undefined) {
@@ -85,7 +79,7 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
             var elIsTextNode = el.nodeType === Node.TEXT_NODE
             var elIsCommentNode = el.nodeType === Node.COMMENT_NODE
             if (elIsTextNode) {
-                var contentHtml = getHtmlFromString(el.textContent)
+                var contentHtml = normalizeHtml(el.textContent)
                 vm.appendString(contentHtml, el, 0)
             } else if (elIsCommentNode){
                 var contentHtml = "<!--" + el.textContent + "-->"

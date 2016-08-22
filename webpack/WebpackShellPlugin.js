@@ -25,7 +25,7 @@ WebpackShellPlugin.prototype.apply = function(compiler) {
     }
   });
 
-  compiler.plugin("emit", (compilation, callback) => {
+  compiler.plugin("after-emit", (compilation, callback) => {
     if(options.onBuildEnd.length){
         console.log("Executing post-build scripts");
         options.onBuildEnd.forEach(script => exec(script, puts));

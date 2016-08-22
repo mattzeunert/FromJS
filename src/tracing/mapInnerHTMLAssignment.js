@@ -4,6 +4,8 @@ import tagTypeHasClosingTag from "./tagTypeHasClosingTag"
 import stringTraceUseValue from "./stringTraceUseValue"
 import {goUpForDebugging} from "../whereDoesCharComeFrom"
 import config from "../config"
+import normalizeHtml from "../normalizeHtml"
+import _ from "underscore"
 
 // tries to describe the relationship between an assigned innerHTML value
 // and the value you get back when reading el.innerHTML.
@@ -24,7 +26,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
         contentEndIndex = assignedString.length
     }
 
-    var error = Error() // used to get stack trace, rather than creating a new one every time
+    var error = Error() // used to get stack trace, rather than capturing a new one every time
     processNewInnerHtml(el)
 
     function getCharOffsetInAssignedHTML(){
@@ -57,6 +59,57 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
         })
     }
 
+    function getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml, charOffsetAdjustmentInSerializedHtml) {
+        if (charOffsetAdjustmentInAssignedHtml === undefined) {
+            charOffsetAdjustmentInAssignedHtml = 0;
+        }
+        if (charOffsetAdjustmentInSerializedHtml === undefined) {
+            charOffsetAdjustmentInSerializedHtml = 0;
+        }
+        var offsets = [];
+        var extraCharsAddedHere = 0;
+
+        for (var i=0; i<textAfterAssignment.length; i++) {
+            var char = textAfterAssignment[i];
+
+            var htmlEntityMatchAfterAssignment = textAfterAssignment.substr(i,30).match(/^\&[a-z]+\;/)
+
+            var posInAssignedString = charOffsetInSerializedHtml + i - charsAddedInSerializedHtml + charOffsetAdjustmentInAssignedHtml - extraCharsAddedHere;
+            if (contentEndIndex <= posInAssignedString) {
+                // http://stackoverflow.com/questions/38892536/why-do-browsers-append-extra-line-breaks-at-the-end-of-the-body-tag
+                break; // just don't bother for now
+            }
+            var textIncludingAndFollowingChar = assignedString.substr(posInAssignedString, 30); // assuming that no html entity is longer than 30 chars
+            var htmlEntityMatch = textIncludingAndFollowingChar.match(/^\&[a-z]+\;/)
+
+            offsets.push(-extraCharsAddedHere)
+
+            if (htmlEntityMatchAfterAssignment !== null && htmlEntityMatch === null) {
+                // assigned a character, but now it shows up as an entity (e.g. & ==> &amp;)
+                var entity = htmlEntityMatchAfterAssignment[0]
+                for (var n=0; n<entity.length-1;n++){
+                    i++
+                    extraCharsAddedHere++;
+                    offsets.push(-extraCharsAddedHere)
+                }
+            }
+
+            if (htmlEntityMatchAfterAssignment === null && htmlEntityMatch !== null) {
+                // assigned an html entity but now getting character back (e.g. &raquo; => »)
+                var entity = htmlEntityMatch[0]
+                extraCharsAddedHere -= entity.length - 1;
+            }
+        }
+
+        if (offsets.length === 0) {
+            offsets = undefined
+        }
+        return {
+            offsets: offsets,
+            extraCharsAddedHere: extraCharsAddedHere
+        }
+    }
+
 
     function processNewInnerHtml(el){
         var children = Array.prototype.slice.apply(el.childNodes, [])
@@ -70,52 +123,16 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
             var isCommentNode = child.nodeType === 8
             var isElementNode = child.nodeType === 1
             var isIframe = child
-            var extraCharsAddedHere = 0;
+
             if (isTextNode) {
 
                 var text = child.textContent
                 if (child.parentNode.tagName !== "SCRIPT") {
-                    var div = originalCreateElement.apply(document, ["div"])
-                    nativeInnerHTMLDescriptor.set.call(div, text)
-                    text = nativeInnerHTMLDescriptor.get.call(div)
+                    text = normalizeHtml(text)
                 }
-                var offsets = []
-
-                for (var i=0; i<text.length; i++) {
-                    var char = text[i];
-
-                    var htmlEntityMatchAfterAssignment = text.substr(i,30).match(/^\&[a-z]+\;/)
-
-                    var posInAssignedString = charOffsetInSerializedHtml + i - charsAddedInSerializedHtml - extraCharsAddedHere;
-                    if (contentEndIndex >= posInAssignedString) {
-                        // http://stackoverflow.com/questions/38892536/why-do-browsers-append-extra-line-breaks-at-the-end-of-the-body-tag
-                        break; // just don't bother for now
-                    }
-                    var textIncludingAndFollowingChar = assignedString.substr(posInAssignedString, 30); // assuming that no html entity is longer than 30 chars
-                    var htmlEntityMatch = textIncludingAndFollowingChar.match(/^\&[a-z]+\;/)
-
-                    offsets.push(-extraCharsAddedHere)
-
-                    if (htmlEntityMatchAfterAssignment !== null && htmlEntityMatch === null) {
-                        // assigned a character, but now it shows up as an entity (e.g. & ==> &amp;)
-                        var entity = htmlEntityMatchAfterAssignment[0]
-                        for (var n=0; n<entity.length-1;n++){
-                            i++
-                            extraCharsAddedHere++;
-                            offsets.push(-extraCharsAddedHere)
-                        }
-                    }
-
-                    if (htmlEntityMatchAfterAssignment === null && htmlEntityMatch !== null) {
-                        // assigned an html entity but now getting character back (e.g. &raquo; => »)
-                        var entity = htmlEntityMatch[0]
-                        extraCharsAddedHere -= entity.length - 1;
-                    }
-                }
-
-                if (offsets.length === 0) {
-                    offsets = undefined
-                }
+                var res = getCharMappingOffsets(text)
+                var offsets = res.offsets
+                var extraCharsAddedHere = res.extraCharsAddedHere
 
                 addElOrigin(child, "textValue", {
                     action: actionName,
@@ -143,7 +160,6 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 charOffsetInSerializedHtml += comment.length;
                 forDebuggingProcessedHtml += comment;
             } else if (isElementNode) {
-
                 addElOrigin(child, "openingTagStart", {
                     action: actionName,
                     inputValues: [assignedInnerHTML],
@@ -157,8 +173,9 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 forDebuggingProcessedHtml += openingTagStart
 
                 validateMapping(child.__elOrigin.openingTagStart)
-
+       
                 for (var i = 0;i<child.attributes.length;i++) {
+                    let extraCharsAddedHere = 0;
                     var attr = child.attributes[i]
 
                     var charOffsetInSerializedHtmlBefore = charOffsetInSerializedHtml
@@ -179,31 +196,58 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     }
 
                     var attrStr = attr.name
-                    attrStr += "='" + attr.textContent +  "'"
+                    var textAfterAssignment = normalizeHtml(attr.textContent)
+                    attrStr += "='" + textAfterAssignment +  "'"
 
-                    var assignedAttrStr = assignedString.substr(getCharOffsetInAssignedHTML() + whitespaceBeforeAttributeInAssignedHtml.length, attrStr.length)
+                    var offsetInAssigned = getCharOffsetInAssignedHTML() + whitespaceBeforeAttributeInAssignedHtml.length
+
+
+
+
+
+                    //TODO: FIX THIS, attrstr.length may be different in assigned vs serialized
+                    var assignedAttrStr = assignedString.substr(offsetInAssigned, attrStr.length)
 
                     var offsetAtCharIndex = []
-                    var extraCharsAddedHere = 0;
 
                     var extraWhitespaceInAssignedHtml = whitespaceBeforeAttributeInAssignedHtml.length - whitespaceBeforeAttributeInSerializedHtml.length
                     extraCharsAddedHere -= extraWhitespaceInAssignedHtml
 
                     offsetAtCharIndex.push(-extraCharsAddedHere); // char index for " " before attr
 
-                    if (attr.textContent === "" && !attrStrContainsEmptyValue(assignedAttrStr)){
-                        for (var charIndex in attrStr){
-                            if (charIndex >= attrStr.length - '=""'.length){
-                                extraCharsAddedHere++;
+
+                    if (attr.textContent === ""){
+                        if (attrStrContainsEmptyValue(assignedAttrStr)) {
+                            for (var charIndex in attrStr){
                                 offsetAtCharIndex.push(-extraCharsAddedHere)
-                            } else {
-                                offsetAtCharIndex.push(-extraCharsAddedHere)
+                            }
+                        } else {
+                            for (var charIndex in attrStr){
+                                if (charIndex >= attrStr.length - '=""'.length){
+                                    extraCharsAddedHere++;
+                                    offsetAtCharIndex.push(-extraCharsAddedHere)
+                                } else {
+                                    offsetAtCharIndex.push(-extraCharsAddedHere)
+                                }
                             }
                         }
                     } else {
-                        for (var charIndex in attrStr){
+                        var attrStrStart = attr.name + "='"
+                        for (var charIndex in attrStrStart){
                             offsetAtCharIndex.push(-extraCharsAddedHere)
                         }
+
+                        var charOffsetAdjustmentInSerializedHtml = whitespaceBeforeAttributeInSerializedHtml.length + attrStrStart.length
+                        var charOffsetAdjustmentInAssignedHtml = whitespaceBeforeAttributeInAssignedHtml.length + attrStrStart.length
+                        var res = getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml, charOffsetAdjustmentInSerializedHtml)
+
+                        res.offsets.forEach(function(offset, i){
+                            offsetAtCharIndex.push(offset - extraCharsAddedHere)
+                        })
+                        extraCharsAddedHere += res.extraCharsAddedHere
+
+                        var lastOffset = _.last(offsetAtCharIndex)
+                        offsetAtCharIndex.push(lastOffset) // map the "'" after the attribute value
                     }
 
                     addElOrigin(child, "attribute_" + attr.name, {
