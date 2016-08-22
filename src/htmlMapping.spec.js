@@ -80,6 +80,66 @@ describe("HTML Mapping", function(){
         })
     })
 
+    it("Traces attribute values that contain an escaped &amp; HTML entity correctly", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<span hi="&amp;test"></span>'
+        var span = el.children[0]
+
+        disableTracing()
+        expect(el.innerHTML).toBe('<span hi="&amp;test"></span>')
+
+        // <span hi="&amp;test"></span>
+        var originAndChar = getRootOriginAtChar(span, 15);
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            // correctly traces back to assigned string
+            expect(value).toBe('<span hi="&amp;test"></span>')
+            expect(value[characterIndex]).toBe("t")
+            done()
+        })
+    })
+
+    it("Traces attribute values that contain an unescaped ^ character correctly", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<span hi="&test"></span>'
+        var span = el.children[0]
+
+        disableTracing()
+        expect(el.innerHTML).toBe('<span hi="&amp;test"></span>')
+
+        // <span hi="&amp;test"></span>
+        var originAndChar = getRootOriginAtChar(span, 15);
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            // correctly traces back to assigned string
+            expect(value).toBe('<span hi="&test"></span>')
+            expect(value[characterIndex]).toBe("t")
+            done()
+        })
+    })
+
+    it("Traces attribute values that contain an escaped &raquo; character correctly", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<span hi="&raquo;test"></span>'
+        var span = el.children[0]
+
+        disableTracing()
+        expect(el.innerHTML).toBe('<span hi="»test"></span>')
+
+        // <span hi="»test"></span>
+        var originAndChar = getRootOriginAtChar(span, 11);
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            // correctly traces back to assigned string
+            expect(value).toBe('<span hi="&raquo;test"></span>')
+            expect(value[characterIndex]).toBe("t")
+            done()
+        })
+    })
+
     it("Traces an extra space at the end of a tag correctly", function(done){
         var el = document.createElement("div")
         el.innerHTML = '<span >Hi</span>'

@@ -37,7 +37,6 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
 
             var attrStr = " " + attr.name
             attrStr += "='" + normalizeHtml(attr.textContent) +  "'"
-            debugger
 
             var attrOrigin = el.__elOrigin["attribute_" + attr.name];
             if (attrOrigin === undefined) {
