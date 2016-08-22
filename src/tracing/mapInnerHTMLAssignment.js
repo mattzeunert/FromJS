@@ -4,8 +4,9 @@ import tagTypeHasClosingTag from "./tagTypeHasClosingTag"
 import stringTraceUseValue from "./stringTraceUseValue"
 import {goUpForDebugging} from "../whereDoesCharComeFrom"
 import config from "../config"
-import normalizeHtml from "../normalizeHtml"
+import normalizeHtml, {normalizeHtmlAttribute} from "../normalizeHtml"
 import _ from "underscore"
+
 
 // tries to describe the relationship between an assigned innerHTML value
 // and the value you get back when reading el.innerHTML.
@@ -198,7 +199,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     }
 
                     var attrStr = attr.name
-                    var textAfterAssignment = normalizeHtml(attr.textContent)
+                    var textAfterAssignment = normalizeHtmlAttribute(attr.textContent)
                     attrStr += "='" + textAfterAssignment +  "'"
 
                     var offsetAtCharIndex = []

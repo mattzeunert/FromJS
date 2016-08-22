@@ -1,7 +1,7 @@
 import ValueMap from "../src/value-map"
 import tagTypeHasClosingTag from "./tracing/tagTypeHasClosingTag"
 import getOpeningAndClosingTags from "./getOpeningAndClosingTags"
-import normalizeHtml from "./normalizeHtml"
+import normalizeHtml, {normalizeHtmlAttribute} from "./normalizeHtml"
 
 window.getRootOriginAtChar = getRootOriginAtChar
 
@@ -36,7 +36,7 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
             var attr = el.attributes[i]
 
             var attrStr = " " + attr.name
-            attrStr += "='" + normalizeHtml(attr.textContent) +  "'"
+            attrStr += "='" + normalizeHtmlAttribute(attr.textContent) +  "'"
 
             var attrOrigin = el.__elOrigin["attribute_" + attr.name];
             if (attrOrigin === undefined) {
