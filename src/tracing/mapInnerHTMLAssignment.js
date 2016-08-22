@@ -237,10 +237,23 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                         var charOffsetAdjustmentInAssignedHtml = whitespaceBeforeAttributeInAssignedHtml.length + attrStrStart.length
                         var res = getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml, charOffsetAdjustmentInSerializedHtml)
 
-                        res.offsets.forEach(function(offset, i){
-                            offsetAtCharIndex.push(offset - extraCharsAddedHere)
-                        })
-                        extraCharsAddedHere += res.extraCharsAddedHere
+                        if (res.offsets === undefined){
+                            // Pretty sure this can only happen if there is a bug further up, but for now 
+                            // allow it to happen rather than breaking everything
+                            // specifically this was happening on StackOverflow, probably because we don't
+                            // support tables yet (turn <table> into <table><tbody>), 
+                            // but once that is supported this might just fix itself
+                            console.warn("No offsets for attribute mapping")
+                            for (var i in textAfterAssignment){
+                                offsetAtCharIndex.push(-extraCharsAddedHere)
+                            }
+                        }
+                        else {
+                                res.offsets.forEach(function(offset, i){
+                                offsetAtCharIndex.push(offset - extraCharsAddedHere)
+                            })
+                            extraCharsAddedHere += res.extraCharsAddedHere
+                        }
 
                         var lastOffset = _.last(offsetAtCharIndex)
                         offsetAtCharIndex.push(lastOffset) // map the "'" after the attribute value
