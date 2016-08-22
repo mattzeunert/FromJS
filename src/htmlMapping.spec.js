@@ -160,6 +160,26 @@ describe("HTML Mapping", function(){
         })
     })
 
+    it("Traces an extra space at the end of a self-closing tag correctly", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<span><input \n/>Hey</span>'
+        var span = el.children[0]
+
+        disableTracing()
+        expect(span.innerHTML).toBe('<input>Hey')
+
+        // <span><input>[H]ey</span>
+        var originAndChar = getRootOriginAtChar(span, 13);
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value).toBe("<span><input \n/>Hey</span>")
+            expect(value[characterIndex]).toBe("H")
+            done()
+        })
+    })
+
     it("Traces extra whitespace at the end of a tag correctly", function(done){
         var el = document.createElement("div")
         el.innerHTML = '<span \n\n\t>Hi</span>'

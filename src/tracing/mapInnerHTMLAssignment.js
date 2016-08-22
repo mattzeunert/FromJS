@@ -272,27 +272,28 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 var openingTagEnd = ">"
 
                 var assignedStringFromCurrentOffset = assignedString.slice(getCharOffsetInAssignedHTML(), 200)
-                var matches = assignedStringFromCurrentOffset.match(/^(\s+)>/);
+                var matches = assignedStringFromCurrentOffset.match(/^(\s+)\/?>/);
                 var whitespaceBeforeClosingAngleBracketInAssignedHTML = "";
                 if (matches !== null){
                     // something like <div > (with extra space)
                     // this char will not show up in the re-serialized innerHTML
-                    whitespaceBeforeClosingAngleBracketInAssignedHTML =  matches[1]
+                    whitespaceBeforeClosingAngleBracketInAssignedHTML = matches[1]
                 }
                 charsAddedInSerializedHtml -= whitespaceBeforeClosingAngleBracketInAssignedHTML.length;
                 
                 if (!tagTypeHasClosingTag(child.tagName)) {
                     if (assignedString[getCharOffsetInAssignedHTML()] === "/") {
-                        // something like <div/> (with extra space)
+                        // something like <div/> 
                         // this char will not show up in the re-serialized innerHTML
                         charsAddedInSerializedHtml -= 1;
-                    }
-                    var explicitClosingTag = "</" + child.tagName.toLowerCase() + ">"
-                    var explicitClosingTagAndOpeningTagEnd = ">" + explicitClosingTag
-                    if (assignedString.substr(getCharOffsetInAssignedHTML(), explicitClosingTagAndOpeningTagEnd.length).toLowerCase() === explicitClosingTagAndOpeningTagEnd) {
-                        // something like <div/> (with extra space)
-                        // this char will not show up in the re-serialized innerHTML
-                        charsAddedInSerializedHtml -= explicitClosingTag.length;
+                    } else {
+                        var explicitClosingTag = "</" + child.tagName.toLowerCase() + ">"
+                        var explicitClosingTagAndOpeningTagEnd = ">" + explicitClosingTag
+                        if (assignedString.substr(getCharOffsetInAssignedHTML(), explicitClosingTagAndOpeningTagEnd.length).toLowerCase() === explicitClosingTagAndOpeningTagEnd) {
+                            // something like <div></div>
+                            // this char will not show up in the re-serialized innerHTML
+                            charsAddedInSerializedHtml -= explicitClosingTag.length;
+                        }
                     }
                 }
                 addElOrigin(child, "openingTagEnd", {
