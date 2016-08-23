@@ -1,4 +1,4 @@
-# FromJS
+# FromJS [![Build Status](https://travis-ci.org/mattzeunert/fromjs.svg?branch=master)](https://travis-ci.org/mattzeunert/fromjs)
 
 Understand JavaScript apps. See the code for responsible for every character on the screen.
 
