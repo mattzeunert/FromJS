@@ -9,7 +9,6 @@
     "webpack": "webpack --config webpack/webpack.dev.config --watch",
     "update-website": "git subtree push  --prefix gh-pages origin gh-pages",
     "build-demo": "webpack -p --config webpack/webpack.demo.config.js",
-    "build-npm": "webpack --config webpack/webpack.npm.config.js",
     "build": "webpack --config webpack/webpack.prod.config.js",
     "update-website-demos": "sh ./scripts/copy-demo-files-to-gh-pages.sh"
   },
