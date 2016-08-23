@@ -137,11 +137,7 @@ function makeTabListener(){
                 idsToDisableOnNextMainFrameLoad.push(info.tabId)
             }
 
-            var xhr = new XMLHttpRequest()
-            xhr.open('GET', info.url, false);
-            xhr.send(null);
-
-            pageHtml = xhr.responseText
+            pageHtml = getFile(info.url)
             var parts = info.url.split("/");parts.pop(); parts.push("");
             var basePath = parts.join("/")
             return
@@ -175,8 +171,6 @@ function makeTabListener(){
                 code += "\n//# sourceURL=" + info.url
                 code += "\n//# sourceMappingURL=" + info.url + ".map"
                 sourceMaps[info.url + ".map"] = JSON.stringify(res.map)
-            } else {
-                var code = xhr.responseText
             }
             url = "data:application/javascript;charset=utf-8," + encodeURI(code)
             return {redirectUrl: url}
