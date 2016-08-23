@@ -7,6 +7,10 @@ import config from "../config"
 import normalizeHtml, {normalizeHtmlAttribute} from "../normalizeHtml"
 import _ from "underscore"
 
+var htmlEntityRegex = /^\&[#a-z0-9]+\;/
+var whitespaceRegex = /^[\s]+/
+var tagEndRegex = /^(\s+)\/?>/
+var twoQuoteSignsRegex = /^['"]{2}/
 
 // tries to describe the relationship between an assigned innerHTML value
 // and the value you get back when reading el.innerHTML.
@@ -69,8 +73,6 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
         for (var i=0; i<textAfterAssignment.length; i++) {
             var char = textAfterAssignment[i];
-
-            var htmlEntityRegex = /^\&[#a-z0-9]+\;/
 
             var htmlEntityMatchAfterAssignment = textAfterAssignment.substr(i,30).match(htmlEntityRegex)
 
@@ -173,7 +175,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 forDebuggingProcessedHtml += openingTagStart
 
                 validateMapping(child.__elOrigin.openingTagStart)
-       
+
                 for (var i = 0;i<child.attributes.length;i++) {
                     let extraCharsAddedHere = 0;
                     var attr = child.attributes[i]
@@ -182,7 +184,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                     var whitespaceBeforeAttributeInSerializedHtml = " "; // always the same
                     var assignedValueFromAttrStartOnwards = assignedString.substr(getCharOffsetInAssignedHTML(), 100)
-                    var whitespaceMatches = assignedValueFromAttrStartOnwards.match(/^[\W]+/)
+                    var whitespaceMatches = assignedValueFromAttrStartOnwards.match(whitespaceRegex)
 
                     var whitespaceBeforeAttributeInAssignedHtml;
                     if (whitespaceMatches !== null) {
@@ -210,7 +212,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                         var offsetInAssigned = getCharOffsetInAssignedHTML() + whitespaceBeforeAttributeInAssignedHtml.length
                         offsetInAssigned += attr.name.length + "=".length
                         var firstTwoValueChars = assignedString.substr(offsetInAssigned, 2)
-                        if (/^['"]{2}/.test(firstTwoValueChars)) {
+                        if (twoQuoteSignsRegex.test(firstTwoValueChars)) {
                             for (var charIndex in attrStr){
                                 offsetAtCharIndex.push(-extraCharsAddedHere)
                             }
@@ -234,10 +236,10 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                         var res = getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml)
 
                         if (res.offsets === undefined){
-                            // Pretty sure this can only happen if there is a bug further up, but for now 
+                            // Pretty sure this can only happen if there is a bug further up, but for now
                             // allow it to happen rather than breaking everything
                             // specifically this was happening on StackOverflow, probably because we don't
-                            // support tables yet (turn <table> into <table><tbody>), 
+                            // support tables yet (turn <table> into <table><tbody>),
                             // but once that is supported this might just fix itself
                             console.warn("No offsets for attribute mapping")
                             for (var i in textAfterAssignment){
@@ -280,7 +282,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 if (assignedStringFromCurrentOffset === "") {
                     debugger;
                 }
-                var matches = assignedStringFromCurrentOffset.match(/^(\s+)\/?>/);
+                var matches = assignedStringFromCurrentOffset.match(tagEndRegex);
                 var whitespaceBeforeClosingAngleBracketInAssignedHTML = "";
                 if (matches !== null){
                     // something like <div > (with extra space)
@@ -288,10 +290,10 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                     whitespaceBeforeClosingAngleBracketInAssignedHTML = matches[1]
                 }
                 charsAddedInSerializedHtml -= whitespaceBeforeClosingAngleBracketInAssignedHTML.length;
-                
+
                 if (!tagTypeHasClosingTag(child.tagName)) {
                     if (assignedString[getCharOffsetInAssignedHTML()] === "/") {
-                        // something like <div/> 
+                        // something like <div/>
                         // this char will not show up in the re-serialized innerHTML
                         charsAddedInSerializedHtml -= 1;
                     } else {
@@ -347,4 +349,3 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
         })
     }
 }
-
