@@ -58,8 +58,13 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
         return
     }
 
-    if (!isEnabledInTab(tabId)){
-      return
+    if (!isEnabledInTab(tabId)) {
+        return
+    }
+
+    var tabIsActivated = tabStage[tabId] === "active";
+    if (tabIsActivated) {
+        return;
     }
 
     activate(tabId)
