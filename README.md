@@ -12,7 +12,7 @@ I'm working on it.
 
 ## Install From NPM
 
-`npm install -g from-js`, then run `fromjs` in the command line and open [localhost:7500](http://localhost:7500/).
+`npm install -g fromjs-cli`, then run `fromjs` in the command line and open [localhost:7500](http://localhost:7500/).
 
 Then open a static HTML file from there.
 
