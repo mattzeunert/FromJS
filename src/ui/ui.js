@@ -987,7 +987,7 @@ class ElementOriginPath extends React.Component {
         }
 
         if (error !== null){
-            return <div>{error.toString()}</div>
+            return <div style={{padding: 10}}>{error.toString()}</div>
         }
 
         return <div>

@@ -26,6 +26,10 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
 
     var item = vm.getItemAt(characterIndex)
 
+    if (!el.__elOrigin) {
+        throw Error("Selected element doesn't have any origin data. This may be because you opened the FromJS inspector before the page finished loading.")
+    }
+
     if (item.originObject === "openingTag") {
         var vm = new ValueMap();
 
