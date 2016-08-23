@@ -969,7 +969,7 @@ class ElementOriginPath extends React.Component {
         var previewGetOriginPath = null;
         var previewOriginPathKey = null;
         if (this.state.previewCharacterIndex !== null) {
-            catchExceptions(function(){
+            catchExceptions(() => {
                 previewOriginPathKey = this.getOriginPathKey(this.state.previewCharacterIndex)
                 previewGetOriginPath = (callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)
             }, err => error = err)
