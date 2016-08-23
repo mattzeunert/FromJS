@@ -80,13 +80,12 @@ function activate(tabId){
         "file": "contentScript.js"
     });
 
-    var escapedPageHtml = pageHtml.replace(/\`/g, "\\\\u0060").replace(/\\/g, "\\\\\\\\");
+    var encodedPageHtml = encodeURI(pageHtml)
     chrome.tabs.executeScript(tabId, {
       code: `
         var script = document.createElement("script");
 
-        var pageHtml = \`${escapedPageHtml}\`
-        script.innerHTML = "window.pageHtml = \`" + pageHtml + "\`;";
+        script.innerHTML = "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
         document.documentElement.appendChild(script)
 
         var script2 = document.createElement("script")
