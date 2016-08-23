@@ -6,7 +6,9 @@ var defaultConfig = {
     validateHtmlMapping: false,
     logTracingSteps: false,
     // show value field below code, normally hidden for original page HTML
-    alwaysShowValue: false
+    alwaysShowValue: false,
+    // Catch errors to avoid making app crash completely, but annoying for debugging
+    catchUIErrors: true
 }
 
 var customConfig;
@@ -14,7 +16,8 @@ if (process.env.NODE_ENV === "production") {
     customConfig = {}
 } else {
     customConfig = {
-        alwaysShowValue: true
+        alwaysShowValue: true,
+        catchUIErrors: false
     }
 }
 

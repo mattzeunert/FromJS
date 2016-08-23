@@ -90,6 +90,6 @@ $(document).ready(function(){
             })
             btn.addClass("fromjs-show-inspector-button")
             $("body").append(btn)
-        }, 1000)
+        }, 0)
     }
 })

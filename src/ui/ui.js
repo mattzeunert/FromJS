@@ -26,6 +26,18 @@ function getFilenameFromPath(path){
     return filename
 }
 
+function catchExceptions(fnToRun, onError){
+    if (config.catchUIErrors) {
+        try {
+            fnToRun()
+        } catch (err) {
+            onError(err)
+        }
+    } else {
+        fnToRun();
+    }
+}
+
 function truncate(str, maxLength){
     if (str.length <= maxLength) {
         return str
@@ -952,11 +964,15 @@ class ElementOriginPath extends React.Component {
             }
         }
 
+        var error = null;
+
         var previewGetOriginPath = null;
         var previewOriginPathKey = null;
         if (this.state.previewCharacterIndex !== null) {
-            previewGetOriginPath = (callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)
-            previewOriginPathKey = this.getOriginPathKey(this.state.previewCharacterIndex)
+            catchExceptions(function(){
+                previewOriginPathKey = this.getOriginPathKey(this.state.previewCharacterIndex)
+                previewGetOriginPath = (callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)
+            }, err => error = err)
         }
 
         var getOriginPath = null;
@@ -964,18 +980,15 @@ class ElementOriginPath extends React.Component {
 
         var selectionComponent = null;
         if (this.state.characterIndex !== null) {
-            getOriginPath = (callback) => this.getOriginPath(this.state.characterIndex, callback)
-            originPathKey = this.getOriginPathKey(this.state.characterIndex)
+            catchExceptions(() => {
+                getOriginPath = (callback) => this.getOriginPath(this.state.characterIndex, callback)
+                originPathKey = this.getOriginPathKey(this.state.characterIndex)
+            }, err => error = err)
         }
 
-        // var previewComponent = null;
-        // if (this.state.previewCharacterIndex !== null) {
-        //     previewComponent = <ElementOriginPathContent
-        //             {...sharedProps}
-        //             getOriginPath={(callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)}
-        //             originPathKey={this.getOriginPathKey(this.state.previewCharacterIndex)}
-        //         />
-        // }
+        if (error !== null){
+            return <div>{error.toString()}</div>
+        }
 
         return <div>
             <ElementOriginPathContent
