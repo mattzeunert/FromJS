@@ -8,14 +8,15 @@ var tabsToProcess = [];
 function isEnabledInTab(tabId){
     return tabsToProcess.indexOf(tabId) !== -1
 }
-// disabled ==> enabled ==> active 
+// disabled ==> enabled ==> active
 chrome.browserAction.onClicked.addListener(function (tab) {
     if (isEnabledInTab(tab.id)) {
 
       disableInTab(tab.id)
     } else {
-      tabStage[tab.id] = "enabled"
-      tabsToProcess.push(tab.id)
+        tabStage[tab.id] = "enabled"
+        tabsToProcess.push(tab.id)
+        initializeTab(tab.id)
     }
 
     updateBadge(tab)
@@ -28,6 +29,9 @@ function disableInTab(tabId){
   tabsToProcess = tabsToProcess.filter(function(id){
       return tabId !== id
   })
+
+  var listener = listenersByTabId[tabId]
+  chrome.webRequest.onBeforeRequest.removeListener(listener)
 }
 
 function updateBadge(tab){
@@ -40,7 +44,7 @@ function updateBadge(tab){
       tabId: tab.id
     });
     chrome.browserAction.setBadgeBackgroundColor({
-      tabId: tab.id, 
+      tabId: tab.id,
       color: "#08f"
     })
 }
@@ -94,76 +98,85 @@ var tabStage = {}
 
 var idsToDisableOnNextMainFrameLoad = []
 var sourceMaps = {}
-chrome.webRequest.onBeforeRequest.addListener(function(info){  
-  if (!isEnabledInTab(info.tabId)){
-        return
-      }
+var listenersByTabId = {}
 
-      if (info.url.slice(0, "chrome-extension://".length ) === "chrome-extension://") {
-        return
-      }
+function initializeTab(tabId){
+    var listener = makeTabListener()
+    listenersByTabId[tabId] = listener
+    chrome.webRequest.onBeforeRequest.addListener(listener, {urls: ["<all_urls>"], tabId: tabId}, ["blocking"]);
+}
 
-      if (info.type === "main_frame") {
-        if (idsToDisableOnNextMainFrameLoad.indexOf(info.tabId) !== -1) {
-            idsToDisableOnNextMainFrameLoad = idsToDisableOnNextMainFrameLoad.filter(id => id !== info.tabId)
-            disableInTab(info.tabId)
-            return  
-        } else {
-          
-          idsToDisableOnNextMainFrameLoad.push(info.tabId)  
 
+function makeTabListener(){
+    // make unique function so we can call removeListener later
+    function onBeforeRequest(info){
+        console.log(info.url)
+        if (!isEnabledInTab(info.tabId)){
+            return
         }
-        
-        var xhr = new XMLHttpRequest()
-        xhr.open('GET', info.url, false);
-        xhr.send(null);
 
-        pageHtml = xhr.responseText
-        var parts = info.url.split("/");parts.pop(); parts.push("");
-        var basePath = parts.join("/")
-        return
-      }
-      
-      if (tabStage[info.tabId] !== "active") {
-        return {cancel: true}
-      }
-
-
-      if (info.url.slice(info.url.length - ".js.map".length) === ".js.map") {
-        return {
-          redirectUrl: "data:," + encodeURI(sourceMaps[info.url])
+        if (info.url.slice(0, "chrome-extension://".length ) === "chrome-extension://") {
+            return
         }
-      }
+
+        if (info.type === "main_frame") {
+            if (idsToDisableOnNextMainFrameLoad.indexOf(info.tabId) !== -1) {
+                idsToDisableOnNextMainFrameLoad = idsToDisableOnNextMainFrameLoad.filter(id => id !== info.tabId)
+                disableInTab(info.tabId)
+                return
+            } else {
+                idsToDisableOnNextMainFrameLoad.push(info.tabId)
+            }
+
+            var xhr = new XMLHttpRequest()
+            xhr.open('GET', info.url, false);
+            xhr.send(null);
+
+            pageHtml = xhr.responseText
+            var parts = info.url.split("/");parts.pop(); parts.push("");
+            var basePath = parts.join("/")
+            return
+        }
+
+        if (tabStage[info.tabId] !== "active") {
+            return {cancel: true}
+        }
 
 
-      var url = info.url;
-      var dontProcess = false
-      if (url.slice(url.length - ".dontprocess".length) === ".dontprocess") {
-        dontProcess = true
-        url = url.slice(0, - ".dontprocess".length)
-      }
-      var urlWithoutQueryParameters = url.split("?")[0]
-      if (endsWith(urlWithoutQueryParameters, ".js")) {
+        if (info.url.slice(info.url.length - ".js.map".length) === ".js.map") {
+            return {
+                redirectUrl: "data:," + encodeURI(sourceMaps[info.url])
+            }
+        }
 
-          var xhr = new XMLHttpRequest()
-          xhr.open('GET', url, false);
-          xhr.send(null);
+        var url = info.url;
+        var dontProcess = false
+        if (url.slice(url.length - ".dontprocess".length) === ".dontprocess") {
+            dontProcess = true
+            url = url.slice(0, - ".dontprocess".length)
+        }
 
-          if (!dontProcess) {
-            var res = processJavaScriptCode(xhr.responseText, {filename: info.url})
-            var code = res.code
-            code += "\n//# sourceURL=" + info.url
-            code += "\n//# sourceMappingURL=" + info.url + ".map"
-            sourceMaps[info.url + ".map"] = JSON.stringify(res.map)
-            
+        var urlWithoutQueryParameters = url.split("?")[0]
+        if (endsWith(urlWithoutQueryParameters, ".js")) {
+            var xhr = new XMLHttpRequest()
+            xhr.open('GET', url, false);
+            xhr.send(null);
 
-          } else {
-            var code = xhr.responseText
-          }
-          url = "data:application/javascript;charset=utf-8," + encodeURI(code)
-        return {redirectUrl: url}
-      }
-  }, {urls: ["<all_urls>"]}, ["blocking"]);
+            if (!dontProcess) {
+                var res = processJavaScriptCode(xhr.responseText, {filename: info.url})
+                var code = res.code
+                code += "\n//# sourceURL=" + info.url
+                code += "\n//# sourceMappingURL=" + info.url + ".map"
+                sourceMaps[info.url + ".map"] = JSON.stringify(res.map)
+            } else {
+                var code = xhr.responseText
+            }
+            url = "data:application/javascript;charset=utf-8," + encodeURI(code)
+            return {redirectUrl: url}
+        }
+    }
+    return onBeforeRequest
+}
 
 function endsWith(str, strEnd){
   return str.slice(str.length - strEnd.length) === strEnd
