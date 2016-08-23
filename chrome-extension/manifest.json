@@ -12,6 +12,9 @@
   "browser_action": {
     "name": "Run FromJS here"
   },
+  "icons": {
+   "128": "icon.png"
+ },
   "permissions": [
       "webRequest",
       "webRequestBlocking",

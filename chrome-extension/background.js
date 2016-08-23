@@ -46,7 +46,7 @@ function updateBadge(tab){
     });
     chrome.browserAction.setBadgeBackgroundColor({
       tabId: tab.id,
-      color: "#08f"
+      color: "#cc5214"
     })
 }
 

@@ -1,5 +1,5 @@
 var webpack = require('webpack');
-var WebpackShellPlugin = require("./WebpackShellPlugin")
+var WebpackShellPlugin = require("webpack-shell-plugin")
 var getBaseConfig = require("./getBaseConfig")
 
 var webConfig = getBaseConfig()
@@ -15,9 +15,12 @@ webConfig.output = {
 };
 webConfig.plugins.push(new WebpackShellPlugin({
     onBuildEnd: [
+        "echo 'Running onBuildEnd'",
         "cp fromjs.css chrome-extension/dist/fromjs.css",
         "cp chrome-extension/dist/from.js dist/from.js",
         "cp chrome-extension/dist/from.js.map dist/from.js.map",
+        "cp chrome-extension/icon.png chrome-extension/dist/icon.png",
+        "cp chrome-extension/manifest.json chrome-extension/dist/manifest.json"
     ]
 }))
 

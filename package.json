@@ -57,7 +57,8 @@
     "mkdirp": "^0.5.1",
     "nodemon": "^1.9.2",
     "react-addons-perf": "^15.2.1",
-    "webpack-dev-server": "^1.14.1"
+    "webpack-dev-server": "^1.14.1",
+    "webpack-shell-plugin": "^0.4.3"
   },
   "bin": {
     "fromjs": "./bin/fromjs"
