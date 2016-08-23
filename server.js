@@ -8,6 +8,7 @@ import { replaceJSScriptTags } from "./src/getJSScriptTags"
 var _ = require("underscore")
 
 http.createServer(handleRequest).listen(7500)
+console.log("Open localhost:7500 in your browser and open an HTML file from there")
 var isDev = process.argv[2] === "dev"
 
 function handleRequest(request, response){
@@ -119,7 +120,6 @@ function handleRequest(request, response){
                 if (endsWith(request.url, ".js.map") ){
                     fileContents = JSON.stringify(processJavaScriptCode(fileContents, {filename: jsFileName}).map, null, 4)
                 }
-
             }
             response.write(fileContents)
         }
