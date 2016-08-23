@@ -14,8 +14,8 @@ webConfig.output = {
     filename: 'chrome-extension/dist/[name].js'
 };
 webConfig.plugins.push(new WebpackShellPlugin({
-    onBuildEnd: [
-        "echo 'Running onBuildEnd'",
+    onBuildExit: [
+        "echo 'Running onBuildExit'",
         "cp fromjs.css chrome-extension/dist/fromjs.css",
         "cp chrome-extension/dist/from.js dist/from.js",
         "cp chrome-extension/dist/from.js.map dist/from.js.map",

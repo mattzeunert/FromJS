@@ -1000,7 +1000,6 @@ class ElementOriginPath extends React.Component {
                 previewOriginPathKey={previewOriginPathKey}
             />
         </div>
-
     }
     originComesFromElement(){
         return this.state.rootOrigin === null
@@ -1009,7 +1008,15 @@ class ElementOriginPath extends React.Component {
         if (this.state.rootOrigin){
             return this.state.rootOrigin.value
         } else if (this.props.el) {
-            return this.props.el.outerHTML
+            var outerHtml = document.body.outerHTML
+            if (this.props.el.tagName === "BODY") {
+                // contains the FromJS UI, which we don't want to show
+                var fromJSHtml = document.querySelector(".fromjs-outer-container").outerHTML
+                var fromJSStartInBody = outerHtml.indexOf(fromJSHtml)
+                var fromJSEndInBody = fromJSStartInBody + fromJSHtml.length
+                outerHtml = outerHtml.slice(0, fromJSStartInBody) + outerHtml.slice(fromJSEndInBody)
+            }
+            return outerHtml
         }
         return null;
     }
