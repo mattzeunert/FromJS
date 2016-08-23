@@ -71,9 +71,9 @@ export default function Origin(opts){
     if (opts.error) {
         this.error = opts.error;
     } else {
-        this.error = new Error()    
+        this.error = new Error()
     }
-    
+
 
 }
 
@@ -89,7 +89,8 @@ Origin.prototype.getStackFrames = function(){
         if (frame.indexOf("fromjs-internals/from.js") !== -1) {
             return false;
         }
-        if (frame.indexOf("chrome-extension://") !== -1 && frame.indexOf("from.js") !== -1) {
+        if (frame.indexOf("chrome-extension://") !== -1 &&
+            (frame.indexOf("from.js") !== -1) || frame.indexOf("injected.js") !== -1) {
             return false;
         }
         if (frame.indexOf("chrome-extension-from-string/from.js") !== -1) {
