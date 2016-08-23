@@ -1,3 +1,8 @@
+/*
+    I don't think I need this file! Running npm run build should be enough
+*/
+
+
 var config = require("./getBaseConfig")()
 var webpack = require("webpack")
 

@@ -1,8 +1,23 @@
-export default {
+import _ from "underscore"
+
+var defaultConfig = {
     logUntrackedStrings: false,
     logUntrackedPropertyNames: false,
     validateHtmlMapping: false,
     logTracingSteps: false,
     // show value field below code, normally hidden for original page HTML
-    alwaysShowValue: true
+    alwaysShowValue: false
 }
+
+var customConfig;
+if (process.env.NODE_ENV === "production") {
+    customConfig = {}
+} else {
+    customConfig = {
+        alwaysShowValue: true
+    }
+}
+
+var config = _.extend(defaultConfig, customConfig)
+
+export default config
