@@ -25,10 +25,9 @@ window.onFromJSReady = function(){
     var headContent = pageHtml.split(/<head.*?>/)[1].split("</head>")[0]
 
     var headScripts = getScriptElements(headContent);
+    var bodyScripts = getScriptElements(bodyContent);
     document.head.innerHTML = headContent
     appendScriptsOneAfterAnother(headScripts, document.head, function(){
-        var bodyScripts = getScriptElements(bodyContent)
-
         document.body.innerHTML = bodyContent
         makeSureInitialHTMLHasBeenProcessed()
         appendScriptsOneAfterAnother(bodyScripts, document.body, function(){

@@ -25,13 +25,14 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 });
 
 function disableInTab(tabId){
-  tabStage[tabId] = "disabled"
-  tabsToProcess = tabsToProcess.filter(function(id){
+    tabStage[tabId] = "disabled"
+    tabsToProcess = tabsToProcess.filter(function(id){
       return tabId !== id
-  })
+    })
 
-  var listener = listenersByTabId[tabId]
-  chrome.webRequest.onBeforeRequest.removeListener(listener)
+    var listener = listenersByTabId[tabId]
+    chrome.webRequest.onBeforeRequest.removeListener(listener)
+    delete listenersByTabId[tabId]
 }
 
 function updateBadge(tab){
@@ -71,10 +72,7 @@ function activate(tabId){
     })
 
     chrome.tabs.executeScript(tabId, {
-        "file": "contentScript.js",
-        runAt: "document_start"
-    }, function () {
-        console.log("Script Executed .. ");
+        "file": "contentScript.js"
     });
 
     var escapedPageHtml = pageHtml.replace(/\`/g, "\\\\u0060").replace(/\\/g, "\\\\\\\\");
@@ -89,8 +87,7 @@ function activate(tabId){
         var script2 = document.createElement("script")
         script2.src = '${chrome.extension.getURL("from.js")}'
         document.documentElement.appendChild(script2)
-      `,
-      runAt: "document_start"
+      `
     })
 }
 
@@ -106,6 +103,13 @@ function initializeTab(tabId){
     chrome.webRequest.onBeforeRequest.addListener(listener, {urls: ["<all_urls>"], tabId: tabId}, ["blocking"]);
 }
 
+
+function getFile(url){
+    var xhr = new XMLHttpRequest()
+    xhr.open('GET', url, false);
+    xhr.send(null);
+    return xhr.responseText
+}
 
 function makeTabListener(){
     // make unique function so we can call removeListener later
@@ -158,13 +162,11 @@ function makeTabListener(){
 
         var urlWithoutQueryParameters = url.split("?")[0]
         if (endsWith(urlWithoutQueryParameters, ".js")) {
-            var xhr = new XMLHttpRequest()
-            xhr.open('GET', url, false);
-            xhr.send(null);
+            var code = getFile(url)
 
             if (!dontProcess) {
-                var res = processJavaScriptCode(xhr.responseText, {filename: info.url})
-                var code = res.code
+                var res = processJavaScriptCode(code, {filename: info.url})
+                code = res.code
                 code += "\n//# sourceURL=" + info.url
                 code += "\n//# sourceMappingURL=" + info.url + ".map"
                 sourceMaps[info.url + ".map"] = JSON.stringify(res.map)
