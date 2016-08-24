@@ -1008,7 +1008,7 @@ class ElementOriginPath extends React.Component {
         if (this.state.rootOrigin){
             return this.state.rootOrigin.value
         } else if (this.props.el) {
-            var outerHtml = document.body.outerHTML
+            var outerHtml = this.props.el.outerHTML
             if (this.props.el.tagName === "BODY") {
                 // contains the FromJS UI, which we don't want to show
                 var fromJSHtml = document.querySelector(".fromjs-outer-container").outerHTML
