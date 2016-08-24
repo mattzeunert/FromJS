@@ -1064,8 +1064,8 @@ class ElementMarker extends React.Component {
         var rect = this.props.el.getBoundingClientRect()
         var style = {
             ...this.props.style,
-            left: rect.left,
-            top: rect.top,
+            left: rect.left + document.body.scrollLeft,
+            top: rect.top + document.body.scrollTop,
             height: rect.height,
             width: rect.width
         }

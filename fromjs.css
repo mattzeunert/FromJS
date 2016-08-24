@@ -215,7 +215,7 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
 }
 
 .fromjs-element-marker {
-    position: fixed;
+    position: absolute;
     z-index: 10000;
     pointer-events: none;
 }
@@ -283,5 +283,3 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     top: 0;
     font-size: 20px;
 }
-
-
