@@ -59,6 +59,7 @@ import isMobile from "./isMobile"
 
 setTimeout(function(){
     // hook for Chrome Extension to proceed when FromJS has been set up
+    window.fromJSIsReady = true;
     if (window.onFromJSReady) {
         window.onFromJSReady();
     }

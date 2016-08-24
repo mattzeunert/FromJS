@@ -20,6 +20,7 @@ function getScriptElements(html){
 }
 
 window.onFromJSReady = function(){
+    console.log("Loading page from FromJS")
     window.fromJSInitialPageHtml = pageHtml;
     var bodyContent = pageHtml.split(/<body.*?>/)[1].split("</body>")[0]
     var headContent = pageHtml.split(/<head.*?>/)[1].split("</head>")[0]
@@ -34,6 +35,11 @@ window.onFromJSReady = function(){
             simulateOnLoad()
         })
     })
+}
+
+// Normally this file is loaded before fromJS is ready, but sometimes not
+if (window.fromJSIsReady) {
+    window.onFromJSReady()
 }
 
 function simulateOnLoad(){
@@ -55,7 +61,6 @@ function appendScriptsOneAfterAnother(scripts, container, done){
             return
         }
         var script = scripts.shift()
-        console.log("Adding", script)
         if (nativeInnerHTMLDescriptor.get.call(script) === ""){
             script.onload = function(){
                 next();
