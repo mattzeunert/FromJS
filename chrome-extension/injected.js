@@ -55,6 +55,7 @@ function appendScriptsOneAfterAnother(scripts, container, done){
             return
         }
         var script = scripts.shift()
+        console.log("Adding", script)
         if (nativeInnerHTMLDescriptor.get.call(script) === ""){
             script.onload = function(){
                 next();

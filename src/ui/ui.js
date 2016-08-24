@@ -10,6 +10,7 @@ import config from "../config"
 import ReactTooltip from "react-tooltip"
 import "react-fastclick" // import for side effects, no export
 import adjustColumnForEscapeSequences from "../adjustColumnForEscapeSequences"
+import getDefaultInspectedCharacterIndex from "./getDefaultInspectedCharacterIndex"
 
 import Perf from "react-addons-perf"
 window.Perf = Perf
@@ -938,7 +939,7 @@ class ElementOriginPath extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            characterIndex: this.getDefaultCharacterIndex(props.el),
+            characterIndex: getDefaultInspectedCharacterIndex(props.el.outerHTML),
             previewCharacterIndex: null,
             rootOrigin: null
         }
@@ -1052,14 +1053,6 @@ class ElementOriginPath extends React.Component {
                 origin: this.state.rootOrigin
             }
         }
-    }
-    getDefaultCharacterIndex(el){
-        // console.log("getting default char for", el.outerHTML)
-        var defaultCharacterIndex = el.outerHTML.indexOf(">") + 1;
-        if (defaultCharacterIndex >= el.outerHTML.length) {
-            defaultCharacterIndex = 1;
-        }
-        return defaultCharacterIndex
     }
 }
 
