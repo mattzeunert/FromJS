@@ -54,20 +54,32 @@ var pageHtml = ""
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     updateBadge(tab)
-    if (changeInfo.status !== "complete") {
-        return
-    }
 
     if (!isEnabledInTab(tabId)) {
         return
     }
 
-    var tabIsActivated = tabStage[tabId] === "active";
-    if (tabIsActivated) {
-        return;
+    if (changeInfo.status === "complete") {
+        var tabIsActivated = tabStage[tabId] === "active";
+        if (tabIsActivated) {
+            return;
+        }
+        activate(tabId)
+    }
+    if (changeInfo.status === "loading") {
+        chrome.tabs.insertCSS(tabId, {
+            "code": `
+                body {opacity: 0}
+                html.fromJSRunning body {opacity: 1}
+            `,
+            runAt: "document_start"
+        });
+        chrome.tabs.executeScript(tabId, {
+            "code": "document.body.innerHTML = 'Loading...';document.body.parentElement.classList.add('fromJSRunning')",
+            runAt: "document_idle"
+        });
     }
 
-    activate(tabId)
 })
 
 function activate(tabId){
