@@ -1,7 +1,7 @@
 node dist/server.js &
 fromJSServerProcessId=$!
 
-webdriver-manager start &
+webdriver-manager start --standalone &
 webdriverManagerProcessId=$!
 
 protractor e2e/conf.js
