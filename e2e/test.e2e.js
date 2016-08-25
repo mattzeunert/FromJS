@@ -31,22 +31,33 @@ function openFromJSInspector(){
     return waitForEl("#fromjs")
 }
 
+function inspectElement(cssSelector) {
+    element(by.css(cssSelector)).click();
+    return waitForEl('.fromjs-origin-path-step')
+}
+
 describe('Backbone TodoMVC', function() {
-    it('Correctly traces a checkbox input', function() {
+    it("Loads the app and creates a new todo item", function(){
         loadPage('http://localhost:7500/demos/index.html')
         .then(function(){
-            browser.driver.findElement(by.css('.new-todo')).sendKeys('Jane');
+            browser.driver.findElement(by.css('.new-todo')).sendKeys('Hello');
             browser.driver.findElement(by.css('.new-todo')).sendKeys(protractor.Key.ENTER);
 
             return waitForEl('input[type="checkbox"]')
         })
         .then(openFromJSInspector)
-        .then(function(){
-            element(by.css('input[type="checkbox"]')).click();
-            return waitForEl('.fromjs-origin-path-step')
-        })
+    })
+    it('Correctly traces a checkbox input', function() {
+        inspectElement('input[type="checkbox"]')
         .then(function(){
             expectResult("i", "Initial Page HTML")
         })
     });
+
+    it("Correctly traces the value of a newly created todo item", function(){
+        inspectElement('.todo-list li')
+        .then(function(){
+            expectResult("H", "HTMLInputElement Value")
+        })
+    })
 });
