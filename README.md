@@ -28,6 +28,7 @@ Run `npm run webpack` and `npm run server` to start, then go to [http://localhos
 
 ```
 npm install -g protractor
+npm install -g webdriver-manager
 webdriver-manager start
-protractor e2e/conf.js
+npm run protractor
 ```
