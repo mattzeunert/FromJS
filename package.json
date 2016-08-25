@@ -12,7 +12,9 @@
     "build-demo": "webpack -p --config webpack/webpack.demo.config.js",
     "build": "webpack --config webpack/webpack.prod.config.js",
     "update-website-demos": "sh ./scripts/copy-demo-files-to-gh-pages.sh",
-    "ci-e2e-test": "sh ./scripts/e2e-ci.sh"
+    "ci-e2e-test": "sh ./scripts/e2e-ci.sh",
+    "protractor": "protractor e2e/conf.js",
+    "webdriver-manager": "webdriver-manager"
   },
   "author": "Matt Zeunert",
   "license": "MIT",
@@ -57,6 +59,7 @@
     "karma-webpack": "^1.7.0",
     "mkdirp": "^0.5.1",
     "nodemon": "^1.9.2",
+    "protractor": "^4.0.4",
     "react-addons-perf": "^15.2.1",
     "webpack-dev-server": "^1.14.1",
     "webpack-shell-plugin": "^0.4.3"
