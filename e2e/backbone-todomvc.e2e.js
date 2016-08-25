@@ -57,7 +57,7 @@ describe('Backbone TodoMVC', function() {
     it("Correctly traces the value of a newly created todo item", function(){
         inspectElement('.todo-list li')
         .then(function(){
-            expectResult("H", "HTMLInputElemasdfsdent Value")
+            expectResult("H", "HTMLInputElement Value")
         })
     })
 });
