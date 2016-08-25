@@ -238,7 +238,7 @@ describe("HTML Mapping", function(){
             expect(value).toBe('<span hi="hey" cake="cookie"></span>')
             expect(value[characterIndex]).toBe("k")
             done()
-        })  
+        })
     })
 
     it("Traces extra spaces between attributes correctly", function(done){
@@ -259,7 +259,7 @@ describe("HTML Mapping", function(){
             expect(value).toBe('<span hi="hey"       \ncake="cookie"></span>')
             expect(value[characterIndex]).toBe("k")
             done()
-        })  
+        })
     })
 
     it("Traces unescaped HTML &/</> correctly", function(done){
@@ -354,7 +354,7 @@ describe("HTML Mapping", function(){
             expect(value).toBe("<input/>Hello")
             expect(value[characterIndex]).toBe("e")
             done()
-        })  
+        })
     })
 
     it("Doesn't get confused by closed self-closing tags with an explicit end tag", function(done){
@@ -373,7 +373,67 @@ describe("HTML Mapping", function(){
             expect(value).toBe("<input></input>Hello")
             expect(value[characterIndex]).toBe("e")
             done()
-        })  
+        })
+    })
+
+    it("Correctly maps text containing a CRLF line break (rather than just LF)", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<span>ab\r\ncd</span>'
+        var span = el.children[0]
+
+        disableTracing()
+        expect(el.innerHTML).toBe('<span>ab\ncd</span>')
+
+        // <span>ab\ncd</span>
+        var originAndChar = getRootOriginAtChar(span, 9);
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value).toBe('<span>ab\r\ncd</span>')
+            expect(value[characterIndex]).toBe("c")
+            done()
+        })
+    })
+
+    it("Correctly maps tags containing a CRLF line break (rather than just LF)", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<span\r\n hi="ho"\r\n>abc</span>'
+        var span = el.children[0]
+
+        disableTracing()
+        expect(el.innerHTML).toBe('<span hi="ho">abc</span>')
+
+        // <span hi="ho">abc</span>
+        var originAndChar = getRootOriginAtChar(span, 14);
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value).toBe('<span\r\n hi="ho"\r\n>abc</span>')
+            expect(value[characterIndex]).toBe("a")
+            done()
+        })
+    })
+
+    it("Correctly maps attributes containing a CRLF line break (rather than just LF)", function(done){
+        var el = document.createElement("div")
+        el.innerHTML = '<span hi="\r\nhey"></span>'
+        var span = el.children[0]
+
+        disableTracing()
+        expect(el.innerHTML).toBe('<span hi="\nhey"></span>')
+
+        // <span hi="\nhey"></span>
+        var originAndChar = getRootOriginAtChar(span, 11);
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value).toBe('<span hi="\r\nhey"></span>')
+            expect(value[characterIndex]).toBe("h")
+            done()
+        })
     })
 
 })

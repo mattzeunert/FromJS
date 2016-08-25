@@ -72,19 +72,23 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
         var extraCharsAddedHere = 0;
 
         for (var i=0; i<textAfterAssignment.length; i++) {
+            offsets.push(-extraCharsAddedHere)
             var char = textAfterAssignment[i];
 
             var htmlEntityMatchAfterAssignment = textAfterAssignment.substr(i,30).match(htmlEntityRegex)
 
             var posInAssignedString = charOffsetInSerializedHtml + i - charsAddedInSerializedHtml + charOffsetAdjustmentInAssignedHtml - extraCharsAddedHere;
-            if (contentEndIndex <= posInAssignedString) {
+            if (posInAssignedString >= contentEndIndex) {
                 // http://stackoverflow.com/questions/38892536/why-do-browsers-append-extra-line-breaks-at-the-end-of-the-body-tag
                 break; // just don't bother for now
             }
-            var textIncludingAndFollowingChar = assignedString.substr(posInAssignedString, 30); // assuming that no html entity is longer than 30 chars
-            var htmlEntityMatch = textIncludingAndFollowingChar.match(htmlEntityRegex)
 
-            offsets.push(-extraCharsAddedHere)
+            var textIncludingAndFollowingChar = assignedString.substr(posInAssignedString, 30); // assuming that no html entity is longer than 30 chars
+            if (char === "\n" && textIncludingAndFollowingChar[0] == "\r") {
+                extraCharsAddedHere--;
+            }
+
+            var htmlEntityMatch = textIncludingAndFollowingChar.match(htmlEntityRegex)
 
             if (htmlEntityMatchAfterAssignment !== null && htmlEntityMatch === null) {
                 // assigned a character, but now it shows up as an entity (e.g. & ==> &amp;)
@@ -127,10 +131,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
             var isIframe = child
 
             if (isTextNode) {
-
                 var text = child.textContent
                 text = normalizeHtml(text, child.parentNode.tagName)
-                
                 var res = getCharMappingOffsets(text)
                 var offsets = res.offsets
                 var extraCharsAddedHere = res.extraCharsAddedHere
