@@ -304,7 +304,7 @@ class OriginPathItem extends React.Component {
         if (!config.alwaysShowValue && originObject.action === "Initial Page HTML") {
             valueView = <div></div>
         } else {
-            valueView = <div style={{borderTop: "1px dotted #ddd"}}>
+            valueView = <div style={{borderTop: "1px dotted #ddd"}} data-test-marker-step-value>
                 <ValueEl
                     originPathItem={this.props.originPathItem}
                     handleValueSpanClick={this.props.handleValueSpanClick} />
@@ -318,7 +318,8 @@ class OriginPathItem extends React.Component {
                         display: "inline-block",
                         padding: 5
                      }}>
-                        <span style={{fontWeight: "bold", marginRight: 5}}>
+                        <span style={{fontWeight: "bold", marginRight: 5}}
+                            data-test-marker-step-action>
                             {originObject.action}
                         </span>
                         &nbsp;
@@ -915,7 +916,8 @@ class ElementOriginPathContent extends React.Component {
                 </div>
                 <div style={{position: "relative"}}>
                     <div style={{border: "1px solid #ddd",
-                        width: showUpButton ? "calc(100% - 30px)" : "100%"}}>
+                        width: showUpButton ? "calc(100% - 30px)" : "100%"}}
+                        data-test-marker-inspected-value>
                         <TextEl
                             text={this.props.inspectedValue}
                             highlightedCharacterIndex={this.props.inspectedValueCharacterIndex}
