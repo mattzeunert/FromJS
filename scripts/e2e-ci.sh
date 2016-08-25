@@ -1,6 +1,7 @@
 node dist/server.js &
 fromJSServerProcessId=$!
 
+webdriver-manager update --standalone
 webdriver-manager start --standalone &
 webdriverManagerProcessId=$!
 
