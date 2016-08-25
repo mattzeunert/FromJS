@@ -11,7 +11,8 @@
     "update-website": "git subtree push  --prefix gh-pages origin gh-pages",
     "build-demo": "webpack -p --config webpack/webpack.demo.config.js",
     "build": "webpack --config webpack/webpack.prod.config.js",
-    "update-website-demos": "sh ./scripts/copy-demo-files-to-gh-pages.sh"
+    "update-website-demos": "sh ./scripts/copy-demo-files-to-gh-pages.sh",
+    "ci-e2e-test": "sh ./scripts/e2e-ci.sh"
   },
   "author": "Matt Zeunert",
   "license": "MIT",

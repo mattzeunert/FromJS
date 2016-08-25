@@ -7,7 +7,7 @@ function waitForEl(cssSelector){
     })
 }
 
-function expectResult(inspectedChar, action){
+function expectResult(inspectedChar, expectedAction){
     var searchChar = element(by.css("[data-test-marker-inspected-value] .fromjs-highlighted-character")).getText()
     expect(searchChar).toBe(inspectedChar)
 
@@ -15,7 +15,7 @@ function expectResult(inspectedChar, action){
     var action = el.element(by.css("[data-test-marker-step-action]")).getText()
     var resultChar = el.element(by.css(".fromjs-highlighted-character")).getText()
 
-    expect(action).toBe(action)
+    expect(action).toBe(expectedAction)
     expect(resultChar).toBe(inspectedChar)
 }
 
