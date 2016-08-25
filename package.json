@@ -14,7 +14,7 @@
     "update-website-demos": "sh ./scripts/copy-demo-files-to-gh-pages.sh",
     "ci-e2e-test": "sh ./scripts/e2e-ci.sh",
     "protractor": "protractor e2e/conf.js",
-    "webdriver-manager": "webdriver-manager"
+    "webdriver-manager-update": "webdriver-manager update"
   },
   "author": "Matt Zeunert",
   "license": "MIT",

@@ -12,10 +12,7 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install google-chrome-beta
 script:
+  - npm run webdriver-manager update
   - npm run build
   - npm run ci-test
-  - ls node_modules/protractor/bin
-  - ls node_modules/protractor/node_modules
-  - ls node_modules/protractor/node_modules/webdriver-manager
-  - ls node_modules/protractor/node_modules/webdriver-manager/selenium
   - npm run ci-e2e-test
