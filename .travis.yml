@@ -12,7 +12,7 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install google-chrome-beta
 script:
-  - npm run webdriver-manager update
+  - npm run webdriver-manager-update
   - npm run build
   - npm run ci-test
   - npm run ci-e2e-test
