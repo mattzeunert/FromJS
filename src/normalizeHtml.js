@@ -1,8 +1,15 @@
 var div = document.createElement("div");
-export default function normalizeHtml(str){
-    // convert stuff like & to &amp;
-    nativeInnerHTMLDescriptor.set.call(div, str);
-    return nativeInnerHTMLDescriptor.get.call(div);
+export default function normalizeHtml(str, tagName){
+    if (tagName !== "SCRIPT") {
+        // convert stuff like & to &amp;
+        nativeInnerHTMLDescriptor.set.call(div, str);
+        str = nativeInnerHTMLDescriptor.get.call(div);
+    }
+    if (tagName === "NOSCRIPT") {
+        str = str.replace(/</g, "&lt;")
+        str = str.replace(/>/g, "&gt;")
+    }
+    return str;
 }
 
 var attrDiv = document.createElement("div")

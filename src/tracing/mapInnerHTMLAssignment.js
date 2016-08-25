@@ -129,9 +129,8 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
             if (isTextNode) {
 
                 var text = child.textContent
-                if (child.parentNode.tagName !== "SCRIPT") {
-                    text = normalizeHtml(text)
-                }
+                text = normalizeHtml(text, child.parentNode.tagName)
+                
                 var res = getCharMappingOffsets(text)
                 var offsets = res.offsets
                 var extraCharsAddedHere = res.extraCharsAddedHere

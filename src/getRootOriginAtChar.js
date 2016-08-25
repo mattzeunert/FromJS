@@ -82,7 +82,7 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
             var elIsTextNode = el.nodeType === Node.TEXT_NODE
             var elIsCommentNode = el.nodeType === Node.COMMENT_NODE
             if (elIsTextNode) {
-                var contentHtml = normalizeHtml(el.textContent)
+                var contentHtml = normalizeHtml(el.textContent, el.parentNode.tagName)
                 vm.appendString(contentHtml, el, 0)
             } else if (elIsCommentNode){
                 var contentHtml = "<!--" + el.textContent + "-->"
