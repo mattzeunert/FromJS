@@ -16,4 +16,8 @@ before_install:
 script:
   - npm run build
   - npm run ci-test
+  - ls node_modules/protractor/bin
+  - ls node_modules/protractor/node_modules
+  - ls node_modules/protractor/node_modules/webdriver-manager
+  - ls node_modules/protractor/node_modules/webdriver-manager/selenium
   - npm run ci-e2e-test
