@@ -2,6 +2,7 @@ import processJavaScriptCode from "../src/compilation/processJavaScriptCode"
 import startsWith from "starts-with"
 import fromJSCss from "../fromjs.css"
 import manifest from "./manifest" // we don't use it but we want manifest changes to trigger a webpack re-build
+import beautify from "js-beautify"
 
 var tabsToProcess = [];
 
@@ -176,6 +177,12 @@ function makeTabListener(){
         var urlWithoutQueryParameters = url.split("?")[0]
         if (endsWith(urlWithoutQueryParameters, ".js")) {
             var code = getFile(url)
+            // Ideally this would happen when displaying the code in the UI,
+            // rather than when it's downloaded (doing it now means the line
+            // numbers will be incorrect)
+            // But for now it's too much work to do it later, would need
+            // to apply source maps...
+            code = beautify.js_beautify(code, {indent_size: 2})
 
             if (!dontProcess) {
                 var res = processJavaScriptCode(code, {filename: info.url})
