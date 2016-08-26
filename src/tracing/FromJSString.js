@@ -22,6 +22,11 @@ function capitalizeFirstCharacter(str){
     return str.slice(0, 1).toUpperCase() + str.slice(1)
 }
 
+function countGroupsInRegExp(re){
+    // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
+    return new RegExp(re.toString() + '|').exec('').length
+}
+
 // getOwnPropertyNames instead of for loop b/c props aren't enumerable
 Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
     if (propertyName === "toString") { return }
@@ -87,8 +92,20 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     if (typeof args[1] === "string" || typeof args[1] === "number") {
                         var value = args[1].toString();
                         value = value.replace(/\$([0-9]{1,2}|[$`&'])/g, function(dollarMatch, dollarSubmatch){
-                            if (!isNaN(parseFloat(dollarSubmatch))){
-                                return submatches[parseFloat(dollarSubmatch) - 1] // $n is one-based, array is zero-based
+                            var submatchIndex = parseFloat(dollarSubmatch)
+                            if (!isNaN(submatchIndex)){
+                                var submatch = submatches[submatchIndex - 1] // $n is one-based, array is zero-based
+                                if (submatch === undefined) {
+                                    var maxSubmatchIndex = countGroupsInRegExp(args[0])
+                                    var submatchIsDefinedInRegExp = submatchIndex < maxSubmatchIndex
+
+                                    if (submatchIsDefinedInRegExp) {
+                                        submatch = ""
+                                    } else {
+                                        submatch = "$" + dollarSubmatch
+                                    }
+                                }
+                                return submatch
                             } else if (dollarSubmatch === "&"){
                                 return match
                             } else {

@@ -41,6 +41,26 @@ describe("FromJSString.replace", function(){
         expect(str.value).toBe("Hi!")
     });
 
+    it("Keeps the $n string if the submatch doesn't exist in the regex", function(){
+        var str = makeTraceObject({
+            value: "Hello",
+            origin: {}
+        })
+
+        str = str.replace(/H/, "$1")
+        expect(str.value).toBe("$1ello")
+    })
+
+    it("Replaces an unmatched submatch with an empty string", function(){
+        var str = makeTraceObject({
+            value: "Hello",
+            origin: {}
+        })
+
+        str = str.replace(/(X)?/, "$1")
+        expect(str.value).toBe("Hello")
+    })
+
     it("Lets you access character at a specific index", function(){
         var str = makeTraceObject({
             value: "Hello",
