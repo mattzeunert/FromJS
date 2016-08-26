@@ -47,6 +47,9 @@ window.nativeJSONParse = nativeJSONParse
 var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
 
+var nativeAddEventListener = Node.prototype.addEventListener
+var nativeRemoveEventListener = Node.prototype.removeEventListener
+
 var nativeCloneNode = Node.prototype.cloneNode;
 
 var originalXMLHttpRequest = window.XMLHttpRequest
@@ -72,6 +75,14 @@ function processJavaScriptCodeWithTracingDisabled(){
         enableTracing();
     }
     return ret
+}
+
+var eventListenersEnabled = true;
+export function enableEventListeners(){
+    eventListenersEnabled = true
+}
+export function disableEventListeners(){
+    eventListenersEnabled = false
 }
 
 export function enableTracing(){
@@ -247,6 +258,36 @@ export function enableTracing(){
         }
 
         return parsedVal
+    }
+
+    var eventListenerFunctionMap = new Map()
+    function getExistingUsedFunction(originalFunction) {
+        return eventListenerFunctionMap.get(originalFunction)
+    }
+    Node.prototype.addEventListener = function(){
+        var originalFunction = arguments[1]
+
+        var usedFunction = getExistingUsedFunction(originalFunction)
+        if (usedFunction === undefined){
+            usedFunction = function(){
+                if (eventListenersEnabled) {
+                    originalFunction.apply(this, arguments)
+                } else {
+                    console.log("Not handling event", arguments)
+                }
+            }
+            eventListenerFunctionMap.set(originalFunction, usedFunction)
+        }
+
+        arguments[1] = usedFunction
+        nativeAddEventListener.apply(this, arguments)
+    }
+
+    Node.prototype.removeEventListener = function(){
+        var originalFunction = arguments[1]
+        var usedFunction = getExistingUsedFunction(originalFunction)
+        arguments[1] = usedFunction;
+        nativeRemoveEventListener.apply(this, arguments)
     }
 
     Array.prototype.join = function(separator){
@@ -570,6 +611,8 @@ export function disableTracing(){
     document.createTextNode = nativeCreateTextNode
     window.eval = nativeEval
     Node.prototype.cloneNode = nativeCloneNode
+    Node.prototype.addEventListener =  nativeAddEventListener
+    Node.prototype.removeEventListener = nativeRemoveEventListener
 
     tracingEnabled = false;
 }

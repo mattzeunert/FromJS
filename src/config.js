@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === "production") {
     customConfig = {
         alwaysShowValue: true,
         catchUIErrors: false,
-        validateHtmlMapping: true
+        validateHtmlMapping: false
     }
 }
 

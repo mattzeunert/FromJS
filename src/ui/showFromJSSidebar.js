@@ -5,12 +5,10 @@ import isMobile from "../isMobile"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getRootOriginAtChar from "../getRootOriginAtChar"
 import { OriginPath, FromJSView } from "../ui/ui"
-import {disableTracing, enableTracing} from "../tracing/tracing"
+import {disableTracing, enableTracing, disableEventListeners, enableEventListeners} from "../tracing/tracing"
 
 export default function showFromJSSidebar(){
     disableTracing()
-
-    var windowJQuery = window.jQuery
 
     var container = document.createElement("div")
     container.className = "fromjs-outer-container"
@@ -30,12 +28,16 @@ export default function showFromJSSidebar(){
         return true
     }
 
-    if (windowJQuery) {
-        windowJQuery("*").off()
-    }
+    disableEventListeners()
 
-    $("*").click(function(e){
+    // maybe try useCapture parameter here
+
+    // We already disable event listeners created with addEventListener
+    // but not e.g. onclick attributes, or prevent checkboxes
+    // from being toggled and links from being clicked (preventDefault)
+    $("body").click(function(e){
         if (!shouldHandle(e)) {return}
+
         e.stopPropagation();
         e.preventDefault();
         component.display(e.target)
