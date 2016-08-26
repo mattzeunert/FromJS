@@ -156,8 +156,8 @@ export function enableTracing(){
 
     window.XMLHttpRequest = function(){
         var self = this;
+        self.xhr = new originalXMLHttpRequest()
         this.open = function(){
-            self.xhr = new originalXMLHttpRequest()
             self.xhr.onreadystatechange = function(e){
                 if (self.xhr.readyState === originalXMLHttpRequest.DONE) {
                     self.responseText = makeTraceObject({
@@ -168,15 +168,12 @@ export function enableTracing(){
                             action: "XHR Response"
                         })
                     })
-                    self.status = self.xhr.status
-                    self.readyState = self.xhr.readyState
+
                     if (self.onreadystatechange) {
-                        // debugger
                         self.onreadystatechange(e)
                     }
 
                     if (self.onload){
-                        // debugger
                         self.onload()
                     }
                 } else {
@@ -185,9 +182,33 @@ export function enableTracing(){
             }
             this.xhr.open.apply(self.xhr, arguments)
         }
-        this.send = function(){
-            this.xhr.send.apply(self.xhr, arguments)
-        }
+
+        var propsToCopy = [
+            "UNSENT", "OPENED", "HEADERS_RECEIVED", "LOADING",
+            "DONE", "readyState", "timeout", "withCredentials",
+            "upload",
+            "responseURL", "status", "statusText", "responseType",
+            "response", "responseXML", "setRequestHeader",
+            "abort",
+            "send", "getResponseHeader", "getAllResponseHeaders",
+            "overrideMimeType", "addEventListener",
+            "removeEventListener", "dispatchEvent"
+        ]
+
+        propsToCopy.forEach(function(key){
+            Object.defineProperty(self, key, {
+                get: function(){
+                    var value = self.xhr[key]
+                    if (typeof value === "function"){
+                        value = value.bind(self.xhr)
+                    }
+                    return value
+                },
+                set: function(value){
+                    return self.xhr[key] = value
+                }
+            })
+        })
     }
 
     Element.prototype.setAttribute = function(attrName, value){
