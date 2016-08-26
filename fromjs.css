@@ -21,8 +21,16 @@
     background: transparent;
     box-shadow: none;
     min-height: none;
-    padding: auto;
     border-radius: 0;
+    padding: 0;
+    min-height: 0px;
+    min-width: 0px;
+}
+.fromjs-outer-container button:hover,
+.fromjs-outer-container button:focus, {
+    background: inherit;
+    border: none;
+    box-shadow: none;
 }
 
 .fromjs-show-inspector-button {
