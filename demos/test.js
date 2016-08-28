@@ -9,7 +9,10 @@ function onload(){
  //   document.body.innerHTML = "<div \t\t\n>aaa</div>"
 
  var val = $("#content").html()
- $(val).appendTo($("body"))
+ var valEl = $(val)
+ document.body.innerHTML = valEl[0].outerHTML
+ // valEl.appendTo($("body"))
+
 }
 
 document.onreadystatechange = function(){

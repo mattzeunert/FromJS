@@ -57,6 +57,7 @@ var originalXMLHttpRequest = window.XMLHttpRequest
 var nativeCreateTextNode = document.createTextNode
 
 var nativeEval = window.eval
+var nativeOuterHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "outerHTML")
 
 var nativeArrayJoin = Array.prototype.join
 var nativeArrayIndexOf = Array.prototype.indexOf
@@ -417,6 +418,20 @@ export function enableTracing(){
         }
     })
 
+    Object.defineProperty(Element.prototype, "outerHTML", {
+        get: function(){
+            var outerHTML = nativeOuterHTMLDescriptor.get.apply(this, arguments)
+            return makeTraceObject({
+                value: outerHTML,
+                origin: new Origin({
+                    value: outerHTML,
+                    action: "Read Element outerHTML",
+                    inputValues: [this]
+                })
+            })
+        }
+    })
+
     Object.defineProperty(Element.prototype, "innerHTML", {
         set: function(innerHTML){
             var fromJSButton;
@@ -670,6 +685,7 @@ export function disableTracing(){
     Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
     Element.prototype.setAttribute = window.nativeSetAttribute
     Object.defineProperty(Element.prototype, "innerHTML", nativeInnerHTMLDescriptor)
+    Object.defineProperty(Element.prototype, "outerHTML", nativeOuterHTMLDescriptor)
     Object.defineProperty(window, "localStorage", {
         get: function(){
             return window.originalLocalStorage

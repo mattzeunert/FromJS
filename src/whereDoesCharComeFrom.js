@@ -228,7 +228,8 @@ function goUp(step, callback){
             throw "not handled mathc call"
         }
     }
-    else if (step.originObject.action === "Read Element innerHTML"){
+    else if (step.originObject.action === "Read Element innerHTML" ||
+        step.originObject.action === "Read Element outerHTML"){
 
         // var el = $("*").filter(function(){return this.innerHTML == step.originObject.value})[0]
         var el = step.originObject.inputValues[0]
