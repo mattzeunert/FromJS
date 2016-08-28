@@ -661,7 +661,7 @@ class TextEl extends React.Component {
     scrollToHighlightedChar(el, highlightedCharLineIndex){
         if (!el){return}
         if (this.state.truncateText) {return}
-        var lineHeight = 19;
+        var lineHeight = 18;
         var lineAtTop = highlightedCharLineIndex - 4;
         if (lineAtTop < 0) {
             lineAtTop = 0;
@@ -808,7 +808,7 @@ class StackFrame extends React.Component{
 
         return <div style={{
                 display: "block",
-                maxHeight: 19 * 7,
+                maxHeight: 18 * 7,
                 overflow: "auto"
             }} ref={(el) => this.scrollToLine(el, frame.lineNumber)}>
             <HorizontalScrollContainer>
@@ -856,7 +856,7 @@ class StackFrame extends React.Component{
             linesNotShownBefore = 0;
         }
 
-        var lineHeight = 19;
+        var lineHeight = 18;
         var scrollToLine = lineNumber - 4 - linesNotShownBefore;
         if (scrollToLine < 0){
             scrollToLine = 0;

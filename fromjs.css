@@ -79,6 +79,7 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     overflow: auto;
 }
 #fromjs .fromjs-stack__code {
+    line-height: 18px;
     word-wrap: nowrap;
     white-space: nowrap;
     background: red;
