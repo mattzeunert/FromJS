@@ -533,12 +533,12 @@ export function enableTracing(){
         if (res === null) {
             return res;
         }
-        var match = res[0]
-        match = makeTraceObject({
-            value: match,
+        var matchValue = res[0]
+        var match = makeTraceObject({
+            value: matchValue,
             origin: new Origin({
                 action: "RegExp.exec Match",
-                value: match,
+                value: matchValue,
                 inputValues: [str],
                 inputValuesCharacterIndex: [res.index]
             })
@@ -546,14 +546,17 @@ export function enableTracing(){
 
         res[0] = match
 
+        var regExpString = this.toString();
         for (var i=1; i<res.length; i++){
             if (res[i] !== undefined) {
                 var submatch = makeTraceObject({
                     value: res[i],
                     origin: new Origin({
                         value: res[i],
-                        action: "Untracked RegExp.exec Submatch",
-                        inputValues: []
+                        action: "RegExp.exec Submatch",
+                        inputValues: [str],
+                        // indexOf isn't very accurate but will have to do for now
+                        inputValuesCharacterIndex: [res.index + matchValue.indexOf(res[i])]
                     })
                 })
                 res[i] = submatch

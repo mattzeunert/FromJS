@@ -171,14 +171,22 @@ describe("Tracing", function(){
         expect(clone.__elOrigin).toBe("test")
     })
 
-    fit("Partially Supports RegExp.exec matches", function(){
+    it("Supports RegExp.exec matches and submatches", function(){
         var str = "abcd"
-        var re = /c/g
+        var re = /(b)(c)/g
         var match = re.exec(str);
 
-        expect(match[0].value).toBe("c")
+        expect(match[0].value).toBe("bc")
         expect(match[0].origin.action).toBe("RegExp.exec Match")
-        expect(match[0].origin.inputValuesCharacterIndex[0]).toBe(2)
+        expect(match[0].origin.inputValuesCharacterIndex[0]).toBe(1)
+
+        expect(match[1].value).toBe("b")
+        expect(match[1].origin.action).toBe("RegExp.exec Submatch")
+        expect(match[1].origin.inputValuesCharacterIndex[0]).toBe(1)
+
+        expect(match[2].value).toBe("c")
+        expect(match[2].origin.action).toBe("RegExp.exec Submatch")
+        expect(match[2].origin.inputValuesCharacterIndex[0]).toBe(2)
     })
 
     it("Maintains __elOrigin properties when calling .cloneNode with deep being set to true", function(){
