@@ -82,7 +82,7 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     line-height: 18px;
     word-wrap: nowrap;
     white-space: nowrap;
-    background: red;
+    background: red !important;
 }
 #fromjs .fromjs-stack__code.fromjs-stack__code--truncated {
     cursor: pointer;
@@ -171,7 +171,7 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     border-bottom-width: 2px;
 }
 .fromjs-stack-frame-selector__item--selected {
-    color: #0088ff;
+    color: #0088ff !important;
 }
 .fromjs-stack-frame-selector__item:hover {
     color: red;
