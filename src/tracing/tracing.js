@@ -541,6 +541,20 @@ export function enableTracing(){
         if (res === null) {
             return res;
         }
+        if (str === null || str === undefined){
+            str = "" + str // convert to string
+        }
+        if (str.isStringTraceString) {
+            str = makeTraceObject({
+                value: str,
+                origin: new Origin({
+                    value: str,
+                    action: "Untracked RegExp.exec parameter",
+                    inputValues: []
+                })
+            });
+        }
+
         var matchValue = res[0]
         var match = makeTraceObject({
             value: matchValue,
