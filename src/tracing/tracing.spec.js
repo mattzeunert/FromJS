@@ -171,6 +171,16 @@ describe("Tracing", function(){
         expect(clone.__elOrigin).toBe("test")
     })
 
+    fit("Partially Supports RegExp.exec matches", function(){
+        var str = "abcd"
+        var re = /c/g
+        var match = re.exec(str);
+
+        expect(match[0].value).toBe("c")
+        expect(match[0].origin.action).toBe("RegExp.exec Match")
+        expect(match[0].origin.inputValuesCharacterIndex[0]).toBe(2)
+    })
+
     it("Maintains __elOrigin properties when calling .cloneNode with deep being set to true", function(){
         var parent = document.createElement("div")
         parent.__elOrigin = {action: "test"}

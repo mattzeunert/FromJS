@@ -527,9 +527,40 @@ export function enableTracing(){
         return nativeEval(evalCode)
     }
 
-    RegExp.prototype.exec = function(){
+    RegExp.prototype.exec = function(str){
         var args = unstringTracifyArguments(arguments)
-        return nativeExec.apply(this, args)
+        var res = nativeExec.apply(this, args)
+        if (res === null) {
+            return res;
+        }
+        var match = res[0]
+        match = makeTraceObject({
+            value: match,
+            origin: new Origin({
+                action: "RegExp.exec Match",
+                value: match,
+                inputValues: [str],
+                inputValuesCharacterIndex: [res.index]
+            })
+        })
+
+        res[0] = match
+
+        for (var i=1; i<res.length; i++){
+            if (res[i] !== undefined) {
+                var submatch = makeTraceObject({
+                    value: res[i],
+                    origin: new Origin({
+                        value: res[i],
+                        action: "Untracked RegExp.exec Submatch",
+                        inputValues: []
+                    })
+                })
+                res[i] = submatch
+            }
+        }
+
+        return res;
     }
 
     window.Function = function(code){

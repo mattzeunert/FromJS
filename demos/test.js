@@ -7,6 +7,9 @@ function onload(){
 
     // document.body.innerHTML = '<span hi="hey"       cake="cookie">ss<!-- yolo\n\n end -->sss</span>'
  //   document.body.innerHTML = "<div \t\t\n>aaa</div>"
+
+ var val = $("#content").html()
+ $(val).appendTo($("body"))
 }
 
 document.onreadystatechange = function(){
