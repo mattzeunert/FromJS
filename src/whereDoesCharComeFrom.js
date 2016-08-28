@@ -90,6 +90,12 @@ function goUp(step, callback){
             originObject: step.originObject.inputValues[0],
             characterIndex: step.characterIndex
         }
+    } else if (step.originObject.action === "RegExp.exec Match" ||
+        step.originObject.action === "RegExp.exec Submatch") {
+        ret = {
+            originObject: step.originObject.inputValues[0],
+            characterIndex: step.originObject.inputValuesCharacterIndex[0] + step.characterIndex
+        }
     } else  if (step.originObject.action === "Concat") {
         var valueMap = new ValueMap()
         valueMap.append(step.originObject.inputValues[0])
