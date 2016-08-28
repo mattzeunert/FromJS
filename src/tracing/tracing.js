@@ -559,7 +559,7 @@ export function enableTracing(){
         if (str === null || str === undefined){
             str = "" + str // convert to string
         }
-        if (str.isStringTraceString) {
+        if (!str.isStringTraceString) {
             str = makeTraceObject({
                 value: str,
                 origin: new Origin({
