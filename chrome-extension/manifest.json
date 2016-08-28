@@ -1,7 +1,8 @@
 {
   "name": "FromJS",
-  "version": "1.0",
+  "version": "1.0.1",
   "manifest_version": 2,
+  "description": "View where each character on the screen came from in code.",
   "minimum_chrome_version": "50.0",
   "background": {
     "scripts": ["background.js"]
@@ -10,7 +11,7 @@
 
   ],
   "browser_action": {
-    "name": "Run FromJS here"
+    "name": "Run FromJS on this page"
   },
   "icons": {
    "128": "icon.png"
