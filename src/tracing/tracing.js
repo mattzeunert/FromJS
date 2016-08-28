@@ -65,16 +65,24 @@ var nativeHTMLInputElementValueDescriptor = Object.getOwnPropertyDescriptor(HTML
 
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
 
-function processJavaScriptCodeWithTracingDisabled(){
+export function runFunctionWithTracingDisabled(fn){
     var tracingEnabledAtStart = tracingEnabled;
     if (tracingEnabledAtStart) {
         disableTracing();
     }
-    var ret = processJavaScriptCode.apply(this, arguments)
+    var ret = fn();
     if (tracingEnabledAtStart) {
         enableTracing();
     }
     return ret
+}
+
+function processJavaScriptCodeWithTracingDisabled(){
+    var args = arguments
+    var self = this
+    return runFunctionWithTracingDisabled(function(){
+        return processJavaScriptCode.apply(self, args)
+    })
 }
 
 var eventListenersEnabled = true;
