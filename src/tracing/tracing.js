@@ -169,13 +169,17 @@ export function enableTracing(){
         this.open = function(){
             self.xhr.onreadystatechange = function(e){
                 if (self.xhr.readyState === originalXMLHttpRequest.DONE) {
-                    self.responseText = makeTraceObject({
-                        value: self.xhr.responseText,
-                        origin: new Origin({
-                            value: self.xhr.responseText,
-                            inputValues: [],
-                            action: "XHR Response"
-                        })
+                    Object.defineProperty(self, "responseText", {
+                        get: function(){
+                            return makeTraceObject({
+                                value: self.xhr.responseText,
+                                origin: new Origin({
+                                    value: self.xhr.responseText,
+                                    inputValues: [],
+                                    action: "XHR responseText"
+                                })
+                            })
+                        }
                     })
 
                     if (self.onreadystatechange) {
