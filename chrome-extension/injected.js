@@ -47,8 +47,13 @@ function simulateOnLoad(){
         document.body.onload({});
     }
 
+    window.dispatchEvent(new Event("DOMContentLoaded"))
+    document.dispatchEvent(new Event("DOMContentLoaded"))
+
     // I can't override document.readyState, so it will always be "complete" and never "loading"
     document.dispatchEvent(new Event("readystatechange"))
+
+    document.dispatchEvent(new Event("load"))
 }
 
 
