@@ -104,6 +104,7 @@ function activate(tabId){
 
         var script2 = document.createElement("script")
         script2.src = '${chrome.extension.getURL("from.js")}'
+        script2.setAttribute("charset", "utf-8")
         document.documentElement.appendChild(script2)
       `
     })
