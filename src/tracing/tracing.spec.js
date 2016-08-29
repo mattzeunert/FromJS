@@ -9,6 +9,12 @@ describe("Tracing", function(){
         disableTracing()
     })
 
+    it("Tracks outerHTML that is read from an element", function(){
+        var el = document.createElement("div")
+        var html = el.outerHTML
+        expect(html.origin.action).toBe("Read Element outerHTML")
+    })
+
     it("Tracks data read using localStorage.getItem", function(){
         localStorage.setItem("test", "hello")
         var value = localStorage.getItem("test")
