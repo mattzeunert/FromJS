@@ -6,7 +6,7 @@
   "scripts": {
     "test": "karma start",
     "ci-test": "karma start --single-run",
-    "server": "nodemon dist/server.js dev",
+    "server": "nodemon --watch dist/server.js  dist/server.js",
     "webpack": "webpack --config webpack/webpack.dev.config --watch",
     "update-website": "git subtree push  --prefix gh-pages origin gh-pages",
     "build-demo": "webpack -p --config webpack/webpack.demo.config.js",
