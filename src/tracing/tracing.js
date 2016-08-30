@@ -47,6 +47,8 @@ window.nativeJSONParse = nativeJSONParse
 var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
 
+var nativeObjectToString = Object.prototype.toString
+
 var nativeAddEventListener = Node.prototype.addEventListener
 var nativeRemoveEventListener = Node.prototype.removeEventListener
 
@@ -607,6 +609,13 @@ export function enableTracing(){
         return res;
     }
 
+    Object.prototype.toString = function(){
+        if (this.isStringTraceString) {
+            return this
+        }
+        return nativeObjectToString.call(this)
+    }
+
     window.Function = function(code){
         var args = Array.prototype.slice.apply(arguments)
         var code = args.pop()
@@ -710,6 +719,8 @@ export function disableTracing(){
     Node.prototype.cloneNode = nativeCloneNode
     Node.prototype.addEventListener =  nativeAddEventListener
     Node.prototype.removeEventListener = nativeRemoveEventListener
+
+    Object.prototype.toString = nativeObjectToString
 
     tracingEnabled = false;
 }

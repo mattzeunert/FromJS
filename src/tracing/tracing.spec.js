@@ -223,6 +223,19 @@ describe("Tracing", function(){
         var clone = parent.cloneNode(true)
         expect(clone.__elOrigin.action).toBe("test")
         expect(clone.children[0].__elOrigin.action).toBe("cake")
+    })
 
+    it("Returns the original traced string when calling Object.prototype.toString on it", function(){
+        // This is something e.g. Handlebars uses to stringify stuff
+        var toString = Object.prototype.toString
+        var str = {
+            value: "Hi",
+            origin: {},
+            isStringTraceString: true
+        }
+
+        str = toString.call(str)
+        expect(typeof str).not.toBe("string")
+        expect(str.value).toBe("Hi")
     })
 })
