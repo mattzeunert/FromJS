@@ -170,11 +170,11 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
 .fromjs-stack-frame-selector__item:last-child {
     border-bottom-width: 2px;
 }
-.fromjs-stack-frame-selector__item--selected {
+.fromjs-stack-frame-selector__item--selected * {
     color: #0088ff !important;
 }
-.fromjs-stack-frame-selector__item:hover {
-    color: red;
+.fromjs-stack-frame-selector__item:hover * {
+    color: red !important;
 }
 
 #fromjs {
