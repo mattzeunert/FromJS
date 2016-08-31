@@ -65,7 +65,21 @@ var babelFunctions = {
         return a !== b;
     },
     f__tripleEqual(a,b){
-        return !babelFunctions.f__notTripleEqual(a,b)
+        var ret = !babelFunctions.f__notTripleEqual(a,b)
+        return ret
+    },
+    f__notDoubleEqual(a,b){
+        if (a && a.isStringTraceString) {
+            a = a.toString()
+        }
+        if(b && b.isStringTraceString) {
+            b = b.toString();
+        }
+        return a != b;
+    },
+    f__doubleEqual(a,b){
+        var ret = !babelFunctions.f__notDoubleEqual(a,b)
+        return ret
     },
     f__not(val){
         return !stringTraceUseValue(val)

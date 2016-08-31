@@ -157,11 +157,6 @@ module.exports = function(babel) {
             replacement.ignore = true;
             path.replaceWith(replacement)
         }
-
-
-
-
-
       },
       ConditionalExpression(path){
           if (path.node.ignore){return}
@@ -218,28 +213,24 @@ module.exports = function(babel) {
       },
       BinaryExpression(path){
           if (path.node.ignore){return}
-        if (path.node.operator === "+") {
-            var call = babel.types.callExpression(
-                babel.types.identifier("f__add"),
-                [path.node.left, path.node.right]
-            )
 
-            path.replaceWith(call)
-        } else if (path.node.operator === "!==") {
-            var call = babel.types.callExpression(
-                babel.types.identifier("f__notTripleEqual"),
-                [path.node.left, path.node.right]
-            )
+          var replacements = {
+              "+": "f__add",
+              "!==": "f__notTripleEqual",
+              "===": "f__tripleEqual",
+              "!=": "f__notDoubleEqual",
+              "==": "f__doubleEqual"
+          }
 
-            path.replaceWith(call)
-        } else if (path.node.operator === "===") {
-            var call = babel.types.callExpression(
-                babel.types.identifier("f__tripleEqual"),
-                [path.node.left, path.node.right]
-            )
+          var replacement = replacements[path.node.operator]
+          if (replacement) {
+              var call = babel.types.callExpression(
+                  babel.types.identifier(replacement),
+                  [path.node.left, path.node.right]
+              )
 
-            path.replaceWith(call)
-        }
+              path.replaceWith(call)
+          }
       },
       LogicalExpression(path){
           if(path.node.operator === "||"){
@@ -309,8 +300,6 @@ module.exports = function(babel) {
               cases
           );
 
-
-
           switchStatement.ignore = true
           path.replaceWith(switchStatement)
       },
@@ -327,7 +316,6 @@ module.exports = function(babel) {
           path.replaceWith(whileStatement)
       },
       StringLiteral(path) {
-        // console.log(path.node.type)
         if (path.node.ignore) {
             return;
         }
@@ -355,22 +343,9 @@ module.exports = function(babel) {
             STRING: str
         });
 
-        // console.log(generate(ast).code);
 
-        // prop = babel.types.objectProperty(
-        //     babel.types.identifier("hello"),
-        //     babel.types.identifier("world")
-        // )
-        // path.replaceWith(babel.types.objectExpression([prop]))
         ast.expression.loc = path.node.loc
-        // debugger
         path.replaceWith(ast)
-
-        // path.replaceWith(
-        //     babel.types.binaryExpression("**", path.node.left, babel.types.numericLiteral(2))
-        // );
-
-        // path.node.left = babel.types.identifier("sebmck");
       }
     }
   };

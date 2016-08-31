@@ -120,4 +120,20 @@ describe("processJavaScriptCode", function(){
         code = processJavaScriptCode(code).code
         expect(eval(code).value).toBe("yes")
     })
+
+    it("Supports != comparisons", function(){
+        var code = `
+            "a" != "a"
+        `
+        code = processJavaScriptCode(code).code
+        expect(eval(code)).toBe(false)
+    })
+
+    it("Supports == comparisons", function(){
+        var code = `
+            "a" == "a"
+        `
+        code = processJavaScriptCode(code).code
+        expect(eval(code)).toBe(true)
+    })
 })
