@@ -213,6 +213,30 @@ describe("Tracing", function(){
         expect(matches[1].value).toBe("undefined")
     })
 
+    it("Supports str.match with multiple matches", function(){
+        var str = makeTraceObject({
+            value: "cake",
+            origin: {}
+        })
+
+        var matches = str.match(/[a-e]+/g)
+        console.log("res", matches)
+
+        expect(matches[0].value).toBe("ca")
+        expect(matches[1].value).toBe("e")
+    })
+
+    it("Supports str.match without any matches", function(){
+        var str = makeTraceObject({
+            value: "cake",
+            origin: {}
+        })
+
+        var matches = str.match(/[z]+/g)
+
+        expect(matches).toBe(null)
+    })
+
     it("Maintains __elOrigin properties when calling .cloneNode with deep being set to true", function(){
         var parent = document.createElement("div")
         parent.__elOrigin = {action: "test"}

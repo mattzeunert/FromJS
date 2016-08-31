@@ -181,6 +181,21 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 valueMap.appendString(newVal, oldValue.origin, start)
                 valueItems = valueMap.serialize(inputValues)
 
+            } else if (propertyName === "match") {
+                var regExp = args[0]
+                if (regExp.global) {
+                    var matches = [];
+                    var match;
+                    while (match = regExp.exec(this)) {
+                        matches.push(match[0])
+                    }
+                    if (matches.length === 0) {
+                        return null;
+                    }
+                    return matches
+                } else {
+                    return regExp.exec(this)
+                }
             } else {
                 if (config.logUntrackedStrings) {
                     console.trace("string not tracked after ",propertyName ,"call")
@@ -242,7 +257,7 @@ Object.defineProperty(FromJSString.prototype, "length", {
 
 export function makeTraceObject(options){
     if (options === undefined || options.value === undefined || options.origin === undefined) {
-        throw "invalid options"
+        throw "invalid options for makeTraceObject"
     }
     var stringTraceObject = new FromJSString({
         value: stringTraceUseValue(options.value),
