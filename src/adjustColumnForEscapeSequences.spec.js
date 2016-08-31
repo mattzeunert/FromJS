@@ -15,4 +15,32 @@ describe("adjustColumnForEscapeSequences", function(){
         var adjustedIndex = adjustColumnForEscapeSequences(code, wIndex)
         expect(code[adjustedIndex]).toBe("w")
     })
+    it("Treats an escaped double quote sign in code as two characters", function(){
+        var code = `\\"Hello`;
+        var str = `"Hello`
+        var index = str.indexOf("H")
+        var adjustedIndex = adjustColumnForEscapeSequences(code, index)
+        expect(code[adjustedIndex]).toBe("H")
+    })
+    it("Treats an unescaped double quote sign in code as two characters", function(){
+        var code = `"Hello`;
+        var str = `"Hello`
+        var index = str.indexOf("H")
+        var adjustedIndex = adjustColumnForEscapeSequences(code, index)
+        expect(code[adjustedIndex]).toBe("H")
+    })
+    it("Treats an escaped single quote sign in code as two characters", function(){
+        var code = `\\'Hello`;
+        var str = `'Hello`
+        var index = str.indexOf("H")
+        var adjustedIndex = adjustColumnForEscapeSequences(code, index)
+        expect(code[adjustedIndex]).toBe("H")
+    })
+    it("Treats an unescaped single quote sign in code as two characters", function(){
+        var code = `'Hello`;
+        var str = `'Hello`
+        var index = str.indexOf("H")
+        var adjustedIndex = adjustColumnForEscapeSequences(code, index)
+        expect(code[adjustedIndex]).toBe("H")
+    })
 })
