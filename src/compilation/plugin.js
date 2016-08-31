@@ -1,7 +1,4 @@
-var template = require("babel-template");
 var _ = require("underscore")
-// var babylon = require("babylon")
-// var generate = require("babel-generator").default;
 
 module.exports = function(babel) {
   return {
@@ -332,20 +329,16 @@ module.exports = function(babel) {
             return;
         }
 
-        const buildRequire = template(`
-          f__StringLiteral(STRING)
-        `);
-
         var str = babel.types.stringLiteral(path.node.value)
         str.ignore = true
 
-        const ast = buildRequire({
-            STRING: str
-        });
+        const call = babel.types.callExpression(
+            babel.types.identifier("f__StringLiteral"),
+            [str]
+        )
 
-
-        ast.expression.loc = path.node.loc
-        path.replaceWith(ast)
+        call.loc = path.node.loc
+        path.replaceWith(call)
       }
     }
   };
