@@ -264,7 +264,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                         addElOrigin(child, "attribute_" + attr.name, {
                             action: actionName,
                             inputValues: [assignedInnerHTML],
-                            value: whitespaceBeforeAttributeInSerializedHtml + attrStr,
+                            value: serializedHtml,
                             inputValuesCharacterIndex: [charOffsetInSerializedHtmlBefore],
                             extraCharsAdded: charsAddedInSerializedHtml,
                             offsetAtCharIndex: offsetAtCharIndex,
