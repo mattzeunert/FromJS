@@ -12,7 +12,7 @@ Understand JavaScript apps. See the code for responsible for every character on 
 
 FromJS won't currently work on most sites. Here are a few example apps you can try though:
 
-[React TodoMVC](http://todomvc.com/examples/react/#/)
+[React TodoMVC](http://todomvc.com/examples/react/#/)  
 [jQuery TodoMVC](http://todomvc.com/examples/jquery/#/all)
 
 Make sure the page finishes loading before you try to inspect it. (This is bad UX, I'll try to improve it.)
