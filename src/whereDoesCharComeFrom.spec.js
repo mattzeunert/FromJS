@@ -72,7 +72,25 @@ describe("whereDoesCharComeFrom", function(){
 
         whereDoesCharComeFrom(origin, 1, function(steps){
             var lastStep = steps[steps.length - 1]
-            console.log("ls", lastStep)
+            expect(lastStep.originObject.action).toBe("String Literal")
+        })
+    })
+
+    it("Can traverse toUpperCase calls", function(){
+        var origin = {
+            action: "ToUpperCase Call",
+            value: "ABC",
+            inputValues: [
+                {
+                    value: "abC",
+                    inputValues: [],
+                    action: "String Literal"
+                }
+            ]
+        }
+
+        whereDoesCharComeFrom(origin, 1, function(steps){
+            var lastStep = steps[steps.length - 1]
             expect(lastStep.originObject.action).toBe("String Literal")
         })
     })

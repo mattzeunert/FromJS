@@ -96,6 +96,14 @@ function goUp(step, callback){
             originObject: step.originObject.inputValues[0],
             characterIndex: step.originObject.inputValuesCharacterIndex[0] + step.characterIndex
         }
+    } else if (step.originObject.action === "ToLowerCase Call" ||
+        step.originObject.action === "ToUpperCase Call") {
+        // I'll just assume that this is always valid...
+        // could there be case where one char becomes two in lower/upper case?
+        ret = {
+            originObject: step.originObject.inputValues[0],
+            characterIndex: step.characterIndex
+        }
     } else  if (step.originObject.action === "Concat") {
         var valueMap = new ValueMap()
         valueMap.append(step.originObject.inputValues[0])
