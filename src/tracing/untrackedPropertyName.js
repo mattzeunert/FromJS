@@ -4,7 +4,7 @@ import config from "../config"
 
 export default function untrackedString(value){
     if (config.logUntrackedPropertyNames) {
-        console.trace("property name not tracked", propertyName)
+        console.trace("property name not tracked", value)
     }
     return makeTraceObject({
         value: value,

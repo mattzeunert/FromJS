@@ -18,13 +18,19 @@ module.exports = function(babel) {
 
             path.replaceWith(assignmentExpression)
         }
-        if (path.node.operator === "=" && path.node.left.type === "MemberExpression" &&
-        path.node.left.computed === true) {
+        if (path.node.operator === "=" && path.node.left.type === "MemberExpression") {
+            var property;
+            if (path.node.left.computed === true) {
+                property = path.node.left.property
+            } else {
+                property = babel.types.stringLiteral(path.node.left.property.name)
+                property.loc = path.node.left.property.loc
+            }
             path.replaceWith(babel.types.callExpression(
                 babel.types.identifier("f__assign"),
                 [
                     path.node.left.object,
-                    path.node.left.property,
+                    property,
                     path.node.right
                 ]
             ))
