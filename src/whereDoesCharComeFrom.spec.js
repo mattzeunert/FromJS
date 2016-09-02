@@ -56,4 +56,24 @@ describe("whereDoesCharComeFrom", function(){
             })
         })
     })
+
+    it("Can traverse toLowerCase calls", function(){
+        var origin = {
+            action: "ToLowerCase Call",
+            value: "abc",
+            inputValues: [
+                {
+                    value: "AbC",
+                    inputValues: [],
+                    action: "String Literal"
+                }
+            ]
+        }
+
+        whereDoesCharComeFrom(origin, 1, function(steps){
+            var lastStep = steps[steps.length - 1]
+            console.log("ls", lastStep)
+            expect(lastStep.originObject.action).toBe("String Literal")
+        })
+    })
 })
