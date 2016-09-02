@@ -17,7 +17,7 @@ function handleRequest(request, response){
 
     if (isInternalRequest){
         if (endsWith(path, "fromjs.css")) {
-            path = require("path").normalize(__dirname + "/../fromjs.css")
+            path = require("path").normalize(__dirname + "/../src/fromjs.css")
         }
 
         path = path.replace("/fromjs-internals/", __dirname + "/../" + "dist/")

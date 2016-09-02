@@ -1,6 +1,6 @@
 import processJavaScriptCode from "../src/compilation/processJavaScriptCode"
 import startsWith from "starts-with"
-import fromJSCss from "../fromjs.css"
+import fromJSCss from "../src/fromjs.css"
 import manifest from "./manifest" // we don't use it but we want manifest changes to trigger a webpack re-build
 import beautify from "js-beautify"
 

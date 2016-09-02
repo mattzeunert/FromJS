@@ -16,7 +16,7 @@ webConfig.output = {
 webConfig.plugins.push(new WebpackShellPlugin({
     onBuildExit: [
         "echo 'Running onBuildExit'",
-        "cp fromjs.css chrome-extension/dist/fromjs.css",
+        "cp src/fromjs.css chrome-extension/dist/fromjs.css",
         "cp chrome-extension/dist/from.js dist/from.js",
         "cp chrome-extension/dist/from.js.map dist/from.js.map",
         "cp chrome-extension/icon.png chrome-extension/dist/icon.png",
