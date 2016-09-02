@@ -16,19 +16,6 @@ I'm working on it.
 
 Then open a static HTML file from there.
 
-## Development
+## Contribute and build FromJS locally
 
-Run `npm run webpack` and `npm run server` to start, then go to [http://localhost:7500/demos/index.html](http://localhost:7500/demos/index.html).
-
-### Unit / Integration Tests
-
-`npm run test`
-
-### E2E Tests
-
-```
-npm install -g protractor
-npm install -g webdriver-manager
-webdriver-manager start
-npm run protractor
-```
+Check out the [Contributing.md](https://github.com/mattzeunert/FromJS/blob/master/CONTRIBUTING.md) file.
