@@ -1,7 +1,7 @@
 import {enableTracing, disableTracing} from "./tracing"
 import {makeTraceObject} from "./FromJSString"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
-import Origin from "../Origin"
+import Origin from "../origin"
 
 describe("Tracing", function(){
     beforeEach(function(){
