@@ -16,9 +16,8 @@ Then, in two separate terminal windows, run `npm run webpack` and `npm run serve
 
 ### E2E Tests
 
+Make sure to run `npm run server` if the server is not already running.
+
 ```
-npm install -g protractor
-npm install -g webdriver-manager
-webdriver-manager start
 npm run protractor
 ```

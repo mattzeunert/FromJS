@@ -13,7 +13,7 @@
     "build": "webpack --config webpack/webpack.prod.config.js;rm chrome-extension/dist/*.map",
     "update-website-demos": "sh ./scripts/copy-demo-files-to-gh-pages.sh",
     "ci-e2e-test": "sh ./scripts/e2e-ci.sh",
-    "protractor": "protractor e2e/conf.js",
+    "protractor": "protractor src/e2e/conf.js",
     "webdriver-manager-update": "webdriver-manager update"
   },
   "author": "Matt Zeunert",
