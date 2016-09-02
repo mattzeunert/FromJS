@@ -623,13 +623,15 @@ export function enableTracing(){
 
         var id = _.uniqueId();
         var filename = "DynamicFunction" + id + ".js"
+
+        var fnName = "DynamicFunction" + id
+        code = f__add("function " + fnName + "(" + argsWithoutCode.join(",") + "){", code);
+        code = f__add(code, "}")
         var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
         args.push(res.code)
 
-
-        var fnName = "DynamicFunction" + id
         var smFilename = filename + ".map"
-        var evalCode = "function " + fnName + "(" + argsWithoutCode.join(",") + "){" + res.code + "}" +
+        var evalCode = res.code +
             "\n//# sourceURL=" + filename +
             "\n//# sourceMappingURL=" + smFilename
 
