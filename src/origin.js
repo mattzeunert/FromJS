@@ -8,10 +8,10 @@ Object.freeze(emptyInputValuesArray)
 
 export default function Origin(opts){
     var inputValues = opts.inputValues.map(function(inputValue){
-        if (inputValue instanceof Origin){
+        if (inputValue.isFromJSOriginObject){
             return inputValue
         }
-        if (inputValue.origin instanceof Origin){
+        if (inputValue.origin && inputValue.origin.isFromJSOriginObject){
             return inputValue.origin
         }
         if (inputValue instanceof Element){
@@ -48,6 +48,9 @@ export default function Origin(opts){
     if (opts.extraCharsAdded) {
         this.extraCharsAdded = opts.extraCharsAdded
     }
+
+    // easier for tests to handle / simulate
+    this.isFromJSOriginObject = true;
 
     this.inputValuesCharacterIndex = opts.inputValuesCharacterIndex
     this.offsetAtCharIndex = opts.offsetAtCharIndex
@@ -92,6 +95,9 @@ Origin.prototype.getStackFrames = function(){
         if (frame.indexOf("chrome-extension://") !== -1 &&
             (frame.indexOf("from.js") !== -1) || frame.indexOf("injected.js") !== -1) {
             return false;
+        }
+        if (frame.indexOf("http://localhost:9876/base/src/test-setup.spec.js") !== -1) {
+            return false
         }
         if (frame.indexOf("chrome-extension-from-string/from.js") !== -1) {
             return false;

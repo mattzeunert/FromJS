@@ -1,5 +1,7 @@
 import {enableTracing, disableTracing} from "./tracing"
 import {makeTraceObject} from "./FromJSString"
+import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
+import Origin from "../Origin"
 
 describe("Tracing", function(){
     beforeEach(function(){
@@ -75,6 +77,26 @@ describe("Tracing", function(){
         var dynamicFileCountAfter = Object.keys(window.fromJSDynamicFiles).length
         // 3 because we have the original code, compiled code, and source map
         expect(dynamicFileCountAfter - dynamicFileCountBefore).toBe(3)
+    })
+
+    it("Supports mapping of code in new Function", function(done){
+        var fn = new Function(makeTraceObject({
+            value: "return 'Hi'",
+            origin: new Origin({
+                action: "Something",
+                inputValues: [],
+                value: "return 'Hi'"
+            })
+        }))
+
+        var ret = fn();
+        disableTracing()
+
+        whereDoesCharComeFrom(ret.origin, 0, function(steps){
+            var lastStep = steps[steps.length - 1]
+            expect(lastStep.originObject.action).toBe("Something")
+            done();
+        })
     })
 
     it("Processes code passed into eval", function(){
