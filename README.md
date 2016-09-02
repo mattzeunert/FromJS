@@ -8,7 +8,14 @@ Understand JavaScript apps. See the code for responsible for every character on 
 
 ## Chrome Extension
 
-I'm working on it.
+[FromJS Chrome Extension (Beta)](https://chrome.google.com/webstore/detail/fromjs/hjkhdaoomfphjmffaklelpmkllfbjjfd)
+
+FromJS won't currently work on most sites. Here are a few example apps you can try though:
+
+[React TodoMVC](http://todomvc.com/examples/react/#/)
+[jQuery TodoMVC](http://todomvc.com/examples/jquery/#/all)
+
+Make sure the page finishes loading before you try to inspect it. (This is bad UX, I'll try to improve it.)
 
 ## Install From NPM
 
