@@ -1180,7 +1180,7 @@ export class FromJSView extends React.Component {
         if (this.state.el) {
             var goUpInDOM = null
             if (!this.state.nonElementOriginSelected && this.state.el.tagName !== "BODY") {
-                goUpInDOM = () => this.display(this.state.el.parentNode)
+                goUpInDOM = () => this.inspectedPage.trigger("UISelectParentElement")
             }
             info = <div style={{display: showPreview ? "none" : "block"}}>
                 <ElementOriginPath

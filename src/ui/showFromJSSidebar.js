@@ -34,6 +34,9 @@ export default function showFromJSSidebar(){
     // maybe try useCapture parameter here
     var inspectedPage = InspectedPage.getCurrentInspectedPage();
 
+
+    var currentSelectedElement = null;
+    var currentPreviewedElement = null;
     // We already disable event listeners created with addEventListener
     // but not e.g. onclick attributes, or prevent checkboxes
     // from being toggled and links from being clicked (preventDefault)
@@ -42,17 +45,26 @@ export default function showFromJSSidebar(){
 
         e.stopPropagation();
         e.preventDefault();
+        currentSelectedElement = e.target
         inspectedPage.trigger("selectElement", e.target)
+    })
+
+    inspectedPage.on("UISelectParentElement", function(){
+        var newSelectedEl = currentSelectedElement.parentNode;
+        currentSelectedElement = newSelectedEl;
+        inspectedPage.trigger("selectElement", currentSelectedElement)
     })
 
     if (!isMobile()){
         $("*").mouseenter(function(e){
             if (!shouldHandle(e)) {return}
             e.stopPropagation()
+            currentPreviewedElement = e.target
             inspectedPage.trigger("previewElement", e.target)
         })
         $("*").mouseleave(function(e){
             if (!shouldHandle(e)) {return}
+            currentPreviewedElement = null
             inspectedPage.trigger("previewElement", null)
         })
     }
