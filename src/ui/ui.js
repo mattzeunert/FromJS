@@ -882,12 +882,32 @@ class HorizontalScrollContainer extends React.Component {
 }
 
 class ElementOriginPathContent extends React.Component {
+    constructor(props){
+        super(props)
+        this.state = {}
+
+        this.componentWillReceiveProps(props)
+    }
+    componentWillReceiveProps(newProps){
+        // We don't reset the state because we want to keep the current UI visible until the new data comes in
+        if (newProps.previewGetOriginPathKey) {
+            newProps.previewGetOriginPathKey((key) => {
+                this.setState({previewOriginPathKey: key})
+            })
+        }
+        newProps.getOriginPathKey((key) => {
+            this.setState({originPathKey: key})
+        })
+    }
     render(){
+        if ((this.props.previewGetOriginPathKey && !this.state.previewOriginPathKey) || !this.state.originPathKey) {
+            return <div>Getting React component key</div>
+        }
         var showPreview = new Boolean(this.props.previewGetOriginPath).valueOf();
         var originPath = <div style={{display: showPreview ? "none" : "block"}}>
             <OriginPath
                 getOriginPath={this.props.getOriginPath}
-                key={this.props.originPathKey}
+                key={this.state.originPathKey}
                 handleValueSpanClick={(origin, characterIndex) => this.props.inspectValue(origin, characterIndex)}
             />
         </div>
@@ -896,7 +916,7 @@ class ElementOriginPathContent extends React.Component {
             previewOriginPath = <div>
                 <OriginPath
                     getOriginPath={this.props.previewGetOriginPath}
-                    key={this.props.previewOriginPathKey}
+                    key={this.state.previewOriginPathKey}
                 />
             </div>
         }
@@ -976,22 +996,22 @@ class ElementOriginPath extends React.Component {
         var error = null;
 
         var previewGetOriginPath = null;
-        var previewOriginPathKey = null;
+        var previewGetOriginPathKey = null;
         if (this.state.previewCharacterIndex !== null) {
             catchExceptions(() => {
-                previewOriginPathKey = this.getOriginPathKey(this.state.previewCharacterIndex)
+                previewGetOriginPathKey = (callback) => this.getOriginPathKey(this.state.previewCharacterIndex, callback)
                 previewGetOriginPath = (callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)
             }, err => error = err)
         }
 
         var getOriginPath = null;
-        var originPathKey = null;
+        var getOriginPathKey = null;
 
         var selectionComponent = null;
         if (this.state.characterIndex !== null) {
             catchExceptions(() => {
                 getOriginPath = (callback) => this.getOriginPath(this.state.characterIndex, callback)
-                originPathKey = this.getOriginPathKey(this.state.characterIndex)
+                getOriginPathKey = (callback) => this.getOriginPathKey(this.state.characterIndex, callback)
             }, err => error = err)
         }
 
@@ -1003,10 +1023,10 @@ class ElementOriginPath extends React.Component {
             <ElementOriginPathContent
                 {...sharedProps}
                 getOriginPath={getOriginPath}
-                originPathKey={originPathKey}
+                getOriginPathKey={getOriginPathKey}
                 goUpInDOM={this.props.goUpInDOM}
                 previewGetOriginPath={previewGetOriginPath}
-                previewOriginPathKey={previewOriginPathKey}
+                previewGetOriginPathKey={previewGetOriginPathKey}
             />
         </div>
     }
@@ -1043,12 +1063,16 @@ class ElementOriginPath extends React.Component {
             isCanceled = true;
         }
     }
-    getOriginPathKey(characterIndex){
+    getOriginPathKey(characterIndex, callback){
         var info = this.getOriginAndCharacterIndex(characterIndex)
-        return JSON.stringify({
-            originId: info.origin.id,
-            characterIndex: info.characterIndex
-        })
+        // adding set timeout to force async, prob won't need this later once
+        // everything has been updated to separate UI from inspected page.
+        setTimeout(function(){
+            callback(JSON.stringify({
+                originId: info.origin.id,
+                characterIndex: info.characterIndex
+            }))
+        }, 0)
     }
     getOriginAndCharacterIndex(characterIndex){
         characterIndex = parseFloat(characterIndex);
