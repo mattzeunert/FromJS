@@ -185,7 +185,8 @@ class OriginPathItem extends React.Component {
             if (this.cancelFrameResolution) {
                 this.cancelFrameResolution()
             }
-            this.cancelFrameResolution = resolveFrame(frame, (err, resolvedFrame) => {
+            var inspectedPage = InspectedPage.getCurrentInspectedPage();
+            this.cancelFrameResolution = inspectedPage.resolveFrame(frame, (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
 
                 this.cancelGetCodeFilePath = getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
@@ -382,7 +383,8 @@ class StackFrameSelectorItem extends React.Component {
         }
     }
     componentDidMount(){
-        this.cancelFrameResolution = resolveFrame(this.props.frameString, (err, resolvedFrame) => {
+        var inspectedPage = InspectedPage.getCurrentInspectedPage();
+        this.cancelFrameResolution = inspectedPage.resolveFrame(this.props.frameString, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
