@@ -7,6 +7,7 @@ import getRootOriginAtChar from "../getRootOriginAtChar"
 import { OriginPath, FromJSView } from "../ui/ui"
 import {disableTracing, enableTracing, disableEventListeners, enableEventListeners} from "../tracing/tracing"
 import InspectedPage from "./InspectedPage"
+import resolveFrame from "../resolve-frame"
 
 export default function showFromJSSidebar(){
     disableTracing()
@@ -53,6 +54,10 @@ export default function showFromJSSidebar(){
         var newSelectedEl = currentSelectedElement.parentNode;
         currentSelectedElement = newSelectedEl;
         inspectedPage.trigger("selectElement", currentSelectedElement)
+    })
+
+    inspectedPage.onResolveFrameRequest(function(frameString, callback){
+        resolveFrame(frameString, callback)
     })
 
     if (!isMobile()){

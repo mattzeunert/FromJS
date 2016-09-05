@@ -688,7 +688,8 @@ class StackFrame extends React.Component{
         }
     }
     componentDidMount(){
-        this.cancelFrameResolution = resolveFrame(this.props.frame, (err, resolvedFrame) => {
+        var inspectedPage = InspectedPage.getCurrentInspectedPage()
+        this.cancelFrameResolution = inspectedPage.resolveFrame(this.props.frame, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
