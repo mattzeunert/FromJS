@@ -6,6 +6,7 @@ import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getRootOriginAtChar from "../getRootOriginAtChar"
 import { OriginPath, FromJSView } from "../ui/ui"
 import {disableTracing, enableTracing, disableEventListeners, enableEventListeners} from "../tracing/tracing"
+import InspectedPage from "./InspectedPage"
 
 export default function showFromJSSidebar(){
     disableTracing()
@@ -31,6 +32,7 @@ export default function showFromJSSidebar(){
     disableEventListeners()
 
     // maybe try useCapture parameter here
+    var inspectedPage = InspectedPage.getCurrentInspectedPage();
 
     // We already disable event listeners created with addEventListener
     // but not e.g. onclick attributes, or prevent checkboxes
@@ -40,18 +42,18 @@ export default function showFromJSSidebar(){
 
         e.stopPropagation();
         e.preventDefault();
-        component.display(e.target)
+        inspectedPage.trigger("selectElement", e.target)
     })
 
     if (!isMobile()){
         $("*").mouseenter(function(e){
             if (!shouldHandle(e)) {return}
             e.stopPropagation()
-            component.setPreviewEl(e.target)
+            inspectedPage.trigger("previewElement", e.target)
         })
         $("*").mouseleave(function(e){
             if (!shouldHandle(e)) {return}
-            component.setPreviewEl(null)
+            inspectedPage.trigger("previewElement", null)
         })
     }
 

@@ -11,9 +11,12 @@ import ReactTooltip from "react-tooltip"
 import "react-fastclick" // import for side effects, no export
 import adjustColumnForEscapeSequences from "../adjustColumnForEscapeSequences"
 import getDefaultInspectedCharacterIndex from "./getDefaultInspectedCharacterIndex"
+import InspectedPage from "./InspectedPage"
 
 import Perf from "react-addons-perf"
 window.Perf = Perf
+
+
 
 // ReactTooltip doesn't respond to UI changes automatically
 setInterval(function(){
@@ -1143,6 +1146,20 @@ export class FromJSView extends React.Component {
             nonElementOriginSelected: null,
             elId: null
         }
+
+        this.inspectedPage = InspectedPage.getCurrentInspectedPage();
+
+        this.inspectedPage.on("selectElement", (el) => {
+            this.setState({
+                el: el,
+                nonElementOriginSelected: false,
+                elId: Math.random() // we need to force an update... this is one way to do it.
+            })
+        })
+
+        this.inspectedPage.on("previewElement", (el) => {
+            this.setState({previewEl: el})
+        })
     }
     render(){
         var preview = null;
@@ -1197,15 +1214,5 @@ export class FromJSView extends React.Component {
             {previewMarker}
             {selectionMarker}
         </div>
-    }
-    display(el){
-        this.setState({
-            el: el,
-            nonElementOriginSelected: false,
-            elId: Math.random() // we need to force an update... this is one way to do it.
-        })
-    }
-    setPreviewEl(el){
-        this.setState({previewEl: el})
     }
 }
