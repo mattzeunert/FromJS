@@ -169,10 +169,10 @@ class OriginPathItem extends React.Component {
         if (originObject.isHTMLFileContent) {
             this.selectFrameString(getFrameFromHTMLFileContentOriginPathItem(this.props.originPathItem))
         } else {
-            if (!originObject.getStackFrames) {
+            if (!originObject.stack) {
                 return
             }
-            this.selectFrameString(_.first(originObject.getStackFrames()))
+            this.selectFrameString(_.first(originObject.stack))
         }
         this.makeSureIsResolvingFrame();
     }
@@ -255,7 +255,7 @@ class OriginPathItem extends React.Component {
         var stackFrameSelector = null;
         if (this.state.showDetailsDropdown){
             stackFrameSelector = <StackFrameSelector
-                stack={originObject.getStackFrames()}
+                stack={originObject.stack}
                 selectedFrameString={this.state.selectedFrameString}
                 onFrameSelected={(frameString) => {
                     this.selectFrameString(frameString)
@@ -295,7 +295,7 @@ class OriginPathItem extends React.Component {
         }
 
         var toggleFrameSelectorButton = null;
-        if (originObject.getStackFrames && originObject.getStackFrames().length > 1) {
+        if (originObject.stack && originObject.stack.length > 1) {
             toggleFrameSelectorButton = <button
                 className="fromjs-origin-path-step__stack-frame-selector-toggle"
                 onClick={() => this.setState({showDetailsDropdown: !this.state.showDetailsDropdown})}>
@@ -968,7 +968,6 @@ class ElementOriginPath extends React.Component {
             previewCharacterIndex: null,
             rootOrigin: null
         }
-        if (this.state.characterIndex === 27) {debugger}
     }
     render(){
         var sharedProps = {
@@ -1051,7 +1050,7 @@ class ElementOriginPath extends React.Component {
         var isCanceled = false
 
         this.getOriginAndCharacterIndex(characterIndex, function(info){
-            currentInspectedPage.whereDoesCharComeFrom(info.origin, info.characterIndex, function(){
+            currentInspectedPage.whereDoesCharComeFrom(info.origin.id, info.characterIndex, function(){
                 if (!isCanceled) {
                     callback.apply(this, arguments)
                 }

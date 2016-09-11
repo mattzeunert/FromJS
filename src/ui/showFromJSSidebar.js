@@ -10,6 +10,7 @@ import {disableTracing, enableTracing, disableEventListeners, enableEventListene
 import InspectedPage from "./InspectedPage"
 import resolveFrame from "../resolve-frame"
 import getCodeFilePath from "./getCodeFilePath"
+import { getOriginById } from "../origin"
 
 export default function showFromJSSidebar(){
     disableTracing()
@@ -93,8 +94,22 @@ export default function showFromJSSidebar(){
         callback(res)
     })
 
-    inspectedPage.onWhereDoesCharComeFromRequest(function(origin, characterIndex, callback){
+    inspectedPage.onWhereDoesCharComeFromRequest(function(originId, characterIndex, callback){
+        var origin = getOriginById(originId)
         whereDoesCharComeFrom(origin, characterIndex, function(steps){
+            steps = steps.map(s => {
+                var originObject = s.originObject;
+                if (originObject.serialize) {
+                    console.log("has origin object :)")
+                    originObject = originObject.serialize();
+                } else {
+                    console.log("hmmm, can't serialize origin object")
+                }
+                return {
+                    characterIndex: s.characterIndex,
+                    originObject: originObject
+                }
+            })
             callback(steps)
         })
     })
