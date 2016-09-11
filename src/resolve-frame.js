@@ -51,7 +51,6 @@ function initGPSIfNecessary(){
 }
 
 function resolveFrame(frameString, callback){
-    console.log("Resolve frame", frameString)
     // console.time("Resolve Frame " + frameString)
     if (resolvedFrameCache[frameString]){
         done(null, resolvedFrameCache[frameString])

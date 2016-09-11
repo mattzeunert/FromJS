@@ -1172,15 +1172,13 @@ export class FromJSView extends React.Component {
             el: null,
             previewEl: null,
             // this shoudldn't be needed, should just reset state.el, but right now that wouldn't work
-            nonElementOriginSelected: null,
-            elId: null
+            nonElementOriginSelected: null
         }
 
         currentInspectedPage.on("selectElement", (el) => {
             this.setState({
                 el: el,
-                nonElementOriginSelected: false,
-                elId: Math.random() // we need to force an update... this is one way to do it.
+                nonElementOriginSelected: false
             })
         })
 
@@ -1198,7 +1196,7 @@ export class FromJSView extends React.Component {
         var showPreview = this.state.previewEl !== null && (!this.state.el || this.state.previewEl.__fromJSElementId !== this.state.el.__fromJSElementId)
         if (showPreview){
             preview = <ElementOriginPath
-                key={this.state.previewEl}
+                key={this.state.previewEl.__fromJSElementId}
                 el={this.state.previewEl}
                 goUpInDOM={() => "can't call this function, but needs to be there so button is shown"}
                 />
@@ -1210,7 +1208,7 @@ export class FromJSView extends React.Component {
             }
             info = <div style={{display: showPreview ? "none" : "block"}}>
                 <ElementOriginPath
-                    key={this.state.el + this.state.elId}
+                    key={this.state.el.__fromJSElementId}
                     el={this.state.el}
                     onNonElementOriginSelected={() => this.setState({nonElementOriginSelected: true})}
                     goUpInDOM={goUpInDOM} />
