@@ -1195,7 +1195,7 @@ export class FromJSView extends React.Component {
         var previewMarker = null;
         var intro = null;
 
-        var showPreview = this.state.previewEl !== null && this.state.previewEl !== this.state.el
+        var showPreview = this.state.previewEl !== null && (!this.state.el || this.state.previewEl.__fromJSElementId !== this.state.el.__fromJSElementId)
         if (showPreview){
             preview = <ElementOriginPath
                 key={this.state.previewEl}
