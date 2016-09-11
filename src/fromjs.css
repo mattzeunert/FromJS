@@ -1,3 +1,8 @@
+body {
+    margin: 0;
+    background: white;
+}
+
 /* Overwrite on-page css... ideally the UI would be somewhere that's isolated from page css */
 .fromjs-outer-container,
 .fromjs-outer-container div {

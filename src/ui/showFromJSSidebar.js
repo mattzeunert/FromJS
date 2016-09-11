@@ -22,7 +22,7 @@ export default function showFromJSSidebar(){
     container2.id = "fromjs-sidebar"
 
     var sidebarIframe = document.createElement("iframe")
-    sidebarIframe.setAttribute("style", "width: 100%; height: 100%")
+    sidebarIframe.setAttribute("style", "width: 100%; height: 100%; box-shadow: 0px 0px 20px gray;border: none")
 
     container2.appendChild(sidebarIframe)
     container.append(container2)
