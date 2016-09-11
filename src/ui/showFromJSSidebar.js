@@ -5,7 +5,7 @@ import isMobile from "../isMobile"
 import _ from "underscore"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getRootOriginAtChar from "../getRootOriginAtChar"
-import { OriginPath, FromJSView } from "../ui/ui"
+import { OriginPath, FromJSView, PreviewElementMarker, SelectedElementMarker } from "../ui/ui"
 import {disableTracing, enableTracing, disableEventListeners, enableEventListeners} from "../tracing/tracing"
 import InspectedPage from "./InspectedPage"
 import resolveFrame from "../resolve-frame"
@@ -33,7 +33,14 @@ export default function showFromJSSidebar(){
         <script src="/fromjs-internals/from.js" charset="utf-8"></script>
     `)
 
+    var elementMarkerContainer = document.createElement("div")
+    container.appendChild(elementMarkerContainer)
 
+    var previewElementMarkerContainer = document.createElement("div")
+    elementMarkerContainer.appendChild(previewElementMarkerContainer)
+
+    var selectedElementMarkerContainer = document.createElement("div")
+    elementMarkerContainer.appendChild(selectedElementMarkerContainer)
 
     function shouldHandle(e) {
         if ($(e.target).closest("#fromjs-sidebar").length !== 0) {
@@ -61,14 +68,19 @@ export default function showFromJSSidebar(){
 
         e.stopPropagation();
         e.preventDefault();
-        currentSelectedElement = e.target
-        inspectedPage.trigger("selectElement", serializeElement(e.target))
+        setCurrentSelectedElement(e.target)
     })
+
+    function setCurrentSelectedElement(el){
+        currentSelectedElement = el
+        inspectedPage.trigger("selectElement", serializeElement(el))
+        ReactDOM.render(<SelectedElementMarker el={currentSelectedElement}/>, selectedElementMarkerContainer)
+
+    }
 
     inspectedPage.on("UISelectParentElement", function(){
         var newSelectedEl = currentSelectedElement.parentNode;
-        currentSelectedElement = newSelectedEl;
-        inspectedPage.trigger("selectElement", serializeElement(currentSelectedElement))
+        setCurrentSelectedElement(newSelectedEl)
     })
 
     inspectedPage.onResolveFrameRequest(function(frameString, callback){
@@ -113,6 +125,7 @@ export default function showFromJSSidebar(){
             if (!shouldHandle(e)) {return}
             e.stopPropagation()
             currentPreviewedElement = e.target
+            ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
             inspectedPage.trigger("previewElement", serializeElement(e.target))
         })
         $("*").mouseleave(function(e){

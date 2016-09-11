@@ -1102,13 +1102,13 @@ class ElementMarker extends React.Component {
     }
 }
 
-class SelectedElementMarker extends React.Component {
+export class SelectedElementMarker extends React.Component {
     render(){
         return <ElementMarker el={this.props.el} style={{outline: "2px solid #0088ff"}} />
     }
 }
 
-class PreviewElementMarker extends React.Component {
+export class PreviewElementMarker extends React.Component {
     render(){
         return <ElementMarker el={this.props.el} style={{outline: "2px solid green"}} />
     }
@@ -1192,7 +1192,6 @@ export class FromJSView extends React.Component {
 
         var showPreview = this.state.previewEl !== null && this.state.previewEl !== this.state.el
         if (showPreview){
-            // previewMarker = <PreviewElementMarker el={this.state.previewEl}/>
             preview = <ElementOriginPath
                 key={this.state.previewEl}
                 el={this.state.previewEl}
