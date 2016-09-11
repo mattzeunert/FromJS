@@ -10,6 +10,9 @@ export default function InspectedPage(iframe){
         data = JSON.parse(data)
 
         var eventType = data.shift();
+        var timeWhenSent = new Date(data.pop())
+        var timeTaken = new Date().valueOf() - timeWhenSent.valueOf()
+        console.log("Received", eventType, "took", timeTaken, "ms")
 
         var handlers = this._handlers[eventType];
         if (!handlers) {
@@ -18,7 +21,7 @@ export default function InspectedPage(iframe){
         handlers.forEach(function(handler){
             handler.apply(null, data)
         })
-        console.log("handling", "eventtype", "message", arguments)
+
     }
     this._onMessage = this._onMessage.bind(this)
 
@@ -38,9 +41,10 @@ InspectedPage.prototype.trigger = function(event){
         target = this._iframe.contentWindow;
     }
 
-    console.log("triggering", event, "on", target)
+    var args = Array.from(arguments);
+    args.push(new Date())
 
-    target.postMessage(JSON.stringify(Array.from(arguments)), location.href)
+    target.postMessage(JSON.stringify(args), location.href)
 }
 InspectedPage.prototype.close = function(event){
     window.removeListener("message", this.onMessage)
