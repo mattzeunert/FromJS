@@ -1,8 +1,6 @@
 import React from "react"
 import _ from "underscore"
 import resolveFrame from "../resolve-frame"
-import getRootOriginAtChar from "../getRootOriginAtChar"
-import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import fileIsDynamicCode from "../fileIsDynamicCode"
 import isMobile from "../isMobile"
 import config from "../config"
@@ -969,6 +967,11 @@ class ElementOriginPath extends React.Component {
             rootOrigin: null
         }
     }
+    componentWillUnmount(){
+        if (this.cancelGetRootOriginAtChar) {
+            this.cancelGetRootOriginAtChar();
+        }
+    }
     render(){
         var sharedProps = {
             inspectedValue: this.getInspectedValue(),
@@ -1050,6 +1053,9 @@ class ElementOriginPath extends React.Component {
         var isCanceled = false
 
         this.getOriginAndCharacterIndex(characterIndex, function(info){
+            if (isCanceled) {
+                return;
+            }
             currentInspectedPage.whereDoesCharComeFrom(info.origin.id, info.characterIndex, function(){
                 if (!isCanceled) {
                     callback.apply(this, arguments)
@@ -1072,7 +1078,7 @@ class ElementOriginPath extends React.Component {
     getOriginAndCharacterIndex(characterIndex, callback){
         characterIndex = parseFloat(characterIndex);
         if (this.originComesFromElement()) {
-            currentInspectedPage.getRootOriginAtChar(this.props.el.__fromJSElementId, characterIndex, function(rootOrigin){
+            this.cancelGetRootOriginAtChar = currentInspectedPage.getRootOriginAtChar(this.props.el.__fromJSElementId, characterIndex, function(rootOrigin){
                 callback(rootOrigin)
             });
         } else {
