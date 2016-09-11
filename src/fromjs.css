@@ -3,25 +3,14 @@ body {
     background: white;
 }
 
-/* Overwrite on-page css... ideally the UI would be somewhere that's isolated from page css */
-.fromjs-outer-container,
-.fromjs-outer-container div {
-    padding: 0;
-    margin: 0;
-    border-radius: 0;
-    width: auto;
-    color: #444;
-    background: transparent;
-    -webkit-font-smoothing: antialiased;
-}
-.fromjs-outer-container code{
+code{
     font-size: 14px;
     padding: 0;
     margin: 0;
     border-radius: 0;
     background: transparent;
 }
-.fromjs-outer-container button {
+button {
     border: none;
     background: transparent;
     box-shadow: none;
@@ -31,8 +20,8 @@ body {
     min-height: 0px;
     min-width: 0px;
 }
-.fromjs-outer-container button:hover,
-.fromjs-outer-container button:focus, {
+button:hover,
+button:focus, {
     background: inherit;
     border: none;
     box-shadow: none;

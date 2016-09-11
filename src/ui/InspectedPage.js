@@ -7,12 +7,13 @@ export default function InspectedPage(iframe){
     this._onMessage = function(e){
         var data = e.data;
 
+        var sizeInKB = Math.round(data.length / 1024)
         data = JSON.parse(data)
 
         var eventType = data.shift();
         var timeWhenSent = new Date(data.pop())
         var timeTaken = new Date().valueOf() - timeWhenSent.valueOf()
-        console.log("Received", eventType, "took", timeTaken, "ms")
+        console.log("Received", eventType, "Size", sizeInKB, "KB","took", timeTaken, "ms")
 
         var handlers = this._handlers[eventType];
         if (!handlers) {
