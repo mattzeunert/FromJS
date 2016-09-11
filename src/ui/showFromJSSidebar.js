@@ -2,29 +2,44 @@ import $ from "jquery"
 import React from "react"
 import ReactDOM from "react-dom"
 import isMobile from "../isMobile"
+import _ from "underscore"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getRootOriginAtChar from "../getRootOriginAtChar"
 import { OriginPath, FromJSView } from "../ui/ui"
 import {disableTracing, enableTracing, disableEventListeners, enableEventListeners} from "../tracing/tracing"
 import InspectedPage from "./InspectedPage"
 import resolveFrame from "../resolve-frame"
+import getCodeFilePath from "./getCodeFilePath"
 
 export default function showFromJSSidebar(){
     disableTracing()
 
     var container = document.createElement("div")
     container.className = "fromjs-outer-container"
-    var component;
 
+    var container2 = document.createElement("div")
+    container2.id = "fromjs-sidebar"
 
-    ReactDOM.render(<FromJSView ref={(c) => component = c}/>, container)
+    var sidebarIframe = document.createElement("iframe")
+    sidebarIframe.setAttribute("style", "width: 100%; height: 100%")
+
+    container2.appendChild(sidebarIframe)
+    container.append(container2)
+
     document.body.appendChild(container)
+    sidebarIframe.contentDocument.write(`
+        <script>window.isFromJSSidebar = true</script>
+        <link rel="stylesheet" href="/fromjs-internals/fromjs.css">
+        <script src="/fromjs-internals/from.js" charset="utf-8"></script>
+    `)
 
-    function shouldHandle(e){
-        if ($(e.target).closest("#fromjs").length !== 0){
+
+
+    function shouldHandle(e) {
+        if ($(e.target).closest("#fromjs-sidebar").length !== 0) {
             return false
         }
-        if ($(e.target).is("html, body")){
+        if ($(e.target).is("html, body")) {
             return false
         }
         return true
@@ -33,7 +48,7 @@ export default function showFromJSSidebar(){
     disableEventListeners()
 
     // maybe try useCapture parameter here
-    var inspectedPage = InspectedPage.getCurrentInspectedPage();
+    var inspectedPage = new InspectedPage(sidebarIframe)
 
 
     var currentSelectedElement = null;
@@ -47,25 +62,58 @@ export default function showFromJSSidebar(){
         e.stopPropagation();
         e.preventDefault();
         currentSelectedElement = e.target
-        inspectedPage.trigger("selectElement", e.target)
+        inspectedPage.trigger("selectElement", serializeElement(e.target))
     })
 
     inspectedPage.on("UISelectParentElement", function(){
         var newSelectedEl = currentSelectedElement.parentNode;
         currentSelectedElement = newSelectedEl;
-        inspectedPage.trigger("selectElement", currentSelectedElement)
+        inspectedPage.trigger("selectElement", serializeElement(currentSelectedElement))
     })
 
     inspectedPage.onResolveFrameRequest(function(frameString, callback){
         resolveFrame(frameString, callback)
     })
 
+    inspectedPage.onGetRootOriginAtCharRequest(function(elementId, characterIndex, callback){
+        var el = getElementFromElementId(elementId)
+        var res = getRootOriginAtChar(el, characterIndex)
+        callback(res)
+    })
+
+    inspectedPage.onWhereDoesCharComeFromRequest(function(origin, characterIndex, callback){
+        whereDoesCharComeFrom(origin, characterIndex, function(steps){
+            callback(steps)
+        })
+    })
+
+    inspectedPage.onGetCodeFilePathRequest(function(fileName, callback){
+        getCodeFilePath(fileName, callback)
+    })
+
+    var elementsByElementId = {}
+    function getElementFromElementId(elementId){
+        return elementsByElementId[elementId]
+    }
+
+    function serializeElement(el) {
+        if (!el.__fromJSElementId) {
+            el.__fromJSElementId = _.uniqueId()
+            elementsByElementId[el.__fromJSElementId] = el
+        }
+        return {
+            __fromJSElementId: el.__fromJSElementId,
+            outerHTML: el.outerHTML,
+            innerHTML: el.innerHTML,
+        }
+    }
+
     if (!isMobile()){
         $("*").mouseenter(function(e){
             if (!shouldHandle(e)) {return}
             e.stopPropagation()
             currentPreviewedElement = e.target
-            inspectedPage.trigger("previewElement", e.target)
+            inspectedPage.trigger("previewElement", serializeElement(e.target))
         })
         $("*").mouseleave(function(e){
             if (!shouldHandle(e)) {return}
@@ -77,10 +125,15 @@ export default function showFromJSSidebar(){
     if (isMobile()){
         $("body").css("padding-right", "56vw")
         $("body").css("padding-left", "1vw")
-        $("#fromjs").css("width", "55vw")
+        $("#fromjs-sidebar").css("width", "55vw")
         $("body").addClass("fromjsIsMobile")
     } else {
         $("body").css("padding-right", "40vw")
     }
 
+}
+
+export function initializeSidebarContent(){
+    document.write("<!doctype html><html><head></head><body></body></html>")
+    ReactDOM.render(<FromJSView />, document.body)
 }

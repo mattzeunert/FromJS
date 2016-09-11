@@ -177,18 +177,23 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     color: red !important;
 }
 
-#fromjs {
+#fromjs-sidebar {
     position: fixed;
-    font-family: "Arial";
-    font-size: 14px;
+    z-index: 1000000;
     right: 0;
     top: 0;
     bottom: 0;
     height: 100vh;
     width: 40vw;
+}
+
+#fromjs {
+
+    font-family: "Arial";
+    font-size: 14px;
+
     background: white;
     overflow: auto;
-    z-index: 1000000;
     /* without this scrolling the sidebar doesn't work on iOS
     if the page content is also scrollable */
     -webkit-overflow-scrolling: touch;

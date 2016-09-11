@@ -3,7 +3,6 @@ import _ from "underscore"
 import resolveFrame from "../resolve-frame"
 import getRootOriginAtChar from "../getRootOriginAtChar"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
-import getCodeFilePath from "./getCodeFilePath"
 import fileIsDynamicCode from "../fileIsDynamicCode"
 import isMobile from "../isMobile"
 import config from "../config"
@@ -16,6 +15,7 @@ import InspectedPage from "./InspectedPage"
 import Perf from "react-addons-perf"
 window.Perf = Perf
 
+var currentInspectedPage = new InspectedPage()
 
 
 // ReactTooltip doesn't respond to UI changes automatically
@@ -185,11 +185,10 @@ class OriginPathItem extends React.Component {
             if (this.cancelFrameResolution) {
                 this.cancelFrameResolution()
             }
-            var inspectedPage = InspectedPage.getCurrentInspectedPage();
-            this.cancelFrameResolution = inspectedPage.resolveFrame(frame, (err, resolvedFrame) => {
+            this.cancelFrameResolution = currentInspectedPage.resolveFrame(frame, (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
 
-                this.cancelGetCodeFilePath = getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
+                this.cancelGetCodeFilePath = currentInspectedPage.getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
                     this.setState({codeFilePath})
                 })
             })
@@ -383,8 +382,7 @@ class StackFrameSelectorItem extends React.Component {
         }
     }
     componentDidMount(){
-        var inspectedPage = InspectedPage.getCurrentInspectedPage();
-        this.cancelFrameResolution = inspectedPage.resolveFrame(this.props.frameString, (err, resolvedFrame) => {
+        this.cancelFrameResolution = currentInspectedPage.resolveFrame(this.props.frameString, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
@@ -690,8 +688,7 @@ class StackFrame extends React.Component{
         }
     }
     componentDidMount(){
-        var inspectedPage = InspectedPage.getCurrentInspectedPage()
-        this.cancelFrameResolution = inspectedPage.resolveFrame(this.props.frame, (err, resolvedFrame) => {
+        this.cancelFrameResolution = currentInspectedPage.resolveFrame(this.props.frame, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
@@ -971,6 +968,7 @@ class ElementOriginPath extends React.Component {
             previewCharacterIndex: null,
             rootOrigin: null
         }
+        if (this.state.characterIndex === 27) {debugger}
     }
     render(){
         var sharedProps = {
@@ -1052,11 +1050,12 @@ class ElementOriginPath extends React.Component {
     getOriginPath(characterIndex, callback){
         var isCanceled = false
 
-        var info = this.getOriginAndCharacterIndex(characterIndex)
-        whereDoesCharComeFrom(info.origin, info.characterIndex, function(){
-            if (!isCanceled) {
-                callback.apply(this, arguments)
-            }
+        this.getOriginAndCharacterIndex(characterIndex, function(info){
+            currentInspectedPage.whereDoesCharComeFrom(info.origin, info.characterIndex, function(){
+                if (!isCanceled) {
+                    callback.apply(this, arguments)
+                }
+            })
         })
 
         return function cancel(){
@@ -1064,26 +1063,24 @@ class ElementOriginPath extends React.Component {
         }
     }
     getOriginPathKey(characterIndex, callback){
-        var info = this.getOriginAndCharacterIndex(characterIndex)
-        // adding set timeout to force async, prob won't need this later once
-        // everything has been updated to separate UI from inspected page.
-        setTimeout(function(){
+        this.getOriginAndCharacterIndex(characterIndex, function(info){
             callback(JSON.stringify({
                 originId: info.origin.id,
                 characterIndex: info.characterIndex
             }))
-        }, 0)
+        })
     }
-    getOriginAndCharacterIndex(characterIndex){
+    getOriginAndCharacterIndex(characterIndex, callback){
         characterIndex = parseFloat(characterIndex);
         if (this.originComesFromElement()) {
-            var useful = getRootOriginAtChar(this.props.el, characterIndex);
-            return useful
+            currentInspectedPage.getRootOriginAtChar(this.props.el.__fromJSElementId, characterIndex, function(rootOrigin){
+                callback(rootOrigin)
+            });
         } else {
-            return {
+            callback({
                 characterIndex: characterIndex,
                 origin: this.state.rootOrigin
-            }
+            })
         }
     }
 }
@@ -1174,9 +1171,7 @@ export class FromJSView extends React.Component {
             elId: null
         }
 
-        this.inspectedPage = InspectedPage.getCurrentInspectedPage();
-
-        this.inspectedPage.on("selectElement", (el) => {
+        currentInspectedPage.on("selectElement", (el) => {
             this.setState({
                 el: el,
                 nonElementOriginSelected: false,
@@ -1184,7 +1179,7 @@ export class FromJSView extends React.Component {
             })
         })
 
-        this.inspectedPage.on("previewElement", (el) => {
+        currentInspectedPage.on("previewElement", (el) => {
             this.setState({previewEl: el})
         })
     }
@@ -1197,7 +1192,7 @@ export class FromJSView extends React.Component {
 
         var showPreview = this.state.previewEl !== null && this.state.previewEl !== this.state.el
         if (showPreview){
-            previewMarker = <PreviewElementMarker el={this.state.previewEl}/>
+            // previewMarker = <PreviewElementMarker el={this.state.previewEl}/>
             preview = <ElementOriginPath
                 key={this.state.previewEl}
                 el={this.state.previewEl}
@@ -1219,7 +1214,7 @@ export class FromJSView extends React.Component {
         }
 
         if (this.state.el && !this.state.nonElementOriginSelected) {
-            selectionMarker = <SelectedElementMarker el={this.state.el} />
+            // selectionMarker = <SelectedElementMarker el={this.state.el} />
         }
 
         if (!this.state.previewEl && !this.state.el){
