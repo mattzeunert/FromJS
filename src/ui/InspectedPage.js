@@ -74,7 +74,9 @@ function addCancelableCallbackRequest(makeRequestName, onRequestName, cacheRespo
         if (cacheResponses) {
             var cachedValue = getCache(args)
             if (cachedValue) {
+                console.log("got cache")
                 callback.apply(null, cachedValue)
+                return
             }
         }
 
