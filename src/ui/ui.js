@@ -47,13 +47,12 @@ function truncate(str, maxLength){
     return str.substr(0, 40) + "..."
 }
 
-export class OriginPath extends React.Component {
+class OriginPathWrapper extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            showFullPath: false,
-            originPath: null,
-            isGettingOriginPath: false
+            isGettingOriginPath: false,
+            originPath: null
         }
     }
     componentDidMount(){
@@ -64,7 +63,7 @@ export class OriginPath extends React.Component {
             this.cancelGetOriginPath()
         }
     }
-    componentDidUpdate(){
+    componentWillReceiveProps(){
         this.makeSureIsGettingOriginPath()
     }
     makeSureIsGettingOriginPath(){
@@ -75,7 +74,7 @@ export class OriginPath extends React.Component {
         this.cancelGetOriginPath = this.props.getOriginPath((originPath) => {
             this.setState({
                 originPath,
-                isGettingOriginPath: true
+                isGettingOriginPath: false
             })
         })
     }
@@ -83,8 +82,23 @@ export class OriginPath extends React.Component {
         if (!this.state.originPath) {
             return <div>Getting origin path</div>
         }
+        return <OriginPath
+            handleValueSpanClick={this.props.handleValueSpanClick}
+            originPath={this.state.originPath}
+            key={this.props.childKey}
+        />
+    }
+}
 
-        var originPath = this.state.originPath;
+export class OriginPath extends React.Component {
+    constructor(props){
+        super(props)
+        this.state = {
+            showFullPath: false
+        }
+    }
+    render(){
+        var originPath = this.props.originPath;
         originPath = originPath.filter(function(pathItem){
             // This is really an implementation detail and doesn't add any value to the user
             // Ideally I'd clean up the code to not generate that action at all,
@@ -101,7 +115,7 @@ export class OriginPath extends React.Component {
 
         var inbetweenSteps = originPath.slice(1, originPath.length - 1).reverse();
         var inbetweenStepsComponents = []
-        if (this.state.showFullPath){
+        if (this.props.showFullPath){
             for (var originPathStep of inbetweenSteps) {
                 inbetweenStepsComponents.push(this.getOriginPathItem(originPathStep))
             }
@@ -114,7 +128,7 @@ export class OriginPath extends React.Component {
         }
 
         var showFullPathButton = null;
-        if (!this.state.showFullPath && originPath.length > 2){
+        if (!this.props.showFullPath && originPath.length > 2){
             showFullPathButton = <div style={{marginBottom: 20}}>
                 <button
                     className="fromjs-btn-link"
@@ -895,23 +909,20 @@ class ElementOriginPathContent extends React.Component {
         })
     }
     render(){
-        if ((this.props.previewGetOriginPathKey && !this.state.previewOriginPathKey) || !this.state.originPathKey) {
-            return <div>Getting React component key</div>
-        }
         var showPreview = new Boolean(this.props.previewGetOriginPath).valueOf();
         var originPath = <div style={{display: showPreview ? "none" : "block"}}>
-            <OriginPath
+            <OriginPathWrapper
                 getOriginPath={this.props.getOriginPath}
-                key={this.state.originPathKey}
+                childKey={this.state.originPathKey}
                 handleValueSpanClick={(origin, characterIndex) => this.props.inspectValue(origin, characterIndex)}
             />
         </div>
         var previewOriginPath = null;
         if (showPreview) {
             previewOriginPath = <div>
-                <OriginPath
+                <OriginPathWrapper
                     getOriginPath={this.props.previewGetOriginPath}
-                    key={this.state.previewOriginPathKey}
+                    childKey={this.state.previewOriginPathKey}
                 />
             </div>
         }

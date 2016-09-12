@@ -1,4 +1,5 @@
 import _ from "underscore"
+import config from "../config"
 
 export default function InspectedPage(iframe){
     this._handlers = {}
@@ -13,7 +14,9 @@ export default function InspectedPage(iframe){
         var eventType = data.shift();
         var timeWhenSent = new Date(data.pop())
         var timeTaken = new Date().valueOf() - timeWhenSent.valueOf()
-        console.log("Received", eventType, "Size", sizeInKB, "KB","took", timeTaken, "ms")
+        if (config.logReceivedInspectorMessages) {
+            console.log("Received", eventType, "Size", sizeInKB, "KB","took", timeTaken, "ms")
+        }
 
         var handlers = this._handlers[eventType];
         if (!handlers) {
@@ -51,16 +54,37 @@ InspectedPage.prototype.close = function(event){
     window.removeListener("message", this.onMessage)
 }
 
-function addCancelableCallbackRequest(makeRequestName, onRequestName) {
+function addCancelableCallbackRequest(makeRequestName, onRequestName, cacheResponses) {
+    var cacheName = null;
+    if (cacheResponses) {
+        cacheName = onRequestName + "_cache"
+        InspectedPage[cacheName] = {}
+    }
+    function setCache(key, value){
+        InspectedPage[cacheName][JSON.stringify(key)] = value
+    }
+    function getCache(key){
+        return InspectedPage[cacheName][JSON.stringify(key)]
+    }
     InspectedPage.prototype[makeRequestName] = function(){
         var args = Array.from(arguments)
         var callback = args[args.length - 1]
         args = args.slice(0, -1)
 
+        if (cacheResponses) {
+            var cachedValue = getCache(args)
+            if (cachedValue) {
+                callback.apply(null, cachedValue)
+            }
+        }
+
         var id = _.uniqueId()
         var canceled = false;
         this.on(makeRequestName + id + "Complete", function(){
             if (canceled) {return}
+            if (cacheResponses) {
+                setCache(args, arguments)
+            }
             callback.apply(null, arguments)
         })
         this.trigger(makeRequestName, args, id)
@@ -83,6 +107,8 @@ function addCancelableCallbackRequest(makeRequestName, onRequestName) {
 }
 
 addCancelableCallbackRequest("getRootOriginAtChar", "onGetRootOriginAtCharRequest")
-addCancelableCallbackRequest("resolveFrame", "onResolveFrameRequest")
+// We want a local cache for resolve frame so results are returned synchronously
+// Otherwise there's a small flicker every time you hover over a character
+addCancelableCallbackRequest("resolveFrame", "onResolveFrameRequest", true)
 addCancelableCallbackRequest("whereDoesCharComeFrom", "onWhereDoesCharComeFromRequest")
 addCancelableCallbackRequest("getCodeFilePath", "onGetCodeFilePathRequest")
