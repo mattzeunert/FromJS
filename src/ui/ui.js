@@ -993,15 +993,11 @@ class ElementOriginPath extends React.Component {
         }
     }
     render(){
-        var error = null;
-
         var previewGetOriginPath = null;
         var previewGetOriginPathKey = null;
         if (this.state.previewCharacterIndex !== null) {
-            catchExceptions(() => {
-                previewGetOriginPathKey = (callback) => this.getOriginPathKey(this.state.previewCharacterIndex, callback)
-                previewGetOriginPath = (callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)
-            }, err => error = err)
+            previewGetOriginPathKey = (callback) => this.getOriginPathKey(this.state.previewCharacterIndex, callback)
+            previewGetOriginPath = (callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)
         }
 
         var getOriginPath = null;
@@ -1009,14 +1005,8 @@ class ElementOriginPath extends React.Component {
 
         var selectionComponent = null;
         if (this.state.characterIndex !== null) {
-            catchExceptions(() => {
-                getOriginPath = (callback) => this.getOriginPath(this.state.characterIndex, callback)
-                getOriginPathKey = (callback) => this.getOriginPathKey(this.state.characterIndex, callback)
-            }, err => error = err)
-        }
-
-        if (error !== null){
-            return <div style={{padding: 10}}>{error.toString()}</div>
+            getOriginPath = (callback) => this.getOriginPath(this.state.characterIndex, callback)
+            getOriginPathKey = (callback) => this.getOriginPathKey(this.state.characterIndex, callback)
         }
 
         return <div>
