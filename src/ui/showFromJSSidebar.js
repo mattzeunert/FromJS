@@ -99,12 +99,7 @@ export default function showFromJSSidebar(){
         whereDoesCharComeFrom(origin, characterIndex, function(steps){
             steps = steps.map(s => {
                 var originObject = s.originObject;
-                if (originObject.serialize) {
-                    console.log("has origin object :)")
-                    originObject = originObject.serialize();
-                } else {
-                    console.log("hmmm, can't serialize origin object")
-                }
+                originObject = originObject.serialize();
                 return {
                     characterIndex: s.characterIndex,
                     originObject: originObject

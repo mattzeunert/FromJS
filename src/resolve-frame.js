@@ -70,9 +70,9 @@ function resolveFrame(frameString, callback){
         frameObject.fileName += ".dontprocess"
         resFrame(frameObject, callback)
     } else {
+        // Use promises so we can re-use them, so if the same frame is requested again
+        // before the first one succeeded we don't attempt to resolve again
         if (frameStringsCurrentlyBeingResolved[frameString]) {
-            console.log("NOT DOUBLE RESOLVING", frameString)
-            console.count("not double resolve")
             frameStringsCurrentlyBeingResolved[frameString].then(done)
         } else {
             frameStringsCurrentlyBeingResolved[frameString] = new Promise(function(resolve, reject){
