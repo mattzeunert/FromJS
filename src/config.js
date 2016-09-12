@@ -20,8 +20,8 @@ if (process.env.NODE_ENV === "production") {
         alwaysShowValue: true,
         catchUIErrors: false,
         validateHtmlMapping: false,
-        logTracingSteps: true,
-        logReceivedInspectorMessages: true
+        logTracingSteps: false,
+        logReceivedInspectorMessages: false
     }
 }
 

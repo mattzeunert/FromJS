@@ -50,6 +50,7 @@ function truncate(str, maxLength){
 class OriginPathWrapper extends React.Component {
     constructor(props){
         super(props)
+
         this.state = {
             isGettingOriginPath: false,
             originPath: null
@@ -67,7 +68,7 @@ class OriginPathWrapper extends React.Component {
         this.makeSureIsGettingOriginPath()
     }
     makeSureIsGettingOriginPath(){
-        if (this.state.isGettingOriginPath) {
+        if (this.state.isGettingOriginPath || !this.props.getOriginPath) {
             return;
         }
         this.setState({isGettingOriginPath: true})
@@ -893,7 +894,10 @@ class HorizontalScrollContainer extends React.Component {
 class ElementOriginPathContent extends React.Component {
     constructor(props){
         super(props)
-        this.state = {}
+        this.state = {
+            originPathKey: null,
+            previewOriginPathKey: null
+        }
 
         this.componentWillReceiveProps(props)
     }
@@ -917,15 +921,19 @@ class ElementOriginPathContent extends React.Component {
                 handleValueSpanClick={(origin, characterIndex) => this.props.inspectValue(origin, characterIndex)}
             />
         </div>
-        var previewOriginPath = null;
-        if (showPreview) {
-            previewOriginPath = <div>
-                <OriginPathWrapper
-                    getOriginPath={this.props.previewGetOriginPath}
-                    childKey={this.state.previewOriginPathKey}
-                />
-            </div>
-        }
+
+        // The fact that we only show and hide the preview, rather than creating a new component
+        // after it was hidden/removed, means the previous preview briefly flickers
+        // However, the alternatives are:
+        // 1) Flashing a loading message
+        // 2) Doing extra work so the selection is aware of the preview, and the selection is only
+        // hidden when the preview is ready to be displayed
+        var previewOriginPath = <div style={{display: showPreview ? "block" : "none"}}>
+            <OriginPathWrapper
+                getOriginPath={this.props.previewGetOriginPath}
+                childKey={this.state.previewOriginPathKey}
+            />
+        </div>
 
         var showUpButton = typeof this.props.goUpInDOM === "function"
         var upButton = null;
@@ -972,6 +980,7 @@ class ElementOriginPathContent extends React.Component {
 class ElementOriginPath extends React.Component {
     constructor(props){
         super(props)
+
         this.state = {
             characterIndex: getDefaultInspectedCharacterIndex(props.el.outerHTML),
             previewCharacterIndex: null,
