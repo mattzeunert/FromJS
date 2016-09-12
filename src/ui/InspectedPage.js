@@ -74,7 +74,6 @@ function addCancelableCallbackRequest(makeRequestName, onRequestName, cacheRespo
         if (cacheResponses) {
             var cachedValue = getCache(args)
             if (cachedValue) {
-                console.log("got cache")
                 callback.apply(null, cachedValue)
                 return
             }
@@ -113,4 +112,4 @@ addCancelableCallbackRequest("getRootOriginAtChar", "onGetRootOriginAtCharReques
 // Otherwise there's a small flicker every time you hover over a character
 addCancelableCallbackRequest("resolveFrame", "onResolveFrameRequest", true)
 addCancelableCallbackRequest("whereDoesCharComeFrom", "onWhereDoesCharComeFromRequest")
-addCancelableCallbackRequest("getCodeFilePath", "onGetCodeFilePathRequest")
+addCancelableCallbackRequest("getCodeFilePath", "onGetCodeFilePathRequest", true)
