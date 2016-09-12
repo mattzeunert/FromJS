@@ -1,6 +1,7 @@
 body {
     margin: 0;
     background: white;
+    color: #444;
 }
 
 code{
@@ -252,7 +253,8 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     color: red;
 }
 
-#fromjs .fromjs-info-icon {
+
+.fromjs-info-icon {
     background: black;
     color: white;
     font-weight: bold;
