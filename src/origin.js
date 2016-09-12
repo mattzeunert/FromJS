@@ -127,7 +127,15 @@ Origin.prototype.getStackFrames = function(){
 }
 
 Origin.prototype.serialize = function(){
-    var serialized = JSON.parse(JSON.stringify(this));
+    var serialized = {...this}
+
+    serialized.inputValues =  serialized.inputValues.map(function(inputValue){
+        inputValue = {...inputValue}
+        // prevent tree from sprawling arbitrarily deep
+        inputValue.inputValues = [];
+        return inputValue
+    })
+
     serialized.stack = this.getStackFrames();
     return serialized;
 }
