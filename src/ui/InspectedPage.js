@@ -8,14 +8,17 @@ export default function InspectedPage(iframe){
     this._onMessage = function(e){
         var data = e.data;
 
-        var sizeInKB = Math.round(data.length / 1024)
-        data = JSON.parse(data)
+        if (!data.isFromJSMessage) {
+            return
+        }
 
-        var eventType = data.shift();
-        var timeWhenSent = new Date(data.pop())
+        var timeWhenSent = new Date(data.sentAt)
         var timeTaken = new Date().valueOf() - timeWhenSent.valueOf()
+
+        var eventData = data.eventData
+        var eventType = data.eventType
         if (config.logReceivedInspectorMessages) {
-            console.log("Received", eventType, "Size", sizeInKB, "KB","took", timeTaken, "ms")
+            console.log("Received", eventType,"took", timeTaken, "ms")
         }
 
         var handlers = this._handlers[eventType];
@@ -23,7 +26,7 @@ export default function InspectedPage(iframe){
             handlers = [];
         }
         handlers.forEach(function(handler){
-            handler.apply(null, data)
+            handler.apply(null, eventData)
         })
 
     }
@@ -46,9 +49,15 @@ InspectedPage.prototype.trigger = function(event){
     }
 
     var args = Array.from(arguments);
-    args.push(new Date())
+    var eventType = args.shift();
 
-    target.postMessage(JSON.stringify(args), location.href)
+    target.postMessage({
+        isFromJSMessage: true,
+        sentAt: new Date(),
+        eventType: eventType,
+        // Avoid stringificaiton here, improve perf in future
+        eventData: JSON.parse(JSON.stringify(args))
+    }, location.href)
 }
 InspectedPage.prototype.close = function(event){
     window.removeListener("message", this.onMessage)

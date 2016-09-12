@@ -25,7 +25,7 @@ export default function showFromJSSidebar(){
     sidebarIframe.setAttribute("style", "width: 100%; height: 100%; box-shadow: 0px 0px 20px gray;border: none")
 
     container2.appendChild(sidebarIframe)
-    container.append(container2)
+    container.appendChild(container2)
 
     document.body.appendChild(container)
     sidebarIframe.contentDocument.write(`
@@ -90,21 +90,31 @@ export default function showFromJSSidebar(){
 
     inspectedPage.onGetRootOriginAtCharRequest(function(elementId, characterIndex, callback){
         var el = getElementFromElementId(elementId)
-        var res = getRootOriginAtChar(el, characterIndex)
-        callback(res)
+        var initialStep = getRootOriginAtChar(el, characterIndex)
+        initialStep = serializeStep(initialStep)
+        callback(initialStep)
     })
+
+    function serializeStep(s) {
+        var originObject = s.originObject;
+        var isRootOrigin = false;
+        if (!originObject) {
+            // Data model is a bit inconsistent between a step
+            // and a root origin
+            isRootOrigin = true
+            originObject = s.origin
+        }
+        originObject = originObject.serialize();
+        return {
+            characterIndex: s.characterIndex,
+            [isRootOrigin ? "origin" : "originObject"]: originObject
+        }
+    }
 
     inspectedPage.onWhereDoesCharComeFromRequest(function(originId, characterIndex, callback){
         var origin = getOriginById(originId)
         whereDoesCharComeFrom(origin, characterIndex, function(steps){
-            steps = steps.map(s => {
-                var originObject = s.originObject;
-                originObject = originObject.serialize();
-                return {
-                    characterIndex: s.characterIndex,
-                    originObject: originObject
-                }
-            })
+            steps = steps.map(serializeStep)
             callback(steps)
         })
     })
