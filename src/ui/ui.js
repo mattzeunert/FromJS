@@ -993,26 +993,6 @@ class ElementOriginPath extends React.Component {
         }
     }
     render(){
-        var sharedProps = {
-            inspectedValue: this.getInspectedValue(),
-            inspectedValueCharacterIndex: this.state.characterIndex,
-            onInspectedValueCharacterClick: (characterIndex) => this.setState({
-                characterIndex,
-                previewCharacterIndex: null
-            }),
-            onInspectedValueCharacterHover: (characterIndex) => {
-                if (isMobile()) { return }
-                this.setState({previewCharacterIndex: characterIndex})
-            },
-            inspectValue:  (origin, characterIndex) => {
-                this.props.onNonElementOriginSelected()
-                this.setState({
-                    rootOrigin: origin,
-                    characterIndex
-                })
-            }
-        }
-
         var error = null;
 
         var previewGetOriginPath = null;
@@ -1041,7 +1021,23 @@ class ElementOriginPath extends React.Component {
 
         return <div>
             <ElementOriginPathContent
-                {...sharedProps}
+                inspectedValue={this.getInspectedValue()}
+                inspectedValueCharacterIndex={this.state.characterIndex}
+                onInspectedValueCharacterClick={(characterIndex) => this.setState({
+                    characterIndex,
+                    previewCharacterIndex: null
+                })}
+                onInspectedValueCharacterHover={(characterIndex) => {
+                    if (isMobile()) { return }
+                    this.setState({previewCharacterIndex: characterIndex})
+                }}
+                inspectValue={(origin, characterIndex) => {
+                    this.props.onNonElementOriginSelected()
+                    this.setState({
+                        rootOrigin: origin,
+                        characterIndex
+                    })
+                }}
                 getOriginPath={getOriginPath}
                 getOriginPathKey={getOriginPathKey}
                 goUpInDOM={this.props.goUpInDOM}
@@ -1165,7 +1161,7 @@ class Intro extends React.Component {
                 Does this work for all apps?
             </h2>
             <p>
-                Sometimes it works, but most of the time it doesn{"'"}t. I slowly trying to support more
+                Sometimes it works, but most of the time it doesn{"'"}t. I{"'"}m slowly trying to support more
                 JS functionality. I{"'"}m also working on a
                 Chrome extension to make it easier to run FromJS on any page.
             </p>
