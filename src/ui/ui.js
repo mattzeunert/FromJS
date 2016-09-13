@@ -71,12 +71,13 @@ export class OriginPath extends React.Component {
         })
         window.originPath = originPath
 
+
         var lastOriginPathStep = _.last(originPath)
         var firstOriginPathStep = _.first(originPath)
 
         var inbetweenSteps = originPath.slice(1, originPath.length - 1).reverse();
         var inbetweenStepsComponents = []
-        if (this.props.showFullPath){
+        if (this.state.showFullPath){
             for (var originPathStep of inbetweenSteps) {
                 inbetweenStepsComponents.push(this.getOriginPathItem(originPathStep))
             }
@@ -89,7 +90,7 @@ export class OriginPath extends React.Component {
         }
 
         var showFullPathButton = null;
-        if (!this.props.showFullPath && originPath.length > 2){
+        if (!this.state.showFullPath && originPath.length > 2){
             showFullPathButton = <div style={{marginBottom: 20}}>
                 <button
                     className="fromjs-btn-link"
