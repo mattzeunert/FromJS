@@ -25,9 +25,14 @@ export default function InspectedPage(iframe){
         if (!handlers) {
             handlers = [];
         }
-        handlers.forEach(function(handler){
-            handler.apply(null, eventData)
-        })
+
+        // set timeout for testing flicker/ behavior of UI
+        // setTimeout(function(){
+            handlers.forEach(function(handler){
+                handler.apply(null, eventData)
+            })
+        // }, 500)
+
 
     }
     this._onMessage = this._onMessage.bind(this)

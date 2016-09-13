@@ -47,49 +47,50 @@ function truncate(str, maxLength){
     return str.substr(0, 40) + "..."
 }
 
-class OriginPathWrapper extends React.Component {
-    constructor(props){
-        super(props)
-
-        this.state = {
-            isGettingOriginPath: false,
-            originPath: null
-        }
-    }
-    componentDidMount(){
-        this.makeSureIsGettingOriginPath()
-    }
-    componentWillUnmount(){
-        if (this.cancelGetOriginPath) {
-            this.cancelGetOriginPath()
-        }
-    }
-    componentWillReceiveProps(){
-        this.makeSureIsGettingOriginPath()
-    }
-    makeSureIsGettingOriginPath(){
-        if (this.state.isGettingOriginPath || !this.props.getOriginPath) {
-            return;
-        }
-        this.setState({isGettingOriginPath: true})
-        this.cancelGetOriginPath = this.props.getOriginPath((originPath) => {
-            this.setState({
-                originPath,
-                isGettingOriginPath: false
-            })
-        })
-    }
-    render(){
-        if (!this.state.originPath) {
-            return <div>Getting origin path</div>
-        }
-        return <OriginPath
-            handleValueSpanClick={this.props.handleValueSpanClick}
-            originPath={this.state.originPath}
-            key={this.props.childKey}
-        />
-    }
-}
+//
+// class OriginPathWrapper extends React.Component {
+//     constructor(props){
+//         super(props)
+//
+//         this.state = {
+//             isGettingOriginPath: false,
+//             originPath: null
+//         }
+//     }
+//     componentDidMount(){
+//         this.makeSureIsGettingOriginPath()
+//     }
+//     componentWillUnmount(){
+//         if (this.cancelGetOriginPath) {
+//             this.cancelGetOriginPath()
+//         }
+//     }
+//     componentWillReceiveProps(){
+//         this.makeSureIsGettingOriginPath()
+//     }
+//     makeSureIsGettingOriginPath(){
+//         if (this.state.isGettingOriginPath || !this.props.getOriginPath) {
+//             return;
+//         }
+//         this.setState({isGettingOriginPath: true})
+//         this.cancelGetOriginPath = this.props.getOriginPath((originPath) => {
+//             this.setState({
+//                 originPath,
+//                 isGettingOriginPath: false
+//             })
+//         })
+//     }
+//     render(){
+//         if (!this.state.originPath) {
+//             return <div>Getting origin path</div>
+//         }
+//         return <OriginPath
+//             handleValueSpanClick={this.props.handleValueSpanClick}
+//             originPath={this.state.originPath}
+//             key={this.props.childKey}
+//         />
+//     }
+// }
 
 export class OriginPath extends React.Component {
     constructor(props){
@@ -100,6 +101,9 @@ export class OriginPath extends React.Component {
     }
     render(){
         var originPath = this.props.originPath;
+        if (!originPath) {
+            return <div>no origin path</div>
+        }
         originPath = originPath.filter(function(pathItem){
             // This is really an implementation detail and doesn't add any value to the user
             // Ideally I'd clean up the code to not generate that action at all,
@@ -896,44 +900,53 @@ class ElementOriginPathContent extends React.Component {
         super(props)
         this.state = {
             originPathKey: null,
-            previewOriginPathKey: null
+            previewOriginPathKey: null,
+            originPath: null,
+            previewOriginPath: null
         }
 
         this.componentWillReceiveProps(props)
     }
     componentWillReceiveProps(newProps){
-        // We don't reset the state because we want to keep the current UI visible until the new data comes in
         if (newProps.previewGetOriginPathKey) {
-            newProps.previewGetOriginPathKey((key) => {
-                this.setState({previewOriginPathKey: key})
+            // We don't reset the state because we want to keep the current UI visible until the new data comes in
+
+            newProps.previewGetOriginPathKey(key => {
+                newProps.previewGetOriginPath(originPath => this.setState({
+                    previewOriginPath: originPath,
+                    previewOriginPathKey: key
+                }))
+            })
+        } else {
+            this.setState({
+                previewOriginPathKey: null,
+                previewOriginPath: null
             })
         }
-        newProps.getOriginPathKey((key) => {
-            this.setState({originPathKey: key})
+        newProps.getOriginPathKey(key => {
+            newProps.getOriginPath(originPath => this.setState({
+                originPathKey: key,
+                originPath: originPath
+            }))
         })
     }
     render(){
-        var showPreview = new Boolean(this.props.previewGetOriginPath).valueOf();
+        var showPreview = new Boolean(this.props.previewGetOriginPath).valueOf() && this.state.previewOriginPath;
         var originPath = <div style={{display: showPreview ? "none" : "block"}}>
-            <OriginPathWrapper
-                getOriginPath={this.props.getOriginPath}
-                childKey={this.state.originPathKey}
+            <OriginPath
+                originPath={this.state.originPath}
+                key={this.state.originPathKey}
                 handleValueSpanClick={(origin, characterIndex) => this.props.inspectValue(origin, characterIndex)}
             />
         </div>
 
-        // The fact that we only show and hide the preview, rather than creating a new component
-        // after it was hidden/removed, means the previous preview briefly flickers
-        // However, the alternatives are:
-        // 1) Flashing a loading message
-        // 2) Doing extra work so the selection is aware of the preview, and the selection is only
-        // hidden when the preview is ready to be displayed
-        var previewOriginPath = <div style={{display: showPreview ? "block" : "none"}}>
-            <OriginPathWrapper
-                getOriginPath={this.props.previewGetOriginPath}
-                childKey={this.state.previewOriginPathKey}
+        var previewOriginPath = null;
+        if (showPreview) {
+            previewOriginPath = <OriginPath
+                originPath={this.state.previewOriginPath}
+                key={this.state.previewOriginPathKey}
             />
-        </div>
+        }
 
         var showUpButton = typeof this.props.goUpInDOM === "function"
         var upButton = null;
@@ -996,6 +1009,7 @@ class ElementOriginPath extends React.Component {
         var previewGetOriginPath = null;
         var previewGetOriginPathKey = null;
         if (this.state.previewCharacterIndex !== null) {
+            console.info("rendering with this.state.pprevewicharin", this.state.previewCharacterIndex)
             previewGetOriginPathKey = (callback) => this.getOriginPathKey(this.state.previewCharacterIndex, callback)
             previewGetOriginPath = (callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)
         }
@@ -1056,6 +1070,15 @@ class ElementOriginPath extends React.Component {
         return null;
     }
     getOriginPath(characterIndex, callback){
+
+        console.info("gettning origin path at char", characterIndex)
+
+        if (characterIndex === null){
+            // characterIndex should never be null, but right now it is sometimes
+            callback(null)
+            return;
+        }
+
         var isCanceled = false
 
         this.getOriginAndCharacterIndex(characterIndex, function(info){
