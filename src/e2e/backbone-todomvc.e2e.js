@@ -8,6 +8,8 @@ function waitForEl(cssSelector){
 }
 
 function expectResult(inspectedChar, expectedAction){
+    switchToIframe();
+
     var searchChar = element(by.css("[data-test-marker-inspected-value] .fromjs-highlighted-character")).getText()
     expect(searchChar).toBe(inspectedChar)
 
@@ -17,6 +19,8 @@ function expectResult(inspectedChar, expectedAction){
 
     expect(action).toBe(expectedAction)
     expect(resultChar).toBe(inspectedChar)
+
+    switchToInspectedPage();
 }
 
 function loadPage(url){
@@ -28,12 +32,25 @@ function loadPage(url){
 
 function openFromJSInspector(){
     element(by.css('.fromjs-show-inspector-button')).click();
-    return waitForEl("#fromjs")
+    return waitForEl("#fromjs-sidebar")
+}
+
+function switchToIframe(){
+    var el = browser.driver.findElement(by.css("#fromjs-sidebar iframe"))
+    browser.switchTo().frame(el)
+}
+
+function switchToInspectedPage(){
+    browser.switchTo().defaultContent()
 }
 
 function inspectElement(cssSelector) {
     element(by.css(cssSelector)).click();
+    switchToIframe()
     return waitForEl('.fromjs-origin-path-step')
+    .then(function(){
+        switchToInspectedPage()
+    })
 }
 
 describe('Backbone TodoMVC', function() {
