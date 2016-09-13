@@ -937,20 +937,24 @@ class ElementOriginPathContent extends React.Component {
                 )
             })
         } else {
+            // Reset this so it doesn't flash the previous value, instead we want to continue showing the
+            // preview value
             this.setState({
-                previewOriginPathKey: null,
-                previewOriginPath: null
+                originPathKey: null,
+                originPath: null
+            })
+            newProps.getOriginPathKey(key => {
+                newProps.getOriginPath(originPath => this.setState({
+                    originPathKey: key,
+                    originPath: originPath,
+                    previewOriginPathKey: null,
+                    previewOriginPath: null
+                }))
             })
         }
-        newProps.getOriginPathKey(key => {
-            newProps.getOriginPath(originPath => this.setState({
-                originPathKey: key,
-                originPath: originPath
-            }))
-        })
     }
     render(){
-        var showPreview = new Boolean(this.props.previewGetOriginPath).valueOf() && this.state.previewOriginPath;
+        var showPreview = this.state.previewOriginPath;
         var originPath = <div style={{display: showPreview ? "none" : "block"}}>
             <OriginPath
                 originPath={this.state.originPath}
