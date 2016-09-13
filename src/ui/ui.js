@@ -47,50 +47,6 @@ function truncate(str, maxLength){
     return str.substr(0, 40) + "..."
 }
 
-//
-// class OriginPathWrapper extends React.Component {
-//     constructor(props){
-//         super(props)
-//
-//         this.state = {
-//             isGettingOriginPath: false,
-//             originPath: null
-//         }
-//     }
-//     componentDidMount(){
-//         this.makeSureIsGettingOriginPath()
-//     }
-//     componentWillUnmount(){
-//         if (this.cancelGetOriginPath) {
-//             this.cancelGetOriginPath()
-//         }
-//     }
-//     componentWillReceiveProps(){
-//         this.makeSureIsGettingOriginPath()
-//     }
-//     makeSureIsGettingOriginPath(){
-//         if (this.state.isGettingOriginPath || !this.props.getOriginPath) {
-//             return;
-//         }
-//         this.setState({isGettingOriginPath: true})
-//         this.cancelGetOriginPath = this.props.getOriginPath((originPath) => {
-//             this.setState({
-//                 originPath,
-//                 isGettingOriginPath: false
-//             })
-//         })
-//     }
-//     render(){
-//         if (!this.state.originPath) {
-//             return <div>Getting origin path</div>
-//         }
-//         return <OriginPath
-//             handleValueSpanClick={this.props.handleValueSpanClick}
-//             originPath={this.state.originPath}
-//             key={this.props.childKey}
-//         />
-//     }
-// }
 
 export class OriginPath extends React.Component {
     constructor(props){
@@ -1037,26 +993,6 @@ class ElementOriginPath extends React.Component {
             </div>
         </div>
 
-        // return <div>
-        //     <ElementOriginPathContent
-        //         inspectedValue={this.getInspectedValue()}
-        //         inspectedValueCharacterIndex={this.state.characterIndex}
-        //         onInspectedValueCharacterClick={}
-        //         onInspectedValueCharacterHover={}
-        //         inspectValue={(origin, characterIndex) => {
-        //             this.props.onNonElementOriginSelected()
-        //             this.setState({
-        //                 rootOrigin: origin,
-        //                 characterIndex
-        //             })
-        //         }}
-        //         getOriginPath={getOriginPath}
-        //         getOriginPathKey={getOriginPathKey}
-        //         goUpInDOM={this.props.goUpInDOM}
-        //         previewGetOriginPath={previewGetOriginPath}
-        //         previewGetOriginPathKey={previewGetOriginPathKey}
-        //     />
-        // </div>
     }
     originComesFromElement(){
         return this.state.rootOrigin === null
