@@ -868,12 +868,22 @@ class ElementOriginPath extends React.Component {
 
         this.componentWillUpdate(props, this.state, true);
     }
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.el.__fromJSElementId !== this.props.el.__fromJSElementId){
+            console.log("resetting root origin")
+            this.setState({
+                rootOrigin: null,
+                characterIndex: getDefaultInspectedCharacterIndex(nextProps.el.outerHTML),
+            })
+        }
+    }
     componentWillUpdate(nextProps, nextState, forceUpdate) {
         if (nextState.previewCharacterIndex === this.state.previewCharacterIndex &&
             nextState.characterIndex === this.state.characterIndex &&
             nextState.rootOrigin === this.state.rootOrigin &&
             nextProps.el.__fromJSElementId === this.props.el.__fromJSElementId &&
             forceUpdate !== true) {
+                console.log("not bothering with update")
             return
         }
         if (nextState.previewCharacterIndex !== null) {
@@ -900,15 +910,17 @@ class ElementOriginPath extends React.Component {
                 }
             })
         } else {
-            // Reset this so it doesn't flash the previous value, instead we want to continue showing the
+            // Don't reset yet so it doesn't flash the previous value, instead we want to continue showing the
             // preview value
 
+            this.nextState = nextState
             this.getOriginKeyAndPath(nextState.characterIndex, (key, originPath) => this.setState({
                 originPathKey: key,
                 originPath: originPath,
                 previewOriginPathKey: null,
                 previewOriginPath: null
             }))
+            this.nextState = null;
         }
     }
     getOriginKeyAndPath(characterIndex, callback){
@@ -995,7 +1007,7 @@ class ElementOriginPath extends React.Component {
 
     }
     originComesFromElement(){
-        return this.state.rootOrigin === null
+        return this.getState().rootOrigin === null
     }
     getInspectedValue(){
         if (this.state.rootOrigin){
@@ -1048,6 +1060,12 @@ class ElementOriginPath extends React.Component {
             }))
         })
     }
+    getState(){
+        if (this.nextState) {
+            return this.nextState
+        }
+        return this.state
+    }
     getOriginAndCharacterIndex(characterIndex, callback){
         characterIndex = parseFloat(characterIndex);
         if (this.originComesFromElement()) {
@@ -1057,7 +1075,7 @@ class ElementOriginPath extends React.Component {
         } else {
             callback({
                 characterIndex: characterIndex,
-                origin: this.state.rootOrigin
+                origin: this.getState().rootOrigin
             })
         }
     }
