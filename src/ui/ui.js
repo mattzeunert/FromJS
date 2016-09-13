@@ -1154,13 +1154,13 @@ export class FromJSView extends React.Component {
             })
         })
 
-        currentInspectedPage.on("previewElement", (el) => {
-            clearTimeout(this.setPreviewElTimeout)
+        var onPreviewElement = (el) => {
             // Delay to prevent setting null inbetween when exiting one element and then entering another
-            this.setPreviewElTimeout = setTimeout(() => {
-                this.setState({previewEl: el})
-            }, 10)
-        })
+            this.setState({previewEl: el})
+        }
+        onPreviewElement = _.debounce(onPreviewElement, 10)
+
+        currentInspectedPage.on("previewElement", onPreviewElement, 10)
     }
     render(){
         var preview = null;
