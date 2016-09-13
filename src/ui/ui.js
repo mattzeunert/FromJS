@@ -878,44 +878,42 @@ class ElementOriginPath extends React.Component {
         if (nextState.previewCharacterIndex !== null) {
             // We don't reset the state because we want to keep the current UI visible until the new data comes in
 
-            this.getOriginPathKey(nextState.previewCharacterIndex, key => {
-                this.getOriginPath(nextState.previewCharacterIndex, originPath =>
-                    {
-                        var setState = () => this.setState({
-                            previewOriginPath: originPath,
-                            previewOriginPathKey: key
-                        })
-                        if (originPath) {
-                            var lastStep = _.last(originPath)
-                            var originObject = lastStep.originObject
-                            // resolve frame so it's cached when we display it, so you don't get the "loading..." message
-                            var frameString;
-                            if (originObject.isHTMLFileContent) {
-                                frameString = getFrameFromHTMLFileContentOriginPathItem(lastStep)
-                            } else {
-                                frameString = _.first(originObject.stack)
-                            }
-                            currentInspectedPage.resolveFrame(frameString, setState)
-                        } else {
-                            setState()
-                        }
-
+            this.getOriginKeyAndPath(nextState.previewCharacterIndex, (key, originPath) => {
+                var setState = () => this.setState({
+                    previewOriginPath: originPath,
+                    previewOriginPathKey: key
+                })
+                if (originPath) {
+                    var lastStep = _.last(originPath)
+                    var originObject = lastStep.originObject
+                    // resolve frame so it's cached when we display it, so you don't get the "loading..." message
+                    var frameString;
+                    if (originObject.isHTMLFileContent) {
+                        frameString = getFrameFromHTMLFileContentOriginPathItem(lastStep)
+                    } else {
+                        frameString = _.first(originObject.stack)
                     }
-                )
+                    currentInspectedPage.resolveFrame(frameString, setState)
+                } else {
+                    setState()
+                }
             })
         } else {
             // Reset this so it doesn't flash the previous value, instead we want to continue showing the
             // preview value
 
-            this.getOriginPathKey(nextState.characterIndex, key => {
-                this.getOriginPath(nextState.characterIndex, originPath => this.setState({
-                    originPathKey: key,
-                    originPath: originPath,
-                    previewOriginPathKey: null,
-                    previewOriginPath: null
-                }))
-            })
+            this.getOriginKeyAndPath(nextState.characterIndex, (key, originPath) => this.setState({
+                originPathKey: key,
+                originPath: originPath,
+                previewOriginPathKey: null,
+                previewOriginPath: null
+            }))
         }
+    }
+    getOriginKeyAndPath(characterIndex, callback){
+        this.getOriginPathKey(characterIndex, key => {
+            this.getOriginPath(characterIndex, originPath => callback(key, originPath))
+        })
     }
     componentWillUnmount(){
         if (this.cancelGetRootOriginAtChar) {
