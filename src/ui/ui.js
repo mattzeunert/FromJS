@@ -912,10 +912,29 @@ class ElementOriginPathContent extends React.Component {
             // We don't reset the state because we want to keep the current UI visible until the new data comes in
 
             newProps.previewGetOriginPathKey(key => {
-                newProps.previewGetOriginPath(originPath => this.setState({
-                    previewOriginPath: originPath,
-                    previewOriginPathKey: key
-                }))
+                newProps.previewGetOriginPath(originPath =>
+                    {
+                        var setState = () => this.setState({
+                            previewOriginPath: originPath,
+                            previewOriginPathKey: key
+                        })
+                        if (originPath) {
+                            var lastStep = _.last(originPath)
+                            var originObject = lastStep.originObject
+                            // resolve frame so it's cached when we display it, so you don't get the "loading..." message
+                            var frameString;
+                            if (originObject.isHTMLFileContent) {
+                                frameString = getFrameFromHTMLFileContentOriginPathItem(lastStep)
+                            } else {
+                                frameString = _.first(originObject.stack)
+                            }
+                            currentInspectedPage.resolveFrame(frameString, setState)
+                        } else {
+                            setState()
+                        }
+
+                    }
+                )
             })
         } else {
             this.setState({
