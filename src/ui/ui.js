@@ -1067,6 +1067,9 @@ class ElementMarker extends React.Component {
         return this.props.el !== newProps.el;
     }
     render(){
+        if (this.props.el === null) {
+            return null;
+        }
         var rect = this.props.el.getBoundingClientRect()
         var style = {
             ...this.props.style,

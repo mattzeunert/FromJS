@@ -129,6 +129,9 @@ export default function showFromJSSidebar(){
     }
 
     function serializeElement(el) {
+        if (el === null) {
+            return null;
+        }
         if (!el.__fromJSElementId) {
             el.__fromJSElementId = _.uniqueId()
             elementsByElementId[el.__fromJSElementId] = el
@@ -140,18 +143,22 @@ export default function showFromJSSidebar(){
         }
     }
 
+    function setCurrentPreviewedElement(el){
+        currentPreviewedElement = el
+
+        inspectedPage.trigger("previewElement", serializeElement(el))
+        ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
+    }
+
     if (!isMobile()){
         $("*").mouseenter(function(e){
             if (!shouldHandle(e)) {return}
             e.stopPropagation()
-            currentPreviewedElement = e.target
-            ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
-            inspectedPage.trigger("previewElement", serializeElement(e.target))
+            setCurrentPreviewedElement(e.target)
         })
         $("*").mouseleave(function(e){
             if (!shouldHandle(e)) {return}
-            currentPreviewedElement = null
-            inspectedPage.trigger("previewElement", null)
+            setCurrentPreviewedElement(null)
         })
     }
 
