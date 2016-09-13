@@ -871,6 +871,7 @@ class ElementOriginPath extends React.Component {
         if (nextState.previewCharacterIndex === this.state.previewCharacterIndex &&
             nextState.characterIndex === this.state.characterIndex &&
             nextState.rootOrigin === this.state.rootOrigin &&
+            nextProps.el.__fromJSElementId === this.props.__fromJSElementId &&
             forceUpdate !== true) {
             return
         }
@@ -1169,7 +1170,6 @@ export class FromJSView extends React.Component {
         var showPreview = this.state.previewEl !== null && (!this.state.el || this.state.previewEl.__fromJSElementId !== this.state.el.__fromJSElementId)
         if (showPreview){
             preview = <ElementOriginPath
-                key={this.state.previewEl.__fromJSElementId}
                 el={this.state.previewEl}
                 goUpInDOM={() => "can't call this function, but needs to be there so button is shown"}
                 />
@@ -1181,7 +1181,6 @@ export class FromJSView extends React.Component {
             }
             info = <div style={{display: showPreview ? "none" : "block"}}>
                 <ElementOriginPath
-                    key={this.state.el.__fromJSElementId}
                     el={this.state.el}
                     onNonElementOriginSelected={() => this.setState({nonElementOriginSelected: true})}
                     goUpInDOM={goUpInDOM} />
