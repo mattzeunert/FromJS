@@ -871,7 +871,7 @@ class ElementOriginPath extends React.Component {
         if (nextState.previewCharacterIndex === this.state.previewCharacterIndex &&
             nextState.characterIndex === this.state.characterIndex &&
             nextState.rootOrigin === this.state.rootOrigin &&
-            nextProps.el.__fromJSElementId === this.props.__fromJSElementId &&
+            nextProps.el.__fromJSElementId === this.props.el.__fromJSElementId &&
             forceUpdate !== true) {
             return
         }
@@ -1157,7 +1157,11 @@ export class FromJSView extends React.Component {
         })
 
         currentInspectedPage.on("previewElement", (el) => {
-            this.setState({previewEl: el})
+            clearTimeout(this.setPreviewElTimeout)
+            // Delay to prevent setting null inbetween when exiting one element and then entering another
+            this.setPreviewElTimeout = setTimeout(() => {
+                this.setState({previewEl: el})
+            }, 10)
         })
     }
     render(){
@@ -1168,6 +1172,7 @@ export class FromJSView extends React.Component {
         var intro = null;
 
         var showPreview = this.state.previewEl !== null && (!this.state.el || this.state.previewEl.__fromJSElementId !== this.state.el.__fromJSElementId)
+        console.warn(this.state.previewEl)
         if (showPreview){
             preview = <ElementOriginPath
                 el={this.state.previewEl}
