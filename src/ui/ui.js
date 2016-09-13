@@ -895,24 +895,34 @@ class HorizontalScrollContainer extends React.Component {
     }
 }
 
-class ElementOriginPathContent extends React.Component {
+class ElementOriginPath extends React.Component {
     constructor(props){
         super(props)
+
         this.state = {
+            characterIndex: getDefaultInspectedCharacterIndex(props.el.outerHTML),
+            previewCharacterIndex: null,
+            rootOrigin: null,
             originPathKey: null,
             previewOriginPathKey: null,
             originPath: null,
             previewOriginPath: null
         }
 
-        this.componentWillReceiveProps(props)
+        this.componentWillUpdate(props, this.state, true);
     }
-    componentWillReceiveProps(newProps){
-        if (newProps.previewGetOriginPathKey) {
+    componentWillUpdate(nextProps, nextState, forceUpdate) {
+        if (nextState.previewCharacterIndex === this.state.previewCharacterIndex &&
+            nextState.characterIndex === this.state.characterIndex &&
+            nextState.rootOrigin === this.state.rootOrigin &&
+            forceUpdate !== true) {
+            return
+        }
+        if (nextState.previewCharacterIndex !== null) {
             // We don't reset the state because we want to keep the current UI visible until the new data comes in
 
-            newProps.previewGetOriginPathKey(key => {
-                newProps.previewGetOriginPath(originPath =>
+            this.getOriginPathKey(nextState.previewCharacterIndex, key => {
+                this.getOriginPath(nextState.previewCharacterIndex, originPath =>
                     {
                         var setState = () => this.setState({
                             previewOriginPath: originPath,
@@ -939,12 +949,9 @@ class ElementOriginPathContent extends React.Component {
         } else {
             // Reset this so it doesn't flash the previous value, instead we want to continue showing the
             // preview value
-            this.setState({
-                originPathKey: null,
-                originPath: null
-            })
-            newProps.getOriginPathKey(key => {
-                newProps.getOriginPath(originPath => this.setState({
+
+            this.getOriginPathKey(nextState.characterIndex, key => {
+                this.getOriginPath(nextState.characterIndex, originPath => this.setState({
                     originPathKey: key,
                     originPath: originPath,
                     previewOriginPathKey: null,
@@ -953,13 +960,24 @@ class ElementOriginPathContent extends React.Component {
             })
         }
     }
+    componentWillUnmount(){
+        if (this.cancelGetRootOriginAtChar) {
+            this.cancelGetRootOriginAtChar();
+        }
+    }
     render(){
         var showPreview = this.state.previewOriginPath;
         var originPath = <div style={{display: showPreview ? "none" : "block"}}>
             <OriginPath
                 originPath={this.state.originPath}
                 key={this.state.originPathKey}
-                handleValueSpanClick={(origin, characterIndex) => this.props.inspectValue(origin, characterIndex)}
+                handleValueSpanClick={(origin, characterIndex) => {
+                    this.props.onNonElementOriginSelected()
+                    this.setState({
+                        rootOrigin: origin,
+                        characterIndex
+                    })
+                }}
             />
         </div>
 
@@ -995,10 +1013,18 @@ class ElementOriginPathContent extends React.Component {
                         width: showUpButton ? "calc(100% - 30px)" : "100%"}}
                         data-test-marker-inspected-value>
                         <TextEl
-                            text={this.props.inspectedValue}
-                            highlightedCharacterIndex={this.props.inspectedValueCharacterIndex}
-                            onCharacterClick={this.props.onInspectedValueCharacterClick}
-                            onCharacterHover={this.props.onInspectedValueCharacterHover}
+                            text={this.getInspectedValue()}
+                            highlightedCharacterIndex={this.state.characterIndex}
+                            onCharacterClick={(characterIndex) => this.setState({
+                                characterIndex,
+                                previewCharacterIndex: null,
+                                originPathKey: null,
+                                originPath: null
+                            })}
+                            onCharacterHover={(characterIndex) => {
+                                if (isMobile()) { return }
+                                this.setState({previewCharacterIndex: characterIndex})
+                            }}
                         />
                     </div>
                     {upButton}
@@ -1010,68 +1036,27 @@ class ElementOriginPathContent extends React.Component {
                 {previewOriginPath}
             </div>
         </div>
-    }
-}
 
-class ElementOriginPath extends React.Component {
-    constructor(props){
-        super(props)
-
-        this.state = {
-            characterIndex: getDefaultInspectedCharacterIndex(props.el.outerHTML),
-            previewCharacterIndex: null,
-            rootOrigin: null
-        }
-    }
-    componentWillUnmount(){
-        if (this.cancelGetRootOriginAtChar) {
-            this.cancelGetRootOriginAtChar();
-        }
-    }
-    render(){
-        var previewGetOriginPath = null;
-        var previewGetOriginPathKey = null;
-        if (this.state.previewCharacterIndex !== null) {
-            console.info("rendering with this.state.pprevewicharin", this.state.previewCharacterIndex)
-            previewGetOriginPathKey = (callback) => this.getOriginPathKey(this.state.previewCharacterIndex, callback)
-            previewGetOriginPath = (callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)
-        }
-
-        var getOriginPath = null;
-        var getOriginPathKey = null;
-
-        var selectionComponent = null;
-        if (this.state.characterIndex !== null) {
-            getOriginPath = (callback) => this.getOriginPath(this.state.characterIndex, callback)
-            getOriginPathKey = (callback) => this.getOriginPathKey(this.state.characterIndex, callback)
-        }
-
-        return <div>
-            <ElementOriginPathContent
-                inspectedValue={this.getInspectedValue()}
-                inspectedValueCharacterIndex={this.state.characterIndex}
-                onInspectedValueCharacterClick={(characterIndex) => this.setState({
-                    characterIndex,
-                    previewCharacterIndex: null
-                })}
-                onInspectedValueCharacterHover={(characterIndex) => {
-                    if (isMobile()) { return }
-                    this.setState({previewCharacterIndex: characterIndex})
-                }}
-                inspectValue={(origin, characterIndex) => {
-                    this.props.onNonElementOriginSelected()
-                    this.setState({
-                        rootOrigin: origin,
-                        characterIndex
-                    })
-                }}
-                getOriginPath={getOriginPath}
-                getOriginPathKey={getOriginPathKey}
-                goUpInDOM={this.props.goUpInDOM}
-                previewGetOriginPath={previewGetOriginPath}
-                previewGetOriginPathKey={previewGetOriginPathKey}
-            />
-        </div>
+        // return <div>
+        //     <ElementOriginPathContent
+        //         inspectedValue={this.getInspectedValue()}
+        //         inspectedValueCharacterIndex={this.state.characterIndex}
+        //         onInspectedValueCharacterClick={}
+        //         onInspectedValueCharacterHover={}
+        //         inspectValue={(origin, characterIndex) => {
+        //             this.props.onNonElementOriginSelected()
+        //             this.setState({
+        //                 rootOrigin: origin,
+        //                 characterIndex
+        //             })
+        //         }}
+        //         getOriginPath={getOriginPath}
+        //         getOriginPathKey={getOriginPathKey}
+        //         goUpInDOM={this.props.goUpInDOM}
+        //         previewGetOriginPath={previewGetOriginPath}
+        //         previewGetOriginPathKey={previewGetOriginPathKey}
+        //     />
+        // </div>
     }
     originComesFromElement(){
         return this.state.rootOrigin === null
