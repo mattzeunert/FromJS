@@ -11,6 +11,7 @@ describe('Backbone TodoMVC', function() {
         })
         .then(helpers.openFromJSInspector)
     })
+
     it('Correctly traces a checkbox input', function() {
         helpers.inspectElement('input[type="checkbox"]')
         .then(function(){
@@ -19,9 +20,16 @@ describe('Backbone TodoMVC', function() {
     });
 
     it("Correctly traces the value of a newly created todo item", function(){
-        helpers.inspectElement('.todo-list li')
+        helpers.inspectElement('.todo-list li label')
         .then(function(){
             helpers.expectResult("H", "HTMLInputElement Value")
+        })
+    })
+
+    it("Provides a button to inspect the parent element of the current selection", function(){
+        helpers.inspectParentElement()
+        .then(function(){
+            helpers.expectResult("<", "Initial Page HTML")
         })
     })
 });

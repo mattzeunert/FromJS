@@ -62,6 +62,15 @@ function inspectElement(cssSelector) {
     })
 }
 
+function inspectParentElement() {
+    switchToIframe()
+    element(by.css(".fromjs-go-up-button")).click()
+    return waitForEl('.fromjs-origin-path-step')
+    .then(function(){
+        switchToInspectedPage()
+    })
+}
+
 module.exports = {
     waitForEl,
     expectResult,
@@ -70,5 +79,6 @@ module.exports = {
     inspectElement,
     switchToIframe,
     switchToInspectedPage,
-    inspectElement
+    inspectElement,
+    inspectParentElement
 }
