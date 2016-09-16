@@ -189,6 +189,6 @@ export default function showFromJSSidebar(){
 }
 
 export function initializeSidebarContent(){
-    document.write("<!doctype html><html><head></head><body></body></html>")
-    ReactDOM.render(<FromJSView />, document.body)
+    document.write("<!doctype html><html><head></head><body><div id='content'></div></body></html>")
+    ReactDOM.render(<FromJSView />, document.querySelector("#content"))
 }
