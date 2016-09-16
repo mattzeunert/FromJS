@@ -30,7 +30,13 @@ button:focus, {
 
 .fromjs-show-inspector-button {
     z-index: 99999999;
+    padding: 10px;
+    border: none;
 }
+.fromjs-show-inspector-button:hover {
+    background: #1b0d80;
+}
+
 
 .toggle-inspector-button {
     position: fixed;
@@ -39,20 +45,35 @@ button:focus, {
 
     color: white;
     line-height: 22px;
-    padding: 10px;
     background: #333;
     font-weight: bold;
     cursor: pointer;
-    border: none;
-}
-.toggle-inspector-button:hover {
-    background: #1b0d80;
 }
 
 .close-inspector-button {
-    width: 42px;
-    height: 42px;
-    font-size: 20px;
+    font-size: 16px;
+
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+    display: inline-block;
+    padding: 0;
+    border-top: 20px solid #333;
+    border-right: 20px solid #333;
+    background: transparent;
+}
+.close-inspector-button:after {
+    content: "\00d7";
+    display: block;
+    margin-top: -20px;
+    font-size: 16px;
+    padding-left: 6px;
+}
+
+.close-inspector-button:hover {
+    border-top-color: #1b0d80;
+    border-right-color: #1b0d80;
 }
 
 #fromjs .fromjs-intro {

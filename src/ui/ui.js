@@ -1233,7 +1233,7 @@ export class FromJSView extends React.Component {
                 <button
                     onClick={() => currentInspectedPage.trigger("UICloseInspector")}
                     className="toggle-inspector-button close-inspector-button">
-                    x
+
                 </button>
                 {intro}
                 {preview}
