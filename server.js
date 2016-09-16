@@ -7,9 +7,13 @@ var processJavaScriptCode = require("./src/compilation/processJavaScriptCode")
 import { replaceJSScriptTags } from "./src/getJSScriptTags"
 var _ = require("underscore")
 
-http.createServer(handleRequest).listen(7500)
-console.log("Open localhost:7500 in your browser and open an HTML file from there")
-var isDev = process.argv[2] === "dev"
+var port = parseFloat(process.argv[2])
+if (!port) {
+    port = 7500;
+}
+
+http.createServer(handleRequest).listen(port)
+console.log("Open localhost:" + port + " in your browser and open an HTML file from there")
 
 function handleRequest(request, response){
     var path = request.url.split("?")[0]
@@ -50,10 +54,6 @@ function handleRequest(request, response){
             if (endsWith(request.url, ".html")){
                 var originalHtmlScriptTag = "<script id='fromjs-initial-html' html-filename='" + request.url + "' type='text/template'>" + encodeURIComponent(fileContents) + "</script>"
                 var fromJSUrl = "/fromjs-internals/from.js"
-                // not using webpack dev server for now to avoid having to start lots of webpack servers
-                // if (isDev){
-                //     fromJSUrl = "http://localhost:8080/dist/from.js"
-                // }
                 var scriptTagHtml = '<script src="' + fromJSUrl + '" charset="utf-8"></script>'
                 var linkTagHtml = '<link rel="stylesheet" href="' + "/fromjs-internals/fromjs.css" + '"/>'
                 var insertedHtml = originalHtmlScriptTag + scriptTagHtml + linkTagHtml

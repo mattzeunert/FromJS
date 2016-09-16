@@ -55,7 +55,7 @@ function inspectElement(cssSelector) {
 
 describe('Backbone TodoMVC', function() {
     it("Loads the app and creates a new todo item", function(){
-        loadPage('http://localhost:7500/demos/index.html')
+        loadPage('http://localhost:9999/demos/index.html')
         .then(function(){
             browser.driver.findElement(by.css('.new-todo')).sendKeys('Hello');
             browser.driver.findElement(by.css('.new-todo')).sendKeys(protractor.Key.ENTER);
