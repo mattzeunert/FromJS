@@ -29,9 +29,16 @@ export default function showFromJSSidebar(){
 
     document.body.appendChild(container)
     sidebarIframe.contentDocument.write(`
-        <script>window.isFromJSSidebar = true</script>
-        <link rel="stylesheet" href="/fromjs-internals/fromjs.css">
-        <script src="/fromjs-internals/from.js" charset="utf-8"></script>
+        <!doctype html>
+        <html>
+            <head></head>
+            <body>
+                <div id='content'>Loading Inspector UI...</div>
+                <script>window.isFromJSSidebar = true</script>
+                <link rel="stylesheet" href="/fromjs-internals/fromjs.css">
+                <script src="/fromjs-internals/from.js" charset="utf-8"></script>
+            </body>
+        </html>
     `)
 
     var elementMarkerContainer = document.createElement("div")
@@ -189,6 +196,5 @@ export default function showFromJSSidebar(){
 }
 
 export function initializeSidebarContent(){
-    document.write("<!doctype html><html><head></head><body><div id='content'></div></body></html>")
     ReactDOM.render(<FromJSView />, document.querySelector("#content"))
 }
