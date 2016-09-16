@@ -870,7 +870,7 @@ class ElementOriginPath extends React.Component {
     }
     componentWillReceiveProps(nextProps) {
         if (nextProps.el.__fromJSElementId !== this.props.el.__fromJSElementId){
-            console.log("resetting root origin")
+            console.log("resetting root origin", nextProps.el.outerHTML.substring(0, 100))
             this.setState({
                 rootOrigin: null,
                 characterIndex: getDefaultInspectedCharacterIndex(nextProps.el.outerHTML),
@@ -886,10 +886,18 @@ class ElementOriginPath extends React.Component {
                 console.log("not bothering with update")
             return
         }
+
+        if (this.cancelSelectionGetOriginKeyAndPath) {
+            this.cancelSelectionGetOriginKeyAndPath();
+        }
+        if (this.cancelPreviewGetOriginKeyAndPath) {
+            this.cancelPreviewGetOriginKeyAndPath();
+        }
+
         if (nextState.previewCharacterIndex !== null) {
             // We don't reset the state because we want to keep the current UI visible until the new data comes in
 
-            this.getOriginKeyAndPath(nextState.previewCharacterIndex, (key, originPath) => {
+            this.cancelPreviewGetOriginKeyAndPath = this.getOriginKeyAndPath(nextProps, nextState.previewCharacterIndex, (key, originPath) => {
                 var setState = () => this.setState({
                     previewOriginPath: originPath,
                     previewOriginPathKey: key
@@ -914,7 +922,7 @@ class ElementOriginPath extends React.Component {
             // preview value
 
             this.nextState = nextState
-            this.getOriginKeyAndPath(nextState.characterIndex, (key, originPath) => this.setState({
+            this.cancelSelectionGetOriginKeyAndPath = this.getOriginKeyAndPath(nextProps, nextState.characterIndex, (key, originPath) => this.setState({
                 originPathKey: key,
                 originPath: originPath,
                 previewOriginPathKey: null,
@@ -923,10 +931,17 @@ class ElementOriginPath extends React.Component {
             this.nextState = null;
         }
     }
-    getOriginKeyAndPath(characterIndex, callback){
-        this.getOriginPathKey(characterIndex, key => {
-            this.getOriginPath(characterIndex, originPath => callback(key, originPath))
+    getOriginKeyAndPath(props, characterIndex, callback){
+        var canceled = false;
+        this.getOriginPathKey(props, characterIndex, key => {
+            this.getOriginPath(props, characterIndex, originPath => {
+                if (canceled) {return}
+                callback(key, originPath)
+            })
         })
+        return function cancel(){
+            canceled = true;
+        }
     }
     componentWillUnmount(){
         if (this.cancelGetRootOriginAtChar) {
@@ -1025,7 +1040,7 @@ class ElementOriginPath extends React.Component {
         }
         return null;
     }
-    getOriginPath(characterIndex, callback){
+    getOriginPath(props, characterIndex, callback){
 
         console.info("gettning origin path at char", characterIndex)
 
@@ -1037,7 +1052,7 @@ class ElementOriginPath extends React.Component {
 
         var isCanceled = false
 
-        this.getOriginAndCharacterIndex(characterIndex, function(info){
+        this.getOriginAndCharacterIndex(props, characterIndex, function(info){
             if (isCanceled) {
                 return;
             }
@@ -1052,8 +1067,8 @@ class ElementOriginPath extends React.Component {
             isCanceled = true;
         }
     }
-    getOriginPathKey(characterIndex, callback){
-        this.getOriginAndCharacterIndex(characterIndex, function(info){
+    getOriginPathKey(props, characterIndex, callback){
+        this.getOriginAndCharacterIndex(props, characterIndex, function(info){
             callback(JSON.stringify({
                 originId: info.origin.id,
                 characterIndex: info.characterIndex
@@ -1066,10 +1081,10 @@ class ElementOriginPath extends React.Component {
         }
         return this.state
     }
-    getOriginAndCharacterIndex(characterIndex, callback){
+    getOriginAndCharacterIndex(props, characterIndex, callback){
         characterIndex = parseFloat(characterIndex);
         if (this.originComesFromElement()) {
-            this.cancelGetRootOriginAtChar = currentInspectedPage.getRootOriginAtChar(this.props.el.__fromJSElementId, characterIndex, function(rootOrigin){
+            this.cancelGetRootOriginAtChar = currentInspectedPage.getRootOriginAtChar(props.el.__fromJSElementId, characterIndex, function(rootOrigin){
                 callback(rootOrigin)
             });
         } else {
