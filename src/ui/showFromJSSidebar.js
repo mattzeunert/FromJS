@@ -118,7 +118,7 @@ export default function showFromJSSidebar(){
 
         enableEventListeners();
         $("body").off("click.fromjs")
-        $("*").off("mouseleave.fromjs mouseenter.fromjs")
+        $("*").off("mouseleave.fromjs mouseenter.fromjs keydown.fromjs")
 
         enableTracing();
     })
@@ -189,6 +189,9 @@ export default function showFromJSSidebar(){
     }
 
     if (!isMobile()){
+        $("*").on("keydown.fromjs", function(e){
+            e.preventDefault(); // prevent people typing into input fields etc
+        })
         $("*").on("mouseenter.fromjs", function(e){
             if (!shouldHandle(e)) {return}
             e.stopPropagation()
