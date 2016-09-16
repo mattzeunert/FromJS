@@ -222,7 +222,7 @@ export function showShowFromJSInspectorButton(){
         showFromJSSidebar()
         e.stopPropagation();
     })
-    btn.addClass("fromjs-show-inspector-button")
+    btn.addClass("fromjs-show-inspector-button toggle-inspector-button")
     $("body").append(btn)
 }
 

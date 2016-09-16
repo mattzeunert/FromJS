@@ -29,19 +29,30 @@ button:focus, {
 }
 
 .fromjs-show-inspector-button {
+    z-index: 99999999;
+}
+
+.toggle-inspector-button {
     position: fixed;
     top: 0;
     right: 0;
-    z-index: 99999999;
-    background: #333;
+
     color: white;
+    line-height: 22px;
     padding: 10px;
+    background: #333;
     font-weight: bold;
     cursor: pointer;
     border: none;
 }
-.fromjs-show-inspector-button:hover {
+.toggle-inspector-button:hover {
     background: #1b0d80;
+}
+
+.close-inspector-button {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
 }
 
 #fromjs .fromjs-intro {
