@@ -32,7 +32,16 @@ function loadPage(url){
 
 function openFromJSInspector(){
     element(by.css('.fromjs-show-inspector-button')).click();
-    return waitForEl("#fromjs-sidebar")
+    var promise = waitForEl("#fromjs-sidebar")
+    .then(function(){
+        switchToIframe();
+        return waitForEl("#fromjs")
+        .then(function(){
+            switchToInspectedPage()
+        })
+    })
+
+    return promise;
 }
 
 function switchToIframe(){
