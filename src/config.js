@@ -8,7 +8,8 @@ var defaultConfig = {
     // show value field below code, normally hidden for original page HTML
     alwaysShowValue: false,
     // Catch errors to avoid making app crash completely, but annoying for debugging
-    catchUIErrors: true
+    catchUIErrors: true,
+    logReceivedInspectorMessages: false
 }
 
 var customConfig;
@@ -19,7 +20,8 @@ if (process.env.NODE_ENV === "production") {
         alwaysShowValue: true,
         catchUIErrors: false,
         validateHtmlMapping: false,
-        logTracingSteps: true
+        logTracingSteps: false,
+        logReceivedInspectorMessages: true
     }
 }
 

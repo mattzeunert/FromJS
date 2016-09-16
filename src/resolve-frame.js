@@ -50,10 +50,12 @@ function initGPSIfNecessary(){
     window.gps = gps
 }
 
+var frameStringsCurrentlyBeingResolved = {}
+
 function resolveFrame(frameString, callback){
     // console.time("Resolve Frame " + frameString)
     if (resolvedFrameCache[frameString]){
-        done(null, resolvedFrameCache[frameString])
+        done([null, resolvedFrameCache[frameString]])
         return
     }
 
@@ -68,20 +70,33 @@ function resolveFrame(frameString, callback){
         frameObject.fileName += ".dontprocess"
         resFrame(frameObject, callback)
     } else {
-        gps.pinpoint(frameObject).then(function(newFrame){
-            resFrame(newFrame, function(err, frame){
-                done(err, frame)
+        // Use promises so we can re-use them, so if the same frame is requested again
+        // before the first one succeeded we don't attempt to resolve again
+        if (frameStringsCurrentlyBeingResolved[frameString]) {
+            frameStringsCurrentlyBeingResolved[frameString].then(done)
+        } else {
+            frameStringsCurrentlyBeingResolved[frameString] = new Promise(function(resolve, reject){
+                gps.pinpoint(frameObject).then(function(newFrame){
+                    resFrame(newFrame, function(err, frame){
+                        resolve([err, frame])
+                    })
+                }, function(){
+                    resFrame(frameObject, function(err, frame){
+                        resolve([err, frame])
+                    })
+                    console.log("error", arguments)
+                });
             })
-        }, function(){
-            resFrame(frameObject, function(err, frame){
-                done(err, frame)
-            })
-            console.log("error", arguments)
-        });
+
+            frameStringsCurrentlyBeingResolved[frameString].then(done)
+        }
     }
 
-    function done(err, frame){
+    function done(args){
+        var [err, frame] = args
         // console.timeEnd("Resolve Frame " + frameString)
+        delete frameStringsCurrentlyBeingResolved[frameString]
+
         resolvedFrameCache[frameString] = frame
         if (!isCanceled) {
             callback(err, frame)

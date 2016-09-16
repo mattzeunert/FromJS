@@ -1,9 +1,6 @@
 import React from "react"
 import _ from "underscore"
 import resolveFrame from "../resolve-frame"
-import getRootOriginAtChar from "../getRootOriginAtChar"
-import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
-import getCodeFilePath from "./getCodeFilePath"
 import fileIsDynamicCode from "../fileIsDynamicCode"
 import isMobile from "../isMobile"
 import config from "../config"
@@ -11,9 +8,13 @@ import ReactTooltip from "react-tooltip"
 import "react-fastclick" // import for side effects, no export
 import adjustColumnForEscapeSequences from "../adjustColumnForEscapeSequences"
 import getDefaultInspectedCharacterIndex from "./getDefaultInspectedCharacterIndex"
+import InspectedPage from "./InspectedPage"
 
 import Perf from "react-addons-perf"
 window.Perf = Perf
+
+var currentInspectedPage = new InspectedPage()
+
 
 // ReactTooltip doesn't respond to UI changes automatically
 setInterval(function(){
@@ -46,44 +47,19 @@ function truncate(str, maxLength){
     return str.substr(0, 40) + "..."
 }
 
+
 export class OriginPath extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            showFullPath: false,
-            originPath: null,
-            isGettingOriginPath: false
+            showFullPath: false
         }
-    }
-    componentDidMount(){
-        this.makeSureIsGettingOriginPath()
-    }
-    componentWillUnmount(){
-        if (this.cancelGetOriginPath) {
-            this.cancelGetOriginPath()
-        }
-    }
-    componentDidUpdate(){
-        this.makeSureIsGettingOriginPath()
-    }
-    makeSureIsGettingOriginPath(){
-        if (this.state.isGettingOriginPath) {
-            return;
-        }
-        this.setState({isGettingOriginPath: true})
-        this.cancelGetOriginPath = this.props.getOriginPath((originPath) => {
-            this.setState({
-                originPath,
-                isGettingOriginPath: true
-            })
-        })
     }
     render(){
-        if (!this.state.originPath) {
-            return <div>Getting origin path</div>
+        var originPath = this.props.originPath;
+        if (!originPath) {
+            return <div>no origin path</div>
         }
-
-        var originPath = this.state.originPath;
         originPath = originPath.filter(function(pathItem){
             // This is really an implementation detail and doesn't add any value to the user
             // Ideally I'd clean up the code to not generate that action at all,
@@ -94,6 +70,7 @@ export class OriginPath extends React.Component {
             return true;
         })
         window.originPath = originPath
+
 
         var lastOriginPathStep = _.last(originPath)
         var firstOriginPathStep = _.first(originPath)
@@ -166,10 +143,10 @@ class OriginPathItem extends React.Component {
         if (originObject.isHTMLFileContent) {
             this.selectFrameString(getFrameFromHTMLFileContentOriginPathItem(this.props.originPathItem))
         } else {
-            if (!originObject.getStackFrames) {
+            if (!originObject.stack) {
                 return
             }
-            this.selectFrameString(_.first(originObject.getStackFrames()))
+            this.selectFrameString(_.first(originObject.stack))
         }
         this.makeSureIsResolvingFrame();
     }
@@ -182,10 +159,10 @@ class OriginPathItem extends React.Component {
             if (this.cancelFrameResolution) {
                 this.cancelFrameResolution()
             }
-            this.cancelFrameResolution = resolveFrame(frame, (err, resolvedFrame) => {
+            this.cancelFrameResolution = currentInspectedPage.resolveFrame(frame, (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
 
-                this.cancelGetCodeFilePath = getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
+                this.cancelGetCodeFilePath = currentInspectedPage.getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
                     this.setState({codeFilePath})
                 })
             })
@@ -252,7 +229,7 @@ class OriginPathItem extends React.Component {
         var stackFrameSelector = null;
         if (this.state.showDetailsDropdown){
             stackFrameSelector = <StackFrameSelector
-                stack={originObject.getStackFrames()}
+                stack={originObject.stack}
                 selectedFrameString={this.state.selectedFrameString}
                 onFrameSelected={(frameString) => {
                     this.selectFrameString(frameString)
@@ -292,7 +269,7 @@ class OriginPathItem extends React.Component {
         }
 
         var toggleFrameSelectorButton = null;
-        if (originObject.getStackFrames && originObject.getStackFrames().length > 1) {
+        if (originObject.stack && originObject.stack.length > 1) {
             toggleFrameSelectorButton = <button
                 className="fromjs-origin-path-step__stack-frame-selector-toggle"
                 onClick={() => this.setState({showDetailsDropdown: !this.state.showDetailsDropdown})}>
@@ -379,7 +356,7 @@ class StackFrameSelectorItem extends React.Component {
         }
     }
     componentDidMount(){
-        this.cancelFrameResolution = resolveFrame(this.props.frameString, (err, resolvedFrame) => {
+        this.cancelFrameResolution = currentInspectedPage.resolveFrame(this.props.frameString, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
@@ -685,7 +662,7 @@ class StackFrame extends React.Component{
         }
     }
     componentDidMount(){
-        this.cancelFrameResolution = resolveFrame(this.props.frame, (err, resolvedFrame) => {
+        this.cancelFrameResolution = currentInspectedPage.resolveFrame(this.props.frame, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
@@ -875,24 +852,122 @@ class HorizontalScrollContainer extends React.Component {
     }
 }
 
-class ElementOriginPathContent extends React.Component {
+class ElementOriginPath extends React.Component {
+    constructor(props){
+        super(props)
+
+        this.state = {
+            characterIndex: getDefaultInspectedCharacterIndex(props.el.outerHTML),
+            previewCharacterIndex: null,
+            rootOrigin: null,
+            originPathKey: null,
+            previewOriginPathKey: null,
+            originPath: null,
+            previewOriginPath: null
+        }
+
+        this.componentWillUpdate(props, this.state, true);
+    }
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.el.__fromJSElementId !== this.props.el.__fromJSElementId){
+            console.log("resetting root origin", nextProps.el.outerHTML.substring(0, 100))
+            this.setState({
+                rootOrigin: null,
+                characterIndex: getDefaultInspectedCharacterIndex(nextProps.el.outerHTML),
+            })
+        }
+    }
+    componentWillUpdate(nextProps, nextState, forceUpdate) {
+        if (nextState.previewCharacterIndex === this.state.previewCharacterIndex &&
+            nextState.characterIndex === this.state.characterIndex &&
+            nextState.rootOrigin === this.state.rootOrigin &&
+            nextProps.el.__fromJSElementId === this.props.el.__fromJSElementId &&
+            forceUpdate !== true) {
+                console.log("not bothering with update")
+            return
+        }
+
+        if (this.cancelSelectionGetOriginKeyAndPath) {
+            this.cancelSelectionGetOriginKeyAndPath();
+        }
+        if (this.cancelPreviewGetOriginKeyAndPath) {
+            this.cancelPreviewGetOriginKeyAndPath();
+        }
+
+        if (nextState.previewCharacterIndex !== null) {
+            // We don't reset the state because we want to keep the current UI visible until the new data comes in
+
+            this.cancelPreviewGetOriginKeyAndPath = this.getOriginKeyAndPath(nextProps, nextState, nextState.previewCharacterIndex, (key, originPath) => {
+                var setState = () => this.setState({
+                    previewOriginPath: originPath,
+                    previewOriginPathKey: key
+                })
+                if (originPath) {
+                    var lastStep = _.last(originPath)
+                    var originObject = lastStep.originObject
+                    // resolve frame so it's cached when we display it, so you don't get the "loading..." message
+                    var frameString;
+                    if (originObject.isHTMLFileContent) {
+                        frameString = getFrameFromHTMLFileContentOriginPathItem(lastStep)
+                    } else {
+                        frameString = _.first(originObject.stack)
+                    }
+                    currentInspectedPage.resolveFrame(frameString, setState)
+                } else {
+                    setState()
+                }
+            })
+        } else {
+            // Don't reset yet so it doesn't flash the previous value, instead we want to continue showing the
+            // preview value
+            this.cancelSelectionGetOriginKeyAndPath = this.getOriginKeyAndPath(nextProps, nextState, nextState.characterIndex, (key, originPath) => this.setState({
+                originPathKey: key,
+                originPath: originPath,
+                previewOriginPathKey: null,
+                previewOriginPath: null
+            }))
+        }
+    }
+    getOriginKeyAndPath(props, state, characterIndex, callback){
+        var canceled = false;
+        this.getOriginPathKey(props, state, characterIndex, key => {
+            this.getOriginPath(props, state, characterIndex, originPath => {
+                if (canceled) {return}
+                callback(key, originPath)
+            })
+        })
+        return function cancel(){
+            canceled = true;
+        }
+    }
+    componentWillUnmount(){
+        if (this.cancelGetRootOriginAtChar) {
+            this.cancelGetRootOriginAtChar();
+        }
+    }
     render(){
-        var showPreview = new Boolean(this.props.previewGetOriginPath).valueOf();
+        var showPreview = this.state.previewOriginPath;
         var originPath = <div style={{display: showPreview ? "none" : "block"}}>
             <OriginPath
-                getOriginPath={this.props.getOriginPath}
-                key={this.props.originPathKey}
-                handleValueSpanClick={(origin, characterIndex) => this.props.inspectValue(origin, characterIndex)}
+                originPath={this.state.originPath}
+                key={this.state.originPathKey}
+                handleValueSpanClick={(origin, characterIndex) => {
+                    this.props.onNonElementOriginSelected()
+                    currentInspectedPage.trigger("UISelectNonElementOrigin")
+                    this.setState({
+                        rootOrigin: origin,
+                        characterIndex
+                    })
+                }}
             />
         </div>
+
         var previewOriginPath = null;
         if (showPreview) {
-            previewOriginPath = <div>
-                <OriginPath
-                    getOriginPath={this.props.previewGetOriginPath}
-                    key={this.props.previewOriginPathKey}
-                />
-            </div>
+            previewOriginPath = <OriginPath
+                originPath={this.state.previewOriginPath}
+                key={this.state.previewOriginPathKey}
+            />
         }
 
         var showUpButton = typeof this.props.goUpInDOM === "function"
@@ -919,10 +994,18 @@ class ElementOriginPathContent extends React.Component {
                         width: showUpButton ? "calc(100% - 30px)" : "100%"}}
                         data-test-marker-inspected-value>
                         <TextEl
-                            text={this.props.inspectedValue}
-                            highlightedCharacterIndex={this.props.inspectedValueCharacterIndex}
-                            onCharacterClick={this.props.onInspectedValueCharacterClick}
-                            onCharacterHover={this.props.onInspectedValueCharacterHover}
+                            text={this.getInspectedValue()}
+                            highlightedCharacterIndex={this.state.characterIndex}
+                            onCharacterClick={(characterIndex) => this.setState({
+                                characterIndex,
+                                previewCharacterIndex: null,
+                                originPathKey: null,
+                                originPath: null
+                            })}
+                            onCharacterHover={(characterIndex) => {
+                                if (isMobile()) { return }
+                                this.setState({previewCharacterIndex: characterIndex})
+                            }}
                         />
                     </div>
                     {upButton}
@@ -934,78 +1017,10 @@ class ElementOriginPathContent extends React.Component {
                 {previewOriginPath}
             </div>
         </div>
+
     }
-}
-
-class ElementOriginPath extends React.Component {
-    constructor(props){
-        super(props)
-        this.state = {
-            characterIndex: getDefaultInspectedCharacterIndex(props.el.outerHTML),
-            previewCharacterIndex: null,
-            rootOrigin: null
-        }
-    }
-    render(){
-        var sharedProps = {
-            inspectedValue: this.getInspectedValue(),
-            inspectedValueCharacterIndex: this.state.characterIndex,
-            onInspectedValueCharacterClick: (characterIndex) => this.setState({
-                characterIndex,
-                previewCharacterIndex: null
-            }),
-            onInspectedValueCharacterHover: (characterIndex) => {
-                if (isMobile()) { return }
-                this.setState({previewCharacterIndex: characterIndex})
-            },
-            inspectValue:  (origin, characterIndex) => {
-                this.props.onNonElementOriginSelected()
-                this.setState({
-                    rootOrigin: origin,
-                    characterIndex
-                })
-            }
-        }
-
-        var error = null;
-
-        var previewGetOriginPath = null;
-        var previewOriginPathKey = null;
-        if (this.state.previewCharacterIndex !== null) {
-            catchExceptions(() => {
-                previewOriginPathKey = this.getOriginPathKey(this.state.previewCharacterIndex)
-                previewGetOriginPath = (callback) => this.getOriginPath(this.state.previewCharacterIndex, callback)
-            }, err => error = err)
-        }
-
-        var getOriginPath = null;
-        var originPathKey = null;
-
-        var selectionComponent = null;
-        if (this.state.characterIndex !== null) {
-            catchExceptions(() => {
-                getOriginPath = (callback) => this.getOriginPath(this.state.characterIndex, callback)
-                originPathKey = this.getOriginPathKey(this.state.characterIndex)
-            }, err => error = err)
-        }
-
-        if (error !== null){
-            return <div style={{padding: 10}}>{error.toString()}</div>
-        }
-
-        return <div>
-            <ElementOriginPathContent
-                {...sharedProps}
-                getOriginPath={getOriginPath}
-                originPathKey={originPathKey}
-                goUpInDOM={this.props.goUpInDOM}
-                previewGetOriginPath={previewGetOriginPath}
-                previewOriginPathKey={previewOriginPathKey}
-            />
-        </div>
-    }
-    originComesFromElement(){
-        return this.state.rootOrigin === null
+    originComesFromElement(props, state){
+        return state.rootOrigin === null
     }
     getInspectedValue(){
         if (this.state.rootOrigin){
@@ -1023,37 +1038,52 @@ class ElementOriginPath extends React.Component {
         }
         return null;
     }
-    getOriginPath(characterIndex, callback){
+    getOriginPath(props, state, characterIndex, callback){
+
+        console.info("gettning origin path at char", characterIndex)
+
+        if (characterIndex === null){
+            // characterIndex should never be null, but right now it is sometimes
+            callback(null)
+            return;
+        }
+
         var isCanceled = false
 
-        var info = this.getOriginAndCharacterIndex(characterIndex)
-        whereDoesCharComeFrom(info.origin, info.characterIndex, function(){
-            if (!isCanceled) {
-                callback.apply(this, arguments)
+        this.getOriginAndCharacterIndex(props, state, characterIndex, function(info){
+            if (isCanceled) {
+                return;
             }
+            currentInspectedPage.whereDoesCharComeFrom(info.origin.id, info.characterIndex, function(){
+                if (!isCanceled) {
+                    callback.apply(this, arguments)
+                }
+            })
         })
 
         return function cancel(){
             isCanceled = true;
         }
     }
-    getOriginPathKey(characterIndex){
-        var info = this.getOriginAndCharacterIndex(characterIndex)
-        return JSON.stringify({
-            originId: info.origin.id,
-            characterIndex: info.characterIndex
+    getOriginPathKey(props, state, characterIndex, callback){
+        this.getOriginAndCharacterIndex(props, state, characterIndex, function(info){
+            callback(JSON.stringify({
+                originId: info.origin.id,
+                characterIndex: info.characterIndex
+            }))
         })
     }
-    getOriginAndCharacterIndex(characterIndex){
+    getOriginAndCharacterIndex(props, state, characterIndex, callback){
         characterIndex = parseFloat(characterIndex);
-        if (this.originComesFromElement()) {
-            var useful = getRootOriginAtChar(this.props.el, characterIndex);
-            return useful
+        if (this.originComesFromElement(props, state)) {
+            this.cancelGetRootOriginAtChar = currentInspectedPage.getRootOriginAtChar(props.el.__fromJSElementId, characterIndex, function(rootOrigin){
+                callback(rootOrigin)
+            });
         } else {
-            return {
+            callback({
                 characterIndex: characterIndex,
-                origin: this.state.rootOrigin
-            }
+                origin: state.rootOrigin
+            })
         }
     }
 }
@@ -1063,6 +1093,9 @@ class ElementMarker extends React.Component {
         return this.props.el !== newProps.el;
     }
     render(){
+        if (this.props.el === null) {
+            return null;
+        }
         var rect = this.props.el.getBoundingClientRect()
         var style = {
             ...this.props.style,
@@ -1075,13 +1108,13 @@ class ElementMarker extends React.Component {
     }
 }
 
-class SelectedElementMarker extends React.Component {
+export class SelectedElementMarker extends React.Component {
     render(){
         return <ElementMarker el={this.props.el} style={{outline: "2px solid #0088ff"}} />
     }
 }
 
-class PreviewElementMarker extends React.Component {
+export class PreviewElementMarker extends React.Component {
     render(){
         return <ElementMarker el={this.props.el} style={{outline: "2px solid green"}} />
     }
@@ -1113,7 +1146,7 @@ class Intro extends React.Component {
                 Does this work for all apps?
             </h2>
             <p>
-                Sometimes it works, but most of the time it doesn{"'"}t. I slowly trying to support more
+                Sometimes it works, but most of the time it doesn{"'"}t. I{"'"}m slowly trying to support more
                 JS functionality. I{"'"}m also working on a
                 Chrome extension to make it easier to run FromJS on any page.
             </p>
@@ -1140,9 +1173,23 @@ export class FromJSView extends React.Component {
             el: null,
             previewEl: null,
             // this shoudldn't be needed, should just reset state.el, but right now that wouldn't work
-            nonElementOriginSelected: null,
-            elId: null
+            nonElementOriginSelected: null
         }
+
+        currentInspectedPage.on("selectElement", (el) => {
+            this.setState({
+                el: el,
+                nonElementOriginSelected: false
+            })
+        })
+
+        var onPreviewElement = (el) => {
+            // Delay to prevent setting null inbetween when exiting one element and then entering another
+            this.setState({previewEl: el})
+        }
+        onPreviewElement = _.debounce(onPreviewElement, 10)
+
+        currentInspectedPage.on("previewElement", onPreviewElement, 10)
     }
     render(){
         var preview = null;
@@ -1151,11 +1198,10 @@ export class FromJSView extends React.Component {
         var previewMarker = null;
         var intro = null;
 
-        var showPreview = this.state.previewEl !== null && this.state.previewEl !== this.state.el
+        var showPreview = this.state.previewEl !== null && (!this.state.el || this.state.previewEl.__fromJSElementId !== this.state.el.__fromJSElementId)
+        console.warn(this.state.previewEl)
         if (showPreview){
-            previewMarker = <PreviewElementMarker el={this.state.previewEl}/>
             preview = <ElementOriginPath
-                key={this.state.previewEl}
                 el={this.state.previewEl}
                 goUpInDOM={() => "can't call this function, but needs to be there so button is shown"}
                 />
@@ -1163,11 +1209,10 @@ export class FromJSView extends React.Component {
         if (this.state.el) {
             var goUpInDOM = null
             if (!this.state.nonElementOriginSelected && this.state.el.tagName !== "BODY") {
-                goUpInDOM = () => this.display(this.state.el.parentNode)
+                goUpInDOM = () => currentInspectedPage.trigger("UISelectParentElement")
             }
             info = <div style={{display: showPreview ? "none" : "block"}}>
                 <ElementOriginPath
-                    key={this.state.el + this.state.elId}
                     el={this.state.el}
                     onNonElementOriginSelected={() => this.setState({nonElementOriginSelected: true})}
                     goUpInDOM={goUpInDOM} />
@@ -1175,7 +1220,7 @@ export class FromJSView extends React.Component {
         }
 
         if (this.state.el && !this.state.nonElementOriginSelected) {
-            selectionMarker = <SelectedElementMarker el={this.state.el} />
+            // selectionMarker = <SelectedElementMarker el={this.state.el} />
         }
 
         if (!this.state.previewEl && !this.state.el){
@@ -1185,6 +1230,11 @@ export class FromJSView extends React.Component {
 
         return <div>
             <div id="fromjs" className="fromjs">
+                <button
+                    onClick={() => currentInspectedPage.trigger("UICloseInspector")}
+                    className="toggle-inspector-button close-inspector-button">
+
+                </button>
                 {intro}
                 {preview}
 
@@ -1197,15 +1247,5 @@ export class FromJSView extends React.Component {
             {previewMarker}
             {selectionMarker}
         </div>
-    }
-    display(el){
-        this.setState({
-            el: el,
-            nonElementOriginSelected: false,
-            elId: Math.random() // we need to force an update... this is one way to do it.
-        })
-    }
-    setPreviewEl(el){
-        this.setState({previewEl: el})
     }
 }

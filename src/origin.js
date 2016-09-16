@@ -6,6 +6,12 @@ import _ from "underscore"
 var emptyInputValuesArray = []
 Object.freeze(emptyInputValuesArray)
 
+var originsById = {}
+
+export function getOriginById(originId) {
+    return originsById[originId]
+}
+
 export default function Origin(opts){
     var inputValues = opts.inputValues.map(function(inputValue){
         if (inputValue.isFromJSOriginObject){
@@ -37,6 +43,7 @@ export default function Origin(opts){
     })
 
     this.id = _.uniqueId();
+    originsById[this.id] = this
 
     this.action = opts.action;
     if (inputValues.length === 0) {
@@ -117,6 +124,20 @@ Origin.prototype.getStackFrames = function(){
         }
         return true
     });
+}
+
+Origin.prototype.serialize = function(){
+    var serialized = {...this}
+
+    serialized.inputValues =  serialized.inputValues.map(function(inputValue){
+        inputValue = {...inputValue}
+        // prevent tree from sprawling arbitrarily deep
+        inputValue.inputValues = [];
+        return inputValue
+    })
+
+    serialized.stack = this.getStackFrames();
+    return serialized;
 }
 
 window.Origin = Origin

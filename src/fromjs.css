@@ -1,22 +1,17 @@
-/* Overwrite on-page css... ideally the UI would be somewhere that's isolated from page css */
-.fromjs-outer-container,
-.fromjs-outer-container div {
-    padding: 0;
+body {
     margin: 0;
-    border-radius: 0;
-    width: auto;
+    background: white;
     color: #444;
-    background: transparent;
-    -webkit-font-smoothing: antialiased;
 }
-.fromjs-outer-container code{
+
+code{
     font-size: 14px;
     padding: 0;
     margin: 0;
     border-radius: 0;
     background: transparent;
 }
-.fromjs-outer-container button {
+button {
     border: none;
     background: transparent;
     box-shadow: none;
@@ -26,27 +21,59 @@
     min-height: 0px;
     min-width: 0px;
 }
-.fromjs-outer-container button:hover,
-.fromjs-outer-container button:focus, {
+button:hover,
+button:focus, {
     background: inherit;
     border: none;
     box-shadow: none;
 }
 
 .fromjs-show-inspector-button {
-    position: fixed;
-    top: 0;
-    right: 0;
     z-index: 99999999;
-    background: #333;
-    color: white;
     padding: 10px;
-    font-weight: bold;
-    cursor: pointer;
     border: none;
 }
 .fromjs-show-inspector-button:hover {
     background: #1b0d80;
+}
+
+
+.toggle-inspector-button {
+    position: fixed;
+    top: 0;
+    right: 0;
+
+    color: white;
+    line-height: 22px;
+    background: #333;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-inspector-button {
+    font-size: 16px;
+
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+    display: inline-block;
+    padding: 0;
+    border-top: 20px solid #333;
+    border-right: 20px solid #333;
+    background: transparent;
+}
+.close-inspector-button:after {
+    content: "\00d7";
+    display: block;
+    margin-top: -20px;
+    font-size: 16px;
+    padding-left: 6px;
+}
+
+.close-inspector-button:hover {
+    border-top-color: #1b0d80;
+    border-right-color: #1b0d80;
 }
 
 #fromjs .fromjs-intro {
@@ -177,18 +204,23 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     color: red !important;
 }
 
-#fromjs {
+#fromjs-sidebar {
     position: fixed;
-    font-family: "Arial";
-    font-size: 14px;
+    z-index: 1000000;
     right: 0;
     top: 0;
     bottom: 0;
     height: 100vh;
     width: 40vw;
+}
+
+#fromjs {
+
+    font-family: "Arial";
+    font-size: 14px;
+
     background: white;
     overflow: auto;
-    z-index: 1000000;
     /* without this scrolling the sidebar doesn't work on iOS
     if the page content is also scrollable */
     -webkit-overflow-scrolling: touch;
@@ -253,7 +285,8 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     color: red;
 }
 
-#fromjs .fromjs-info-icon {
+
+.fromjs-info-icon {
     background: black;
     color: white;
     font-weight: bold;

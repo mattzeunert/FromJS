@@ -1,7 +1,7 @@
-node dist/server.js &
+node dist/server.js 9999 &
 fromJSServerProcessId=$!
 
-npm run protractor
+protractor src/e2e/conf.js
 e2eTestExitCode=$?
 
 kill $fromJSServerProcessId

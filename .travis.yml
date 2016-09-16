@@ -10,4 +10,4 @@ script:
   - npm run webdriver-manager-update
   - npm run build
   - npm run ci-test
-  - npm run ci-e2e-test
+  - npm run e2e-test

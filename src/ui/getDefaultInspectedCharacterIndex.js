@@ -10,5 +10,6 @@ export default function getDefaultInspectedCharacterIndex(outerHtml){
     if (defaultCharacterIndex >= outerHtml.length) {
         defaultCharacterIndex = 1;
     }
+
     return defaultCharacterIndex
 }

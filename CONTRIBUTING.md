@@ -16,8 +16,6 @@ Then, in two separate terminal windows, run `npm run webpack` and `npm run serve
 
 ### E2E Tests
 
-Make sure to run `npm run server` if the server is not already running.
-
 ```
-npm run protractor
+npm run e2e-test
 ```

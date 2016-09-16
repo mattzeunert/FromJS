@@ -138,8 +138,16 @@ function makeTabListener(){
             return
         }
 
-        if (info.url.slice(0, "chrome-extension://".length ) === "chrome-extension://") {
+        if (info.url.slice(0, "chrome-extension://".length) === "chrome-extension://") {
             return
+        }
+
+        if (info.url.indexOf("/fromjs-internals/") !== -1) {
+            var parts = info.url.split("/fromjs-internals/")
+            var fileName = parts[1]
+            return {
+                redirectUrl: chrome.extension.getURL(fileName)
+            }
         }
 
         if (info.type === "main_frame") {

@@ -13,7 +13,7 @@ import {enableTracing, disableTracing} from "./tracing/tracing"
 import {addBabelFunctionsToGlobalObject} from "./tracing/babelFunctions"
 import saveAndSerializeDOMState from "./ui/saveAndSerializeDOMState"
 import initSerializedDataPage from "./ui/initSerializedDataPage"
-import showFromJSSidebar from "./ui/showFromJSSidebar"
+import {initializeSidebarContent, showShowFromJSInspectorButton} from "./ui/showFromJSSidebar"
 import $ from "jquery"
 import isMobile from "./isMobile"
 
@@ -56,41 +56,37 @@ import isMobile from "./isMobile"
 // }
 
 
+if (window.isFromJSSidebar) {
+    initializeSidebarContent();
+} else {
+    setTimeout(function(){
+        // hook for Chrome Extension to proceed when FromJS has been set up
+        window.fromJSIsReady = true;
+        if (window.onFromJSReady) {
+            window.onFromJSReady();
+        }
+    },0)
 
-setTimeout(function(){
-    // hook for Chrome Extension to proceed when FromJS has been set up
-    window.fromJSIsReady = true;
-    if (window.onFromJSReady) {
-        window.onFromJSReady();
+    window.saveAndSerializeDOMState = saveAndSerializeDOMState
+
+    addBabelFunctionsToGlobalObject();
+
+    if (!window.isSerializedDomPage){
+        enableTracing()
     }
-},0)
 
-window.saveAndSerializeDOMState = saveAndSerializeDOMState
+    $(document).ready(function(){
+        if (window.isSerializedDomPage){
+            initSerializedDataPage(showFromJSSidebar);
+        } else {
+            setTimeout(function(){
+                if (window.isVis) {
+                    return;
+                }
 
-addBabelFunctionsToGlobalObject();
+                showShowFromJSInspectorButton()
+            }, 0)
+        }
+    })
 
-if (!window.isSerializedDomPage){
-    enableTracing()
 }
-
-$(document).ready(function(){
-    if (window.isSerializedDomPage){
-        initSerializedDataPage(showFromJSSidebar);
-    } else {
-        setTimeout(function(){
-            if (window.isVis) {
-                return;
-            }
-
-            var btn = $("<button>")
-            btn.text("Show FromJS Inspector")
-            btn.click(function(e){
-                btn.remove()
-                showFromJSSidebar()
-                e.stopPropagation();
-            })
-            btn.addClass("fromjs-show-inspector-button")
-            $("body").append(btn)
-        }, 0)
-    }
-})
