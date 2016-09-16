@@ -33,6 +33,8 @@ if (!window.isSerializedDomPage){
     enableTracing()
 }
 
+var resolveFrameWorker = new Worker("/fromjs-internals/resolveFrameWorker.js")
+
 $(document).ready(function(){
     if (window.isSerializedDomPage){
         initSerializedDataPage(showFromJSSidebar);

@@ -8,7 +8,8 @@ webConfig.entry = {
     contentScript: ['./chrome-extension/contentScript.js'],
     from: ['./src/from.js'],
     inspector: ['./src/inspector.js'],
-    injected: ["./chrome-extension/injected.js"]
+    injected: ["./chrome-extension/injected.js"],
+    resolveFrameWorker: ["./src/resolveFrameWorker.js"]
 };
 webConfig.output = {
     path: "./",
@@ -22,6 +23,8 @@ webConfig.plugins.push(new WebpackShellPlugin({
         "cp chrome-extension/dist/from.js.map dist/from.js.map",
         "cp chrome-extension/dist/inspector.js dist/inspector.js",
         "cp chrome-extension/dist/inspector.js.map dist/inspector.js.map",
+        "cp chrome-extension/dist/resolveFrameWorker.js dist/resolveFrameWorker.js",
+        "cp chrome-extension/dist/resolveFrameWorker.js.map dist/resolveFrameWorker.js.map",
         "cp chrome-extension/icon.png chrome-extension/dist/icon.png",
         "cp chrome-extension/manifest.json chrome-extension/dist/manifest.json"
     ]
