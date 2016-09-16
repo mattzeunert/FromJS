@@ -12,6 +12,8 @@ import resolveFrame from "../resolve-frame"
 import getCodeFilePath from "./getCodeFilePath"
 import { getOriginById } from "../origin"
 
+var elementsByElementId = {}
+
 export default function showFromJSSidebar(){
     disableTracing()
 
@@ -72,7 +74,7 @@ export default function showFromJSSidebar(){
     // We already disable event listeners created with addEventListener
     // but not e.g. onclick attributes, or prevent checkboxes
     // from being toggled and links from being clicked (preventDefault)
-    $("body").click(function(e){
+    $("body").on("click.fromjs", function(e){
         if (!shouldHandle(e)) {return}
 
         e.stopPropagation();
@@ -104,6 +106,21 @@ export default function showFromJSSidebar(){
     inspectedPage.on("UISelectNonElementOrigin", function(){
         nonElementOriginSelected = true;
         updateSelectionMarker();
+    })
+
+    inspectedPage.on("UICloseInspector", function(){
+        sidebarIframe.remove();
+        container.remove();
+        showShowFromJSInspectorButton();
+        inspectedPage.close()
+
+        $("body").css("padding-right", "0")
+
+        enableEventListeners();
+        $("body").off("click.fromjs")
+        $("*").off("mouseleave.fromjs mouseenter.fromjs")
+
+        enableTracing();
     })
 
     inspectedPage.onResolveFrameRequest(function(frameString, callback){
@@ -145,7 +162,6 @@ export default function showFromJSSidebar(){
         getCodeFilePath(fileName, callback)
     })
 
-    var elementsByElementId = {}
     function getElementFromElementId(elementId){
         return elementsByElementId[elementId]
     }
@@ -173,12 +189,12 @@ export default function showFromJSSidebar(){
     }
 
     if (!isMobile()){
-        $("*").mouseenter(function(e){
+        $("*").on("mouseenter.fromjs", function(e){
             if (!shouldHandle(e)) {return}
             e.stopPropagation()
             setCurrentPreviewedElement(e.target)
         })
-        $("*").mouseleave(function(e){
+        $("*").on("mouseleave.fromjs", function(e){
             if (!shouldHandle(e)) {return}
             setCurrentPreviewedElement(null)
         })
@@ -193,6 +209,18 @@ export default function showFromJSSidebar(){
         $("body").css("padding-right", "40vw")
     }
 
+}
+
+export function showShowFromJSInspectorButton(){
+    var btn = $("<button>")
+    btn.text("Show FromJS Inspector")
+    btn.click(function(e){
+        btn.remove()
+        showFromJSSidebar()
+        e.stopPropagation();
+    })
+    btn.addClass("fromjs-show-inspector-button")
+    $("body").append(btn)
 }
 
 export function initializeSidebarContent(){

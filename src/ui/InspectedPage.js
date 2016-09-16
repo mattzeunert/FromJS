@@ -18,7 +18,7 @@ export default function InspectedPage(iframe){
         var eventData = data.eventData
         var eventType = data.eventType
         if (config.logReceivedInspectorMessages) {
-            console.log("Received", eventType,"took", timeTaken, "ms")
+            console.log("Received", eventType,"took", timeTaken, "ms", eventData)
         }
 
         var handlers = this._handlers[eventType];
@@ -48,6 +48,8 @@ InspectedPage.prototype.on = function(event, handler){
     this._handlers[event].push(handler)
 }
 InspectedPage.prototype.trigger = function(event){
+    if (this._closed) {return}
+
     var target = window.parent
     if (this._iframe) {
         target = this._iframe.contentWindow;
@@ -65,7 +67,8 @@ InspectedPage.prototype.trigger = function(event){
     }, location.href)
 }
 InspectedPage.prototype.close = function(event){
-    window.removeListener("message", this.onMessage)
+    this._closed = true;
+    window.removeEventListener("message", this.onMessage)
 }
 
 function addCancelableCallbackRequest(makeRequestName, onRequestName, cacheResponses) {

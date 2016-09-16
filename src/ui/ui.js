@@ -1230,6 +1230,11 @@ export class FromJSView extends React.Component {
 
         return <div>
             <div id="fromjs" className="fromjs">
+                <button
+                    onClick={() => currentInspectedPage.trigger("UICloseInspector")}
+                    style={{fontSize: 20, color: "white", background: "#333"}}>
+                    x
+                </button>
                 {intro}
                 {preview}
 

@@ -13,7 +13,7 @@ import {enableTracing, disableTracing} from "./tracing/tracing"
 import {addBabelFunctionsToGlobalObject} from "./tracing/babelFunctions"
 import saveAndSerializeDOMState from "./ui/saveAndSerializeDOMState"
 import initSerializedDataPage from "./ui/initSerializedDataPage"
-import showFromJSSidebar, {initializeSidebarContent} from "./ui/showFromJSSidebar"
+import {initializeSidebarContent, showShowFromJSInspectorButton} from "./ui/showFromJSSidebar"
 import $ from "jquery"
 import isMobile from "./isMobile"
 
@@ -84,15 +84,7 @@ if (window.isFromJSSidebar) {
                     return;
                 }
 
-                var btn = $("<button>")
-                btn.text("Show FromJS Inspector")
-                btn.click(function(e){
-                    btn.remove()
-                    showFromJSSidebar()
-                    e.stopPropagation();
-                })
-                btn.addClass("fromjs-show-inspector-button")
-                $("body").append(btn)
+                showShowFromJSInspectorButton()
             }, 0)
         }
     })
