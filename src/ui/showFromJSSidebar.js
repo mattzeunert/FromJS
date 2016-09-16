@@ -5,7 +5,7 @@ import isMobile from "../isMobile"
 import _ from "underscore"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getRootOriginAtChar from "../getRootOriginAtChar"
-import { OriginPath, FromJSView, PreviewElementMarker, SelectedElementMarker } from "../ui/ui"
+import { OriginPath, PreviewElementMarker, SelectedElementMarker } from "../ui/ui"
 import {disableTracing, enableTracing, disableEventListeners, enableEventListeners} from "../tracing/tracing"
 import InspectedPage from "./InspectedPage"
 import resolveFrame from "../resolve-frame"
@@ -36,9 +36,8 @@ export default function showFromJSSidebar(){
             <head></head>
             <body>
                 <div id='content'>Loading Inspector UI...</div>
-                <script>window.isFromJSSidebar = true</script>
                 <link rel="stylesheet" href="/fromjs-internals/fromjs.css">
-                <script src="/fromjs-internals/from.js" charset="utf-8"></script>
+                <script src="/fromjs-internals/inspector.js" charset="utf-8"></script>
             </body>
         </html>
     `)
@@ -224,8 +223,4 @@ export function showShowFromJSInspectorButton(){
     })
     btn.addClass("fromjs-show-inspector-button toggle-inspector-button")
     $("body").append(btn)
-}
-
-export function initializeSidebarContent(){
-    ReactDOM.render(<FromJSView />, document.querySelector("#content"))
 }

@@ -25,8 +25,6 @@ function handleRequest(request, response){
         }
 
         path = path.replace("/fromjs-internals/", __dirname + "/../" + "dist/")
-
-
     } else {
         path = "." + path
     }

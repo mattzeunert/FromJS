@@ -17,76 +17,32 @@ import {initializeSidebarContent, showShowFromJSInspectorButton} from "./ui/show
 import $ from "jquery"
 import isMobile from "./isMobile"
 
-// console.log("in from.js")
-// console.profile()
-// console.time("Page Load")
-
-// onDoneProcessing(function(){
-//     console.timeEnd("Page Load")
-//     console.profileEnd()
-// })
-//
-// function onDoneProcessing(doneProcessing){
-//     var lastTimes = [];
-//
-//     function measure(done){
-//         var lastDate = new Date();
-//         setTimeout(function(){
-//             var now = new Date();
-//             lastTimes.push(now.valueOf() - lastDate.valueOf());
-//             if (lastTimes.length > 10){
-//                 lastTimes.shift();
-//             }
-//             done()
-//         }, 10)
-//     }
-//
-//     measure(doneMeasuring)
-//     function doneMeasuring(){
-//         console.log(lastTimes)
-//         var hasValuesOver15ms = lastTimes.filter((n) => n > 15).length > 0
-//         if (lastTimes.length < 5 || hasValuesOver15ms) {
-//             measure(doneMeasuring)
-//         }
-//         else {
-//             doneProcessing()
-//         }
-//
-//     }
-// }
-
-
-if (window.isFromJSSidebar) {
-    initializeSidebarContent();
-} else {
-    setTimeout(function(){
-        // hook for Chrome Extension to proceed when FromJS has been set up
-        window.fromJSIsReady = true;
-        if (window.onFromJSReady) {
-            window.onFromJSReady();
-        }
-    },0)
-
-    window.saveAndSerializeDOMState = saveAndSerializeDOMState
-
-    addBabelFunctionsToGlobalObject();
-
-    if (!window.isSerializedDomPage){
-        enableTracing()
+setTimeout(function(){
+    // hook for Chrome Extension to proceed when FromJS has been set up
+    window.fromJSIsReady = true;
+    if (window.onFromJSReady) {
+        window.onFromJSReady();
     }
+},0)
 
-    $(document).ready(function(){
-        if (window.isSerializedDomPage){
-            initSerializedDataPage(showFromJSSidebar);
-        } else {
-            setTimeout(function(){
-                if (window.isVis) {
-                    return;
-                }
+window.saveAndSerializeDOMState = saveAndSerializeDOMState
 
-                showShowFromJSInspectorButton()
-            }, 0)
-        }
-    })
+addBabelFunctionsToGlobalObject();
 
+if (!window.isSerializedDomPage){
+    enableTracing()
 }
+
+$(document).ready(function(){
+    if (window.isSerializedDomPage){
+        initSerializedDataPage(showFromJSSidebar);
+    } else {
+        setTimeout(function(){
+            if (window.isVis) {
+                return;
+            }
+
+            showShowFromJSInspectorButton()
+        }, 0)
+    }
+})
