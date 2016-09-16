@@ -953,6 +953,7 @@ class ElementOriginPath extends React.Component {
                 key={this.state.originPathKey}
                 handleValueSpanClick={(origin, characterIndex) => {
                     this.props.onNonElementOriginSelected()
+                    currentInspectedPage.trigger("UISelectNonElementOrigin")
                     this.setState({
                         rootOrigin: origin,
                         characterIndex

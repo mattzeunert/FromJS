@@ -61,6 +61,7 @@ export default function showFromJSSidebar(){
 
     var currentSelectedElement = null;
     var currentPreviewedElement = null;
+    var nonElementOriginSelected = false;
     // We already disable event listeners created with addEventListener
     // but not e.g. onclick attributes, or prevent checkboxes
     // from being toggled and links from being clicked (preventDefault)
@@ -74,14 +75,28 @@ export default function showFromJSSidebar(){
 
     function setCurrentSelectedElement(el){
         currentSelectedElement = el
+        nonElementOriginSelected = false;
         inspectedPage.trigger("selectElement", serializeElement(el))
-        ReactDOM.render(<SelectedElementMarker el={currentSelectedElement}/>, selectedElementMarkerContainer)
-
+        updateSelectionMarker();
     }
+
+    function updateSelectionMarker(){
+        if (!nonElementOriginSelected) {
+            ReactDOM.render(<SelectedElementMarker el={currentSelectedElement}/>, selectedElementMarkerContainer)
+        } else {
+            selectedElementMarkerContainer.innerHTML = "";
+        }
+    }
+
 
     inspectedPage.on("UISelectParentElement", function(){
         var newSelectedEl = currentSelectedElement.parentNode;
         setCurrentSelectedElement(newSelectedEl)
+    })
+
+    inspectedPage.on("UISelectNonElementOrigin", function(){
+        nonElementOriginSelected = true;
+        updateSelectionMarker();
     })
 
     inspectedPage.onResolveFrameRequest(function(frameString, callback){
