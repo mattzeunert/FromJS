@@ -72,17 +72,7 @@ export default function showFromJSSidebar(){
         console.log("inspected page has message", e.data)
     })
 
-    // maybe try useCapture parameter here
-    var inspectedPage = new RoundTripMessageWrapper({
-        onMessage: function(callback){
-            window.addEventListener("message", callback)
-        },
-        postMessage: function(){
-            arguments[1] =  location.href
-            sidebarIframe.contentWindow.postMessage.apply(sidebarIframe.contentWindow, arguments)
-        }
-    })
-
+    var inspectedPage = new RoundTripMessageWrapper(sidebarIframe)
 
     var currentSelectedElement = null;
     var currentPreviewedElement = null;

@@ -1207,15 +1207,7 @@ export class FromJSView extends React.Component {
             console.log("message in iframe", e.data)
         })
 
-        currentInspectedPage = new RoundTripMessageWrapper({
-            onMessage: function(callback){
-                window.addEventListener("message", callback)
-            },
-            postMessage: function(){
-                arguments[1] = window.parent.location.href
-                window.parent.postMessage.apply(window.parent, arguments)
-            }
-        })
+        currentInspectedPage = new RoundTripMessageWrapper(window.parent)
 
         currentInspectedPage.on("selectElement", (el) => {
             this.setState({
