@@ -6,13 +6,13 @@ fdescribe("RoundTripMessageWrapper", function(){
         var onMessage = function(fn){
             onMessageFn = fn
         }
-        var postMessage = function(){
+        var postMessage = function(data){
             console.log("postMessage to side 2")
-            onMessageFn2.apply(null, arguments)
+            onMessageFn2.call(null, {data})
         }
-        var postMessage2 = function(){
+        var postMessage2 = function(data){
             console.log("postMessage to side 1", arguments)
-            onMessageFn.apply(null, arguments)
+            onMessageFn.call(null, {data})
         }
         var onMessageFn2 = null;
         var onMessage2 = function(fn){

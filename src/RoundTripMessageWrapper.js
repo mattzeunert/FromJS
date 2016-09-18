@@ -18,17 +18,13 @@ export default class RoundTripMessageWrapper {
         }
 
         var messageType = data.messageType;
-        console.log("messageType", messageType)
         var handlers = this._handlers[messageType]
         if (!handlers) {
-            console.log("no handlers")
             return;
         }
-        console.log("handlres", handlers)
 
         var self = this;
         var callback = function(){
-            console.log("calling postmessage")
             self._postMessage({
                 isRoundTripMessage: true,
                 messageType: messageType + data.id,
@@ -38,7 +34,6 @@ export default class RoundTripMessageWrapper {
         }
 
         handlers.forEach(function(handler){
-            console.log("handler", handler, data)
             if (data.isResponse) {
                 handler.apply(null, [...data.args])
             } else {
@@ -63,7 +58,6 @@ export default class RoundTripMessageWrapper {
         var id = _.uniqueId()
 
         this.on(messageType + id, function(){
-            console.log("GOT REPLY")
             callback.apply(null, arguments)
         })
 
