@@ -18,8 +18,11 @@ describe("RoundTripMessageWrapper", function(){
             onMessageFn2 = fn
         }
 
-        side1 = new RoundTripMessageWrapper(onMessage, postMessage)
-        side2 = new RoundTripMessageWrapper(onMessage2, postMessage2)
+        side1 = new RoundTripMessageWrapper({onMessage, postMessage})
+        side2 = new RoundTripMessageWrapper({
+            onMessage: onMessage2,
+            postMessage: postMessage2
+        })
     })
 
     it("Allows callbacks to be called across iframe/page/webworker contexts", function(done){

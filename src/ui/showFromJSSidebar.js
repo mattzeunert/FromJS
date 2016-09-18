@@ -73,11 +73,14 @@ export default function showFromJSSidebar(){
     })
 
     // maybe try useCapture parameter here
-    var inspectedPage = new RoundTripMessageWrapper(function(callback){
-        window.addEventListener("message", callback)
-    }, function(){
-        arguments[1] =  location.href
-        sidebarIframe.contentWindow.postMessage.apply(sidebarIframe.contentWindow, arguments)
+    var inspectedPage = new RoundTripMessageWrapper({
+        onMessage: function(callback){
+            window.addEventListener("message", callback)
+        },
+        postMessage: function(){
+            arguments[1] =  location.href
+            sidebarIframe.contentWindow.postMessage.apply(sidebarIframe.contentWindow, arguments)
+        }
     })
 
 

@@ -1,31 +1,28 @@
 import _ from "underscore"
 
 export default class RoundTripMessageWrapper {
-    constructor(maybeTarget, maybePostMessage) {
+    constructor(target) {
         var onMessage, postMessage, targetHref;
 
-        var userPassedInFunctions = typeof maybeTarget === "function";
+        var userPassedInFunctions = target.onMessage && target.postMessage
         var targetIsWorkerGlobalScope = typeof DedicatedWorkerGlobalScope !== "undefined" &&
-            maybeTarget instanceof DedicatedWorkerGlobalScope;
-        var targetIsWebWorker = typeof Worker !== "undefined" && maybeTarget instanceof Worker
+            target instanceof DedicatedWorkerGlobalScope;
+        var targetIsWebWorker = typeof Worker !== "undefined" && target instanceof Worker
         // do this rather than `instanceof Window` because sometimes the constructor is a different
         // `Window` object I think (probalby the Window object of the parent frame)
-        var targetIsWindow = maybeTarget.constructor.toString().indexOf("function Window() { [native code] }") !== -1
-        var targetIsIFrame = typeof HTMLIFrameElement !== "undefined" && maybeTarget instanceof HTMLIFrameElement
+        var targetIsWindow = target.constructor.toString().indexOf("function Window() { [native code] }") !== -1
+        var targetIsIFrame = typeof HTMLIFrameElement !== "undefined" && target instanceof HTMLIFrameElement
         if (userPassedInFunctions) {
-            onMessage = maybeTarget;
-            postMessage = maybePostMessage
+            onMessage = target.onMessage;
+            postMessage = target.postMessage
         } else if (targetIsWorkerGlobalScope) {
-            var webworkerGlobalScope = maybeTarget
             onMessage = function(callback){
-                webworkerGlobalScope.addEventListener("message", callback)
+                target.addEventListener("message", callback)
             }
             postMessage = function(){
-                webworkerGlobalScope.postMessage.apply(null, arguments)
+                target.postMessage.apply(null, arguments)
             }
         } else if (targetIsWebWorker){
-            var target = maybeTarget;
-
             onMessage = function(callback){
                 target.onmessage = callback
             }
@@ -33,8 +30,6 @@ export default class RoundTripMessageWrapper {
                 target.postMessage.apply(target, arguments)
             }
         } else if (targetIsWindow) {
-            var target = maybeTarget
-
             targetHref = target.location.href
             onMessage = function(callback){
                 target.addEventListener("message", callback)
@@ -43,8 +38,6 @@ export default class RoundTripMessageWrapper {
                 target.postMessage.apply(null, arguments)
             }
         } else if (targetIsIFrame) {
-            var target = maybeTarget
-
             targetHref = target.contentWindow.parent.location.href
             onMessage = function(callback){
                 target.contentWindow.parent.addEventListener("message", callback)
