@@ -72,7 +72,7 @@ export default function showFromJSSidebar(){
         console.log("inspected page has message", e.data)
     })
 
-    var inspectedPage = new RoundTripMessageWrapper(sidebarIframe)
+    var inspectedPage = new RoundTripMessageWrapper(sidebarIframe.contentWindow)
 
     var currentSelectedElement = null;
     var currentPreviewedElement = null;

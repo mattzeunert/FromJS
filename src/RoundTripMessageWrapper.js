@@ -37,14 +37,6 @@ export default class RoundTripMessageWrapper {
             postMessage = function(){
                 target.postMessage.apply(target, arguments)
             }
-        } else if (targetIsIFrame) {
-            targetHref = target.contentWindow.parent.location.href
-            onMessage = function(callback){
-                window.addEventListener("message", callback)
-            }
-            postMessage = function(){
-                target.contentWindow.postMessage.apply(target.contentWindow, arguments)
-            }
         } else {
             throw Error("Unknown RoundTripMessageWrapper target")
         }
