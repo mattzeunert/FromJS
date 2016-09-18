@@ -12,7 +12,6 @@ export default class RoundTripMessageWrapper {
         // do this rather than `instanceof Window` because sometimes the constructor is a different
         // `Window` object I think (probalby the Window object of the parent frame)
         var targetIsWindow = target.constructor.toString().indexOf("function Window() { [native code] }") !== -1
-        var targetIsIFrame = typeof HTMLIFrameElement !== "undefined" && target instanceof HTMLIFrameElement
         if (userPassedInFunctions) {
             onMessage = target.onMessage;
             postMessage = target.postMessage
