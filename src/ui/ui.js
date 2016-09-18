@@ -1,6 +1,5 @@
 import React from "react"
 import _ from "underscore"
-import resolveFrame from "../resolve-frame"
 import fileIsDynamicCode from "../fileIsDynamicCode"
 import isMobile from "../isMobile"
 import config from "../config"
@@ -14,6 +13,34 @@ import Perf from "react-addons-perf"
 window.Perf = Perf
 
 var currentInspectedPage;
+
+var resolvedFrameCache = {}
+function resolveFrame(frameString, callback) {
+    if (resolvedFrameCache[frameString]) {
+        callback(null, resolvedFrameCache[frameString])
+        return
+    } else {
+        currentInspectedPage.send("resolveFrame", frameString, function(err, frame){
+            if (!err){
+                resolvedFrameCache[frameString] = frame;
+            }
+            callback(err, frame)
+        });
+    }
+}
+
+var codeFilePathCache = {}
+function getCodeFilePath(path, callback) {
+    if (codeFilePathCache[path]) {
+        callback(codeFilePathCache[path])
+        return;
+    } else {
+        currentInspectedPage.send("getCodeFilePath", path, function(newPath){
+            codeFilePathCache[path] = newPath
+            callback(newPath)
+        })
+    }
+}
 
 
 // ReactTooltip doesn't respond to UI changes automatically
@@ -159,10 +186,10 @@ class OriginPathItem extends React.Component {
             if (this.cancelFrameResolution) {
                 this.cancelFrameResolution()
             }
-            this.cancelFrameResolution = currentInspectedPage.send("resolveFrame", frame, (err, resolvedFrame) => {
+            this.cancelFrameResolution = resolveFrame(frame, (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
 
-                this.cancelGetCodeFilePath = currentInspectedPage.send("getCodeFilePath", resolvedFrame.fileName, (codeFilePath) => {
+                this.cancelGetCodeFilePath = getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
                     this.setState({codeFilePath})
                 })
             })
@@ -356,7 +383,7 @@ class StackFrameSelectorItem extends React.Component {
         }
     }
     componentDidMount(){
-        this.cancelFrameResolution = currentInspectedPage.send("resolveFrame", this.props.frameString, (err, resolvedFrame) => {
+        this.cancelFrameResolution = resolveFrame(this.props.frameString, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
@@ -662,7 +689,7 @@ class StackFrame extends React.Component{
         }
     }
     componentDidMount(){
-        this.cancelFrameResolution = currentInspectedPage.send("resolveFrame", this.props.frame, (err, resolvedFrame) => {
+        this.cancelFrameResolution = resolveFrame(this.props.frame, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
@@ -912,7 +939,7 @@ class ElementOriginPath extends React.Component {
                     } else {
                         frameString = _.first(originObject.stack)
                     }
-                    currentInspectedPage.send("resolveFrame", frameString, setState)
+                    resolveFrame(frameString, setState)
                 } else {
                     setState()
                 }
