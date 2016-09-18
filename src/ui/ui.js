@@ -1203,11 +1203,7 @@ export class FromJSView extends React.Component {
             nonElementOriginSelected: null
         }
 
-        window.addEventListener("message", function(e){
-            console.log("message in iframe", e.data)
-        })
-
-        currentInspectedPage = new RoundTripMessageWrapper(window.parent)
+        currentInspectedPage = new RoundTripMessageWrapper(window.parent, "IFrame")
 
         currentInspectedPage.on("selectElement", (el) => {
             this.setState({

@@ -1,7 +1,8 @@
 import _ from "underscore"
+import config from "./config"
 
 export default class RoundTripMessageWrapper {
-    constructor(target) {
+    constructor(target, connectionName) {
         var onMessage, postMessage, targetHref;
 
         var userPassedInFunctions = target.onMessage && target.postMessage
@@ -43,12 +44,12 @@ export default class RoundTripMessageWrapper {
 
         this.argsForDebugging = arguments
         onMessage((e) => this._handle(e.data))
+        this._connectionName = connectionName
         this._targetHref = targetHref
         this._postMessage = function(data){
-            console.log("postMessage", data)
-
             // necessary for some reason, but may not be great for perf
             data = JSON.parse(JSON.stringify(data))
+            data.timeSent = new Date();
             postMessage(data, targetHref)
         }
         this._handlers = {}
@@ -60,8 +61,12 @@ export default class RoundTripMessageWrapper {
 
         var messageType = data.messageType;
         var handlers = this._handlers[messageType]
-        console.log("onmessage", data, handlers)
-        // debugger
+
+        if (config.logReceivedInspectorMessages) {
+            var timeTaken = new Date().valueOf() - new Date(data.timeSent).valueOf()
+            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms")
+        }
+
         if (!handlers) {
             return;
         }

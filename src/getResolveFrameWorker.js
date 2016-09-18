@@ -12,7 +12,7 @@ export default function getResolveFrameWorker(){
             workerURL = URL.createObjectURL(new Blob([window.fromJSResolveFrameWorkerCode]))
         }
         var webWorkerInstance = new Worker(workerURL)
-        resolveFrameWorker = new RoundTripMessageWrapper(webWorkerInstance)
+        resolveFrameWorker = new RoundTripMessageWrapper(webWorkerInstance, "Inspected App/ResolveFrameWorker")
     }
     return resolveFrameWorker
 }
