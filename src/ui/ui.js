@@ -8,12 +8,12 @@ import ReactTooltip from "react-tooltip"
 import "react-fastclick" // import for side effects, no export
 import adjustColumnForEscapeSequences from "../adjustColumnForEscapeSequences"
 import getDefaultInspectedCharacterIndex from "./getDefaultInspectedCharacterIndex"
-import InspectedPage from "./InspectedPage"
+import RoundTripMessageWrapper from "../RoundTripMessageWrapper"
 
 import Perf from "react-addons-perf"
 window.Perf = Perf
 
-var currentInspectedPage = new InspectedPage()
+var currentInspectedPage;
 
 
 // ReactTooltip doesn't respond to UI changes automatically
@@ -159,10 +159,10 @@ class OriginPathItem extends React.Component {
             if (this.cancelFrameResolution) {
                 this.cancelFrameResolution()
             }
-            this.cancelFrameResolution = currentInspectedPage.resolveFrame(frame, (err, resolvedFrame) => {
+            this.cancelFrameResolution = currentInspectedPage.send("resolveFrame", frame, (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
 
-                this.cancelGetCodeFilePath = currentInspectedPage.getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
+                this.cancelGetCodeFilePath = currentInspectedPage.send("getCodeFilePath", resolvedFrame.fileName, (codeFilePath) => {
                     this.setState({codeFilePath})
                 })
             })
@@ -356,7 +356,7 @@ class StackFrameSelectorItem extends React.Component {
         }
     }
     componentDidMount(){
-        this.cancelFrameResolution = currentInspectedPage.resolveFrame(this.props.frameString, (err, resolvedFrame) => {
+        this.cancelFrameResolution = currentInspectedPage.send("resolveFrame", this.props.frameString, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
@@ -662,7 +662,7 @@ class StackFrame extends React.Component{
         }
     }
     componentDidMount(){
-        this.cancelFrameResolution = currentInspectedPage.resolveFrame(this.props.frame, (err, resolvedFrame) => {
+        this.cancelFrameResolution = currentInspectedPage.send("resolveFrame", this.props.frame, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
@@ -912,7 +912,7 @@ class ElementOriginPath extends React.Component {
                     } else {
                         frameString = _.first(originObject.stack)
                     }
-                    currentInspectedPage.resolveFrame(frameString, setState)
+                    currentInspectedPage.send("resolveFrame", frameString, setState)
                 } else {
                     setState()
                 }
@@ -953,7 +953,7 @@ class ElementOriginPath extends React.Component {
                 key={this.state.originPathKey}
                 handleValueSpanClick={(origin, characterIndex) => {
                     this.props.onNonElementOriginSelected()
-                    currentInspectedPage.trigger("UISelectNonElementOrigin")
+                    currentInspectedPage.send("UISelectNonElementOrigin")
                     this.setState({
                         rootOrigin: origin,
                         characterIndex
@@ -1054,7 +1054,7 @@ class ElementOriginPath extends React.Component {
             if (isCanceled) {
                 return;
             }
-            currentInspectedPage.whereDoesCharComeFrom(info.origin.id, info.characterIndex, function(){
+            currentInspectedPage.send("whereDoesCharComeFrom", info.origin.id, info.characterIndex, function(){
                 if (!isCanceled) {
                     callback.apply(this, arguments)
                 }
@@ -1076,7 +1076,7 @@ class ElementOriginPath extends React.Component {
     getOriginAndCharacterIndex(props, state, characterIndex, callback){
         characterIndex = parseFloat(characterIndex);
         if (this.originComesFromElement(props, state)) {
-            this.cancelGetRootOriginAtChar = currentInspectedPage.getRootOriginAtChar(props.el.__fromJSElementId, characterIndex, function(rootOrigin){
+            this.cancelGetRootOriginAtChar = currentInspectedPage.send("getRootOriginAtChar", props.el.__fromJSElementId, characterIndex, function(rootOrigin){
                 callback(rootOrigin)
             });
         } else {
@@ -1176,6 +1176,17 @@ export class FromJSView extends React.Component {
             nonElementOriginSelected: null
         }
 
+        window.addEventListener("message", function(e){
+            console.log("message in iframe", e.data)
+        })
+
+        currentInspectedPage = new RoundTripMessageWrapper(function(callback){
+            window.addEventListener("message", callback)
+        }, function(){
+            arguments[1] = window.parent.location.href
+            window.parent.postMessage.apply(window.parent, arguments)
+        })
+
         currentInspectedPage.on("selectElement", (el) => {
             this.setState({
                 el: el,
@@ -1199,7 +1210,7 @@ export class FromJSView extends React.Component {
         var intro = null;
 
         var showPreview = this.state.previewEl !== null && (!this.state.el || this.state.previewEl.__fromJSElementId !== this.state.el.__fromJSElementId)
-        console.warn(this.state.previewEl)
+
         if (showPreview){
             preview = <ElementOriginPath
                 el={this.state.previewEl}
@@ -1209,7 +1220,7 @@ export class FromJSView extends React.Component {
         if (this.state.el) {
             var goUpInDOM = null
             if (!this.state.nonElementOriginSelected && this.state.el.tagName !== "BODY") {
-                goUpInDOM = () => currentInspectedPage.trigger("UISelectParentElement")
+                goUpInDOM = () => currentInspectedPage.send("UISelectParentElement")
             }
             info = <div style={{display: showPreview ? "none" : "block"}}>
                 <ElementOriginPath
@@ -1231,7 +1242,7 @@ export class FromJSView extends React.Component {
         return <div>
             <div id="fromjs" className="fromjs">
                 <button
-                    onClick={() => currentInspectedPage.trigger("UICloseInspector")}
+                    onClick={() => currentInspectedPage.send("UICloseInspector")}
                     className="toggle-inspector-button close-inspector-button">
 
                 </button>

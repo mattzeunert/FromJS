@@ -2,12 +2,16 @@ import _ from "underscore"
 
 export default class RoundTripMessageWrapper {
     constructor(maybeTarget, maybePostMessage) {
-        var onMessage, postMessage;
+        var onMessage, postMessage, targetHref;
 
         var userPassedInFunctions = typeof maybeTarget === "function";
         var targetIsWorkerGlobalScope = typeof DedicatedWorkerGlobalScope !== "undefined" &&
             maybeTarget instanceof DedicatedWorkerGlobalScope;
         var targetIsWebWorker = typeof Worker !== "undefined" && maybeTarget instanceof Worker
+        // do this rather than `instanceof Window` because sometimes the constructor is a different
+        // `Window` object I think (probalby the Window object of the parent frame)
+        var targetIsWindow = maybeTarget.constructor.toString().indexOf("function Window() { [native code] }") !== -1
+        var targetIsIFrame = typeof HTMLIFrameElement !== "undefined" && maybeTarget instanceof HTMLIFrameElement
         if (userPassedInFunctions) {
             onMessage = maybeTarget;
             postMessage = maybePostMessage
@@ -28,12 +32,40 @@ export default class RoundTripMessageWrapper {
             postMessage = function(){
                 target.postMessage.apply(target, arguments)
             }
+        } else if (targetIsWindow) {
+            var target = maybeTarget
+
+            targetHref = target.location.href
+            onMessage = function(callback){
+                target.addEventListener("message", callback)
+            }
+            postMessage = function(){
+                target.postMessage.apply(null, arguments)
+            }
+        } else if (targetIsIFrame) {
+            var target = maybeTarget
+
+            targetHref = target.contentWindow.parent.location.href
+            onMessage = function(callback){
+                target.contentWindow.parent.addEventListener("message", callback)
+            }
+            postMessage = function(){
+                target.contentWindow.postMessage.apply(null, arguments)
+            }
         } else {
             throw Error("Unknown RoundTripMessageWrapper target")
         }
 
+        this.argsForDebugging = arguments
         onMessage((e) => this._handle(e.data))
-        this._postMessage = postMessage
+        this._targetHref = targetHref
+        this._postMessage = function(data){
+            console.log("postMessage", data)
+
+            // necessary for some reason, but may not be great for perf
+            data = JSON.parse(JSON.stringify(data))
+            postMessage(data, targetHref)
+        }
         this._handlers = {}
     }
     _handle(data){
@@ -43,6 +75,8 @@ export default class RoundTripMessageWrapper {
 
         var messageType = data.messageType;
         var handlers = this._handlers[messageType]
+        console.log("onmessage", data, handlers)
+        // debugger
         if (!handlers) {
             return;
         }
@@ -58,7 +92,7 @@ export default class RoundTripMessageWrapper {
         }
 
         handlers.forEach(function(handler){
-            if (data.isResponse) {
+            if (data.isResponse || !data.hasCallBack) {
                 handler.apply(null, [...data.args])
             } else {
                 handler.apply(null, [...data.args, callback])
@@ -78,18 +112,36 @@ export default class RoundTripMessageWrapper {
     send(){
         var args = Array.from(arguments)
         var messageType = args.shift();
-        var callback = args.pop();
+        var canceled = false;
+
+        var callback;
+        var hasCallBack = typeof _.last(args) === "function"
+        if (hasCallBack) {
+            callback = args.pop();
+        }
+
+
         var id = _.uniqueId()
 
-        this.on(messageType + id, function(){
-            callback.apply(null, arguments)
-        })
+        if (hasCallBack) {
+            this.on(messageType + id, function(){
+                if (canceled) {
+                    return
+                }
+                callback.apply(null, arguments)
+            })
+        }
 
         this._postMessage({
             isRoundTripMessage: true,
             messageType,
             id,
-            args
+            args,
+            hasCallBack
         })
+
+        return function cancel(){
+            canceled = true
+        }
     }
 }

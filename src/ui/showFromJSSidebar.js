@@ -7,7 +7,7 @@ import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getRootOriginAtChar from "../getRootOriginAtChar"
 import { OriginPath, PreviewElementMarker, SelectedElementMarker } from "../ui/ui"
 import {disableTracing, enableTracing, disableEventListeners, enableEventListeners} from "../tracing/tracing"
-import InspectedPage from "./InspectedPage"
+import RoundTripMessageWrapper from "../RoundTripMessageWrapper"
 import resolveFrame from "../resolve-frame"
 import getCodeFilePath from "./getCodeFilePath"
 import { getOriginById } from "../origin"
@@ -68,8 +68,17 @@ export default function showFromJSSidebar(){
 
     disableEventListeners()
 
+    window.addEventListener("message", function(e){
+        console.log("inspected page has message", e.data)
+    })
+
     // maybe try useCapture parameter here
-    var inspectedPage = new InspectedPage(sidebarIframe)
+    var inspectedPage = new RoundTripMessageWrapper(function(callback){
+        window.addEventListener("message", callback)
+    }, function(){
+        arguments[1] =  location.href
+        sidebarIframe.contentWindow.postMessage.apply(sidebarIframe.contentWindow, arguments)
+    })
 
 
     var currentSelectedElement = null;
@@ -89,7 +98,7 @@ export default function showFromJSSidebar(){
     function setCurrentSelectedElement(el){
         currentSelectedElement = el
         nonElementOriginSelected = false;
-        inspectedPage.trigger("selectElement", serializeElement(el))
+        inspectedPage.send("selectElement", serializeElement(el))
         updateSelectionMarker();
     }
 
@@ -127,12 +136,12 @@ export default function showFromJSSidebar(){
         enableTracing();
     })
 
-    inspectedPage.onResolveFrameRequest(function(frameString, callback){
+    inspectedPage.on("resolveFrame", function(frameString, callback){
         resolveFrameWrapper.send("resolveFrame", frameString, callback)
     })
 
 
-    inspectedPage.onGetRootOriginAtCharRequest(function(elementId, characterIndex, callback){
+    inspectedPage.on("getRootOriginAtChar", function(elementId, characterIndex, callback){
         var el = getElementFromElementId(elementId)
         var initialStep = getRootOriginAtChar(el, characterIndex)
         initialStep = serializeStep(initialStep)
@@ -155,7 +164,7 @@ export default function showFromJSSidebar(){
         }
     }
 
-    inspectedPage.onWhereDoesCharComeFromRequest(function(originId, characterIndex, callback){
+    inspectedPage.on("whereDoesCharComeFrom", function(originId, characterIndex, callback){
         var origin = getOriginById(originId)
         whereDoesCharComeFrom(origin, characterIndex, function(steps){
             steps = steps.map(serializeStep)
@@ -163,7 +172,7 @@ export default function showFromJSSidebar(){
         })
     })
 
-    inspectedPage.onGetCodeFilePathRequest(function(fileName, callback){
+    inspectedPage.on("getCodeFilePath", function(fileName, callback){
         getCodeFilePath(fileName, callback)
     })
 
@@ -189,7 +198,7 @@ export default function showFromJSSidebar(){
     function setCurrentPreviewedElement(el){
         currentPreviewedElement = el
 
-        inspectedPage.trigger("previewElement", serializeElement(el))
+        inspectedPage.send("previewElement", serializeElement(el))
         ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
     }
 
