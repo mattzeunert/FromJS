@@ -58,7 +58,7 @@ export class OriginPath extends React.Component {
     render(){
         var originPath = this.props.originPath;
         if (!originPath) {
-            return <div>no origin path</div>
+            return <div>Fetching origin path</div>
         }
         originPath = originPath.filter(function(pathItem){
             // This is really an implementation detail and doesn't add any value to the user

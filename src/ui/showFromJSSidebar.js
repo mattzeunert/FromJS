@@ -42,6 +42,11 @@ export default function showFromJSSidebar(){
         </html>
     `)
 
+
+
+    window.resolveFrameWrapper.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
+
+
     var elementMarkerContainer = document.createElement("div")
     container.appendChild(elementMarkerContainer)
 
@@ -123,8 +128,9 @@ export default function showFromJSSidebar(){
     })
 
     inspectedPage.onResolveFrameRequest(function(frameString, callback){
-        resolveFrame(frameString, callback)
+        resolveFrameWrapper.send("resolveFrame", frameString, callback)
     })
+
 
     inspectedPage.onGetRootOriginAtCharRequest(function(elementId, characterIndex, callback){
         var el = getElementFromElementId(elementId)

@@ -1,6 +1,5 @@
 import ValueMap from "./value-map"
 import exportElementOrigin from "./export-element-origin"
-import resolveFrame, {getSourceFileContent} from "./resolve-frame"
 import fileIsDynamicCode from "./fileIsDynamicCode"
 import getRootOriginAtChar from "./getRootOriginAtChar"
 import $ from "jquery"
@@ -265,17 +264,15 @@ function goUp(step, callback){
             callback(null)
             return;
         }
-        resolveFrame(step.originObject.getStackFrames()[0], function(err, frame){
-
+        window.resolveFrameWrapper.send("resolveFrame", step.originObject.getStackFrames()[0], function(err, frame){
             if (fileIsDynamicCode(frame.fileName)){
-                getSourceFileContent(frame.fileName, function(content){
+                window.resolveFrameWrapper.send("getSourceFileContent", frame.fileName, function(content){
                     var lines = content.split("\n")
                     var linesBeforeCurrentLine = lines.slice(0, frame.lineNumber - 1)
                     var characterIndex = 0;
                     linesBeforeCurrentLine.forEach(function(line){
                         characterIndex += line.length + "\n".length;
                     })
-
 
                     characterIndex += frame.columnNumber
                     characterIndex += "'".length

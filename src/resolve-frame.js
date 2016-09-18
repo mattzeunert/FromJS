@@ -3,8 +3,7 @@ var StackTraceGPS = require("./stacktrace-gps")
 var ErrorStackParser = require("./error-stack-parser")
 import _ from "underscore"
 
-var gps = null;
-var defaultSourceCache = null
+var gps = new StackTraceGPS({});;
 var resolvedFrameCache = {}
 
 function resFrame(frame, callback){
@@ -22,35 +21,15 @@ function resFrame(frame, callback){
 
         callback(null, frame)
     })
-
-}
-
-window.setDefaultSourceCache = setDefaultSourceCache
-export function setDefaultSourceCache(sourceCache){
-    defaultSourceCache = _.clone(sourceCache)
-}
-
-export function getDefaultSourceCache(){
-    if (defaultSourceCache !== null) {
-        return defaultSourceCache
-    }
-
-    var sourceCache = {};
-    for (var filename in fromJSDynamicFiles){
-        sourceCache[filename] = fromJSDynamicFiles[filename]
-    }
-
-    return sourceCache
-}
-
-function initGPSIfNecessary(){
-    if (gps !== null) return
-
-    gps = new StackTraceGPS({sourceCache: getDefaultSourceCache()});
-    window.gps = gps
 }
 
 var frameStringsCurrentlyBeingResolved = {}
+
+export function addFilesToCache(files){
+    console.log("ADD FILES TO CACHE", files)
+    gps.sourceCache = _.extend(gps.sourceCache, files)
+    console.log("SOURCE CACHE IS", gps.sourceCache)
+}
 
 function resolveFrame(frameString, callback){
     // console.time("Resolve Frame " + frameString)
@@ -60,8 +39,6 @@ function resolveFrame(frameString, callback){
     }
 
     var isCanceled = false
-
-    initGPSIfNecessary()
 
     var frameObject = ErrorStackParser.parse({stack: frameString})[0];
 
@@ -76,6 +53,8 @@ function resolveFrame(frameString, callback){
             frameStringsCurrentlyBeingResolved[frameString].then(done)
         } else {
             frameStringsCurrentlyBeingResolved[frameString] = new Promise(function(resolve, reject){
+                console.log("SOURCE CACHE", gps.sourceCache)
+
                 gps.pinpoint(frameObject).then(function(newFrame){
                     resFrame(newFrame, function(err, frame){
                         resolve([err, frame])
@@ -108,7 +87,6 @@ function resolveFrame(frameString, callback){
     }
 }
 
-window.resolveFrame = resolveFrame
 export default resolveFrame
 
 export function getSourceFileContent(filePath, callback){

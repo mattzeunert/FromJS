@@ -33,7 +33,16 @@ if (!window.isSerializedDomPage){
     enableTracing()
 }
 
-var resolveFrameWorker = new Worker("/fromjs-internals/resolveFrameWorker.js")
+window.resolveFrameWorker = new Worker("/fromjs-internals/resolveFrameWorker.js")
+import RoundTripMessageWrapper from "./RoundTripMessageWrapper"
+window.resolveFrameWrapper = new RoundTripMessageWrapper(function onmessage(callback){
+    window.resolveFrameWorker.onmessage = function(){
+        console.log("get message from wrapper", arguments)
+        callback.apply(this, arguments)
+    }
+}, function(){
+    window.resolveFrameWorker.postMessage.apply(window.resolveFrameWorker, arguments)
+})
 
 $(document).ready(function(){
     if (window.isSerializedDomPage){
