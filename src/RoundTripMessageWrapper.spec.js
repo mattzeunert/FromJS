@@ -51,4 +51,13 @@ describe("RoundTripMessageWrapper", function(){
             done()
         }, 0)
     })
+
+    it("Lets you do non-roundtrip messages", function(){
+        var side1Callback = jasmine.createSpy()
+        side1.on("Hello", side1Callback)
+
+        side2.send("Hello")
+
+        expect(side1Callback).toHaveBeenCalled()
+    })
 })
