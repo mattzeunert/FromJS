@@ -4,6 +4,15 @@ import fromJSCss from "../src/fromjs.css"
 import manifest from "./manifest" // we don't use it but we want manifest changes to trigger a webpack re-build
 import beautify from "js-beautify"
 
+var resolveFrameWorkerCode = "not loaded yet"
+fetch(chrome.extension.getURL("resolveFrameWorker.js"))
+.then(function(r){
+    return r.text()
+})
+.then(function(text){
+    resolveFrameWorkerCode = text
+})
+
 var tabsToProcess = [];
 
 function isEnabledInTab(tabId){
@@ -100,6 +109,7 @@ function activate(tabId){
         var script = document.createElement("script");
 
         script.innerHTML = "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
+        script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
         document.documentElement.appendChild(script)
 
         var script2 = document.createElement("script")
