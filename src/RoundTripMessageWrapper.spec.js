@@ -1,7 +1,8 @@
 import RoundTripMessageWrapper from "./RoundTripMessageWrapper"
 
 describe("RoundTripMessageWrapper", function(){
-    it("sth", function(done){
+    var side1, side2;
+    beforeEach(function(){
         var onMessageFn = null;
         var onMessage = function(fn){
             onMessageFn = fn
@@ -17,9 +18,14 @@ describe("RoundTripMessageWrapper", function(){
             onMessageFn2 = fn
         }
 
-        var side1 = new RoundTripMessageWrapper(onMessage, postMessage)
-        var side2 = new RoundTripMessageWrapper(onMessage2, postMessage2)
+        side1 = new RoundTripMessageWrapper({onMessage, postMessage}, "Side1")
+        side2 = new RoundTripMessageWrapper({
+            onMessage: onMessage2,
+            postMessage: postMessage2
+        }, "Side2")
+    })
 
+    it("Allows callbacks to be called across iframe/page/webworker contexts", function(done){
         side2.on("addNumbers", function(a, b, callback){
             expect(a).toBe(2)
             expect(b).toBe(3)
@@ -30,5 +36,31 @@ describe("RoundTripMessageWrapper", function(){
             expect(sum).toBe(5)
             done()
         })
+    })
+
+    it("Lets you cancel requests after they are made", function(done){
+        side1.on("doSomething", function(callback){
+            setTimeout(function(){
+                callback("Test")
+            }, 0)
+        })
+
+        var callback = jasmine.createSpy();
+        var cancel = side2.send("doSomething", callback);
+        cancel()
+
+        setTimeout(function(){
+            expect(callback).not.toHaveBeenCalled()
+            done()
+        }, 0)
+    })
+
+    it("Lets you do non-roundtrip messages", function(){
+        var side1Callback = jasmine.createSpy()
+        side1.on("Hello", side1Callback)
+
+        side2.send("Hello")
+
+        expect(side1Callback).toHaveBeenCalled()
     })
 })

@@ -7,7 +7,7 @@ import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getRootOriginAtChar from "../getRootOriginAtChar"
 import { OriginPath, PreviewElementMarker, SelectedElementMarker } from "../ui/ui"
 import {disableTracing, enableTracing, disableEventListeners, enableEventListeners} from "../tracing/tracing"
-import InspectedPage from "./InspectedPage"
+import RoundTripMessageWrapper from "../RoundTripMessageWrapper"
 import resolveFrame from "../resolve-frame"
 import getCodeFilePath from "./getCodeFilePath"
 import { getOriginById } from "../origin"
@@ -42,11 +42,6 @@ export default function showFromJSSidebar(){
         </html>
     `)
 
-
-
-    window.resolveFrameWrapper.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
-
-
     var elementMarkerContainer = document.createElement("div")
     container.appendChild(elementMarkerContainer)
 
@@ -68,9 +63,13 @@ export default function showFromJSSidebar(){
 
     disableEventListeners()
 
-    // maybe try useCapture parameter here
-    var inspectedPage = new InspectedPage(sidebarIframe)
+    window.addEventListener("message", function(e){
+        console.log("inspected page has message", e.data)
+    })
 
+    var inspectedPage = new RoundTripMessageWrapper(sidebarIframe.contentWindow, "Inspected App/Sidebar")
+    inspectedPage.beforePostMessage = disableTracing
+    inspectedPage.afterPostMessage = enableTracing
 
     var currentSelectedElement = null;
     var currentPreviewedElement = null;
@@ -85,113 +84,6 @@ export default function showFromJSSidebar(){
         e.preventDefault();
         setCurrentSelectedElement(e.target)
     })
-
-    function setCurrentSelectedElement(el){
-        currentSelectedElement = el
-        nonElementOriginSelected = false;
-        inspectedPage.trigger("selectElement", serializeElement(el))
-        updateSelectionMarker();
-    }
-
-    function updateSelectionMarker(){
-        if (!nonElementOriginSelected) {
-            ReactDOM.render(<SelectedElementMarker el={currentSelectedElement}/>, selectedElementMarkerContainer)
-        } else {
-            selectedElementMarkerContainer.innerHTML = "";
-        }
-    }
-
-
-    inspectedPage.on("UISelectParentElement", function(){
-        var newSelectedEl = currentSelectedElement.parentNode;
-        setCurrentSelectedElement(newSelectedEl)
-    })
-
-    inspectedPage.on("UISelectNonElementOrigin", function(){
-        nonElementOriginSelected = true;
-        updateSelectionMarker();
-    })
-
-    inspectedPage.on("UICloseInspector", function(){
-        sidebarIframe.remove();
-        container.remove();
-        showShowFromJSInspectorButton();
-        inspectedPage.close()
-
-        $("body").css("padding-right", "0")
-
-        enableEventListeners();
-        $("body").off("click.fromjs")
-        $("*").off("mouseleave.fromjs mouseenter.fromjs keydown.fromjs")
-
-        enableTracing();
-    })
-
-    inspectedPage.onResolveFrameRequest(function(frameString, callback){
-        resolveFrameWrapper.send("resolveFrame", frameString, callback)
-    })
-
-
-    inspectedPage.onGetRootOriginAtCharRequest(function(elementId, characterIndex, callback){
-        var el = getElementFromElementId(elementId)
-        var initialStep = getRootOriginAtChar(el, characterIndex)
-        initialStep = serializeStep(initialStep)
-        callback(initialStep)
-    })
-
-    function serializeStep(s) {
-        var originObject = s.originObject;
-        var isRootOrigin = false;
-        if (!originObject) {
-            // Data model is a bit inconsistent between a step
-            // and a root origin
-            isRootOrigin = true
-            originObject = s.origin
-        }
-        originObject = originObject.serialize();
-        return {
-            characterIndex: s.characterIndex,
-            [isRootOrigin ? "origin" : "originObject"]: originObject
-        }
-    }
-
-    inspectedPage.onWhereDoesCharComeFromRequest(function(originId, characterIndex, callback){
-        var origin = getOriginById(originId)
-        whereDoesCharComeFrom(origin, characterIndex, function(steps){
-            steps = steps.map(serializeStep)
-            callback(steps)
-        })
-    })
-
-    inspectedPage.onGetCodeFilePathRequest(function(fileName, callback){
-        getCodeFilePath(fileName, callback)
-    })
-
-    function getElementFromElementId(elementId){
-        return elementsByElementId[elementId]
-    }
-
-    function serializeElement(el) {
-        if (el === null) {
-            return null;
-        }
-        if (!el.__fromJSElementId) {
-            el.__fromJSElementId = _.uniqueId()
-            elementsByElementId[el.__fromJSElementId] = el
-        }
-        return {
-            __fromJSElementId: el.__fromJSElementId,
-            outerHTML: el.outerHTML,
-            innerHTML: el.innerHTML,
-        }
-    }
-
-    function setCurrentPreviewedElement(el){
-        currentPreviewedElement = el
-
-        inspectedPage.trigger("previewElement", serializeElement(el))
-        ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
-    }
 
     if (!isMobile()){
         $("*").on("keydown.fromjs", function(e){
@@ -217,6 +109,123 @@ export default function showFromJSSidebar(){
         $("body").css("padding-right", "40vw")
     }
 
+    function setCurrentSelectedElement(el){
+        currentSelectedElement = el
+        nonElementOriginSelected = false;
+        inspectedPage.send("selectElement", serializeElement(el))
+        updateSelectionMarker();
+    }
+
+    function updateSelectionMarker(){
+        if (!nonElementOriginSelected) {
+            ReactDOM.render(<SelectedElementMarker el={currentSelectedElement}/>, selectedElementMarkerContainer)
+        } else {
+            selectedElementMarkerContainer.innerHTML = "";
+        }
+    }
+
+
+    inspectedPage.on("UISelectParentElement", function(){
+        var newSelectedEl = currentSelectedElement.parentNode;
+        setCurrentSelectedElement(newSelectedEl)
+    })
+
+    inspectedPage.on("UISelectNonElementOrigin", function(){
+        nonElementOriginSelected = true;
+        updateSelectionMarker();
+    })
+
+    inspectedPage.on("UICloseInspector", function(){
+        disableTracing();
+
+        sidebarIframe.remove();
+        container.remove();
+        showShowFromJSInspectorButton();
+        inspectedPage.close()
+
+        $("body").css("padding-right", "0")
+
+        enableEventListeners();
+        $("body").off("click.fromjs")
+        $("*").off("mouseleave.fromjs mouseenter.fromjs keydown.fromjs")
+
+        enableTracing();
+    })
+
+    inspectedPage.on("resolveFrame", function(frameString, callback){
+        resolveFrameWrapper.send("resolveFrame", frameString, callback)
+    })
+
+
+    inspectedPage.on("getRootOriginAtChar", function(elementId, characterIndex, callback){
+        var el = getElementFromElementId(elementId)
+        var initialStep = getRootOriginAtChar(el, characterIndex)
+        initialStep = serializeStep(initialStep)
+        callback(initialStep)
+    })
+
+    function serializeStep(s) {
+        var originObject = s.originObject;
+        var isRootOrigin = false;
+        if (!originObject) {
+            // Data model is a bit inconsistent between a step
+            // and a root origin
+            isRootOrigin = true
+            originObject = s.origin
+        }
+        originObject = originObject.serialize();
+        return {
+            characterIndex: s.characterIndex,
+            [isRootOrigin ? "origin" : "originObject"]: originObject
+        }
+    }
+
+    inspectedPage.on("whereDoesCharComeFrom", function(originId, characterIndex, callback){
+        disableTracing()
+
+        var origin = getOriginById(originId)
+        whereDoesCharComeFrom(origin, characterIndex, function(steps){
+            steps = steps.map(serializeStep)
+            callback(steps)
+        })
+
+        enableTracing();
+    })
+
+    inspectedPage.on("getCodeFilePath", function(fileName, callback){
+        getCodeFilePath(fileName, callback)
+    })
+
+    function getElementFromElementId(elementId){
+        return elementsByElementId[elementId]
+    }
+
+    function serializeElement(el) {
+        if (el === null) {
+            return null;
+        }
+        if (!el.__fromJSElementId) {
+            el.__fromJSElementId = _.uniqueId()
+            elementsByElementId[el.__fromJSElementId] = el
+        }
+        return {
+            __fromJSElementId: el.__fromJSElementId,
+            outerHTML: el.outerHTML,
+            innerHTML: el.innerHTML,
+        }
+    }
+
+    function setCurrentPreviewedElement(el){
+        currentPreviewedElement = el
+
+        inspectedPage.send("previewElement", serializeElement(el))
+        ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
+    }
+
+
+
+    window.resolveFrameWrapper.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
+    enableTracing();
 }
 
 export function showShowFromJSInspectorButton(){

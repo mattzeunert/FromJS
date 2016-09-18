@@ -1,6 +1,5 @@
 import React from "react"
 import _ from "underscore"
-import resolveFrame from "../resolve-frame"
 import fileIsDynamicCode from "../fileIsDynamicCode"
 import isMobile from "../isMobile"
 import config from "../config"
@@ -8,12 +7,40 @@ import ReactTooltip from "react-tooltip"
 import "react-fastclick" // import for side effects, no export
 import adjustColumnForEscapeSequences from "../adjustColumnForEscapeSequences"
 import getDefaultInspectedCharacterIndex from "./getDefaultInspectedCharacterIndex"
-import InspectedPage from "./InspectedPage"
+import RoundTripMessageWrapper from "../RoundTripMessageWrapper"
 
 import Perf from "react-addons-perf"
 window.Perf = Perf
 
-var currentInspectedPage = new InspectedPage()
+var currentInspectedPage;
+
+var resolvedFrameCache = {}
+function resolveFrame(frameString, callback) {
+    if (resolvedFrameCache[frameString]) {
+        callback(null, resolvedFrameCache[frameString])
+        return
+    } else {
+        currentInspectedPage.send("resolveFrame", frameString, function(err, frame){
+            if (!err){
+                resolvedFrameCache[frameString] = frame;
+            }
+            callback(err, frame)
+        });
+    }
+}
+
+var codeFilePathCache = {}
+function getCodeFilePath(path, callback) {
+    if (codeFilePathCache[path]) {
+        callback(codeFilePathCache[path])
+        return;
+    } else {
+        currentInspectedPage.send("getCodeFilePath", path, function(newPath){
+            codeFilePathCache[path] = newPath
+            callback(newPath)
+        })
+    }
+}
 
 
 // ReactTooltip doesn't respond to UI changes automatically
@@ -159,10 +186,10 @@ class OriginPathItem extends React.Component {
             if (this.cancelFrameResolution) {
                 this.cancelFrameResolution()
             }
-            this.cancelFrameResolution = currentInspectedPage.resolveFrame(frame, (err, resolvedFrame) => {
+            this.cancelFrameResolution = resolveFrame(frame, (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
 
-                this.cancelGetCodeFilePath = currentInspectedPage.getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
+                this.cancelGetCodeFilePath = getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
                     this.setState({codeFilePath})
                 })
             })
@@ -356,7 +383,7 @@ class StackFrameSelectorItem extends React.Component {
         }
     }
     componentDidMount(){
-        this.cancelFrameResolution = currentInspectedPage.resolveFrame(this.props.frameString, (err, resolvedFrame) => {
+        this.cancelFrameResolution = resolveFrame(this.props.frameString, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
@@ -662,7 +689,7 @@ class StackFrame extends React.Component{
         }
     }
     componentDidMount(){
-        this.cancelFrameResolution = currentInspectedPage.resolveFrame(this.props.frame, (err, resolvedFrame) => {
+        this.cancelFrameResolution = resolveFrame(this.props.frame, (err, resolvedFrame) => {
             this.setState({resolvedFrame})
         })
     }
@@ -912,7 +939,7 @@ class ElementOriginPath extends React.Component {
                     } else {
                         frameString = _.first(originObject.stack)
                     }
-                    currentInspectedPage.resolveFrame(frameString, setState)
+                    resolveFrame(frameString, setState)
                 } else {
                     setState()
                 }
@@ -953,7 +980,7 @@ class ElementOriginPath extends React.Component {
                 key={this.state.originPathKey}
                 handleValueSpanClick={(origin, characterIndex) => {
                     this.props.onNonElementOriginSelected()
-                    currentInspectedPage.trigger("UISelectNonElementOrigin")
+                    currentInspectedPage.send("UISelectNonElementOrigin")
                     this.setState({
                         rootOrigin: origin,
                         characterIndex
@@ -1054,7 +1081,7 @@ class ElementOriginPath extends React.Component {
             if (isCanceled) {
                 return;
             }
-            currentInspectedPage.whereDoesCharComeFrom(info.origin.id, info.characterIndex, function(){
+            currentInspectedPage.send("whereDoesCharComeFrom", info.origin.id, info.characterIndex, function(){
                 if (!isCanceled) {
                     callback.apply(this, arguments)
                 }
@@ -1076,7 +1103,7 @@ class ElementOriginPath extends React.Component {
     getOriginAndCharacterIndex(props, state, characterIndex, callback){
         characterIndex = parseFloat(characterIndex);
         if (this.originComesFromElement(props, state)) {
-            this.cancelGetRootOriginAtChar = currentInspectedPage.getRootOriginAtChar(props.el.__fromJSElementId, characterIndex, function(rootOrigin){
+            this.cancelGetRootOriginAtChar = currentInspectedPage.send("getRootOriginAtChar", props.el.__fromJSElementId, characterIndex, function(rootOrigin){
                 callback(rootOrigin)
             });
         } else {
@@ -1176,6 +1203,8 @@ export class FromJSView extends React.Component {
             nonElementOriginSelected: null
         }
 
+        currentInspectedPage = new RoundTripMessageWrapper(window.parent, "IFrame")
+
         currentInspectedPage.on("selectElement", (el) => {
             this.setState({
                 el: el,
@@ -1199,7 +1228,7 @@ export class FromJSView extends React.Component {
         var intro = null;
 
         var showPreview = this.state.previewEl !== null && (!this.state.el || this.state.previewEl.__fromJSElementId !== this.state.el.__fromJSElementId)
-        console.warn(this.state.previewEl)
+
         if (showPreview){
             preview = <ElementOriginPath
                 el={this.state.previewEl}
@@ -1209,7 +1238,7 @@ export class FromJSView extends React.Component {
         if (this.state.el) {
             var goUpInDOM = null
             if (!this.state.nonElementOriginSelected && this.state.el.tagName !== "BODY") {
-                goUpInDOM = () => currentInspectedPage.trigger("UISelectParentElement")
+                goUpInDOM = () => currentInspectedPage.send("UISelectParentElement")
             }
             info = <div style={{display: showPreview ? "none" : "block"}}>
                 <ElementOriginPath
@@ -1231,7 +1260,7 @@ export class FromJSView extends React.Component {
         return <div>
             <div id="fromjs" className="fromjs">
                 <button
-                    onClick={() => currentInspectedPage.trigger("UICloseInspector")}
+                    onClick={() => currentInspectedPage.send("UICloseInspector")}
                     className="toggle-inspector-button close-inspector-button">
 
                 </button>

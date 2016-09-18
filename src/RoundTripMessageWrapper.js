@@ -1,29 +1,47 @@
 import _ from "underscore"
+import config from "./config"
 
 export default class RoundTripMessageWrapper {
-    constructor(maybeTarget, maybePostMessage) {
-        var onMessage, postMessage;
+    constructor(target, connectionName) {
+        var onMessage, postMessage, targetHref, close;
 
-        var userPassedInFunctions = typeof maybeTarget === "function";
+        var userPassedInFunctions = target.onMessage && target.postMessage
         var targetIsWorkerGlobalScope = typeof DedicatedWorkerGlobalScope !== "undefined" &&
-            maybeTarget instanceof DedicatedWorkerGlobalScope;
-        var targetIsWebWorker = typeof Worker !== "undefined" && maybeTarget instanceof Worker
+            target instanceof DedicatedWorkerGlobalScope;
+        var targetIsWebWorker = typeof Worker !== "undefined" && target instanceof Worker
+        // do this rather than `instanceof Window` because sometimes the constructor is a different
+        // `Window` object I think (probalby the Window object of the parent frame)
+        var targetIsWindow = target.constructor.toString().indexOf("function Window() { [native code] }") !== -1
         if (userPassedInFunctions) {
-            onMessage = maybeTarget;
-            postMessage = maybePostMessage
+            onMessage = target.onMessage;
+            postMessage = target.postMessage
         } else if (targetIsWorkerGlobalScope) {
-            var webworkerGlobalScope = maybeTarget
             onMessage = function(callback){
-                webworkerGlobalScope.addEventListener("message", callback)
+                target.addEventListener("message", callback)
+            }
+            close = () => {
+                target.removeEventListener("message", this._handle)
             }
             postMessage = function(){
-                webworkerGlobalScope.postMessage.apply(null, arguments)
+                target.postMessage.apply(null, arguments)
             }
         } else if (targetIsWebWorker){
-            var target = maybeTarget;
-
             onMessage = function(callback){
                 target.onmessage = callback
+            }
+            close = function(){
+                target.onmessage = null
+            }
+            postMessage = function(){
+                target.postMessage.apply(target, arguments)
+            }
+        } else if (targetIsWindow) {
+            targetHref = target.location.href
+            onMessage = function(callback){
+                window.addEventListener("message", callback)
+            }
+            close = () => {
+                window.removeEventListener("message", this._handle)
             }
             postMessage = function(){
                 target.postMessage.apply(target, arguments)
@@ -32,17 +50,42 @@ export default class RoundTripMessageWrapper {
             throw Error("Unknown RoundTripMessageWrapper target")
         }
 
-        onMessage((e) => this._handle(e.data))
-        this._postMessage = postMessage
+        this.argsForDebugging = arguments
+        this._handle = this._handle.bind(this)
+        onMessage(this._handle)
+        this._connectionName = connectionName
+        this._targetHref = targetHref
+        this.close = close
+        this._postMessage = (data) => {
+            if (this.beforePostMessage) {
+                this.beforePostMessage()
+            }
+
+            // necessary for some reason, but may not be great for perf
+            data = JSON.parse(JSON.stringify(data))
+            data.timeSent = new Date();
+            postMessage(data, targetHref)
+
+            if (this.afterPostMessage) {
+                this.afterPostMessage();
+            }
+        }
         this._handlers = {}
     }
-    _handle(data){
+    _handle(e){
+        var data = e.data
         if (!data.isRoundTripMessage) {
             return;
         }
 
         var messageType = data.messageType;
         var handlers = this._handlers[messageType]
+
+        if (config.logReceivedInspectorMessages) {
+            var timeTaken = new Date().valueOf() - new Date(data.timeSent).valueOf()
+            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms")
+        }
+
         if (!handlers) {
             return;
         }
@@ -58,7 +101,7 @@ export default class RoundTripMessageWrapper {
         }
 
         handlers.forEach(function(handler){
-            if (data.isResponse) {
+            if (data.isResponse || !data.hasCallBack) {
                 handler.apply(null, [...data.args])
             } else {
                 handler.apply(null, [...data.args, callback])
@@ -78,18 +121,36 @@ export default class RoundTripMessageWrapper {
     send(){
         var args = Array.from(arguments)
         var messageType = args.shift();
-        var callback = args.pop();
+        var canceled = false;
+
+        var callback;
+        var hasCallBack = typeof _.last(args) === "function"
+        if (hasCallBack) {
+            callback = args.pop();
+        }
+
+
         var id = _.uniqueId()
 
-        this.on(messageType + id, function(){
-            callback.apply(null, arguments)
-        })
+        if (hasCallBack) {
+            this.on(messageType + id, function(){
+                if (canceled) {
+                    return
+                }
+                callback.apply(null, arguments)
+            })
+        }
 
         this._postMessage({
             isRoundTripMessage: true,
             messageType,
             id,
-            args
+            args,
+            hasCallBack
         })
+
+        return function cancel(){
+            canceled = true
+        }
     }
 }

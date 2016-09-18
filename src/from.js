@@ -35,6 +35,8 @@ if (!window.isSerializedDomPage){
 }
 
 window.resolveFrameWrapper = getResolveFrameWorker()
+window.resolveFrameWrapper.beforePostMessage = disableTracing
+window.resolveFrameWrapper.afterPostMessage = enableTracing
 
 $(document).ready(function(){
     if (window.isSerializedDomPage){
