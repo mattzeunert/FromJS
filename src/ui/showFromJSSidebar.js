@@ -42,11 +42,6 @@ export default function showFromJSSidebar(){
         </html>
     `)
 
-
-
-    window.resolveFrameWrapper.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
-
-
     var elementMarkerContainer = document.createElement("div")
     container.appendChild(elementMarkerContainer)
 
@@ -73,6 +68,8 @@ export default function showFromJSSidebar(){
     })
 
     var inspectedPage = new RoundTripMessageWrapper(sidebarIframe.contentWindow, "Inspected App/Sidebar")
+    inspectedPage.beforePostMessage = disableTracing
+    inspectedPage.afterPostMessage = enableTracing
 
     var currentSelectedElement = null;
     var currentPreviewedElement = null;
@@ -87,6 +84,30 @@ export default function showFromJSSidebar(){
         e.preventDefault();
         setCurrentSelectedElement(e.target)
     })
+
+    if (!isMobile()){
+        $("*").on("keydown.fromjs", function(e){
+            e.preventDefault(); // prevent people typing into input fields etc
+        })
+        $("*").on("mouseenter.fromjs", function(e){
+            if (!shouldHandle(e)) {return}
+            e.stopPropagation()
+            setCurrentPreviewedElement(e.target)
+        })
+        $("*").on("mouseleave.fromjs", function(e){
+            if (!shouldHandle(e)) {return}
+            setCurrentPreviewedElement(null)
+        })
+    }
+
+    if (isMobile()){
+        $("body").css("padding-right", "56vw")
+        $("body").css("padding-left", "1vw")
+        $("#fromjs-sidebar").css("width", "55vw")
+        $("body").addClass("fromjsIsMobile")
+    } else {
+        $("body").css("padding-right", "40vw")
+    }
 
     function setCurrentSelectedElement(el){
         currentSelectedElement = el
@@ -115,6 +136,8 @@ export default function showFromJSSidebar(){
     })
 
     inspectedPage.on("UICloseInspector", function(){
+        disableTracing();
+
         sidebarIframe.remove();
         container.remove();
         showShowFromJSInspectorButton();
@@ -158,11 +181,15 @@ export default function showFromJSSidebar(){
     }
 
     inspectedPage.on("whereDoesCharComeFrom", function(originId, characterIndex, callback){
+        disableTracing()
+
         var origin = getOriginById(originId)
         whereDoesCharComeFrom(origin, characterIndex, function(steps){
             steps = steps.map(serializeStep)
             callback(steps)
         })
+
+        enableTracing();
     })
 
     inspectedPage.on("getCodeFilePath", function(fileName, callback){
@@ -195,30 +222,10 @@ export default function showFromJSSidebar(){
         ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
     }
 
-    if (!isMobile()){
-        $("*").on("keydown.fromjs", function(e){
-            e.preventDefault(); // prevent people typing into input fields etc
-        })
-        $("*").on("mouseenter.fromjs", function(e){
-            if (!shouldHandle(e)) {return}
-            e.stopPropagation()
-            setCurrentPreviewedElement(e.target)
-        })
-        $("*").on("mouseleave.fromjs", function(e){
-            if (!shouldHandle(e)) {return}
-            setCurrentPreviewedElement(null)
-        })
-    }
 
-    if (isMobile()){
-        $("body").css("padding-right", "56vw")
-        $("body").css("padding-left", "1vw")
-        $("#fromjs-sidebar").css("width", "55vw")
-        $("body").addClass("fromjsIsMobile")
-    } else {
-        $("body").css("padding-right", "40vw")
-    }
 
+    window.resolveFrameWrapper.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
+    enableTracing();
 }
 
 export function showShowFromJSInspectorButton(){

@@ -3,7 +3,7 @@ import config from "./config"
 
 export default class RoundTripMessageWrapper {
     constructor(target, connectionName) {
-        var onMessage, postMessage, targetHref;
+        var onMessage, postMessage, targetHref, close;
 
         var userPassedInFunctions = target.onMessage && target.postMessage
         var targetIsWorkerGlobalScope = typeof DedicatedWorkerGlobalScope !== "undefined" &&
@@ -19,12 +19,18 @@ export default class RoundTripMessageWrapper {
             onMessage = function(callback){
                 target.addEventListener("message", callback)
             }
+            close = () => {
+                target.removeEventListener("message", this._handle)
+            }
             postMessage = function(){
                 target.postMessage.apply(null, arguments)
             }
         } else if (targetIsWebWorker){
             onMessage = function(callback){
                 target.onmessage = callback
+            }
+            close = function(){
+                target.onmessage = null
             }
             postMessage = function(){
                 target.postMessage.apply(target, arguments)
@@ -34,6 +40,9 @@ export default class RoundTripMessageWrapper {
             onMessage = function(callback){
                 window.addEventListener("message", callback)
             }
+            close = () => {
+                window.removeEventListener("message", this._handle)
+            }
             postMessage = function(){
                 target.postMessage.apply(target, arguments)
             }
@@ -42,18 +51,29 @@ export default class RoundTripMessageWrapper {
         }
 
         this.argsForDebugging = arguments
-        onMessage((e) => this._handle(e.data))
+        this._handle = this._handle.bind(this)
+        onMessage(this._handle)
         this._connectionName = connectionName
         this._targetHref = targetHref
-        this._postMessage = function(data){
+        this.close = close
+        this._postMessage = (data) => {
+            if (this.beforePostMessage) {
+                this.beforePostMessage()
+            }
+
             // necessary for some reason, but may not be great for perf
             data = JSON.parse(JSON.stringify(data))
             data.timeSent = new Date();
             postMessage(data, targetHref)
+
+            if (this.afterPostMessage) {
+                this.afterPostMessage();
+            }
         }
         this._handlers = {}
     }
-    _handle(data){
+    _handle(e){
+        var data = e.data
         if (!data.isRoundTripMessage) {
             return;
         }
