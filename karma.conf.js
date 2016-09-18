@@ -17,8 +17,18 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'src/**/*.spec.js'
+      'src/**/*.spec.js',
+      {
+          pattern: 'dist/**.js',
+          watched: true,
+          included: false,
+          served: true
+      }
     ],
+
+    proxies: {
+        '/fromjs-internals': '/base/dist',
+    },
 
 
     // list of files to exclude

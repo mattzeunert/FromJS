@@ -1,6 +1,6 @@
 import RoundTripMessageWrapper from "./RoundTripMessageWrapper"
 
-fdescribe("RoundTripMessageWrapper", function(){
+describe("RoundTripMessageWrapper", function(){
     it("sth", function(done){
         var onMessageFn = null;
         var onMessage = function(fn){

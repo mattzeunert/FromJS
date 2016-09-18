@@ -16,6 +16,7 @@ import initSerializedDataPage from "./ui/initSerializedDataPage"
 import {initializeSidebarContent, showShowFromJSInspectorButton} from "./ui/showFromJSSidebar"
 import $ from "jquery"
 import isMobile from "./isMobile"
+import getResolveFrameWorker from "./getResolveFrameWorker"
 
 setTimeout(function(){
     // hook for Chrome Extension to proceed when FromJS has been set up
@@ -33,9 +34,7 @@ if (!window.isSerializedDomPage){
     enableTracing()
 }
 
-import RoundTripMessageWrapper from "./RoundTripMessageWrapper"
-window.resolveFrameWorker = new Worker("/fromjs-internals/resolveFrameWorker.js")
-window.resolveFrameWrapper = new RoundTripMessageWrapper(window.resolveFrameWorker)
+window.resolveFrameWrapper = getResolveFrameWorker()
 
 $(document).ready(function(){
     if (window.isSerializedDomPage){
