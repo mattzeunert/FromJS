@@ -7,11 +7,9 @@ fdescribe("RoundTripMessageWrapper", function(){
             onMessageFn = fn
         }
         var postMessage = function(data){
-            console.log("postMessage to side 2")
             onMessageFn2.call(null, {data})
         }
         var postMessage2 = function(data){
-            console.log("postMessage to side 1", arguments)
             onMessageFn.call(null, {data})
         }
         var onMessageFn2 = null;

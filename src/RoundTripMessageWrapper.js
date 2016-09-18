@@ -2,14 +2,38 @@ import _ from "underscore"
 
 export default class RoundTripMessageWrapper {
     constructor(maybeTarget, maybePostMessage) {
-        if (typeof maybeTarget === "function") {
-            var onMessage = maybeTarget;
-            onMessage((e) => this._handle(e.data))
+        var onMessage, postMessage;
 
-            this._postMessage = maybePostMessage
+        var userPassedInFunctions = typeof maybeTarget === "function";
+        var targetIsWorkerGlobalScope = typeof DedicatedWorkerGlobalScope !== "undefined" &&
+            maybeTarget instanceof DedicatedWorkerGlobalScope;
+        var targetIsWebWorker = typeof Worker !== "undefined" && maybeTarget instanceof Worker
+        if (userPassedInFunctions) {
+            onMessage = maybeTarget;
+            postMessage = maybePostMessage
+        } else if (targetIsWorkerGlobalScope) {
+            var webworkerGlobalScope = maybeTarget
+            onMessage = function(callback){
+                webworkerGlobalScope.addEventListener("message", callback)
+            }
+            postMessage = function(){
+                webworkerGlobalScope.postMessage.apply(null, arguments)
+            }
+        } else if (targetIsWebWorker){
+            var target = maybeTarget;
+
+            onMessage = function(callback){
+                target.onmessage = callback
+            }
+            postMessage = function(){
+                target.postMessage.apply(target, arguments)
+            }
         } else {
-
+            throw Error("Unknown RoundTripMessageWrapper target")
         }
+
+        onMessage((e) => this._handle(e.data))
+        this._postMessage = postMessage
         this._handlers = {}
     }
     _handle(data){

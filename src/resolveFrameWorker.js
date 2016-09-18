@@ -1,16 +1,7 @@
 import resolveFrame, {getCodeFilePath, addFilesToCache, getSourceFileContent} from "./resolve-frame"
 import RoundTripMessageWrapper from "./RoundTripMessageWrapper"
 
-var callback
-onmessage = function(){
-    callback.apply(this, arguments)
-}
-function setHandler(cb){
-    callback = cb
-}
-var wrapper = new RoundTripMessageWrapper(setHandler, function(){
-    postMessage.apply(null, arguments)
-})
+var wrapper = new RoundTripMessageWrapper(self)
 
 wrapper.on("resolveFrame", function(frameString, callback){
     resolveFrame(frameString, function(err, res){

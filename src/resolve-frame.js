@@ -26,9 +26,7 @@ function resFrame(frame, callback){
 var frameStringsCurrentlyBeingResolved = {}
 
 export function addFilesToCache(files){
-    console.log("ADD FILES TO CACHE", files)
     gps.sourceCache = _.extend(gps.sourceCache, files)
-    console.log("SOURCE CACHE IS", gps.sourceCache)
 }
 
 function resolveFrame(frameString, callback){
@@ -53,8 +51,6 @@ function resolveFrame(frameString, callback){
             frameStringsCurrentlyBeingResolved[frameString].then(done)
         } else {
             frameStringsCurrentlyBeingResolved[frameString] = new Promise(function(resolve, reject){
-                console.log("SOURCE CACHE", gps.sourceCache)
-
                 gps.pinpoint(frameObject).then(function(newFrame){
                     resFrame(newFrame, function(err, frame){
                         resolve([err, frame])
