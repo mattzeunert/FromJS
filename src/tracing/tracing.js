@@ -9,14 +9,15 @@ import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
 import trackStringIfNotTracked from "./trackStringIfNotTracked"
 
+window.fromJSDynamicFiles = {}
+window.fromJSDynamicFileOrigins = {}
+
+
+var tracingEnabled = false;
 
 // this is just doing both window.sth and var sth because I've been inconsistent in the past, not because it's good...
 // should be easy ish to change, however some FromJS functions run while
 // tracing is enabled, so they use window.nativeSth to access it
-window.fromJSDynamicFiles = {}
-window.fromJSDynamicFileOrigins = {}
-var tracingEnabled = false;
-
 var originalCreateElement = document.createElement
 window.originalCreateElement = originalCreateElement
 

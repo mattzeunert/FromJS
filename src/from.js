@@ -16,6 +16,7 @@ import initSerializedDataPage from "./ui/initSerializedDataPage"
 import {initializeSidebarContent, showShowFromJSInspectorButton} from "./ui/showFromJSSidebar"
 import $ from "jquery"
 import isMobile from "./isMobile"
+import getResolveFrameWorker from "./getResolveFrameWorker"
 
 setTimeout(function(){
     // hook for Chrome Extension to proceed when FromJS has been set up
@@ -32,6 +33,8 @@ addBabelFunctionsToGlobalObject();
 if (!window.isSerializedDomPage){
     enableTracing()
 }
+
+window.resolveFrameWrapper = getResolveFrameWorker()
 
 $(document).ready(function(){
     if (window.isSerializedDomPage){

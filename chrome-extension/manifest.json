@@ -23,5 +23,11 @@
       "https://*/*",
       "file://*/*"
   ],
-  "web_accessible_resources": ["from.js", "injected.js", "fromjs.css"]
+  "web_accessible_resources": [
+      "from.js",
+      "injected.js",
+      "fromjs.css",
+      "inspector.js",
+      "resolveFrameWorker.js"
+  ]
 }
