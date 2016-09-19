@@ -910,7 +910,6 @@ class ElementOriginPath extends React.Component {
             nextState.rootOrigin === this.state.rootOrigin &&
             nextProps.el.__fromJSElementId === this.props.el.__fromJSElementId &&
             forceUpdate !== true) {
-                console.log("not bothering with update")
             return
         }
 
@@ -1066,9 +1065,6 @@ class ElementOriginPath extends React.Component {
         return null;
     }
     getOriginPath(props, state, characterIndex, callback){
-
-        console.info("gettning origin path at char", characterIndex)
-
         if (characterIndex === null){
             // characterIndex should never be null, but right now it is sometimes
             callback(null)

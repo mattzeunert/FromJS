@@ -223,7 +223,7 @@ function goUp(step, callback){
                 characterIndex: step.characterIndex + step.originObject.inputValuesCharacterIndex[0]
             }
         } else {
-            throw "need to handlesss"
+            throw "need to handle"
         }
     }
     else if (step.originObject.action === "Match Call"){
@@ -233,7 +233,7 @@ function goUp(step, callback){
                 characterIndex: step.characterIndex
             }
         } else {
-            throw "not handled mathc call"
+            throw "not handled match call"
         }
     }
     else if (step.originObject.action === "Read Element innerHTML" ||

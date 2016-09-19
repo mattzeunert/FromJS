@@ -63,10 +63,6 @@ export default function showFromJSSidebar(){
 
     disableEventListeners()
 
-    window.addEventListener("message", function(e){
-        console.log("inspected page has message", e.data)
-    })
-
     var inspectedPage = new RoundTripMessageWrapper(sidebarIframe.contentWindow, "Inspected App/Sidebar")
     inspectedPage.beforePostMessage = disableTracing
     inspectedPage.afterPostMessage = enableTracing
