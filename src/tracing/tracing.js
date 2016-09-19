@@ -242,7 +242,7 @@ export function enableTracing(){
         addElOrigin(this, "attribute_" + attrName.toString(), {
             action: "setAttribute",
             inputValues: [attrName, value],
-            value: "not gotten around to making this work yet"
+            value: " " + attrName.toString() + "='" + value.toString() + "'"
         })
         return nativeSetAttribute.apply(this, arguments)
     }
