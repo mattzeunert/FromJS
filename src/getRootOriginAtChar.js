@@ -46,11 +46,11 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
             if (attrOrigin === undefined) {
                 // might mean we don't trace it, or we can't trace it, e.g. when
                 // Chrome extensions modify the DOM
-                attrOrigin = {
+                attrOrigin = new Origin({
                     action: "Unknown Origin",
                     value: attr.textContent,
                     inputValues: []
-                }
+                })
             }
             vm.appendString(attrStr, attrOrigin, 0)
         }
