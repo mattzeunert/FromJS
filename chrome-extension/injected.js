@@ -71,6 +71,10 @@ function appendScriptsOneAfterAnother(scripts, container, done){
             script.onload = function(){
                 next();
             }
+            script.onerror = function(){
+                console.warn("Error loading script", script)
+                next();
+            }
             container.appendChild(script)
         } else {
             container.appendChild(script)

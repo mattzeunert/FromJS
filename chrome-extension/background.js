@@ -40,8 +40,9 @@ function disableInTab(tabId){
       return tabId !== id
     })
 
-    var listener = listenersByTabId[tabId]
-    chrome.webRequest.onBeforeRequest.removeListener(listener)
+    var listeners = listenersByTabId[tabId]
+    chrome.webRequest.onBeforeRequest.removeListener(listeners.onBeforeRequest)
+    chrome.webRequest.onHeadersReceived.removeListener(listeners.onHeadersReceived)
     delete listenersByTabId[tabId]
 }
 
@@ -127,9 +128,28 @@ var sourceMaps = {}
 var listenersByTabId = {}
 
 function initializeTab(tabId){
-    var listener = makeTabListener()
-    listenersByTabId[tabId] = listener
-    chrome.webRequest.onBeforeRequest.addListener(listener, {urls: ["<all_urls>"], tabId: tabId}, ["blocking"]);
+    var onBeforeRequest = makeTabListener()
+    function onHeadersReceived(details){
+        if (details.type !== "main_frame") {return}
+
+        for (var i=0; i<details.responseHeaders.length; i++) {
+            if (details.responseHeaders[i].name === "Content-Security-Policy") {
+                details.responseHeaders[i].value = ""
+            }
+        }
+
+        return {
+            responseHeaders: details.responseHeaders
+        }
+    }
+
+    listenersByTabId[tabId] = {
+        onBeforeRequest,
+        onHeadersReceived
+    }
+
+    chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ["<all_urls>"], tabId: tabId}, ["blocking"]);
+    chrome.webRequest.onHeadersReceived.addListener(onHeadersReceived, {urls: ["<all_urls>"], tabId: tabId}, ["blocking", "responseHeaders"])
 }
 
 
