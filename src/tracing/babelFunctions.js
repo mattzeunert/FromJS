@@ -37,6 +37,10 @@ var babelFunctions = {
         return stringTraceUseValue(thing)
     },
     f__add(a, b){
+        if (typeof a === "number" && typeof b === "number") {
+            return a + b;
+        }
+
         if (a == null){
             a = ""
         }

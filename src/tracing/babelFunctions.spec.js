@@ -9,5 +9,9 @@ describe("babelFunctions", function(){
             var res = babelFunctions.f__add(obj, "sth")
             expect(res.value).toBe("objsth")
         })
+        it("Doesn't break adding two numbers together", function(){
+            var res = babelFunctions.f__add(1,2)
+            expect(res).toBe(3)
+        })
     })
 })
