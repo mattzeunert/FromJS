@@ -22,19 +22,40 @@ function getScriptElements(html){
 window.onFromJSReady = function(){
     console.log("Loading page from FromJS")
     window.fromJSInitialPageHtml = pageHtml;
-    var bodyContent = pageHtml.split(/<body.*?>/)[1].split("</body>")[0]
-    var headContent = pageHtml.split(/<head.*?>/)[1].split("</head>")[0]
+    var bodyContent, headContent;
 
-    var headScripts = getScriptElements(headContent);
-    var bodyScripts = getScriptElements(bodyContent);
-    document.head.innerHTML = headContent
-    appendScriptsOneAfterAnother(headScripts, document.head, function(){
+    var bodyStartRegExp = /<body.*>/
+    var headStartRegExp = /<head.*?>/
+    var hasHead = headStartRegExp.test(pageHtml)
+
+    if (hasHead) {
+        bodyContent = pageHtml.split(bodyStartRegExp)[1].split("</body>")[0]
+        headContent = pageHtml.split(headStartRegExp)[1].split("</head>")[0]
+    } else {
+        // Presumably this page has neither a head nor a body tag,
+        // so just put everything into the body
+        bodyContent = pageHtml
+    }
+
+    if (hasHead){
+        document.head.innerHTML = headContent
+        var headScripts = getScriptElements(headContent);
+        appendScriptsOneAfterAnother(headScripts, document.head, function(){
+            loadBody()
+        })
+    } else {
+        loadBody()
+    }
+
+    function loadBody(){
+        var bodyScripts = getScriptElements(bodyContent);
+
         document.body.innerHTML = bodyContent
         makeSureInitialHTMLHasBeenProcessed()
         appendScriptsOneAfterAnother(bodyScripts, document.body, function(){
             simulateOnLoad()
         })
-    })
+    }
 }
 
 // Normally this file is loaded before fromJS is ready, but sometimes not

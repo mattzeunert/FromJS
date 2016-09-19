@@ -29,12 +29,19 @@ export default function processElementsAvailableOnInitialLoad(){
     fromJSDynamicFiles[htmlFilename] = window.fromJSInitialPageHtml
     fromJSDynamicFiles[htmlFilename + ".dontprocess"] = window.fromJSInitialPageHtml
 
-    // replace everythign before body tag
-    var bodyContentAndAfter = originalHtml.substr(originalHtml.search(/\<body.*\>/))
-    // remove body tag
-    bodyContentAndAfter = bodyContentAndAfter.substr(originalHtml.match(/\<body.*?\>/)[0].length)
-    // remove closing body tag
-    var bodyContent = bodyContentAndAfter.substr(0, bodyContentAndAfter.indexOf("</body>"))
+    var originalHtmlHasBodyTag = /<body.*>/.test(originalHtml)
+    var bodyContentAndAfter, bodyContent;
+    if (originalHtmlHasBodyTag) {
+        // replace everything before body tag
+        bodyContentAndAfter = originalHtml.substr(originalHtml.search(/<body.*>/))
+        // remove body tag
+        bodyContentAndAfter = bodyContentAndAfter.substr(originalHtml.match(/<body.*?>/)[0].length)
+        // remove closing body tag
+        bodyContent = bodyContentAndAfter.substr(0, bodyContentAndAfter.indexOf("</body>"))
+    } else {
+        bodyContentAndAfter = originalHtml
+        bodyContent = originalHtml
+    }
 
     originalHtml = {
         value: originalHtml,
