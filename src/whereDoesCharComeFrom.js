@@ -242,10 +242,12 @@ function goUp(step, callback){
         // var el = $("*").filter(function(){return this.innerHTML == step.originObject.value})[0]
         var el = step.originObject.inputValues[0]
 
+        var charIndexIsInInnerHTML = step.originObject.action === "Read Element innerHTML"
+
         // using an el reference is fragile, because it will create the current
         // contents of the element rather than a snapshot from when the value was read,
         // but oh well
-        var origin = getRootOriginAtChar(el, step.characterIndex, true);
+        var origin = getRootOriginAtChar(el, step.characterIndex, charIndexIsInInnerHTML);
 
         callback({
             originObject: origin.origin,
