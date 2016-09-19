@@ -19,7 +19,7 @@ var twoQuoteSignsRegex = /^['"]{2}/
 // "<input type='checkbox' checked=''>"
 // essentially this function serializes the elements content and compares it to the
 // assigned value
-export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName, initialExtraCharsValue, contentEndIndex){
+export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName, initialExtraCharsValue, contentEndIndex, nodesToIgnore){
     runFunctionWithTracingDisabled(function(){
         var serializedHtml = el.innerHTML
         var forDebuggingProcessedHtml = ""
@@ -31,6 +31,9 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
         var assignedString = assignedInnerHTML.value ? assignedInnerHTML.value : assignedInnerHTML; // somehow  getting weird non-string, non fromjs-string values
         if (contentEndIndex === 0) {
             contentEndIndex = assignedString.length
+        }
+        if (nodesToIgnore === undefined) {
+            nodesToIgnore = [];
         }
 
         var error = Error() // used to get stack trace, rather than capturing a new one every time
@@ -127,7 +130,13 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 children: children
             });
 
-            [].slice.call(el.childNodes).forEach(function(child){
+            var childNodesToProcess = [].slice.call(el.childNodes);
+            childNodesToProcess = _.filter(childNodesToProcess, function(childNode){
+                var shouldIgnore = nodesToIgnore.indexOf(childNode) !== -1
+                return !shouldIgnore
+            })
+
+            childNodesToProcess.forEach(function(child){
                 var isTextNode = child.nodeType === 3
                 var isCommentNode = child.nodeType === 8
                 var isElementNode = child.nodeType === 1

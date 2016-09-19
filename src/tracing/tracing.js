@@ -69,6 +69,8 @@ var nativeHTMLInputElementValueDescriptor = Object.getOwnPropertyDescriptor(HTML
 
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
 
+var nativeHTMLElementInsertAdjacentHTML = HTMLElement.prototype.insertAdjacentHTML
+
 export function runFunctionWithTracingDisabled(fn){
     var tracingEnabledAtStart = tracingEnabled;
     if (tracingEnabledAtStart) {
@@ -483,6 +485,23 @@ export function enableTracing(){
         return clone
     }
 
+    HTMLElement.prototype.insertAdjacentHTML = function(position, html){
+        position = position.toString()
+        if (position !== "afterBegin") {
+            console.log("Not tracing insertAdjacentHTML at", position)
+            return nativeHTMLElementInsertAdjacentHTML.apply(this, arguments)
+        }
+
+        var el = this;
+
+        var childNodesBefore = Array.from(el.childNodes)
+        var ret = nativeHTMLElementInsertAdjacentHTML.apply(el, arguments)
+
+        mapInnerHTMLAssignment(el, html, "InsertAdjacentHTML", undefined, undefined, childNodesBefore)
+
+        return ret
+    }
+
     Object.defineProperty(window, "localStorage", {
         get: function(){
             return new Proxy(nativeLocalStorage, {
@@ -722,6 +741,8 @@ export function disableTracing(){
     Node.prototype.cloneNode = nativeCloneNode
     Node.prototype.addEventListener =  nativeAddEventListener
     Node.prototype.removeEventListener = nativeRemoveEventListener
+
+    HTMLElement.prototype.insertAdjacentHTML = nativeHTMLElementInsertAdjacentHTML
 
     Object.prototype.toString = nativeObjectToString
 

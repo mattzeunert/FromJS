@@ -15,6 +15,16 @@ export default function addElOrigin(el, what, originInfo){
             el.__elOrigin.contents = []
         }
         el.__elOrigin.contents.push(originInfo.child)
+    } else if (what === "prependChild") {
+        if (!el.__elOrigin.contents) {
+            el.__elOrigin.contents = []
+        }
+
+        el.__elOrigin.contents.push(originInfo.child)
+    } else if (what === "prependChildren") {
+        originInfo.children.forEach((child) => {
+            addElOrigin(el, "prependChild", {child})
+        })
     } else {
         var origin = new Origin(originInfo)
         el.__elOrigin[what] = origin;

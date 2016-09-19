@@ -71,7 +71,8 @@ function goUp(step, callback){
             characterIndex: newCharIndex
         }
     } else if (step.originObject.action === "Assign InnerHTML" ||
-        step.originObject.action === "Initial Body HTML") {
+        step.originObject.action === "Initial Body HTML" ||
+        step.originObject.action === "InsertAdjacentHTML") {
         var offsetAtChar = 0;
         if (step.originObject.offsetAtCharIndex){
             var index = step.characterIndex - step.originObject.inputValuesCharacterIndex[0]

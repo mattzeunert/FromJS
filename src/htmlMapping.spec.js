@@ -436,4 +436,24 @@ describe("HTML Mapping", function(){
         })
     })
 
+    it("Supports insertAdjacentHTML with positin 'afterBegin'", function(done){
+        var el = document.createElement("div");
+        el.innerHTML = " World";
+        el.insertAdjacentHTML("afterBegin", "Hello")
+
+        disableTracing()
+        expect(el.innerHTML).toBe('Hello World')
+
+        // <div>Hello [W]orld</div>
+        var originAndChar = getRootOriginAtChar(el, 11)
+
+        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
+            var value = steps[1].originObject.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value).toBe(' World')
+            expect(value[characterIndex]).toBe("W")
+            done()
+        })
+    })
+
 })
