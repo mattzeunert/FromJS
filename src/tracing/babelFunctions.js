@@ -41,9 +41,6 @@ var babelFunctions = {
         if (!b.isStringTraceString && typeof b === "string"){
             b = untrackedString(b);
         }
-        if (!a.isStringTraceString) {
-            return a + b;// not a string operation i think, could still be inferred to a stirng tho
-        }
 
         var newValue = a.toString() + b.toString();
         return makeTraceObject({
