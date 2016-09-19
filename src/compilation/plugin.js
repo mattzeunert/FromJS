@@ -4,7 +4,8 @@ module.exports = function(babel) {
   return {
     visitor: {
       AssignmentExpression(path){
-          if (path.node.ignore){return}
+        if (path.node.ignore){return}
+
         if (path.node.operator === "+=") {
             var assignmentExpression = babel.types.assignmentExpression(
                 "=",
@@ -18,6 +19,7 @@ module.exports = function(babel) {
 
             path.replaceWith(assignmentExpression)
         }
+
         if (path.node.operator === "=" && path.node.left.type === "MemberExpression") {
             var property;
             if (path.node.left.computed === true) {
@@ -219,6 +221,9 @@ module.exports = function(babel) {
 
           var replacements = {
               "+": "f__add",
+              "-": "f__subtract",
+              "/": "f__divide",
+              "*": "f__multiply",
               "!==": "f__notTripleEqual",
               "===": "f__tripleEqual",
               "!=": "f__notDoubleEqual",

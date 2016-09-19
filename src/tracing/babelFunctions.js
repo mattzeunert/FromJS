@@ -7,6 +7,14 @@ import untrackedPropertyName from "./untrackedPropertyName"
 
 var cachedValue;
 
+function ensureIsNumber(value){
+    if (typeof value === "number") {
+        return value
+    }
+
+    return parseFloat(value.toString())
+}
+
 var babelFunctions = {
     f__StringLiteral(value){
         return makeTraceObject({
@@ -51,6 +59,15 @@ var babelFunctions = {
                 inputValues: [a, b]
             })
         })
+    },
+    f__divide(a,b){
+        return ensureIsNumber(a) / ensureIsNumber(b);
+    },
+    f__multiply(a,b){
+        return ensureIsNumber(a) * ensureIsNumber(b);
+    },
+    f__subtract(a,b){
+        return ensureIsNumber(a) - ensureIsNumber(b);
     },
     f__notTripleEqual(a,b){
         if (a && a.isStringTraceString) {

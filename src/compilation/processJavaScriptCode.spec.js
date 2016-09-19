@@ -25,6 +25,24 @@ describe("processJavaScriptCode", function(){
         expect(eval(code)).toBe(false)
     })
 
+    it("Replaces division with f__divide", function(){
+        var code = "1/2";
+        code = processJavaScriptCode(code).code
+        expect(code).toBe("f__divide(1, 2);")
+    })
+
+    it("Replaces multiplication with f__multiply", function(){
+        var code = "1*2";
+        code = processJavaScriptCode(code).code
+        expect(code).toBe("f__multiply(1, 2);")
+    })
+
+    it("Replaces subtraction with f__subtract", function(){
+        var code = "1-2";
+        code = processJavaScriptCode(code).code
+        expect(code).toBe("f__subtract(1, 2);")
+    })
+
     it("Doesn't break normal OR expressions", function(){
         var code = "var a = {} || false;a"
         code = processJavaScriptCode(code).code
