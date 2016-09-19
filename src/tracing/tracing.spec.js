@@ -158,6 +158,12 @@ describe("Tracing", function(){
         expect(joined.value).toBe("Hello-Hello")
     })
 
+    it("Array.join works with arrays", function(){
+        var array = [[1,2],[3,4]];
+        var joined = array.join("x");
+        expect(joined.value).toBe("1,2x3,4");
+    })
+
     it("Array.indexOf works with tracked strings", function(){
         var str = makeTraceObject({
             value: "Hello",

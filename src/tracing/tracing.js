@@ -332,7 +332,7 @@ export function enableTracing(){
     Array.prototype.join = function(separator){
         var separatorArgumentIsUndefined = separator === undefined;
         if (separatorArgumentIsUndefined){
-            separator = "";
+            separator = ",";
         }
         var stringifiedItems = this.map(function(item){
             var stringifiedItem = item;
