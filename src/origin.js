@@ -133,6 +133,9 @@ Origin.prototype.serialize = function(){
         inputValue = {...inputValue}
         // prevent tree from sprawling arbitrarily deep
         inputValue.inputValues = [];
+        // Some input values can be elements, (which is wrong and should change at some point)
+        // but for now avoid passing elements on to iframe.
+        inputValue.__elOrigin = undefined
         return inputValue
     })
 
