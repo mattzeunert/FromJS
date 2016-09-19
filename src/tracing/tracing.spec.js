@@ -172,6 +172,9 @@ describe("Tracing", function(){
         var array = [[1,2],[3,4]];
         var joined = array.join("x");
         expect(joined.value).toBe("1,2x3,4");
+
+        // When the numbers are converted to strings that should also be traced
+        expect(joined.origin.inputValues.length).toBe(3)
     })
 
     it("Array.indexOf works with tracked strings", function(){

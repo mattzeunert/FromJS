@@ -351,6 +351,7 @@ export function enableTracing(){
             }
             return stringifiedItem
         })
+
         var trackedInputItems = this.map(trackStringIfNotTracked)
         var trackedSeparator = trackStringIfNotTracked(separator)
         var inputValues = [trackedSeparator].concat(trackedInputItems)
@@ -358,21 +359,24 @@ export function enableTracing(){
         // twice if there is an object with a toString function which returns
         // a FromJSString (an object) which needs to be converted to a native string
         var joinedValue = nativeArrayJoin.apply(stringifiedItems, [separator])
-        if (separatorArgumentIsUndefined){
-            // just bail out, I think there are issues with unprocessed code trying to
+
+        try {
+            var ret = makeTraceObject({
+                value: joinedValue,
+                origin: new Origin({
+                    action: "Array Join Call",
+                    inputValues: inputValues,
+                    value: joinedValue
+                })
+            })
+        } catch (e){
+            // I think there are issues with unprocessed code trying to
             // use array join with nested arrays and stuff, which just
             // breaks everything and gives a "Cannot convert object to primitive value"
             // error
-            return joinedValue;
+            return joinedValue
         }
-        var ret = makeTraceObject({
-            value: joinedValue,
-            origin: new Origin({
-                action: "Array Join Call",
-                inputValues: inputValues,
-                value: joinedValue
-            })
-        })
+
         return ret
     }
 
