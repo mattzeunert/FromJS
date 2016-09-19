@@ -57,6 +57,39 @@ describe("whereDoesCharComeFrom", function(){
         })
     })
 
+    it("Can traverse setAttribute calls", function(){
+        var origin = {
+            action: "setAttribute",
+            value: " color='red'",
+            inputValues: [
+                {
+                    action: "String Literal",
+                    value: "color",
+                    inputValues: []
+                },
+                {
+                    action: "String Literal",
+                    value: "red",
+                    inputValues: []
+                }
+            ]
+        }
+
+        // [c]olor='red'
+        whereDoesCharComeFrom(origin, 1, function(steps){
+            var lastStep = _.last(steps)
+            expect(lastStep.characterIndex).toBe(0)
+            expect(lastStep.originObject.value).toBe("color")
+        })
+
+        // color='r[e]d'
+        whereDoesCharComeFrom(origin, 9, function(steps){
+            var lastStep = _.last(steps)
+            expect(lastStep.characterIndex).toBe(1)
+            expect(lastStep.originObject.value).toBe("red")
+        })
+    })
+
     it("Can traverse toLowerCase calls", function(){
         var origin = {
             action: "ToLowerCase Call",
