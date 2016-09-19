@@ -15,11 +15,13 @@ window.fromJSDynamicFileOrigins = {}
 
 var tracingEnabled = false;
 
-// this is just doing both window.sth and var sth because I've been inconsistent in the past, not because it's good...
+// This code does both window.sth and var sth because I've been inconsistent in the past, not because it's good...
 // should be easy ish to change, however some FromJS functions run while
 // tracing is enabled, so they use window.nativeSth to access it
 var originalCreateElement = document.createElement
 window.originalCreateElement = originalCreateElement
+
+var nativeCreateElementNS = document.createElementNS
 
 var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild");
 window.originalAppendChildPropertyDescriptor = appendChildPropertyDescriptor
@@ -105,11 +107,7 @@ export function enableTracing(){
     }
     tracingEnabled = true
 
-
-
-    document.createElement = function(tagName){
-
-        var el = originalCreateElement.call(this, tagName)
+    function addOriginInfoToCreatedElement(el, tagName){
         addElOrigin(el, "openingTagStart", {
             action: "createElement",
             inputValues: [tagName],
@@ -125,7 +123,18 @@ export function enableTracing(){
             inputValues: [tagName],
             value: el.tagName
         })
+    }
+
+    document.createElement = function(tagName){
+        var el = originalCreateElement.call(this, tagName)
+        addOriginInfoToCreatedElement(el, tagName)
         return el;
+    }
+
+    document.createElementNS = function(namespace, tagName){
+        var el = nativeCreateElementNS.call(this, namespace, tagName)
+        addOriginInfoToCreatedElement(el, tagName)
+        return el
     }
 
     document.createTextNode = function(text){
@@ -717,6 +726,8 @@ export function disableTracing(){
     }
     window.JSON.parse = window.nativeJSONParse
     document.createElement = window.originalCreateElement
+    document.createElementNS = nativeCreateElementNS
+
     Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
     Element.prototype.setAttribute = window.nativeSetAttribute
     Object.defineProperty(Element.prototype, "innerHTML", nativeInnerHTMLDescriptor)

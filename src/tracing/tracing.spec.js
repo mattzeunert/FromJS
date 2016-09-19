@@ -18,6 +18,16 @@ describe("Tracing", function(){
         expect(html.origin.action).toBe("Read Element outerHTML")
     })
 
+    it("Tracks the opening/closing tag origins when calling createElement", function(){
+        var el = document.createElement("div")
+        expect(el.__elOrigin.openingTagStart).not.toBe(undefined)
+    })
+
+    it("Tracks the opening/closing tag origins when calling createElementNS", function(){
+        var el = document.createElementNS("http://www.w3.org/1999/xhtml", "div")
+        expect(el.__elOrigin.openingTagStart).not.toBe(undefined)
+    })
+
     it("Tracks data read using localStorage.getItem", function(){
         localStorage.setItem("test", "hello")
         var value = localStorage.getItem("test")
