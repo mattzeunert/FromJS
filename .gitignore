@@ -3,3 +3,5 @@
 /chrome-extension/dist
 /todomvc-master
 /react-compiled
+.sass-cache
+_site

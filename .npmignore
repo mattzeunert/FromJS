@@ -13,3 +13,5 @@
 /karma.conf.js
 /scripts
 /sm-test
+.sass-cache
+_site
