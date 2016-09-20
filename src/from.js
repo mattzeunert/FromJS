@@ -30,9 +30,9 @@ window.saveAndSerializeDOMState = saveAndSerializeDOMState
 
 addBabelFunctionsToGlobalObject();
 
-if (!window.isSerializedDomPage){
-    enableTracing()
-}
+window.fromJSEnableTracing = enableTracing
+window.fromJSDisableTracing = disableTracing
+enableTracing()
 
 window.resolveFrameWrapper = getResolveFrameWorker()
 window.resolveFrameWrapper.beforePostMessage = disableTracing

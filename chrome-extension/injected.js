@@ -13,7 +13,9 @@ function getScriptElements(html){
             scriptEl.setAttribute(attr.name, attr.textContent)
         })
         if (tag.content !== "") {
+            window.fromJSEnableTracing();
             scriptEl.text = tag.content // assignment will be processed by fromjs
+            window.fromJSDisableTracing();
         }
         return scriptEl
     })
@@ -37,19 +39,21 @@ window.onFromJSReady = function(){
         bodyContent = pageHtml
     }
 
+    var bodyScripts = getScriptElements(bodyContent);
+
     if (hasHead){
         document.head.innerHTML = headContent
         var headScripts = getScriptElements(headContent);
+        window.fromJSEnableTracing() // be careful calling global functions like regexp.exec, array.join etc after this
         appendScriptsOneAfterAnother(headScripts, document.head, function(){
             loadBody()
         })
     } else {
+        window.fromJSEnableTracing()
         loadBody()
     }
 
     function loadBody(){
-        var bodyScripts = getScriptElements(bodyContent);
-
         document.body.innerHTML = bodyContent
         makeSureInitialHTMLHasBeenProcessed()
         appendScriptsOneAfterAnother(bodyScripts, document.body, function(){

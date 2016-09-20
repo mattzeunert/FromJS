@@ -52,7 +52,7 @@ function handleRequest(request, response){
             if (endsWith(request.url, ".html")){
                 var originalHtmlScriptTag = "<script id='fromjs-initial-html' html-filename='" + request.url + "' type='text/template'>" + encodeURIComponent(fileContents) + "</script>"
                 var fromJSUrl = "/fromjs-internals/from.js"
-                var scriptTagHtml = '<script src="' + fromJSUrl + '" charset="utf-8"></script>'
+                var scriptTagHtml = '<script src="' + fromJSUrl + '" charset="utf-8"></script><script>window.fromJSEnableTracing()</script>'
                 var linkTagHtml = '<link rel="stylesheet" href="' + "/fromjs-internals/fromjs.css" + '"/>'
                 var insertedHtml = originalHtmlScriptTag + scriptTagHtml + linkTagHtml
 
