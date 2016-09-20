@@ -78,6 +78,8 @@ var nativeHTMLElementInsertAdjacentHTML = HTMLElement.prototype.insertAdjacentHT
 var nativeHTMLElementStyleDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "style")
 var nativeSVGElementStyleDescriptor = Object.getOwnPropertyDescriptor(SVGElement.prototype, "style")
 
+var nativeNumberToString = Number.prototype.toString
+
 export function runFunctionWithTracingDisabled(fn){
     var tracingEnabledAtStart = tracingEnabled;
     if (tracingEnabledAtStart) {
@@ -444,6 +446,23 @@ export function enableTracing(){
             return nativeHTMLScriptElementTextDescriptor.set.apply(this, [text])
         }
     })
+
+    Number.prototype.toString = function(radix){
+        var str = nativeNumberToString.apply(this, arguments)
+        // makeTraceObject uses map which stringifies numbers,
+        // so disable tracing to prevent infinite recursion
+        disableTracing()
+        var ret = makeTraceObject({
+            value: str,
+            origin: new Origin({
+                value: str,
+                action: "Number ToString",
+                inputValues: [this]
+            })
+        })
+        enableTracing()
+        return ret;
+    }
 
     Object.defineProperty(Element.prototype, "outerHTML", {
         get: function(){
@@ -813,6 +832,7 @@ export function disableTracing(){
     HTMLElement.prototype.insertAdjacentHTML = nativeHTMLElementInsertAdjacentHTML
 
     Object.prototype.toString = nativeObjectToString
+    Number.prototype.toString = nativeNumberToString
 
     tracingEnabled = false;
 }

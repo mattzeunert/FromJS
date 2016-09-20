@@ -311,4 +311,9 @@ describe("Tracing", function(){
         expect(typeof str).not.toBe("string")
         expect(str.value).toBe("Hi")
     })
+
+    it("Traces when a number is converted to a string", function(){
+        var num = (4).toString()
+        expect(num.origin.action).toBe("Number ToString")
+    })
 })
