@@ -447,6 +447,16 @@ export function enableTracing(){
     })
 
     Number.prototype.toString = function trackedNumberToString(radix){
+        if (Math.random() > .999) {
+            if (!window.stage) {
+                window.stage = 1
+                console.profile()
+            }
+            else if (window.stage) {
+                console.profileEnd()
+                debugger
+            }
+        }
         var str = nativeNumberToString.apply(this, arguments)
         // makeTraceObject uses map which stringifies numbers,
         // so disable tracing to prevent infinite recursion
