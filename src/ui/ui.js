@@ -941,6 +941,8 @@ class ElementOriginPath extends React.Component {
 
                     if (frameString !== undefined) {
                         resolveFrame(frameString, setState)
+                    } else {
+                        setState();
                     }
                 } else {
                     setState()
