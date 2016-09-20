@@ -177,6 +177,14 @@ describe("Tracing", function(){
         expect(joined.origin.inputValues.length).toBe(3)
     })
 
+    it("Array.join defaults to comma when no separator is passed in", function(){
+        var array = [1,2]
+        var joined = array.join();
+
+        expect(joined.value).toBe("1,2")
+        expect(joined.origin.inputValues[0].action).toBe("Default Array Join Separator")
+    })
+
     it("Array.indexOf works with tracked strings", function(){
         var str = makeTraceObject({
             value: "Hello",

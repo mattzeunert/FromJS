@@ -345,10 +345,20 @@ export function enableTracing(){
         nativeRemoveEventListener.apply(this, arguments)
     }
 
+    var defaultArrayJoinSeparator = makeTraceObject({
+        value: ",",
+        origin: new Origin({
+            action: "Default Array Join Separator",
+            error: {stack: ""},
+            value: "",
+            inputValues: []
+        })
+    })
+
     Array.prototype.join = function(separator){
         var separatorArgumentIsUndefined = separator === undefined;
         if (separatorArgumentIsUndefined){
-            separator = ",";
+            separator = defaultArrayJoinSeparator
         }
         var stringifiedItems = this.map(function(item){
             var stringifiedItem = item;
