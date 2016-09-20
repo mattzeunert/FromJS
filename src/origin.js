@@ -76,7 +76,7 @@ export default function Origin(opts){
             // not sure exactly when this happens, something like
             // this maybe?
             // a = [[333], 55] + [444]
-            this.value = this.value.toString();
+            value = value.toString();
         }
     }
     this.value = value
