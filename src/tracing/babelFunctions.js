@@ -55,12 +55,21 @@ var babelFunctions = {
         }
 
         var newValue = a.toString() + b.toString();
+
+        var inputValues = [a, b];
+        inputValues = inputValues.map(function(iv){
+            if (iv.isStringTraceString) {
+                return iv
+            } else {
+                return iv.toString();
+            }
+        })
         return makeTraceObject({
             value: newValue,
             origin: new Origin({
                 action: "Concat",
                 value: newValue,
-                inputValues: [a, b]
+                inputValues
             })
         })
     },

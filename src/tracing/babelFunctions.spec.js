@@ -8,6 +8,8 @@ describe("babelFunctions", function(){
             }
             var res = babelFunctions.f__add(obj, "sth")
             expect(res.value).toBe("objsth")
+            expect(res.origin.inputValues[0]).not.toBe(undefined)
+            expect(res.origin.inputValues[1]).not.toBe(undefined)
         })
         it("Doesn't break adding two numbers together", function(){
             var res = babelFunctions.f__add(1,2)

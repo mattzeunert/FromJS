@@ -39,6 +39,7 @@ export default function Origin(opts){
                 error: opts.error
             })
         }
+        if (inputValue.origin === undefined)debugger
         return inputValue.origin
     })
 
