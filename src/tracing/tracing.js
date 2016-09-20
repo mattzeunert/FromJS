@@ -78,6 +78,7 @@ var nativeHTMLElementStyleDescriptor = Object.getOwnPropertyDescriptor(HTMLEleme
 var nativeSVGElementStyleDescriptor = Object.getOwnPropertyDescriptor(SVGElement.prototype, "style")
 
 var nativeNumberToString = Number.prototype.toString
+window.nativeNumberToString = nativeNumberToString
 
 export function runFunctionWithTracingDisabled(fn){
     var tracingEnabledAtStart = tracingEnabled;

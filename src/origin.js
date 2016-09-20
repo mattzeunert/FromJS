@@ -69,7 +69,9 @@ export default function Origin(opts){
     this.isHTMLFileContent = opts.isHTMLFileContent
 
     var value = opts.value;
-    if (typeof value !== "number") {
+    if (typeof value === "number") {
+        value = window.nativeNumberToString.call(value)
+    } else {
         value = value.toString();
 
         if (typeof value !== "string") {
