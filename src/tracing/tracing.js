@@ -12,7 +12,6 @@ import trackStringIfNotTracked from "./trackStringIfNotTracked"
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
 
-
 var tracingEnabled = false;
 
 // This code does both window.sth and var sth because I've been inconsistent in the past, not because it's good...
@@ -447,11 +446,11 @@ export function enableTracing(){
         }
     })
 
-    Number.prototype.toString = function(radix){
+    Number.prototype.toString = function trackedNumberToString(radix){
         var str = nativeNumberToString.apply(this, arguments)
         // makeTraceObject uses map which stringifies numbers,
         // so disable tracing to prevent infinite recursion
-        disableTracing()
+        Number.prototype.toString = nativeNumberToString
         var ret = makeTraceObject({
             value: str,
             origin: new Origin({
@@ -460,7 +459,7 @@ export function enableTracing(){
                 inputValues: [this]
             })
         })
-        enableTracing()
+        Number.prototype.toString = trackedNumberToString
         return ret;
     }
 

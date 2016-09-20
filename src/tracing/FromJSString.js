@@ -38,9 +38,19 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
             var args = unstringTracifyArguments(arguments)
             var newVal;
 
-            var argumentOrigins = Array.prototype.slice.call(arguments).map(function(arg){
+            var argumentOrigins = Array.from(arguments).map(function(arg){
                 if (arg instanceof FromJSString) {
                     return arg.origin;
+                }
+                if (typeof arg === "number") {
+                    return {
+                        value: arg,
+                        origin: new Origin({
+                            error: {stack: ""},
+                            inputValues: [],
+                            value: arg
+                        })
+                    }
                 }
                 return untrackedArgument(arg)
             })
