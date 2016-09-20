@@ -15,5 +15,13 @@ describe("babelFunctions", function(){
             var res = babelFunctions.f__add(1,2)
             expect(res).toBe(3)
         })
+        it("Supports adding booleans", function(){
+            var res = babelFunctions.f__add(false, true)
+            expect(res).toBe(1)
+        })
+        it("Supports adding booleans and numbers", function(){
+            var res = babelFunctions.f__add(3, true)
+            expect(res).toBe(4)
+        })
     })
 })
