@@ -1,75 +1,51 @@
-<!doctype html>
-<html>
-    <head>
-        <title>FromJS - Understand JavaScript apps</title>
-        <link rel="stylesheet" href="bootstrap-3.3.6-dist/css/bootstrap.min.css" />
-        <meta name="viewport" content="initial-scale=1.0,width=device-width" />
-    </head>
-    <body>
+---
+layout: default
+---
 
-        <style>
-            .jumbotron {
-                background: #15054e;
-                color: white;
-            }
-            h2 {
-                font-size: 24px;
-            }
-            h1 span {
-                /* color: #08f ; */
-            }
-        </style>
-
-
-        <div class="jumbotron">
-            <div class="container">
-                <h1>From<span>JS</span></h1>
-                <p>
-                    Understand JavaScript apps. See the code for every HTML element.
-                </p>
-                <a class="btn btn-primary" href="/todomvc">Try Backbone TodoMVC Demo</a>
-            </div>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>What is FromJS?</h2>
+            <p>
+                FromJS is a developer tool that helps you understand how an app works.
+            </p>
+            <p>
+                You can select an HTML element in the analysed page and view where in the code it originated.
+                In this screenshot I've selected a label tag on the page, specifically
+                I'm tracing the origin of the "B" character.
+            </p>
+            <p>
+                At the bottom you can see that it was added to the DOM through an
+                innerHTML assignment. At the top you can see that the "Buy milk" string
+                originally came from localStorage data.
+            </p>
+            <h2>Demos</h2>
+            <p>
+                <a href="/todomvc">Backbone TodoMVC demo</a> <span style="color: #aaa">(Pre-traced, loads on phones)</span><br/>
+                <a href="/react-todomvc">React TodoMVC Demo</a> <span style="color: #aaa">Interactive</span>
+                <br>
+                <a href="/recordings.html">Demo Videos</a>
+            </p>
         </div>
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h2>What is FromJS?</h2>
-                    <p>
-                        FromJS is a dynamic analysis tool that helps you understand how an app works.
-                    </p>
-                    <p>
-                        You can select an HTML element in the analysed page and view where in the code it originated.
-                        In this screenshot I've selected a label tag on the page, specifically
-                        I'm tracing the origin of the "B" character.
-                    </p>
-                    <p>
-                        At the bottom you can see that it was added to the DOM through an
-                        innerHTML assignment. At the top you can see that the "Buy milk" string
-                        originally came from localStorage data.
-                    </p>
-                    <h2>Demos</h2>
-                    <p>
-                        <a href="/todomvc">Backbone TodoMVC demo</a> <span style="color: #aaa">(Pre-traced, loads on phones)</span><br/>
-                        <a href="/react-todomvc">React TodoMVC Demo</a> <span style="color: #aaa">Interactive</span>
-                    </p>
-                </div>
-                <div class="col-md-6">
-                    <img src="/img/example.png" style="padding: 2px;border: 1px solid #ddd;width: 400px;max-width: 100%">
-                </div>
-            </div>
+        <div class="col-md-6">
+            <img src="/img/example.png" style="padding: 2px;border: 1px solid #ddd;width: 400px;max-width: 100%">
+        </div>
+    </div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    <h2>Is it ready yet?</h2>
-                    <p>
-                        Not yet, at least not for anything complex. I've written the
-                        code so it has the functionality required for the TodoMVC demo.
-                        FromJS will work if you use a subset of this functionality, but
-                        chances are your app won't even render.
-                    </p>
-                </div>
-                <div class="col-md-6">
-                    <h2>Want updates?</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Is it ready yet?</h2>
+            <p>
+                FromJS won't work on most sites, yet. There's a lot of work to be done.
+            </p>
+            <h2>Can I try it anyway?</h2>
+            <p>
+                Yes, just install the <a href="https://chrome.google.com/webstore/detail/fromjs/hjkhdaoomfphjmffaklelpmkllfbjjfd?hl=en">FromJS Chrome Extension</a>.
+                The <a href="https://github.com/mattzeunert/fromjs#chrome-extension">Github readme</a> lists some sites where FromJS works fairly well.
+            </p>
+        </div>
+        <div class="col-md-6">
+            <h2>Want updates?</h2>
 <!-- Begin MailChimp Signup Form -->
 <link href="//cdn-images.mailchimp.com/embedcode/classic-10_7.css" rel="stylesheet" type="text/css">
 <style type="text/css">
@@ -100,21 +76,6 @@ We recommend moving this block and the preceding CSS link to the HEAD of your HT
 </div>
 <script type='text/javascript' src='//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js'></script><script type='text/javascript'>(function($) {window.fnames = new Array(); window.ftypes = new Array();fnames[0]='EMAIL';ftypes[0]='email';fnames[1]='FNAME';ftypes[1]='text';fnames[2]='LNAME';ftypes[2]='text';}(jQuery));var $mcj = jQuery.noConflict(true);</script>
 <!--End mc_embed_signup-->
-                <br><br><br>
-            </div>
-        </div>
-
-        <a href="https://github.com/mattzeunert/fromjs"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
-
-        <script>
-          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-          })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-          ga('create', 'UA-80477434-1', 'auto');
-          ga('send', 'pageview');
-
-        </script>
-    </body>
-</html>
+        <br><br><br>
+    </div>
+</div>
