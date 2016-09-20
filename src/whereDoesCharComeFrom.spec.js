@@ -92,7 +92,7 @@ describe("whereDoesCharComeFrom", function(){
 
     it("Can traverse style.setProperty calls", function(){
         var origin = {
-            action: "setProperty",
+            action: "Style SetProperty",
             value: " style='color: red'",
             inputValues: [
                 {

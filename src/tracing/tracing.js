@@ -701,7 +701,7 @@ export function enableTracing(){
         }
 
         addElOrigin(this.__element, "attribute_style", {
-            action: "setProperty",
+            action: "Style SetProperty",
             inputValues: [name, value, priority],
             value: " style='" + styleValue + "'"
         })

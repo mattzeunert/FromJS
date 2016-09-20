@@ -90,7 +90,7 @@ function goUp(step, callback){
             originObject: step.originObject.inputValues[0],
             characterIndex: step.characterIndex
         }
-    } else if (step.originObject.action === "setProperty") {
+    } else if (step.originObject.action === "Style SetProperty") {
         var inputValues = step.originObject.inputValues;
 
         var valueMap = new ValueMap();
