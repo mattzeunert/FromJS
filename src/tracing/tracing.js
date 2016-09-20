@@ -350,7 +350,7 @@ export function enableTracing(){
         origin: new Origin({
             action: "Default Array Join Separator",
             error: {stack: ""},
-            value: "",
+            value: ",",
             inputValues: []
         })
     })
