@@ -7,7 +7,7 @@ import _ from "underscore"
 import adjustColumnForEscapeSequences from "./adjustColumnForEscapeSequences"
 import config from "./config"
 
-export default function whereDoesCharComeFrom(originObject, characterIndex, callback){
+export default function whereDoesCharComeFrom(originObject, characterIndex, callback, resolveFrameWorker){
     characterIndex = parseFloat(characterIndex)
 
     var steps = [];
@@ -24,7 +24,7 @@ export default function whereDoesCharComeFrom(originObject, characterIndex, call
 
     nextStep(step)
     function nextStep(step){
-        goUp(step, function(newStep){
+        goUp(step, resolveFrameWorker, function(newStep){
 
             if (newStep !== null && !step.originObject){
                 throw "hmm?"
@@ -50,7 +50,7 @@ export default function whereDoesCharComeFrom(originObject, characterIndex, call
 
 window.whereDoesCharComeFrom = whereDoesCharComeFrom
 export {goUp as goUpForDebugging}
-function goUp(step, callback){
+function goUp(step, resolveFrameWorker, callback){
     // console.log("trying to handle step with action", step.originObject.action, step)
 
     var ret
@@ -239,9 +239,9 @@ function goUp(step, callback){
             callback(null)
             return;
         }
-        window.resolveFrameWrapper.send("resolveFrame", step.originObject.getStackFrames()[0], function(err, frame){
+        resolveFrameWorker.send("resolveFrame", step.originObject.getStackFrames()[0], function(err, frame){
             if (fileIsDynamicCode(frame.fileName)){
-                window.resolveFrameWrapper.send("getSourceFileContent", frame.fileName, function(content){
+                resolveFrameWorker.send("getSourceFileContent", frame.fileName, function(content){
                     var lines = content.split("\n")
                     var linesBeforeCurrentLine = lines.slice(0, frame.lineNumber - 1)
                     var characterIndex = 0;

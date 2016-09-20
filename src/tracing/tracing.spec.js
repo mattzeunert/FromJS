@@ -2,7 +2,7 @@ import {enableTracing, disableTracing} from "./tracing"
 import {makeTraceObject} from "./FromJSString"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import Origin from "../origin"
-import getResolveFrameWorker from "../getResolveFrameWorker"
+import createResolveFrameWorker from "../createResolveFrameWorker"
 
 describe("Tracing", function(){
     beforeEach(function(){
@@ -91,7 +91,7 @@ describe("Tracing", function(){
     })
 
     it("Supports mapping of code in new Function", function(done){
-        window.resolveFrameWrapper = getResolveFrameWorker()
+        var resolveFrameWorker = createResolveFrameWorker();
 
         var fn = new Function(makeTraceObject({
             value: "return 'Hi'",
@@ -105,16 +105,14 @@ describe("Tracing", function(){
         var ret = fn();
         disableTracing()
 
-        window.resolveFrameWrapper.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
+        resolveFrameWorker.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
 
         whereDoesCharComeFrom(ret.origin, 0, function(steps){
             var lastStep = steps[steps.length - 1]
             expect(lastStep.originObject.action).toBe("Something")
 
-            window.resolveFrameWrapper = null;
-
             done();
-        })
+        }, resolveFrameWorker)
     })
 
     it("Processes code passed into eval", function(){
