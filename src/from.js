@@ -32,7 +32,6 @@ addBabelFunctionsToGlobalObject();
 
 window.fromJSEnableTracing = enableTracing
 window.fromJSDisableTracing = disableTracing
-enableTracing()
 
 window.resolveFrameWrapper = getResolveFrameWorker()
 window.resolveFrameWrapper.beforePostMessage = disableTracing
