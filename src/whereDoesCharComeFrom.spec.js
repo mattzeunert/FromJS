@@ -90,6 +90,39 @@ describe("whereDoesCharComeFrom", function(){
         })
     })
 
+    it("Can traverse style.setProperty calls", function(){
+        var origin = {
+            action: "setProperty",
+            value: " style='color: red'",
+            inputValues: [
+                {
+                    value: "color",
+                    inputValues: [],
+                    action: "String Literal"
+                },
+                {
+                    value: "red",
+                    inputValues: [],
+                    action: "String Literal"
+                }
+            ]
+        }
+
+        // style='col[o]r: red'
+        whereDoesCharComeFrom(origin, 11, function(steps){
+            var lastStep = steps[steps.length - 1]
+            expect(lastStep.originObject.action).toBe("String Literal")
+            expect(lastStep.originObject.value[lastStep.characterIndex]).toBe("o")
+        })
+
+        // style='color: [r]ed'
+        whereDoesCharComeFrom(origin, 15, function(steps){
+            var lastStep = steps[steps.length - 1]
+            expect(lastStep.originObject.action).toBe("String Literal")
+            expect(lastStep.originObject.value[lastStep.characterIndex]).toBe("r")
+        })
+    })
+
     it("Can traverse toLowerCase calls", function(){
         var origin = {
             action: "ToLowerCase Call",

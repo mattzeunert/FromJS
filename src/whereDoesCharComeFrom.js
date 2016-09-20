@@ -90,6 +90,21 @@ function goUp(step, callback){
             originObject: step.originObject.inputValues[0],
             characterIndex: step.characterIndex
         }
+    } else if (step.originObject.action === "setProperty") {
+        var inputValues = step.originObject.inputValues;
+
+        var valueMap = new ValueMap();
+        valueMap.appendString(" style='", "END", 0)
+        valueMap.append(inputValues[0])
+        valueMap.appendString(": ", "END", 0)
+        valueMap.append(inputValues[1])
+        valueMap.appendString("'", "END", 0)
+
+        ret = valueMap.getItemAt(step.characterIndex)
+        if (ret.originObject === "END") {
+            callback(null)
+            return;
+        }
     } else if (step.originObject.action === "RegExp.exec Match" ||
         step.originObject.action === "RegExp.exec Submatch") {
         ret = {
@@ -128,14 +143,14 @@ function goUp(step, callback){
         var inputValues = step.originObject.inputValues
 
         var valueMap = new ValueMap()
-        valueMap.appendString(" ", "x", 0)
+        valueMap.appendString(" ", "END", 0)
         valueMap.append(inputValues[0])
-        valueMap.appendString("='", "x", 0)
+        valueMap.appendString("='", "END", 0)
         valueMap.append(inputValues[1])
-        valueMap.appendString("'", "x", 0)
+        valueMap.appendString("'", "END", 0)
 
         ret = valueMap.getItemAt(step.characterIndex)
-        if (ret.originObject === "x") {
+        if (ret.originObject === "END") {
             callback(null);
             return;
         }
