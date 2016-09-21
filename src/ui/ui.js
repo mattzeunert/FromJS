@@ -18,9 +18,9 @@ var resolvedFrameCache = {}
 function resolveFrame(frameString, callback) {
     if (resolvedFrameCache[frameString]) {
         callback(null, resolvedFrameCache[frameString])
-        return
+        return function cancel(){}
     } else {
-        currentInspectedPage.send("resolveFrame", frameString, function(err, frame){
+        return currentInspectedPage.send("resolveFrame", frameString, function(err, frame){
             if (!err){
                 resolvedFrameCache[frameString] = frame;
             }
