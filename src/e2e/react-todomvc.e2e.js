@@ -2,7 +2,7 @@ var helpers = require("./helpers")
 
 describe('React TodoMVC', function() {
     it("Loads the app and creates a new todo item", function(){
-        helpers.loadPage('http://localhost:9999/react-compiled/index.html#/')
+        helpers.loadPage('http://localhost:9999/demos/react-todomvc-compiled/index.html')
         .then(function(){
             browser.driver.findElement(by.css('.new-todo')).sendKeys('Hello');
             browser.driver.findElement(by.css('.new-todo')).sendKeys(protractor.Key.ENTER);
