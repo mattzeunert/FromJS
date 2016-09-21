@@ -7,7 +7,15 @@ export default function untracedToString(val){
         ret = nativeNumberToString.apply(val)
     }
     else if (typeof val === "object"){
-        ret = nativeObjectToString.apply(val)
+        if (val.toString === Object.prototype.toString) {
+            ret = nativeObjectToString.apply(val)
+        } else {
+            // object has custom toString method
+            ret = val.toString()
+            if (typeof ret !== "string") {
+                ret = ret.value
+            }
+        }
     }
     else {
         ret = val.toString()

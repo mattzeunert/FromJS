@@ -59,7 +59,7 @@ var babelFunctions = {
             b = untrackedString(b);
         }
 
-        var newValue = a.toString() + b.toString();
+        var newValue = toString(a) + toString(b);
 
         var inputValues = [a, b];
         inputValues = inputValues.map(function(iv){
@@ -127,7 +127,7 @@ var babelFunctions = {
         if (typeof property === "undefined") {
             property = "undefined"
         }
-        var storagePropName = property.toString() + "_trackedName"
+        var storagePropName = toString(property) + "_trackedName"
 
         // This would be a nice to have, but
         // 1) it costs a lot of memory
