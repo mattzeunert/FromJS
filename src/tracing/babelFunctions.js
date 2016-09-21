@@ -83,10 +83,10 @@ var babelFunctions = {
     },
     f__notTripleEqual(a,b){
         if (a && a.isStringTraceString) {
-            a = toString(a)
+            a = a.toString()
         }
         if(b && b.isStringTraceString) {
-            b = toString(b)
+            b = a.toString()
         }
         return a !== b;
     },

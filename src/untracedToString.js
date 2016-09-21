@@ -10,7 +10,7 @@ export default function untracedToString(val){
         if (val.toString === Object.prototype.toString) {
             ret = nativeObjectToString.apply(val)
         } else {
-            // object has custom toString method
+            // object has custom toString method, or it's an array or similar
             ret = val.toString()
             if (typeof ret !== "string") {
                 ret = ret.value
