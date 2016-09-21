@@ -1,0 +1,10 @@
+<script src="babel-standalone.js" charset="utf-8"></script>
+<script>
+var input = 'const getMessage = () => "Hello World";';
+var output = Babel.transform(input, { presets: ['es2015'] }).code;
+
+var div = document.createElement("div")
+div.setAttribute("id", "compiled-code")
+div.innerHTML = output;
+document.documentElement.appendChild(div)
+</script>
