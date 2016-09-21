@@ -8,9 +8,12 @@ function onload(){
     // document.body.innerHTML = '<span hi="hey"       cake="cookie">ss<!-- yolo\n\n end -->sss</span>'
  //   document.body.innerHTML = "<div \t\t\n>aaa</div>"
 
- var val = $("#content").html()
- var valEl = $(val)
- document.body.innerHTML = valEl[0].outerHTML
+ // var val = $("#content").html()
+ // var valEl = $(val)
+ // document.body.innerHTML = valEl[0].outerHTML
+ var el = document.createElementNS("http://www.w3.org/1999/xhtml", "div")
+ el.innerHTML = "cake"
+ document.body.appendChild(el)
  // valEl.appendTo($("body"))
 
 }

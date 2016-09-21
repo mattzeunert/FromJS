@@ -83,6 +83,32 @@ function goUp(step, resolveFrameWorker, callback){
             originObject: step.originObject.inputValues[0],
             characterIndex: step.characterIndex - step.originObject.extraCharsAdded + offsetAtChar
         }
+    } else if (step.originObject.action === "createElement" || step.originObject.action === "createElementNS") {
+        var characterIndex = step.characterIndex
+        var elementType = step.originObject.inputValues[0].value;
+        var openingHtml = "<" + elementType + ">"
+        var closingHtml = "<" + elementType + "/>"
+        // step.originObject.value is something like '<li></li>', but we need a char index for just 'li'
+        if (characterIndex >= openingHtml.length) {
+            characterIndex -= openingHtml.length;
+            characterIndex -= "/".length;
+        }
+        characterIndex -= "<".length
+
+        if (characterIndex<0){
+            // they clicked on either a < or an /
+            // it's not really clear what that should mean, since that doesn't have an origin
+            // but let's pretend for now
+            characterIndex = 0
+        }
+        if (characterIndex == step.originObject.inputValues[0].value.length) {
+            // they clicked on ">", should really end path here
+            characterIndex = step.originObject.inputValues[0].value.length - 1
+        }
+        ret = {
+            originObject: step.originObject.inputValues[0],
+            characterIndex: characterIndex
+        }
     } else if (step.originObject.inputValues.length === 1 && step.originObject.inputValues[0].value === step.originObject.value) {
         // This makes stuff work but it can be a bit misleading
         // because it suggests actions are explicitly handled even though they are not
@@ -155,32 +181,6 @@ function goUp(step, resolveFrameWorker, callback){
             return;
         }
 
-    } else if (step.originObject.action === "createElement") {
-        var characterIndex = step.characterIndex
-        var elementType = step.originObject.inputValues[0].value;
-        var openingHtml = "<" + elementType + ">"
-        var closingHtml = "<" + elementType + "/>"
-        // step.originObject.value is something like '<li></li>', but we need a char index for just 'li'
-        if (characterIndex >= openingHtml.length) {
-            characterIndex -= openingHtml.length;
-            characterIndex -= "/".length;
-        }
-        characterIndex -= "<".length
-
-        if (characterIndex<0){
-            // they clicked on either a < or an /
-            // it's not really clear what that should mean, since that doesn't have an origin
-            // but let's pretend for now
-            characterIndex = 0
-        }
-        if (characterIndex == step.originObject.inputValues[0].value.length) {
-            // they clicked on ">", should really end path here
-            characterIndex = step.originObject.inputValues[0].value.length - 1
-        }
-        ret = {
-            originObject: step.originObject.inputValues[0],
-            characterIndex: characterIndex
-        }
     } else if (step.originObject.action === "Replace Call" ||
         step.originObject.action === "Slice Call" ||
         step.originObject.action === "Substr Call"

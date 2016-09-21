@@ -53,10 +53,17 @@ function switchToInspectedPage(){
     browser.switchTo().defaultContent()
 }
 
-function inspectElement(cssSelector) {
+function inspectElement(cssSelector, /* zero-based */ charIndex) {
     element(by.css(cssSelector)).click();
     switchToIframe()
     return waitForEl('.fromjs-origin-path-step')
+    .then(function(){
+        if (charIndex !== undefined) {
+            var elSelector = "[data-test-marker-inspected-value] span:nth-child(" + (charIndex + 1) + ")"
+            element(by.css(elSelector)).click()
+            return waitForEl(elSelector + ".fromjs-highlighted-character")
+        }
+    })
     .then(function(){
         switchToInspectedPage()
     })
