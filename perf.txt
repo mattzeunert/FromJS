@@ -12,4 +12,5 @@ Measure'd manually by uncommenting measureTodoMVCRenderingTime in injected.js
 
 
                         Backbone    React
+32f079d 21 Sep 2016     2.6s        13.6s
 fcc3823 21 Sep 2016     2.9s        14.6s

@@ -1,4 +1,5 @@
 import babelFunctions from "./babelFunctions"
+import {makeTraceObject} from "./FromJSString"
 
 describe("babelFunctions", function(){
     describe("f__add", function(){
@@ -22,6 +23,33 @@ describe("babelFunctions", function(){
         it("Supports adding booleans and numbers", function(){
             var res = babelFunctions.f__add(3, true)
             expect(res).toBe(4)
+        })
+    })
+
+    describe("f__tripleEqual", function(){
+        it("Knowns that traced 'a' and traced 'a' are equal", function(){
+            var a = makeTraceObject({
+                value: 'a',
+                origin: null
+            })
+            var b = makeTraceObject({
+                value: 'a',
+                origin: null
+            })
+            var res = babelFunctions.f__tripleEqual(a, b)
+            expect(res).toBe(true)
+        })
+        it("Knowns that traced 'a' and traced 'b' are not equal", function(){
+            var a = makeTraceObject({
+                value: 'a',
+                origin: null
+            })
+            var b = makeTraceObject({
+                value: 'b',
+                origin: null
+            })
+            var res = babelFunctions.f__tripleEqual(a, b)
+            expect(res).toBe(false)
         })
     })
 })

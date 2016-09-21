@@ -174,7 +174,6 @@ export function enableTracing(){
                         // looks like at least for now none of this is used
                         // action: "appendChild",
                         // inputValues: [appendedEl],
-                        // valueOfEl: appendedEl,
                         child: appendedEl
                     })
 

@@ -1,4 +1,5 @@
 import _ from "underscore"
+import untracedToString from "./untracedToString"
 
 // Storing lots of arrays costs lots of memory, and
 // since many inputValues arrays are empty we can just
@@ -39,8 +40,38 @@ export default function Origin(opts){
                 error: opts.error
             })
         }
-        if (inputValue.origin === undefined)debugger
-        return inputValue.origin
+        if (typeof inputValue === "boolean") {
+            return new Origin({
+                action: "Boolean",
+                inputValues: [],
+                value: inputValue,
+                error: opts.error
+            })
+        }
+        if (typeof inputValue === "object") {
+            return new Origin({
+                action: "Object",
+                inputValues: [],
+                value: toString(inputValue), // would rather not store a whole obj reference
+                error: opts.error
+            })
+        }
+        if (typeof inputValue === "function") {
+           return new Origin({
+               action: "Function",
+               inputValues: [],
+               value: toString(inputValue), // would rather not store a whole function reference
+               error: opts.error
+           })
+       }
+
+        debugger
+        return new Origin({
+            action: "Unknown Thing",
+            inputValues: [],
+            value: toString(inputValue),
+            error: opts.error
+        })
     })
 
     this.id = _.uniqueId();
@@ -83,7 +114,6 @@ export default function Origin(opts){
     }
     this.value = value
 
-    this.valueOfEl = opts.valueOfEl
     this.valueItems = opts.valueItems
     Error.stackTraceLimit = 500;
 
@@ -92,15 +122,6 @@ export default function Origin(opts){
     } else {
         this.error = new Error()
     }
-
-
-}
-
-Origin.prototype.getValue = function(){
-    if (this.valueOfEl) {
-        return this.valueOfEl.outerHTML
-    }
-    return this.value
 }
 
 Origin.prototype.getStackFrames = function(){

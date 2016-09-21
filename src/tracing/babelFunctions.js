@@ -59,16 +59,10 @@ var babelFunctions = {
             b = untrackedString(b);
         }
 
-        var newValue = a.toString() + b.toString();
+        var newValue = toString(a) + toString(b);
 
         var inputValues = [a, b];
-        inputValues = inputValues.map(function(iv){
-            if (iv.isStringTraceString) {
-                return iv
-            } else {
-                return iv.toString();
-            }
-        })
+
         return makeTraceObject({
             value: newValue,
             origin: new Origin({
@@ -89,10 +83,10 @@ var babelFunctions = {
     },
     f__notTripleEqual(a,b){
         if (a && a.isStringTraceString) {
-            a = toString(a)
+            a = a.toString()
         }
         if(b && b.isStringTraceString) {
-            b = toString(b)
+            b = b.toString()
         }
         return a !== b;
     },
@@ -127,7 +121,7 @@ var babelFunctions = {
         if (typeof property === "undefined") {
             property = "undefined"
         }
-        var storagePropName = property.toString() + "_trackedName"
+        var storagePropName = toString(property) + "_trackedName"
 
         // This would be a nice to have, but
         // 1) it costs a lot of memory

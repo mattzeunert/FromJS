@@ -44,7 +44,8 @@ describe("Tracing", function(){
         var parsed = JSON.parse({
             value: '{"hello": "world"}',
             origin: {
-                action: "Some Action"
+                action: "Some Action",
+                isFromJSOriginObject: true
             },
             toString: function(){
                 return this.value
@@ -70,7 +71,8 @@ describe("Tracing", function(){
                 return '{"hello": {"there": "world"}}'
             },
             origin: {
-                action: "Some Action"
+                action: "Some Action",
+                isFromJSOriginObject: true
             }
         })
         expect(parsed.hello.there.value).toBe("world")
@@ -110,6 +112,8 @@ describe("Tracing", function(){
         whereDoesCharComeFrom(ret.origin, 0, function(steps){
             var lastStep = steps[steps.length - 1]
             expect(lastStep.originObject.action).toBe("Something")
+
+            resolveFrameWorker.terminate();
 
             done();
         }, resolveFrameWorker)
