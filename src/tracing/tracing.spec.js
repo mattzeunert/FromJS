@@ -113,6 +113,8 @@ describe("Tracing", function(){
             var lastStep = steps[steps.length - 1]
             expect(lastStep.originObject.action).toBe("Something")
 
+            resolveFrameWorker.terminate();
+
             done();
         }, resolveFrameWorker)
     })
