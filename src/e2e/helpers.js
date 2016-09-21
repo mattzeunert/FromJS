@@ -54,6 +54,9 @@ function switchToInspectedPage(){
 }
 
 function inspectElement(cssSelector, /* zero-based */ charIndex) {
+    if (charIndex > 20) {
+        throw "Don't think this will work, because the text will be truncated with an ellipsis in it, so char index isn't equal to nth-child span"
+    }
     element(by.css(cssSelector)).click();
     switchToIframe()
     return waitForEl('.fromjs-origin-path-step')
