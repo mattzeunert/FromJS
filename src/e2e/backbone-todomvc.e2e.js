@@ -2,7 +2,7 @@ var helpers = require("./helpers")
 
 describe('Backbone TodoMVC', function() {
     it("Loads the app and creates a new todo item", function(){
-        helpers.loadPage('http://localhost:9999/demos/index.html')
+        helpers.loadPage('http://localhost:9999/demos/backbone-todomvc/index.html')
         .then(function(){
             browser.driver.findElement(by.css('.new-todo')).sendKeys('Hello');
             browser.driver.findElement(by.css('.new-todo')).sendKeys(protractor.Key.ENTER);
