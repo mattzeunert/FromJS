@@ -114,7 +114,6 @@ export default function Origin(opts){
     }
     this.value = value
 
-    this.valueOfEl = opts.valueOfEl
     this.valueItems = opts.valueItems
     Error.stackTraceLimit = 500;
 
@@ -123,15 +122,6 @@ export default function Origin(opts){
     } else {
         this.error = new Error()
     }
-
-
-}
-
-Origin.prototype.getValue = function(){
-    if (this.valueOfEl) {
-        return this.valueOfEl.outerHTML
-    }
-    return this.value
 }
 
 Origin.prototype.getStackFrames = function(){
