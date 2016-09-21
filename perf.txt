@@ -1,0 +1,15 @@
+Measure'd manually by uncommenting measureTodoMVCRenderingTime in injected.js
+
+1) python -m SimpleHTTPServer 1234
+2) Backbone
+    - http://localhost:1234/demos/backbone-todomvc/index.html
+    - Create 2 todo items
+    - Enable Chrome Extension
+3) React (JSX is compiled in browser)
+    - http://todomvc.com/examples/react/#/ (I use http://localhost:1234/todomvc-master/examples/react/#/ locally)
+    - Create 2 todo items
+    - Enable Chrome Extension
+
+
+                        Backbone    React
+fcc3823 21 Sep 2016     2.9s        14.6s
