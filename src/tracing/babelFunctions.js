@@ -86,7 +86,7 @@ var babelFunctions = {
             a = a.toString()
         }
         if(b && b.isStringTraceString) {
-            b = a.toString()
+            b = b.toString()
         }
         return a !== b;
     },
