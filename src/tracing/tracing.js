@@ -50,6 +50,7 @@ var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
 
 var nativeObjectToString = Object.prototype.toString
+window.nativeObjectToString = nativeObjectToString
 
 var nativeAddEventListener = Node.prototype.addEventListener
 var nativeRemoveEventListener = Node.prototype.removeEventListener

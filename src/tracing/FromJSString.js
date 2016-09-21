@@ -4,13 +4,15 @@ import unstringTracifyArguments from "./unstringTracifyArguments"
 import stringTraceUseValue from "./stringTraceUseValue"
 import untrackedArgument from "./untrackedArgument"
 import config from "../config"
+import toString from "../untracedToString"
 
 function FromJSString(options){
     this.origin = options.origin
     this.value = options.value
-    if (typeof this.value.toString() !== "string") {
-        this.value = this.value.toString()
+    while(this.value.isStringTraceString) {
+        this.value = this.value.value
     }
+
     this.isStringTraceString = true
 }
 
@@ -273,6 +275,9 @@ export function makeTraceObject(options){
         value: stringTraceUseValue(options.value),
         origin: options.origin
     })
+    if (stringTraceObject.value.isStringTraceString) {
+        debugger
+    }
 
     return new Proxy(stringTraceObject, {
         get: function(target, name){

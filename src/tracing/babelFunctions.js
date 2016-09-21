@@ -3,6 +3,7 @@ import StringTraceString, {makeTraceObject} from "./FromJSString"
 import Origin from "../origin"
 import untrackedString from "./untrackedString"
 import untrackedPropertyName from "./untrackedPropertyName"
+import toString from "../untracedToString"
 
 
 var cachedValue;
@@ -88,10 +89,10 @@ var babelFunctions = {
     },
     f__notTripleEqual(a,b){
         if (a && a.isStringTraceString) {
-            a = a.toString()
+            a = toString(a)
         }
         if(b && b.isStringTraceString) {
-            b = b.toString();
+            b = toString(b)
         }
         return a !== b;
     },

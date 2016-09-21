@@ -318,6 +318,13 @@ describe("Tracing", function(){
         expect(str.value).toBe("Hi")
     })
 
+    it("Returns [object Number] when calling Obj.prototype.toString on a number", function(){
+        var toString = Object.prototype.toString
+        var str = toString.call(2)
+
+        expect(str).toBe("[object Number]")
+    })
+
     it("Traces when a number is converted to a string", function(){
         var num = (4).toString()
         expect(num.origin.action).toBe("Number ToString")
