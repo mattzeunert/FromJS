@@ -18,7 +18,7 @@ describe('D3 App', function() {
         })
     });
 
-    it('Can find where the fill property name was declared', function() {
+    it('Can find where the transform property name was declared', function() {
         var charIndex = circleOuterHtml.indexOf("transform")
         helpers.inspectElement('circle:first-child', charIndex)
         .then(function(){

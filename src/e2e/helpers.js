@@ -63,13 +63,22 @@ function inspectElement(cssSelector, /* zero-based */ charIndex) {
     .then(function(){
         if (charIndex !== undefined) {
             var elSelector = "[data-test-marker-inspected-value] span:nth-child(" + (charIndex + 1) + ")"
-            element(by.css(elSelector)).click()
-            return waitForEl(elSelector + ".fromjs-highlighted-character")
+            // I've tried simulating a click and it was fine locally, but on Travis CI
+            // I got this error, even after waiting for the element to be clickable:
+            // unknown error: Element is not clickable at point (32, 65). Other element would receive the click:
+            // <div class="fromjs-value__content">...</div>
+            browser.executeScript("e2eTestSimulateInpsectCharacter(" + charIndex + ")")
+            .then(function(){
+                return waitForEl(elSelector + ".fromjs-highlighted-character")
+                .then(function(){
+                    switchToInspectedPage()
+                })
+            })
+        } else {
+            switchToInspectedPage()
         }
     })
-    .then(function(){
-        switchToInspectedPage()
-    })
+
 }
 
 function inspectParentElement() {
