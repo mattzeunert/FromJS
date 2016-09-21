@@ -62,13 +62,7 @@ var babelFunctions = {
         var newValue = toString(a) + toString(b);
 
         var inputValues = [a, b];
-        inputValues = inputValues.map(function(iv){
-            if (iv.isStringTraceString) {
-                return iv
-            } else {
-                return iv.toString();
-            }
-        })
+
         return makeTraceObject({
             value: newValue,
             origin: new Origin({
