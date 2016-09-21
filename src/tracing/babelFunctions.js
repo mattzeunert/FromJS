@@ -3,6 +3,7 @@ import StringTraceString, {makeTraceObject} from "./FromJSString"
 import Origin from "../origin"
 import untrackedString from "./untrackedString"
 import untrackedPropertyName from "./untrackedPropertyName"
+import toString from "../untracedToString"
 
 
 var cachedValue;
@@ -37,8 +38,12 @@ var babelFunctions = {
         return stringTraceUseValue(thing)
     },
     f__add(a, b){
-        if (typeof a === "number" && typeof b === "number") {
-            return a + b;
+        var aIsNumberOrBoolean = typeof a === "number" || typeof a === "boolean"
+        if (aIsNumberOrBoolean) {
+            var bIsNumberOrBoolean = typeof b === "number" || typeof b === "boolean"
+            if (bIsNumberOrBoolean) {
+                return a + b;
+            }
         }
 
         if (a == null){
@@ -55,12 +60,21 @@ var babelFunctions = {
         }
 
         var newValue = a.toString() + b.toString();
+
+        var inputValues = [a, b];
+        inputValues = inputValues.map(function(iv){
+            if (iv.isStringTraceString) {
+                return iv
+            } else {
+                return iv.toString();
+            }
+        })
         return makeTraceObject({
             value: newValue,
             origin: new Origin({
                 action: "Concat",
                 value: newValue,
-                inputValues: [a, b]
+                inputValues
             })
         })
     },
@@ -75,10 +89,10 @@ var babelFunctions = {
     },
     f__notTripleEqual(a,b){
         if (a && a.isStringTraceString) {
-            a = a.toString()
+            a = toString(a)
         }
         if(b && b.isStringTraceString) {
-            b = b.toString();
+            b = toString(b)
         }
         return a !== b;
     },

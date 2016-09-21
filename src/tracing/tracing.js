@@ -12,7 +12,6 @@ import trackStringIfNotTracked from "./trackStringIfNotTracked"
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
 
-
 var tracingEnabled = false;
 
 // This code does both window.sth and var sth because I've been inconsistent in the past, not because it's good...
@@ -51,6 +50,7 @@ var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
 
 var nativeObjectToString = Object.prototype.toString
+window.nativeObjectToString = nativeObjectToString
 
 var nativeAddEventListener = Node.prototype.addEventListener
 var nativeRemoveEventListener = Node.prototype.removeEventListener
@@ -64,6 +64,8 @@ var nativeCreateTextNode = document.createTextNode
 var nativeEval = window.eval
 var nativeOuterHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "outerHTML")
 
+var nativeCSSStyleDeclarationSetProperty = CSSStyleDeclaration.prototype.setProperty
+
 var nativeArrayJoin = Array.prototype.join
 var nativeArrayIndexOf = Array.prototype.indexOf
 
@@ -72,6 +74,12 @@ var nativeHTMLInputElementValueDescriptor = Object.getOwnPropertyDescriptor(HTML
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
 
 var nativeHTMLElementInsertAdjacentHTML = HTMLElement.prototype.insertAdjacentHTML
+
+var nativeHTMLElementStyleDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "style")
+var nativeSVGElementStyleDescriptor = Object.getOwnPropertyDescriptor(SVGElement.prototype, "style")
+
+var nativeNumberToString = Number.prototype.toString
+window.nativeNumberToString = nativeNumberToString
 
 export function runFunctionWithTracingDisabled(fn){
     var tracingEnabledAtStart = tracingEnabled;
@@ -338,10 +346,20 @@ export function enableTracing(){
         nativeRemoveEventListener.apply(this, arguments)
     }
 
+    var defaultArrayJoinSeparator = makeTraceObject({
+        value: ",",
+        origin: new Origin({
+            action: "Default Array Join Separator",
+            error: {stack: ""},
+            value: ",",
+            inputValues: []
+        })
+    })
+
     Array.prototype.join = function(separator){
         var separatorArgumentIsUndefined = separator === undefined;
         if (separatorArgumentIsUndefined){
-            separator = ",";
+            separator = defaultArrayJoinSeparator
         }
         var stringifiedItems = this.map(function(item){
             var stringifiedItem = item;
@@ -439,6 +457,23 @@ export function enableTracing(){
             return nativeHTMLScriptElementTextDescriptor.set.apply(this, [text])
         }
     })
+
+    Number.prototype.toString = function trackedNumberToString(radix){
+        var str = nativeNumberToString.apply(this, arguments)
+        // makeTraceObject uses map which stringifies numbers,
+        // so disable tracing to prevent infinite recursion
+        Number.prototype.toString = nativeNumberToString
+        var ret = makeTraceObject({
+            value: str,
+            origin: new Origin({
+                value: str,
+                action: "Number ToString",
+                inputValues: [this]
+            })
+        })
+        Number.prototype.toString = trackedNumberToString
+        return ret;
+    }
 
     Object.defineProperty(Element.prototype, "outerHTML", {
         get: function(){
@@ -642,6 +677,50 @@ export function enableTracing(){
         return res;
     }
 
+
+    function makeStyleDescriptor(nativeDescriptor) {
+        return {
+            get: function(){
+                var style = nativeDescriptor.get.apply(this, arguments);
+                // Make the CSSStyleDeclaration aware of its parent element
+                style.__element = this;
+                return style;
+            },
+            set: nativeDescriptor.set
+        }
+    }
+    Object.defineProperty(HTMLElement.prototype, "style", makeStyleDescriptor(nativeHTMLElementStyleDescriptor))
+    Object.defineProperty(SVGElement.prototype, "style", makeStyleDescriptor(nativeSVGElementStyleDescriptor))
+
+    CSSStyleDeclaration.prototype.setProperty = function(name, value ,priority){
+        if (!this.__element) {
+            console.log("Untracked setProperty call")
+            return nativeCSSStyleDeclarationSetProperty.apply(this, arguments)
+        }
+
+        var currentStyleValue = this.__element.getAttribute("style")
+        if (currentStyleValue !== null && currentStyleValue !== ""){
+            // setting styles and how they are serialized or not into
+            // the style attribute is tricky, so I'm not going to bother for now
+            console.log("Untracked setProperty call")
+            return nativeCSSStyleDeclarationSetProperty.apply(this, arguments)
+        }
+
+        var styleValue = name.toString() + ": ";
+        styleValue += value.toString();
+        if (priority.toString() === "important") {
+            styleValue += " !important"
+        }
+
+        addElOrigin(this.__element, "attribute_style", {
+            action: "Style SetProperty",
+            inputValues: [name, value, priority],
+            value: " style='" + styleValue + "'"
+        })
+
+        nativeSetAttribute.apply(this.__element, ["style", styleValue])
+    }
+
     Object.prototype.toString = function(){
         if (this !== undefined && this.isStringTraceString) {
             return this
@@ -757,9 +836,14 @@ export function disableTracing(){
     Node.prototype.addEventListener =  nativeAddEventListener
     Node.prototype.removeEventListener = nativeRemoveEventListener
 
+    CSSStyleDeclaration.prototype.setProperty =  nativeCSSStyleDeclarationSetProperty
+    Object.defineProperty(HTMLElement.prototype, "style", nativeHTMLElementStyleDescriptor)
+    Object.defineProperty(SVGElement.prototype, "style", nativeSVGElementStyleDescriptor)
+
     HTMLElement.prototype.insertAdjacentHTML = nativeHTMLElementInsertAdjacentHTML
 
     Object.prototype.toString = nativeObjectToString
+    Number.prototype.toString = nativeNumberToString
 
     tracingEnabled = false;
 }

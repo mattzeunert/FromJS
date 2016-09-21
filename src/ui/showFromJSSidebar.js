@@ -14,7 +14,7 @@ import { getOriginById } from "../origin"
 
 var elementsByElementId = {}
 
-export default function showFromJSSidebar(){
+export default function showFromJSSidebar(resolveFrameWorker){
     disableTracing()
 
     var container = document.createElement("div")
@@ -136,7 +136,7 @@ export default function showFromJSSidebar(){
 
         sidebarIframe.remove();
         container.remove();
-        showShowFromJSInspectorButton();
+        showShowFromJSInspectorButton(resolveFrameWorker);
         inspectedPage.close()
 
         $("body").css("padding-right", "0")
@@ -149,7 +149,7 @@ export default function showFromJSSidebar(){
     })
 
     inspectedPage.on("resolveFrame", function(frameString, callback){
-        resolveFrameWrapper.send("resolveFrame", frameString, callback)
+        resolveFrameWorker.send("resolveFrame", frameString, callback)
     })
 
 
@@ -183,13 +183,13 @@ export default function showFromJSSidebar(){
         whereDoesCharComeFrom(origin, characterIndex, function(steps){
             steps = steps.map(serializeStep)
             callback(steps)
-        })
+        }, resolveFrameWorker)
 
         enableTracing();
     })
 
     inspectedPage.on("getCodeFilePath", function(fileName, callback){
-        getCodeFilePath(fileName, callback)
+        getCodeFilePath(fileName, callback, resolveFrameWorker)
     })
 
     function getElementFromElementId(elementId){
@@ -220,16 +220,16 @@ export default function showFromJSSidebar(){
 
 
 
-    window.resolveFrameWrapper.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
+    resolveFrameWorker.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
     enableTracing();
 }
 
-export function showShowFromJSInspectorButton(){
+export function showShowFromJSInspectorButton(resolveFrameWorker){
     var btn = $("<button>")
     btn.text("Show FromJS Inspector")
     btn.click(function(e){
         btn.remove()
-        showFromJSSidebar()
+        showFromJSSidebar(resolveFrameWorker)
         e.stopPropagation();
     })
     btn.addClass("fromjs-show-inspector-button toggle-inspector-button")

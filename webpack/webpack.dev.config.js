@@ -17,16 +17,18 @@ webConfig.output = {
 };
 webConfig.plugins.push(new WebpackShellPlugin({
     onBuildExit: [
-        "echo 'Running onBuildExit'",
-        "cp src/fromjs.css chrome-extension/dist/fromjs.css",
-        "cp chrome-extension/dist/from.js dist/from.js",
-        "cp chrome-extension/dist/from.js.map dist/from.js.map",
-        "cp chrome-extension/dist/inspector.js dist/inspector.js",
-        "cp chrome-extension/dist/inspector.js.map dist/inspector.js.map",
-        "cp chrome-extension/dist/resolveFrameWorker.js dist/resolveFrameWorker.js",
-        "cp chrome-extension/dist/resolveFrameWorker.js.map dist/resolveFrameWorker.js.map",
-        "cp chrome-extension/icon.png chrome-extension/dist/icon.png",
-        "cp chrome-extension/manifest.json chrome-extension/dist/manifest.json"
+        `
+        cp src/fromjs.css chrome-extension/dist/fromjs.css
+        cp chrome-extension/dist/from.js dist/from.js
+        cp chrome-extension/dist/from.js.map dist/from.js.map
+        cp chrome-extension/dist/inspector.js dist/inspector.js
+        cp chrome-extension/dist/inspector.js.map dist/inspector.js.map
+        cp chrome-extension/dist/resolveFrameWorker.js dist/resolveFrameWorker.js
+        cp chrome-extension/dist/resolveFrameWorker.js.map dist/resolveFrameWorker.js.map
+        cp chrome-extension/icon.png chrome-extension/dist/icon.png;
+        cp chrome-extension/manifest.json chrome-extension/dist/manifest.json;
+        echo 'Finished onBuildExit';
+        `
     ]
 }))
 

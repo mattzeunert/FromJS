@@ -2,7 +2,7 @@ import {enableTracing, disableTracing} from "./tracing"
 import {makeTraceObject} from "./FromJSString"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import Origin from "../origin"
-import getResolveFrameWorker from "../getResolveFrameWorker"
+import createResolveFrameWorker from "../createResolveFrameWorker"
 
 describe("Tracing", function(){
     beforeEach(function(){
@@ -91,7 +91,7 @@ describe("Tracing", function(){
     })
 
     it("Supports mapping of code in new Function", function(done){
-        window.resolveFrameWrapper = getResolveFrameWorker()
+        var resolveFrameWorker = createResolveFrameWorker();
 
         var fn = new Function(makeTraceObject({
             value: "return 'Hi'",
@@ -105,16 +105,14 @@ describe("Tracing", function(){
         var ret = fn();
         disableTracing()
 
-        window.resolveFrameWrapper.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
+        resolveFrameWorker.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
 
         whereDoesCharComeFrom(ret.origin, 0, function(steps){
             var lastStep = steps[steps.length - 1]
             expect(lastStep.originObject.action).toBe("Something")
 
-            window.resolveFrameWrapper = null;
-
             done();
-        })
+        }, resolveFrameWorker)
     })
 
     it("Processes code passed into eval", function(){
@@ -175,6 +173,14 @@ describe("Tracing", function(){
 
         // When the numbers are converted to strings that should also be traced
         expect(joined.origin.inputValues.length).toBe(3)
+    })
+
+    it("Array.join defaults to comma when no separator is passed in", function(){
+        var array = [1,2]
+        var joined = array.join();
+
+        expect(joined.value).toBe("1,2")
+        expect(joined.origin.inputValues[0].action).toBe("Default Array Join Separator")
     })
 
     it("Array.indexOf works with tracked strings", function(){
@@ -310,5 +316,17 @@ describe("Tracing", function(){
         str = toString.call(str)
         expect(typeof str).not.toBe("string")
         expect(str.value).toBe("Hi")
+    })
+
+    it("Returns [object Number] when calling Obj.prototype.toString on a number", function(){
+        var toString = Object.prototype.toString
+        var str = toString.call(2)
+
+        expect(str).toBe("[object Number]")
+    })
+
+    it("Traces when a number is converted to a string", function(){
+        var num = (4).toString()
+        expect(num.origin.action).toBe("Number ToString")
     })
 })

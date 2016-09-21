@@ -4,13 +4,15 @@ import unstringTracifyArguments from "./unstringTracifyArguments"
 import stringTraceUseValue from "./stringTraceUseValue"
 import untrackedArgument from "./untrackedArgument"
 import config from "../config"
+import toString from "../untracedToString"
 
 function FromJSString(options){
     this.origin = options.origin
     this.value = options.value
-    if (typeof this.value.toString() !== "string") {
-        this.value = this.value.toString()
+    while(this.value.isStringTraceString) {
+        this.value = this.value.value
     }
+
     this.isStringTraceString = true
 }
 
@@ -38,9 +40,19 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
             var args = unstringTracifyArguments(arguments)
             var newVal;
 
-            var argumentOrigins = Array.prototype.slice.call(arguments).map(function(arg){
+            var argumentOrigins = Array.from(arguments).map(function(arg){
                 if (arg instanceof FromJSString) {
                     return arg.origin;
+                }
+                if (typeof arg === "number") {
+                    return {
+                        value: arg,
+                        origin: new Origin({
+                            error: {stack: ""},
+                            inputValues: [],
+                            value: arg
+                        })
+                    }
                 }
                 return untrackedArgument(arg)
             })
@@ -263,6 +275,9 @@ export function makeTraceObject(options){
         value: stringTraceUseValue(options.value),
         origin: options.origin
     })
+    if (stringTraceObject.value.isStringTraceString) {
+        debugger
+    }
 
     return new Proxy(stringTraceObject, {
         get: function(target, name){

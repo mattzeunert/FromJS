@@ -1,11 +1,11 @@
 import fileIsDynamicCode from "../fileIsDynamicCode"
 
-export default function getCodeFilePath(filename, callback){
+export default function getCodeFilePath(filename, callback, resolveFrameWorker){
     var isCanceled = false
     // always use data URL, rather than linking to file directly
     // this means you can't get the correct file path any more, which sucks
     // but otherwise the links in the demo would be broken or require custom logic
-    window.resolveFrameWrapper.send("getSourceFileContent", filename, function(src){
+    resolveFrameWorker.send("getSourceFileContent", filename, function(src){
         if (!isCanceled) {
             callback(URL.createObjectURL(new Blob([src]), {type: "text/plain"}))
         }
