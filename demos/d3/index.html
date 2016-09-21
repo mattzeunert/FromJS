@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+    <body>
+        <script src="d3.js" charset="utf-8"></script>
+        <script>
+        var values = [25, 15, 18, 12, 7];
+        var color = d3.scaleLinear()
+            .domain([0, d3.max(values)])
+            .range(["white", "red"])
+            .interpolate(d3.interpolateLab)
+
+        var svg = d3.select(document.body)
+            .append("svg")
+            .attr('width', 200)
+            .attr('height', 600);
+        var circles = svg.selectAll("circle")
+            .data(values)
+            .enter()
+            .append("circle")
+            .attr("r", (r) => r)
+            .attr("transform", function(r, i){
+                return "translate(100," + (i * 60 + 50) + ")"
+            })
+            .attr("fill", (r) => color(r))
+
+        </script>
+    </body>
+</html>
