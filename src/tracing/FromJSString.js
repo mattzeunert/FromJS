@@ -9,6 +9,9 @@ import toString from "../untracedToString"
 function FromJSString(options){
     this.origin = options.origin
     this.value = options.value
+    if (typeof this.value !== "string") {
+        debugger
+    }
     while(this.value.isStringTraceString) {
         this.value = this.value.value
     }
@@ -44,17 +47,17 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 if (arg instanceof FromJSString) {
                     return arg.origin;
                 }
-                if (typeof arg === "number") {
-                    return {
-                        value: arg,
-                        origin: new Origin({
-                            error: {stack: ""},
-                            inputValues: [],
-                            value: arg
-                        })
-                    }
+                if (typeof arg === "string"){
+                    return untrackedArgument(arg)
                 }
-                return untrackedArgument(arg)
+                return {
+                    value: toString(arg),
+                    origin: new Origin({
+                        error: {stack: ""},
+                        inputValues: [],
+                        value: toString(arg)
+                    })
+                }
             })
             var inputValues = [oldValue.origin].concat(argumentOrigins)
 
@@ -268,6 +271,9 @@ Object.defineProperty(FromJSString.prototype, "length", {
 })
 
 export function makeTraceObject(options){
+    if (typeof options.value !== "string") {
+        return options.value
+    }
     if (options === undefined || options.value === undefined || options.origin === undefined) {
         throw "invalid options for makeTraceObject"
     }

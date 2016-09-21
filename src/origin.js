@@ -25,7 +25,7 @@ export default function Origin(opts){
         }
         if (typeof inputValue === "number") {
             return new Origin({
-                action: "Untracked number",
+                action: "Number",
                 inputValues: [],
                 value: inputValue,
                 error: opts.error
@@ -33,7 +33,7 @@ export default function Origin(opts){
         }
         if (typeof inputValue === "string") {
             return new Origin({
-                action: "Untracked string",
+                action: "String",
                 inputValues: [],
                 value: inputValue,
                 error: opts.error
