@@ -62,7 +62,7 @@ function handleRequest(request, response){
                     return `
                         var script = originalCreateElement.call(document, "script")
                         script.text = decodeURI("${encodedScript}")
-                        document.body.appendChild(script)
+                        document.documentElement.appendChild(script)
                     `
                 })
 

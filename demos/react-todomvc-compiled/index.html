@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" data-framework="react">
+	<head>
+		<meta charset="utf-8">
+		<title>React • TodoMVC</title>
+		<link rel="stylesheet" href="modules/todomvc-common/base.css">
+		<link rel="stylesheet" href="modules/todomvc-app-css/index.css">
+	</head>
+	<body>
+
+		<section class="todoapp"></section>
+		<footer class="info">
+			<p>Double-click to edit a todo</p>
+			<p>Created by <a href="http://github.com/petehunt/">petehunt</a></p>
+			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+		</footer>
+
+		<script>
+			if (localStorage["react-todos"] === undefined) {
+				localStorage["react-todos"] = `[{"id":"0eec7aa6-6544-4758-abb6-db8c0ff54880","title":"Hello","completed":true},{"id":"1dd5cb20-7aeb-4ce0-81c1-8fd8c754c552","title":"World","completed":false}]`
+			}
+		</script>
+		<script src="modules/todomvc-common/base.js"></script>
+		<script src="modules/react/dist/react-with-addons.js"></script>
+		<script src="modules/classnames/index.js"></script>
+		<script src="modules/director/build/director.js"></script>
+
+		<script src="js/utils.js"></script>
+		<script src="js/todoModel.js"></script>
+
+		<script  src="js/todoItem.js"></script>
+		<script src="js/footer.js"></script>
+		<script src="js/app.js"></script>
+
+		 <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-80477434-1', 'auto');
+          ga('send', 'pageview');
+
+        </script>
+	</body>
+</html>

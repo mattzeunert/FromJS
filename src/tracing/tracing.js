@@ -115,19 +115,19 @@ export function enableTracing(){
     }
     tracingEnabled = true
 
-    function addOriginInfoToCreatedElement(el, tagName){
+    function addOriginInfoToCreatedElement(el, tagName, action){
         addElOrigin(el, "openingTagStart", {
-            action: "createElement",
+            action,
             inputValues: [tagName],
             value: el.tagName
         })
         addElOrigin(el, "openingTagEnd", {
-            action: "createElement",
+            action,
             inputValues: [tagName],
             value: el.tagName
         })
         addElOrigin(el, "closingTag", {
-            action: "createElement",
+            action,
             inputValues: [tagName],
             value: el.tagName
         })
@@ -135,13 +135,13 @@ export function enableTracing(){
 
     document.createElement = function(tagName){
         var el = originalCreateElement.call(this, tagName)
-        addOriginInfoToCreatedElement(el, tagName)
+        addOriginInfoToCreatedElement(el, tagName, "createElement")
         return el;
     }
 
     document.createElementNS = function(namespace, tagName){
         var el = nativeCreateElementNS.call(this, namespace, tagName)
-        addOriginInfoToCreatedElement(el, tagName)
+        addOriginInfoToCreatedElement(el, tagName, "createElementNS")
         return el
     }
 

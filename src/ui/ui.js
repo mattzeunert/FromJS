@@ -1015,6 +1015,16 @@ class ElementOriginPath extends React.Component {
             </div>
         }
 
+        var onCharacterClick = (characterIndex) => this.setState({
+            characterIndex,
+            previewCharacterIndex: null,
+            originPathKey: null,
+            originPath: null
+        })
+        if (!this.props.isPreviewElement) {
+            window.e2eTestSimulateInpsectCharacter = onCharacterClick
+        }
+
         return <div>
             <div style={{padding: 10}}>
                 <div style={{fontWeight: "bold", fontSize: 20, marginBottom: 20}}>
@@ -1027,12 +1037,7 @@ class ElementOriginPath extends React.Component {
                         <TextEl
                             text={this.getInspectedValue()}
                             highlightedCharacterIndex={this.state.characterIndex}
-                            onCharacterClick={(characterIndex) => this.setState({
-                                characterIndex,
-                                previewCharacterIndex: null,
-                                originPathKey: null,
-                                originPath: null
-                            })}
+                            onCharacterClick={onCharacterClick}
                             onCharacterHover={(characterIndex) => {
                                 if (isMobile()) { return }
                                 this.setState({previewCharacterIndex: characterIndex})
@@ -1234,6 +1239,7 @@ export class FromJSView extends React.Component {
             preview = <ElementOriginPath
                 el={this.state.previewEl}
                 goUpInDOM={() => "can't call this function, but needs to be there so button is shown"}
+                isPreviewElement={true}
                 />
         }
         if (this.state.el) {
