@@ -396,4 +396,34 @@ describe("Tracing", function(){
             })
         })
     })
+
+    it("Can create a string object from an object with a custom toString method", function(){
+        var obj = {
+            toString: function(){
+                return makeTraceObject({
+                    value: "Cake",
+                    origin: {}
+                })
+            }
+        }
+
+        var str = new String(obj);
+
+        expect(typeof str).toBe("object");
+        expect(str.toString()).toBe("Cake");
+    })
+
+    it("Can create a string object from an undefined value", function(){
+        var str = new String(undefined);
+
+        expect(typeof str).toBe("object");
+        expect(str.toString()).toBe("undefined");
+    })
+
+    it("Can create a string object from a null value", function(){
+        var str = new String(null);
+
+        expect(typeof str).toBe("object");
+        expect(str.toString()).toBe("null");
+    })
 })

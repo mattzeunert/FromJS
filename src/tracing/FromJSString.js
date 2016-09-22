@@ -215,7 +215,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 if (config.logUntrackedStrings) {
                     console.trace("string not tracked after ",propertyName ,"call")
                 }
-                newVal = String.prototype[propertyName].apply(this.toString(), args);
+                newVal = nativeStringObject.prototype[propertyName].apply(this.toString(), args);
             }
 
             var actionName = capitalizeFirstCharacter(propertyName) + " Call";

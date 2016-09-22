@@ -9,6 +9,7 @@ import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
 import trackStringIfNotTracked from "./trackStringIfNotTracked"
 import endsWith from "ends-with"
+import toString from "../untracedToString"
 
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
@@ -46,6 +47,8 @@ window.nativeFunction = nativeFunction
 
 var nativeJSONParse = JSON.parse
 window.nativeJSONParse = nativeJSONParse
+
+var nativeStringObject = String;
 
 var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
@@ -753,6 +756,13 @@ export function enableTracing(){
         return ret;
     }
 
+    window.String = function(val){
+        if (val !== undefined && val !== null) {
+            val = toString(val);    
+        }
+        return new nativeStringObject(val)
+    }
+
     window.Function = function(code){
         var args = Array.prototype.slice.apply(arguments)
         var code = args.pop()
@@ -870,6 +880,9 @@ export function disableTracing(){
     Object.prototype.toString = nativeObjectToString
     Number.prototype.toString = nativeNumberToString
     Array.prototype.toString = nativeArrayToString
+
+    window.String = nativeStringObject
+    window.nativeStringObject = nativeStringObject
 
     Object.getOwnPropertyNames = nativeObjectGetOwnPropertyNames
 
