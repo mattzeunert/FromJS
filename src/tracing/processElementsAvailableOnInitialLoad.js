@@ -1,6 +1,7 @@
 import addElOrigin from "./addElOrigin"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import Origin from "../origin"
+import {makeTraceObject} from "./FromJSString"
 
 var initialHTMLHasBeenProcessed =false;
 export function makeSureInitialHTMLHasBeenProcessed(){
@@ -43,7 +44,7 @@ export default function processElementsAvailableOnInitialLoad(){
         bodyContent = originalHtml
     }
 
-    originalHtml = {
+    originalHtml = makeTraceObject({
         value: originalHtml,
         origin: new Origin({
             action: "Initial Page HTML",
@@ -53,7 +54,7 @@ export default function processElementsAvailableOnInitialLoad(){
                 filename: htmlFilename
             }
         })
-    }
+    })
     var headEtcRemovedCharCount = originalHtml.value.length -bodyContentAndAfter.length
     var bodyEndIndex = headEtcRemovedCharCount + bodyContent.length
     mapInnerHTMLAssignment(document.body, originalHtml, "Initial Body HTML",  -headEtcRemovedCharCount, bodyEndIndex)
