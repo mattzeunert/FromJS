@@ -12,6 +12,9 @@ function ensureIsNumber(value){
     if (typeof value === "number") {
         return value
     }
+    if (typeof value === "undefined") {
+        return NaN
+    }
 
     return parseFloat(value.toString())
 }
