@@ -334,6 +334,12 @@ describe("Tracing", function(){
         expect(num.origin.action).toBe("Number ToString")
     })
 
+    it("Returns a string from Array.toString, so browser built-in functions can transparently work with arrays", function(){
+        var arr = [1,2]
+        var str = arr.toString();
+        expect(typeof str).toBe("string")
+    })
+
     describe("CSSStyleDeclaration", function(){
         it("Traces when a single style is assigned", function(){
             var div = document.createElement("div")

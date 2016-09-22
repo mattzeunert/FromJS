@@ -51,6 +51,7 @@ window.originalLocalStorage = nativeLocalStorage
 
 var nativeObjectToString = Object.prototype.toString
 window.nativeObjectToString = nativeObjectToString
+var nativeArrayToString = Array.prototype.toString
 
 var nativeAddEventListener = Node.prototype.addEventListener
 var nativeRemoveEventListener = Node.prototype.removeEventListener
@@ -355,7 +356,7 @@ export function enableTracing(){
         })
     })
 
-    Array.prototype.join = function(separator){
+    function tracedArrayJoin(separator){
         var separatorArgumentIsUndefined = separator === undefined;
         if (separatorArgumentIsUndefined){
             separator = defaultArrayJoinSeparator
@@ -396,6 +397,7 @@ export function enableTracing(){
 
         return ret
     }
+    Array.prototype.join = tracedArrayJoin
 
     Array.prototype.indexOf = function(value){
         var arrayItems = this.map(stringTraceUseValue)
@@ -727,6 +729,16 @@ export function enableTracing(){
         return nativeObjectToString.call(this)
     }
 
+    Array.prototype.toString = function(){
+        if (this !== undefined && this.isStringTraceString) {
+            return this
+        }
+        Array.prototype.join = nativeArrayJoin
+        var ret = nativeArrayToString.call(this)
+        Array.prototype.join = tracedArrayJoin
+        return ret;
+    }
+
     window.Function = function(code){
         var args = Array.prototype.slice.apply(arguments)
         var code = args.pop()
@@ -843,6 +855,7 @@ export function disableTracing(){
 
     Object.prototype.toString = nativeObjectToString
     Number.prototype.toString = nativeNumberToString
+    Array.prototype.toString = nativeArrayToString
 
     tracingEnabled = false;
 }
