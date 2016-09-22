@@ -340,6 +340,15 @@ describe("Tracing", function(){
         expect(typeof str).toBe("string")
     })
 
+    it("Doesn't return tracking properties from Object.getOwnPropertyNames", function(){
+        var obj = {
+            cake: "hi",
+            cake_trackedName: {}
+        }
+        var ownPropertyNames = Object.getOwnPropertyNames(obj)
+        expect(ownPropertyNames).toEqual(["cake"])
+    })
+
     describe("CSSStyleDeclaration", function(){
         it("Traces when a single style is assigned", function(){
             var div = document.createElement("div")

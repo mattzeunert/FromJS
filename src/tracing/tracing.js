@@ -8,6 +8,7 @@ import processJavaScriptCode from "../compilation/processJavaScriptCode"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
 import trackStringIfNotTracked from "./trackStringIfNotTracked"
+import endsWith from "ends-with"
 
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
@@ -64,6 +65,8 @@ var nativeCreateTextNode = document.createTextNode
 
 var nativeEval = window.eval
 var nativeOuterHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "outerHTML")
+
+var nativeObjectGetOwnPropertyNames = Object.getOwnPropertyNames
 
 var nativeCSSStyleDeclarationSetProperty = CSSStyleDeclaration.prototype.setProperty
 
@@ -263,6 +266,14 @@ export function enableTracing(){
             value: "whateverr"
         })
         return nativeRemoveAttribute.apply(this, arguments)
+    }
+
+    Object.getOwnPropertyNames = function(obj){
+        var names = nativeObjectGetOwnPropertyNames(obj);
+        names = names.filter(function(name){
+            return !endsWith(name, "_trackedName")
+        })
+        return names;
     }
 
 
@@ -856,6 +867,8 @@ export function disableTracing(){
     Object.prototype.toString = nativeObjectToString
     Number.prototype.toString = nativeNumberToString
     Array.prototype.toString = nativeArrayToString
+
+    Object.getOwnPropertyNames = nativeObjectGetOwnPropertyNames
 
     tracingEnabled = false;
 }
