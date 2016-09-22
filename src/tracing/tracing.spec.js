@@ -156,36 +156,52 @@ describe("Tracing", function(){
         expect(dynamicFileCountAfter - dynamicFileCountBefore).toBe(3)
     })
 
-    it("Array.join works with objects that have a custom toString function which returns a tracked string", function(){
-        var obj = {
-            toString: function(){
-                return makeTraceObject({
-                    value: "Hello",
-                    origin: {}
-                })
+    describe("Array.join", function(){
+        it("Works with objects that have a custom toString function which returns a tracked string", function(){
+            var obj = {
+                toString: function(){
+                    return makeTraceObject({
+                        value: "Hello",
+                        origin: {}
+                    })
+                }
             }
-        }
 
-        var joined = [obj, obj].join("-")
-        expect(joined.value).toBe("Hello-Hello")
+            var joined = [obj, obj].join("-")
+            expect(joined.value).toBe("Hello-Hello")
+        })
+
+        it("Works with arrays", function(){
+            var array = [[1,2],[3,4]];
+            var joined = array.join("x");
+            expect(joined.value).toBe("1,2x3,4");
+
+            // When the numbers are converted to strings that should also be traced
+            expect(joined.origin.inputValues.length).toBe(3)
+        })
+
+        it("Defaults to comma when no separator is passed in", function(){
+            var array = [1,2]
+            var joined = array.join();
+
+            expect(joined.value).toBe("1,2")
+            expect(joined.origin.inputValues[0].action).toBe("Default Array Join Separator")
+        })
+
+        it("Works with array-like objects", function(){
+            // E.g. Trello has its' own custom List object that's a fake array without a map property
+            var array = {
+                0: "a",
+                1: "b",
+                length: 2
+            }
+
+            var res = Array.prototype.join.call(array)
+            expect(res.value).toBe("a,b")
+
+        })
     })
 
-    it("Array.join works with arrays", function(){
-        var array = [[1,2],[3,4]];
-        var joined = array.join("x");
-        expect(joined.value).toBe("1,2x3,4");
-
-        // When the numbers are converted to strings that should also be traced
-        expect(joined.origin.inputValues.length).toBe(3)
-    })
-
-    it("Array.join defaults to comma when no separator is passed in", function(){
-        var array = [1,2]
-        var joined = array.join();
-
-        expect(joined.value).toBe("1,2")
-        expect(joined.origin.inputValues[0].action).toBe("Default Array Join Separator")
-    })
 
     it("Array.indexOf works with tracked strings", function(){
         var str = makeTraceObject({
@@ -308,20 +324,6 @@ describe("Tracing", function(){
         expect(clone.children[0].__elOrigin.action).toBe("cake")
     })
 
-    it("Returns the original traced string when calling Object.prototype.toString on it", function(){
-        // This is something e.g. Handlebars uses to stringify stuff
-        var toString = Object.prototype.toString
-        var str = {
-            value: "Hi",
-            origin: {},
-            isStringTraceString: true
-        }
-
-        str = toString.call(str)
-        expect(typeof str).not.toBe("string")
-        expect(str.value).toBe("Hi")
-    })
-
     it("Returns [object Number] when calling Obj.prototype.toString on a number", function(){
         var toString = Object.prototype.toString
         var str = toString.call(2)
@@ -329,9 +331,42 @@ describe("Tracing", function(){
         expect(str).toBe("[object Number]")
     })
 
+    it("Returns [object Null] when calling Obj.prototype.toString on null", function(){
+        var toString = Object.prototype.toString
+        var str = toString.call(null)
+
+        expect(str).toBe("[object Null]")
+    })
+
+    it("Returns [object String] when calling Obj.prototype.toString on a traced string", function(){
+        var toString = Object.prototype.toString
+        var tracedStr = makeTraceObject({
+            value: "Cake",
+            origin: {}
+        })
+        var str = toString.call(tracedStr)
+
+        expect(str).toBe("[object String]")
+    })
+
     it("Traces when a number is converted to a string", function(){
         var num = (4).toString()
         expect(num.origin.action).toBe("Number ToString")
+    })
+
+    it("Returns a string from Array.toString, so browser built-in functions can transparently work with arrays", function(){
+        var arr = [1,2]
+        var str = arr.toString();
+        expect(typeof str).toBe("string")
+    })
+
+    it("Doesn't return tracking properties from Object.getOwnPropertyNames", function(){
+        var obj = {
+            cake: "hi",
+            cake_trackedName: {}
+        }
+        var ownPropertyNames = Object.getOwnPropertyNames(obj)
+        expect(ownPropertyNames).toEqual(["cake"])
     })
 
     describe("CSSStyleDeclaration", function(){

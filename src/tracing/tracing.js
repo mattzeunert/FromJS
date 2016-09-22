@@ -8,6 +8,7 @@ import processJavaScriptCode from "../compilation/processJavaScriptCode"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
 import trackStringIfNotTracked from "./trackStringIfNotTracked"
+import endsWith from "ends-with"
 
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
@@ -51,6 +52,7 @@ window.originalLocalStorage = nativeLocalStorage
 
 var nativeObjectToString = Object.prototype.toString
 window.nativeObjectToString = nativeObjectToString
+var nativeArrayToString = Array.prototype.toString
 
 var nativeAddEventListener = Node.prototype.addEventListener
 var nativeRemoveEventListener = Node.prototype.removeEventListener
@@ -63,6 +65,8 @@ var nativeCreateTextNode = document.createTextNode
 
 var nativeEval = window.eval
 var nativeOuterHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "outerHTML")
+
+var nativeObjectGetOwnPropertyNames = Object.getOwnPropertyNames
 
 var nativeCSSStyleDeclarationSetProperty = CSSStyleDeclaration.prototype.setProperty
 
@@ -107,6 +111,11 @@ export function enableEventListeners(){
 }
 export function disableEventListeners(){
     eventListenersEnabled = false
+}
+
+
+function isTracedString(val){
+    return !!val && val.isStringTraceString;
 }
 
 export function enableTracing(){
@@ -264,6 +273,14 @@ export function enableTracing(){
         return nativeRemoveAttribute.apply(this, arguments)
     }
 
+    Object.getOwnPropertyNames = function(obj){
+        var names = nativeObjectGetOwnPropertyNames(obj);
+        names = names.filter(function(name){
+            return !endsWith(name, "_trackedName")
+        })
+        return names;
+    }
+
 
     Object.defineProperty(Element.prototype, "className", {
         set: function(newValue){
@@ -307,8 +324,6 @@ export function enableTracing(){
                         })
                     }
                 )
-            } else {
-                throw "no"
             }
         }
 
@@ -355,12 +370,12 @@ export function enableTracing(){
         })
     })
 
-    Array.prototype.join = function(separator){
+    function tracedArrayJoin(separator){
         var separatorArgumentIsUndefined = separator === undefined;
         if (separatorArgumentIsUndefined){
             separator = defaultArrayJoinSeparator
         }
-        var stringifiedItems = this.map(function(item){
+        var stringifiedItems = Array.prototype.map.call(this, function(item){
             var stringifiedItem = item;
 
             while (typeof stringifiedItem !== "string") {
@@ -369,7 +384,7 @@ export function enableTracing(){
             return stringifiedItem
         })
 
-        var trackedInputItems = this.map(trackStringIfNotTracked)
+        var trackedInputItems = Array.prototype.map.call(this, trackStringIfNotTracked)
         var trackedSeparator = trackStringIfNotTracked(separator)
         var inputValues = [trackedSeparator].concat(trackedInputItems)
         // .join already does stringification, but we may need to call .toString()
@@ -396,6 +411,7 @@ export function enableTracing(){
 
         return ret
     }
+    Array.prototype.join = tracedArrayJoin
 
     Array.prototype.indexOf = function(value){
         var arrayItems = this.map(stringTraceUseValue)
@@ -721,10 +737,20 @@ export function enableTracing(){
     }
 
     Object.prototype.toString = function(){
-        if (this !== undefined && this.isStringTraceString) {
-            return this
+        if (isTracedString(this)) {
+            return nativeObjectToString.call(this.value)
         }
         return nativeObjectToString.call(this)
+    }
+
+    Array.prototype.toString = function(){
+        if (isTracedString(this)) {
+            return this
+        }
+        Array.prototype.join = nativeArrayJoin
+        var ret = nativeArrayToString.call(this)
+        Array.prototype.join = tracedArrayJoin
+        return ret;
     }
 
     window.Function = function(code){
@@ -843,6 +869,9 @@ export function disableTracing(){
 
     Object.prototype.toString = nativeObjectToString
     Number.prototype.toString = nativeNumberToString
+    Array.prototype.toString = nativeArrayToString
+
+    Object.getOwnPropertyNames = nativeObjectGetOwnPropertyNames
 
     tracingEnabled = false;
 }

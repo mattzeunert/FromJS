@@ -1,4 +1,5 @@
 import {getJSScriptTags} from "../src/getJSScriptTags"
+import _ from "underscore"
 
 function getScriptElements(html){
     return getJSScriptTags(html).map(function(tag){
@@ -102,7 +103,18 @@ function simulateOnLoad(){
     document.dispatchEvent(new Event("load"))
 }
 
+function sendMessageToBackgroundPage(data, callback){
+    var callbackName = "fromJSBackgroundMessageCallback" + _.uniqueId()
+    window[callbackName] = function(){
+        delete window[callbackName];
+        callback.apply(this, arguments);
+    }
+    data.callbackName = callbackName;
 
+    data.isFromJSExtensionMessage = true
+    var event = new CustomEvent("RebroadcastExtensionMessage", {detail: data});
+    window.dispatchEvent(event);
+}
 
 function appendScriptsOneAfterAnother(scripts, container, done){
     next()
@@ -113,14 +125,23 @@ function appendScriptsOneAfterAnother(scripts, container, done){
         }
         var script = scripts.shift()
         if (nativeInnerHTMLDescriptor.get.call(script) === ""){
-            script.onload = function(){
+            // Do this rather than appending script element, because
+            // requests on https may be cross origin
+            sendMessageToBackgroundPage({
+                type: "loadScript",
+                url: script.src
+            }, function(){
                 next();
-            }
-            script.onerror = function(){
-                console.warn("Error loading script", script)
-                next();
-            }
-            container.appendChild(script)
+            })
+
+            // script.onload = function(){
+            //     next();
+            // }
+            // script.onerror = function(err){
+            //     console.warn("Error loading script", script, err)
+            //     next();
+            // }
+            // container.appendChild(script)
         } else {
             container.appendChild(script)
             next();
