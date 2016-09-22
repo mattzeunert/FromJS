@@ -319,8 +319,6 @@ export function enableTracing(){
                         })
                     }
                 )
-            } else {
-                throw "no"
             }
         }
 
