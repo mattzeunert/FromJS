@@ -156,36 +156,52 @@ describe("Tracing", function(){
         expect(dynamicFileCountAfter - dynamicFileCountBefore).toBe(3)
     })
 
-    it("Array.join works with objects that have a custom toString function which returns a tracked string", function(){
-        var obj = {
-            toString: function(){
-                return makeTraceObject({
-                    value: "Hello",
-                    origin: {}
-                })
+    describe("Array.join", function(){
+        it("Works with objects that have a custom toString function which returns a tracked string", function(){
+            var obj = {
+                toString: function(){
+                    return makeTraceObject({
+                        value: "Hello",
+                        origin: {}
+                    })
+                }
             }
-        }
 
-        var joined = [obj, obj].join("-")
-        expect(joined.value).toBe("Hello-Hello")
+            var joined = [obj, obj].join("-")
+            expect(joined.value).toBe("Hello-Hello")
+        })
+
+        it("Works with arrays", function(){
+            var array = [[1,2],[3,4]];
+            var joined = array.join("x");
+            expect(joined.value).toBe("1,2x3,4");
+
+            // When the numbers are converted to strings that should also be traced
+            expect(joined.origin.inputValues.length).toBe(3)
+        })
+
+        it("Defaults to comma when no separator is passed in", function(){
+            var array = [1,2]
+            var joined = array.join();
+
+            expect(joined.value).toBe("1,2")
+            expect(joined.origin.inputValues[0].action).toBe("Default Array Join Separator")
+        })
+
+        it("Works with array-like objects", function(){
+            // E.g. Trello has its' own custom List object that's a fake array without a map property
+            var array = {
+                0: "a",
+                1: "b",
+                length: 2
+            }
+
+            var res = Array.prototype.join.call(array)
+            expect(res.value).toBe("a,b")
+
+        })
     })
 
-    it("Array.join works with arrays", function(){
-        var array = [[1,2],[3,4]];
-        var joined = array.join("x");
-        expect(joined.value).toBe("1,2x3,4");
-
-        // When the numbers are converted to strings that should also be traced
-        expect(joined.origin.inputValues.length).toBe(3)
-    })
-
-    it("Array.join defaults to comma when no separator is passed in", function(){
-        var array = [1,2]
-        var joined = array.join();
-
-        expect(joined.value).toBe("1,2")
-        expect(joined.origin.inputValues[0].action).toBe("Default Array Join Separator")
-    })
 
     it("Array.indexOf works with tracked strings", function(){
         var str = makeTraceObject({

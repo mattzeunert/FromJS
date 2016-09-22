@@ -372,7 +372,7 @@ export function enableTracing(){
         if (separatorArgumentIsUndefined){
             separator = defaultArrayJoinSeparator
         }
-        var stringifiedItems = this.map(function(item){
+        var stringifiedItems = Array.prototype.map.call(this, function(item){
             var stringifiedItem = item;
 
             while (typeof stringifiedItem !== "string") {
@@ -381,7 +381,7 @@ export function enableTracing(){
             return stringifiedItem
         })
 
-        var trackedInputItems = this.map(trackStringIfNotTracked)
+        var trackedInputItems = Array.prototype.map.call(this, trackStringIfNotTracked)
         var trackedSeparator = trackStringIfNotTracked(separator)
         var inputValues = [trackedSeparator].concat(trackedInputItems)
         // .join already does stringification, but we may need to call .toString()
