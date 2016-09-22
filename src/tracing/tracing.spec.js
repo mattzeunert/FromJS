@@ -401,28 +401,37 @@ describe("Tracing", function(){
         })
     })
 
-    it("Can create a string object from an object with a custom toString method", function(){
-        var obj = makeObjWithCustomToString("Cake")
+    describe("window.String", function(){
+        it("Can create a string object from an object with a custom toString method", function(){
+            var obj = makeObjWithCustomToString("Cake")
 
-        var str = new String(obj);
+            var str = new String(obj);
 
-        expect(typeof str).toBe("object");
-        expect(str.toString()).toBe("Cake");
+            expect(typeof str).toBe("object");
+            expect(str.toString()).toBe("Cake");
+        })
+
+        it("Can create a string object from an undefined value", function(){
+            var str = new String(undefined);
+
+            expect(typeof str).toBe("object");
+            expect(str.toString()).toBe("undefined");
+        })
+
+        it("Can create a string object from a null value", function(){
+            var str = new String(null);
+
+            expect(typeof str).toBe("object");
+            expect(str.toString()).toBe("null");
+        })
+
+        it("Still lets the app use String.fromCharCode", function(){
+            var str = String.fromCharCode(97)
+            expect(str).toBe("a")
+        })
     })
 
-    it("Can create a string object from an undefined value", function(){
-        var str = new String(undefined);
-
-        expect(typeof str).toBe("object");
-        expect(str.toString()).toBe("undefined");
-    })
-
-    it("Can create a string object from a null value", function(){
-        var str = new String(null);
-
-        expect(typeof str).toBe("object");
-        expect(str.toString()).toBe("null");
-    })
+    
 
     it("Can handle assigning an object to innerHTML", function(){
         var obj = makeObjWithCustomToString("Cake")

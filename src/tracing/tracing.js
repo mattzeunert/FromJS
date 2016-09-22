@@ -762,6 +762,10 @@ export function enableTracing(){
         }
         return new nativeStringObject(val)
     }
+    window.String.prototype = nativeStringObject.prototype
+    window.String.raw = nativeStringObject.raw
+    window.String.fromCodePoint = nativeStringObject.fromCodePoint
+    window.String.fromCharCode = nativeStringObject.fromCharCode
 
     window.Function = function(code){
         var args = Array.prototype.slice.apply(arguments)
