@@ -4,6 +4,17 @@ import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import Origin from "../origin"
 import createResolveFrameWorker from "../createResolveFrameWorker"
 
+function makeObjWithCustomToString(str){
+    return {
+        toString: function(){
+            return makeTraceObject({
+                value: str,
+                origin: {}
+            })
+        }
+    }
+}
+
 describe("Tracing", function(){
     beforeEach(function(){
         enableTracing();
@@ -158,14 +169,7 @@ describe("Tracing", function(){
 
     describe("Array.join", function(){
         it("Works with objects that have a custom toString function which returns a tracked string", function(){
-            var obj = {
-                toString: function(){
-                    return makeTraceObject({
-                        value: "Hello",
-                        origin: {}
-                    })
-                }
-            }
+            var obj = makeObjWithCustomToString("Hello")
 
             var joined = [obj, obj].join("-")
             expect(joined.value).toBe("Hello-Hello")
@@ -398,14 +402,7 @@ describe("Tracing", function(){
     })
 
     it("Can create a string object from an object with a custom toString method", function(){
-        var obj = {
-            toString: function(){
-                return makeTraceObject({
-                    value: "Cake",
-                    origin: {}
-                })
-            }
-        }
+        var obj = makeObjWithCustomToString("Cake")
 
         var str = new String(obj);
 
@@ -425,5 +422,15 @@ describe("Tracing", function(){
 
         expect(typeof str).toBe("object");
         expect(str.toString()).toBe("null");
+    })
+
+    it("Can handle assigning an object to innerHTML", function(){
+        var obj = makeObjWithCustomToString("Cake")
+        var el = document.createElement("div")
+
+        el.innerHTML = obj;
+
+        disableTracing();
+        expect(el.innerHTML).toBe("Cake")
     })
 })

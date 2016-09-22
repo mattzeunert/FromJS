@@ -7,6 +7,7 @@ import config from "../config"
 import normalizeHtml, {normalizeHtmlAttribute} from "../normalizeHtml"
 import _ from "underscore"
 import {runFunctionWithTracingDisabled} from "./tracing"
+import untracedToString from "../untracedToString"
 
 var htmlEntityRegex = /^\&[#a-z0-9]+\;/
 var whitespaceRegex = /^[\s]+/
@@ -28,7 +29,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
         if (initialExtraCharsValue !== undefined){
             charsAddedInSerializedHtml = initialExtraCharsValue
         }
-        var assignedString = assignedInnerHTML.value ? assignedInnerHTML.value : assignedInnerHTML; // somehow  getting weird non-string, non fromjs-string values
+        var assignedString = untracedToString(assignedInnerHTML)
         if (contentEndIndex === 0) {
             contentEndIndex = assignedString.length
         }
