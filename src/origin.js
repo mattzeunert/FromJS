@@ -15,6 +15,14 @@ export function getOriginById(originId) {
 
 export default function Origin(opts){
     var inputValues = opts.inputValues.map(function(inputValue){
+        if (typeof inputValue === "undefined") {
+           return new Origin({
+               action: "Undefined",
+               inputValues: [],
+               value: "undefined", // would rather not store a whole function reference
+               error: opts.error
+           })
+        }
         if (inputValue.isFromJSOriginObject){
             return inputValue
         }
@@ -64,6 +72,7 @@ export default function Origin(opts){
                error: opts.error
            })
        }
+
 
         debugger
         return new Origin({

@@ -707,7 +707,7 @@ export function enableTracing(){
 
         var styleValue = name.toString() + ": ";
         styleValue += value.toString();
-        if (priority.toString() === "important") {
+        if (priority !== undefined && priority.toString() === "important") {
             styleValue += " !important"
         }
 

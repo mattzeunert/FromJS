@@ -333,4 +333,32 @@ describe("Tracing", function(){
         var num = (4).toString()
         expect(num.origin.action).toBe("Number ToString")
     })
+
+    describe("CSSStyleDeclaration", function(){
+        it("Traces when a single style is assigned", function(){
+            var div = document.createElement("div")
+            var red = makeTraceObject({
+                value: "red",
+                origin: {
+                    action: "Some Action",
+                    inputValues: [],
+                    value: "red",
+                    isFromJSOriginObject: true
+                }
+            })
+
+            div.style.setProperty("color", red)
+
+            disableTracing();
+            expect(div.getAttribute("style")).toBe("color: red")
+
+            var origin = div.__elOrigin.attribute_style
+            // style='color: red'
+            whereDoesCharComeFrom(origin, 15 , function(steps){
+                var lastStep = _.last(steps)
+                expect(lastStep.originObject.value).toBe("red")
+                expect(lastStep.originObject.action).toBe("Some Action")
+            })
+        })
+    })
 })
