@@ -113,6 +113,11 @@ export function disableEventListeners(){
     eventListenersEnabled = false
 }
 
+
+function isTracedString(val){
+    return !!val && val.isStringTraceString;
+}
+
 export function enableTracing(){
     if (tracingEnabled){
         return
@@ -732,14 +737,14 @@ export function enableTracing(){
     }
 
     Object.prototype.toString = function(){
-        if (this !== undefined && this.isStringTraceString) {
+        if (isTracedString(this)) {
             return nativeObjectToString.call(this.value)
         }
         return nativeObjectToString.call(this)
     }
 
     Array.prototype.toString = function(){
-        if (this !== undefined && this.isStringTraceString) {
+        if (isTracedString(this)) {
             return this
         }
         Array.prototype.join = nativeArrayJoin

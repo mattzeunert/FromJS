@@ -331,11 +331,11 @@ describe("Tracing", function(){
         expect(str).toBe("[object Number]")
     })
 
-    it("Returns [object String] when calling Obj.prototype.toString on a string", function(){
+    it("Returns [object Null] when calling Obj.prototype.toString on null", function(){
         var toString = Object.prototype.toString
-        var str = toString.call("cake")
+        var str = toString.call(null)
 
-        expect(str).toBe("[object String]")
+        expect(str).toBe("[object Null]")
     })
 
     it("Returns [object String] when calling Obj.prototype.toString on a traced string", function(){
