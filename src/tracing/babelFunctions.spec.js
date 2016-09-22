@@ -52,4 +52,11 @@ describe("babelFunctions", function(){
             expect(res).toBe(false)
         })
     })
+
+    describe("f__subtract", function(){
+        it("Supports subtracting undfined from a number", function(){
+            var result = babelFunctions.f__subtract(5,  undefined)
+            expect(isNaN(result)).toBe(true)
+        })
+    })
 })
