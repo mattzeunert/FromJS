@@ -15,6 +15,41 @@ fetch(chrome.extension.getURL("resolveFrameWorker.js"))
 
 var tabsToProcess = [];
 
+var messageHandlers = {
+    loadScript: function(request, sender, callback){
+        var code = getProcessedCodeFor(request.url)
+        executeScriptOnPage(sender.tab.id, code, function(){
+            callback()
+        })
+    }
+}
+
+chrome.runtime.onMessage.addListener(function(request, sender) {
+    console.log("Got message", request)
+    if (!request.isFromJSExtensionMessage) {return}
+
+    var handler = messageHandlers[request.type];
+    if (handler) {
+        handler(request, sender, function(){
+            executeScriptOnPage(sender.tab.id, request.callbackName + "()");
+        })
+    } else {
+        throw "no handler for message type " + request.type
+    }
+});
+
+function executeScriptOnPage(tabId, code, callback){
+    var encodedCode = encodeURI(code);
+    chrome.tabs.executeScript(tabId, {
+        code: `
+            var script = document.createElement("script");
+            script.text = decodeURI("${encodedCode}");
+            document.documentElement.appendChild(script)
+            script.remove();
+        `
+    }, callback);
+}
+
 function isEnabledInTab(tabId){
     return tabsToProcess.indexOf(tabId) !== -1
 }
@@ -215,26 +250,32 @@ function makeTabListener(){
 
         var urlWithoutQueryParameters = url.split("?")[0]
         if (endsWith(urlWithoutQueryParameters, ".js")) {
-            var code = getFile(url)
-            // Ideally this would happen when displaying the code in the UI,
-            // rather than when it's downloaded (doing it now means the line
-            // numbers will be incorrect)
-            // But for now it's too much work to do it later, would need
-            // to apply source maps...
-            code = beautify.js_beautify(code, {indent_size: 2})
-
-            if (!dontProcess) {
-                var res = processJavaScriptCode(code, {filename: info.url})
-                code = res.code
-                code += "\n//# sourceURL=" + info.url
-                code += "\n//# sourceMappingURL=" + info.url + ".map"
-                sourceMaps[info.url + ".map"] = JSON.stringify(res.map)
-            }
+            var code = getProcessedCodeFor(url, dontProcess)
             url = "data:application/javascript;charset=utf-8," + encodeURI(code)
             return {redirectUrl: url}
         }
     }
     return onBeforeRequest
+}
+
+function getProcessedCodeFor(url, dontProcess){
+    var code = getFile(url)
+    // Ideally this would happen when displaying the code in the UI,
+    // rather than when it's downloaded (doing it now means the line
+    // numbers will be incorrect)
+    // But for now it's too much work to do it later, would need
+    // to apply source maps...
+    code = beautify.js_beautify(code, {indent_size: 2})
+
+    if (!dontProcess) {
+        var res = processJavaScriptCode(code, {filename: url})
+        code = res.code
+        code += "\n//# sourceURL=" + url
+        code += "\n//# sourceMappingURL=" + url + ".map"
+        sourceMaps[url + ".map"] = JSON.stringify(res.map)
+    }
+
+    return code;
 }
 
 function endsWith(str, strEnd){
