@@ -50,12 +50,13 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 if (typeof arg === "string"){
                     return untrackedArgument(arg)
                 }
+                var str = toString(arg, true)
                 return {
-                    value: toString(arg),
+                    value: str,
                     origin: new Origin({
                         error: {stack: ""},
                         inputValues: [],
-                        value: toString(arg)
+                        value: str
                     })
                 }
             })
