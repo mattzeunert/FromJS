@@ -59,4 +59,19 @@ describe("babelFunctions", function(){
             expect(isNaN(result)).toBe(true)
         })
     })
+
+    describe("f__doubleEqual", function(){
+        it("Can compare a string to an object that returns a traced value from toString", function(){
+            var obj = {
+                toString: function(){
+                    return makeTraceObject({
+                        value: "Cake",
+                        origin: {}
+                    })
+                }
+            }
+
+            expect(babelFunctions.f__doubleEqual(obj, "Cake")).toBe(true)
+        })
+    })
 })

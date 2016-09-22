@@ -104,6 +104,17 @@ var babelFunctions = {
         if(b && b.isStringTraceString) {
             b = b.toString();
         }
+        if (typeof a === "string" || typeof b === "string") {
+            // Make sure they're both strings,
+            // avoid implicit toString call when comparing, could cause
+            // 'Cannot convert object to primitive type'
+            if (a !== undefined && a !== null) {
+                a = toString(a)    
+            }
+            if (b !== undefined && b !== null) {
+                b = toString(b)
+            }
+        }
         return a != b;
     },
     f__doubleEqual(a,b){
