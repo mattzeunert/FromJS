@@ -308,25 +308,29 @@ describe("Tracing", function(){
         expect(clone.children[0].__elOrigin.action).toBe("cake")
     })
 
-    it("Returns the original traced string when calling Object.prototype.toString on it", function(){
-        // This is something e.g. Handlebars uses to stringify stuff
-        var toString = Object.prototype.toString
-        var str = {
-            value: "Hi",
-            origin: {},
-            isStringTraceString: true
-        }
-
-        str = toString.call(str)
-        expect(typeof str).not.toBe("string")
-        expect(str.value).toBe("Hi")
-    })
-
     it("Returns [object Number] when calling Obj.prototype.toString on a number", function(){
         var toString = Object.prototype.toString
         var str = toString.call(2)
 
         expect(str).toBe("[object Number]")
+    })
+
+    it("Returns [object String] when calling Obj.prototype.toString on a string", function(){
+        var toString = Object.prototype.toString
+        var str = toString.call("cake")
+
+        expect(str).toBe("[object String]")
+    })
+
+    it("Returns [object String] when calling Obj.prototype.toString on a traced string", function(){
+        var toString = Object.prototype.toString
+        var tracedStr = makeTraceObject({
+            value: "Cake",
+            origin: {}
+        })
+        var str = toString.call(tracedStr)
+
+        expect(str).toBe("[object String]")
     })
 
     it("Traces when a number is converted to a string", function(){

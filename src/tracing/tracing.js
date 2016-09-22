@@ -735,7 +735,7 @@ export function enableTracing(){
 
     Object.prototype.toString = function(){
         if (this !== undefined && this.isStringTraceString) {
-            return this
+            return nativeObjectToString.call(this.value)
         }
         return nativeObjectToString.call(this)
     }
