@@ -24,11 +24,6 @@ function FromJSString(options){
             enumerable: false,
             writable: true,
             value: value
-        },
-        isStringTraceString: {
-            enumerable: false,
-            writable: false,
-            value: true
         }
     })
 
@@ -36,6 +31,7 @@ function FromJSString(options){
         debugger
     }
 }
+FromJSString.prototype.isStringTraceString = true;
 
 function isArray(val){
     return val !== null && val.length !== undefined && val.map !== undefined;
