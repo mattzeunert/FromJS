@@ -268,11 +268,16 @@ function getProcessedCodeFor(url, dontProcess){
     code = beautify.js_beautify(code, {indent_size: 2})
 
     if (!dontProcess) {
-        var res = processJavaScriptCode(code, {filename: url})
-        code = res.code
-        code += "\n//# sourceURL=" + url
-        code += "\n//# sourceMappingURL=" + url + ".map"
-        sourceMaps[url + ".map"] = JSON.stringify(res.map)
+        try {
+            var res = processJavaScriptCode(code, {filename: url})
+            code = res.code
+            code += "\n//# sourceURL=" + url
+            code += "\n//# sourceMappingURL=" + url + ".map"
+            sourceMaps[url + ".map"] = JSON.stringify(res.map)
+        } catch (err) {
+            console.log("Error processing JavaScript code ", err)
+            code = "console.error('FromJS couldn\\'t process JavaScript code', '" + err.toString() + "', `" + err.stack + "`)"
+        }
     }
 
     return code;
