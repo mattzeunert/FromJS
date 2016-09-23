@@ -441,8 +441,18 @@ export function enableTracing(){
     Array.prototype.join = tracedArrayJoin
 
     Array.prototype.indexOf = function(value){
-        var arrayItems = this.map(stringTraceUseValue)
-        return nativeArrayIndexOf.apply(arrayItems, [stringTraceUseValue(value)])
+        // We want to treat String objects as strings, because String("a") === "a",
+        // but don't call toString on objects
+        function specialToString(maybeString){
+            var maybeString = stringTraceUseValue(maybeString);
+            if (maybeString instanceof nativeStringObject || maybeString instanceof window.String) {
+                maybeString = toString(value)
+            }
+            return maybeString
+        }
+
+        var arrayItems = this.map(specialToString)
+        return nativeArrayIndexOf.apply(arrayItems, [specialToString(value)])
     }
 
     function processScriptTagCodeAssignment(code){

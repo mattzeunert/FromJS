@@ -206,16 +206,58 @@ describe("Tracing", function(){
         })
     })
 
+    describe("Array.indexOf", function(){
+        it("Works when the list items are tracked strings", function(){
+            var str = makeTraceObject({
+                value: "Hello",
+                origin: {}
+            })
+            var arr = [str]
 
-    it("Array.indexOf works with tracked strings", function(){
-        var str = makeTraceObject({
-            value: "Hello",
-            origin: {}
+            expect(arr.indexOf("Hello")).toBe(0)
+            expect(arr.indexOf("Hi")).toBe(-1)
         })
-        var arr = [str]
 
-        expect(arr.indexOf("Hello")).toBe(0)
-        expect(arr.indexOf("Hi")).toBe(-1)
+        it("Works when looking the list items are string objects", function(){
+            var arr = ["Hello"]
+
+            expect(arr.indexOf("Hello")).toBe(0)
+            expect(arr.indexOf("Hi")).toBe(-1)
+        })
+
+        it("Works when looking for a traced string", function(){
+            var tracedHello = makeTraceObject({
+                value: "Hello",
+                origin: {}
+            })
+            var tracedHi = makeTraceObject({
+                value: "Hi",
+                origin: {}
+            })
+            var arr = ["Hello"]
+
+            expect(arr.indexOf(tracedHello)).toBe(0)
+            expect(arr.indexOf(tracedHi)).toBe(-1)
+        })
+
+        it("Works when looking for a string object", function(){
+            var arr = ["Hello"]
+
+            expect(arr.indexOf(String("Hello"))).toBe(0)
+            expect(arr.indexOf(String("Hi"))).toBe(-1)
+        })
+
+        it("Does not treat objects as strings", function(){
+            var obj = {
+                toString: function(){
+                    return "Hello"
+                }
+            }
+            var arr = [obj]
+
+            expect(arr.indexOf("Hello")).toBe(-1)
+            expect(["Hello"].indexOf(obj)).toBe(-1)
+        })
     })
 
     it("appendChild supports appending document fragments", function(){
