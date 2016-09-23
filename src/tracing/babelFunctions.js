@@ -135,7 +135,7 @@ var babelFunctions = {
         if (typeof property === "undefined") {
             property = "undefined"
         }
-        var storagePropName = toString(property) + "_trackedName"
+        var storagePropName = toString(property, true) + "_trackedName"
 
         // This would be a nice to have, but
         // 1) it costs a lot of memory

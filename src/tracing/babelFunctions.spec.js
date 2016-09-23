@@ -74,4 +74,13 @@ describe("babelFunctions", function(){
             expect(babelFunctions.f__doubleEqual(obj, "Cake")).toBe(true)
         })
     })
+
+    describe("f__assign", function(){
+        it("Allows assigning to a null key", function(){
+            var obj = {}
+            babelFunctions.f__assign(obj, null, 123)
+
+            expect(obj["null"]).toBe(123)
+        })
+    })
 })
