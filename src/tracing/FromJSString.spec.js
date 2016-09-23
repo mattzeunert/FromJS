@@ -9,6 +9,18 @@ describe("FromJSString", function(){
         var index = str.indexOf(undefined)
         expect(index).toBe(-1)
     })
+    it("Should not have any enumerable properties that could leak in a for...in loop", function(){
+        var str = makeTraceObject({
+            value: "Hi",
+            origin: {}
+        })
+
+        var keys = []
+        for (var key in str){
+            keys.push(key);
+        }
+        expect(keys).toEqual([])
+    })
     describe("replace", function(){
         it("Supports basic replace calls", function(){
             var str = makeTraceObject({

@@ -31,7 +31,10 @@ function FromJSString(options){
         debugger
     }
 }
-FromJSString.prototype.isStringTraceString = true;
+Object.defineProperty(FromJSString.prototype, "isStringTraceString", {
+    value: true,
+    enumerable: false
+})
 
 function isArray(val){
     return val !== null && val.length !== undefined && val.map !== undefined;
@@ -52,7 +55,12 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
     // can't use .apply on valueOf function (" String.prototype.valueOf is not generic")
     if (propertyName === "valueOf") { return }
     if (typeof String.prototype[propertyName] === "function") {
-        FromJSString.prototype[propertyName] = function(){
+        Object.defineProperty(FromJSString.prototype, propertyName, {
+            value: handlerFunction,
+            enumerable: false
+        })
+
+        function handlerFunction(){
             var oldValue = this;
             var args = unstringTracifyArguments(arguments)
             var newVal;
@@ -270,15 +278,27 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
         }
     }
 })
-FromJSString.prototype.valueOf = function(){
-    return this.value;
-}
-FromJSString.prototype.toString = function(){
-    return this.value
-}
-FromJSString.prototype.toJSON = function(){
-    return this.value
-}
+
+Object.defineProperties(FromJSString.prototype, {
+    valueOf: {
+        value: function(){
+            return this.value;
+        },
+        enumerable: false
+    },
+    toJSON: {
+        value: function(){
+            return this.value
+        },
+        enumerable: false
+    },
+    toString: {
+        value: function(){
+            return this.value
+        },
+        enumerable: false
+    }
+})
 Object.defineProperty(FromJSString.prototype, "length", {
     get: function(){
         return this.value.length;
