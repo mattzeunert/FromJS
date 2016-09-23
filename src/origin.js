@@ -7,12 +7,6 @@ import untracedToString from "./untracedToString"
 var emptyInputValuesArray = []
 Object.freeze(emptyInputValuesArray)
 
-var originsById = {}
-
-export function getOriginById(originId) {
-    return originsById[originId]
-}
-
 export default function Origin(opts){
     var inputValues = opts.inputValues.map(function(inputValue){
         if (typeof inputValue === "undefined") {
@@ -84,7 +78,6 @@ export default function Origin(opts){
     })
 
     this.id = _.uniqueId();
-    originsById[this.id] = this
 
     this.action = opts.action;
     if (inputValues.length === 0) {
