@@ -70,6 +70,7 @@ var nativeEval = window.eval
 var nativeOuterHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "outerHTML")
 
 var nativeObjectGetOwnPropertyNames = Object.getOwnPropertyNames
+var nativeObjectKeys = Object.keys
 
 var nativeCSSStyleDeclarationSetProperty = CSSStyleDeclaration.prototype.setProperty
 
@@ -277,11 +278,34 @@ export function enableTracing(){
     }
 
     Object.getOwnPropertyNames = function(obj){
-        var names = nativeObjectGetOwnPropertyNames(obj);
-        names = names.filter(function(name){
-            return !endsWith(name, "_trackedName")
-        })
-        return names;
+        if (obj.isStringTraceString) {
+            var str = obj.value;
+            var names = [];
+            for (var name in str) {
+                names.push(name)
+            }
+            names.push("length")
+            return names
+        } else {
+            var names = nativeObjectGetOwnPropertyNames(obj);
+            names = names.filter(function(name){
+                return !endsWith(name, "_trackedName")
+            })
+            return names;
+        }
+    }
+
+    Object.keys = function(obj){
+        if (obj.isStringTraceString) {
+            var str = obj.value
+            var keys = [];
+            for (var key in str) {
+                keys.push(key)
+            }
+            return keys
+        } else {
+            return nativeObjectKeys(obj)
+        }
     }
 
 
@@ -758,7 +782,7 @@ export function enableTracing(){
 
     window.String = function(val){
         if (val !== undefined && val !== null) {
-            val = toString(val);    
+            val = toString(val);
         }
         return new nativeStringObject(val)
     }
@@ -889,6 +913,7 @@ export function disableTracing(){
     window.nativeStringObject = nativeStringObject
 
     Object.getOwnPropertyNames = nativeObjectGetOwnPropertyNames
+    Object.keys = nativeObjectKeys
 
     tracingEnabled = false;
 }

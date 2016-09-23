@@ -431,7 +431,7 @@ describe("Tracing", function(){
         })
     })
 
-    
+
 
     it("Can handle assigning an object to innerHTML", function(){
         var obj = makeObjWithCustomToString("Cake")
@@ -441,5 +441,49 @@ describe("Tracing", function(){
 
         disableTracing();
         expect(el.innerHTML).toBe("Cake")
+    })
+
+    describe("Object.keys", function(){
+        it("Returns an empty list when called on an empty tracked string", function(){
+            var str = makeTraceObject({
+                value: "",
+                origin: {}
+            })
+
+            var keys = Object.keys(str)
+            expect(keys).toEqual([])
+        })
+
+        it("Returns the character indices when called on a non empty tracked string", function(){
+            var str = makeTraceObject({
+                value: "abc",
+                origin: {}
+            })
+
+            var keys = Object.keys(str)
+            expect(keys).toEqual(["0", "1" ,"2"])
+        })
+    })
+
+    describe("Object.getOwnPropertyNames", function(){
+        it("Only returns 'length' when called on an empty string", function(){
+            var str = makeTraceObject({
+                value: "",
+                origin: {}
+            })
+
+            var propNames = Object.getOwnPropertyNames(str)
+            expect(propNames).toEqual(["length"])
+        })
+
+        it("Returns 'length' and character indices when called on a non empty string", function(){
+            var str = makeTraceObject({
+                value: "abc",
+                origin: {}
+            })
+
+            var propNames = Object.getOwnPropertyNames(str)
+            expect(propNames).toEqual(["0", "1", "2", "length"])
+        })
     })
 })

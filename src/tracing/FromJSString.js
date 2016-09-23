@@ -286,6 +286,7 @@ export function makeTraceObject(options){
         debugger
     }
 
+    // Make accessing characters by index work
     return new Proxy(stringTraceObject, {
         get: function(target, name){
             if (typeof name !== "symbol" && !isNaN(parseFloat(name))) {
