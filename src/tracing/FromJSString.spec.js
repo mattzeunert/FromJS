@@ -21,6 +21,26 @@ describe("FromJSString", function(){
         }
         expect(keys).toEqual([])
     })
+    it("Lets you access character at a specific index", function(){
+        var str = makeTraceObject({
+            value: "Hello",
+            origin: {}
+        })
+
+        var char = str[0]
+        expect(char).toBe("H")
+    })
+
+    it("Supports substr calls", function(){
+        var str = makeTraceObject({
+            value: "Hello",
+            origin: {}
+        })
+
+        str = str.substr(1)
+        expect(str.value).toBe("ello")
+        expect(str.origin.action).toBe("Substr Call")
+    })
     describe("replace", function(){
         it("Supports basic replace calls", function(){
             var str = makeTraceObject({
@@ -82,25 +102,28 @@ describe("FromJSString", function(){
             expect(str.value).toBe("Hello")
         })
 
-        it("Lets you access character at a specific index", function(){
+        it("Supports a replacement function that returns a string", function(){
             var str = makeTraceObject({
-                value: "Hello",
+                value: "123",
                 origin: {}
             })
 
-            var char = str[0]
-            expect(char).toBe("H")
+            str = str.replace(/(\d)/g, function(val){
+                return parseFloat(val) + 1;
+            })
+            expect(str.value).toBe("234")
         })
 
-        it("Supports substr calls", function(){
+        it("Supports a replacement function that returns undefined", function(){
             var str = makeTraceObject({
-                value: "Hello",
+                value: "sth",
                 origin: {}
             })
 
-            str = str.substr(1)
-            expect(str.value).toBe("ello")
-            expect(str.origin.action).toBe("Substr Call")
+            str = str.replace(/s/, function(val){
+                return undefined
+            })
+            expect(str.value).toBe("undefinedth")
         })
     })
 })

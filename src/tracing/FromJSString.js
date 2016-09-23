@@ -157,11 +157,17 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                         }
                     } else if (typeof args[1] === "function"){
                         replaceWith = args[1].apply(this, newArgsArray)
+                        if (replaceWith === undefined){
+                            replaceWith = "undefined"
+                        }
+                        if (replaceWith === null) {
+                            replaceWith = "null"
+                        }
                         if (!replaceWith.origin) {
                             replaceWith = makeTraceObject({
-                                value: replaceWith,
+                                value: toString(replaceWith),
                                 origin: {
-                                    value: replaceWith,
+                                    value: toString(replaceWith),
                                     action: "Untracked replace match result",
                                     inputValues: []
                                 }
