@@ -9,6 +9,7 @@ import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
 import trackStringIfNotTracked from "./trackStringIfNotTracked"
 import endsWith from "ends-with"
+import toString from "../untracedToString"
 
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
@@ -47,6 +48,8 @@ window.nativeFunction = nativeFunction
 var nativeJSONParse = JSON.parse
 window.nativeJSONParse = nativeJSONParse
 
+var nativeStringObject = String;
+
 var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
 
@@ -67,6 +70,7 @@ var nativeEval = window.eval
 var nativeOuterHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "outerHTML")
 
 var nativeObjectGetOwnPropertyNames = Object.getOwnPropertyNames
+var nativeObjectKeys = Object.keys
 
 var nativeCSSStyleDeclarationSetProperty = CSSStyleDeclaration.prototype.setProperty
 
@@ -274,11 +278,34 @@ export function enableTracing(){
     }
 
     Object.getOwnPropertyNames = function(obj){
-        var names = nativeObjectGetOwnPropertyNames(obj);
-        names = names.filter(function(name){
-            return !endsWith(name, "_trackedName")
-        })
-        return names;
+        if (obj.isStringTraceString) {
+            var str = obj.value;
+            var names = [];
+            for (var name in str) {
+                names.push(name)
+            }
+            names.push("length")
+            return names
+        } else {
+            var names = nativeObjectGetOwnPropertyNames(obj);
+            names = names.filter(function(name){
+                return !endsWith(name, "_trackedName")
+            })
+            return names;
+        }
+    }
+
+    Object.keys = function(obj){
+        if (obj.isStringTraceString) {
+            var str = obj.value
+            var keys = [];
+            for (var key in str) {
+                keys.push(key)
+            }
+            return keys
+        } else {
+            return nativeObjectKeys(obj)
+        }
     }
 
 
@@ -512,7 +539,7 @@ export function enableTracing(){
                 // so keep a reference and restore it later
                 fromJSButton = document.querySelector(".fromjs-show-inspector-button")
             }
-            var ret = nativeInnerHTMLDescriptor.set.apply(this, arguments)
+            var ret = nativeInnerHTMLDescriptor.set.call(this, toString(innerHTML))
             mapInnerHTMLAssignment(this, innerHTML, "Assign InnerHTML")
             if (fromJSButton){
                 document.body.appendChild(fromJSButton)
@@ -753,6 +780,17 @@ export function enableTracing(){
         return ret;
     }
 
+    window.String = function(val){
+        if (val !== undefined && val !== null) {
+            val = toString(val);
+        }
+        return new nativeStringObject(val)
+    }
+    window.String.prototype = nativeStringObject.prototype
+    window.String.raw = nativeStringObject.raw
+    window.String.fromCodePoint = nativeStringObject.fromCodePoint
+    window.String.fromCharCode = nativeStringObject.fromCharCode
+
     window.Function = function(code){
         var args = Array.prototype.slice.apply(arguments)
         var code = args.pop()
@@ -871,7 +909,11 @@ export function disableTracing(){
     Number.prototype.toString = nativeNumberToString
     Array.prototype.toString = nativeArrayToString
 
+    window.String = nativeStringObject
+    window.nativeStringObject = nativeStringObject
+
     Object.getOwnPropertyNames = nativeObjectGetOwnPropertyNames
+    Object.keys = nativeObjectKeys
 
     tracingEnabled = false;
 }

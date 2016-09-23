@@ -1,4 +1,16 @@
-export default function untracedToString(val){
+export default function untracedToString(val, allowUndefinedAndNull){
+    if (allowUndefinedAndNull) {
+        // allowUndefinedAndNull is false by default, so the behavior of
+        // untracedToString is same as val.toString,
+        // which throws on undefined/null
+        if (val === undefined) {
+            return "undfined"
+        }
+        if (val === null) {
+            return "null"
+        }
+    }
+
     var ret;
     if (val.isStringTraceString) {
         ret = val.toString();

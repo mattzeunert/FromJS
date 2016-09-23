@@ -59,4 +59,28 @@ describe("babelFunctions", function(){
             expect(isNaN(result)).toBe(true)
         })
     })
+
+    describe("f__doubleEqual", function(){
+        it("Can compare a string to an object that returns a traced value from toString", function(){
+            var obj = {
+                toString: function(){
+                    return makeTraceObject({
+                        value: "Cake",
+                        origin: {}
+                    })
+                }
+            }
+
+            expect(babelFunctions.f__doubleEqual(obj, "Cake")).toBe(true)
+        })
+    })
+
+    describe("f__assign", function(){
+        it("Allows assigning to a null key", function(){
+            var obj = {}
+            babelFunctions.f__assign(obj, null, 123)
+
+            expect(obj["null"]).toBe(123)
+        })
+    })
 })

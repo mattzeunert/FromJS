@@ -4,6 +4,17 @@ import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import Origin from "../origin"
 import createResolveFrameWorker from "../createResolveFrameWorker"
 
+function makeObjWithCustomToString(str){
+    return {
+        toString: function(){
+            return makeTraceObject({
+                value: str,
+                origin: {}
+            })
+        }
+    }
+}
+
 describe("Tracing", function(){
     beforeEach(function(){
         enableTracing();
@@ -158,14 +169,7 @@ describe("Tracing", function(){
 
     describe("Array.join", function(){
         it("Works with objects that have a custom toString function which returns a tracked string", function(){
-            var obj = {
-                toString: function(){
-                    return makeTraceObject({
-                        value: "Hello",
-                        origin: {}
-                    })
-                }
-            }
+            var obj = makeObjWithCustomToString("Hello")
 
             var joined = [obj, obj].join("-")
             expect(joined.value).toBe("Hello-Hello")
@@ -394,6 +398,92 @@ describe("Tracing", function(){
                 expect(lastStep.originObject.value).toBe("red")
                 expect(lastStep.originObject.action).toBe("Some Action")
             })
+        })
+    })
+
+    describe("window.String", function(){
+        it("Can create a string object from an object with a custom toString method", function(){
+            var obj = makeObjWithCustomToString("Cake")
+
+            var str = new String(obj);
+
+            expect(typeof str).toBe("object");
+            expect(str.toString()).toBe("Cake");
+        })
+
+        it("Can create a string object from an undefined value", function(){
+            var str = new String(undefined);
+
+            expect(typeof str).toBe("object");
+            expect(str.toString()).toBe("undefined");
+        })
+
+        it("Can create a string object from a null value", function(){
+            var str = new String(null);
+
+            expect(typeof str).toBe("object");
+            expect(str.toString()).toBe("null");
+        })
+
+        it("Still lets the app use String.fromCharCode", function(){
+            var str = String.fromCharCode(97)
+            expect(str).toBe("a")
+        })
+    })
+
+
+
+    it("Can handle assigning an object to innerHTML", function(){
+        var obj = makeObjWithCustomToString("Cake")
+        var el = document.createElement("div")
+
+        el.innerHTML = obj;
+
+        disableTracing();
+        expect(el.innerHTML).toBe("Cake")
+    })
+
+    describe("Object.keys", function(){
+        it("Returns an empty list when called on an empty tracked string", function(){
+            var str = makeTraceObject({
+                value: "",
+                origin: {}
+            })
+
+            var keys = Object.keys(str)
+            expect(keys).toEqual([])
+        })
+
+        it("Returns the character indices when called on a non empty tracked string", function(){
+            var str = makeTraceObject({
+                value: "abc",
+                origin: {}
+            })
+
+            var keys = Object.keys(str)
+            expect(keys).toEqual(["0", "1" ,"2"])
+        })
+    })
+
+    describe("Object.getOwnPropertyNames", function(){
+        it("Only returns 'length' when called on an empty string", function(){
+            var str = makeTraceObject({
+                value: "",
+                origin: {}
+            })
+
+            var propNames = Object.getOwnPropertyNames(str)
+            expect(propNames).toEqual(["length"])
+        })
+
+        it("Returns 'length' and character indices when called on a non empty string", function(){
+            var str = makeTraceObject({
+                value: "abc",
+                origin: {}
+            })
+
+            var propNames = Object.getOwnPropertyNames(str)
+            expect(propNames).toEqual(["0", "1", "2", "length"])
         })
     })
 })

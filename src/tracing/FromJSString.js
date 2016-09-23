@@ -7,17 +7,34 @@ import config from "../config"
 import toString from "../untracedToString"
 
 function FromJSString(options){
-    this.origin = options.origin
-    this.value = options.value
+    var value = options.value
+    while(value.isStringTraceString) {
+        value = value.value
+    }
+
+    // Properties need to be non enumerable so they don't show up in
+    // for...in loops
+    Object.defineProperties(this, {
+        origin: {
+            enumerable: false,
+            writable: true,
+            value: options.origin
+        },
+        value: {
+            enumerable: false,
+            writable: true,
+            value: value
+        }
+    })
+
     if (typeof this.value !== "string") {
         debugger
     }
-    while(this.value.isStringTraceString) {
-        this.value = this.value.value
-    }
-
-    this.isStringTraceString = true
 }
+Object.defineProperty(FromJSString.prototype, "isStringTraceString", {
+    value: true,
+    enumerable: false
+})
 
 function isArray(val){
     return val !== null && val.length !== undefined && val.map !== undefined;
@@ -38,7 +55,12 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
     // can't use .apply on valueOf function (" String.prototype.valueOf is not generic")
     if (propertyName === "valueOf") { return }
     if (typeof String.prototype[propertyName] === "function") {
-        FromJSString.prototype[propertyName] = function(){
+        Object.defineProperty(FromJSString.prototype, propertyName, {
+            value: handlerFunction,
+            enumerable: false
+        })
+
+        function handlerFunction(){
             var oldValue = this;
             var args = unstringTracifyArguments(arguments)
             var newVal;
@@ -50,12 +72,13 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 if (typeof arg === "string"){
                     return untrackedArgument(arg)
                 }
+                var str = toString(arg, true)
                 return {
-                    value: toString(arg),
+                    value: str,
                     origin: new Origin({
                         error: {stack: ""},
                         inputValues: [],
-                        value: toString(arg)
+                        value: str
                     })
                 }
             })
@@ -134,11 +157,17 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                         }
                     } else if (typeof args[1] === "function"){
                         replaceWith = args[1].apply(this, newArgsArray)
+                        if (replaceWith === undefined){
+                            replaceWith = "undefined"
+                        }
+                        if (replaceWith === null) {
+                            replaceWith = "null"
+                        }
                         if (!replaceWith.origin) {
                             replaceWith = makeTraceObject({
-                                value: replaceWith,
+                                value: toString(replaceWith),
                                 origin: {
-                                    value: replaceWith,
+                                    value: toString(replaceWith),
                                     action: "Untracked replace match result",
                                     inputValues: []
                                 }
@@ -215,7 +244,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 if (config.logUntrackedStrings) {
                     console.trace("string not tracked after ",propertyName ,"call")
                 }
-                newVal = String.prototype[propertyName].apply(this.toString(), args);
+                newVal = nativeStringObject.prototype[propertyName].apply(this.toString(), args);
             }
 
             var actionName = capitalizeFirstCharacter(propertyName) + " Call";
@@ -255,15 +284,27 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
         }
     }
 })
-FromJSString.prototype.valueOf = function(){
-    return this.value;
-}
-FromJSString.prototype.toString = function(){
-    return this.value
-}
-FromJSString.prototype.toJSON = function(){
-    return this.value
-}
+
+Object.defineProperties(FromJSString.prototype, {
+    valueOf: {
+        value: function(){
+            return this.value;
+        },
+        enumerable: false
+    },
+    toJSON: {
+        value: function(){
+            return this.value
+        },
+        enumerable: false
+    },
+    toString: {
+        value: function(){
+            return this.value
+        },
+        enumerable: false
+    }
+})
 Object.defineProperty(FromJSString.prototype, "length", {
     get: function(){
         return this.value.length;
@@ -285,6 +326,7 @@ export function makeTraceObject(options){
         debugger
     }
 
+    // Make accessing characters by index work
     return new Proxy(stringTraceObject, {
         get: function(target, name){
             if (typeof name !== "symbol" && !isNaN(parseFloat(name))) {

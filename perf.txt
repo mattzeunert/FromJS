@@ -1,16 +1,20 @@
-Measure'd manually by uncommenting measureTodoMVCRenderingTime in injected.js
+Measured manually with DevTools closed, memory info taken from Chrome task manager
 
 1) python -m SimpleHTTPServer 1234
-2) Backbone
+2) uncomment measureTodoMVCRenderingTime in injected.js
+3) Backbone
     - http://localhost:1234/demos/backbone-todomvc/index.html
     - Create 2 todo items
     - Enable Chrome Extension
-3) React (JSX is compiled in browser)
+4) React (JSX is compiled in browser)
     - http://todomvc.com/examples/react/#/ (I use http://localhost:1234/todomvc-master/examples/react/#/ locally)
     - Create 2 todo items
     - Enable Chrome Extension
 
 
-                        Backbone    React
+                        Backbone    React   BB Memory   React Memory
+75265e1 23 Sep 2016     2.5s        14.4s   186MB       821MB
+50deb5f 23 Sep 2016     2.8s        14.3s   170MB       822MB
+fcfc665 23 Sep 2016     2.7s        13.2s   184MB       850MB
 32f079d 21 Sep 2016     2.6s        13.6s
 fcc3823 21 Sep 2016     2.9s        14.6s
