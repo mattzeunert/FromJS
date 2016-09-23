@@ -110,9 +110,14 @@ function handleRequest(request, response){
             ) {
                 var jsFileName = path.split("/")[path.split("/").length - 1]
                 if (endsWith(request.url, ".js")) {
-                    var res = processJavaScriptCode(fileContents)
-                    fileContents = res.code
-                    fileContents += "\n//# sourceMappingURL=" + jsFileName + ".map"
+                    try {
+                        var res = processJavaScriptCode(fileContents)
+                        fileContents = res.code
+                        fileContents += "\n//# sourceMappingURL=" + jsFileName + ".map"
+                    } catch (err) {
+                        console.error("Error processing JS code: ", err)
+                        fileContents = "console.error('Server error: " + err.toString() + "')"
+                    }
 
                 }
                 if (endsWith(request.url, ".js.map") ){
