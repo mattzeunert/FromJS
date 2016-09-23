@@ -7,16 +7,34 @@ import config from "../config"
 import toString from "../untracedToString"
 
 function FromJSString(options){
-    this.origin = options.origin
-    this.value = options.value
+    var value = options.value
+    while(value.isStringTraceString) {
+        value = value.value
+    }
+
+    // Properties need to be non enumerable so they don't show up in
+    // for...in loops
+    Object.defineProperties(this, {
+        origin: {
+            enumerable: false,
+            writable: true,
+            value: options.origin
+        },
+        value: {
+            enumerable: false,
+            writable: true,
+            value: value
+        },
+        isStringTraceString: {
+            enumerable: false,
+            writable: false,
+            value: true
+        }
+    })
+
     if (typeof this.value !== "string") {
         debugger
     }
-    while(this.value.isStringTraceString) {
-        this.value = this.value.value
-    }
-
-    this.isStringTraceString = true
 }
 
 function isArray(val){
