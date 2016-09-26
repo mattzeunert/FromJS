@@ -13,13 +13,21 @@ fetch(chrome.extension.getURL("resolveFrameWorker.js"))
     resolveFrameWorkerCode = text
 })
 
+const FromJSSessionStages = {
+    RELOADING: "RELOADING",
+    INITIALIZING: "INITIALIZING",
+    ACTIVE: "ACTIVE"
+}
+
 class FromJSSession {
     constructor(tabId) {
         this.tabId = tabId;
+        this._stage = FromJSSessionStages.RELOADING;
+        this._pageHtml = null;
         this._open();
     }
     _open(){
-        this._onBeforeRequest = makeTabListener()
+        this._onBeforeRequest = makeOnBeforeRequest()
         this._onHeadersReceived = makeOnHeadersReceived();
 
         chrome.webRequest.onBeforeRequest.addListener(this._onBeforeRequest, {urls: ["<all_urls>"], tabId: this.tabId}, ["blocking"]);
@@ -30,6 +38,62 @@ class FromJSSession {
         chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
 
         this.isClosed = true;
+    }
+    setPageHtml(pageHtml) {
+        this._pageHtml = pageHtml;
+    }
+    initialize(){
+        chrome.tabs.insertCSS(this.tabId, {
+            "code": `
+                body {opacity: 0}
+                html.fromJSRunning body {opacity: 1}
+            `,
+            runAt: "document_start"
+        });
+        chrome.tabs.executeScript(this.tabId, {
+            "code": "document.body.innerHTML = 'Loading...';document.body.parentElement.classList.add('fromJSRunning')",
+            runAt: "document_idle"
+        });
+
+        this._stage = FromJSSessionStages.INITIALIZING;
+    }
+    activate(){
+        this._stage = FromJSSessionStages.ACTIVE;
+
+        chrome.tabs.insertCSS(this.tabId, {
+          code: fromJSCss[0][1]
+        })
+
+        chrome.tabs.executeScript(this.tabId, {
+            "file": "contentScript.js"
+        });
+
+        var encodedPageHtml = encodeURI(this._pageHtml)
+        chrome.tabs.executeScript(this.tabId, {
+          code: `
+            var script = document.createElement("script");
+
+            script.innerHTML = "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
+            script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
+            document.documentElement.appendChild(script)
+
+            var script2 = document.createElement("script")
+            script2.src = '${chrome.extension.getURL("from.js")}'
+            script2.setAttribute("charset", "utf-8")
+            document.documentElement.appendChild(script2)
+          `
+        })
+    }
+    isActive(){
+        return this._stage === FromJSSessionStages.ACTIVE;
+    }
+    loadScript(requestUrl, callback){
+        console.info("Fetching and processing", requestUrl)
+        var code = getProcessedCodeFor(requestUrl)
+        console.info("Injecting", requestUrl)
+        executeScriptOnPage(this._tabId, code, function(){
+            callback()
+        })
     }
 }
 
@@ -46,30 +110,11 @@ function createSession(tabId){
     sessionsByTabId[tabId] = session;
 }
 
-function makeOnHeadersReceived(){
-    return function onHeadersReceived(details){
-        if (details.type !== "main_frame") {return}
-
-        for (var i=0; i<details.responseHeaders.length; i++) {
-            if (details.responseHeaders[i].name === "Content-Security-Policy") {
-                details.responseHeaders[i].value = ""
-            }
-        }
-
-        return {
-            responseHeaders: details.responseHeaders
-        }
-    }
-}
 
 var messageHandlers = {
     loadScript: function(request, sender, callback){
-        console.info("Fetching and processing", request.url)
-        var code = getProcessedCodeFor(request.url)
-        console.info("Injecting", request.url)
-        executeScriptOnPage(sender.tab.id, code, function(){
-            callback()
-        })
+        var session = getTabSession(sender.tab.id)
+        session.loadScript(request.url, callback)
     }
 }
 
@@ -99,17 +144,12 @@ function executeScriptOnPage(tabId, code, callback){
     }, callback);
 }
 
-function isEnabledInTab(tabId){
-    var session = getTabSession(tabId)
-    return session instanceof FromJSSession;
-}
 // disabled ==> enabled ==> active
 chrome.browserAction.onClicked.addListener(function (tab) {
-    if (isEnabledInTab(tab.id)) {
-
-      disableInTab(tab.id)
+    var session = getTabSession(tab.id);
+    if (session){
+        session.close();
     } else {
-        tabStage[tab.id] = "enabled"
         createSession(tab.id)
     }
 
@@ -118,16 +158,10 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     chrome.tabs.reload(tab.id)
 });
 
-function disableInTab(tabId){
-    tabStage[tabId] = "disabled"
-
-    var session = getTabSession(tabId)
-    session.close();
-}
-
 function updateBadge(tab){
     var text = ""
-    if (isEnabledInTab(tab.id)) {
+    var session = getTabSession(tab.id)
+    if (session) {
       text = "ON"
     }
     chrome.browserAction.setBadgeText({
@@ -145,62 +179,21 @@ var pageHtml = ""
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     updateBadge(tab)
 
-    if (!isEnabledInTab(tabId)) {
+    var session = getTabSession(tabId);
+    if (!session || session.isActive()){
         return
     }
 
-    var tabIsActivated = tabStage[tabId] === "active";
-    if (tabIsActivated) {
-        return;
-    }
 
     if (changeInfo.status === "complete") {
-        activate(tabId)
+        session.activate()
     }
     if (changeInfo.status === "loading") {
-        chrome.tabs.insertCSS(tabId, {
-            "code": `
-                body {opacity: 0}
-                html.fromJSRunning body {opacity: 1}
-            `,
-            runAt: "document_start"
-        });
-        chrome.tabs.executeScript(tabId, {
-            "code": "document.body.innerHTML = 'Loading...';document.body.parentElement.classList.add('fromJSRunning')",
-            runAt: "document_idle"
-        });
+        session.initialize();
     }
 
 })
 
-function activate(tabId){
-  tabStage[tabId] = "active"
-    chrome.tabs.insertCSS(tabId, {
-      code: fromJSCss[0][1]
-    })
-
-    chrome.tabs.executeScript(tabId, {
-        "file": "contentScript.js"
-    });
-
-    var encodedPageHtml = encodeURI(pageHtml)
-    chrome.tabs.executeScript(tabId, {
-      code: `
-        var script = document.createElement("script");
-
-        script.innerHTML = "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
-        script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
-        document.documentElement.appendChild(script)
-
-        var script2 = document.createElement("script")
-        script2.src = '${chrome.extension.getURL("from.js")}'
-        script2.setAttribute("charset", "utf-8")
-        document.documentElement.appendChild(script2)
-      `
-    })
-}
-
-var tabStage = {}
 
 var idsToDisableOnNextMainFrameLoad = []
 var sourceMaps = {}
@@ -215,12 +208,31 @@ function getFile(url){
     return xhr.responseText
 }
 
-function makeTabListener(){
+
+function makeOnHeadersReceived(){
+    return function onHeadersReceived(details){
+        if (details.type !== "main_frame") {return}
+
+        for (var i=0; i<details.responseHeaders.length; i++) {
+            if (details.responseHeaders[i].name === "Content-Security-Policy") {
+                details.responseHeaders[i].value = ""
+            }
+        }
+
+        return {
+            responseHeaders: details.responseHeaders
+        }
+    }
+}
+
+function makeOnBeforeRequest(){
     // make unique function so we can call removeListener later
     function onBeforeRequest(info){
+        var session = getTabSession(info.tabId);
+
         console.log(info.url)
-        if (!isEnabledInTab(info.tabId)){
-            return
+        if (!session){
+            return;
         }
 
         if (info.url.slice(0, "chrome-extension://".length) === "chrome-extension://") {
@@ -244,13 +256,13 @@ function makeTabListener(){
                 idsToDisableOnNextMainFrameLoad.push(info.tabId)
             }
 
-            pageHtml = getFile(info.url)
+            session.setPageHtml(getFile(info.url))
             var parts = info.url.split("/");parts.pop(); parts.push("");
             var basePath = parts.join("/")
             return
         }
 
-        if (tabStage[info.tabId] !== "active") {
+        if (!session.isActive()) {
             return {cancel: true}
         }
 
