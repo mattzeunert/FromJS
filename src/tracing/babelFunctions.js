@@ -174,8 +174,10 @@ var babelFunctions = {
             f__assign(obj, property[0], property[1])
         }
         return obj
+    },
+    f__getForInLoopKeyObject(object){
+        return f__useValue(object);
     }
-
 }
 
 export default babelFunctions

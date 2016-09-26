@@ -48,6 +48,8 @@ window.nativeFunction = nativeFunction
 var nativeJSONParse = JSON.parse
 window.nativeJSONParse = nativeJSONParse
 
+var nativeObjectHasOwnProperty = Object.prototype.hasOwnProperty
+
 var nativeStringObject = String;
 
 var nativeLocalStorage = window.localStorage;
@@ -275,6 +277,13 @@ export function enableTracing(){
             value: "whateverr"
         })
         return nativeRemoveAttribute.apply(this, arguments)
+    }
+
+    Object.prototype.hasOwnProperty = function(propName){
+        if (this.isStringTraceString) {
+            return nativeObjectHasOwnProperty.call(this.value, propName)
+        }
+        return nativeObjectHasOwnProperty.call(this, propName)
     }
 
     Object.getOwnPropertyNames = function(obj){
@@ -924,6 +933,8 @@ export function disableTracing(){
 
     Object.getOwnPropertyNames = nativeObjectGetOwnPropertyNames
     Object.keys = nativeObjectKeys
+
+    Object.prototype.hasOwnProperty = nativeObjectHasOwnProperty
 
     tracingEnabled = false;
 }

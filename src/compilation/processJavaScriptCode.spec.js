@@ -92,46 +92,63 @@ describe("processJavaScriptCode", function(){
         expect(res).toBe("value")
     })
 
-    it("Gives access to the tracked property names in a for...in loop", function(){
-        var code = `
-            var obj = {"hi": "there"};
-            var key;
-            for (key in obj){};
-            key;
-        `
-        code = processJavaScriptCode(code).code;
-        var evalRes = eval(code)
-        expect(evalRes.value).toBe("hi")
-        expect(evalRes.origin.action).toBe("String Literal")
-    });
+    describe("For..in loops", function(){
+        it("Gives access to the tracked property names in a for...in loop", function(){
+            var code = `
+                var obj = {"hi": "there"};
+                var key;
+                for (key in obj){};
+                key;
+            `
+            code = processJavaScriptCode(code).code;
+            var evalRes = eval(code)
+            expect(evalRes.value).toBe("hi")
+            expect(evalRes.origin.action).toBe("String Literal")
+        });
 
-    it("For...in loops work without a block statement body", function(){
-        var code = `
-            var obj = {"hi": "there"};
-            var key;
-            for (key in obj) false ? "cake": "cookie";
-            key;
-        `
-        code = processJavaScriptCode(code).code;
-        var evalRes = eval(code)
-        expect(evalRes.value).toBe("hi")
-        expect(evalRes.origin.action).toBe("String Literal")
-    });
+        it("For...in loops work without a block statement body", function(){
+            var code = `
+                var obj = {"hi": "there"};
+                var key;
+                for (key in obj) false ? "cake": "cookie";
+                key;
+            `
+            code = processJavaScriptCode(code).code;
+            var evalRes = eval(code)
+            expect(evalRes.value).toBe("hi")
+            expect(evalRes.origin.action).toBe("String Literal")
+        });
 
-    it("For...in loops work when accessing a property name from a member expression", function(){
-        var code = `
-            var obj = {
-                sth: {"hi": "there"}
-            }
-            var key;
-            for (key in obj.sth) if (false) {};
-            key;
-        `
-        code = processJavaScriptCode(code).code;
-        var evalRes = eval(code)
-        expect(evalRes.value).toBe("hi")
-        expect(evalRes.origin.action).toBe("String Literal")
-    });
+        it("For...in loops work when accessing a property name from a member expression", function(){
+            var code = `
+                var obj = {
+                    sth: {"hi": "there"}
+                }
+                var key;
+                for (key in obj.sth) if (false) {};
+                key;
+            `
+            code = processJavaScriptCode(code).code;
+            var evalRes = eval(code)
+            expect(evalRes.value).toBe("hi")
+            expect(evalRes.origin.action).toBe("String Literal")
+        });
+
+        it("For...in loops work when interating over a traced string", function(){
+            var code = `
+                var charIndices = [];
+                for (var charIndex in "abc") {
+                    charIndices.push(charIndex.toString())
+                }
+                charIndices;
+                `
+            code = processJavaScriptCode(code).code;
+            var evalRes = eval(code)
+            expect(evalRes.length).toBe(3)
+            expect(evalRes).toEqual(["0", "1", "2"])
+        });
+    })
+
 
     it("Can handle nested conditional operators", function(){
          var code = "var a = true ? ('' ? null : ({} ? 'yes' : null)) : null;a"
