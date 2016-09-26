@@ -142,6 +142,8 @@ function createSession(tabId){
     }
     var session = new FromJSSession(tabId)
     sessionsByTabId[tabId] = session;
+
+    chrome.tabs.reload(tabId)
 }
 
 
@@ -178,7 +180,6 @@ function executeScriptOnPage(tabId, code, callback){
     }, callback);
 }
 
-// disabled ==> enabled ==> active
 chrome.browserAction.onClicked.addListener(function (tab) {
     var session = getTabSession(tab.id);
     if (session){
@@ -188,27 +189,23 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     }
 
     updateBadge(tab)
-
-    chrome.tabs.reload(tab.id)
 });
 
 function updateBadge(tab){
     var text = ""
     var session = getTabSession(tab.id)
     if (session) {
-      text = "ON"
+        text = "ON"
     }
     chrome.browserAction.setBadgeText({
-      text: text,
-      tabId: tab.id
+        text: text,
+        tabId: tab.id
     });
     chrome.browserAction.setBadgeBackgroundColor({
-      tabId: tab.id,
-      color: "#cc5214"
+        tabId: tab.id,
+        color: "#cc5214"
     })
 }
-
-var pageHtml = ""
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     updateBadge(tab)
@@ -218,16 +215,13 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
         return
     }
 
-
     if (changeInfo.status === "complete") {
         session.activate()
     }
     if (changeInfo.status === "loading") {
         session.initialize();
     }
-
 })
-
 
 function getFile(url){
     var xhr = new XMLHttpRequest()
@@ -258,7 +252,7 @@ function makeOnBeforeRequest(){
     function onBeforeRequest(info){
         var session = getTabSession(info.tabId);
 
-        console.log(info.url)
+        console.log("Requesting", info.url)
         if (!session){
             return;
         }
