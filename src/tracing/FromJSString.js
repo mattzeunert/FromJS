@@ -333,6 +333,10 @@ export function makeTraceObject(options){
                 return target.value[name]
             }
 
+            if (name === "constructor") {
+                return nativeStringObject
+            }
+
             return stringTraceObject[name]
         }
     });
