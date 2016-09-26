@@ -6,27 +6,23 @@ import $ from "jquery"
 import _ from "underscore"
 import adjustColumnForEscapeSequences from "./adjustColumnForEscapeSequences"
 import config from "./config"
+import OriginPathStep from "./OriginPathStep"
 
-export default function whereDoesCharComeFrom(originObject, characterIndex, callback, resolveFrameWorker){
-    characterIndex = parseFloat(characterIndex)
-
+export default function whereDoesCharComeFrom(firstStep, callback, resolveFrameWorker){
     var steps = [];
 
-    window.exportToVis = function(){
-        exportElementOrigin(originObject)
+    if (_.isArray(firstStep)) {
+        firstStep = new OriginPathStep(firstStep[0], firstStep[1])
     }
 
-    var step = {
-        originObject: originObject,
-        characterIndex: characterIndex
-    }
+    var step = firstStep;
     steps.push(step)
 
     nextStep(step)
     function nextStep(step){
         goUp(step, resolveFrameWorker, function(newStep){
 
-            if (newStep !== null && !step.originObject){
+            if (newStep !== null && !step.origin){
                 throw "hmm?"
             }
 
@@ -51,44 +47,40 @@ export default function whereDoesCharComeFrom(originObject, characterIndex, call
 window.whereDoesCharComeFrom = whereDoesCharComeFrom
 export {goUp as goUpForDebugging}
 function goUp(step, resolveFrameWorker, callback){
-    // console.log("trying to handle step with action", step.originObject.action, step)
 
     var ret
-    if (step.originObject.action === "set className"){
+    if (step.origin.action === "set className"){
         var characterIndex =  step.characterIndex
         var newCharIndex = characterIndex - " class='".length
 
         var clickedOnAttributeLeftPart = newCharIndex < 0
-        var clickedOnAttributeRightPart = newCharIndex >= step.originObject.inputValues[0].value.length
+        var clickedOnAttributeRightPart = newCharIndex >= step.origin.inputValues[0].value.length
 
         if (clickedOnAttributeLeftPart || clickedOnAttributeRightPart) {
             // clicked on class=' part rather than actual class name
             callback(null)
             return;
         }
-        ret = {
-            originObject: step.originObject.inputValues[0],
-            characterIndex: newCharIndex
-        }
-    } else if (step.originObject.action === "Assign InnerHTML" ||
-        step.originObject.action === "Initial Body HTML" ||
-        step.originObject.action === "InsertAdjacentHTML") {
+        ret = new OriginPathStep(step.origin.inputValues[0], newCharIndex)
+    } else if (step.origin.action === "Assign InnerHTML" ||
+        step.origin.action === "Initial Body HTML" ||
+        step.origin.action === "InsertAdjacentHTML") {
         var offsetAtChar = 0;
-        if (step.originObject.offsetAtCharIndex){
-            var index = step.characterIndex - step.originObject.inputValuesCharacterIndex[0]
-            offsetAtChar = step.originObject.offsetAtCharIndex[index]
+        if (step.origin.offsetAtCharIndex){
+            var index = step.characterIndex - step.origin.inputValuesCharacterIndex[0]
+            offsetAtChar = step.origin.offsetAtCharIndex[index]
             if (offsetAtChar === undefined) debugger
         }
         ret = {
-            originObject: step.originObject.inputValues[0],
-            characterIndex: step.characterIndex - step.originObject.extraCharsAdded + offsetAtChar
+            origin: step.origin.inputValues[0],
+            characterIndex: step.characterIndex - step.origin.extraCharsAdded + offsetAtChar
         }
-    } else if (step.originObject.action === "createElement" || step.originObject.action === "createElementNS") {
+    } else if (step.origin.action === "createElement" || step.origin.action === "createElementNS") {
         var characterIndex = step.characterIndex
-        var elementType = step.originObject.inputValues[0].value;
+        var elementType = step.origin.inputValues[0].value;
         var openingHtml = "<" + elementType + ">"
         var closingHtml = "<" + elementType + "/>"
-        // step.originObject.value is something like '<li></li>', but we need a char index for just 'li'
+        // step.origin.value is something like '<li></li>', but we need a char index for just 'li'
         if (characterIndex >= openingHtml.length) {
             characterIndex -= openingHtml.length;
             characterIndex -= "/".length;
@@ -101,23 +93,23 @@ function goUp(step, resolveFrameWorker, callback){
             // but let's pretend for now
             characterIndex = 0
         }
-        if (characterIndex == step.originObject.inputValues[0].value.length) {
+        if (characterIndex == step.origin.inputValues[0].value.length) {
             // they clicked on ">", should really end path here
-            characterIndex = step.originObject.inputValues[0].value.length - 1
+            characterIndex = step.origin.inputValues[0].value.length - 1
         }
         ret = {
-            originObject: step.originObject.inputValues[0],
+            origin: step.origin.inputValues[0],
             characterIndex: characterIndex
         }
-    } else if (step.originObject.inputValues.length === 1 && step.originObject.inputValues[0].value === step.originObject.value) {
+    } else if (step.origin.inputValues.length === 1 && step.origin.inputValues[0].value === step.origin.value) {
         // This makes stuff work but it can be a bit misleading
         // because it suggests actions are explicitly handled even though they are not
         ret = {
-            originObject: step.originObject.inputValues[0],
+            origin: step.origin.inputValues[0],
             characterIndex: step.characterIndex
         }
-    } else if (step.originObject.action === "Style SetProperty") {
-        var inputValues = step.originObject.inputValues;
+    } else if (step.origin.action === "Style SetProperty") {
+        var inputValues = step.origin.inputValues;
 
         var valueMap = new ValueMap();
         valueMap.appendString(" style='", "END", 0)
@@ -127,32 +119,32 @@ function goUp(step, resolveFrameWorker, callback){
         valueMap.appendString("'", "END", 0)
 
         ret = valueMap.getItemAt(step.characterIndex)
-        if (ret.originObject === "END") {
+        if (ret.origin === "END") {
             callback(null)
             return;
         }
-    } else if (step.originObject.action === "RegExp.exec Match" ||
-        step.originObject.action === "RegExp.exec Submatch") {
+    } else if (step.origin.action === "RegExp.exec Match" ||
+        step.origin.action === "RegExp.exec Submatch") {
         ret = {
-            originObject: step.originObject.inputValues[0],
-            characterIndex: step.originObject.inputValuesCharacterIndex[0] + step.characterIndex
+            origin: step.origin.inputValues[0],
+            characterIndex: step.origin.inputValuesCharacterIndex[0] + step.characterIndex
         }
-    } else if (step.originObject.action === "ToLowerCase Call" ||
-        step.originObject.action === "ToUpperCase Call") {
+    } else if (step.origin.action === "ToLowerCase Call" ||
+        step.origin.action === "ToUpperCase Call") {
         // I'll just assume that this is always valid...
         // could there be case where one char becomes two in lower/upper case?
         ret = {
-            originObject: step.originObject.inputValues[0],
+            origin: step.origin.inputValues[0],
             characterIndex: step.characterIndex
         }
-    } else  if (step.originObject.action === "Concat") {
+    } else  if (step.origin.action === "Concat") {
         var valueMap = new ValueMap()
-        valueMap.append(step.originObject.inputValues[0])
-        valueMap.append(step.originObject.inputValues[1])
+        valueMap.append(step.origin.inputValues[0])
+        valueMap.append(step.origin.inputValues[1])
 
         ret = valueMap.getItemAt(step.characterIndex)
-    } else if (step.originObject.action === "Array Join Call"){
-        var inputValues = step.originObject.inputValues
+    } else if (step.origin.action === "Array Join Call"){
+        var inputValues = step.origin.inputValues
         var separator = _.first(inputValues)
         var items = inputValues.slice(1)
 
@@ -165,8 +157,8 @@ function goUp(step, resolveFrameWorker, callback){
             }
         })
         ret = valueMap.getItemAt(step.characterIndex)
-    } else if (step.originObject.action === "setAttribute"){
-        var inputValues = step.originObject.inputValues
+    } else if (step.origin.action === "setAttribute"){
+        var inputValues = step.origin.inputValues
 
         var valueMap = new ValueMap()
         valueMap.appendString(" ", "END", 0)
@@ -176,45 +168,45 @@ function goUp(step, resolveFrameWorker, callback){
         valueMap.appendString("'", "END", 0)
 
         ret = valueMap.getItemAt(step.characterIndex)
-        if (ret.originObject === "END") {
+        if (ret.origin === "END") {
             callback(null);
             return;
         }
 
-    } else if (step.originObject.action === "Replace Call" ||
-        step.originObject.action === "Slice Call" ||
-        step.originObject.action === "Substr Call"
+    } else if (step.origin.action === "Replace Call" ||
+        step.origin.action === "Slice Call" ||
+        step.origin.action === "Substr Call"
             ) {
-        var valueMap = ValueMap.deserialize(step.originObject.valueItems, step.originObject.inputValues)
+        var valueMap = ValueMap.deserialize(step.origin.valueItems, step.origin.inputValues)
         ret = valueMap.getItemAt(step.characterIndex)
     }
-    else if (step.originObject.action === "JSON.parse"){
-        if (step.originObject.inputValues.length === 1) {
+    else if (step.origin.action === "JSON.parse"){
+        if (step.origin.inputValues.length === 1) {
             ret = {
-                originObject: step.originObject.inputValues[0],
-                characterIndex: step.characterIndex + step.originObject.inputValuesCharacterIndex[0]
+                origin: step.origin.inputValues[0],
+                characterIndex: step.characterIndex + step.origin.inputValuesCharacterIndex[0]
             }
         } else {
             throw "need to handle"
         }
     }
-    else if (step.originObject.action === "Match Call"){
-        if (step.originObject.value === step.originObject.inputValues[0].value) {
+    else if (step.origin.action === "Match Call"){
+        if (step.origin.value === step.origin.inputValues[0].value) {
             ret = {
-                originObject: step.originObject.inputValues[0],
+                origin: step.origin.inputValues[0],
                 characterIndex: step.characterIndex
             }
         } else {
             throw "not handled match call"
         }
     }
-    else if (step.originObject.action === "Read Element innerHTML" ||
-        step.originObject.action === "Read Element outerHTML"){
+    else if (step.origin.action === "Read Element innerHTML" ||
+        step.origin.action === "Read Element outerHTML"){
 
-        // var el = $("*").filter(function(){return this.innerHTML == step.originObject.value})[0]
-        var el = step.originObject.inputValues[0]
+        // var el = $("*").filter(function(){return this.innerHTML == step.origin.value})[0]
+        var el = step.origin.inputValues[0]
 
-        var charIndexIsInInnerHTML = step.originObject.action === "Read Element innerHTML"
+        var charIndexIsInInnerHTML = step.origin.action === "Read Element innerHTML"
 
         // using an el reference is fragile, because it will create the current
         // contents of the element rather than a snapshot from when the value was read,
@@ -222,24 +214,24 @@ function goUp(step, resolveFrameWorker, callback){
         var origin = getRootOriginAtChar(el, step.characterIndex, charIndexIsInInnerHTML);
 
         callback({
-            originObject: origin.origin,
+            origin: origin.origin,
             characterIndex: origin.characterIndex
         })
         return;
     }
-    else if (step.originObject.action === "Replace Call Submatch"){
+    else if (step.origin.action === "Replace Call Submatch"){
         ret = {
-            originObject: step.originObject.inputValues[0],
-            characterIndex: step.characterIndex + step.originObject.inputValuesCharacterIndex[0]
+            origin: step.origin.inputValues[0],
+            characterIndex: step.characterIndex + step.origin.inputValuesCharacterIndex[0]
         }
     }
-    else if (step.originObject.action === "String Literal"){
-        if (!step.originObject.getStackFrames) {
+    else if (step.origin.action === "String Literal"){
+        if (!step.origin.getStackFrames) {
             // This is the case in some test specs
             callback(null)
             return;
         }
-        resolveFrameWorker.send("resolveFrame", step.originObject.getStackFrames()[0], function(err, frame){
+        resolveFrameWorker.send("resolveFrame", step.origin.getStackFrames()[0], function(err, frame){
             if (fileIsDynamicCode(frame.fileName)){
                 resolveFrameWorker.send("getSourceFileContent", frame.fileName, function(content){
                     var lines = content.split("\n")
@@ -257,7 +249,7 @@ function goUp(step, resolveFrameWorker, callback){
                     characterIndex += adjustColumnForEscapeSequences(contentFromThisLine, step.characterIndex)
 
                     callback({
-                        originObject: fromJSDynamicFileOrigins[frame.fileName],
+                        origin: fromJSDynamicFileOrigins[frame.fileName],
                         characterIndex
                     })
                 })
@@ -275,7 +267,7 @@ function goUp(step, resolveFrameWorker, callback){
         return
     }
 
-    if (ret.originObject.action === "set className") {
+    if (ret.origin.action === "set className") {
         ret.characterIndex = ret.characterIndex - " class='".length
         if (ret.characterIndex < 0) {
             ret.characterIndex = 0;
@@ -286,7 +278,6 @@ function goUp(step, resolveFrameWorker, callback){
     if (ret.characterIndex <0 ){
         debugger
     }
-
 
     callback(ret);
 }

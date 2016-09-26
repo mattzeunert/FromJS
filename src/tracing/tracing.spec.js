@@ -120,9 +120,9 @@ describe("Tracing", function(){
 
         resolveFrameWorker.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
 
-        whereDoesCharComeFrom(ret.origin, 0, function(steps){
+        whereDoesCharComeFrom([ret.origin, 0], function(steps){
             var lastStep = steps[steps.length - 1]
-            expect(lastStep.originObject.action).toBe("Something")
+            expect(lastStep.origin.action).toBe("Something")
 
             resolveFrameWorker.terminate();
 
@@ -435,10 +435,10 @@ describe("Tracing", function(){
 
             var origin = div.__elOrigin.attribute_style
             // style='color: red'
-            whereDoesCharComeFrom(origin, 15 , function(steps){
+            whereDoesCharComeFrom([origin, 15] , function(steps){
                 var lastStep = _.last(steps)
-                expect(lastStep.originObject.value).toBe("red")
-                expect(lastStep.originObject.action).toBe("Some Action")
+                expect(lastStep.origin.value).toBe("red")
+                expect(lastStep.origin.action).toBe("Some Action")
             })
         })
     })

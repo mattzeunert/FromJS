@@ -2,11 +2,9 @@ import ValueMap from "../src/value-map"
 import tagTypeHasClosingTag from "./tracing/tagTypeHasClosingTag"
 import getOpeningAndClosingTags from "./getOpeningAndClosingTags"
 import normalizeHtml, {normalizeHtmlAttribute} from "./normalizeHtml"
+import OriginPathStep from "./OriginPathStep"
 
 window.getRootOriginAtChar = getRootOriginAtChar
-
-
-
 
 
 export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInnerHTML){
@@ -30,7 +28,7 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
         throw Error("Selected element doesn't have any origin data. This may be because you opened the FromJS inspector before the page finished loading.")
     }
 
-    if (item.originObject === "openingTag") {
+    if (item.origin === "openingTag") {
         var vm = new ValueMap();
 
         var openingTagStart = "<" + el.tagName
@@ -63,19 +61,16 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
         vm.appendString(openingTagEnd, el.__elOrigin.openingTagEnd, 0)
 
         var item = vm.getItemAt(characterIndex)
-        // console.log("is in opening tag at charIndex", characterIndex, "mapping to index", item.characterIndex, item)
-        return {
-            origin: item.originObject,
-            characterIndex: item.characterIndex + (item.originObject.inputValuesCharacterIndex ? item.originObject.inputValuesCharacterIndex[0] : 0)
-        }
-    } else if (item.originObject === "closingTag") {
+
+        var characterIndex = item.characterIndex + (item.origin.inputValuesCharacterIndex ? item.origin.inputValuesCharacterIndex[0] : 0)
+        return new OriginPathStep(item.origin, characterIndex)
+    } else if (item.origin === "closingTag") {
         var ivIndex =  el.__elOrigin.closingTag.inputValuesCharacterIndex
         var indexInClosingTag = item.characterIndex;
-        return {
-            origin: el.__elOrigin.closingTag,
-            characterIndex: indexInClosingTag + (ivIndex ? ivIndex[0] : 0)
-        }
-    } else if (item.originObject === "innerHTML") {
+
+        var characterIndex = indexInClosingTag + (ivIndex ? ivIndex[0] : 0)
+        return new OriginPathStep(el.__elOrigin.closingTag, characterIndex)
+    } else if (item.origin === "innerHTML") {
         var vm = new ValueMap();
         characterIndex -= openingTag.length;
         el.__elOrigin.contents.forEach(function(el){
@@ -92,23 +87,16 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
             }
         })
         var item = vm.getItemAt(characterIndex)
-        var itemNodeType = item.originObject.nodeType
+        var itemNodeType = item.origin.nodeType
         var isTextOrCommentNode = itemNodeType === Node.COMMENT_NODE || itemNodeType === Node.TEXT_NODE
 
         if (isTextOrCommentNode) {
-            var origin = item.originObject.__elOrigin.textValue
-            return {
-                characterIndex: item.characterIndex + (origin.inputValuesCharacterIndex ? origin.inputValuesCharacterIndex[0] : 0),
-                origin: origin
-            }
+            var origin = item.origin.__elOrigin.textValue
+            var characterIndex = item.characterIndex + (origin.inputValuesCharacterIndex ? origin.inputValuesCharacterIndex[0] : 0);
+            return new OriginPathStep(origin, characterIndex)
         }
-        return getRootOriginAtChar(item.originObject, item.characterIndex)
+        return getRootOriginAtChar(item.origin, item.characterIndex)
     } else {
         throw "ooooossdfa"
-    }
-
-    return {
-        origin: origin,
-        characterIndex: characterIndex
     }
 }

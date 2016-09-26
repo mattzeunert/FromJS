@@ -17,10 +17,10 @@ describe("whereDoesCharComeFrom", function(){
             }],
         }
 
-        whereDoesCharComeFrom(origin, 0, function(steps){
-            expect(_.last(steps).originObject.value).toBe("Hello ")
-            whereDoesCharComeFrom(origin, 6, function(steps){
-                expect(_.last(steps).originObject.value).toBe("World!")
+        whereDoesCharComeFrom([origin, 0], function(steps){
+            expect(_.last(steps).origin.value).toBe("Hello ")
+            whereDoesCharComeFrom([origin, 6], function(steps){
+                expect(_.last(steps).origin.value).toBe("World!")
                 done()
             })
         })
@@ -45,12 +45,12 @@ describe("whereDoesCharComeFrom", function(){
             }]
         }
 
-        whereDoesCharComeFrom(origin, 0, function(steps){
-            expect(_.last(steps).originObject.value).toBe("a")
-            whereDoesCharComeFrom(origin, 1, function(steps){
-                expect(_.last(steps).originObject.value).toBe("-")
-                whereDoesCharComeFrom(origin, 2, function(steps){
-                    expect(_.last(steps).originObject.value).toBe("b")
+        whereDoesCharComeFrom([origin, 0], function(steps){
+            expect(_.last(steps).origin.value).toBe("a")
+            whereDoesCharComeFrom([origin, 1], function(steps){
+                expect(_.last(steps).origin.value).toBe("-")
+                whereDoesCharComeFrom([origin, 2], function(steps){
+                    expect(_.last(steps).origin.value).toBe("b")
                     done();
                 })
             })
@@ -76,17 +76,17 @@ describe("whereDoesCharComeFrom", function(){
         }
 
         // [c]olor='red'
-        whereDoesCharComeFrom(origin, 1, function(steps){
+        whereDoesCharComeFrom([origin, 1], function(steps){
             var lastStep = _.last(steps)
             expect(lastStep.characterIndex).toBe(0)
-            expect(lastStep.originObject.value).toBe("color")
+            expect(lastStep.origin.value).toBe("color")
         })
 
         // color='r[e]d'
-        whereDoesCharComeFrom(origin, 9, function(steps){
+        whereDoesCharComeFrom([origin, 9], function(steps){
             var lastStep = _.last(steps)
             expect(lastStep.characterIndex).toBe(1)
-            expect(lastStep.originObject.value).toBe("red")
+            expect(lastStep.origin.value).toBe("red")
         })
     })
 
@@ -109,17 +109,17 @@ describe("whereDoesCharComeFrom", function(){
         }
 
         // style='col[o]r: red'
-        whereDoesCharComeFrom(origin, 11, function(steps){
+        whereDoesCharComeFrom([origin, 11], function(steps){
             var lastStep = steps[steps.length - 1]
-            expect(lastStep.originObject.action).toBe("String Literal")
-            expect(lastStep.originObject.value[lastStep.characterIndex]).toBe("o")
+            expect(lastStep.origin.action).toBe("String Literal")
+            expect(lastStep.origin.value[lastStep.characterIndex]).toBe("o")
         })
 
         // style='color: [r]ed'
-        whereDoesCharComeFrom(origin, 15, function(steps){
+        whereDoesCharComeFrom([origin, 15], function(steps){
             var lastStep = steps[steps.length - 1]
-            expect(lastStep.originObject.action).toBe("String Literal")
-            expect(lastStep.originObject.value[lastStep.characterIndex]).toBe("r")
+            expect(lastStep.origin.action).toBe("String Literal")
+            expect(lastStep.origin.value[lastStep.characterIndex]).toBe("r")
         })
     })
 
@@ -136,9 +136,9 @@ describe("whereDoesCharComeFrom", function(){
             ]
         }
 
-        whereDoesCharComeFrom(origin, 1, function(steps){
+        whereDoesCharComeFrom([origin, 1], function(steps){
             var lastStep = steps[steps.length - 1]
-            expect(lastStep.originObject.action).toBe("String Literal")
+            expect(lastStep.origin.action).toBe("String Literal")
         })
     })
 
@@ -155,9 +155,9 @@ describe("whereDoesCharComeFrom", function(){
             ]
         }
 
-        whereDoesCharComeFrom(origin, 1, function(steps){
+        whereDoesCharComeFrom([origin, 1], function(steps){
             var lastStep = steps[steps.length - 1]
-            expect(lastStep.originObject.action).toBe("String Literal")
+            expect(lastStep.origin.action).toBe("String Literal")
         })
     })
 })

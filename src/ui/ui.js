@@ -91,7 +91,7 @@ export class OriginPath extends React.Component {
             // This is really an implementation detail and doesn't add any value to the user
             // Ideally I'd clean up the code to not generate that action at all,
             // but for now just filtering it out
-            if (pathItem.originObject.action === "Initial Body HTML") {
+            if (pathItem.origin.action === "Initial Body HTML") {
                 return false;
             }
             return true;
@@ -145,7 +145,7 @@ export class OriginPath extends React.Component {
     getOriginPathItem(originPathStep){
         return <OriginPathItem
             key={JSON.stringify({
-                originId: originPathStep.originObject.id,
+                originId: originPathStep.origin.id,
                 characterIndex: originPathStep.characterIndex
             })}
             originPathItem={originPathStep}
@@ -166,14 +166,14 @@ class OriginPathItem extends React.Component {
         }
     }
     componentDidMount(){
-        var originObject = this.props.originPathItem.originObject
-        if (originObject.isHTMLFileContent) {
+        var origin = this.props.originPathItem.origin
+        if (origin.isHTMLFileContent) {
             this.selectFrameString(getFrameFromHTMLFileContentOriginPathItem(this.props.originPathItem))
         } else {
-            if (!originObject.stack) {
+            if (!origin.stack) {
                 return
             }
-            this.selectFrameString(_.first(originObject.stack))
+            this.selectFrameString(_.first(origin.stack))
         }
         this.makeSureIsResolvingFrame();
     }
@@ -204,7 +204,7 @@ class OriginPathItem extends React.Component {
         }
     }
     render(){
-        var originObject = this.props.originPathItem.originObject
+        var originObject = this.props.originPathItem.origin
 
         var filenameLink = null
         var viewSourceOriginButton = null;
@@ -429,25 +429,25 @@ class StackFrameSelectorItem extends React.Component {
 }
 
 function getFrameFromHTMLFileContentOriginPathItem(originPathItem){
-    var originObject = originPathItem.originObject
-    var valueBeforeChar = originObject.value.substr(0, originPathItem.characterIndex)
+    var origin = originPathItem.origin
+    var valueBeforeChar = origin.value.substr(0, originPathItem.characterIndex)
 
     var splitIntoLines = valueBeforeChar.split("\n")
     var line = splitIntoLines.length;
     var charIndex = _.last(splitIntoLines).length
 
-    return "at initialHtml (" + originObject.isHTMLFileContent.filename + ":" + line + ":" + charIndex
+    return "at initialHtml (" + origin.isHTMLFileContent.filename + ":" + line + ":" + charIndex
 }
 
 class ValueEl extends React.Component {
     render(){
-        var origin = this.props.originPathItem;
-        var val = origin.originObject.value
+        var step = this.props.originPathItem;
+        var val = step.origin.value
 
         return <TextEl
             text={val}
-            highlightedCharacterIndex={origin.characterIndex}
-            onCharacterClick={(charIndex) => this.props.handleValueSpanClick(origin.originObject,  charIndex)}
+            highlightedCharacterIndex={step.characterIndex}
+            onCharacterClick={(charIndex) => this.props.handleValueSpanClick(step.originObject,  charIndex)}
         />
     }
 }
@@ -716,10 +716,10 @@ class StackFrame extends React.Component{
         var originPathItem = this.props.originPathItem;
 
         var highlighNthCharAfterColumn = null;
-        if (originPathItem.originObject.action === "String Literal" ){
+        if (originPathItem.origin.action === "String Literal" ){
             highlighNthCharAfterColumn = "'".length + originPathItem.characterIndex
         }
-        if (originPathItem.originObject.action === "Initial Page HTML"){
+        if (originPathItem.origin.action === "Initial Page HTML"){
             highlighNthCharAfterColumn = 0;
             barSpan = null;
         }
@@ -930,13 +930,13 @@ class ElementOriginPath extends React.Component {
                 })
                 if (originPath) {
                     var lastStep = _.last(originPath)
-                    var originObject = lastStep.originObject
+                    var origin = lastStep.origin
                     // resolve frame so it's cached when we display it, so you don't get the "loading..." message
                     var frameString;
-                    if (originObject.isHTMLFileContent) {
+                    if (origin.isHTMLFileContent) {
                         frameString = getFrameFromHTMLFileContentOriginPathItem(lastStep)
                     } else {
-                        frameString = _.first(originObject.stack)
+                        frameString = _.first(origin.stack)
                     }
 
                     if (frameString !== undefined) {

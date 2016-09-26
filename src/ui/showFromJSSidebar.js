@@ -161,18 +161,12 @@ export default function showFromJSSidebar(resolveFrameWorker){
     })
 
     function serializeStep(s) {
-        var originObject = s.originObject;
+        var originObject = s.origin;
         var isRootOrigin = false;
-        if (!originObject) {
-            // Data model is a bit inconsistent between a step
-            // and a root origin
-            isRootOrigin = true
-            originObject = s.origin
-        }
         originObject = originObject.serialize();
         return {
             characterIndex: s.characterIndex,
-            [isRootOrigin ? "origin" : "originObject"]: originObject
+            origin: originObject
         }
     }
 
@@ -180,7 +174,7 @@ export default function showFromJSSidebar(resolveFrameWorker){
         disableTracing()
 
         var origin = getOriginById(originId)
-        whereDoesCharComeFrom(origin, characterIndex, function(steps){
+        whereDoesCharComeFrom([origin, characterIndex], function(steps){
             steps = steps.map(serializeStep)
             callback(steps)
         }, resolveFrameWorker)

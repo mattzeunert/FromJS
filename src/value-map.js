@@ -2,21 +2,21 @@ function ValueMap(){
     this.charIndex = 0;
     this.items = [];
 }
-ValueMap.prototype.append = function(originObject){
-    this.appendString(originObject.value, originObject, 0)
+ValueMap.prototype.append = function(origin){
+    this.appendString(origin.value, origin, 0)
 }
-ValueMap.prototype.appendString = function(str, originObject, indexInOriginValue){
+ValueMap.prototype.appendString = function(str, origin, indexInOriginValue){
     if (indexInOriginValue === undefined) {
         debugger;
     }
 
-    if (!originObject) {
+    if (!origin) {
         throw "need origin object"
     }
 
     var newCharIndex = this.charIndex + str.length;
     this.items.push({
-        originObject: originObject,
+        origin: origin,
         fromCharIndex: this.charIndex,
         toCharIndex: newCharIndex,
         __justForDebuggingStr: str,
@@ -45,18 +45,18 @@ ValueMap.prototype.getItemAt = function(charIndex){
         charCountBeforeMatch += len
     })
 
-    var originObject = matchingItem.originObject
+    var origin = matchingItem.origin
     var characterIndex = charIndex - charCountBeforeMatch +
         matchingItem.indexInOriginValue;
 
 
     return {
-        originObject: matchingItem.originObject,
+        origin,
         characterIndex: characterIndex,
         __justForDebuggingStr: matchingItem.__justForDebuggingStr
     }
 }
-ValueMap.prototype.debugginGetValue = function(){
+ValueMap.prototype.debuggingGetValue = function(){
     var value = "";
     this.items.forEach(function(item){
         value += item.__justForDebuggingStr;
@@ -66,10 +66,10 @@ ValueMap.prototype.debugginGetValue = function(){
 ValueMap.prototype.serialize = function(inputValues){
     // console.log("serialize with", inputValues)
     var ret = this.items.map(function(item){
-        var originObjectIndex = inputValues.indexOf(item.originObject);
+        var originObjectIndex = inputValues.indexOf(item.origin);
         var originObjectLiteral = null
         if (originObjectIndex === -1) {
-            originObjectLiteral = item.originObject
+            originObjectLiteral = item.origin
         }
         return {
             originObjectIndex,
@@ -86,17 +86,17 @@ ValueMap.deserialize = function(serializedValueMap, inputValues){
     // console.log("deserialize with ", inputValues)
     var valueMap = new ValueMap();
     serializedValueMap.forEach(function(item){
-        var originObject;
+        var origin;
         if (item.originObjectIndex !== -1){
-            originObject = inputValues[item.originObjectIndex];
+            origin = inputValues[item.originObjectIndex];
         } else {
-            originObject = item.originObjectLiteral
+            origin = item.originObjectLiteral
         }
         valueMap.items.push({
             fromCharIndex: item.fromCharIndex,
             toCharIndex: item.toCharIndex,
             __justForDebuggingStr: item.__justForDebuggingStr,
-            originObject,
+            origin,
             indexInOriginValue: item.indexInOriginValue
         })
     })

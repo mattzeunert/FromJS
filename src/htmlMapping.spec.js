@@ -21,9 +21,9 @@ describe("HTML Mapping", function(){
         expect(getRootOriginAtChar(el, 1).origin.action).toBe("createElement")
 
         // <div>[H]ello</div>
-        var originAndChar = getRootOriginAtChar(el, 5);
-        expect(originAndChar.origin.action).toBe("Assign InnerHTML")
-        expect(originAndChar.origin.value[originAndChar.characterIndex]).toBe("H")
+        var firstStep = getRootOriginAtChar(el, 5);
+        expect(firstStep.origin.action).toBe("Assign InnerHTML")
+        expect(firstStep.origin.value[firstStep.characterIndex]).toBe("H")
     })
 
     it("Traces nested HTML assignments", function(){
@@ -32,9 +32,9 @@ describe("HTML Mapping", function(){
         var bTag = el.children[0]
 
         // <b>[W]orld</b>
-        var originAndChar = getRootOriginAtChar(bTag, 3);
-        expect(originAndChar.origin.action).toBe("Assign InnerHTML")
-        expect(originAndChar.origin.value[originAndChar.characterIndex]).toBe("W")
+        var firstStep = getRootOriginAtChar(bTag, 3);
+        expect(firstStep.origin.action).toBe("Assign InnerHTML")
+        expect(firstStep.origin.value[firstStep.characterIndex]).toBe("W")
     })
 
     it("Traces attributes without a value correctly", function(done){
@@ -47,12 +47,12 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<span hello="" world="">Hi</span>')
 
         // <span hello="" world="">[H]i</span>
-        var originAndChar = getRootOriginAtChar(span, 24);
-        expect(originAndChar.origin.action).toBe("Assign InnerHTML")
-        expect(originAndChar.origin.value[originAndChar.characterIndex]).toBe("H")
+        var firstStep = getRootOriginAtChar(span, 24);
+        expect(firstStep.origin.action).toBe("Assign InnerHTML")
+        expect(firstStep.origin.value[firstStep.characterIndex]).toBe("H")
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             // correctly traces back to assigned string
             expect(value).toBe("<span hello world>Hi</span>")
@@ -69,9 +69,9 @@ describe("HTML Mapping", function(){
         disableTracing()
 
         // <span hello="">[H]i</span>
-        var originAndChar = getRootOriginAtChar(span, 15);
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        var firstStep = getRootOriginAtChar(span, 15);
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             // correctly traces back to assigned string
             expect(value).toBe("<span hello=\"\">Hi</span>")
@@ -89,9 +89,9 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<span hi="&amp;test"></span>')
 
         // <span hi="&amp;test"></span>
-        var originAndChar = getRootOriginAtChar(span, 15);
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        var firstStep = getRootOriginAtChar(span, 15);
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             // correctly traces back to assigned string
             expect(value).toBe('<span hi="&amp;test"></span>')
@@ -109,9 +109,9 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<span hi="&amp;test"></span>')
 
         // <span hi="&amp;test"></span>
-        var originAndChar = getRootOriginAtChar(span, 15);
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        var firstStep = getRootOriginAtChar(span, 15);
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             // correctly traces back to assigned string
             expect(value).toBe('<span hi="&test"></span>')
@@ -129,9 +129,9 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<span hi="»test"></span>')
 
         // <span hi="»test"></span>
-        var originAndChar = getRootOriginAtChar(span, 11);
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        var firstStep = getRootOriginAtChar(span, 11);
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             // correctly traces back to assigned string
             expect(value).toBe('<span hi="&raquo;test"></span>')
@@ -149,9 +149,9 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<span hi="\'world"></span>')
 
         // <span hi="\'worl[d]"></span>
-        var originAndChar = getRootOriginAtChar(span, 15);
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        var firstStep = getRootOriginAtChar(span, 15);
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             // correctly traces back to assigned string
             expect(value).toBe('<span hi="&#39;world"></span>')
@@ -169,10 +169,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<span>Hi</span>')
 
         // <span>[H]i</span>
-        var originAndChar = getRootOriginAtChar(span, 6);
+        var firstStep = getRootOriginAtChar(span, 6);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe("<span >Hi</span>")
             expect(value[characterIndex]).toBe("H")
@@ -189,10 +189,10 @@ describe("HTML Mapping", function(){
         expect(span.innerHTML).toBe('<input>Hey')
 
         // <span><input>[H]ey</span>
-        var originAndChar = getRootOriginAtChar(span, 13);
+        var firstStep = getRootOriginAtChar(span, 13);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe("<span><input \n/>Hey</span>")
             expect(value[characterIndex]).toBe("H")
@@ -209,10 +209,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<span>Hi</span>')
 
         // <span>[H]i</span>
-        var originAndChar = getRootOriginAtChar(span, 6);
+        var firstStep = getRootOriginAtChar(span, 6);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe("<span \n\n\t>Hi</span>")
             expect(value[characterIndex]).toBe("H")
@@ -230,10 +230,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<span hi="hey" cake="cookie"></span>')
 
         // <span hi="hey" ca[k]e="cookie"></span>
-        var originAndChar = getRootOriginAtChar(span, 17);
+        var firstStep = getRootOriginAtChar(span, 17);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe('<span hi="hey" cake="cookie"></span>')
             expect(value[characterIndex]).toBe("k")
@@ -251,10 +251,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<span hi="hey" cake="cookie"></span>')
 
         // <span hi="hey" ca[k]e="cookie"></span>
-        var originAndChar = getRootOriginAtChar(span, 17);
+        var firstStep = getRootOriginAtChar(span, 17);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe('<span hi="hey"       \ncake="cookie"></span>')
             expect(value[characterIndex]).toBe("k")
@@ -270,10 +270,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('&amp;')
 
         // <div>&a[m]p;</div>
-        var originAndChar = getRootOriginAtChar(el, 7);
+        var firstStep = getRootOriginAtChar(el, 7);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe("&")
             expect(characterIndex).toBe(0)
@@ -289,10 +289,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('»')
 
         // <div>»</div>
-        var originAndChar = getRootOriginAtChar(el, 5);
+        var firstStep = getRootOriginAtChar(el, 5);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe("»")
             expect(characterIndex).toBe(0)
@@ -308,10 +308,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('sth»')
 
         // <div>sth[»]</div>
-        var originAndChar = getRootOriginAtChar(el, 8);
+        var firstStep = getRootOriginAtChar(el, 8);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe("sth&raquo;")
             expect(characterIndex).toBe(3)
@@ -327,10 +327,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('ab<!-- hi -->cd')
 
         // <div>ab<!-- hi -->[c]d</div>
-        var originAndChar = getRootOriginAtChar(el, 18);
+        var firstStep = getRootOriginAtChar(el, 18);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe("ab<!-- hi -->cd")
             expect(value[characterIndex]).toBe("c")
@@ -346,10 +346,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<input>Hello')
 
         // <div><input>H[e]llo</div>
-        var originAndChar = getRootOriginAtChar(el, 13);
+        var firstStep = getRootOriginAtChar(el, 13);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe("<input/>Hello")
             expect(value[characterIndex]).toBe("e")
@@ -365,10 +365,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<input>Hello')
 
         // <div><input>H[e]llo</div>
-        var originAndChar = getRootOriginAtChar(el, 13);
+        var firstStep = getRootOriginAtChar(el, 13);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe("<input></input>Hello")
             expect(value[characterIndex]).toBe("e")
@@ -385,10 +385,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<span>ab\ncd</span>')
 
         // <span>ab\ncd</span>
-        var originAndChar = getRootOriginAtChar(span, 9);
+        var firstStep = getRootOriginAtChar(span, 9);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe('<span>ab\r\ncd</span>')
             expect(value[characterIndex]).toBe("c")
@@ -405,10 +405,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<span hi="ho">abc</span>')
 
         // <span hi="ho">abc</span>
-        var originAndChar = getRootOriginAtChar(span, 14);
+        var firstStep = getRootOriginAtChar(span, 14);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe('<span\r\n hi="ho"\r\n>abc</span>')
             expect(value[characterIndex]).toBe("a")
@@ -425,10 +425,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('<span hi="\nhey"></span>')
 
         // <span hi="\nhey"></span>
-        var originAndChar = getRootOriginAtChar(span, 11);
+        var firstStep = getRootOriginAtChar(span, 11);
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe('<span hi="\r\nhey"></span>')
             expect(value[characterIndex]).toBe("h")
@@ -445,10 +445,10 @@ describe("HTML Mapping", function(){
         expect(el.innerHTML).toBe('Hello World')
 
         // <div>Hello [W]orld</div>
-        var originAndChar = getRootOriginAtChar(el, 11)
+        var firstStep = getRootOriginAtChar(el, 11)
 
-        whereDoesCharComeFrom(originAndChar.origin, originAndChar.characterIndex, function(steps){
-            var value = steps[1].originObject.value;
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value).toBe(' World')
             expect(value[characterIndex]).toBe("W")
