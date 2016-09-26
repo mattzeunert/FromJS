@@ -16,7 +16,7 @@ describe("replaceJSScriptTags", function(){
     })
 })
 
-describe("replaceJSScriptTags", function(){
+describe("getJSScriptTags", function(){
     it("Finds script tags", function(){
         var html = `aaa<script>hello</script>bbb`
         var scriptTags = getJSScriptTags(html)

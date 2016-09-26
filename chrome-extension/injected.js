@@ -1,5 +1,6 @@
 import {getJSScriptTags} from "../src/getJSScriptTags"
 import _ from "underscore"
+import getHeadAndBodyContent from "./getHeadAndBodyContent"
 
 function getScriptElements(html){
     return getJSScriptTags(html).map(function(tag){
@@ -47,24 +48,12 @@ window.onFromJSReady = function(){
     window.fromJSInitialPageHtml = pageHtml;
     var bodyContent, headContent;
 
-    var bodyStartRegExp = /<body.*>/
-    var headStartRegExp = /<head.*?>/
-    var hasHead = headStartRegExp.test(pageHtml)
+    var headAndBody = getHeadAndBodyContent(pageHtml)
+    var bodyScripts = getScriptElements(headAndBody.bodyContent);
 
-    if (hasHead) {
-        bodyContent = pageHtml.split(bodyStartRegExp)[1].split("</body>")[0]
-        headContent = pageHtml.split(headStartRegExp)[1].split("</head>")[0]
-    } else {
-        // Presumably this page has neither a head nor a body tag,
-        // so just put everything into the body
-        bodyContent = pageHtml
-    }
-
-    var bodyScripts = getScriptElements(bodyContent);
-
-    if (hasHead){
-        document.head.innerHTML = headContent
-        var headScripts = getScriptElements(headContent);
+    if (headAndBody.headContent) {
+        document.head.innerHTML = headAndBody.headContent
+        var headScripts = getScriptElements(headAndBody.headContent);
         window.fromJSEnableTracing() // be careful calling global functions like regexp.exec, array.join etc after this
         appendScriptsOneAfterAnother(headScripts, document.head, function(){
             loadBody()
@@ -75,7 +64,7 @@ window.onFromJSReady = function(){
     }
 
     function loadBody(){
-        document.body.innerHTML = bodyContent
+        document.body.innerHTML = headAndBody.bodyContent
         makeSureInitialHTMLHasBeenProcessed()
         appendScriptsOneAfterAnother(bodyScripts, document.body, function(){
             simulateOnLoad()

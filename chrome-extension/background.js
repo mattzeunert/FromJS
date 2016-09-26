@@ -17,7 +17,9 @@ var tabsToProcess = [];
 
 var messageHandlers = {
     loadScript: function(request, sender, callback){
+        console.info("Fetching and processing", request.url)
         var code = getProcessedCodeFor(request.url)
+        console.info("Injecting", request.url)
         executeScriptOnPage(sender.tab.id, code, function(){
             callback()
         })
