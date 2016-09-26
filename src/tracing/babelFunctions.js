@@ -109,7 +109,7 @@ var babelFunctions = {
             // avoid implicit toString call when comparing, could cause
             // 'Cannot convert object to primitive type'
             if (a !== undefined && a !== null) {
-                a = toString(a)    
+                a = toString(a)
             }
             if (b !== undefined && b !== null) {
                 b = toString(b)
@@ -132,9 +132,6 @@ var babelFunctions = {
         return cachedValue
     },
     f__assign(object, property, value){
-        if (typeof property === "undefined") {
-            property = "undefined"
-        }
         var storagePropName = toString(property, true) + "_trackedName"
 
         // This would be a nice to have, but
