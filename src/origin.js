@@ -8,13 +8,19 @@ var emptyInputValuesArray = []
 Object.freeze(emptyInputValuesArray)
 
 export default function Origin(opts){
+    var error = opts.error;
+    if (!error) {
+        Error.stackTraceLimit = 500;
+        error = new Error();
+    }
+
     var inputValues = opts.inputValues.map(function(inputValue){
         if (typeof inputValue === "undefined") {
            return new Origin({
                action: "Undefined",
                inputValues: [],
                value: "undefined", // would rather not store a whole function reference
-               error: opts.error
+               error: error
            })
         }
         if (inputValue.isFromJSOriginObject){
@@ -31,7 +37,7 @@ export default function Origin(opts){
                 action: "Number",
                 inputValues: [],
                 value: inputValue,
-                error: opts.error
+                error: error
             })
         }
         if (typeof inputValue === "string") {
@@ -39,7 +45,7 @@ export default function Origin(opts){
                 action: "String",
                 inputValues: [],
                 value: inputValue,
-                error: opts.error
+                error: error
             })
         }
         if (typeof inputValue === "boolean") {
@@ -47,7 +53,7 @@ export default function Origin(opts){
                 action: "Boolean",
                 inputValues: [],
                 value: inputValue,
-                error: opts.error
+                error: error
             })
         }
         if (typeof inputValue === "object") {
@@ -55,7 +61,7 @@ export default function Origin(opts){
                 action: "Object",
                 inputValues: [],
                 value: toString(inputValue), // would rather not store a whole obj reference
-                error: opts.error
+                error: error
             })
         }
         if (typeof inputValue === "function") {
@@ -63,7 +69,7 @@ export default function Origin(opts){
                action: "Function",
                inputValues: [],
                value: toString(inputValue), // would rather not store a whole function reference
-               error: opts.error
+               error: error
            })
        }
 
@@ -73,7 +79,7 @@ export default function Origin(opts){
             action: "Unknown Thing",
             inputValues: [],
             value: toString(inputValue),
-            error: opts.error
+            error: error
         })
     })
 
@@ -112,13 +118,8 @@ export default function Origin(opts){
     this.value = value
 
     this.valueItems = opts.valueItems
-    Error.stackTraceLimit = 500;
 
-    if (opts.error) {
-        this.error = opts.error;
-    } else {
-        this.error = new Error()
-    }
+    this.error = error;
 }
 // easier for tests to handle / simulate than instanceof check
 Object.defineProperty(Origin.prototype, "isFromJSOriginObject", {
