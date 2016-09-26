@@ -14,73 +14,8 @@ export default function Origin(opts){
         error = new Error();
     }
 
-    var inputValues = opts.inputValues.map(function(inputValue){
-        if (typeof inputValue === "undefined") {
-           return new Origin({
-               action: "Undefined",
-               inputValues: [],
-               value: "undefined", // would rather not store a whole function reference
-               error: error
-           })
-        }
-        if (inputValue.isFromJSOriginObject){
-            return inputValue
-        }
-        if (inputValue.origin && inputValue.origin.isFromJSOriginObject){
-            return inputValue.origin
-        }
-        if (inputValue instanceof Element){
-            return inputValue
-        }
-        if (typeof inputValue === "number") {
-            return new Origin({
-                action: "Number",
-                inputValues: [],
-                value: inputValue,
-                error: error
-            })
-        }
-        if (typeof inputValue === "string") {
-            return new Origin({
-                action: "String",
-                inputValues: [],
-                value: inputValue,
-                error: error
-            })
-        }
-        if (typeof inputValue === "boolean") {
-            return new Origin({
-                action: "Boolean",
-                inputValues: [],
-                value: inputValue,
-                error: error
-            })
-        }
-        if (typeof inputValue === "object") {
-            return new Origin({
-                action: "Object",
-                inputValues: [],
-                value: toString(inputValue), // would rather not store a whole obj reference
-                error: error
-            })
-        }
-        if (typeof inputValue === "function") {
-           return new Origin({
-               action: "Function",
-               inputValues: [],
-               value: toString(inputValue), // would rather not store a whole function reference
-               error: error
-           })
-       }
-
-
-        debugger
-        return new Origin({
-            action: "Unknown Thing",
-            inputValues: [],
-            value: toString(inputValue),
-            error: error
-        })
+    var inputValues = opts.inputValues.map(function(iv){
+        return getUsableInputValue(iv, err)
     })
 
     this.action = opts.action;
@@ -121,6 +56,76 @@ export default function Origin(opts){
 
     this.error = error;
 }
+
+function getUsableInputValue(inputValue, err){
+    if (typeof inputValue === "undefined") {
+       return new Origin({
+           action: "Undefined",
+           inputValues: [],
+           value: "undefined", // would rather not store a whole function reference
+           error: error
+       })
+    }
+    if (inputValue.isFromJSOriginObject){
+        return inputValue
+    }
+    if (inputValue.origin && inputValue.origin.isFromJSOriginObject){
+        return inputValue.origin
+    }
+    if (inputValue instanceof Element){
+        return inputValue
+    }
+    if (typeof inputValue === "number") {
+        return new Origin({
+            action: "Number",
+            inputValues: [],
+            value: inputValue,
+            error: error
+        })
+    }
+    if (typeof inputValue === "string") {
+        return new Origin({
+            action: "String",
+            inputValues: [],
+            value: inputValue,
+            error: error
+        })
+    }
+    if (typeof inputValue === "boolean") {
+        return new Origin({
+            action: "Boolean",
+            inputValues: [],
+            value: inputValue,
+            error: error
+        })
+    }
+    if (typeof inputValue === "object") {
+        return new Origin({
+            action: "Object",
+            inputValues: [],
+            value: toString(inputValue), // would rather not store a whole obj reference
+            error: error
+        })
+    }
+    if (typeof inputValue === "function") {
+       return new Origin({
+           action: "Function",
+           inputValues: [],
+           value: toString(inputValue), // would rather not store a whole function reference
+           error: error
+       })
+   }
+
+
+    debugger
+    return new Origin({
+        action: "Unknown Thing",
+        inputValues: [],
+        value: toString(inputValue),
+        error: error
+    })
+}
+
 // easier for tests to handle / simulate than instanceof check
 Object.defineProperty(Origin.prototype, "isFromJSOriginObject", {
     value: true
