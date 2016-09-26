@@ -167,6 +167,13 @@ describe("Tracing", function(){
         expect(dynamicFileCountAfter - dynamicFileCountBefore).toBe(3)
     })
 
+    it("Doesn't break assigning textContent directly to text nodes", function(){
+        var node = document.createTextNode("Hello");
+        node.textContent = "Hi";
+
+        expect(node.textContent).toBe("Hi")
+    })
+
     describe("Array.join", function(){
         it("Works with objects that have a custom toString function which returns a tracked string", function(){
             var obj = makeObjWithCustomToString("Hello")

@@ -493,17 +493,22 @@ export function enableTracing(){
 
             var ret = nativeNodeTextContentDescriptor.set.apply(this, [newTextContent])
 
-            addElOrigin(el, "replaceContents", el.childNodes)
-            if (newTextContent.toString() !== ""){
-                var childNode = el.childNodes[0];
-                el.__elOrigin.contents = [childNode]
-
-                addElOrigin(childNode, "textValue", {
-                    action: "Assign textContent",
-                    inputValues: [newTextContent],
-                    value: newTextContent.toString()
-                })
+            var textNode;
+            if (el.nodeType === Node.TEXT_NODE) {
+                textNode = el;
+            } else {
+                addElOrigin(el, "replaceContents", el.childNodes)
+                if (newTextContent.toString() !== ""){
+                    textNode = el.childNodes[0];
+                    el.__elOrigin.contents = [textNode]
+                }
             }
+
+            addElOrigin(textNode, "textValue", {
+                action: "Assign textContent",
+                inputValues: [newTextContent],
+                value: newTextContent.toString()
+            })
 
             return ret;
         }
