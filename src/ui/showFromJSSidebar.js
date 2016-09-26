@@ -196,6 +196,11 @@ export default function showFromJSSidebar(resolveFrameWorker){
 
         originsById[originObject.getId()] = originObject
         originObject.inputValues.forEach(function(iv){
+            if (!iv.getId) {
+                // Probably an element input value... this will be filtered out by
+                // .serialize later on, so it's never sent to the inspector iframe
+                return iv;
+            }
             originsById[iv.getId()] = iv
         })
     }

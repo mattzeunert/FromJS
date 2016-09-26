@@ -181,6 +181,9 @@ Origin.prototype.getStackFrames = function(){
 
 Origin.prototype.serialize = function(){
     var serialized = {...this}
+    if (!serialized.inputValues) {
+        serialized.inputValues = [];
+    }
 
     serialized.inputValues =  serialized.inputValues.map(function(inputValue){
         inputValue = {...inputValue}
@@ -194,6 +197,7 @@ Origin.prototype.serialize = function(){
 
     serialized.stack = this.getStackFrames();
     serialized.id = this.getId();
+
     return serialized;
 }
 
