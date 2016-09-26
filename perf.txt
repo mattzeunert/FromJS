@@ -13,6 +13,7 @@ Measured manually with DevTools closed, memory info taken from Chrome task manag
 
 
                         Backbone    React   BB Memory   React Memory
+27b2a8e 26 Sep 2016     2.6s        12.3s   172MB       416MB
 1959e65 26 Sep 2016     2.6s        13.8s   168MB       421MB
 From now on go to timeline tab and trigger GC before reading memory usage
 e9f7e49 23 Sep 2016     2.6s        13.2s   176MB       439MB        (stopped keeping a record of all Origin objects ever created)
