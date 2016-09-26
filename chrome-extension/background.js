@@ -16,12 +16,19 @@ fetch(chrome.extension.getURL("resolveFrameWorker.js"))
 class FromJSSession {
     constructor(tabId) {
         this.tabId = tabId;
+        this._open();
+    }
+    _open(){
+        this._onBeforeRequest = makeTabListener()
+        this._onHeadersReceived = makeOnHeadersReceived();
+
+        chrome.webRequest.onBeforeRequest.addListener(this._onBeforeRequest, {urls: ["<all_urls>"], tabId: this.tabId}, ["blocking"]);
+        chrome.webRequest.onHeadersReceived.addListener(this._onHeadersReceived, {urls: ["<all_urls>"], tabId: this.tabId}, ["blocking", "responseHeaders"])
     }
     close(){
-        var listeners = listenersByTabId[this.tabId]
-        chrome.webRequest.onBeforeRequest.removeListener(listeners.onBeforeRequest)
-        chrome.webRequest.onHeadersReceived.removeListener(listeners.onHeadersReceived)
-        delete listenersByTabId[this.tabId]
+        chrome.webRequest.onBeforeRequest.removeListener(this._onBeforeRequestListener)
+        chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
+
         this.isClosed = true;
     }
 }
@@ -35,10 +42,25 @@ function createSession(tabId){
         debugger;
         console.error("Tab already has session")
     }
-    sessionsByTabId[tabId] = new FromJSSession(tabId)
-    initializeTab(tabId)
+    var session = new FromJSSession(tabId)
+    sessionsByTabId[tabId] = session;
 }
 
+function makeOnHeadersReceived(){
+    return function onHeadersReceived(details){
+        if (details.type !== "main_frame") {return}
+
+        for (var i=0; i<details.responseHeaders.length; i++) {
+            if (details.responseHeaders[i].name === "Content-Security-Policy") {
+                details.responseHeaders[i].value = ""
+            }
+        }
+
+        return {
+            responseHeaders: details.responseHeaders
+        }
+    }
+}
 
 var messageHandlers = {
     loadScript: function(request, sender, callback){
@@ -182,32 +204,8 @@ var tabStage = {}
 
 var idsToDisableOnNextMainFrameLoad = []
 var sourceMaps = {}
-var listenersByTabId = {}
 
-function initializeTab(tabId){
-    var onBeforeRequest = makeTabListener()
-    function onHeadersReceived(details){
-        if (details.type !== "main_frame") {return}
 
-        for (var i=0; i<details.responseHeaders.length; i++) {
-            if (details.responseHeaders[i].name === "Content-Security-Policy") {
-                details.responseHeaders[i].value = ""
-            }
-        }
-
-        return {
-            responseHeaders: details.responseHeaders
-        }
-    }
-
-    listenersByTabId[tabId] = {
-        onBeforeRequest,
-        onHeadersReceived
-    }
-
-    chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, {urls: ["<all_urls>"], tabId: tabId}, ["blocking"]);
-    chrome.webRequest.onHeadersReceived.addListener(onHeadersReceived, {urls: ["<all_urls>"], tabId: tabId}, ["blocking", "responseHeaders"])
-}
 
 
 function getFile(url){
