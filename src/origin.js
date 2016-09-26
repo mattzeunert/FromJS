@@ -15,7 +15,7 @@ export default function Origin(opts){
     }
 
     var inputValues = opts.inputValues.map(function(iv){
-        return getUsableInputValue(iv, err)
+        return getUsableInputValue(iv, error)
     })
 
     this.action = opts.action;
@@ -57,7 +57,7 @@ export default function Origin(opts){
     this.error = error;
 }
 
-function getUsableInputValue(inputValue, err){
+function getUsableInputValue(inputValue, error){
     if (typeof inputValue === "undefined") {
        return new Origin({
            action: "Undefined",
