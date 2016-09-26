@@ -1,114 +1,46 @@
 import _ from "underscore"
 import untracedToString from "./untracedToString"
 
-// Storing lots of arrays costs lots of memory, and
-// since many inputValues arrays are empty we can just
-// re-use the same array every time.
-var emptyInputValuesArray = []
-Object.freeze(emptyInputValuesArray)
-
-var originsById = {}
-
-export function getOriginById(originId) {
-    return originsById[originId]
-}
-
 export default function Origin(opts){
-    var inputValues = opts.inputValues.map(function(inputValue){
-        if (typeof inputValue === "undefined") {
-           return new Origin({
-               action: "Undefined",
-               inputValues: [],
-               value: "undefined", // would rather not store a whole function reference
-               error: opts.error
-           })
-        }
-        if (inputValue.isFromJSOriginObject){
-            return inputValue
-        }
-        if (inputValue.origin && inputValue.origin.isFromJSOriginObject){
-            return inputValue.origin
-        }
-        if (inputValue instanceof Element){
-            return inputValue
-        }
-        if (typeof inputValue === "number") {
-            return new Origin({
-                action: "Number",
-                inputValues: [],
-                value: inputValue,
-                error: opts.error
-            })
-        }
-        if (typeof inputValue === "string") {
-            return new Origin({
-                action: "String",
-                inputValues: [],
-                value: inputValue,
-                error: opts.error
-            })
-        }
-        if (typeof inputValue === "boolean") {
-            return new Origin({
-                action: "Boolean",
-                inputValues: [],
-                value: inputValue,
-                error: opts.error
-            })
-        }
-        if (typeof inputValue === "object") {
-            return new Origin({
-                action: "Object",
-                inputValues: [],
-                value: toString(inputValue), // would rather not store a whole obj reference
-                error: opts.error
-            })
-        }
-        if (typeof inputValue === "function") {
-           return new Origin({
-               action: "Function",
-               inputValues: [],
-               value: toString(inputValue), // would rather not store a whole function reference
-               error: opts.error
-           })
-       }
-
-
-        debugger
-        return new Origin({
-            action: "Unknown Thing",
-            inputValues: [],
-            value: toString(inputValue),
-            error: opts.error
-        })
-    })
-
-    this.id = _.uniqueId();
-    originsById[this.id] = this
+    var error = opts.error;
+    if (!error) {
+        Error.stackTraceLimit = 500;
+        error = new Error();
+    }
 
     this.action = opts.action;
-    if (inputValues.length === 0) {
-        inputValues = emptyInputValuesArray
-    }
-    this.inputValues = inputValues;
+    this.value = ensureValueIsString(opts.value)
+    this.error = error;
 
-    this.extraCharsAdded = 0;
+    if (opts.inputValues.length > 0) {
+        this.inputValues = opts.inputValues.map(function(iv){
+            return getUsableInputValue(iv, error)
+        })
+    }
+
     if (opts.extraCharsAdded) {
         this.extraCharsAdded = opts.extraCharsAdded
     }
 
-    // easier for tests to handle / simulate
-    this.isFromJSOriginObject = true;
-
-    this.inputValuesCharacterIndex = opts.inputValuesCharacterIndex
-    this.offsetAtCharIndex = opts.offsetAtCharIndex
-    if (this.offsetAtCharIndex && this.offsetAtCharIndex.length == 0){
-        debugger
+    if (opts.inputValuesCharacterIndex) {
+        this.inputValuesCharacterIndex = opts.inputValuesCharacterIndex
+    }
+    if (opts.offsetAtCharIndex){
+        this.offsetAtCharIndex = opts.offsetAtCharIndex
+        if (this.offsetAtCharIndex.length == 0){
+            debugger
+        }
     }
 
-    this.isHTMLFileContent = opts.isHTMLFileContent
+    if (opts.isHTMLFileContent) {
+        this.isHTMLFileContent = opts.isHTMLFileContent
+    }
+    if (opts.valueItems) {
+        this.valueItems = opts.valueItems
+    }
+}
 
-    var value = opts.value;
+function ensureValueIsString(value){
     if (typeof value === "number") {
         value = window.nativeNumberToString.call(value)
     } else {
@@ -121,17 +53,99 @@ export default function Origin(opts){
             value = value.toString();
         }
     }
-    this.value = value
-
-    this.valueItems = opts.valueItems
-    Error.stackTraceLimit = 500;
-
-    if (opts.error) {
-        this.error = opts.error;
-    } else {
-        this.error = new Error()
-    }
+    return value;
 }
+
+function getUsableInputValue(inputValue, error){
+    if (typeof inputValue === "undefined") {
+       return new Origin({
+           action: "Undefined",
+           inputValues: [],
+           value: "undefined", // would rather not store a whole function reference
+           error: error
+       })
+    }
+    if (inputValue.isFromJSOriginObject){
+        return inputValue
+    }
+    if (inputValue.origin && inputValue.origin.isFromJSOriginObject){
+        return inputValue.origin
+    }
+    if (inputValue instanceof Element){
+        return inputValue
+    }
+    if (typeof inputValue === "number") {
+        return new Origin({
+            action: "Number",
+            inputValues: [],
+            value: inputValue,
+            error: error
+        })
+    }
+    if (typeof inputValue === "string") {
+        return new Origin({
+            action: "String",
+            inputValues: [],
+            value: inputValue,
+            error: error
+        })
+    }
+    if (typeof inputValue === "boolean") {
+        return new Origin({
+            action: "Boolean",
+            inputValues: [],
+            value: inputValue,
+            error: error
+        })
+    }
+    if (typeof inputValue === "object") {
+        return new Origin({
+            action: "Object",
+            inputValues: [],
+            value: toString(inputValue), // would rather not store a whole obj reference
+            error: error
+        })
+    }
+    if (typeof inputValue === "function") {
+       return new Origin({
+           action: "Function",
+           inputValues: [],
+           value: toString(inputValue), // would rather not store a whole function reference
+           error: error
+       })
+   }
+
+
+    debugger
+    return new Origin({
+        action: "Unknown Thing",
+        inputValues: [],
+        value: toString(inputValue),
+        error: error
+    })
+}
+
+// easier for tests to handle / simulate than instanceof check
+Object.defineProperty(Origin.prototype, "isFromJSOriginObject", {
+    value: true
+})
+
+Origin.prototype.getId = function(){
+    if (this._id === undefined) {
+        this._id = _.uniqueId()
+    }
+    return this._id;
+}
+
+Object.defineProperty(Origin.prototype, "extraCharsAdded", {
+    value: 0,
+    writable: true
+})
+
+Object.defineProperty(Origin.prototype, "inputValues", {
+    value: [],
+    writable: true
+})
 
 Origin.prototype.getStackFrames = function(){
     return this.error.stack.split("\n").filter(function(frame){
@@ -167,6 +181,9 @@ Origin.prototype.getStackFrames = function(){
 
 Origin.prototype.serialize = function(){
     var serialized = {...this}
+    if (!serialized.inputValues) {
+        serialized.inputValues = [];
+    }
 
     serialized.inputValues =  serialized.inputValues.map(function(inputValue){
         inputValue = {...inputValue}
@@ -179,6 +196,8 @@ Origin.prototype.serialize = function(){
     })
 
     serialized.stack = this.getStackFrames();
+    serialized.id = this.getId();
+
     return serialized;
 }
 

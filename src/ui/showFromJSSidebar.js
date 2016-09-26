@@ -10,7 +10,6 @@ import {disableTracing, enableTracing, disableEventListeners, enableEventListene
 import RoundTripMessageWrapper from "../RoundTripMessageWrapper"
 import resolveFrame from "../resolve-frame"
 import getCodeFilePath from "./getCodeFilePath"
-import { getOriginById } from "../origin"
 
 var elementsByElementId = {}
 
@@ -156,6 +155,7 @@ export default function showFromJSSidebar(resolveFrameWorker){
     inspectedPage.on("getRootOriginAtChar", function(elementId, characterIndex, callback){
         var el = getElementFromElementId(elementId)
         var initialStep = getRootOriginAtChar(el, characterIndex)
+        registerOriginIdsForStep(initialStep)
         initialStep = serializeStep(initialStep)
         callback(initialStep)
     })
@@ -176,11 +176,41 @@ export default function showFromJSSidebar(resolveFrameWorker){
         }
     }
 
+    // We need to a way to get an origin object by its ID
+    // (which is sent by the inspector UI iframe)
+    // I used to index all origins by id, but that
+    // used a lot of memory
+    var originsById = {}
+    function getOriginById(originId){
+        var origin = originsById[originId]
+        if (!origin) {
+            debugger;
+            console.log("origin not found by id", originId)
+            return
+        }
+        return origin;
+    }
+    function registerOriginIdsForStep(step){
+        // current inconsistent use of originObject/origin
+        var originObject = step.originObject || step.origin;
+
+        originsById[originObject.getId()] = originObject
+        originObject.inputValues.forEach(function(iv){
+            if (!iv.getId) {
+                // Probably an element input value... this will be filtered out by
+                // .serialize later on, so it's never sent to the inspector iframe
+                return iv;
+            }
+            originsById[iv.getId()] = iv
+        })
+    }
+
     inspectedPage.on("whereDoesCharComeFrom", function(originId, characterIndex, callback){
         disableTracing()
 
         var origin = getOriginById(originId)
         whereDoesCharComeFrom(origin, characterIndex, function(steps){
+            steps.forEach(registerOriginIdsForStep)
             steps = steps.map(serializeStep)
             callback(steps)
         }, resolveFrameWorker)
