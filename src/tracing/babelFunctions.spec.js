@@ -51,6 +51,11 @@ describe("babelFunctions", function(){
             var res = babelFunctions.f__tripleEqual(a, b)
             expect(res).toBe(false)
         })
+        it("Knows that String('a') and 'a' are equal", function(){
+            var a = nativeStringObject("a")
+            var res = babelFunctions.f__tripleEqual(a, "a")
+            expect(res).toBe(true)
+        })
     })
 
     describe("f__subtract", function(){
@@ -72,6 +77,12 @@ describe("babelFunctions", function(){
             }
 
             expect(babelFunctions.f__doubleEqual(obj, "Cake")).toBe(true)
+        })
+
+        it("Knows that String('a') and 'a' are equal", function(){
+            var a = nativeStringObject("a")
+            var res = babelFunctions.f__doubleEqual(a, "a")
+            expect(res).toBe(true)
         })
     })
 
