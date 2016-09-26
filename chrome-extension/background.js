@@ -16,7 +16,8 @@ fetch(chrome.extension.getURL("resolveFrameWorker.js"))
 const FromJSSessionStages = {
     RELOADING: "RELOADING",
     INITIALIZING: "INITIALIZING",
-    ACTIVE: "ACTIVE"
+    ACTIVE: "ACTIVE",
+    CLOSED: "CLOSED"
 }
 
 class FromJSSession {
@@ -36,8 +37,9 @@ class FromJSSession {
     close(){
         chrome.webRequest.onBeforeRequest.removeListener(this._onBeforeRequestListener)
         chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
+        delete sessionsByTabId[this.tabId]
 
-        this.isClosed = true;
+        this._stage = FromJSSessionStages.CLOSED;
     }
     setPageHtml(pageHtml) {
         this._pageHtml = pageHtml;
@@ -195,7 +197,6 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
 })
 
 
-var idsToDisableOnNextMainFrameLoad = []
 var sourceMaps = {}
 
 
@@ -248,12 +249,11 @@ function makeOnBeforeRequest(){
         }
 
         if (info.type === "main_frame") {
-            if (idsToDisableOnNextMainFrameLoad.indexOf(info.tabId) !== -1) {
-                idsToDisableOnNextMainFrameLoad = idsToDisableOnNextMainFrameLoad.filter(id => id !== info.tabId)
-                disableInTab(info.tabId)
-                return
-            } else {
-                idsToDisableOnNextMainFrameLoad.push(info.tabId)
+            var session = getTabSession(info.tabId);
+            if (session.isActive()){
+                debugger
+                session.close();
+                return;
             }
 
             session.setPageHtml(getFile(info.url))
