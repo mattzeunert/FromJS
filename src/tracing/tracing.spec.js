@@ -39,6 +39,14 @@ describe("Tracing", function(){
         expect(el.__elOrigin.openingTagStart).not.toBe(undefined)
     })
 
+    it("Tracks the start and end of a comment node when it's created", function(){
+        var comment = document.createComment("Hey")
+        expect(comment.__elOrigin.commentStart).not.toBe(undefined)
+        expect(comment.__elOrigin.commentEnd).not.toBe(undefined)
+
+
+    })
+
     it("Tracks data read using localStorage.getItem", function(){
         localStorage.setItem("test", "hello")
         var value = localStorage.getItem("test")

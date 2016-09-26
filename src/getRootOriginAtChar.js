@@ -88,12 +88,24 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
         })
         var item = vm.getItemAt(characterIndex)
         var itemNodeType = item.origin.nodeType
-        var isTextOrCommentNode = itemNodeType === Node.COMMENT_NODE || itemNodeType === Node.TEXT_NODE
+        var isTextNode = itemNodeType === Node.TEXT_NODE
+        var isCommentNode =  itemNodeType === Node.COMMENT_NODE
 
-        if (isTextOrCommentNode) {
+        if (isTextNode) {
             var origin = item.origin.__elOrigin.textValue
             var characterIndex = item.characterIndex + (origin.inputValuesCharacterIndex ? origin.inputValuesCharacterIndex[0] : 0);
             return new OriginPathStep(origin, characterIndex)
+        }
+        if (isCommentNode) {
+            var vm = new ValueMap()
+            var elOrigin = item.origin.__elOrigin
+            vm.append(elOrigin.commentStart)
+            vm.append(elOrigin.textValue)
+            vm.append(elOrigin.commentEnd)
+
+            var commentItem = vm.getItemAt(item.characterIndex)
+
+            return new OriginPathStep(commentItem.origin, commentItem.characterIndex)
         }
         return getRootOriginAtChar(item.origin, item.characterIndex)
     } else {

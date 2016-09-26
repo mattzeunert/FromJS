@@ -23,6 +23,7 @@ var originalCreateElement = document.createElement
 window.originalCreateElement = originalCreateElement
 
 var nativeCreateElementNS = document.createElementNS
+var nativeCreateComment = document.createComment;
 
 var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild");
 window.originalAppendChildPropertyDescriptor = appendChildPropertyDescriptor
@@ -158,6 +159,30 @@ export function enableTracing(){
         var el = nativeCreateElementNS.call(this, namespace, tagName)
         addOriginInfoToCreatedElement(el, tagName, "createElementNS")
         return el
+    }
+
+    document.createComment = function(commentContent){
+        var comment = nativeCreateComment.call(this, commentContent);
+
+        addElOrigin(comment, "commentStart", {
+            action: "createComment",
+            inputValues: [],
+            value: "<!--"
+        })
+
+        addElOrigin(comment, "commentEnd", {
+            action: "createComment",
+            inputValues: [],
+            value: "-->"
+        })
+
+        addElOrigin(comment, "textValue", {
+            action: "createComment",
+            inputValues: [commentContent],
+            value: toString(commentContent)
+        })
+
+        return comment;
     }
 
     document.createTextNode = function(text){
@@ -900,6 +925,7 @@ export function disableTracing(){
     window.JSON.parse = window.nativeJSONParse
     document.createElement = window.originalCreateElement
     document.createElementNS = nativeCreateElementNS
+    document.createComment = nativeCreateComment
 
     Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
     Element.prototype.setAttribute = window.nativeSetAttribute
