@@ -1,12 +1,6 @@
 import _ from "underscore"
 import untracedToString from "./untracedToString"
 
-// Storing lots of arrays costs lots of memory, and
-// since many inputValues arrays are empty we can just
-// re-use the same array every time.
-var emptyInputValuesArray = []
-Object.freeze(emptyInputValuesArray)
-
 export default function Origin(opts){
     var error = opts.error;
     if (!error) {
@@ -14,30 +8,39 @@ export default function Origin(opts){
         error = new Error();
     }
 
-    var inputValues = opts.inputValues.map(function(iv){
-        return getUsableInputValue(iv, error)
-    })
-
     this.action = opts.action;
-    if (inputValues.length === 0) {
-        inputValues = emptyInputValuesArray
-    }
-    this.inputValues = inputValues;
+    this.value = ensureValueIsString(opts.value)
+    this.error = error;
 
-    this.extraCharsAdded = 0;
+    if (opts.inputValues.length > 0) {
+        this.inputValues = opts.inputValues.map(function(iv){
+            return getUsableInputValue(iv, error)
+        })
+    }
+
     if (opts.extraCharsAdded) {
         this.extraCharsAdded = opts.extraCharsAdded
     }
 
-    this.inputValuesCharacterIndex = opts.inputValuesCharacterIndex
-    this.offsetAtCharIndex = opts.offsetAtCharIndex
-    if (this.offsetAtCharIndex && this.offsetAtCharIndex.length == 0){
-        debugger
+    if (opts.inputValuesCharacterIndex) {
+        this.inputValuesCharacterIndex = opts.inputValuesCharacterIndex
+    }
+    if (opts.offsetAtCharIndex){
+        this.offsetAtCharIndex = opts.offsetAtCharIndex
+        if (this.offsetAtCharIndex.length == 0){
+            debugger
+        }
     }
 
-    this.isHTMLFileContent = opts.isHTMLFileContent
+    if (opts.isHTMLFileContent) {
+        this.isHTMLFileContent = opts.isHTMLFileContent
+    }
+    if (opts.valueItems) {
+        this.valueItems = opts.valueItems
+    }
+}
 
-    var value = opts.value;
+function ensureValueIsString(value){
     if (typeof value === "number") {
         value = window.nativeNumberToString.call(value)
     } else {
@@ -50,11 +53,7 @@ export default function Origin(opts){
             value = value.toString();
         }
     }
-    this.value = value
-
-    this.valueItems = opts.valueItems
-
-    this.error = error;
+    return value;
 }
 
 function getUsableInputValue(inputValue, error){
@@ -137,6 +136,16 @@ Origin.prototype.getId = function(){
     }
     return this._id;
 }
+
+Object.defineProperty(Origin.prototype, "extraCharsAdded", {
+    value: 0,
+    writable: true
+})
+
+Object.defineProperty(Origin.prototype, "inputValues", {
+    value: [],
+    writable: true
+})
 
 Origin.prototype.getStackFrames = function(){
     return this.error.stack.split("\n").filter(function(frame){
