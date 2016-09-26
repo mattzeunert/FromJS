@@ -41,6 +41,7 @@ describe("FromJSString", function(){
         expect(str.value).toBe("ello")
         expect(str.origin.action).toBe("Substr Call")
     })
+
     describe("replace", function(){
         it("Supports basic replace calls", function(){
             var str = makeTraceObject({

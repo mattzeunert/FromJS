@@ -528,4 +528,14 @@ describe("Tracing", function(){
             expect(propNames).toEqual(["0", "1", "2", "length"])
         })
     })
+
+    it("Returns true for hasOwnProperty when the index is in a traced string", function(){
+        var str = makeTraceObject({
+            value: "Hi",
+            origin: {}
+        })
+
+        expect(str.hasOwnProperty(1)).toBe(true);
+        expect(str.hasOwnProperty(2)).toBe(false)
+    })
 })
