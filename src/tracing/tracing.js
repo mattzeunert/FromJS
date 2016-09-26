@@ -4,7 +4,7 @@ import {makeTraceObject} from "./FromJSString"
 import Origin from "../origin"
 import _ from "underscore"
 import stringTraceUseValue from "./stringTraceUseValue"
-import processJavaScriptCode from "../compilation/processJavaScriptCode"
+import processJavaScriptCode, {removeSourceMapIfAny} from "../compilation/processJavaScriptCode"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
 import trackStringIfNotTracked from "./trackStringIfNotTracked"
@@ -820,6 +820,7 @@ export function enableTracing(){
     window.Function = function(code){
         var args = Array.prototype.slice.apply(arguments)
         var code = args.pop()
+        code = removeSourceMapIfAny(code)
         var argsWithoutCode = args.slice()
 
         var id = _.uniqueId();

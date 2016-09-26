@@ -48,7 +48,7 @@ describe("FromJSString", function(){
             origin: {}
         })
 
-        expect(str.constructor).toBe(nativeStringObject)
+        expect(str.constructor).toBe(window.String)
     })
 
     describe("replace", function(){

@@ -334,7 +334,7 @@ export function makeTraceObject(options){
             }
 
             if (name === "constructor") {
-                return nativeStringObject
+                return window.String
             }
 
             return stringTraceObject[name]
