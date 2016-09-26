@@ -194,9 +194,9 @@ export default function showFromJSSidebar(resolveFrameWorker){
         // current inconsistent use of originObject/origin
         var originObject = step.originObject || step.origin;
 
-        originsById[originObject.id] = originObject
+        originsById[originObject.getId()] = originObject
         originObject.inputValues.forEach(function(iv){
-            originsById[iv.id] = iv
+            originsById[iv.getId()] = iv
         })
     }
 

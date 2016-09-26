@@ -125,6 +125,13 @@ Object.defineProperty(Origin.prototype, "isFromJSOriginObject", {
     value: true
 })
 
+Origin.prototype.getId = function(){
+    if (this._id === undefined) {
+        this._id = _.uniqueId()
+    }
+    return this._id;
+}
+
 Origin.prototype.getStackFrames = function(){
     return this.error.stack.split("\n").filter(function(frame){
         if (frame.indexOf("fromjs-internals/from.js") !== -1) {
