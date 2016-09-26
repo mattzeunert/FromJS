@@ -493,7 +493,7 @@ export function enableTracing(){
 
             var ret = nativeNodeTextContentDescriptor.set.apply(this, [newTextContent])
 
-            var textNode;
+            var textNode = null;
             if (el.nodeType === Node.TEXT_NODE) {
                 textNode = el;
             } else {
@@ -504,11 +504,13 @@ export function enableTracing(){
                 }
             }
 
-            addElOrigin(textNode, "textValue", {
-                action: "Assign textContent",
-                inputValues: [newTextContent],
-                value: newTextContent.toString()
-            })
+            if (textNode !== null) {
+                addElOrigin(textNode, "textValue", {
+                    action: "Assign textContent",
+                    inputValues: [newTextContent],
+                    value: newTextContent.toString()
+                })
+            }
 
             return ret;
         }
