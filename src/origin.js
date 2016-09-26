@@ -90,9 +90,6 @@ export default function Origin(opts){
         this.extraCharsAdded = opts.extraCharsAdded
     }
 
-    // easier for tests to handle / simulate
-    this.isFromJSOriginObject = true;
-
     this.inputValuesCharacterIndex = opts.inputValuesCharacterIndex
     this.offsetAtCharIndex = opts.offsetAtCharIndex
     if (this.offsetAtCharIndex && this.offsetAtCharIndex.length == 0){
@@ -125,6 +122,10 @@ export default function Origin(opts){
         this.error = new Error()
     }
 }
+// easier for tests to handle / simulate than instanceof check
+Object.defineProperty(Origin.prototype, "isFromJSOriginObject", {
+    value: true
+})
 
 Origin.prototype.getStackFrames = function(){
     return this.error.stack.split("\n").filter(function(frame){
