@@ -119,6 +119,11 @@ class FromJSSession {
         return this.getCode(url, true)
     }
     getSourceMap(url){
+        console.log("looking for", url, this._sourceMaps)
+        if (!this._sourceMaps[url]) {
+            console.log("doensn't have source map")
+            debugger
+        }
         return this._sourceMaps[url]
     }
     loadScript(requestUrl, callback){
@@ -272,7 +277,6 @@ function makeOnBeforeRequest(){
         if (info.type === "main_frame") {
             var session = getTabSession(info.tabId);
             if (session.isActive()){
-                debugger
                 session.close();
                 return;
             }
@@ -290,7 +294,7 @@ function makeOnBeforeRequest(){
 
         if (info.url.slice(info.url.length - ".js.map".length) === ".js.map") {
             return {
-                redirectUrl: "data:," + encodeURI(session.getSourceMap[info.url])
+                redirectUrl: "data:," + encodeURI(session.getSourceMap(info.url))
             }
         }
 
