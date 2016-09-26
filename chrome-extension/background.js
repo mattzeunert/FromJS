@@ -34,6 +34,8 @@ class FromJSSession {
 
         chrome.webRequest.onBeforeRequest.addListener(this._onBeforeRequest, {urls: ["<all_urls>"], tabId: this.tabId}, ["blocking"]);
         chrome.webRequest.onHeadersReceived.addListener(this._onHeadersReceived, {urls: ["<all_urls>"], tabId: this.tabId}, ["blocking", "responseHeaders"])
+
+        chrome.tabs.reload(this.tabId)
     }
     close(){
         chrome.webRequest.onBeforeRequest.removeListener(this._onBeforeRequestListener)
@@ -41,6 +43,8 @@ class FromJSSession {
         delete sessionsByTabId[this.tabId]
 
         this._stage = FromJSSessionStages.CLOSED;
+
+        chrome.tabs.reload(this.tabId)
     }
     setPageHtml(pageHtml) {
         this._pageHtml = pageHtml;
@@ -147,8 +151,6 @@ function createSession(tabId){
     }
     var session = new FromJSSession(tabId)
     sessionsByTabId[tabId] = session;
-
-    chrome.tabs.reload(tabId)
 }
 
 
