@@ -42,7 +42,19 @@ module.exports = function(babel) {
       ForInStatement(path){
           if (path.node.ignore)return
 
-          var oldLeft = path.node.left
+          // for..in doesn't work correctly on traced objects,
+          // so for traced objects we want to iterate over the untraced object
+          var originalObject = path.node.right
+          var newObject = babel.types.callExpression(
+              babel.types.identifier("f__getForInLoopKeyObject"),
+              [
+                  originalObject
+              ]
+          )
+          newObject.ignore = true;
+          path.node.right = newObject;
+
+          var oldLoopVariableDeclaration = path.node.left
           var newVarName = "__fromJSForIn" + _.uniqueId()
 
           var untrackedProperty;
@@ -50,7 +62,7 @@ module.exports = function(babel) {
           if (path.node.left.type === "VariableDeclaration") {
               if (path.node.left.declarations.length === 1) {
                   untrackedProperty = babel.types.identifier(path.node.left.declarations[0].id.name)
-                  originalVariableDeclaration = oldLeft
+                  originalVariableDeclaration = oldLoopVariableDeclaration
                   originalVariableDeclaration.declarations[0].init = undefined
               }
               else {
@@ -119,7 +131,7 @@ module.exports = function(babel) {
                               babel.types.callExpression(
                                   babel.types.identifier("f__getTrackedPropertyName"),
                                   [
-                                      path.node.right,
+                                      originalObject,
                                       babel.types.identifier(newVarName)
                                   ]
                               )
