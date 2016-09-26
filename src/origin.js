@@ -77,8 +77,6 @@ export default function Origin(opts){
         })
     })
 
-    this.id = _.uniqueId();
-
     this.action = opts.action;
     if (inputValues.length === 0) {
         inputValues = emptyInputValuesArray
