@@ -25,6 +25,7 @@ class FromJSSession {
         this.tabId = tabId;
         this._stage = FromJSSessionStages.RELOADING;
         this._pageHtml = null;
+        this._sourceMaps = {};
         this._open();
     }
     _open(){
@@ -89,11 +90,42 @@ class FromJSSession {
     isActive(){
         return this._stage === FromJSSessionStages.ACTIVE;
     }
+    getCode(url, processCode){
+        var code = getFile(url)
+        // Ideally this would happen when displaying the code in the UI,
+        // rather than when it's downloaded (doing it now means the line
+        // numbers will be incorrect)
+        // But for now it's too much work to do it later, would need
+        // to apply source maps...
+        code = beautifyJS(code)
+
+        if (processCode) {
+            try {
+                var res = processJavaScriptCode(code, {filename: url})
+                code = res.code
+                code += "\n//# sourceURL=" + url
+                code += "\n//# sourceMappingURL=" + url + ".map"
+
+                this._sourceMaps[url + ".map"] = JSON.stringify(res.map)
+            } catch (err) {
+                console.error("Error processing JavaScript code ", err)
+                code = "console.error('FromJS couldn\\'t process JavaScript code', '" + err.toString() + "', `" + err.stack + "`)"
+            }
+        }
+
+        return code;
+    }
+    getProcessedCode(url){
+        return this.getCode(url, true)
+    }
+    getSourceMap(url){
+        return this._sourceMaps[url]
+    }
     loadScript(requestUrl, callback){
         console.info("Fetching and processing", requestUrl)
-        var code = getProcessedCodeFor(requestUrl)
+        var code = this.getProcessedCode(requestUrl)
         console.info("Injecting", requestUrl)
-        executeScriptOnPage(this._tabId, code, function(){
+        executeScriptOnPage(this.tabId, code, function(){
             callback()
         })
     }
@@ -197,11 +229,6 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
 })
 
 
-var sourceMaps = {}
-
-
-
-
 function getFile(url){
     var xhr = new XMLHttpRequest()
     xhr.open('GET', url, false);
@@ -269,7 +296,7 @@ function makeOnBeforeRequest(){
 
         if (info.url.slice(info.url.length - ".js.map".length) === ".js.map") {
             return {
-                redirectUrl: "data:," + encodeURI(sourceMaps[info.url])
+                redirectUrl: "data:," + encodeURI(session.getSourceMap[info.url])
             }
         }
 
@@ -282,7 +309,7 @@ function makeOnBeforeRequest(){
 
         var urlWithoutQueryParameters = url.split("?")[0]
         if (endsWith(urlWithoutQueryParameters, ".js")) {
-            var code = getProcessedCodeFor(url, dontProcess)
+            var code = session.getCode(url, !dontProcess)
             url = "data:application/javascript;charset=utf-8," + encodeURI(code)
             return {redirectUrl: url}
         }
@@ -290,29 +317,8 @@ function makeOnBeforeRequest(){
     return onBeforeRequest
 }
 
-function getProcessedCodeFor(url, dontProcess){
-    var code = getFile(url)
-    // Ideally this would happen when displaying the code in the UI,
-    // rather than when it's downloaded (doing it now means the line
-    // numbers will be incorrect)
-    // But for now it's too much work to do it later, would need
-    // to apply source maps...
-    code = beautify.js_beautify(code, {indent_size: 2})
-
-    if (!dontProcess) {
-        try {
-            var res = processJavaScriptCode(code, {filename: url})
-            code = res.code
-            code += "\n//# sourceURL=" + url
-            code += "\n//# sourceMappingURL=" + url + ".map"
-            sourceMaps[url + ".map"] = JSON.stringify(res.map)
-        } catch (err) {
-            console.log("Error processing JavaScript code ", err)
-            code = "console.error('FromJS couldn\\'t process JavaScript code', '" + err.toString() + "', `" + err.stack + "`)"
-        }
-    }
-
-    return code;
+function beautifyJS(code){
+    return beautify.js_beautify(code, {indent_size: 2})
 }
 
 function endsWith(str, strEnd){
