@@ -13,7 +13,32 @@ fetch(chrome.extension.getURL("resolveFrameWorker.js"))
     resolveFrameWorkerCode = text
 })
 
-var tabsToProcess = [];
+class FromJSSession {
+    constructor(tabId) {
+        this.tabId = tabId;
+    }
+    close(){
+        var listeners = listenersByTabId[this.tabId]
+        chrome.webRequest.onBeforeRequest.removeListener(listeners.onBeforeRequest)
+        chrome.webRequest.onHeadersReceived.removeListener(listeners.onHeadersReceived)
+        delete listenersByTabId[this.tabId]
+        this.isClosed = true;
+    }
+}
+
+var sessionsByTabId = {};
+function getTabSession(tabId){
+    return sessionsByTabId[tabId]
+}
+function createSession(tabId){
+    if (getTabSession(tabId)) {
+        debugger;
+        console.error("Tab already has session")
+    }
+    sessionsByTabId[tabId] = new FromJSSession(tabId)
+    initializeTab(tabId)
+}
+
 
 var messageHandlers = {
     loadScript: function(request, sender, callback){
@@ -53,7 +78,8 @@ function executeScriptOnPage(tabId, code, callback){
 }
 
 function isEnabledInTab(tabId){
-    return tabsToProcess.indexOf(tabId) !== -1
+    var session = getTabSession(tabId)
+    return session instanceof FromJSSession;
 }
 // disabled ==> enabled ==> active
 chrome.browserAction.onClicked.addListener(function (tab) {
@@ -62,8 +88,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
       disableInTab(tab.id)
     } else {
         tabStage[tab.id] = "enabled"
-        tabsToProcess.push(tab.id)
-        initializeTab(tab.id)
+        createSession(tab.id)
     }
 
     updateBadge(tab)
@@ -73,14 +98,9 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 
 function disableInTab(tabId){
     tabStage[tabId] = "disabled"
-    tabsToProcess = tabsToProcess.filter(function(id){
-      return tabId !== id
-    })
 
-    var listeners = listenersByTabId[tabId]
-    chrome.webRequest.onBeforeRequest.removeListener(listeners.onBeforeRequest)
-    chrome.webRequest.onHeadersReceived.removeListener(listeners.onHeadersReceived)
-    delete listenersByTabId[tabId]
+    var session = getTabSession(tabId)
+    session.close();
 }
 
 function updateBadge(tab){
