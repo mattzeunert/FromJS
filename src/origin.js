@@ -184,6 +184,7 @@ Origin.prototype.serialize = function(){
     })
 
     serialized.stack = this.getStackFrames();
+    serialized.id = this.getId();
     return serialized;
 }
 
