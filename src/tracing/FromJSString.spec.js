@@ -51,6 +51,17 @@ describe("FromJSString", function(){
         expect(str.constructor).toBe(window.String)
     })
 
+    it("Throws an error when trying to use in operator on string", function(){
+        var str = makeTraceObject({
+            value: "Hello",
+            origin: {}
+        })
+
+        expect(function(){
+            "sth" in str
+        }).toThrow()
+    })
+
     describe("replace", function(){
         it("Supports basic replace calls", function(){
             var str = makeTraceObject({

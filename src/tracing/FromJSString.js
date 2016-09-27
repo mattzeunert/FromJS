@@ -338,6 +338,9 @@ export function makeTraceObject(options){
             }
 
             return stringTraceObject[name]
+        },
+        has: function(target, propName){
+            throw new TypeError("Cannot use 'in' operator to search for '" + propName +"' in " + target.value)
         }
     });
 }
