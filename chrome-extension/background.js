@@ -311,6 +311,9 @@ function makeOnBeforeRequest(){
         if (endsWith(urlWithoutQueryParameters, ".js")) {
             var code = session.getCode(url, !dontProcess)
             url = "data:application/javascript;charset=utf-8," + encodeURI(code)
+            if (url.length > 2 * 1024 * 1024) {
+                console.error("Data url is too large, greater than 2 MB")
+            }
             return {redirectUrl: url}
         }
     }
