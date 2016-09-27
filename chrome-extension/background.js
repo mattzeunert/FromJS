@@ -38,7 +38,7 @@ class FromJSSession {
         chrome.tabs.reload(this.tabId)
     }
     close(){
-        chrome.webRequest.onBeforeRequest.removeListener(this._onBeforeRequestListener)
+        chrome.webRequest.onBeforeRequest.removeListener(this._onBeforeRequest)
         chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
         delete sessionsByTabId[this.tabId]
 
@@ -312,8 +312,9 @@ function makeOnBeforeRequest(){
             var code = session.getCode(url, !dontProcess)
             url = "data:application/javascript;charset=utf-8," + encodeURI(code)
             if (url.length > 2 * 1024 * 1024) {
-                console.error("Data url is too large, greater than 2 MB")
+                console.error("Data url is too large, greater than 2 MB: ", url.length / 1024 / 1024 + "MB")
             }
+
             return {redirectUrl: url}
         }
     }
