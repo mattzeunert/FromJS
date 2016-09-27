@@ -6,7 +6,7 @@ if (!process.env.isDemo) {
 }
 
 var sourceMapRegex = /\/\/#[\W]*sourceMappingURL=.*$/
-function removeSourceMapIfAny(code){
+export function removeSourceMapIfAny(code){
     // In theory we might be able to use this source map, but right now
     // 1) parsing source maps on the frontend is hard, because FE JS doesn't
     //    natively support parsing UTF-8 base64 which is used for inline source maps
@@ -19,7 +19,7 @@ function removeSourceMapIfAny(code){
     return code
 }
 
-module.exports = function processJavaScriptCode(code, options){
+export default function processJavaScriptCode(code, options){
     code = removeSourceMapIfAny(code)
 
     const ast = babylon.parse(code, {

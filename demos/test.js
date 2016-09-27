@@ -6,15 +6,25 @@ function onload(){
     // document.body.innerHTML = "<div>Hi\n\n\n\nw\nor\n\nld</div>"
 
     // document.body.innerHTML = '<span hi="hey"       cake="cookie">ss<!-- yolo\n\n end -->sss</span>'
- //   document.body.innerHTML = "<div \t\t\n>aaa</div>"
+     //   document.body.innerHTML = "<div \t\t\n>aaa</div>"
 
- // var val = $("#content").html()
- // var valEl = $(val)
- // document.body.innerHTML = valEl[0].outerHTML
- var el = document.createElementNS("http://www.w3.org/1999/xhtml", "div")
- el.innerHTML = "cake"
- document.body.appendChild(el)
- // valEl.appendTo($("body"))
+     // var val = $("#content").html()
+     // var valEl = $(val)
+     // document.body.innerHTML = valEl[0].outerHTML
+
+     // var el = document.createElementNS("http://www.w3.org/1999/xhtml", "div")
+     // el.innerHTML = "cake"
+     // document.body.appendChild(el)
+
+     // valEl.appendTo($("body"))
+
+     var div = document.createElement("div")
+     div.innerHTML = "Hello"
+
+     var comment = document.createComment("Hello")
+     div.appendChild(comment)
+
+     document.body.appendChild(div)
 
 }
 

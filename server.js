@@ -3,7 +3,7 @@ var fs = require("fs");
 var endsWith = require('ends-with');
 var startsWith = require("starts-with")
 var stringContains = require("string-contains");
-var processJavaScriptCode = require("./src/compilation/processJavaScriptCode")
+import processJavaScriptCode from "./src/compilation/processJavaScriptCode"
 import { replaceJSScriptTags } from "./src/getJSScriptTags"
 var _ = require("underscore")
 

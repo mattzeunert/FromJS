@@ -42,6 +42,15 @@ describe("FromJSString", function(){
         expect(str.origin.action).toBe("Substr Call")
     })
 
+    it("Shows the native string object as the traced string constructor", function(){
+        var str = makeTraceObject({
+            value: "Hello",
+            origin: {}
+        })
+
+        expect(str.constructor).toBe(window.String)
+    })
+
     describe("replace", function(){
         it("Supports basic replace calls", function(){
             var str = makeTraceObject({

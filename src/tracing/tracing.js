@@ -4,7 +4,7 @@ import {makeTraceObject} from "./FromJSString"
 import Origin from "../origin"
 import _ from "underscore"
 import stringTraceUseValue from "./stringTraceUseValue"
-import processJavaScriptCode from "../compilation/processJavaScriptCode"
+import processJavaScriptCode, {removeSourceMapIfAny} from "../compilation/processJavaScriptCode"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
 import trackStringIfNotTracked from "./trackStringIfNotTracked"
@@ -23,6 +23,7 @@ var originalCreateElement = document.createElement
 window.originalCreateElement = originalCreateElement
 
 var nativeCreateElementNS = document.createElementNS
+var nativeCreateComment = document.createComment;
 
 var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild");
 window.originalAppendChildPropertyDescriptor = appendChildPropertyDescriptor
@@ -158,6 +159,30 @@ export function enableTracing(){
         var el = nativeCreateElementNS.call(this, namespace, tagName)
         addOriginInfoToCreatedElement(el, tagName, "createElementNS")
         return el
+    }
+
+    document.createComment = function(commentContent){
+        var comment = nativeCreateComment.call(this, commentContent);
+
+        addElOrigin(comment, "commentStart", {
+            action: "createComment",
+            inputValues: [],
+            value: "<!--"
+        })
+
+        addElOrigin(comment, "commentEnd", {
+            action: "createComment",
+            inputValues: [],
+            value: "-->"
+        })
+
+        addElOrigin(comment, "textValue", {
+            action: "createComment",
+            inputValues: [commentContent],
+            value: toString(commentContent)
+        })
+
+        return comment;
     }
 
     document.createTextNode = function(text){
@@ -820,6 +845,7 @@ export function enableTracing(){
     window.Function = function(code){
         var args = Array.prototype.slice.apply(arguments)
         var code = args.pop()
+        code = removeSourceMapIfAny(code)
         var argsWithoutCode = args.slice()
 
         var id = _.uniqueId();
@@ -899,6 +925,7 @@ export function disableTracing(){
     window.JSON.parse = window.nativeJSONParse
     document.createElement = window.originalCreateElement
     document.createElementNS = nativeCreateElementNS
+    document.createComment = nativeCreateComment
 
     Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
     Element.prototype.setAttribute = window.nativeSetAttribute
