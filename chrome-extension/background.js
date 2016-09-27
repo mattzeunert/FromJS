@@ -49,6 +49,9 @@ class FromJSSession {
     setPageHtml(pageHtml) {
         this._pageHtml = pageHtml;
     }
+    getPageHtml(){
+        return this._pageHtml;
+    }
     initialize(){
         chrome.tabs.insertCSS(this.tabId, {
             "code": `
@@ -294,6 +297,7 @@ function makeOnBeforeRequest(){
         }
 
 
+
         if (info.url.slice(info.url.length - ".js.map".length) === ".js.map") {
             return {
                 redirectUrl: "data:," + encodeURI(session.getSourceMap(info.url))
@@ -308,6 +312,13 @@ function makeOnBeforeRequest(){
         }
 
         var urlWithoutQueryParameters = url.split("?")[0]
+        if (endsWith(urlWithoutQueryParameters, ".html")) {
+            var html = session.getPageHtml();
+            var url = "data:text/html;charset=utf-8," + encodeURI(html)
+            return {
+                redirectUrl: url
+            }
+        }
         if (endsWith(urlWithoutQueryParameters, ".js")) {
             var code = session.getCode(url, !dontProcess)
             url = "data:application/javascript;charset=utf-8," + encodeURI(code)
