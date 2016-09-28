@@ -65,6 +65,24 @@ describe("babelFunctions", function(){
         })
     })
 
+    describe("f__divide", function(){
+        it("Maintains the sign when dividing by -0", function(){
+            var result = babelFunctions.f__divide(5, -0)
+            expect(result).toEqual(Number.NEGATIVE_INFINITY)
+        })
+
+        it("Maintains the sign when dividing by Number(-0)", function(){
+            var result = babelFunctions.f__divide(5, Number(-0))
+            expect(result).toEqual(Number.NEGATIVE_INFINITY)
+        })
+
+        it("Maintains the sign when dividing by Object(-0)", function(){
+            debugger
+            var result = babelFunctions.f__divide(5, Object(-0))
+            expect(result).toEqual(Number.NEGATIVE_INFINITY)
+        })
+    })
+
     describe("f__doubleEqual", function(){
         it("Can compare a string to an object that returns a traced value from toString", function(){
             var obj = {

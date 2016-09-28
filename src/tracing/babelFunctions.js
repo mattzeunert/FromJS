@@ -16,7 +16,12 @@ function ensureIsNumber(value){
         return NaN
     }
 
-    return parseFloat(value.toString())
+    var num = parseFloat(value.toString())
+    if (num === 0 && 1 / value === Number.NEGATIVE_INFINITY){
+        num = -0;
+    }
+
+    return num;
 }
 
 var babelFunctions = {
