@@ -43,3 +43,24 @@ export function getJSScriptTags(html){
 export function replaceJSScriptTags(html, replaceFunction){
     return processJSScriptTagsInHtml(html, replaceFunction).html
 }
+
+export function getScriptElements(html){
+    return getJSScriptTags(html).map(function(tag){
+        var wrapper = originalCreateElement.call(document, "div")
+        nativeInnerHTMLDescriptor.set.call(wrapper, tag.completeTag) // we want to keep any script attributes
+        wrapper.text = tag.content // re-assign so fromjs transforms it on assignment
+
+        // I think the script doesn't get loaded / executed when the scriptEl
+        // isn't created with createElement
+        var scriptEl = originalCreateElement.call(document, "script");
+        [].slice.apply(wrapper.children[0].attributes).forEach(function(attr){
+            scriptEl.setAttribute(attr.name, attr.textContent)
+        })
+        if (tag.content !== "") {
+            window.fromJSEnableTracing();
+            scriptEl.text = tag.content // assignment will be processed by fromjs
+            window.fromJSDisableTracing();
+        }
+        return scriptEl
+    })
+}
