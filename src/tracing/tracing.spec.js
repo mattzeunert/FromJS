@@ -530,6 +530,16 @@ describe("Tracing", function(){
             var keys = Object.keys(str)
             expect(keys).toEqual(["0", "1" ,"2"])
         })
+
+        it("Filters out tracking property names", function(){
+            var obj = {
+                sth: "hey",
+                sth_trackedName: "sth"
+            }
+
+            var keys = Object.keys(obj);
+            expect(keys).toEqual(["sth"])
+        })
     })
 
     describe("Object.getOwnPropertyNames", function(){

@@ -313,6 +313,12 @@ export function enableTracing(){
         return nativeObjectHasOwnProperty.call(this, propName)
     }
 
+    function filterOutTrackingPropertyNames(propNames){
+        return propNames.filter(function(name){
+            return !endsWith(name, "_trackedName")
+        })
+    }
+
     Object.getOwnPropertyNames = function(obj){
         if (obj.isStringTraceString) {
             var str = obj.value;
@@ -324,10 +330,7 @@ export function enableTracing(){
             return names
         } else {
             var names = nativeObjectGetOwnPropertyNames(obj);
-            names = names.filter(function(name){
-                return !endsWith(name, "_trackedName")
-            })
-            return names;
+            return filterOutTrackingPropertyNames(names)
         }
     }
 
@@ -340,7 +343,8 @@ export function enableTracing(){
             }
             return keys
         } else {
-            return nativeObjectKeys(obj)
+            var keys = nativeObjectKeys(obj)
+            return filterOutTrackingPropertyNames(keys)
         }
     }
 
