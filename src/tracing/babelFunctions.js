@@ -153,10 +153,15 @@ var babelFunctions = {
         //     })
         // })
 
-        if (propertyName === null
-            || propertyName === undefined
-            || (typeof propertyName !== "string" && !propertyName.isStringTraceString)) {
-            propertyName = propertyNameString;
+        var propertyNameType = typeof propertyName;
+        // Either Symbol() or Object(Symbol())
+        var propertyNameIsSymbol = propertyNameType === "symbol" || propertyNameString === "Symbol()"
+        if (!propertyNameIsSymbol) {
+            if (propertyName === null
+                || propertyName === undefined
+                || (propertyNameType !== "string" && !propertyName.isStringTraceString)) {
+                propertyName = propertyNameString;
+            }
         }
 
         if (object[storagePropName] === undefined){
@@ -169,7 +174,7 @@ var babelFunctions = {
             object[storagePropName] = propertyName
         }
 
-        return object[propertyNameString] = value
+        return object[propertyName] = value
     },
     f__getTrackedPropertyName(object, propertyName){
         var trackedPropertyName = object[propertyName + "_trackedName"]

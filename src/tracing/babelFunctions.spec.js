@@ -118,5 +118,19 @@ describe("babelFunctions", function(){
             var trackedName = f__getTrackedPropertyName(obj, 0)
             expect(trackedName).toBe("0")
         })
+        it("Doesn't convert Symbols to strings", function(){
+            var obj = {};
+            var key = Symbol()
+            babelFunctions.f__assign(obj, key, "value")
+
+            expect(obj["Symbol()"]).toBe(undefined)
+        })
+        it("Doesn't convert Object(Symbols) to strings", function(){
+            var obj = {};
+            var key = Object(Symbol())
+            babelFunctions.f__assign(obj, key, "value")
+
+            expect(obj["Symbol()"]).toBe(undefined)
+        })
     })
 })
