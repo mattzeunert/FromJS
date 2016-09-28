@@ -16,7 +16,12 @@ function ensureIsNumber(value){
         return NaN
     }
 
-    return parseFloat(value.toString())
+    var num = parseFloat(value.toString())
+    if (num === 0 && 1 / value === Number.NEGATIVE_INFINITY){
+        num = -0;
+    }
+
+    return num;
 }
 
 var babelFunctions = {
@@ -131,8 +136,9 @@ var babelFunctions = {
     f__getCachedValue(val){
         return cachedValue
     },
-    f__assign(object, property, value){
-        var storagePropName = toString(property, true) + "_trackedName"
+    f__assign(object, propertyName, value){
+        var propertyNameString = toString(propertyName, true);
+        var storagePropName = propertyNameString + "_trackedName";
 
         // This would be a nice to have, but
         // 1) it costs a lot of memory
@@ -147,17 +153,28 @@ var babelFunctions = {
         //     })
         // })
 
+        var propertyNameType = typeof propertyName;
+        // Either Symbol() or Object(Symbol())
+        var propertyNameIsSymbol = propertyNameType === "symbol" || propertyNameString === "Symbol()"
+        if (!propertyNameIsSymbol) {
+            if (propertyName === null
+                || propertyName === undefined
+                || (propertyNameType !== "string" && !propertyName.isStringTraceString)) {
+                propertyName = propertyNameString;
+            }
+        }
+
         if (object[storagePropName] === undefined){
             Object.defineProperty(object, storagePropName, {
-                value: property,
+                value: propertyName,
                 enumerable: false,
                 writable: true
             })
         } else {
-            object[storagePropName] = property
+            object[storagePropName] = propertyName
         }
 
-        return object[property] = value
+        return object[propertyName] = value
     },
     f__getTrackedPropertyName(object, propertyName){
         var trackedPropertyName = object[propertyName + "_trackedName"]

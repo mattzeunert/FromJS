@@ -6,13 +6,16 @@ Measured manually with DevTools closed, memory info taken from Chrome task manag
     - http://localhost:1234/demos/backbone-todomvc/index.html
     - Create 2 todo items
     - Enable Chrome Extension
+    - Once loaded force GC in DevTools
 4) React (JSX is compiled in browser)
     - http://todomvc.com/examples/react/#/ (I use http://localhost:1234/todomvc-master/examples/react/#/ locally)
     - Create 2 todo items
     - Enable Chrome Extension
+    - Once loaded force GC in DevTools
 
 
                         Backbone    React   BB Memory   React Memory
+d866468 28 Sep 2016     2.6s        12.4s   166MB       351MB
 27b2a8e 26 Sep 2016     2.6s        12.3s   172MB       416MB
 1959e65 26 Sep 2016     2.6s        13.8s   168MB       421MB
 From now on go to timeline tab and trigger GC before reading memory usage

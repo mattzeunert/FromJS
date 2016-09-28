@@ -65,6 +65,24 @@ describe("babelFunctions", function(){
         })
     })
 
+    describe("f__divide", function(){
+        it("Maintains the sign when dividing by -0", function(){
+            var result = babelFunctions.f__divide(5, -0)
+            expect(result).toEqual(Number.NEGATIVE_INFINITY)
+        })
+
+        it("Maintains the sign when dividing by Number(-0)", function(){
+            var result = babelFunctions.f__divide(5, Number(-0))
+            expect(result).toEqual(Number.NEGATIVE_INFINITY)
+        })
+
+        it("Maintains the sign when dividing by Object(-0)", function(){
+            debugger
+            var result = babelFunctions.f__divide(5, Object(-0))
+            expect(result).toEqual(Number.NEGATIVE_INFINITY)
+        })
+    })
+
     describe("f__doubleEqual", function(){
         it("Can compare a string to an object that returns a traced value from toString", function(){
             var obj = {
@@ -92,6 +110,27 @@ describe("babelFunctions", function(){
             babelFunctions.f__assign(obj, null, 123)
 
             expect(obj["null"]).toBe(123)
+        })
+        it("Stores numeric keys as strings", function(){
+            var obj = {};
+            babelFunctions.f__assign(obj, 0, "sth")
+
+            var trackedName = f__getTrackedPropertyName(obj, 0)
+            expect(trackedName).toBe("0")
+        })
+        it("Doesn't convert Symbols to strings", function(){
+            var obj = {};
+            var key = Symbol()
+            babelFunctions.f__assign(obj, key, "value")
+
+            expect(obj["Symbol()"]).toBe(undefined)
+        })
+        it("Doesn't convert Object(Symbols) to strings", function(){
+            var obj = {};
+            var key = Object(Symbol())
+            babelFunctions.f__assign(obj, key, "value")
+
+            expect(obj["Symbol()"]).toBe(undefined)
         })
     })
 })
