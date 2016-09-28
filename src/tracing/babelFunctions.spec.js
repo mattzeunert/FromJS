@@ -111,5 +111,12 @@ describe("babelFunctions", function(){
 
             expect(obj["null"]).toBe(123)
         })
+        it("Stores numeric keys as strings", function(){
+            var obj = {};
+            babelFunctions.f__assign(obj, 0, "sth")
+
+            var trackedName = f__getTrackedPropertyName(obj, 0)
+            expect(trackedName).toBe("0")
+        })
     })
 })
