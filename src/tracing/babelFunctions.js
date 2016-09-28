@@ -136,8 +136,9 @@ var babelFunctions = {
     f__getCachedValue(val){
         return cachedValue
     },
-    f__assign(object, property, value){
-        var storagePropName = toString(property, true) + "_trackedName"
+    f__assign(object, propertyName, value){
+        var propertyNameString = toString(propertyName, true);
+        var storagePropName = propertyNameString + "_trackedName";
 
         // This would be a nice to have, but
         // 1) it costs a lot of memory
@@ -152,17 +153,23 @@ var babelFunctions = {
         //     })
         // })
 
+        if (propertyName === null
+            || propertyName === undefined
+            || (typeof propertyName !== "string" && !propertyName.isStringTraceString)) {
+            propertyName = propertyNameString;
+        }
+
         if (object[storagePropName] === undefined){
             Object.defineProperty(object, storagePropName, {
-                value: property,
+                value: propertyName,
                 enumerable: false,
                 writable: true
             })
         } else {
-            object[storagePropName] = property
+            object[storagePropName] = propertyName
         }
 
-        return object[property] = value
+        return object[propertyNameString] = value
     },
     f__getTrackedPropertyName(object, propertyName){
         var trackedPropertyName = object[propertyName + "_trackedName"]
