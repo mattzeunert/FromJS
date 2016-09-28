@@ -49,7 +49,7 @@ function handleRequest(request, response){
         } else {
             var fileContents = fs.readFileSync(path).toString()
 
-            if (endsWith(request.url, ".html")){
+            if (endsWith(path, ".html")){
                 var originalHtmlScriptTag = "<script id='fromjs-initial-html' html-filename='" + request.url + "' type='text/template'>" + encodeURIComponent(fileContents) + "</script>"
                 var fromJSUrl = "/fromjs-internals/from.js"
                 var scriptTagHtml = '<script src="' + fromJSUrl + '" charset="utf-8"></script><script>window.fromJSEnableTracing()</script>'
@@ -98,7 +98,7 @@ function handleRequest(request, response){
                 }
             }
 
-            if (endsWith(request.url, ".html.dontprocess")){
+            if (endsWith(path, ".html.dontprocess")){
                 // nothing i need to do actually
             }
 
