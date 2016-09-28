@@ -3,6 +3,7 @@ import {makeTraceObject} from "./FromJSString"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import Origin from "../origin"
 import createResolveFrameWorker from "../createResolveFrameWorker"
+import _ from "underscore"
 
 function makeObjWithCustomToString(str){
     return {
