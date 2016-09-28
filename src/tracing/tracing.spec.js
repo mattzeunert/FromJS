@@ -182,6 +182,15 @@ describe("Tracing", function(){
         expect(node.textContent).toBe("Hi")
     })
 
+    it("Supports document.write", function(){
+        document.write("<div>Hello</div>")
+
+        disableTracing();
+        var div = _.last(document.body.children);
+        expect(div.outerHTML).toBe("<div>Hello</div>")
+        expect(div.__elOrigin.openingTagStart.action).toBe("Document.Write")
+    })
+
     describe("Array.join", function(){
         it("Works with objects that have a custom toString function which returns a tracked string", function(){
             var obj = makeObjWithCustomToString("Hello")

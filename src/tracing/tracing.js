@@ -10,6 +10,7 @@ import untrackedString from "./untrackedString"
 import trackStringIfNotTracked from "./trackStringIfNotTracked"
 import endsWith from "ends-with"
 import toString from "../untracedToString"
+import {getScriptElements} from "../getJSScriptTags"
 
 window.fromJSDynamicFiles = {}
 window.fromJSDynamicFileOrigins = {}
@@ -24,6 +25,7 @@ window.originalCreateElement = originalCreateElement
 
 var nativeCreateElementNS = document.createElementNS
 var nativeCreateComment = document.createComment;
+var nativeDocumentWrite = document.write;
 
 var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild");
 window.originalAppendChildPropertyDescriptor = appendChildPropertyDescriptor
@@ -893,7 +895,22 @@ export function enableTracing(){
         })
     }
 
+    document.write = function(str){
+        var div = originalCreateElement.call(document, "div");
+        div.innerHTML = str;
+        var ret = nativeInnerHTMLDescriptor.set.call(div, toString(str))
+        mapInnerHTMLAssignment(div, str, "Document.Write")
 
+        var children = Array.from(div.children);
+        children.forEach(function(child){
+            document.body.appendChild(child)
+        })
+
+        var scriptTags = getScriptElements(str);
+        scriptTags.forEach(function(scriptTag){
+            document.body.appendChild(scriptTag)
+        })
+    }
 
 
     // try to add this once, but it turned out the .dataset[sth] assignment
@@ -926,6 +943,8 @@ export function disableTracing(){
     document.createElement = window.originalCreateElement
     document.createElementNS = nativeCreateElementNS
     document.createComment = nativeCreateComment
+
+    document.write = nativeDocumentWrite
 
     Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
     Element.prototype.setAttribute = window.nativeSetAttribute
