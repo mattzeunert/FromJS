@@ -31,14 +31,16 @@ window.onFromJSReady = function(){
     var bodyScripts = getScriptElements(headAndBody.bodyContent);
 
     if (headAndBody.headContent) {
-        document.head.innerHTML = headAndBody.headContent
         var headScripts = getScriptElements(headAndBody.headContent);
-        window.fromJSEnableTracing() // be careful calling global functions like regexp.exec, array.join etc after this
+    }
+
+    window.fromJSEnableTracing() // be careful calling global functions like regexp.exec, array.join etc after this
+    if (headAndBody.headContent) {
+        document.head.innerHTML = headAndBody.headContent
         appendScriptsOneAfterAnother(headScripts, document.head, function(){
             loadBody()
         })
     } else {
-        window.fromJSEnableTracing()
         loadBody()
     }
 
@@ -92,6 +94,10 @@ function appendScriptsOneAfterAnother(scripts, container, done){
             return
         }
         var script = scripts.shift()
+        console.log("loading script", script)
+        if (script.src.indexOf("platform") !== -1) {
+            debugger
+        }
         if (nativeInnerHTMLDescriptor.get.call(script) === ""){
             // Do this rather than appending script element, because
             // requests on https may be cross origin
