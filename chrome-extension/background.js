@@ -60,7 +60,7 @@ class FromJSSession {
                 var el = document.createElement("script")
                 el.src = "${chrome.extension.getURL("inhibitJavaScriptExecution.js")}";
 
-                document.body.appendChild(el)
+                document.documentElement.appendChild(el)
             `,
             runAt: "document_start"
         });
