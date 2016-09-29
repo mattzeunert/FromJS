@@ -92,6 +92,21 @@ describe("processJavaScriptCode", function(){
         expect(res).toBe("value")
     })
 
+    it("Replaces .readyState lookups with f__getReadyState calls", function(){
+        spyOn(window, "f__getReadyState").and.returnValue("abc");
+        var code = `
+            document.readyState;
+            document["readyState"];
+            ({})["readyState"];
+            document.readyState.indexOf("complete")
+            window.document.readyState;
+        `
+        code = processJavaScriptCode(code).code;
+        eval(code);
+
+        expect(window.f__getReadyState).toHaveBeenCalledTimes(5)
+    })
+
     describe("For..in loops", function(){
         it("Gives access to the tracked property names in a for...in loop", function(){
             var code = `
