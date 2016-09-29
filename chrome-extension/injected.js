@@ -31,14 +31,16 @@ window.onFromJSReady = function(){
     var bodyScripts = getScriptElements(headAndBody.bodyContent);
 
     if (headAndBody.headContent) {
-        document.head.innerHTML = headAndBody.headContent
         var headScripts = getScriptElements(headAndBody.headContent);
-        window.fromJSEnableTracing() // be careful calling global functions like regexp.exec, array.join etc after this
+    }
+
+    window.fromJSEnableTracing() // be careful calling global functions like regexp.exec, array.join etc after this
+    if (headAndBody.headContent) {
+        document.head.innerHTML = headAndBody.headContent
         appendScriptsOneAfterAnother(headScripts, document.head, function(){
             loadBody()
         })
     } else {
-        window.fromJSEnableTracing()
         loadBody()
     }
 
@@ -53,6 +55,7 @@ window.onFromJSReady = function(){
 
 // Normally this file is loaded before fromJS is ready, but sometimes not
 if (window.fromJSIsReady) {
+    debugger; // this shoudln't happen! if it does the logic for inhibiting js execution is wrong
     window.onFromJSReady()
 }
 
@@ -92,6 +95,8 @@ function appendScriptsOneAfterAnother(scripts, container, done){
             return
         }
         var script = scripts.shift()
+        console.log("loading script", script)
+        
         if (nativeInnerHTMLDescriptor.get.call(script) === ""){
             // Do this rather than appending script element, because
             // requests on https may be cross origin
@@ -101,15 +106,6 @@ function appendScriptsOneAfterAnother(scripts, container, done){
             }, function(){
                 next();
             })
-
-            // script.onload = function(){
-            //     next();
-            // }
-            // script.onerror = function(err){
-            //     console.warn("Error loading script", script, err)
-            //     next();
-            // }
-            // container.appendChild(script)
         } else {
             container.appendChild(script)
             next();

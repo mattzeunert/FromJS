@@ -18,13 +18,6 @@ import $ from "jquery"
 import isMobile from "./isMobile"
 import createResolveFrameWorker from "./createResolveFrameWorker"
 
-setTimeout(function(){
-    // hook for Chrome Extension to proceed when FromJS has been set up
-    window.fromJSIsReady = true;
-    if (window.onFromJSReady) {
-        window.onFromJSReady();
-    }
-},0)
 
 window.saveAndSerializeDOMState = saveAndSerializeDOMState
 
@@ -37,16 +30,26 @@ var resolveFrameWorker = createResolveFrameWorker()
 resolveFrameWorker.beforePostMessage = disableTracing
 resolveFrameWorker.afterPostMessage = enableTracing
 
-$(document).ready(function(){
-    if (window.isSerializedDomPage){
-        initSerializedDataPage(showFromJSSidebar);
-    } else {
-        setTimeout(function(){
-            if (window.isVis) {
-                return;
-            }
 
-            showShowFromJSInspectorButton(resolveFrameWorker)
-        }, 0)
+
+
+if (document.readyState === "complete") {
+    setTimeout(onReady, 0)
+} else {
+    document.addEventListener("readystatechange", function(){
+        if (document.readyState === "complete") {
+            onReady()
+        }
+    })    
+}
+
+
+function onReady(){
+    // hook for Chrome Extension to proceed when FromJS has been set up
+    window.fromJSIsReady = true;
+    if (window.onFromJSReady) {
+        window.onFromJSReady();
     }
-})
+
+    showShowFromJSInspectorButton(resolveFrameWorker)
+}
