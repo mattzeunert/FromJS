@@ -9,7 +9,8 @@ webConfig.entry = {
     from: ['./src/from.js'],
     inspector: ['./src/inspector.js'],
     injected: ["./chrome-extension/injected.js"],
-    resolveFrameWorker: ["./src/resolveFrameWorker.js"]
+    resolveFrameWorker: ["./src/resolveFrameWorker.js"],
+    inhibitJavaScriptExecution: ["./chrome-extension/inhibitJavaScriptExecution.js"]
 };
 webConfig.output = {
     path: "./",

@@ -43,11 +43,6 @@ function getCodeFilePath(path, callback) {
 }
 
 
-// ReactTooltip doesn't respond to UI changes automatically
-setInterval(function(){
-    ReactTooltip.rebuild()
-}, 100)
-
 function getFilenameFromPath(path){
     var pathParts = path.split("/");
     var filename = _.last(pathParts);
@@ -1225,6 +1220,11 @@ export class FromJSView extends React.Component {
         onPreviewElement = _.debounce(onPreviewElement, 10)
 
         currentInspectedPage.on("previewElement", onPreviewElement, 10)
+
+        // ReactTooltip doesn't respond to UI changes automatically
+        setInterval(function(){
+            ReactTooltip.rebuild()
+        }, 100)
     }
     render(){
         var preview = null;

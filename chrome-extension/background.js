@@ -53,15 +53,27 @@ class FromJSSession {
         return this._pageHtml;
     }
     initialize(){
+
+
+        chrome.tabs.executeScript(this.tabId, {
+            code: `
+                var el = document.createElement("script")
+                el.src = "${chrome.extension.getURL("inhibitJavaScriptExecution.js")}";
+
+                document.body.appendChild(el)
+            `,
+            runAt: "document_start"
+        });
+
         chrome.tabs.insertCSS(this.tabId, {
-            "code": `
+            code: `
                 body {opacity: 0}
                 html.fromJSRunning body {opacity: 1}
             `,
             runAt: "document_start"
         });
         chrome.tabs.executeScript(this.tabId, {
-            "code": "document.body.innerHTML = 'Loading...';document.body.parentElement.classList.add('fromJSRunning')",
+            code: "document.body.innerHTML = 'Loading...';document.body.parentElement.classList.add('fromJSRunning')",
             runAt: "document_idle"
         });
 
@@ -75,7 +87,8 @@ class FromJSSession {
         })
 
         chrome.tabs.executeScript(this.tabId, {
-            "file": "contentScript.js"
+            file: "contentScript.js",
+            runAt: "document_start"
         });
 
         var encodedPageHtml = encodeURI(this._pageHtml)
@@ -83,7 +96,8 @@ class FromJSSession {
           code: `
             var script = document.createElement("script");
 
-            script.innerHTML = "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
+            script.innerHTML = "window.allowJSExecution();";
+            script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
             script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
             document.documentElement.appendChild(script)
 

@@ -28,6 +28,7 @@
       "injected.js",
       "fromjs.css",
       "inspector.js",
-      "resolveFrameWorker.js"
+      "resolveFrameWorker.js",
+      "inhibitJavaScriptExecution.js"
   ]
 }

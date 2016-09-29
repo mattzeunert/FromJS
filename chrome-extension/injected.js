@@ -55,6 +55,7 @@ window.onFromJSReady = function(){
 
 // Normally this file is loaded before fromJS is ready, but sometimes not
 if (window.fromJSIsReady) {
+    debugger; // this shoudln't happen! if it does the logic for inhibiting js execution is wrong
     window.onFromJSReady()
 }
 
@@ -95,9 +96,7 @@ function appendScriptsOneAfterAnother(scripts, container, done){
         }
         var script = scripts.shift()
         console.log("loading script", script)
-        if (script.src.indexOf("platform") !== -1) {
-            debugger
-        }
+        
         if (nativeInnerHTMLDescriptor.get.call(script) === ""){
             // Do this rather than appending script element, because
             // requests on https may be cross origin
@@ -107,15 +106,6 @@ function appendScriptsOneAfterAnother(scripts, container, done){
             }, function(){
                 next();
             })
-
-            // script.onload = function(){
-            //     next();
-            // }
-            // script.onerror = function(err){
-            //     console.warn("Error loading script", script, err)
-            //     next();
-            // }
-            // container.appendChild(script)
         } else {
             container.appendChild(script)
             next();
