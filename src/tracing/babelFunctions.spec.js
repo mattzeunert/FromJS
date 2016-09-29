@@ -133,4 +133,18 @@ describe("babelFunctions", function(){
             expect(obj["Symbol()"]).toBe(undefined)
         })
     })
+
+    describe("f__getReadyState, f__setDocumentReadyState", function(){
+        it("returns the assigned ready state if reading readyState from document object", function(){
+            babelFunctions.f__setDocumentReadyState("done")
+            var readyState = babelFunctions.f__getReadyState(window.document)
+            expect(readyState).toBe("done")
+        })
+        it("returns the readyState property value when reading from normal object", function(){
+            babelFunctions.f__setDocumentReadyState("done")
+            var obj = {readyState: 123}
+            var readyState = babelFunctions.f__getReadyState(obj)
+            expect(readyState).toBe(123)
+        })
+    })
 })

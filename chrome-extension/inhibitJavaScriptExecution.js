@@ -21,12 +21,10 @@ function inhibitJavaScriptExecution(){
             Object.defineProperty(window, propName, {
                 get: function(){
                     propName
-                    debugger
                     throw Error("JavaScript Execution Inhibited")
                 },
                 set: function(){
                     propName
-                    debugger
                     throw Error("JavaScript Execution Inhibited")
                 },
                 configurable: true
