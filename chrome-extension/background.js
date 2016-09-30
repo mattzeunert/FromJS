@@ -318,40 +318,52 @@ function makeOnBeforeRequest(){
             return {cancel: true}
         }
 
+        var response = request(info.url, session)
 
-
-        if (info.url.slice(info.url.length - ".js.map".length) === ".js.map") {
-            return {
-                redirectUrl: "data:," + encodeURI(session.getSourceMap(info.url))
-            }
-        }
-
-        var url = info.url;
-        var dontProcess = false
-        if (url.slice(url.length - ".dontprocess".length) === ".dontprocess") {
-            dontProcess = true
-            url = url.slice(0, - ".dontprocess".length)
-        }
-
-        var urlWithoutQueryParameters = url.split("?")[0]
-        if (endsWith(urlWithoutQueryParameters, ".html")) {
-            var html = session.getPageHtml();
-            var url = "data:text/html;charset=utf-8," + encodeURI(html)
-            return {
-                redirectUrl: url
-            }
-        }
-        if (endsWith(urlWithoutQueryParameters, ".js")) {
-            var code = session.getCode(url, !dontProcess)
-            url = "data:application/javascript;charset=utf-8," + encodeURI(code)
+        if (response.content) {
+            var url = "data:" + response.mimeType + ";charset=utf-8," + encodeURI(code)
             if (url.length > 2 * 1024 * 1024) {
-                console.error("Data url is too large, greater than 2 MB: ", url.length / 1024 / 1024 + "MB")
+                console.error("Data url is too large, greater than 2 MB: ", url.length / 1024 / 1024 + "MB", info.url)
             }
 
             return {redirectUrl: url}
+        } else {
+            return response
         }
     }
     return onBeforeRequest
+}
+
+function request(url, session){
+
+    if (url.slice(url.length - ".js.map".length) === ".js.map") {
+        return {
+            content: session.getSourceMap(url),
+            mimeType: "application/json"
+        }
+    }
+
+    var dontProcess = false
+    if (url.slice(url.length - ".dontprocess".length) === ".dontprocess") {
+        dontProcess = true
+        url = url.slice(0, - ".dontprocess".length)
+    }
+
+    var urlWithoutQueryParameters = url.split("?")[0]
+    if (endsWith(urlWithoutQueryParameters, ".html")) {
+        var html = session.getPageHtml();
+        return {
+            content: session.getPageHtml(),
+            mimeType: "text/html",
+        }
+    }
+    if (endsWith(urlWithoutQueryParameters, ".js")) {
+        var code = session.getCode(url, !dontProcess)
+        return {
+            content: code,
+            mimeType: "application/javascript"
+        }
+    }
 }
 
 function beautifyJS(code){
