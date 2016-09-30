@@ -37,7 +37,6 @@ module.exports = function(babel) {
                 ]
             ))
         }
-
       },
       MemberExpression(path){
           // We can't overwrite document.readyState in the brower, so instead

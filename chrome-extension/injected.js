@@ -60,18 +60,19 @@ if (window.fromJSIsReady) {
 }
 
 function simulateOnLoad(){
+    f__setDocumentReadyState("interactive")
+
     if (document.body.onload) {
         document.body.onload({});
     }
-
     window.dispatchEvent(new Event("DOMContentLoaded"))
     document.dispatchEvent(new Event("DOMContentLoaded"))
-
-    // I can't override document.readyState, so it will always be "complete" and never "loading"
     document.dispatchEvent(new Event("readystatechange"))
 
+    f__setDocumentReadyState("complete")
     window.dispatchEvent(new Event("load"))
     document.dispatchEvent(new Event("load"))
+    document.dispatchEvent(new Event("readystatechange"))
 }
 
 function sendMessageToBackgroundPage(data, callback){
@@ -96,7 +97,7 @@ function appendScriptsOneAfterAnother(scripts, container, done){
         }
         var script = scripts.shift()
         console.log("loading script", script)
-        
+
         if (nativeInnerHTMLDescriptor.get.call(script) === ""){
             // Do this rather than appending script element, because
             // requests on https may be cross origin
