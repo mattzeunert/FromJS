@@ -1,7 +1,8 @@
-import resolveFrame, {getCodeFilePath, addFilesToCache, getSourceFileContent} from "./resolve-frame"
+import FrameResolver from "./resolve-frame"
 import RoundTripMessageWrapper from "./RoundTripMessageWrapper"
 
 var wrapper = new RoundTripMessageWrapper(self, "ResolveFrameWorker")
+var frameResolver = new FrameResolver();
 
 setTimeout(function(){
     wrapper.send("fetchUrl", "http://localhost:1234/demos/backbone-todomvc/index.html", function(){
@@ -10,16 +11,16 @@ setTimeout(function(){
 }, 500)
 
 wrapper.on("resolveFrame", function(frameString, callback){
-    resolveFrame(frameString, function(err, res){
+    frameResolver.resolve(frameString, function(err, res){
         callback(err, res)
     })
 })
 
 wrapper.on("registerDynamicFiles", function(files, callback){
-    addFilesToCache(files)
+    frameResolver.addFilesToCache(files)
     callback()
 })
 
 wrapper.on("getSourceFileContent", function(path, callback){
-    getSourceFileContent(path, callback)
+    frameResolver.getSourceFileContent(path, callback)
 })

@@ -8,7 +8,6 @@ import getRootOriginAtChar from "../getRootOriginAtChar"
 import { OriginPath, PreviewElementMarker, SelectedElementMarker } from "../ui/ui"
 import {disableTracing, enableTracing, disableEventListeners, enableEventListeners} from "../tracing/tracing"
 import RoundTripMessageWrapper from "../RoundTripMessageWrapper"
-import resolveFrame from "../resolve-frame"
 import getCodeFilePath from "./getCodeFilePath"
 
 var elementsByElementId = {}
