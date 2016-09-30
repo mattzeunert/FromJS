@@ -175,6 +175,14 @@ var messageHandlers = {
     loadScript: function(request, sender, callback){
         var session = getTabSession(sender.tab.id)
         session.loadScript(request.url, callback)
+    },
+    fetchUrl: function(request, sender, callback){
+        var r = new XMLHttpRequest();
+        r.addEventListener("load", function(){
+            callback(r.responseText)
+        });
+        r.open("GET", request.url);
+        r.send();
     }
 }
 
@@ -185,7 +193,7 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
     var handler = messageHandlers[request.type];
     if (handler) {
         handler(request, sender, function(){
-            executeScriptOnPage(sender.tab.id, request.callbackName + "()");
+            executeScriptOnPage(sender.tab.id, request.callbackName + "(decodeURI(`" + encodeURI(JSON.stringify(Array.from(arguments))) + "`))");
         })
     } else {
         throw "no handler for message type " + request.type

@@ -3,6 +3,12 @@ import RoundTripMessageWrapper from "./RoundTripMessageWrapper"
 
 var wrapper = new RoundTripMessageWrapper(self, "ResolveFrameWorker")
 
+setTimeout(function(){
+    wrapper.send("fetchUrl", "http://localhost:1234/demos/backbone-todomvc/index.html", function(){
+        console.warn("response", arguments)
+    });
+}, 500)
+
 wrapper.on("resolveFrame", function(frameString, callback){
     resolveFrame(frameString, function(err, res){
         callback(err, res)

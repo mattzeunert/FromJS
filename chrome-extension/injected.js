@@ -1,6 +1,7 @@
 import {getScriptElements} from "../src/getJSScriptTags"
 import _ from "underscore"
 import getHeadAndBodyContent from "./getHeadAndBodyContent"
+import sendMessageToBackgroundPage from "../src/sendMessageToBackgroundPage"
 
 function measureTodoMVCRenderingTime(){
     // see perf.txt for more info
@@ -18,6 +19,8 @@ function measureTodoMVCRenderingTime(){
         }
     }
 }
+
+window.isExtension = true;
 
 window.onFromJSReady = function(){
     console.log("Loading page from FromJS")
@@ -75,18 +78,7 @@ function simulateOnLoad(){
     document.dispatchEvent(new Event("readystatechange"))
 }
 
-function sendMessageToBackgroundPage(data, callback){
-    var callbackName = "fromJSBackgroundMessageCallback" + _.uniqueId()
-    window[callbackName] = function(){
-        delete window[callbackName];
-        callback.apply(this, arguments);
-    }
-    data.callbackName = callbackName;
 
-    data.isFromJSExtensionMessage = true
-    var event = new CustomEvent("RebroadcastExtensionMessage", {detail: data});
-    window.dispatchEvent(event);
-}
 
 function appendScriptsOneAfterAnother(scripts, container, done){
     next()
