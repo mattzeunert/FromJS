@@ -17,6 +17,7 @@ import {initializeSidebarContent, showShowFromJSInspectorButton} from "./ui/show
 import $ from "jquery"
 import isMobile from "./isMobile"
 import createResolveFrameWorker from "./createResolveFrameWorker"
+import sendMessageToBackgroundPage from "./sendMessageToBackgroundPage"
 
 
 window.saveAndSerializeDOMState = saveAndSerializeDOMState
@@ -29,7 +30,21 @@ window.fromJSDisableTracing = disableTracing
 var resolveFrameWorker = createResolveFrameWorker()
 resolveFrameWorker.beforePostMessage = disableTracing
 resolveFrameWorker.afterPostMessage = enableTracing
-
+resolveFrameWorker.on("fetchUrl", function(url, cb){
+    if (window.isExtension) {
+        sendMessageToBackgroundPage({
+            type: "fetchUrl",
+            url: url
+        }, cb)
+    } else {
+        var r = new XMLHttpRequest();
+        r.addEventListener("load", function(){
+            cb(r.responseText)
+        });
+        r.open("GET", url);
+        r.send();
+    }
+})
 
 
 
@@ -40,7 +55,7 @@ if (document.readyState === "complete") {
         if (document.readyState === "complete") {
             onReady()
         }
-    })    
+    })
 }
 
 
