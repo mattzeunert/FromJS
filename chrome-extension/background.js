@@ -176,13 +176,24 @@ var messageHandlers = {
         var session = getTabSession(sender.tab.id)
         session.loadScript(request.url, callback)
     },
-    fetchUrl: function(request, sender, callback){
-        var r = new XMLHttpRequest();
-        r.addEventListener("load", function(){
-            callback(r.responseText)
-        });
-        r.open("GET", request.url);
-        r.send();
+    // Use fetchUrl instead of a normal request in order to be able to
+    // return processed code > 2MB (normally we redirect to a data URL,
+    // which can't be > 2MB)
+    fetchUrl: function(req, sender, callback){
+        var session = getTabSession(sender.tab.id)
+        var response = request(req.url, session)
+
+        if (response.content) {
+            callback(response.content)
+        } else {
+            var r = new XMLHttpRequest();
+            r.addEventListener("load", function(){
+                callback(r.responseText)
+            });
+            r.open("GET", req.url);
+            r.send();
+        }
+
     }
 }
 

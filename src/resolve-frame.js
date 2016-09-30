@@ -4,8 +4,8 @@ var ErrorStackParser = require("./error-stack-parser")
 import _ from "underscore"
 
 export default class FrameResolver {
-    constructor(){
-        this._gps = new StackTraceGPS({});;
+    constructor(ajax){
+        this._gps = new StackTraceGPS({ajax: ajax});;
         this._resolvedFrameCache = {}
         this._frameStringsCurrentlyBeingResolved = {}
     }
