@@ -30,14 +30,21 @@ window.fromJSDisableTracing = disableTracing
 var resolveFrameWorker = createResolveFrameWorker()
 resolveFrameWorker.beforePostMessage = disableTracing
 resolveFrameWorker.afterPostMessage = enableTracing
-if (window.isExtension){
-    resolveFrameWorker.on("fetchUrl", function(url, cb){
+resolveFrameWorker.on("fetchUrl", function(url, cb){
+    if (window.isExtension) {
         sendMessageToBackgroundPage({
             type: "fetchUrl",
             url: url
         }, cb)
-    })
-}
+    } else {
+        var r = new XMLHttpRequest();
+        r.addEventListener("load", function(){
+            cb(r.responseText)
+        });
+        r.open("GET", url);
+        r.send();
+    }
+})
 
 
 
