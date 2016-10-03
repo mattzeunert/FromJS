@@ -156,7 +156,9 @@ class FromJSSession {
         return this.getCode(url, true)
     }
     getSourceMap(url){
-        console.log("looking for", url, this._sourceMaps)
+        // this._sourceMaps is redundant since i already cache
+        // getFile and processJavaScriptCode, but won't bother fixing for now
+
         if (!this._sourceMaps[url]) {
             console.log("doensn't have source map")
             debugger
