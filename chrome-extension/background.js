@@ -25,7 +25,9 @@ class FromJSSession {
         this.tabId = tabId;
         this._stage = FromJSSessionStages.RELOADING;
         this._pageHtml = null;
+        this._downloadCache = {}
         this._sourceMaps = {};
+        this._processJSCodeCache = {};
         this._open();
     }
     _open(){
@@ -53,8 +55,6 @@ class FromJSSession {
         return this._pageHtml;
     }
     initialize(){
-
-
         chrome.tabs.executeScript(this.tabId, {
             code: `
                 var el = document.createElement("script")
@@ -111,8 +111,24 @@ class FromJSSession {
     isActive(){
         return this._stage === FromJSSessionStages.ACTIVE;
     }
+    getFile(url){
+        if (!this._downloadCache[url]) {
+            var xhr = new XMLHttpRequest()
+            xhr.open('GET', url, false);
+            xhr.send(null);
+            this._downloadCache[url] = xhr.responseText
+        }
+        return this._downloadCache[url]
+    }
+    _processJavaScriptCode(code, options){
+        var key = code + JSON.stringify(options);
+        if (!this._processJSCodeCache[key]) {
+            this._processJSCodeCache[key] = processJavaScriptCode(code, options);
+        }
+        return this._processJSCodeCache[key]
+    }
     getCode(url, processCode){
-        var code = getFile(url)
+        var code = this.getFile(url)
         // Ideally this would happen when displaying the code in the UI,
         // rather than when it's downloaded (doing it now means the line
         // numbers will be incorrect)
@@ -122,7 +138,7 @@ class FromJSSession {
 
         if (processCode) {
             try {
-                var res = processJavaScriptCode(code, {filename: url})
+                var res = this._processJavaScriptCode(code, {filename: url})
                 code = res.code
                 code += "\n//# sourceURL=" + url
                 code += "\n//# sourceMappingURL=" + url + ".map"
@@ -266,13 +282,6 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     }
 })
 
-function getFile(url){
-    var xhr = new XMLHttpRequest()
-    xhr.open('GET', url, false);
-    xhr.send(null);
-    return xhr.responseText
-}
-
 
 function makeOnHeadersReceived(){
     return function onHeadersReceived(details){
@@ -319,7 +328,7 @@ function makeOnBeforeRequest(){
                 return;
             }
 
-            session.setPageHtml(getFile(info.url))
+            session.setPageHtml(session.getFile(info.url))
             var parts = info.url.split("/");parts.pop(); parts.push("");
             var basePath = parts.join("/")
             return
