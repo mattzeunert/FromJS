@@ -100,7 +100,7 @@ describe("FromJSString", function(){
         it("Works with a regular expression and an empty string", function(){
             var str = makeString("")
             var res = str.split(/[-]+/)
-            expect(res.length).toEqual(0)
+            expect(res.length).toEqual(1)
         })
     })
 
