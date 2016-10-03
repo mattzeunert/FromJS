@@ -190,6 +190,12 @@ function goUp(step, resolveFrameWorker, callback){
             throw "need to handle"
         }
     }
+    else if (step.origin.action === "Split Call") {
+        ret = new OriginPathStep(
+            step.origin.inputValues[0],
+            step.characterIndex + step.origin.inputValuesCharacterIndex[0]
+        )
+    }
     else if (step.origin.action === "Match Call"){
         if (step.origin.value === step.origin.inputValues[0].value) {
             ret = {
