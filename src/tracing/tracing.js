@@ -94,6 +94,18 @@ var nativeSVGElementStyleDescriptor = Object.getOwnPropertyDescriptor(SVGElement
 var nativeNumberToString = Number.prototype.toString
 window.nativeNumberToString = nativeNumberToString
 
+var nativeStringFunctions = Object.getOwnPropertyNames(String.prototype)
+    .map(function(propertyName){
+        var value = String.prototype[propertyName];
+        return {
+            name: propertyName,
+            fn: value
+        }
+    })
+    .filter(function(prop){
+        return typeof prop.fn === "function" && prop.name !== "toString" && prop.name !== "valueOf"
+    })
+
 export function runFunctionWithTracingDisabled(fn){
     var tracingEnabledAtStart = tracingEnabled;
     if (tracingEnabledAtStart) {
@@ -196,6 +208,16 @@ export function enableTracing(){
         })
         return node;
     }
+
+    nativeStringFunctions.forEach(function(prop){
+        // Don't do for now... breaks too much stuff
+        // String.prototype[prop.name] = function(){
+        //     var str = untrackedString(this)
+        //     var ret = str[prop.name].apply(str, arguments)
+        //     return ret;
+        // }
+    })
+
 
     Object.defineProperty(Node.prototype, "appendChild", {
         get: function(){
@@ -994,6 +1016,11 @@ export function disableTracing(){
     Object.prototype.hasOwnProperty = nativeObjectHasOwnProperty
 
     tracingEnabled = false;
+
+    nativeStringFunctions.forEach(function(property) {
+        String.prototype[property.name] = property.fn
+    })
+
 }
 
 window._disableTracing = disableTracing

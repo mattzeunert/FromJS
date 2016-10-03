@@ -44,9 +44,14 @@ describe("Tracing", function(){
         var comment = document.createComment("Hey")
         expect(comment.__elOrigin.commentStart).not.toBe(undefined)
         expect(comment.__elOrigin.commentEnd).not.toBe(undefined)
-
-
     })
+
+    // Don't do this for now.
+    // it("Tracks string method calls on untraced strings", function(){
+    //     var val = "cake".replace("c", "b")
+    //     expect(val.value).toBe("bake")
+    //     expect(val.origin.action).toBe("Replace Call")
+    // })
 
     it("Tracks data read using localStorage.getItem", function(){
         localStorage.setItem("test", "hello")
