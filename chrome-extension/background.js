@@ -343,7 +343,7 @@ function makeOnBeforeRequest(){
         var response = request(info.url, session)
 
         if (response.content) {
-            var url = "data:" + response.mimeType + ";charset=utf-8," + encodeURI(code)
+            var url = "data:" + response.mimeType + ";charset=utf-8," + encodeURI(response.content)
             if (url.length > 2 * 1024 * 1024) {
                 console.error("Data url is too large, greater than 2 MB: ", url.length / 1024 / 1024 + "MB", info.url)
             }
