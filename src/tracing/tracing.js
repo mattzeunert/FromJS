@@ -56,6 +56,7 @@ var nativeJSONStringify = JSON.stringify
 var nativeObjectHasOwnProperty = Object.prototype.hasOwnProperty
 
 var nativeStringObject = String;
+window.nativeStringObject = nativeStringObject
 
 var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
@@ -1026,7 +1027,6 @@ export function disableTracing(){
     Array.prototype.toString = nativeArrayToString
 
     window.String = nativeStringObject
-    window.nativeStringObject = nativeStringObject
 
     Object.getOwnPropertyNames = nativeObjectGetOwnPropertyNames
     Object.keys = nativeObjectKeys
