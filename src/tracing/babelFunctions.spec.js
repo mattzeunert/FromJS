@@ -77,7 +77,6 @@ describe("babelFunctions", function(){
         })
 
         it("Maintains the sign when dividing by Object(-0)", function(){
-            debugger
             var result = babelFunctions.f__divide(5, Object(-0))
             expect(result).toEqual(Number.NEGATIVE_INFINITY)
         })

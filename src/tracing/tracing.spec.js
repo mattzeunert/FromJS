@@ -53,6 +53,17 @@ describe("Tracing", function(){
     //     expect(val.origin.action).toBe("Replace Call")
     // })
 
+    describe("JSON.stringify", function(){
+        it("If just a string is passed in it returns the traced string", function(){
+            var json = JSON.stringify("Hello")
+            expect(json.origin.action).toBe("JSON.stringify")
+        })
+        it("Still works normally otherwise and returns an untraced string", function(){
+            var json = JSON.stringify({a: 1})
+            expect(json).toBe('{"a":1}')
+        })
+    })
+
     it("Tracks data read using localStorage.getItem", function(){
         localStorage.setItem("test", "hello")
         var value = localStorage.getItem("test")

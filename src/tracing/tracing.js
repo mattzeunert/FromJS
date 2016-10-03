@@ -51,6 +51,8 @@ window.nativeFunction = nativeFunction
 var nativeJSONParse = JSON.parse
 window.nativeJSONParse = nativeJSONParse
 
+var nativeJSONStringify = JSON.stringify
+
 var nativeObjectHasOwnProperty = Object.prototype.hasOwnProperty
 
 var nativeStringObject = String;
@@ -395,7 +397,7 @@ export function enableTracing(){
             var value = parsedVal[key]
             if (_.isArray(value) || _.isObject(value)){
                 parsedVal[key] = JSON.parse(makeTraceObject({
-                    value: JSON.stringify(value),
+                    value: nativeJSONStringify.call(JSON, value),
                     origin: str.origin
                 }), rootStr)
             } else if (typeof value === "string" ||
@@ -417,6 +419,21 @@ export function enableTracing(){
         }
 
         return parsedVal
+    }
+
+    JSON.stringify = function(str){
+        if (typeof str === "string" || str.isStringTraceString) {
+            return makeTraceObject({
+                value: '"' + toString(str) + '"',
+                origin: new Origin({
+                    value: str,
+                    inputValues: [str],
+                    action: "JSON.stringify"
+                })
+            })
+        } else {
+            return nativeJSONStringify.apply(this, arguments)
+        }
     }
 
     var eventListenerFunctionMap = new Map()
@@ -966,6 +983,7 @@ export function disableTracing(){
         return;
     }
     window.JSON.parse = window.nativeJSONParse
+    window.JSON.stringify = nativeJSONStringify
     document.createElement = window.originalCreateElement
     document.createElementNS = nativeCreateElementNS
     document.createComment = nativeCreateComment
