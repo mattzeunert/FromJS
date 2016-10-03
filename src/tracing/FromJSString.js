@@ -254,6 +254,9 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     } else if (separator instanceof RegExp) {
                         var regExp = cloneRegExp(separator, {global: true})
                         separators = oldString.match(regExp)
+                        if (separators === null) {
+                            separators = [];
+                        }
                     } else {
                         debugger;
                         dontTrack();

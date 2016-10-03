@@ -97,6 +97,11 @@ describe("FromJSString", function(){
             expect(res[0].origin.inputValues[1].value).toBe("/[-]+/")
             expect(res[1].origin.inputValuesCharacterIndex[0]).toBe(3)
         })
+        it("Works with a regular expression and an empty string", function(){
+            var str = makeString("")
+            var res = str.split(/[-]+/)
+            expect(res.length).toEqual(0)
+        })
     })
 
     describe("replace", function(){
