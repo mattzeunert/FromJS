@@ -16,7 +16,7 @@ FromJS won't currently work on most sites. Here are a few example apps you can t
 [Backbone TodoMVC](http://todomvc.com/examples/backbone/)  
 [jQuery TodoMVC](http://todomvc.com/examples/jquery/#)  
 [VanillaJS TodoMVC](http://todomvc.com/examples/vanillajs/)  
-[React Font Picker](https://andreasur.github.io/react-font-picker/)
+[React Font Picker](https://andreasur.github.io/react-font-picker/)  
 [D3 Hexagonal Binning](http://bl.ocks.org/mbostock/raw/4248145/)
 
 Make sure the page finishes loading before you try to inspect it. (This is bad UX, I'll try to improve it.)
