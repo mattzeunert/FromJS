@@ -5,3 +5,4 @@
 /react-compiled
 .sass-cache
 _site
+.DS_Store

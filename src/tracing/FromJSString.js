@@ -5,6 +5,7 @@ import stringTraceUseValue from "./stringTraceUseValue"
 import untrackedArgument from "./untrackedArgument"
 import config from "../config"
 import toString from "../untracedToString"
+import cloneRegExp from "clone-regexp"
 
 function FromJSString(options){
     var value = options.value
@@ -84,10 +85,10 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
             })
             var inputValues = [oldValue.origin].concat(argumentOrigins)
 
+            var oldString = oldValue.toString()
+
             var valueItems = null;
             if (propertyName === "replace") {
-                var oldString = oldValue.toString()
-
                 var valueMap = new ValueMap();
                 var inputMappedSoFar = ""
 
@@ -194,8 +195,6 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 valueItems = valueMap.serialize(inputValues)
 
             } else if (propertyName === "slice"){
-                var oldString = oldValue.toString()
-
                 var valueMap = new ValueMap();
                 var from = args[0]
                 var to = args[1]
@@ -210,7 +209,6 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
 
                 valueItems = valueMap.serialize(inputValues)
             } else if (propertyName === "substr"){
-                var oldString = oldValue.toString();
                 var start = args[0]
                 if (start < 0){
                     start = oldString.length + start
@@ -240,11 +238,60 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 } else {
                     return regExp.exec(this)
                 }
+            } else if (propertyName === "split") {
+                var separator = args[0]
+                var limit = args[1]
+                if (limit !== undefined) {
+                    dontTrack()
+                } else {
+                    var res = oldString.split(args[0])
+
+                    var separators = [];
+                    if (typeof separator === "string") {
+                        for (var i=0; i< res.length -1; i++) {
+                            separators.push(separator)
+                        }
+                    } else if (separator instanceof RegExp) {
+                        var regExp = cloneRegExp(separator, {global: true})
+                        separators = oldString.match(regExp)
+                        if (separators === null) {
+                            separators = [];
+                        }
+                    } else {
+                        debugger;
+                        dontTrack();
+                    }
+
+                    newVal = []
+                    var currentCharIndex = 0;
+                    res.forEach(function(str, i){
+                        var inputValuesCharacterIndex = [currentCharIndex];
+                        currentCharIndex += str.length;
+                        if (separators[i]) {
+                            currentCharIndex += separators[i].length;
+                        }
+
+                        newVal.push(makeTraceObject({
+                            value: str,
+                            origin: new Origin({
+                                value: str,
+                                action: "Split Call",
+                                inputValues,
+                                inputValuesCharacterIndex
+                            })
+                        }))
+                    })
+                }
             } else {
+                dontTrack()
+            }
+
+            function dontTrack(){
                 if (config.logUntrackedStrings) {
                     console.trace("string not tracked after ",propertyName ,"call")
                 }
-                newVal = nativeStringObject.prototype[propertyName].apply(this.toString(), args);
+
+                newVal = nativeStringObject.prototype[propertyName].apply(oldString, args);
             }
 
             var actionName = capitalizeFirstCharacter(propertyName) + " Call";

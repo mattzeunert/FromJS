@@ -1,5 +1,15 @@
 import {makeTraceObject} from "./FromJSString"
 
+function makeString(str){
+    return makeTraceObject({
+        value: str,
+        origin: {
+            isFromJSOriginObject: true,
+            value: str
+        }
+    })
+}
+
 describe("FromJSString", function(){
     it("Accepts undefined parameters", function(){
         var str = makeTraceObject({
@@ -60,6 +70,38 @@ describe("FromJSString", function(){
         expect(function(){
             "sth" in str
         }).toThrow()
+    })
+
+    describe("split", function(){
+        it("Falls back to native split if a limit is passed in", function(){
+            var str = makeString("a-b-c")
+            expect(str.split("-", 2).map(s => s.value)).toEqual(["a", "b"])
+        })
+        it("Works with a string literal", function(){
+            var str = makeString("a-b-c")
+            debugger
+            var res = str.split("-")
+            expect(res.map(s => s.value)).toEqual(["a", "b", "c"])
+            expect(res[0].origin.action).toBe("Split Call")
+            expect(res[0].origin.inputValues[0]).toBe(str.origin)
+            expect(res[0].origin.inputValuesCharacterIndex[0]).toBe(0)
+            expect(res[0].origin.inputValues[1].value).toBe("-")
+            expect(res[1].origin.inputValuesCharacterIndex[0]).toBe(2)
+        })
+        it("Works with a regular expression", function(){
+            var str = makeString("a--b-c")
+            var res = str.split(/[-]+/)
+            expect(res.map(s => s.value)).toEqual(["a", "b", "c"])
+            expect(res[0].origin.action).toBe("Split Call")
+            expect(res[0].origin.inputValues[0]).toBe(str.origin)
+            expect(res[0].origin.inputValues[1].value).toBe("/[-]+/")
+            expect(res[1].origin.inputValuesCharacterIndex[0]).toBe(3)
+        })
+        it("Works with a regular expression and an empty string", function(){
+            var str = makeString("")
+            var res = str.split(/[-]+/)
+            expect(res.length).toEqual(1)
+        })
     })
 
     describe("replace", function(){

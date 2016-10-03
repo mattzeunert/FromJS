@@ -51,9 +51,12 @@ window.nativeFunction = nativeFunction
 var nativeJSONParse = JSON.parse
 window.nativeJSONParse = nativeJSONParse
 
+var nativeJSONStringify = JSON.stringify
+
 var nativeObjectHasOwnProperty = Object.prototype.hasOwnProperty
 
 var nativeStringObject = String;
+window.nativeStringObject = nativeStringObject
 
 var nativeLocalStorage = window.localStorage;
 window.originalLocalStorage = nativeLocalStorage
@@ -93,6 +96,18 @@ var nativeSVGElementStyleDescriptor = Object.getOwnPropertyDescriptor(SVGElement
 
 var nativeNumberToString = Number.prototype.toString
 window.nativeNumberToString = nativeNumberToString
+
+var nativeStringFunctions = Object.getOwnPropertyNames(String.prototype)
+    .map(function(propertyName){
+        var value = String.prototype[propertyName];
+        return {
+            name: propertyName,
+            fn: value
+        }
+    })
+    .filter(function(prop){
+        return typeof prop.fn === "function" && prop.name !== "toString" && prop.name !== "valueOf"
+    })
 
 export function runFunctionWithTracingDisabled(fn){
     var tracingEnabledAtStart = tracingEnabled;
@@ -196,6 +211,16 @@ export function enableTracing(){
         })
         return node;
     }
+
+    nativeStringFunctions.forEach(function(prop){
+        // Don't do for now... breaks too much stuff
+        // String.prototype[prop.name] = function(){
+        //     var str = untrackedString(this)
+        //     var ret = str[prop.name].apply(str, arguments)
+        //     return ret;
+        // }
+    })
+
 
     Object.defineProperty(Node.prototype, "appendChild", {
         get: function(){
@@ -373,7 +398,7 @@ export function enableTracing(){
             var value = parsedVal[key]
             if (_.isArray(value) || _.isObject(value)){
                 parsedVal[key] = JSON.parse(makeTraceObject({
-                    value: JSON.stringify(value),
+                    value: nativeJSONStringify.call(JSON, value),
                     origin: str.origin
                 }), rootStr)
             } else if (typeof value === "string" ||
@@ -395,6 +420,21 @@ export function enableTracing(){
         }
 
         return parsedVal
+    }
+
+    JSON.stringify = function(str){
+        if (typeof str === "string" || str.isStringTraceString) {
+            return makeTraceObject({
+                value: '"' + toString(str) + '"',
+                origin: new Origin({
+                    value: str,
+                    inputValues: [str],
+                    action: "JSON.stringify"
+                })
+            })
+        } else {
+            return nativeJSONStringify.apply(this, arguments)
+        }
     }
 
     var eventListenerFunctionMap = new Map()
@@ -944,6 +984,7 @@ export function disableTracing(){
         return;
     }
     window.JSON.parse = window.nativeJSONParse
+    window.JSON.stringify = nativeJSONStringify
     document.createElement = window.originalCreateElement
     document.createElementNS = nativeCreateElementNS
     document.createComment = nativeCreateComment
@@ -986,7 +1027,6 @@ export function disableTracing(){
     Array.prototype.toString = nativeArrayToString
 
     window.String = nativeStringObject
-    window.nativeStringObject = nativeStringObject
 
     Object.getOwnPropertyNames = nativeObjectGetOwnPropertyNames
     Object.keys = nativeObjectKeys
@@ -994,6 +1034,11 @@ export function disableTracing(){
     Object.prototype.hasOwnProperty = nativeObjectHasOwnProperty
 
     tracingEnabled = false;
+
+    nativeStringFunctions.forEach(function(property) {
+        String.prototype[property.name] = property.fn
+    })
+
 }
 
 window._disableTracing = disableTracing

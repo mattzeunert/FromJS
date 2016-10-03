@@ -160,4 +160,50 @@ describe("whereDoesCharComeFrom", function(){
             expect(lastStep.origin.action).toBe("String Literal")
         })
     })
+
+    it("Can traverse JSON.stringify calls", function(){
+        var origin = {
+            action: "JSON.stringify",
+            value: '"Hello"',
+            inputValues: [
+                {
+                    value: "Hello",
+                    action: "String Literal",
+                    inputValues: []
+                }
+            ]
+        }
+
+        whereDoesCharComeFrom([origin, 2], function(steps){
+            var lastStep = steps[steps.length - 1]
+            expect(lastStep.origin.action).toBe("String Literal")
+            expect(lastStep.characterIndex).toBe(1)
+        })
+    })
+
+    it("Can traverse String Split Calls", function(){
+        var origin = {
+            action: "Split Call",
+            value: "cd",
+            inputValues: [
+                {
+                    value: "ab-cd-ef",
+                    action: "String Literal",
+                    inputValues: []
+                },
+                {
+                    value: "-",
+                    action: "String Literal",
+                    inputValues: []
+                }
+            ],
+            inputValuesCharacterIndex: [3]
+        }
+
+        whereDoesCharComeFrom([origin, 1], function(steps){
+            var lastStep = steps[steps.length - 1]
+            expect(lastStep.origin.action).toBe("String Literal")
+            expect(lastStep.characterIndex).toBe(4)
+        })
+    })
 })

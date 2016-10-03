@@ -27,6 +27,7 @@
     "babel-types": "^6.7.2",
     "babylon": "^6.11.2",
     "cheerio": "^0.20.0",
+    "clone-regexp": "^1.0.0",
     "d3": "^3.5.17",
     "ends-with": "^0.2.0",
     "jquery": "^3.0.0",

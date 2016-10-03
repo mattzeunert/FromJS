@@ -44,8 +44,24 @@ describe("Tracing", function(){
         var comment = document.createComment("Hey")
         expect(comment.__elOrigin.commentStart).not.toBe(undefined)
         expect(comment.__elOrigin.commentEnd).not.toBe(undefined)
+    })
 
+    // Don't do this for now.
+    // it("Tracks string method calls on untraced strings", function(){
+    //     var val = "cake".replace("c", "b")
+    //     expect(val.value).toBe("bake")
+    //     expect(val.origin.action).toBe("Replace Call")
+    // })
 
+    describe("JSON.stringify", function(){
+        it("If just a string is passed in it returns the traced string", function(){
+            var json = JSON.stringify("Hello")
+            expect(json.origin.action).toBe("JSON.stringify")
+        })
+        it("Still works normally otherwise and returns an untraced string", function(){
+            var json = JSON.stringify({a: 1})
+            expect(json).toBe('{"a":1}')
+        })
     })
 
     it("Tracks data read using localStorage.getItem", function(){

@@ -101,6 +101,11 @@ function goUp(step, resolveFrameWorker, callback){
             origin: step.origin.inputValues[0],
             characterIndex: characterIndex
         }
+    } else if (step.origin.action === "JSON.stringify") {
+        ret = new OriginPathStep(
+            step.origin.inputValues[0],
+            step.characterIndex - '"'.length
+        )
     } else if (step.origin.inputValues.length === 1 && step.origin.inputValues[0].value === step.origin.value) {
         // This makes stuff work but it can be a bit misleading
         // because it suggests actions are explicitly handled even though they are not
@@ -189,6 +194,12 @@ function goUp(step, resolveFrameWorker, callback){
         } else {
             throw "need to handle"
         }
+    }
+    else if (step.origin.action === "Split Call") {
+        ret = new OriginPathStep(
+            step.origin.inputValues[0],
+            step.characterIndex + step.origin.inputValuesCharacterIndex[0]
+        )
     }
     else if (step.origin.action === "Match Call"){
         if (step.origin.value === step.origin.inputValues[0].value) {
