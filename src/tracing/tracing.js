@@ -746,7 +746,7 @@ export function enableTracing(){
             addElOrigin(this, "attribute_value", {
                 action: "Input Set Value",
                 inputValues: [value],
-                value: value
+                value: ' value="' + value + '"'
             })
             return ret;
         }

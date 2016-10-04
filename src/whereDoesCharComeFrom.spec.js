@@ -206,4 +206,31 @@ describe("whereDoesCharComeFrom", function(){
             expect(lastStep.characterIndex).toBe(4)
         })
     })
+
+    it("Can traverse Input element value assignments", function(){
+        var origin = {
+            action: "Input Set Value",
+            value: ' value="Hi"',
+            inputValues: [
+                {
+                    action: "String Literal",
+                    value: "Hi",
+                    inputValues: []
+                }
+            ]
+        }
+
+        whereDoesCharComeFrom([origin, 1], function(steps){
+            var lastStep = steps[steps.length - 1]
+            expect(lastStep.origin.action).toBe("Input Set Value")
+            expect(lastStep.characterIndex).toBe(1)
+        })
+
+        //' value="[H]i"'
+        whereDoesCharComeFrom([origin, 8], function(steps){
+            var lastStep = steps[steps.length - 1]
+            expect(lastStep.origin.action).toBe("String Literal")
+            expect(lastStep.characterIndex).toBe(0)
+        })
+    })
 })

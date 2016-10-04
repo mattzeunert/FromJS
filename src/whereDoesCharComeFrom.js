@@ -178,6 +178,20 @@ function goUp(step, resolveFrameWorker, callback){
             return;
         }
 
+    } else if (step.origin.action === "Input Set Value"){
+        var inputValues = step.origin.inputValues
+
+        var valueMap = new ValueMap()
+        valueMap.appendString(" value=\"", "END", 0)
+        valueMap.append(inputValues[0])
+        valueMap.appendString("'", "END", 0)
+
+        ret = valueMap.getItemAt(step.characterIndex)
+        if (ret.origin === "END") {
+            callback(null);
+            return;
+        }
+
     } else if (step.origin.action === "Replace Call" ||
         step.origin.action === "Slice Call" ||
         step.origin.action === "Substr Call" ||

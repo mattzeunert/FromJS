@@ -311,11 +311,11 @@ describe("Tracing", function(){
         })
     })
 
-    fit("Tracks when a value is assigned to an input element", function(){
+    it("Tracks when a value is assigned to an input element", function(){
         var el = document.createElement("input");
         el.value = makeString("Hello");
 
-        expect(el.__elOrigin.attribute_value.value).toBe("Hello")
+        expect(el.__elOrigin.attribute_value.value).toBe(" value=\"Hello\"")
         expect(el.__elOrigin.attribute_value.action).toBe("Input Set Value")
     })
 
