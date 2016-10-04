@@ -223,6 +223,22 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 valueMap.appendString(newVal, oldValue.origin, start)
                 valueItems = valueMap.serialize(inputValues)
 
+            } else if (propertyName === "substring"){
+                var start = args[0]
+                var end = args[1]
+
+                if (start < 0 || isNaN(start)) {
+                    start = 0;
+                }
+                if (end < 0 || isNaN(end)) {
+                    end = 0;
+                }
+
+                newVal = oldString.substring(start, length)
+                var valueMap = new ValueMap()
+                valueMap.appendString(newVal, oldValue.origin, start)
+                valueItems = valueMap.serialize(inputValues)
+
             } else if (propertyName === "match") {
                 var regExp = args[0]
                 if (regExp.global) {
