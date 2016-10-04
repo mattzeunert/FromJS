@@ -45,8 +45,6 @@ class FromJSSession {
         delete sessionsByTabId[this.tabId]
 
         this._stage = FromJSSessionStages.CLOSED;
-
-        chrome.tabs.reload(this.tabId)
     }
     setPageHtml(pageHtml) {
         this._pageHtml = pageHtml;
@@ -245,6 +243,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     var session = getTabSession(tab.id);
     if (session){
         session.close();
+        chrome.tabs.reload(tab.id)
     } else {
         createSession(tab.id)
     }
