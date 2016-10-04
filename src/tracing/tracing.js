@@ -914,7 +914,7 @@ export function enableTracing(){
 
         script.remove();
 
-        registerDynamicFile(filename, code, evalCode, res.map)
+        registerDynamicFile(filename, code, evalCode, res.map, "Dynamic Function")
 
         return function(){
             return window[fnName].apply(this, arguments)
@@ -922,14 +922,14 @@ export function enableTracing(){
     }
     window.Function.prototype = nativeFunction.prototype
 
-    function registerDynamicFile(filename, code, evalCode, sourceMap){
+    function registerDynamicFile(filename, code, evalCode, sourceMap, actionName){
         var smFilename = filename + ".map"
         code = trackStringIfNotTracked(code)
 
         dynamicCodeRegistry.register(smFilename, sourceMap)
         dynamicCodeRegistry.register(filename, evalCode)
         var codeOrigin = new Origin({
-            action: "Dynamic Script",
+            action: actionName === undefined ? "Dynamic Script" : actionName,
             value: code.value,
             inputValues: [code.origin]
         })
