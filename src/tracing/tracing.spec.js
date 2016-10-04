@@ -9,12 +9,20 @@ import DynamicCodeRegistry from "../DynamicCodeRegistry"
 function makeObjWithCustomToString(str){
     return {
         toString: function(){
-            return makeTraceObject({
-                value: str,
-                origin: {}
-            })
+            return makeString(str)
         }
     }
+}
+
+function makeString(str){
+    return makeTraceObject({
+        value: str,
+        origin: {
+            isFromJSOriginObject: true,
+            value: str,
+            inputValues: []
+        }
+    })
 }
 
 describe("Tracing", function(){
@@ -301,6 +309,14 @@ describe("Tracing", function(){
             expect(arr.indexOf("Hello")).toBe(-1)
             expect(["Hello"].indexOf(obj)).toBe(-1)
         })
+    })
+
+    fit("Tracks when a value is assigned to an input element", function(){
+        var el = document.createElement("input");
+        el.value = makeString("Hello");
+
+        expect(el.__elOrigin.attribute_value.value).toBe("Hello")
+        expect(el.__elOrigin.attribute_value.action).toBe("Input Set Value")
     })
 
     it("appendChild supports appending document fragments", function(){

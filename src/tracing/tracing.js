@@ -741,8 +741,14 @@ export function enableTracing(){
                 })
             })
         },
-        set: function(){
-            return nativeHTMLInputElementValueDescriptor.set.apply(this, arguments)
+        set: function(value){
+            var ret = nativeHTMLInputElementValueDescriptor.set.apply(this, arguments)
+            addElOrigin(this, "attribute_value", {
+                action: "Input Set Value",
+                inputValues: [value],
+                value: value
+            })
+            return ret;
         }
     })
 
