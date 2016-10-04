@@ -8,20 +8,22 @@ import _ from "underscore"
 export default class DynamicCodeRegistry {
     constructor(){
         _.extend(this, Backbone.Events)
+        this._content = {};
+        this._origins = {}
     }
     register(filename, content, origin){
-        fromJSDynamicFiles[filename] = content
+        this._content[filename] = content
         if (origin) {
-            fromJSDynamicFileOrigins[filename] = origin
+            this._origins[filename] = origin
         }
         this.trigger("register", {
             [filename]: content
         })
     }
     getContent(filename){
-        return fromJSDynamicFiles[filename]
+        return this._content[filename]
     }
     getOrigin(filename){
-        return fromJSDynamicFileOrigins[filename]
+        return this._origins[filename]
     }
 }

@@ -12,9 +12,6 @@ import endsWith from "ends-with"
 import toString from "../untracedToString"
 import {getScriptElements} from "../getJSScriptTags"
 
-window.fromJSDynamicFiles = {}
-window.fromJSDynamicFileOrigins = {}
-
 var tracingEnabled = false;
 
 // This code does both window.sth and var sth because I've been inconsistent in the past, not because it's good...

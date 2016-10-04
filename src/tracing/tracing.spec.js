@@ -134,7 +134,7 @@ describe("Tracing", function(){
         var ret = fn();
         disableTracing()
 
-        resolveFrameWorker.send("registerDynamicFiles", window.fromJSDynamicFiles, function(){})
+        resolveFrameWorker.send("registerDynamicFiles", dynamicCodeRegistry._content, function(){})
 
         whereDoesCharComeFrom([ret.origin, 0], function(steps){
             var lastStep = steps[steps.length - 1]
