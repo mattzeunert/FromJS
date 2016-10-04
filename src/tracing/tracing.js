@@ -929,14 +929,14 @@ export function enableTracing(){
         var smFilename = filename + ".map"
         code = trackStringIfNotTracked(code)
 
-        fromJSDynamicFiles[smFilename] = sourceMap
-        fromJSDynamicFiles[filename] = evalCode
-        fromJSDynamicFiles[filename + ".dontprocess"] = code.value
-        fromJSDynamicFileOrigins[filename + ".dontprocess"] = new Origin({
+        dynamicCodeRegistry.register(smFilename, sourceMap)
+        dynamicCodeRegistry.register(filename, evalCode)
+        var codeOrigin = new Origin({
             action: "Dynamic Script",
             value: code.value,
             inputValues: [code.origin]
         })
+        dynamicCodeRegistry.register(filename + ".dontprocess", code.value, codeOrigin)
     }
 
     document.write = function(str){

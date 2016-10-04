@@ -4,6 +4,7 @@ import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import Origin from "../origin"
 import createResolveFrameWorker from "../createResolveFrameWorker"
 import _ from "underscore"
+import DynamicCodeRegistry from "../DynamicCodeRegistry"
 
 function makeObjWithCustomToString(str){
     return {
@@ -117,19 +118,9 @@ describe("Tracing", function(){
         expect(parsed.hello.there.origin.inputValuesCharacterIndex[0]).toBe(21)
     })
 
-    it("Processes code passed into new Function", function(){
-        // not very clean at all, should have a think at some point
-        // how to make it cleaner without global vars
-        var dynamicFileCountBefore = Object.keys(window.fromJSDynamicFiles).length
-        var fn = new Function("return 'hi'")
-        expect(fn().value).toBe("hi")
-        var dynamicFileCountAfter = Object.keys(window.fromJSDynamicFiles).length
-        // 3 because we have the original code, compiled code, and source map
-        expect(dynamicFileCountAfter - dynamicFileCountBefore).toBe(3)
-    })
-
     it("Supports mapping of code in new Function", function(done){
         var resolveFrameWorker = createResolveFrameWorker();
+        window.dynamicCodeRegistry = new DynamicCodeRegistry();
 
         var fn = new Function(makeTraceObject({
             value: "return 'Hi'",
@@ -143,7 +134,7 @@ describe("Tracing", function(){
         var ret = fn();
         disableTracing()
 
-        resolveFrameWorker.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
+        resolveFrameWorker.send("registerDynamicFiles", window.fromJSDynamicFiles, function(){})
 
         whereDoesCharComeFrom([ret.origin, 0], function(steps){
             var lastStep = steps[steps.length - 1]
@@ -155,41 +146,52 @@ describe("Tracing", function(){
         }, resolveFrameWorker)
     })
 
-    it("Processes code passed into eval", function(){
-        spyOn(window, "f__StringLiteral")
-        var dynamicFileCountBefore = Object.keys(window.fromJSDynamicFiles).length
-        eval("a = 'Hello'")
-        expect(window.f__StringLiteral).toHaveBeenCalled()
-        var dynamicFileCountAfter = Object.keys(window.fromJSDynamicFiles).length
-        // 3 because we have the original code, compiled code, and source map
-        expect(dynamicFileCountAfter - dynamicFileCountBefore).toBe(3)
-    })
+    describe("Dynamic code processing", function(){
+        beforeEach(function(){
+            window.dynamicCodeRegistry = {
+                register: jasmine.createSpy()
+            }
+        })
+        afterEach(function(){
+            delete window.dynamicCodeRegistry;
+        })
+        it("new Function()", function(){
+            var fn = new Function("return 'hi'")
+            expect(fn().value).toBe("hi")
+            // 3 because we have the original code, compiled code, and source map
+            expect(window.dynamicCodeRegistry.register).toHaveBeenCalledTimes(3)
+        })
 
-    it("Processes code when it's added to a script tag with .textContent", function(){
-        spyOn(window, "f__StringLiteral")
-        var dynamicFileCountBefore = Object.keys(window.fromJSDynamicFiles).length
+        it("eval", function(){
+            spyOn(window, "f__StringLiteral")
+            eval("a = 'Hello'")
+            expect(window.f__StringLiteral).toHaveBeenCalled()
+            expect(window.dynamicCodeRegistry.register).toHaveBeenCalledTimes(3)
+        })
 
-        var el = document.createElement("script")
-        // It's an imperfect solution, but it sorta works for now
-        // Would be bad if the inspected app would try to read the
-        // textContent later for example
-        el.textContent = "a = 'Hello'"
-        document.body.appendChild(el)
-        expect(window.f__StringLiteral).toHaveBeenCalled()
-        var dynamicFileCountAfter = Object.keys(window.fromJSDynamicFiles).length
-        expect(dynamicFileCountAfter - dynamicFileCountBefore).toBe(3)
-    })
+        it("Script tag textContent", function(){
+            spyOn(window, "f__StringLiteral")
 
-    it("Processes code when it's added to a script tag with .text", function(){
-        spyOn(window, "f__StringLiteral")
-        var dynamicFileCountBefore = Object.keys(window.fromJSDynamicFiles).length
+            var el = document.createElement("script")
+            // It's an imperfect solution, but it sorta works for now
+            // Would be bad if the inspected app would try to read the
+            // textContent later for example
+            el.textContent = "a = 'Hello'"
+            document.body.appendChild(el)
+            expect(window.f__StringLiteral).toHaveBeenCalled()
+            expect(window.dynamicCodeRegistry.register).toHaveBeenCalledTimes(3)
+        })
 
-        var el = document.createElement("script")
-        el.text = "a = 'Hello'"
-        document.body.appendChild(el)
-        expect(window.f__StringLiteral).toHaveBeenCalled()
-        var dynamicFileCountAfter = Object.keys(window.fromJSDynamicFiles).length
-        expect(dynamicFileCountAfter - dynamicFileCountBefore).toBe(3)
+        it("Script tag text", function(){
+            spyOn(window, "f__StringLiteral")
+
+            var el = document.createElement("script")
+            el.text = "a = 'Hello'"
+            document.body.appendChild(el)
+            expect(window.f__StringLiteral).toHaveBeenCalled()
+            expect(window.dynamicCodeRegistry.register).toHaveBeenCalledTimes(3)
+        })
+
     })
 
     it("Doesn't break assigning textContent directly to text nodes", function(){

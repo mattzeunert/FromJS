@@ -11,16 +11,15 @@ if (isMobile() && location.href.indexOf("/react-") !== -1){
 import {makeSureInitialHTMLHasBeenProcessed} from "./tracing/processElementsAvailableOnInitialLoad"
 import {enableTracing, disableTracing} from "./tracing/tracing"
 import {addBabelFunctionsToGlobalObject} from "./tracing/babelFunctions"
-import saveAndSerializeDOMState from "./ui/saveAndSerializeDOMState"
-import initSerializedDataPage from "./ui/initSerializedDataPage"
 import {initializeSidebarContent, showShowFromJSInspectorButton} from "./ui/showFromJSSidebar"
 import $ from "jquery"
 import isMobile from "./isMobile"
 import createResolveFrameWorker from "./createResolveFrameWorker"
 import sendMessageToBackgroundPage from "./sendMessageToBackgroundPage"
+import DynamicCodeRegistry from "./DynamicCodeRegistry"
 
 
-window.saveAndSerializeDOMState = saveAndSerializeDOMState
+window.dynamicCodeRegistry = new DynamicCodeRegistry()
 
 addBabelFunctionsToGlobalObject();
 
@@ -45,8 +44,6 @@ resolveFrameWorker.on("fetchUrl", function(url, cb){
         r.send();
     }
 })
-
-
 
 if (document.readyState === "complete") {
     setTimeout(onReady, 0)
