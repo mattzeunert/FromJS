@@ -242,9 +242,6 @@ export default function showFromJSSidebar(resolveFrameWorker){
         ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
     }
 
-
-
-    resolveFrameWorker.send("registerDynamicFiles", fromJSDynamicFiles, function(){})
     enableTracing();
 }
 

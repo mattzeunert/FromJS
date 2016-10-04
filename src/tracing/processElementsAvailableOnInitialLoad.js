@@ -27,8 +27,8 @@ export default function processElementsAvailableOnInitialLoad(){
 
     var originalHtml = window.fromJSInitialPageHtml
 
-    fromJSDynamicFiles[htmlFilename] = window.fromJSInitialPageHtml
-    fromJSDynamicFiles[htmlFilename + ".dontprocess"] = window.fromJSInitialPageHtml
+    dynamicCodeRegistry.register(htmlFilename, window.fromJSInitialPageHtml)
+    dynamicCodeRegistry.register(htmlFilename + ".dontprocess", window.fromJSInitialPageHtml)
 
     var originalHtmlHasBodyTag = /<body.*>/.test(originalHtml)
     var bodyContentAndAfter, bodyContent;
