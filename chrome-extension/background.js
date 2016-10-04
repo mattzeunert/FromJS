@@ -386,6 +386,8 @@ function request(url, session){
             mimeType: "application/javascript"
         }
     }
+
+    return {};
 }
 
 function beautifyJS(code){
