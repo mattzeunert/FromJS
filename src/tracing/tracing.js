@@ -12,9 +12,6 @@ import endsWith from "ends-with"
 import toString from "../untracedToString"
 import {getScriptElements} from "../getJSScriptTags"
 
-window.fromJSDynamicFiles = {}
-window.fromJSDynamicFileOrigins = {}
-
 var tracingEnabled = false;
 
 // This code does both window.sth and var sth because I've been inconsistent in the past, not because it's good...
@@ -917,7 +914,7 @@ export function enableTracing(){
 
         script.remove();
 
-        registerDynamicFile(filename, code, evalCode, res.map)
+        registerDynamicFile(filename, code, evalCode, res.map, "Dynamic Function")
 
         return function(){
             return window[fnName].apply(this, arguments)
@@ -925,18 +922,18 @@ export function enableTracing(){
     }
     window.Function.prototype = nativeFunction.prototype
 
-    function registerDynamicFile(filename, code, evalCode, sourceMap){
+    function registerDynamicFile(filename, code, evalCode, sourceMap, actionName){
         var smFilename = filename + ".map"
         code = trackStringIfNotTracked(code)
 
-        fromJSDynamicFiles[smFilename] = sourceMap
-        fromJSDynamicFiles[filename] = evalCode
-        fromJSDynamicFiles[filename + ".dontprocess"] = code.value
-        fromJSDynamicFileOrigins[filename + ".dontprocess"] = new Origin({
-            action: "Dynamic Script",
+        dynamicCodeRegistry.register(smFilename, sourceMap)
+        dynamicCodeRegistry.register(filename, evalCode)
+        var codeOrigin = new Origin({
+            action: actionName === undefined ? "Dynamic Script" : actionName,
             value: code.value,
             inputValues: [code.origin]
         })
+        dynamicCodeRegistry.register(filename + ".dontprocess", code.value, codeOrigin)
     }
 
     document.write = function(str){

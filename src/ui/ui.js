@@ -217,15 +217,19 @@ class OriginPathItem extends React.Component {
                 {uiFilename}
             </a>
         }
-        if (this.state.resolvedFrame && fileIsDynamicCode(this.state.resolvedFrame.fileName)){
-            viewSourceOriginButton = <button
-                className="fromjs-btn-link fromjs-origin-path-step__only-show-on-step-hover"
-                onClick={
-                    () => this.props.handleValueSpanClick(fromJSDynamicFileOrigins[this.state.resolvedFrame.fileName], 0)
-                }>
-                Show Source Origin
-            </button>
-        }
+
+        // This isn't a crucial feature... you can just click on the origin inside the path
+        // I disabled this feature because the fromJSDynamicFileOrigins is not available in the
+        // inspector iframe,
+        // if (this.state.resolvedFrame && fileIsDynamicCode(this.state.resolvedFrame.fileName)){
+        //     viewSourceOriginButton = <button
+        //         className="fromjs-btn-link fromjs-origin-path-step__only-show-on-step-hover"
+        //         onClick={
+        //             () => this.props.handleValueSpanClick(fromJSDynamicFileOrigins[this.state.resolvedFrame.fileName], 0)
+        //         }>
+        //         Show Source Origin
+        //     </button>
+        // }
 
         var stack = null;
         var originPathItem = this.props.originPathItem;

@@ -260,7 +260,7 @@ function goUp(step, resolveFrameWorker, callback){
                     characterIndex += adjustColumnForEscapeSequences(contentFromThisLine, step.characterIndex)
 
                     callback({
-                        origin: fromJSDynamicFileOrigins[frame.fileName],
+                        origin: dynamicCodeRegistry.getOrigin(frame.fileName),
                         characterIndex
                     })
                 })
