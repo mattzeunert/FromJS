@@ -10,7 +10,7 @@ Understand JavaScript apps. See the code for responsible for every character on 
 
 [FromJS Chrome Extension (Beta)](https://chrome.google.com/webstore/detail/fromjs/hjkhdaoomfphjmffaklelpmkllfbjjfd)
 
-FromJS won't currently work on most sites. Here are a few example apps you can try though:
+FromJS won't currently work on most sites. Here are a few example apps that work pretty well:
 
 [React TodoMVC](http://todomvc.com/examples/react/#/)  
 [Backbone TodoMVC](http://todomvc.com/examples/backbone/)  
@@ -22,12 +22,6 @@ FromJS won't currently work on most sites. Here are a few example apps you can t
 
 Make sure the page finishes loading before you try to inspect it. (This is bad UX, I'll try to improve it.)
 
-## Install From NPM
-
-`npm install -g fromjs-cli`, then run `fromjs` in the command line and open [localhost:7500](http://localhost:7500/).
-
-Then open a static HTML file from there.
-
-## Contribute and build FromJS locally
+## Contribute
 
 Check out the [Contributing.md](https://github.com/mattzeunert/FromJS/blob/master/CONTRIBUTING.md) file.
