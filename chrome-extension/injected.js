@@ -50,6 +50,7 @@ window.onFromJSReady = function(){
     function loadBody(){
         document.body.innerHTML = headAndBody.bodyContent
         makeSureInitialHTMLHasBeenProcessed()
+        window.extensionShowFromJSInspectorButton()
         appendScriptsOneAfterAnother(bodyScripts, document.body, function(){
             simulateOnLoad()
         })

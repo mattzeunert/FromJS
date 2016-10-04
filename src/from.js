@@ -60,6 +60,9 @@ if (document.readyState === "complete") {
     })
 }
 
+window.extensionShowFromJSInspectorButton = function(){
+    showShowFromJSInspectorButton(resolveFrameWorker)
+}
 
 function onReady(){
     // hook for Chrome Extension to proceed when FromJS has been set up
@@ -68,5 +71,9 @@ function onReady(){
         window.onFromJSReady();
     }
 
-    showShowFromJSInspectorButton(resolveFrameWorker)
+    // extension replaces body html after head has loaded, so wait until that
+    // has been done before showing the button
+    if (!window.isExtension) {
+        showShowFromJSInspectorButton(resolveFrameWorker)
+    }
 }
