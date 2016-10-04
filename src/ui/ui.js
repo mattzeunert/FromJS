@@ -599,7 +599,7 @@ class TextEl extends React.Component {
                     var chunks = line.splitAtCharIndex(highlightedCharIndex)
 
                     var textBeforeHighlight = chunks[0].text
-                    if (textBeforeHighlight.length > 40 && self.state.truncateText) {
+                    if (textBeforeHighlight.length > 50 && self.state.truncateText) {
                         var textA = textBeforeHighlight.slice(0, 40)
                         var textB = textBeforeHighlight.slice(textBeforeHighlight.length - 10)
                         valueSpans = [
