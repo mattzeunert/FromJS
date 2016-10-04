@@ -164,20 +164,29 @@ Origin.prototype.getStackFrames = function(){
 }
 
 Origin.prototype.serialize = function(){
+    return this._serialize();
+}
+
+Origin.prototype._serialize = function(shallow){
     var serialized = {...this}
     if (!serialized.inputValues) {
         serialized.inputValues = [];
     }
 
-    serialized.inputValues =  serialized.inputValues.map(function(inputValue){
-        inputValue = {...inputValue}
+    if (shallow) {
         // prevent tree from sprawling arbitrarily deep
-        inputValue.inputValues = [];
+        serialized.inputValues = [];
         // Some input values can be elements, (which is wrong and should change at some point)
         // but for now avoid passing elements on to iframe.
-        inputValue.__elOrigin = undefined
-        return inputValue
-    })
+        serialized.__elOrigin = null;
+    } else {
+        serialized.inputValues = serialized.inputValues.filter(function(iv){
+            return iv instanceof Origin;
+        })
+        serialized.inputValues = serialized.inputValues.map(function(inputValue){
+            return inputValue._serialize(true)
+        })
+    }
 
     serialized.stack = this.getStackFrames();
     serialized.id = this.getId();
