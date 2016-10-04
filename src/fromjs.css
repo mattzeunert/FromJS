@@ -165,6 +165,7 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     padding-right: 2px;
     color: #08f;
     cursor: pointer;
+    outline: none;
 }
 #fromjs .fromjs-origin-path-step__stack-frame-selector-toggle:hover {
     color: red
