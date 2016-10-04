@@ -180,12 +180,12 @@ function goUp(step, resolveFrameWorker, callback){
 
     } else if (step.origin.action === "Replace Call" ||
         step.origin.action === "Slice Call" ||
-        step.origin.action === "Substr Call"
+        step.origin.action === "Substr Call" ||
+        step.origin.action === "Substring Call"
             ) {
         var valueMap = ValueMap.deserialize(step.origin.valueItems, step.origin.inputValues)
         ret = valueMap.getItemAt(step.characterIndex)
-    }
-    else if (step.origin.action === "JSON.parse"){
+    } else if (step.origin.action === "JSON.parse"){
         if (step.origin.inputValues.length === 1) {
             ret = {
                 origin: step.origin.inputValues[0],
