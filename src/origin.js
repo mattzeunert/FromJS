@@ -1,5 +1,5 @@
 import _ from "underscore"
-import untracedToString from "./untracedToString"
+import toString from "./untracedToString"
 
 export default function Origin(opts){
     var error = opts.error;
@@ -9,7 +9,7 @@ export default function Origin(opts){
     }
 
     this.action = opts.action;
-    this.value = ensureValueIsString(opts.value)
+    this.value = toString(opts.value)
     this.error = error;
 
     if (opts.inputValues.length > 0) {
@@ -38,22 +38,6 @@ export default function Origin(opts){
     if (opts.valueItems) {
         this.valueItems = opts.valueItems
     }
-}
-
-function ensureValueIsString(value){
-    if (typeof value === "number") {
-        value = window.nativeNumberToString.call(value)
-    } else {
-        value = value.toString();
-
-        if (typeof value !== "string") {
-            // not sure exactly when this happens, something like
-            // this maybe?
-            // a = [[333], 55] + [444]
-            value = value.toString();
-        }
-    }
-    return value;
 }
 
 function getUsableInputValue(inputValue, error){
