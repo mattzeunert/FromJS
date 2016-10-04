@@ -442,7 +442,7 @@ class ValueEl extends React.Component {
         return <TextEl
             text={val}
             highlightedCharacterIndex={step.characterIndex}
-            onCharacterClick={(charIndex) => this.props.handleValueSpanClick(step.originObject,  charIndex)}
+            onCharacterClick={(charIndex) => this.props.handleValueSpanClick(step.origin,  charIndex)}
         />
     }
 }
@@ -980,6 +980,7 @@ class ElementOriginPath extends React.Component {
                 handleValueSpanClick={(origin, characterIndex) => {
                     this.props.onNonElementOriginSelected()
                     currentInspectedPage.send("UISelectNonElementOrigin")
+
                     this.setState({
                         rootOrigin: origin,
                         characterIndex
