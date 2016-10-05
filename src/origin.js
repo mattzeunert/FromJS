@@ -68,7 +68,7 @@ function getUsableInputValue(inputValue, error){
     }
     if (typeof inputValue === "string") {
         return new Origin({
-            action: "String",
+            action: "Untracked String",
             inputValues: [],
             value: inputValue,
             error: error
