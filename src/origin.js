@@ -140,11 +140,17 @@ Origin.prototype.getStackFrames = function(){
             (frame.indexOf("from.js") !== -1) || frame.indexOf("injected.js") !== -1) {
             return false;
         }
+        if (frame.indexOf("/dist/from.js") !== -1) {
+            return false
+        }
         if (frame.indexOf("/base/src/test-setup.spec.js") !== -1) {
             return false
         }
         if (frame.indexOf("chrome-extension-from-string/from.js") !== -1) {
             return false;
+        }
+        if (frame.indexOf("playground/fromjs/") !== -1) {
+            return false
         }
         if (frame.indexOf("http://localhost:8080/dist/from.js") !== -1) {
             return false;

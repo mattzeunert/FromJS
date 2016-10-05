@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === "production") {
         catchUIErrors: false,
         validateHtmlMapping: false,
         logTracingSteps: false,
-        logReceivedInspectorMessages: false
+        logReceivedInspectorMessages: true
     }
 }
 

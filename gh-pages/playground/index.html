@@ -1,0 +1,69 @@
+---
+layout: default
+---
+<style>
+#result {
+    padding: 10px;
+}
+#info {
+    line-height: 1.3em;
+}
+</style>
+
+<div class="container">
+    <div style="width: 55vw">
+        <p id="please-wait" class="alert alert-info">
+            Loading FromJS code. It's around 5MB.
+        </p>
+
+        <p id="info" style="display: none">
+            The code in the textbox updates the content of the "#result" div, in a way that is
+            tracked by FromJS.<br>
+            You can then inspect the assigned value in the sidebar on the right.
+        </p>
+
+        <div id="result-container"></div>
+        <br>
+        <textarea id="code" style="width: 100%; height: 250px; padding: 10px;font-family: Courier New;">var html = "Hello";
+html += " World!";
+html = html.replace("!", "!!!!");
+document.getElementById("result").innerHTML = html;
+</textarea>
+
+        <script>
+        window.isPlayground = true;
+        </script>
+
+        <link href="fromjs/fromjs.css" rel="stylesheet"></link>
+        <script src="fromjs/from.js"></script>
+
+
+
+        <button class="btn btn-primary" onClick="onClickRunButton()">Run</button>
+    </div>
+</div>
+
+<script>
+
+function runCode(code){
+    window.fromJSEnableTracing();
+    eval(`
+        var resultEl = document.createElement("div")
+        resultEl.setAttribute("id", "result")
+        document.getElementById("result-container").innerHTML = ""
+        document.getElementById("result-container").appendChild(resultEl)
+    `)
+    eval(code)
+    window.fromJSDisableTracing();
+    window.playgroundShowSidebar();
+}
+
+function onClickRunButton(){
+    var code = document.getElementById("code").value
+    runCode(code)
+}
+
+onClickRunButton();
+document.getElementById("please-wait").remove();
+document.getElementById("info").setAttribute("style", "")
+</script>

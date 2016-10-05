@@ -28,14 +28,20 @@ export default function showFromJSSidebar(resolveFrameWorker){
     container.appendChild(container2)
 
     document.body.appendChild(container)
+    var cssUrl = "/fromjs-internals/fromjs.css";
+    var jsUrl = "/fromjs-internals/inspector.js";
+    if (window.isPlayground){
+        cssUrl = "http://localhost:1234/src/fromjs.css"
+        jsUrl = "http://localhost:1234/dist/inspector.js"
+    }
     sidebarIframe.contentDocument.write(`
         <!doctype html>
         <html>
             <head></head>
             <body>
                 <div id='content'>Loading Inspector UI...</div>
-                <link rel="stylesheet" href="/fromjs-internals/fromjs.css">
-                <script src="/fromjs-internals/inspector.js" charset="utf-8"></script>
+                <link rel="stylesheet" href="${cssUrl}">
+                <script src="${jsUrl}" charset="utf-8"></script>
             </body>
         </html>
     `)
@@ -61,9 +67,9 @@ export default function showFromJSSidebar(resolveFrameWorker){
 
     disableEventListeners()
 
-    var inspectedPage = new RoundTripMessageWrapper(sidebarIframe.contentWindow, "Inspected App/Sidebar")
-    inspectedPage.beforePostMessage = disableTracing
-    inspectedPage.afterPostMessage = enableTracing
+    var inspectorPage = new RoundTripMessageWrapper(sidebarIframe.contentWindow, "Inspected App/Sidebar")
+    inspectorPage.beforePostMessage = disableTracing
+    inspectorPage.afterPostMessage = enableTracing
 
     var currentSelectedElement = null;
     var currentPreviewedElement = null;
@@ -106,7 +112,7 @@ export default function showFromJSSidebar(resolveFrameWorker){
     function setCurrentSelectedElement(el){
         currentSelectedElement = el
         nonElementOriginSelected = false;
-        inspectedPage.send("selectElement", serializeElement(el))
+        inspectorPage.send("selectElement", serializeElement(el))
         updateSelectionMarker();
     }
 
@@ -119,23 +125,23 @@ export default function showFromJSSidebar(resolveFrameWorker){
     }
 
 
-    inspectedPage.on("UISelectParentElement", function(){
+    inspectorPage.on("UISelectParentElement", function(){
         var newSelectedEl = currentSelectedElement.parentNode;
         setCurrentSelectedElement(newSelectedEl)
     })
 
-    inspectedPage.on("UISelectNonElementOrigin", function(){
+    inspectorPage.on("UISelectNonElementOrigin", function(){
         nonElementOriginSelected = true;
         updateSelectionMarker();
     })
 
-    inspectedPage.on("UICloseInspector", function(){
+    inspectorPage.on("UICloseInspector", function(){
         disableTracing();
 
         sidebarIframe.remove();
         container.remove();
         showShowFromJSInspectorButton(resolveFrameWorker);
-        inspectedPage.close()
+        inspectorPage.close()
 
         $("body").css("padding-right", "0")
 
@@ -146,12 +152,12 @@ export default function showFromJSSidebar(resolveFrameWorker){
         enableTracing();
     })
 
-    inspectedPage.on("resolveFrame", function(frameString, callback){
+    inspectorPage.on("resolveFrame", function(frameString, callback){
         resolveFrameWorker.send("resolveFrame", frameString, callback)
     })
 
 
-    inspectedPage.on("getRootOriginAtChar", function(elementId, characterIndex, callback){
+    inspectorPage.on("getRootOriginAtChar", function(elementId, characterIndex, callback){
         var el = getElementFromElementId(elementId)
         var initialStep = getRootOriginAtChar(el, characterIndex)
         registerOriginIdsForStep(initialStep)
@@ -198,7 +204,7 @@ export default function showFromJSSidebar(resolveFrameWorker){
         })
     }
 
-    inspectedPage.on("whereDoesCharComeFrom", function(originId, characterIndex, callback){
+    inspectorPage.on("whereDoesCharComeFrom", function(originId, characterIndex, callback){
         disableTracing()
 
         var origin = getOriginById(originId)
@@ -212,7 +218,7 @@ export default function showFromJSSidebar(resolveFrameWorker){
         enableTracing();
     })
 
-    inspectedPage.on("getCodeFilePath", function(fileName, callback){
+    inspectorPage.on("getCodeFilePath", function(fileName, callback){
         getCodeFilePath(fileName, callback, resolveFrameWorker)
     })
 
@@ -238,7 +244,228 @@ export default function showFromJSSidebar(resolveFrameWorker){
     function setCurrentPreviewedElement(el){
         currentPreviewedElement = el
 
-        inspectedPage.send("previewElement", serializeElement(el))
+        inspectorPage.send("previewElement", serializeElement(el))
+        ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
+    }
+
+    enableTracing();
+}
+
+export function showFromJSSidebarOnPlaygroundPage(resolveFrameWorker){
+    disableTracing()
+
+    var container = document.createElement("div")
+    container.className = "fromjs-outer-container"
+
+    var container2 = document.createElement("div")
+    container2.id = "fromjs-sidebar"
+
+    var sidebarIframe = document.createElement("iframe")
+    sidebarIframe.setAttribute("style", "width: 100%; height: 100%; box-shadow: 0px 0px 20px gray;border: none")
+
+    container2.appendChild(sidebarIframe)
+    container.appendChild(container2)
+
+    document.body.appendChild(container)
+    var cssUrl = "/fromjs-internals/fromjs.css";
+    var jsUrl = "/fromjs-internals/inspector.js";
+    if (window.isPlayground){
+        cssUrl = "/playground/fromjs/fromjs.css"
+        jsUrl = "/playground/fromjs/inspector.js"
+    }
+    sidebarIframe.contentDocument.write(`
+        <!doctype html>
+        <html>
+            <head></head>
+            <body>
+                <script>window.disableSelectParentElement = true</script>
+                <div id='content'>Loading Inspector UI...</div>
+                <link rel="stylesheet" href="${cssUrl}">
+                <script src="${jsUrl}" charset="utf-8"></script>
+            </body>
+        </html>
+    `)
+
+    var elementMarkerContainer = document.createElement("div")
+    container.appendChild(elementMarkerContainer)
+
+    var previewElementMarkerContainer = document.createElement("div")
+    elementMarkerContainer.appendChild(previewElementMarkerContainer)
+
+    var selectedElementMarkerContainer = document.createElement("div")
+    elementMarkerContainer.appendChild(selectedElementMarkerContainer)
+
+    function shouldHandle(e) {
+        if ($(e.target).closest("#fromjs-sidebar").length !== 0) {
+            return false
+        }
+        if ($(e.target).is("html, body")) {
+            return false
+        }
+        return true
+    }
+
+    disableEventListeners()
+
+    var inspectorPage = new RoundTripMessageWrapper(sidebarIframe.contentWindow, "Inspected App/Sidebar")
+    inspectorPage.beforePostMessage = disableTracing
+    inspectorPage.afterPostMessage = enableTracing
+
+    var currentSelectedElement = null;
+    var currentPreviewedElement = null;
+    var nonElementOriginSelected = false;
+
+
+
+    if (isMobile()){
+        $("body").css("padding-right", "56vw")
+        $("body").css("padding-left", "1vw")
+        $("#fromjs-sidebar").css("width", "55vw")
+        $("body").addClass("fromjsIsMobile")
+    } else {
+        $("body").css("padding-right", "40vw")
+    }
+
+    function setCurrentSelectedElement(el){
+        currentSelectedElement = el
+        nonElementOriginSelected = false;
+        inspectorPage.send("selectElement", serializeElement(el))
+        updateSelectionMarker();
+    }
+
+    function updateSelectionMarker(){
+        if (!nonElementOriginSelected) {
+            ReactDOM.render(<SelectedElementMarker el={currentSelectedElement}/>, selectedElementMarkerContainer)
+        } else {
+            selectedElementMarkerContainer.innerHTML = "";
+        }
+    }
+
+
+    inspectorPage.on("UISelectParentElement", function(){
+        var newSelectedEl = currentSelectedElement.parentNode;
+        setCurrentSelectedElement(newSelectedEl)
+    })
+
+    inspectorPage.on("UISelectNonElementOrigin", function(){
+        nonElementOriginSelected = true;
+        updateSelectionMarker();
+    })
+
+    inspectorPage.on("UICloseInspector", function(){
+        disableTracing();
+
+        sidebarIframe.remove();
+        container.remove();
+        showShowFromJSInspectorButton(resolveFrameWorker);
+        inspectorPage.close()
+
+        $("body").css("padding-right", "0")
+
+        enableEventListeners();
+        $("body").off("click.fromjs")
+        $("*").off("mouseleave.fromjs mouseenter.fromjs keydown.fromjs")
+
+        enableTracing();
+    })
+
+    inspectorPage.on("resolveFrame", function(frameString, callback){
+        resolveFrameWorker.send("resolveFrame", frameString, callback)
+    })
+
+    inspectorPage.on("InspectorReady", function(){
+        setCurrentSelectedElement(document.querySelector("#result"))
+    })
+
+
+    inspectorPage.on("getRootOriginAtChar", function(elementId, characterIndex, callback){
+        var el = getElementFromElementId(elementId)
+        var initialStep = getRootOriginAtChar(el, characterIndex)
+        registerOriginIdsForStep(initialStep)
+        initialStep = serializeStep(initialStep)
+        callback(initialStep)
+    })
+
+    function serializeStep(s) {
+        var originObject = s.origin;
+        var isRootOrigin = false;
+        originObject = originObject.serialize();
+        return {
+            characterIndex: s.characterIndex,
+            origin: originObject
+        }
+    }
+
+    // We need to a way to get an origin object by its ID
+    // (which is sent by the inspector UI iframe)
+    // I used to index all origins by id, but that
+    // used a lot of memory
+    var originsById = {}
+    function getOriginById(originId){
+        var origin = originsById[originId]
+        if (!origin) {
+            debugger;
+            console.log("origin not found by id", originId)
+            return
+        }
+        return origin;
+    }
+    function registerOriginIdsForStep(step){
+        // current inconsistent use of originObject/origin
+        var originObject = step.originObject || step.origin;
+
+        originsById[originObject.getId()] = originObject
+        originObject.inputValues.forEach(function(iv){
+            if (!iv.getId) {
+                // Probably an element input value... this will be filtered out by
+                // .serialize later on, so it's never sent to the inspector iframe
+                return iv;
+            }
+            originsById[iv.getId()] = iv
+        })
+    }
+
+    inspectorPage.on("whereDoesCharComeFrom", function(originId, characterIndex, callback){
+        disableTracing()
+
+        var origin = getOriginById(originId)
+
+        whereDoesCharComeFrom([origin, characterIndex], function(steps){
+            steps.forEach(registerOriginIdsForStep)
+            steps = steps.map(serializeStep)
+            callback(steps)
+        }, resolveFrameWorker)
+
+        enableTracing();
+    })
+
+    inspectorPage.on("getCodeFilePath", function(fileName, callback){
+        getCodeFilePath(fileName, callback, resolveFrameWorker)
+    })
+
+    function getElementFromElementId(elementId){
+        return elementsByElementId[elementId]
+    }
+
+    function serializeElement(el) {
+        if (el === null) {
+            return null;
+        }
+        if (!el.__fromJSElementId) {
+            el.__fromJSElementId = _.uniqueId()
+            elementsByElementId[el.__fromJSElementId] = el
+        }
+        return {
+            __fromJSElementId: el.__fromJSElementId,
+            outerHTML: el.outerHTML,
+            innerHTML: el.innerHTML,
+        }
+    }
+
+    function setCurrentPreviewedElement(el){
+        currentPreviewedElement = el
+
+        inspectorPage.send("previewElement", serializeElement(el))
         ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
     }
 

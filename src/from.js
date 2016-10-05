@@ -17,8 +17,9 @@ import isMobile from "./isMobile"
 import createResolveFrameWorker from "./createResolveFrameWorker"
 import sendMessageToBackgroundPage from "./sendMessageToBackgroundPage"
 import DynamicCodeRegistry from "./DynamicCodeRegistry"
+import {showFromJSSidebarOnPlaygroundPage} from "./ui/showFromJSSidebar"
 
-
+window.fromJSVersion = "1.1"
 window.dynamicCodeRegistry = new DynamicCodeRegistry()
 
 addBabelFunctionsToGlobalObject();
@@ -64,6 +65,10 @@ window.extensionShowFromJSInspectorButton = function(){
     showShowFromJSInspectorButton(resolveFrameWorker)
 }
 
+window.playgroundShowSidebar = function(){
+    showFromJSSidebarOnPlaygroundPage(resolveFrameWorker)
+}
+
 function onReady(){
     // hook for Chrome Extension to proceed when FromJS has been set up
     window.fromJSIsReady = true;
@@ -73,7 +78,7 @@ function onReady(){
 
     // extension replaces body html after head has loaded, so wait until that
     // has been done before showing the button
-    if (!window.isExtension) {
+    if (!window.isExtension && !window.isPlayground) {
         showShowFromJSInspectorButton(resolveFrameWorker)
     }
 }
