@@ -564,6 +564,7 @@ class TextEl extends React.Component {
         }
 
         var val = this.props.text
+
         var self = this;
         var highlightedCharIndex = this.props.highlightedCharacterIndex
 
@@ -673,6 +674,10 @@ class TextEl extends React.Component {
         el.scrollTop = lineAtTop * lineHeight;
     }
     disableTruncateText(){
+        if (this.props.text.length > 20000) {
+            alert("Refusing to expand text longer than 20,000 characters. It will just crash your browser.");
+            return
+        }
         this.setState({truncateText: false})
     }
 }
