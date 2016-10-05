@@ -1003,7 +1003,7 @@ class ElementOriginPath extends React.Component {
 
         var showUpButton = typeof this.props.goUpInDOM === "function"
         var upButton = null;
-        if (showUpButton){
+        if (showUpButton && !window.disableSelectParentElement){
             upButton = <div style={{position: "absolute", top: 0, right: 0, border: "1px solid #eee"}}>
                 <button
                     data-tip={"Inspect parent element"}
@@ -1210,6 +1210,9 @@ export class FromJSView extends React.Component {
         }
 
         currentInspectedPage = new RoundTripMessageWrapper(window.parent, "IFrame")
+        setTimeout(function(){
+            currentInspectedPage.send("InspectorReady", function(){})
+        })
 
         currentInspectedPage.on("selectElement", (el) => {
             this.setState({
