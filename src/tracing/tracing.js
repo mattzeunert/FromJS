@@ -94,6 +94,8 @@ var nativeSVGElementStyleDescriptor = Object.getOwnPropertyDescriptor(SVGElement
 var nativeNumberToString = Number.prototype.toString
 window.nativeNumberToString = nativeNumberToString
 
+var nativeNumberToFixed = Number.prototype.toFixed
+
 var nativeStringFunctions = Object.getOwnPropertyNames(String.prototype)
     .map(function(propertyName){
         var value = String.prototype[propertyName];
@@ -594,6 +596,18 @@ export function enableTracing(){
         }
     })
 
+    Number.prototype.toFixed = function(digits){
+        var str = nativeNumberToFixed.call(this, digits);
+        return makeTraceObject({
+            value: str,
+            origin: new Origin({
+                value: str,
+                action: "Number ToFixed",
+                inputValues: [this, digits]
+            })
+        })
+    }
+
     Number.prototype.toString = function trackedNumberToString(radix){
         var str = nativeNumberToString.apply(this, arguments)
         // makeTraceObject uses map which stringifies numbers,
@@ -1028,6 +1042,8 @@ export function disableTracing(){
     Object.prototype.toString = nativeObjectToString
     Number.prototype.toString = nativeNumberToString
     Array.prototype.toString = nativeArrayToString
+
+    Number.prototype.toFixed = nativeNumberToFixed;
 
     window.String = nativeStringObject
 

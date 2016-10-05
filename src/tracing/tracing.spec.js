@@ -459,6 +459,12 @@ describe("Tracing", function(){
         expect(num.origin.action).toBe("Number ToString")
     })
 
+    it("Traces toFixed calls on numbers", function(){
+        var str = (4.27).toFixed(1);
+        expect(str.value).toBe("4.3");
+        expect(str.origin.action).toBe("Number ToFixed")
+    })
+
     it("Returns a string from Array.toString, so browser built-in functions can transparently work with arrays", function(){
         var arr = [1,2]
         var str = arr.toString();
