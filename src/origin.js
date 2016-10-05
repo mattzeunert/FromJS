@@ -192,9 +192,9 @@ Origin.prototype._serialize = function(shallow){
         serialized.inputValues = serialized.inputValues.map(function(inputValue){
             return inputValue._serialize(true)
         })
+        serialized.stack = this.getStackFrames();
     }
 
-    serialized.stack = this.getStackFrames();
     serialized.id = this.getId();
 
     return serialized;
