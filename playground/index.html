@@ -36,11 +36,16 @@ document.getElementById("result").innerHTML = html;
         window.isPlayground = true;
         </script>
 
+        <link rel="stylesheet" href="codemirror/codemirror.css"></link>
+        <script src="codemirror/codemirror.js"></script>
+        <script src="codemirror/javascript.js"></script>
+
+
         <link href="fromjs/fromjs.css" rel="stylesheet"></link>
         <script src="fromjs/from.js"></script>
 
 
-
+        <br>
         <button class="btn btn-primary" onClick="onClickRunButton()">Run</button>
     </div>
 </div>
@@ -71,6 +76,11 @@ if (window.isDesktopChrome) {
 greeting += " World!"
 document.getElementById("result").innerHTML = greeting`
     }
+
+    var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+          mode: "javascript",
+          lineNumbers: true
+        });
 
     onClickRunButton();
     document.getElementById("please-wait").remove();
