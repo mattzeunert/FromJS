@@ -399,6 +399,20 @@ export function enableTracing(){
 
     JSON.parse = function(str, rootStr){
         var parsedVal = nativeJSONParse.apply(this, arguments)
+        if (typeof parsedVal === "string") {
+            return makeTraceObject(
+                {
+                    value: parsedVal,
+                    origin: new Origin({
+                        value: parsedVal,
+                        inputValues: [str],
+                        inputValuesCharacterIndex: 1,
+                        action: "JSON.parse"
+                    })
+                }
+            )
+        }
+
         if (rootStr === undefined) {
             rootStr = str
         }
@@ -414,7 +428,7 @@ export function enableTracing(){
                 typeof value === "boolean" ||
                 typeof value === "number") {
 
-                parsedVal[key] =  makeTraceObject(
+                parsedVal[key] = makeTraceObject(
                     {
                         value: parsedVal[key],
                         origin: new Origin({

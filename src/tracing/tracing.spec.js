@@ -18,6 +18,7 @@ function makeString(str){
     return makeTraceObject({
         value: str,
         origin: {
+            action: "String Literal",
             isFromJSOriginObject: true,
             value: str,
             inputValues: []
@@ -85,21 +86,29 @@ describe("Tracing", function(){
         expect(value.origin).not.toBe(undefined);
     });
 
-    it("JSON.parse can parse flat JSON objects", function(){
-        var parsed = JSON.parse({
-            value: '{"hello": "world"}',
-            origin: {
-                action: "Some Action",
-                isFromJSOriginObject: true
-            },
-            toString: function(){
-                return this.value
-            }
+    describe("JSON.parse", function(){
+        it("Can parse flat JSON objects", function(){
+            var parsed = JSON.parse({
+                value: '{"hello": "world"}',
+                origin: {
+                    action: "Some Action",
+                    isFromJSOriginObject: true
+                },
+                toString: function(){
+                    return this.value
+                }
+            })
+            expect(parsed.hello.value).toBe("world")
+            expect(parsed.hello.origin.action).toBe("JSON.parse")
+            expect(parsed.hello.origin.inputValues[0].action).toBe("Some Action")
         })
-        expect(parsed.hello.value).toBe("world")
-        expect(parsed.hello.origin.action).toBe("JSON.parse")
-        expect(parsed.hello.origin.inputValues[0].action).toBe("Some Action")
+        it("Can parse parse stringified strings", function(){
+            var parsed = JSON.parse(makeString('"Hello"'))
+            expect(parsed.value).toBe("Hello")
+            expect(parsed.origin.action).toBe("JSON.parse")
+        })
     })
+
 
     it("JSON.parse can handle arrays in JSON objects", function(){
         var parsed = JSON.parse({
