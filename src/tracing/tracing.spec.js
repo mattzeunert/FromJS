@@ -107,6 +107,10 @@ describe("Tracing", function(){
             expect(parsed.value).toBe("Hello")
             expect(parsed.origin.action).toBe("JSON.parse")
         })
+        it("Can be called with an untracked string", function(){
+            var parsed = JSON.parse('[{"Hello": "World"}]')
+            expect(parsed[0].Hello.value).toBe("World")
+        })
     })
 
 

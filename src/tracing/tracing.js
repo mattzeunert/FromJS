@@ -399,6 +399,8 @@ export function enableTracing(){
 
     JSON.parse = function(str, rootStr){
         var parsedVal = nativeJSONParse.apply(this, arguments)
+        str = trackStringIfNotTracked(str)
+
         if (typeof parsedVal === "string") {
             return makeTraceObject(
                 {
