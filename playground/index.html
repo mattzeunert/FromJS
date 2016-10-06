@@ -67,6 +67,12 @@ function onClickRunButton(){
 }
 
 if (window.isDesktopChrome) {
+    if (location.hash === "#how-fromjs-works") {
+        document.getElementById("code").value = `var greeting = "Hello"
+greeting += " World!"
+document.getElementById("result").innerHTML = greeting`
+    }
+
     onClickRunButton();
     document.getElementById("please-wait").remove();
     document.getElementById("info").setAttribute("style", "")
