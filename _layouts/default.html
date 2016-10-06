@@ -21,6 +21,19 @@
                 /* color: #08f ; */
             }
         </style>
+        <script>
+            (function(){
+                var userAgent = navigator.userAgent;
+                var isMobile = userAgent.match(/iPhone|iPad|IEMobile|Android/);
+                var isChrome = navigator.vendor === "Google Inc." && userAgent.indexOf("Chrome") !== -1;
+                var isDesktopChrome = !isMobile && isChrome
+                window.isDesktopChrome = isDesktopChrome
+
+                var className = isDesktopChrome ? "isDesktopChrome" : "isNotDesktopChrome"
+
+                document.body.className = className
+            })()
+        </script>
 
 
         <div class="jumbotron">
