@@ -213,7 +213,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 if (start < 0){
                     start = oldString.length + start
                 }
-                var length = args[1]
+                let length = args[1]
                 if (length === undefined){
                     length = oldString.length - start;
                 }
@@ -234,11 +234,10 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     end = 0;
                 }
 
-                newVal = oldString.substring(start, length)
+                newVal = oldString.substring(start, end)
                 var valueMap = new ValueMap()
                 valueMap.appendString(newVal, oldValue.origin, start)
                 valueItems = valueMap.serialize(inputValues)
-
             } else if (propertyName === "match") {
                 var regExp = args[0]
                 if (regExp.global) {

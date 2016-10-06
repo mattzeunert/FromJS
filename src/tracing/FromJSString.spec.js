@@ -52,6 +52,17 @@ describe("FromJSString", function(){
         expect(str.origin.action).toBe("Substr Call")
     })
 
+    it("Supports susbtring calls", function(){
+        var str = makeTraceObject({
+            value: "01234",
+            origin: {}
+        })
+
+        str = str.substring(1,4)
+        expect(str.value).toBe("123")
+        expect(str.origin.action).toBe("Substring Call")
+    })
+
     it("Shows the native string object as the traced string constructor", function(){
         var str = makeTraceObject({
             value: "Hello",
