@@ -66,7 +66,7 @@ function runCode(code){
 }
 
 function onClickRunButton(){
-    var code = document.getElementById("code").value
+    var code = editor.getValue()
     runCode(code)
 }
 
@@ -78,9 +78,9 @@ document.getElementById("result").innerHTML = greeting`
     }
 
     var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-          mode: "javascript",
-          lineNumbers: true
-        });
+      mode: "javascript",
+      lineNumbers: true
+    });
 
     onClickRunButton();
     document.getElementById("please-wait").remove();
