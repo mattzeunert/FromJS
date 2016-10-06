@@ -94283,7 +94283,7 @@
 	
 	    var inspectorPage = new _RoundTripMessageWrapper2.default(sidebarIframe.contentWindow, "Inspected App/Sidebar");
 	    inspectorPage.beforePostMessage = _tracing.disableTracing;
-	    inspectorPage.afterPostMessage = _tracing.enableTracing;
+	    // inspectorPage.afterPostMessage = enableTracing
 	
 	    var currentSelectedElement = null;
 	    var currentPreviewedElement = null;

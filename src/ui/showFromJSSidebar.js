@@ -297,7 +297,7 @@ export function showFromJSSidebarOnPlaygroundPage(resolveFrameWorker){
 
     var inspectorPage = new RoundTripMessageWrapper(sidebarIframe.contentWindow, "Inspected App/Sidebar")
     inspectorPage.beforePostMessage = disableTracing
-    inspectorPage.afterPostMessage = enableTracing
+    // inspectorPage.afterPostMessage = enableTracing
 
     var currentSelectedElement = null;
     var currentPreviewedElement = null;
