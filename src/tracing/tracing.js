@@ -113,12 +113,16 @@ export function runFunctionWithTracingDisabled(fn){
     if (tracingEnabledAtStart) {
         disableTracing();
     }
-    var ret = fn();
-    if (tracingEnabledAtStart) {
-        enableTracing();
+    try {
+        var ret = fn();
+    } finally {
+        if (tracingEnabledAtStart) {
+            enableTracing();
+        }
     }
     return ret
 }
+
 
 function processJavaScriptCodeWithTracingDisabled(){
     var args = arguments
@@ -140,6 +144,11 @@ export function disableEventListeners(){
 function isTracedString(val){
     return !!val && val.isStringTraceString;
 }
+
+window.__forDebuggingIsTracingEnabled = function(){
+    return tracingEnabled
+}
+
 
 export function enableTracing(){
     if (tracingEnabled){
