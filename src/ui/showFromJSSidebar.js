@@ -30,10 +30,6 @@ export default function showFromJSSidebar(resolveFrameWorker){
     document.body.appendChild(container)
     var cssUrl = "/fromjs-internals/fromjs.css";
     var jsUrl = "/fromjs-internals/inspector.js";
-    if (window.isPlayground){
-        cssUrl = "http://localhost:1234/src/fromjs.css"
-        jsUrl = "http://localhost:1234/dist/inspector.js"
-    }
     sidebarIframe.contentDocument.write(`
         <!doctype html>
         <html>
@@ -267,12 +263,8 @@ export function showFromJSSidebarOnPlaygroundPage(resolveFrameWorker){
     container.appendChild(container2)
 
     document.body.appendChild(container)
-    var cssUrl = "/fromjs-internals/fromjs.css";
-    var jsUrl = "/fromjs-internals/inspector.js";
-    if (window.isPlayground){
-        cssUrl = "/playground/fromjs/fromjs.css"
-        jsUrl = "/playground/fromjs/inspector.js"
-    }
+    var cssUrl = "/playground/fromjs/fromjs.css";
+    var jsUrl = "/playground/fromjs/inspector.js"
     sidebarIframe.contentDocument.write(`
         <!doctype html>
         <html>
