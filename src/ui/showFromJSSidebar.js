@@ -295,18 +295,6 @@ export function showFromJSSidebarOnPlaygroundPage(resolveFrameWorker){
     var selectedElementMarkerContainer = document.createElement("div")
     elementMarkerContainer.appendChild(selectedElementMarkerContainer)
 
-    function shouldHandle(e) {
-        if ($(e.target).closest("#fromjs-sidebar").length !== 0) {
-            return false
-        }
-        if ($(e.target).is("html, body")) {
-            return false
-        }
-        return true
-    }
-
-    disableEventListeners()
-
     var inspectorPage = new RoundTripMessageWrapper(sidebarIframe.contentWindow, "Inspected App/Sidebar")
     inspectorPage.beforePostMessage = disableTracing
     inspectorPage.afterPostMessage = enableTracing
