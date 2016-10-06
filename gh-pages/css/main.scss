@@ -5,3 +5,10 @@
 .youtube-embed {
     max-width: 100%;
 }
+
+.isDesktopChrome .hide-on-desktop-chrome {
+    display: none;
+}
+body:not(.isDesktopChrome) .desktop-chrome-only {
+    display: none;
+}

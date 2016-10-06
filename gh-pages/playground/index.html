@@ -11,7 +11,10 @@ layout: default
 </style>
 
 <div class="container">
-    <div style="width: 55vw">
+    <div class="alert alert-danger hide-on-desktop-chrome">
+        Unfortunately the playground only works on Chrome Desktop.
+    </div>
+    <div style="width: 55vw" class='desktop-chrome-only'>
         <p id="please-wait" class="alert alert-info">
             Loading FromJS code. It's around 5MB.
         </p>
@@ -63,7 +66,9 @@ function onClickRunButton(){
     runCode(code)
 }
 
-onClickRunButton();
-document.getElementById("please-wait").remove();
-document.getElementById("info").setAttribute("style", "")
+if (window.isDesktopChrome) {
+    onClickRunButton();
+    document.getElementById("please-wait").remove();
+    document.getElementById("info").setAttribute("style", "")
+}
 </script>
