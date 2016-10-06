@@ -18,7 +18,8 @@ FromJS won't currently work on most sites. Here are a few example apps that work
 [VanillaJS TodoMVC](http://todomvc.com/examples/vanillajs/)  
 [React Font Picker](https://andreasur.github.io/react-font-picker/)  
 [D3 Hexagonal Binning](http://bl.ocks.org/mbostock/raw/4248145/)  
-[React Examples](https://github.com/ruanyf/react-demos)
+[React Examples](https://github.com/ruanyf/react-demos)  
+[UK Employment Data](http://www.mattzeunert.com/uk-employment)
 
 ## Contribute
 
