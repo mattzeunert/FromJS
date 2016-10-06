@@ -15,6 +15,7 @@ Measured manually with DevTools closed, memory info taken from Chrome task manag
 
 
                         Backbone    React   BB Memory   React Memory
+8ba69dc 06 Oct 2016     3.4s        13.1s   179MB       367MB
 4e925b1 03 Oct 2016     2.6s        13.5s   166MB       364MB
 d866468 28 Sep 2016     2.6s        12.4s   166MB       351MB
 27b2a8e 26 Sep 2016     2.6s        12.3s   172MB       416MB
