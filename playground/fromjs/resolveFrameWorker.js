@@ -3552,7 +3552,7 @@
 
 /***/ },
 
-/***/ 826:
+/***/ 824:
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3754,7 +3754,7 @@
 	
 	var _resolveFrame2 = _interopRequireDefault(_resolveFrame);
 	
-	var _RoundTripMessageWrapper = __webpack_require__(826);
+	var _RoundTripMessageWrapper = __webpack_require__(824);
 	
 	var _RoundTripMessageWrapper2 = _interopRequireDefault(_RoundTripMessageWrapper);
 	
