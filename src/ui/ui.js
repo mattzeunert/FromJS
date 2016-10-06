@@ -1172,7 +1172,7 @@ class Intro extends React.Component {
             {notChromeMessage}
             <h2>What is this?</h2>
             <p>
-                FromJS helps you understand how an app works and how its UI relates to the source code.
+                FromJS helps you understand how an app works by showing how its UI relates to the source code.
             </p>
             <p>
                 Select a DOM element on the left to see where its
@@ -1185,8 +1185,7 @@ class Intro extends React.Component {
             </h2>
             <p>
                 Sometimes it works, but most of the time it doesn{"'"}t. I{"'"}m slowly trying to support more
-                JS functionality. I{"'"}m also working on a
-                Chrome extension to make it easier to run FromJS on any page.
+                JS functionality.
             </p>
 
             <p>
