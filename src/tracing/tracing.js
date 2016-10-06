@@ -264,7 +264,8 @@ export function enableTracing(){
         self.xhr = new originalXMLHttpRequest()
         this.open = function(){
             self.xhr.onreadystatechange = function(e){
-                if (self.xhr.readyState === originalXMLHttpRequest.DONE) {
+                var isDone = self.xhr.readyState === originalXMLHttpRequest.DONE;
+                if (isDone) {
                     Object.defineProperty(self, "responseText", {
                         get: function(){
                             return makeTraceObject({
@@ -277,16 +278,16 @@ export function enableTracing(){
                             })
                         }
                     })
+                }
 
-                    if (self.onreadystatechange) {
-                        self.onreadystatechange(e)
-                    }
+                if (self.onreadystatechange) {
+                    self.onreadystatechange(e)
+                }
 
+                if (isDone){
                     if (self.onload){
                         self.onload()
                     }
-                } else {
-                    console.log("Ignoring Ajax State Change")
                 }
             }
             this.xhr.open.apply(self.xhr, arguments)
