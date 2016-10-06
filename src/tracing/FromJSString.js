@@ -231,7 +231,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     start = 0;
                 }
                 if (end < 0 || isNaN(end)) {
-                    end = 0;
+                    end = oldString.length;
                 }
 
                 newVal = oldString.substring(start, end)

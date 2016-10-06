@@ -41,26 +41,44 @@ describe("FromJSString", function(){
         expect(char).toBe("H")
     })
 
-    it("Supports substr calls", function(){
-        var str = makeTraceObject({
-            value: "Hello",
-            origin: {}
-        })
+    describe("substr", function(){
+        it("Supports calls with one parameter", function(){
+            var str = makeString("Hello")
 
-        str = str.substr(1)
-        expect(str.value).toBe("ello")
-        expect(str.origin.action).toBe("Substr Call")
+            str = str.substr(1)
+            expect(str.value).toBe("ello")
+            expect(str.origin.action).toBe("Substr Call")
+        })
+        it("Supports calls with one parameter", function(){
+            var str = makeString("Hello")
+
+            str = str.substr(1, 2)
+            expect(str.value).toBe("el")
+            expect(str.origin.action).toBe("Substr Call")
+        })
     })
 
-    it("Supports susbtring calls", function(){
-        var str = makeTraceObject({
-            value: "01234",
-            origin: {}
-        })
+    describe("substring", function(){
+        it("Supports calls with two parameters", function(){
+            var str = makeTraceObject({
+                value: "01234",
+                origin: {}
+            })
 
-        str = str.substring(1,4)
-        expect(str.value).toBe("123")
-        expect(str.origin.action).toBe("Substring Call")
+            str = str.substring(1,4)
+            expect(str.value).toBe("123")
+            expect(str.origin.action).toBe("Substring Call")
+        })
+        it("Supports susbtring calls without a second parameter", function(){
+            var str = makeTraceObject({
+                value: "01234",
+                origin: {}
+            })
+
+            str = str.substring(1)
+            expect(str.value).toBe("1234")
+            expect(str.origin.action).toBe("Substring Call")
+        })
     })
 
     it("Shows the native string object as the traced string constructor", function(){
