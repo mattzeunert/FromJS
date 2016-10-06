@@ -1,8 +1,8 @@
 {
   "name": "FromJS",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "manifest_version": 2,
-  "description": "View where each character on the screen came from in code.",
+  "description": "See where each character on the screen came from in code.",
   "minimum_chrome_version": "50.0",
   "background": {
     "scripts": ["background.js"]
