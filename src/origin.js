@@ -83,6 +83,10 @@ function getUsableInputValue(inputValue, error){
         })
     }
     if (typeof inputValue === "object") {
+        if (inputValue.toString !== Object.prototype.toString) {
+            inputValue = inputValue.toString();
+            return getUsableInputValue(inputValue, error)
+        }
         return new Origin({
             action: "Object",
             inputValues: [],
