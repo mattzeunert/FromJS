@@ -25,14 +25,27 @@ describe("processJavaScriptCode", function(){
         expect(eval(code)).toBe(false)
     })
 
-    it("Supports for loop conditions that don't return a boolean", function(){
+    it("Supports for loop conditions that return a string", function(){
         var code = `
-            var wasInFunctionBody = false;
+            var wasInBody = false;
             for (var a=0; "";) {
-                wasInFunctionBody = true;
+                wasInBody = true;
                 break;
             }
-            wasInFunctionBody;
+            wasInBody;
+        `
+        code = processJavaScriptCode(code).code;
+        expect(eval(code)).toBe(false)
+    })
+
+    it("Supports while loop conditions that return a string", function(){
+        var code = `
+            var wasInBody = false;
+            while ("") {
+                wasInBody = true;
+                break;
+            }
+            wasInBody;
         `
         code = processJavaScriptCode(code).code;
         expect(eval(code)).toBe(false)
