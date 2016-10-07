@@ -25,6 +25,45 @@ describe("processJavaScriptCode", function(){
         expect(eval(code)).toBe(false)
     })
 
+    it("Supports for loop conditions that return a string", function(){
+        var code = `
+            var wasInBody = false;
+            for (var a=0; "";) {
+                wasInBody = true;
+                break;
+            }
+            wasInBody;
+        `
+        code = processJavaScriptCode(code).code;
+        expect(eval(code)).toBe(false)
+    })
+
+    it("Supports for loops that don't have a condition", function(){
+        var code = `
+            var wasInBody = false;
+            for (var a=0;;) {
+                wasInBody = true;
+                break;
+            }
+            wasInBody;
+        `
+        code = processJavaScriptCode(code).code;
+        expect(eval(code)).toBe(true)
+    })
+
+    it("Supports while loop conditions that return a string", function(){
+        var code = `
+            var wasInBody = false;
+            while ("") {
+                wasInBody = true;
+                break;
+            }
+            wasInBody;
+        `
+        code = processJavaScriptCode(code).code;
+        expect(eval(code)).toBe(false)
+    })
+
     it("Replaces division with f__divide", function(){
         var code = "1/2";
         code = processJavaScriptCode(code).code

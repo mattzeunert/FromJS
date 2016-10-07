@@ -143,6 +143,7 @@ class FromJSSession {
 
                 this._sourceMaps[url + ".map"] = JSON.stringify(res.map)
             } catch (err) {
+                debugger
                 console.error("Error processing JavaScript code in " + url, err)
                 code = "console.error('FromJS couldn\\'t process JavaScript code " + url + "', '" + err.toString() + "', `" + err.stack + "`)"
             }

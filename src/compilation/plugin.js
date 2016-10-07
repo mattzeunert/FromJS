@@ -155,6 +155,14 @@ module.exports = function(babel) {
               }
          })
       },
+      ForStatement(path){
+          if (path.node.test) {
+              path.node.test = babel.types.callExpression(
+                  babel.types.identifier("f__useValue"),
+                  [path.node.test]
+              )
+          }
+      },
       UnaryExpression(path){
 
           if (path.node.operator === "!"){
