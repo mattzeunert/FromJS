@@ -25,6 +25,19 @@ describe("processJavaScriptCode", function(){
         expect(eval(code)).toBe(false)
     })
 
+    it("Supports for loop conditions that don't return a boolean", function(){
+        var code = `
+            var wasInFunctionBody = false;
+            for (var a=0; "";) {
+                wasInFunctionBody = true;
+                break;
+            }
+            wasInFunctionBody;
+        `
+        code = processJavaScriptCode(code).code;
+        expect(eval(code)).toBe(false)
+    })
+
     it("Replaces division with f__divide", function(){
         var code = "1/2";
         code = processJavaScriptCode(code).code
