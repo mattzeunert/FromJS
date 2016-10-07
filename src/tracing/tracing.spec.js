@@ -86,6 +86,8 @@ describe("Tracing", function(){
         expect(value.origin).not.toBe(undefined);
     });
 
+
+
     describe("JSON.parse", function(){
         it("Can parse flat JSON objects", function(){
             var parsed = JSON.parse({
@@ -165,6 +167,13 @@ describe("Tracing", function(){
 
             done();
         }, resolveFrameWorker)
+    })
+
+    it("Eval returns the passed in value if it's not a code string", function(){
+        expect(eval(undefined)).toBe(undefined)
+        expect(eval(12)).toBe(12)
+        expect(eval({})).toEqual({})
+        expect(eval(false)).toBe(false)
     })
 
     describe("Dynamic code processing", function(){

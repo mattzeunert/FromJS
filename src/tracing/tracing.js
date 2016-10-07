@@ -123,7 +123,6 @@ export function runFunctionWithTracingDisabled(fn){
     return ret
 }
 
-
 function processJavaScriptCodeWithTracingDisabled(){
     var args = arguments
     var self = this
@@ -793,6 +792,10 @@ export function enableTracing(){
     })
 
     window.eval = function(code){
+        if (typeof code !== "string" && (!code || !code.isStringTraceString)) {
+            return code
+        }
+
         var id = _.uniqueId();
         var filename = "DynamicScript" + id + ".js"
         var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
