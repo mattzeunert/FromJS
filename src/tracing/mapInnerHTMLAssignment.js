@@ -166,15 +166,35 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                     validateMapping(child.__elOrigin.textValue)
                 } else if (isCommentNode) {
-                    var comment = "<!--" + child.textContent + "-->"
+                    addElOrigin(child, "commentStart", {
+                        action: actionName,
+                        inputValues: [assignedInnerHTML],
+                        inputValuesCharacterIndex: [charOffsetInSerializedHtml],
+                        value: serializedHtml
+                    })
+
+                    charOffsetInSerializedHtml += "<!--".length
+                    forDebuggingProcessedHtml += "<!--";
+
                     addElOrigin(child, "textValue", {
-                        value: comment,
-                        inputValues: [],
-                        action: "HTML Comment",
+                        value: serializedHtml,
+                        inputValues: [assignedInnerHTML],
+                        inputValuesCharacterIndex: [charOffsetInSerializedHtml],
+                        action: actionName,
                         error: error
                     })
-                    charOffsetInSerializedHtml += comment.length;
-                    forDebuggingProcessedHtml += comment;
+                    charOffsetInSerializedHtml += child.textContent.length
+                    forDebuggingProcessedHtml += child.textContent;
+
+                    addElOrigin(child, "commentEnd", {
+                        action: actionName,
+                        inputValues: [assignedInnerHTML],
+                        inputValuesCharacterIndex: [charOffsetInSerializedHtml],
+                        inputValues: [],
+                        value: serializedHtml
+                    })
+                    charOffsetInSerializedHtml += "-->".length
+                    forDebuggingProcessedHtml += "-->";
                 } else if (isElementNode) {
                     addElOrigin(child, "openingTagStart", {
                         action: actionName,

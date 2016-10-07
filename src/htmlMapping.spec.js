@@ -338,6 +338,15 @@ describe("HTML Mapping", function(){
         })
     })
 
+    it("Keeps track of comments", function(){
+        var div = document.createElement("div")
+        var str = "Hi <!-- World -->"
+        div.innerHTML = str
+
+        expect(div.childNodes[1].__elOrigin.commentStart.action).toBe("Assign InnerHTML")
+        expect(div.childNodes[1].__elOrigin.textValue.value).toBe(str)
+    })
+
     it("Doesn't get confused by closed self-closing tags", function(done){
         var el = document.createElement("div")
         el.innerHTML = '<input/>Hello'
