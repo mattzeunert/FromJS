@@ -73,7 +73,7 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
     } else if (item.origin === "innerHTML") {
         var vm = new ValueMap();
         characterIndex -= openingTag.length;
-        el.__elOrigin.contents.forEach(function(el){
+        Array.from(el.childNodes).forEach(function(el){
             var elIsTextNode = el.nodeType === Node.TEXT_NODE
             var elIsCommentNode = el.nodeType === Node.COMMENT_NODE
             if (elIsTextNode) {
