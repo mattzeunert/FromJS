@@ -6,6 +6,7 @@ export default function normalizeHtml(str, tagName){
         str = nativeInnerHTMLDescriptor.get.call(div);
     }
     if (tagName === "NOSCRIPT") {
+        str = str.replace(/\&/g, "&amp;")
         str = str.replace(/</g, "&lt;")
         str = str.replace(/>/g, "&gt;")
     }

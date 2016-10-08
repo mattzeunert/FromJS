@@ -366,6 +366,24 @@ describe("HTML Mapping", function(){
         })
     })
 
+    it("Can handle HTML entities inside NOSCRIPT tags", function(done){
+        var el = document.createElement("noscript")
+        el.innerHTML = '&gt;'
+
+        disableTracing()
+        expect(el.innerHTML).toBe('&amp;gt;')
+
+        // <noscript>&amp;gt;</noscript>
+        var firstStep = getRootOriginAtChar(el, 15);
+
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value[characterIndex]).toBe("g")
+            done()
+        })
+    })
+
     it("Doesn't get confused by closed self-closing tags with an explicit end tag", function(done){
         var el = document.createElement("div")
         el.innerHTML = '<input></input>Hello'
