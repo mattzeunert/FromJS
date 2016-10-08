@@ -29,7 +29,6 @@ button:focus, {
 }
 
 .fromjs-show-inspector-button {
-    z-index: 99999999;
     padding: 10px;
     border: none;
 }
@@ -42,7 +41,7 @@ button:focus, {
     position: fixed;
     top: 0;
     right: 0;
-    z-index: 50;
+    z-index: 999999999999;
 
     color: white;
     line-height: 22px;

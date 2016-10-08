@@ -338,6 +338,15 @@ describe("HTML Mapping", function(){
         })
     })
 
+    it("Keeps track of comments", function(){
+        var div = document.createElement("div")
+        var str = "Hi <!-- World -->"
+        div.innerHTML = str
+
+        expect(div.childNodes[1].__elOrigin.commentStart.action).toBe("Assign InnerHTML")
+        expect(div.childNodes[1].__elOrigin.textValue.value).toBe(str)
+    })
+
     it("Doesn't get confused by closed self-closing tags", function(done){
         var el = document.createElement("div")
         el.innerHTML = '<input/>Hello'
@@ -354,6 +363,31 @@ describe("HTML Mapping", function(){
             expect(value).toBe("<input/>Hello")
             expect(value[characterIndex]).toBe("e")
             done()
+        })
+    })
+
+    it("Can handle HTML entities inside NOSCRIPT tags", function(){
+        var el = document.createElement("noscript")
+        el.innerHTML = '&gt;abc&#x3D;'
+
+        disableTracing()
+        expect(el.innerHTML).toBe('&amp;gt;abc&amp;#x3D;')
+
+        // <noscript>&amp;[g]t;abc&amp;#x3D;</noscript>
+        var firstStep = getRootOriginAtChar(el, 15);
+
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value[characterIndex]).toBe("g")
+        })
+
+        firstStep = getRootOriginAtChar(el, 26);
+
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value[characterIndex]).toBe("#")
         })
     })
 

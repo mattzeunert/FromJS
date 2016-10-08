@@ -9,7 +9,7 @@ import _ from "underscore"
 import {runFunctionWithTracingDisabled} from "./tracing"
 import untracedToString from "../untracedToString"
 
-var htmlEntityRegex = /^\&[#a-z0-9]+\;/
+var htmlEntityRegex = /^\&[#a-zA-Z0-9]+\;/
 var whitespaceRegex = /^[\s]+/
 var tagEndRegex = /^(\s+)\/?>/
 var twoQuoteSignsRegex = /^['"]{2}/
@@ -71,7 +71,9 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
             })
         }
 
-        function getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml) {
+        // get offsets by looking at how the assigned value compares to the serialized value
+        // e.g. accounts for differeces between assigned "&" and serialized "&amp;"
+        function getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml, tagName) {
             if (charOffsetAdjustmentInAssignedHtml === undefined) {
                 charOffsetAdjustmentInAssignedHtml = 0;
             }
@@ -96,6 +98,17 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 }
 
                 var htmlEntityMatch = textIncludingAndFollowingChar.match(htmlEntityRegex)
+
+                if (tagName === "NOSCRIPT" && htmlEntityMatchAfterAssignment !== null && htmlEntityMatch !== null) {
+                    // NOSCRIPT assignments: "&amp;" => "&amp;amp;", "&gt;" => "&amp;gt;"
+                    // so we manually advance over the "&amp;"
+                    for (var n=0; n<"amp;".length; n++) {
+                        i++;
+                        extraCharsAddedHere++;
+                        offsets.push(-extraCharsAddedHere)
+                    }
+                    offsets.push(-extraCharsAddedHere)
+                }
 
                 if (htmlEntityMatchAfterAssignment !== null && htmlEntityMatch === null) {
                     // assigned a character, but now it shows up as an entity (e.g. & ==> &amp;)
@@ -146,7 +159,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                 if (isTextNode) {
                     var text = child.textContent
                     text = normalizeHtml(text, child.parentNode.tagName)
-                    var res = getCharMappingOffsets(text)
+                    var res = getCharMappingOffsets(text, 0, child.parentNode.tagName)
                     var offsets = res.offsets
                     var extraCharsAddedHere = res.extraCharsAddedHere
 
@@ -166,15 +179,35 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                     validateMapping(child.__elOrigin.textValue)
                 } else if (isCommentNode) {
-                    var comment = "<!--" + child.textContent + "-->"
+                    addElOrigin(child, "commentStart", {
+                        action: actionName,
+                        inputValues: [assignedInnerHTML],
+                        inputValuesCharacterIndex: [charOffsetInSerializedHtml],
+                        value: serializedHtml
+                    })
+
+                    charOffsetInSerializedHtml += "<!--".length
+                    forDebuggingProcessedHtml += "<!--";
+
                     addElOrigin(child, "textValue", {
-                        value: comment,
-                        inputValues: [],
-                        action: "HTML Comment",
+                        value: serializedHtml,
+                        inputValues: [assignedInnerHTML],
+                        inputValuesCharacterIndex: [charOffsetInSerializedHtml],
+                        action: actionName,
                         error: error
                     })
-                    charOffsetInSerializedHtml += comment.length;
-                    forDebuggingProcessedHtml += comment;
+                    charOffsetInSerializedHtml += child.textContent.length
+                    forDebuggingProcessedHtml += child.textContent;
+
+                    addElOrigin(child, "commentEnd", {
+                        action: actionName,
+                        inputValues: [assignedInnerHTML],
+                        inputValuesCharacterIndex: [charOffsetInSerializedHtml],
+                        inputValues: [],
+                        value: serializedHtml
+                    })
+                    charOffsetInSerializedHtml += "-->".length
+                    forDebuggingProcessedHtml += "-->";
                 } else if (isElementNode) {
                     addElOrigin(child, "openingTagStart", {
                         action: actionName,
@@ -247,7 +280,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
                             }
 
                             var charOffsetAdjustmentInAssignedHtml = whitespaceBeforeAttributeInAssignedHtml.length + attrStrStart.length
-                            var res = getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml)
+                            var res = getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml, child.tagName)
 
                             if (res.offsets === undefined){
                                 // Pretty sure this can only happen if there is a bug further up, but for now
