@@ -366,21 +366,28 @@ describe("HTML Mapping", function(){
         })
     })
 
-    it("Can handle HTML entities inside NOSCRIPT tags", function(done){
+    it("Can handle HTML entities inside NOSCRIPT tags", function(){
         var el = document.createElement("noscript")
-        el.innerHTML = '&gt;'
+        el.innerHTML = '&gt;abc&#x3D;'
 
         disableTracing()
-        expect(el.innerHTML).toBe('&amp;gt;')
+        expect(el.innerHTML).toBe('&amp;gt;abc&amp;#x3D;')
 
-        // <noscript>&amp;gt;</noscript>
+        // <noscript>&amp;[g]t;abc&amp;#x3D;</noscript>
         var firstStep = getRootOriginAtChar(el, 15);
 
         whereDoesCharComeFrom(firstStep, function(steps){
             var value = steps[1].origin.value;
             var characterIndex = steps[1].characterIndex
             expect(value[characterIndex]).toBe("g")
-            done()
+        })
+
+        firstStep = getRootOriginAtChar(el, 26);
+
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value[characterIndex]).toBe("#")
         })
     })
 

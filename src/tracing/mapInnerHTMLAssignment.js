@@ -9,7 +9,7 @@ import _ from "underscore"
 import {runFunctionWithTracingDisabled} from "./tracing"
 import untracedToString from "../untracedToString"
 
-var htmlEntityRegex = /^\&[#a-z0-9]+\;/
+var htmlEntityRegex = /^\&[#a-zA-Z0-9]+\;/
 var whitespaceRegex = /^[\s]+/
 var tagEndRegex = /^(\s+)\/?>/
 var twoQuoteSignsRegex = /^['"]{2}/

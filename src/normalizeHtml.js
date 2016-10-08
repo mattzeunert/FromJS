@@ -1,6 +1,6 @@
 var div = document.createElement("div");
 export default function normalizeHtml(str, tagName){
-    if (tagName !== "SCRIPT") {
+    if (tagName !== "SCRIPT" && tagName !== "NOSCRIPT") {
         // convert stuff like & to &amp;
         nativeInnerHTMLDescriptor.set.call(div, str);
         str = nativeInnerHTMLDescriptor.get.call(div);
