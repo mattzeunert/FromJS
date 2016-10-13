@@ -61,11 +61,13 @@ var babelFunctions = {
         if (b==null){
             b = ""
         }
+
+        var error = Error();
         if (!a.isStringTraceString && typeof a === "string"){
-            a = untrackedString(a);
+            a = untrackedString(a, error);
         }
         if (!b.isStringTraceString && typeof b === "string"){
-            b = untrackedString(b);
+            b = untrackedString(b, error);
         }
 
         var newValue = toString(a) + toString(b);
@@ -77,7 +79,8 @@ var babelFunctions = {
             origin: new Origin({
                 action: "Concat",
                 value: newValue,
-                inputValues
+                inputValues,
+                error
             })
         })
     },
