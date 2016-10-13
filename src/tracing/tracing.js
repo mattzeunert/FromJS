@@ -396,15 +396,19 @@ export function enableTracing(){
         }
     })
 
-    JSON.parse = function(str, rootStr){
+    JSON.parse = function(str, rootStr, error){
         var parsedVal = nativeJSONParse.apply(this, arguments)
-        str = trackStringIfNotTracked(str)
+        if (!error){
+            error = Error();
+        }
+        str = trackStringIfNotTracked(str, error)
 
         if (typeof parsedVal === "string") {
             return makeTraceObject(
                 {
                     value: parsedVal,
                     origin: new Origin({
+                        error,
                         value: parsedVal,
                         inputValues: [str],
                         inputValuesCharacterIndex: 1,
@@ -424,7 +428,7 @@ export function enableTracing(){
                 parsedVal[key] = JSON.parse(makeTraceObject({
                     value: nativeJSONStringify.call(JSON, value),
                     origin: str.origin
-                }), rootStr)
+                }), rootStr, error)
             } else if (typeof value === "string" ||
                 typeof value === "boolean" ||
                 typeof value === "number") {
@@ -433,6 +437,7 @@ export function enableTracing(){
                     {
                         value: parsedVal[key],
                         origin: new Origin({
+                            error,
                             value: parsedVal[key],
                             inputValues: [str],
                             inputValuesCharacterIndex: [rootStr.toString().indexOf(parsedVal[key])], // not very accurate, but better than nothing/always using char 0
