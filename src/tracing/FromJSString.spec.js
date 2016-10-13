@@ -41,6 +41,11 @@ describe("FromJSString", function(){
         expect(char).toBe("H")
     })
 
+    it("Supports charCodeAt", function(){
+        var str = makeString("ABC")
+        expect(str.charCodeAt(0)).toBe(65)
+    })
+
     describe("substr", function(){
         it("Supports calls with one parameter", function(){
             var str = makeString("Hello")

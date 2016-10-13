@@ -55,6 +55,11 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
     if (propertyName === "toString") { return }
     // can't use .apply on valueOf function (" String.prototype.valueOf is not generic")
     if (propertyName === "valueOf") { return }
+
+    if (propertyName === "indexOf" || propertyName === "charCodeAt") {
+        return;
+    }
+
     if (typeof String.prototype[propertyName] === "function") {
         Object.defineProperty(FromJSString.prototype, propertyName, {
             value: handlerFunction,
@@ -65,13 +70,14 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
             var oldValue = this;
             var args = unstringTracifyArguments(arguments)
             var newVal;
+            var error = Error();
 
             var argumentOrigins = Array.from(arguments).map(function(arg){
                 if (arg instanceof FromJSString) {
                     return arg.origin;
                 }
                 if (typeof arg === "string"){
-                    return untrackedArgument(arg)
+                    return untrackedArgument(arg, error)
                 }
                 var str = toString(arg, true)
                 return {
@@ -107,6 +113,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                         return makeTraceObject({
                             value: submatch,
                             origin: new Origin({
+                                error,
                                 value: submatch,
                                 action: "Replace Call Submatch",
                                 inputValues: [oldValue],
@@ -167,11 +174,12 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                         if (!replaceWith.origin) {
                             replaceWith = makeTraceObject({
                                 value: toString(replaceWith),
-                                origin: {
+                                origin: new Origin({
+                                    error,
                                     value: toString(replaceWith),
                                     action: "Untracked replace match result",
                                     inputValues: []
-                                }
+                                })
                             })
                         } else {
                             replaceWith = {
@@ -289,6 +297,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                         newVal.push(makeTraceObject({
                             value: str,
                             origin: new Origin({
+                                error,
                                 value: str,
                                 action: "Split Call",
                                 inputValues,
@@ -316,6 +325,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     {
                         value: newVal,
                         origin: new Origin({
+                            error,
                             value: newVal,
                             valueItems: valueItems,
                             inputValues: inputValues,
@@ -330,6 +340,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                             {
                                 value: val,
                                 origin: new Origin({
+                                    error,
                                     value: val,
                                     inputValues: inputValues,
                                     action: actionName,
@@ -341,6 +352,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     }
                 })
             } else {
+                debugger
                 return newVal
             }
         }
@@ -363,6 +375,21 @@ Object.defineProperties(FromJSString.prototype, {
     toString: {
         value: function(){
             return this.value
+        },
+        enumerable: false
+    },
+    indexOf: {
+        value: function(search){
+            if (search && search.isStringTraceString) {
+                search = search.value
+            }
+            return this.value.indexOf(search)
+        },
+        enumerable: false
+    },
+    charCodeAt: {
+        value: function(index){
+            return this.value.charCodeAt(index)
         },
         enumerable: false
     }
