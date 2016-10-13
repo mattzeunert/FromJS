@@ -8,6 +8,7 @@ import normalizeHtml, {normalizeHtmlAttribute} from "../normalizeHtml"
 import _ from "underscore"
 import {runFunctionWithTracingDisabled} from "./tracing"
 import untracedToString from "../untracedToString"
+import debuggerStatementFunction from "../debuggerStatementFunction"
 
 var htmlEntityRegex = /^\&[#a-zA-Z0-9]+\;/
 var whitespaceRegex = /^[\s]+/
@@ -327,7 +328,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                     var assignedStringFromCurrentOffset = assignedString.substr(getCharOffsetInAssignedHTML(), 200)
                     if (assignedStringFromCurrentOffset === "") {
-                        debugger;
+                        debuggerStatementFunction()
                     }
                     var matches = assignedStringFromCurrentOffset.match(tagEndRegex);
                     var whitespaceBeforeClosingAngleBracketInAssignedHTML = "";

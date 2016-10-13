@@ -6,6 +6,7 @@ import untrackedArgument from "./untrackedArgument"
 import config from "../config"
 import toString from "../untracedToString"
 import cloneRegExp from "clone-regexp"
+import debuggerStatementFunction from "../debuggerStatementFunction"
 
 function FromJSString(options){
     var value = options.value
@@ -27,10 +28,6 @@ function FromJSString(options){
             value: value
         }
     })
-
-    if (typeof this.value !== "string") {
-        debugger
-    }
 }
 Object.defineProperty(FromJSString.prototype, "isStringTraceString", {
     value: true,
@@ -281,7 +278,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                             separators = [];
                         }
                     } else {
-                        debugger;
+                        debuggerStatementFunction();
                         dontTrack();
                     }
 
@@ -352,7 +349,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     }
                 })
             } else {
-                debugger
+                debuggerStatementFunction()
                 return newVal
             }
         }
@@ -412,7 +409,7 @@ export function makeTraceObject(options){
         origin: options.origin
     })
     if (stringTraceObject.value.isStringTraceString) {
-        debugger
+        debuggerStatementFunction()
     }
 
     // Make accessing characters by index work

@@ -1,5 +1,6 @@
 import _ from "underscore"
 import toString from "./untracedToString"
+import debuggerStatementFunction from "./debuggerStatementFunction"
 
 export default function Origin(opts){
     var error = opts.error;
@@ -28,7 +29,7 @@ export default function Origin(opts){
     if (opts.offsetAtCharIndex){
         this.offsetAtCharIndex = opts.offsetAtCharIndex
         if (this.offsetAtCharIndex.length == 0){
-            debugger
+            debuggerStatementFunction()
         }
     }
 
@@ -104,7 +105,7 @@ function getUsableInputValue(inputValue, error){
    }
 
 
-    debugger
+    debuggerStatementFunction();
     return new Origin({
         action: "Unknown Thing",
         inputValues: [],
