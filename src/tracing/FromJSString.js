@@ -376,11 +376,11 @@ Object.defineProperties(FromJSString.prototype, {
         enumerable: false
     },
     indexOf: {
-        value: function(search){
+        value: function(search, fromIndex){
             if (search && search.isStringTraceString) {
                 search = search.value
             }
-            return this.value.indexOf(search)
+            return this.value.indexOf(search, fromIndex)
         },
         enumerable: false
     },
