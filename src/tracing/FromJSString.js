@@ -397,6 +397,23 @@ Object.defineProperty(FromJSString.prototype, "length", {
     }
 })
 
+var traps = {
+    get: function(target, name){
+        if (typeof name !== "symbol" && !isNaN(parseFloat(name))) {
+            return target.value[name]
+        }
+
+        if (name === "constructor") {
+            return window.String
+        }
+
+        return target[name]
+    },
+    has: function(target, propName){
+        throw new TypeError("Cannot use 'in' operator to search for '" + propName +"' in " + target.value)
+    }
+}
+
 export function makeTraceObject(options){
     if (typeof options.value !== "string") {
         return options.value
@@ -413,20 +430,5 @@ export function makeTraceObject(options){
     }
 
     // Make accessing characters by index work
-    return new Proxy(stringTraceObject, {
-        get: function(target, name){
-            if (typeof name !== "symbol" && !isNaN(parseFloat(name))) {
-                return target.value[name]
-            }
-
-            if (name === "constructor") {
-                return window.String
-            }
-
-            return stringTraceObject[name]
-        },
-        has: function(target, propName){
-            throw new TypeError("Cannot use 'in' operator to search for '" + propName +"' in " + target.value)
-        }
-    });
+    return new Proxy(stringTraceObject, traps);
 }
