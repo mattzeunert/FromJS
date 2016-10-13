@@ -195,21 +195,9 @@ module.exports = function(babel) {
         }
       },
       ConditionalExpression(path){
-          if (path.node.ignore){return}
-
-          var callExpression = babel.types.callExpression(babel.types.identifier("f__useValue"),[
+          path.node.test = babel.types.callExpression(babel.types.identifier("f__useValue"),[
               path.node.test
           ])
-          callExpression.ignore = true;
-
-          var conditionalExpression = babel.types.conditionalExpression(
-              callExpression,
-              path.node.consequent,
-              path.node.alternate
-          )
-          conditionalExpression.ignore = true;
-
-          path.replaceWith(conditionalExpression)
       },
       IfStatement(path){
           path.node.test = babel.types.callExpression(
@@ -332,27 +320,15 @@ module.exports = function(babel) {
                   [ccase.test]
               )
           })
-          var switchStatement = babel.types.switchStatement(
-              babel.types.callExpression(babel.types.identifier("f__useValue"), [
-                  path.node.discriminant
-              ]),
-              cases
-          );
 
-          switchStatement.ignore = true
-          path.replaceWith(switchStatement)
+          path.node.discriminant = babel.types.callExpression(babel.types.identifier("f__useValue"), [
+              path.node.discriminant
+          ])
       },
       WhileStatement(path){
-          if (path.node.ignore){return}
-          var whileStatement = babel.types.whileStatement(
-              babel.types.callExpression(babel.types.identifier("f__useValue"), [
-                  path.node.test
-              ]),
-              path.node.body
-          )
-          whileStatement.ignore = true;
-
-          path.replaceWith(whileStatement)
+          path.node.test = babel.types.callExpression(babel.types.identifier("f__useValue"), [
+              path.node.test
+          ])
       },
       StringLiteral(path) {
         if (path.node.ignore) {
