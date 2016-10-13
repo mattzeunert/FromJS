@@ -47,30 +47,23 @@ var babelFunctions = {
         return stringTraceUseValue(thing)
     },
     f__add(a, b){
-        var aIsNumberOrBoolean = typeof a === "number" || typeof a === "boolean"
-        if (aIsNumberOrBoolean) {
-            var bIsNumberOrBoolean = typeof b === "number" || typeof b === "boolean"
-            if (bIsNumberOrBoolean) {
-                return a + b;
-            }
-        }
+        var aIsString = typeof a === "string" || (a !== null && typeof a === "object" && a.isStringTraceString)
+        var bIsString = typeof b === "string" || (b !== null && typeof b === "object" && b.isStringTraceString)
+        var involvesStrings = aIsString || bIsString;
 
-        if (a == null){
-            a = ""
-        }
-        if (b==null){
-            b = ""
+        if (!involvesStrings){
+            return a + b;
         }
 
         var error = Error();
-        if (!a.isStringTraceString && typeof a === "string"){
+        if (aIsString && !a.isStringTraceString){
             a = untrackedString(a, error);
         }
-        if (!b.isStringTraceString && typeof b === "string"){
+        if (bIsString && !b.isStringTraceString){
             b = untrackedString(b, error);
         }
 
-        var newValue = toString(a) + toString(b);
+        var newValue = toString(a, true) + toString(b, true);
 
         var inputValues = [a, b];
 

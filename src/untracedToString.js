@@ -4,7 +4,7 @@ export default function untracedToString(val, allowUndefinedAndNull){
         // untracedToString is same as val.toString,
         // which throws on undefined/null
         if (val === undefined) {
-            return "undfined"
+            return "undefined"
         }
         if (val === null) {
             return "null"

@@ -24,6 +24,15 @@ describe("babelFunctions", function(){
             var res = babelFunctions.f__add(3, true)
             expect(res).toBe(4)
         })
+        it("Supports null", function(){
+            expect(babelFunctions.f__add("-", null).value).toBe("-null")
+            expect(babelFunctions.f__add(null, "-").value).toBe("null-")
+            expect(babelFunctions.f__add(null, null)).toBe(0)
+        })
+        it("Supports undefined", function(){
+            expect(isNaN(babelFunctions.f__add(undefined, undefined))).toBe(true)
+            expect(babelFunctions.f__add("-", undefined).value).toBe("-undefined")
+        })
     })
 
     describe("f__tripleEqual", function(){

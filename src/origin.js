@@ -46,7 +46,15 @@ function getUsableInputValue(inputValue, error){
        return new Origin({
            action: "Undefined",
            inputValues: [],
-           value: "undefined", // would rather not store a whole function reference
+           value: "undefined",
+           error: error
+       })
+    }
+    if (inputValue === null) {
+       return new Origin({
+           action: "Null",
+           inputValues: [],
+           value: "null",
            error: error
        })
     }
