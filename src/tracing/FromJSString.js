@@ -399,7 +399,7 @@ Object.defineProperty(FromJSString.prototype, "length", {
 
 var traps = {
     get: function(target, name){
-        if (typeof name !== "symbol" && !isNaN(parseFloat(name))) {
+        if (typeof name !== "symbol" && !isNaN(name)) {
             return target.value[name]
         }
 
