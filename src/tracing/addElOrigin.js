@@ -1,7 +1,10 @@
 import Origin from "../origin"
+import debuggerStatementFunction from "../debuggerStatementFunction"
 
 export default function addElOrigin(el, what, originInfo){
-    if (!originInfo) debugger
+    if (!originInfo) {
+        debuggerStatementFunction();
+    }
     if (!el.__elOrigin) {
         el.__elOrigin = {}
     }
