@@ -7,7 +7,7 @@ import stringTraceUseValue from "./stringTraceUseValue"
 import processJavaScriptCode, {removeSourceMapIfAny} from "../compilation/processJavaScriptCode"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
-import trackStringIfNotTracked from "./trackStringIfNotTracked"
+import trackStringIfNotTracked, {makeTrackIfNotTrackedFunction} from "./trackStringIfNotTracked"
 import endsWith from "ends-with"
 import toString from "../untracedToString"
 import {getScriptElements} from "../getJSScriptTags"
@@ -515,30 +515,25 @@ export function enableTracing(){
             return stringifiedItem
         })
 
-        var trackedInputItems = Array.prototype.map.call(this, trackStringIfNotTracked)
-        var trackedSeparator = trackStringIfNotTracked(separator)
+        var trackIfNotTracked = makeTrackIfNotTrackedFunction();
+
+        var trackedInputItems = Array.prototype.map.call(this, trackIfNotTracked)
+        var trackedSeparator = trackIfNotTracked(separator)
         var inputValues = [trackedSeparator].concat(trackedInputItems)
         // .join already does stringification, but we may need to call .toString()
         // twice if there is an object with a toString function which returns
         // a FromJSString (an object) which needs to be converted to a native string
         var joinedValue = nativeArrayJoin.apply(stringifiedItems, [separator])
 
-        try {
-            var ret = makeTraceObject({
-                value: joinedValue,
-                origin: new Origin({
-                    action: "Array Join Call",
-                    inputValues: inputValues,
-                    value: joinedValue
-                })
+        var ret = makeTraceObject({
+            value: joinedValue,
+            origin: new Origin({
+                error: trackIfNotTracked.getErrorObject(),
+                action: "Array Join Call",
+                inputValues: inputValues,
+                value: joinedValue
             })
-        } catch (e){
-            // I think there are issues with unprocessed code trying to
-            // use array join with nested arrays and stuff, which just
-            // breaks everything and gives a "Cannot convert object to primitive value"
-            // error
-            return joinedValue
-        }
+        })
 
         return ret
     }
