@@ -357,9 +357,13 @@ export function enableTracing(){
     }
 
     function filterOutTrackingPropertyNames(propNames){
-        return propNames.filter(function(name){
-            return !endsWith(name, "_trackedName")
+        var stringObjectBefore = window.String;
+        window.String = nativeStringObject; // needed for endsWith...
+        var ret = propNames.filter(function(name){
+            return !endsWith(toString(name), "_trackedName")
         })
+        window.String = stringObjectBefore;
+        return ret;
     }
 
     Object.getOwnPropertyNames = function(obj){
@@ -939,10 +943,19 @@ export function enableTracing(){
     }
 
     window.String = function(val){
-        if (val !== undefined && val !== null) {
-            val = toString(val);
+        val = toString(val, true);
+        if (new.target) {
+            return new nativeStringObject(val)
+        } else {
+            return makeTraceObject({
+                value: val,
+                origin: new Origin({
+                    value: val,
+                    action: "String Call",
+                    inputValues: []
+                })
+            })
         }
-        return new nativeStringObject(val)
     }
     window.String.prototype = nativeStringObject.prototype
     window.String.raw = nativeStringObject.raw
