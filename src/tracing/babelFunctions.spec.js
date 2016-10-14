@@ -60,10 +60,20 @@ describe("babelFunctions", function(){
             var res = babelFunctions.f__tripleEqual(a, b)
             expect(res).toBe(false)
         })
-        it("Knows that String('a') and 'a' are equal", function(){
+        it("Knows that nativeStringObject('a') and 'a' are equal", function(){
             var a = nativeStringObject("a")
             var res = babelFunctions.f__tripleEqual(a, "a")
             expect(res).toBe(true)
+        })
+        it("Knows that a traced '' is a traced '' are equal", function(){
+            var empty1 = makeTraceObject({
+                value: '',
+                origin: null
+            })
+            var empty2 = makeTraceObject({
+                value: '',
+                origin: null
+            })
         })
     })
 

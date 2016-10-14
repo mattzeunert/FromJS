@@ -279,6 +279,19 @@ describe("Tracing", function(){
         })
     })
 
+    describe("String Objects", function(){
+        it("Returns a string version of the value that was passed in when called without new", function(){
+            expect(String("hello").value).toBe("hello")
+            expect(String(123).value).toBe("123")
+            expect(String({}).value).toBe("[object Object]")
+            expect(String(false).value).toBe("false")
+            expect(String(undefined).value).toBe("undefined")
+        })
+        it("Returns a new String instance when called with new", function(){
+            expect(new String("hello") instanceof nativeStringObject).toBe(true)
+        })
+    })
+
     describe("Array.indexOf", function(){
         it("Works when the list items are tracked strings", function(){
             var str = makeTraceObject({
@@ -493,7 +506,8 @@ describe("Tracing", function(){
         expect(typeof str).toBe("string")
     })
 
-    it("Doesn't return tracking properties from Object.getOwnPropertyNames", function(){
+    fit("Doesn't return tracking properties from Object.getOwnPropertyNames", function(){
+        debugger
         var obj = {
             cake: "hi",
             cake_trackedName: {}
