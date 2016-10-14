@@ -1,3 +1,5 @@
+import debuggerStatementFunction from "./debuggerStatementFunction"
+
 function ValueMap(){
     this.charIndex = 0;
     this.items = [];
@@ -7,7 +9,7 @@ ValueMap.prototype.append = function(origin){
 }
 ValueMap.prototype.appendString = function(str, origin, indexInOriginValue){
     if (indexInOriginValue === undefined) {
-        debugger;
+        debuggerStatementFunction()
     }
 
     if (!origin) {

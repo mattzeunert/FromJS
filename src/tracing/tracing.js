@@ -7,10 +7,11 @@ import stringTraceUseValue from "./stringTraceUseValue"
 import processJavaScriptCode, {removeSourceMapIfAny} from "../compilation/processJavaScriptCode"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
-import trackStringIfNotTracked from "./trackStringIfNotTracked"
+import trackStringIfNotTracked, {makeTrackIfNotTrackedFunction} from "./trackStringIfNotTracked"
 import endsWith from "ends-with"
 import toString from "../untracedToString"
 import {getScriptElements} from "../getJSScriptTags"
+import makeGetErrorFunction from "./makeGetErrorFunction"
 
 var tracingEnabled = false;
 
@@ -41,6 +42,8 @@ window.nativeHTMLScriptElementTextDescriptor = nativeHTMLScriptElementTextDescri
 
 var nativeExec = RegExp.prototype.exec;
 window.nativeExec = nativeExec;
+
+var nativeRemoveAttribute = Element.prototype.removeAttribute;
 
 var nativeFunction = Function
 window.nativeFunction = nativeFunction
@@ -156,17 +159,21 @@ export function enableTracing(){
     tracingEnabled = true
 
     function addOriginInfoToCreatedElement(el, tagName, action){
+        var error = Error();
         addElOrigin(el, "openingTagStart", {
+            error,
             action,
             inputValues: [tagName],
             value: el.tagName
         })
         addElOrigin(el, "openingTagEnd", {
+            error,
             action,
             inputValues: [tagName],
             value: el.tagName
         })
         addElOrigin(el, "closingTag", {
+            error,
             action,
             inputValues: [tagName],
             value: el.tagName
@@ -187,20 +194,24 @@ export function enableTracing(){
 
     document.createComment = function(commentContent){
         var comment = nativeCreateComment.call(this, commentContent);
+        var error = Error();
 
         addElOrigin(comment, "commentStart", {
+            error,
             action: "createComment",
             inputValues: [],
             value: "<!--"
         })
 
         addElOrigin(comment, "commentEnd", {
+            error,
             action: "createComment",
             inputValues: [],
             value: "-->"
         })
 
         addElOrigin(comment, "textValue", {
+            error,
             action: "createComment",
             inputValues: [commentContent],
             value: toString(commentContent)
@@ -329,7 +340,6 @@ export function enableTracing(){
         return nativeSetAttribute.apply(this, arguments)
     }
 
-    var nativeRemoveAttribute = Element.prototype.removeAttribute;
     Element.prototype.removeAttribute = function(attrName){
         addElOrigin(this, "attribute_" +attrName.toString(), {
             action: "removeAttribute",
@@ -396,15 +406,19 @@ export function enableTracing(){
         }
     })
 
-    JSON.parse = function(str, rootStr){
+    JSON.parse = function(str, rootStr, error){
         var parsedVal = nativeJSONParse.apply(this, arguments)
-        str = trackStringIfNotTracked(str)
+        if (!error){
+            error = Error();
+        }
+        str = trackStringIfNotTracked(str, error)
 
         if (typeof parsedVal === "string") {
             return makeTraceObject(
                 {
                     value: parsedVal,
                     origin: new Origin({
+                        error,
                         value: parsedVal,
                         inputValues: [str],
                         inputValuesCharacterIndex: 1,
@@ -424,7 +438,7 @@ export function enableTracing(){
                 parsedVal[key] = JSON.parse(makeTraceObject({
                     value: nativeJSONStringify.call(JSON, value),
                     origin: str.origin
-                }), rootStr)
+                }), rootStr, error)
             } else if (typeof value === "string" ||
                 typeof value === "boolean" ||
                 typeof value === "number") {
@@ -433,6 +447,7 @@ export function enableTracing(){
                     {
                         value: parsedVal[key],
                         origin: new Origin({
+                            error,
                             value: parsedVal[key],
                             inputValues: [str],
                             inputValuesCharacterIndex: [rootStr.toString().indexOf(parsedVal[key])], // not very accurate, but better than nothing/always using char 0
@@ -515,30 +530,25 @@ export function enableTracing(){
             return stringifiedItem
         })
 
-        var trackedInputItems = Array.prototype.map.call(this, trackStringIfNotTracked)
-        var trackedSeparator = trackStringIfNotTracked(separator)
+        var trackIfNotTracked = makeTrackIfNotTrackedFunction();
+
+        var trackedInputItems = Array.prototype.map.call(this, trackIfNotTracked)
+        var trackedSeparator = trackIfNotTracked(separator)
         var inputValues = [trackedSeparator].concat(trackedInputItems)
         // .join already does stringification, but we may need to call .toString()
         // twice if there is an object with a toString function which returns
         // a FromJSString (an object) which needs to be converted to a native string
         var joinedValue = nativeArrayJoin.apply(stringifiedItems, [separator])
 
-        try {
-            var ret = makeTraceObject({
-                value: joinedValue,
-                origin: new Origin({
-                    action: "Array Join Call",
-                    inputValues: inputValues,
-                    value: joinedValue
-                })
+        var ret = makeTraceObject({
+            value: joinedValue,
+            origin: new Origin({
+                error: trackIfNotTracked.getErrorObject(),
+                action: "Array Join Call",
+                inputValues: inputValues,
+                value: joinedValue
             })
-        } catch (e){
-            // I think there are issues with unprocessed code trying to
-            // use array join with nested arrays and stuff, which just
-            // breaks everything and gives a "Cannot convert object to primitive value"
-            // error
-            return joinedValue
-        }
+        })
 
         return ret
     }
@@ -818,10 +828,13 @@ export function enableTracing(){
         if (str === null || str === undefined){
             str = "" + str // convert to string
         }
+
+        var getError = makeGetErrorFunction();
         if (!str.isStringTraceString) {
             str = makeTraceObject({
                 value: str,
                 origin: new Origin({
+                    error: getError(),
                     value: str,
                     action: "Untracked RegExp.exec parameter",
                     inputValues: []
@@ -833,6 +846,7 @@ export function enableTracing(){
         var match = makeTraceObject({
             value: matchValue,
             origin: new Origin({
+                error: getError(),
                 action: "RegExp.exec Match",
                 value: matchValue,
                 inputValues: [str],
@@ -848,6 +862,7 @@ export function enableTracing(){
                 var submatch = makeTraceObject({
                     value: res[i],
                     origin: new Origin({
+                        error: getError,
                         value: res[i],
                         action: "RegExp.exec Submatch",
                         inputValues: [str],
@@ -1061,6 +1076,8 @@ export function disableTracing(){
     Node.prototype.cloneNode = nativeCloneNode
     Node.prototype.addEventListener =  nativeAddEventListener
     Node.prototype.removeEventListener = nativeRemoveEventListener
+
+    Element.prototype.removeAttribute = nativeRemoveAttribute
 
     CSSStyleDeclaration.prototype.setProperty =  nativeCSSStyleDeclarationSetProperty
     Object.defineProperty(HTMLElement.prototype, "style", nativeHTMLElementStyleDescriptor)

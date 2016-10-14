@@ -47,28 +47,23 @@ var babelFunctions = {
         return stringTraceUseValue(thing)
     },
     f__add(a, b){
-        var aIsNumberOrBoolean = typeof a === "number" || typeof a === "boolean"
-        if (aIsNumberOrBoolean) {
-            var bIsNumberOrBoolean = typeof b === "number" || typeof b === "boolean"
-            if (bIsNumberOrBoolean) {
-                return a + b;
-            }
+        var aIsString = typeof a === "string" || (a !== null && typeof a === "object" && a.isStringTraceString)
+        var bIsString = typeof b === "string" || (b !== null && typeof b === "object" && b.isStringTraceString)
+        var involvesStrings = aIsString || bIsString;
+
+        if (!involvesStrings){
+            return a + b;
         }
 
-        if (a == null){
-            a = ""
+        var error = Error();
+        if (aIsString && !a.isStringTraceString){
+            a = untrackedString(a, error);
         }
-        if (b==null){
-            b = ""
-        }
-        if (!a.isStringTraceString && typeof a === "string"){
-            a = untrackedString(a);
-        }
-        if (!b.isStringTraceString && typeof b === "string"){
-            b = untrackedString(b);
+        if (bIsString && !b.isStringTraceString){
+            b = untrackedString(b, error);
         }
 
-        var newValue = toString(a) + toString(b);
+        var newValue = toString(a, true) + toString(b, true);
 
         var inputValues = [a, b];
 
@@ -77,7 +72,8 @@ var babelFunctions = {
             origin: new Origin({
                 action: "Concat",
                 value: newValue,
-                inputValues
+                inputValues,
+                error
             })
         })
     },
