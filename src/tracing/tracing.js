@@ -43,6 +43,8 @@ window.nativeHTMLScriptElementTextDescriptor = nativeHTMLScriptElementTextDescri
 var nativeExec = RegExp.prototype.exec;
 window.nativeExec = nativeExec;
 
+var nativeRemoveAttribute = Element.prototype.removeAttribute;
+
 var nativeFunction = Function
 window.nativeFunction = nativeFunction
 
@@ -338,7 +340,6 @@ export function enableTracing(){
         return nativeSetAttribute.apply(this, arguments)
     }
 
-    var nativeRemoveAttribute = Element.prototype.removeAttribute;
     Element.prototype.removeAttribute = function(attrName){
         addElOrigin(this, "attribute_" +attrName.toString(), {
             action: "removeAttribute",
@@ -1075,6 +1076,8 @@ export function disableTracing(){
     Node.prototype.cloneNode = nativeCloneNode
     Node.prototype.addEventListener =  nativeAddEventListener
     Node.prototype.removeEventListener = nativeRemoveEventListener
+
+    Element.prototype.removeAttribute = nativeRemoveAttribute
 
     CSSStyleDeclaration.prototype.setProperty =  nativeCSSStyleDeclarationSetProperty
     Object.defineProperty(HTMLElement.prototype, "style", nativeHTMLElementStyleDescriptor)
