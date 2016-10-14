@@ -53,7 +53,8 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
     // can't use .apply on valueOf function (" String.prototype.valueOf is not generic")
     if (propertyName === "valueOf") { return }
 
-    if (propertyName === "indexOf" || propertyName === "charCodeAt") {
+    // these return numbers
+    if (propertyName === "indexOf" || propertyName === "charCodeAt" || propertyName === "localeCompare") {
         return;
     }
 
@@ -349,6 +350,8 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     }
                 })
             } else {
+                // this should not really happen, although I've possibly
+                // missed some functions that return numbers
                 debuggerStatementFunction()
                 return newVal
             }
@@ -387,6 +390,12 @@ Object.defineProperties(FromJSString.prototype, {
     charCodeAt: {
         value: function(index){
             return this.value.charCodeAt(index)
+        },
+        enumerable: false
+    },
+    localeCompare: {
+        value: function(){
+            return this.value.localeCompare.apply(this.value, arguments)
         },
         enumerable: false
     }
