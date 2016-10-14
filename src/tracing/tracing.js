@@ -192,20 +192,24 @@ export function enableTracing(){
 
     document.createComment = function(commentContent){
         var comment = nativeCreateComment.call(this, commentContent);
+        var error = Error();
 
         addElOrigin(comment, "commentStart", {
+            error,
             action: "createComment",
             inputValues: [],
             value: "<!--"
         })
 
         addElOrigin(comment, "commentEnd", {
+            error,
             action: "createComment",
             inputValues: [],
             value: "-->"
         })
 
         addElOrigin(comment, "textValue", {
+            error,
             action: "createComment",
             inputValues: [commentContent],
             value: toString(commentContent)
