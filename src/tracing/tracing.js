@@ -11,6 +11,7 @@ import trackStringIfNotTracked, {makeTrackIfNotTrackedFunction} from "./trackStr
 import endsWith from "ends-with"
 import toString from "../untracedToString"
 import {getScriptElements} from "../getJSScriptTags"
+import makeGetErrorFunction from "./makeGetErrorFunction"
 
 var tracingEnabled = false;
 
@@ -822,10 +823,13 @@ export function enableTracing(){
         if (str === null || str === undefined){
             str = "" + str // convert to string
         }
+
+        var getError = makeGetErrorFunction();
         if (!str.isStringTraceString) {
             str = makeTraceObject({
                 value: str,
                 origin: new Origin({
+                    error: getError(),
                     value: str,
                     action: "Untracked RegExp.exec parameter",
                     inputValues: []
@@ -837,6 +841,7 @@ export function enableTracing(){
         var match = makeTraceObject({
             value: matchValue,
             origin: new Origin({
+                error: getError(),
                 action: "RegExp.exec Match",
                 value: matchValue,
                 inputValues: [str],
@@ -852,6 +857,7 @@ export function enableTracing(){
                 var submatch = makeTraceObject({
                     value: res[i],
                     origin: new Origin({
+                        error: getError,
                         value: res[i],
                         action: "RegExp.exec Submatch",
                         inputValues: [str],

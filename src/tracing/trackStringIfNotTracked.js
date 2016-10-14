@@ -1,6 +1,7 @@
 import untrackedString from "./untrackedString"
 import untrackedNumber from "./untrackedNumber"
 import _ from "underscore"
+import makeGetErrorFunction from "./makeGetErrorFunction"
 
 export default function trackStringIfNotTracked(str, err){
     if (str.isStringTraceString) {
@@ -18,15 +19,12 @@ export default function trackStringIfNotTracked(str, err){
 
 // re-uses error object
 export function makeTrackIfNotTrackedFunction(){
-    var err = null;
+    var getError = makeGetErrorFunction();
     var fn = function(str){
         return trackStringIfNotTracked(str, fn.getErrorObject())
     }
     fn.getErrorObject = function(){
-        if (err === null) {
-            err = Error()
-        }
-        return err;
+        return getError();
     }
 
     return fn;
