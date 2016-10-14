@@ -506,8 +506,7 @@ describe("Tracing", function(){
         expect(typeof str).toBe("string")
     })
 
-    fit("Doesn't return tracking properties from Object.getOwnPropertyNames", function(){
-        debugger
+    it("Doesn't return tracking properties from Object.getOwnPropertyNames", function(){
         var obj = {
             cake: "hi",
             cake_trackedName: {}
