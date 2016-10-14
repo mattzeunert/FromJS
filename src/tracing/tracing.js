@@ -156,17 +156,21 @@ export function enableTracing(){
     tracingEnabled = true
 
     function addOriginInfoToCreatedElement(el, tagName, action){
+        var error = Error();
         addElOrigin(el, "openingTagStart", {
+            error,
             action,
             inputValues: [tagName],
             value: el.tagName
         })
         addElOrigin(el, "openingTagEnd", {
+            error,
             action,
             inputValues: [tagName],
             value: el.tagName
         })
         addElOrigin(el, "closingTag", {
+            error,
             action,
             inputValues: [tagName],
             value: el.tagName
