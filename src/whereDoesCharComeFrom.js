@@ -7,6 +7,7 @@ import _ from "underscore"
 import adjustColumnForEscapeSequences from "./adjustColumnForEscapeSequences"
 import config from "./config"
 import OriginPathStep from "./OriginPathStep"
+import debuggerStatementFunction from "./debuggerStatementFunction"
 
 export default function whereDoesCharComeFrom(firstStep, callback, resolveFrameWorker){
     var steps = [];
@@ -29,7 +30,7 @@ export default function whereDoesCharComeFrom(firstStep, callback, resolveFrameW
             if (newStep !== null){
                 if (isNaN(newStep.characterIndex)){
                     console.error("characterIndex is NaN")
-                    debugger;
+                    debuggerStatementFunction();
                 }
                 steps.push(newStep)
                 nextStep(newStep)
@@ -69,7 +70,7 @@ function goUp(step, resolveFrameWorker, callback){
         if (step.origin.offsetAtCharIndex){
             var index = step.characterIndex - step.origin.inputValuesCharacterIndex[0]
             offsetAtChar = step.origin.offsetAtCharIndex[index]
-            if (offsetAtChar === undefined) debugger
+            if (offsetAtChar === undefined) debuggerStatementFunction()
         }
         ret = {
             origin: step.origin.inputValues[0],
@@ -301,7 +302,7 @@ function goUp(step, resolveFrameWorker, callback){
     }
 
     if (ret.characterIndex <0 ){
-        debugger
+        debuggerStatementFunction()
     }
 
     callback(ret);
