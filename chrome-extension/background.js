@@ -121,7 +121,11 @@ class FromJSSession {
     _processJavaScriptCode(code, options){
         var key = code + JSON.stringify(options);
         if (!this._processJSCodeCache[key]) {
-            this._processJSCodeCache[key] = processJavaScriptCode(code, options);
+            var res = processJavaScriptCode(code, options);
+            this._processJSCodeCache[key] = {
+                map: res.map,
+                code: res.code
+            };
         }
         return this._processJSCodeCache[key]
     }
