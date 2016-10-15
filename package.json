@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "babel-loader": "^6.2.4",
+    "babel-plugin-git-version": "^0.2.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.16.0",
     "babel-plugin-transform-object-rest-spread": "^6.8.0",
     "babel-plugin-transform-regenerator": "^6.16.1",

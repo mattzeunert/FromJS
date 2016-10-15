@@ -2,7 +2,8 @@
     "plugins": [
         "transform-object-rest-spread",
         "transform-es2015-modules-commonjs",
-        "transform-regenerator"
+        "transform-regenerator",
+        "git-version"
     ],
     "presets": ["react"]
 }
