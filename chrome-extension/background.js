@@ -357,17 +357,9 @@ function makeOnBeforeRequest(){
             return {cancel: true}
         }
 
-        var response = request(info.url, session)
-
-        if (response.content) {
-            var url = "data:" + response.mimeType + ";charset=utf-8," + encodeURI(response.content)
-            if (url.length > 2 * 1024 * 1024) {
-                console.error("Data url is too large, greater than 2 MB: ", url.length / 1024 / 1024 + "MB", info.url)
-            }
-
-            return {redirectUrl: url}
-        } else {
-            return response
+        if (urlLooksLikeJSFile(url)) {
+            session.loadScript(url)
+            return {cancel: true}
         }
     }
     return onBeforeRequest
@@ -386,17 +378,6 @@ function urlLooksLikeHtmlFile(url){
     return endsWith(urlWithoutQueryParameters, ".html")
 }
 
-function request(url, session){
-    if (endsWith(urlWithoutQueryParameters, ".js")) {
-        var code = session.getCode(url, true)
-        return {
-            content: code,
-            mimeType: "application/javascript"
-        }
-    }
-
-    return {};
-}
 
 function beautifyJS(code){
     return beautify.js_beautify(code, {indent_size: 2})
