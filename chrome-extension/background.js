@@ -319,7 +319,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
 
     var session = getTabSession(tabId);
 
-    if (!session && tab.url && changeInfo.status === "complete" && tab.url.indexOf("localhost:9856") !== -1 && tab.url.indexOf("#auto-activate-fromjs") !== -1) {
+    if (!session && tab.url && changeInfo.status === "complete" && tab.url.indexOf("http://localhost:9856") == 0 && tab.url.indexOf("#auto-activate-fromjs") !== -1) {
         onBrowserActionClicked(tab);
     }
 
