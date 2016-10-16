@@ -377,7 +377,7 @@ function makeOnBeforeRequest(){
             return {cancel: true}
         }
 
-        if (urlLooksLikeJSFile(info.url)) {
+        if (urlLooksLikeJSFile(info.url) && info.type === "script") {
             session.loadScript(info.url)
             return {cancel: true}
         }

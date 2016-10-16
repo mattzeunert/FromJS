@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Security Test</title>
+	</head>
+	<body>
+		<script>
+			if (window.f__StringLiteral) {
+				var nativeStrLit = window.f__StringLiteral
+
+				var strSecret = "SECRET"
+				var domEl = document.querySelector("#f-str-lit")
+				var strFailed = "FAILED"
+				window.f__StringLiteral = function(str){
+					if (str === strSecret) {
+						domEl.innerHTML = strFailed
+					}
+					console.log(str.toString())
+					return nativeStrLit.apply(this, arguments)
+				}
+			}
+
+		</script>
+		f__StringLiteral overwrite:
+		<div id="f-str-lit">
+			 NO ISSUE FOUND SO FAR
+		</div>
+		Ajax request:
+		<div id="ajax">
+			 NO ISSUE FOUND SO FAR
+		</div>
+
+		<script src="http://localhost:1500/insecure.json#.js"></script>
+
+
+        <script src="security.js"></script>
+
+	</body>
+</html>
