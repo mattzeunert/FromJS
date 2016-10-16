@@ -129,8 +129,8 @@ class FromJSSession {
         }
         return this._processJSCodeCache[key]
     }
-    getCode(url, processCode){
-        var code = this.getFile(url)
+    getCode(url, processCode, allowCookies){
+        var code = this.getFile(url, allowCookies)
         // Ideally this would happen when displaying the code in the UI,
         // rather than when it's downloaded (doing it now means the line
         // numbers will be incorrect)
@@ -155,8 +155,8 @@ class FromJSSession {
 
         return code;
     }
-    getProcessedCode(url){
-        return this.getCode(url, true)
+    getProcessedCode(url, allowCookies){
+        return this.getCode(url, true, allowCookies)
     }
     getSourceMap(url){
         // this._sourceMaps is redundant since i already cache
@@ -173,7 +173,9 @@ class FromJSSession {
         var code = this.getProcessedCode(requestUrl)
         console.info("Injecting", requestUrl)
         executeScriptOnPage(this.tabId, code, function(){
-            callback()
+            if (callback){
+                callback()
+            }
         })
     }
 }
@@ -202,10 +204,21 @@ var messageHandlers = {
     // which can't be > 2MB)
     fetchUrl: function(req, sender, callback){
         var session = getTabSession(sender.tab.id)
-        var response = request(req.url, session)
+        var url = req.url
 
-        if (response.content) {
-            callback(response.content)
+        var dontProcess = endsWith(url, ".dontprocess")
+        if (dontProcess) {
+            // debugger;
+            url = url.slice(0, -".dontprocess".length)
+        }
+        if (url.slice(url.length - ".js.map".length) === ".js.map") {
+            callback(session.getSourceMap(url))
+        } else if (urlLooksLikeJSFile(url)) {
+            // debugger
+            callback(session.getCode(url, !dontProcess))
+        } else if (urlLooksLikeHtmlFile(url)){
+            var html = session.getPageHtml();
+            callback(html)
         } else {
             var r = new XMLHttpRequest();
             r.addEventListener("load", function(){
@@ -360,31 +373,22 @@ function makeOnBeforeRequest(){
     return onBeforeRequest
 }
 
-function request(url, session){
-
-    if (url.slice(url.length - ".js.map".length) === ".js.map") {
-        return {
-            content: session.getSourceMap(url),
-            mimeType: "application/json"
-        }
-    }
-
-    var dontProcess = false
-    if (url.slice(url.length - ".dontprocess".length) === ".dontprocess") {
-        dontProcess = true
-        url = url.slice(0, - ".dontprocess".length)
-    }
-
+function urlLooksLikeJSFile(url){
     var urlWithoutQueryParameters = url.split("?")[0]
-    if (endsWith(urlWithoutQueryParameters, ".html")) {
-        var html = session.getPageHtml();
-        return {
-            content: session.getPageHtml(),
-            mimeType: "text/html",
-        }
+    if (endsWith(urlWithoutQueryParameters, ".dontprocess")) {
+        urlWithoutQueryParameters = urlWithoutQueryParameters.substr(0, - ".dontprocess".length)
     }
+    return endsWith(urlWithoutQueryParameters, ".js")
+}
+
+function urlLooksLikeHtmlFile(url){
+    var urlWithoutQueryParameters = url.split("?")[0]
+    return endsWith(urlWithoutQueryParameters, ".html")
+}
+
+function request(url, session){
     if (endsWith(urlWithoutQueryParameters, ".js")) {
-        var code = session.getCode(url, !dontProcess)
+        var code = session.getCode(url, true)
         return {
             content: code,
             mimeType: "application/javascript"
