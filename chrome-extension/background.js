@@ -31,6 +31,7 @@ class FromJSSession {
         this._open();
     }
     _open(){
+        console.log("Open tab", this.tabId)
         this._onBeforeRequest = makeOnBeforeRequest()
         this._onHeadersReceived = makeOnHeadersReceived();
 
@@ -53,6 +54,7 @@ class FromJSSession {
         return this._pageHtml;
     }
     initialize(){
+        console.log("Init tab", this.tabId)
         chrome.tabs.executeScript(this.tabId, {
             code: `
                 var el = document.createElement("script")
@@ -78,32 +80,36 @@ class FromJSSession {
         this._stage = FromJSSessionStages.INITIALIZING;
     }
     activate(){
+        console.log("Activate tab", this.tabId)
         this._stage = FromJSSessionStages.ACTIVE;
 
         chrome.tabs.insertCSS(this.tabId, {
           code: fromJSCss[0][1]
         })
 
+        var self = this;
+
         chrome.tabs.executeScript(this.tabId, {
-            file: "contentScript.js",
+            file: "contentScript.js", // loads injected.js
             runAt: "document_start"
-        });
+        }, function(){
+            var encodedPageHtml = encodeURI(self._pageHtml)
+            chrome.tabs.executeScript(self.tabId, {
+                code: `
+                    var script = document.createElement("script");
 
-        var encodedPageHtml = encodeURI(this._pageHtml)
-        chrome.tabs.executeScript(this.tabId, {
-          code: `
-            var script = document.createElement("script");
+                    console.log('setting pag ehtml')
+                    script.innerHTML = "window.allowJSExecution();";
+                    script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
+                    script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
+                    document.documentElement.appendChild(script)
 
-            script.innerHTML = "window.allowJSExecution();";
-            script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
-            script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
-            document.documentElement.appendChild(script)
-
-            var script2 = document.createElement("script")
-            script2.src = '${chrome.extension.getURL("from.js")}'
-            script2.setAttribute("charset", "utf-8")
-            document.documentElement.appendChild(script2)
-          `
+                    var script2 = document.createElement("script")
+                    script2.src = '${chrome.extension.getURL("from.js")}'
+                    script2.setAttribute("charset", "utf-8")
+                    document.documentElement.appendChild(script2)
+                  `
+            })
         })
     }
     isActive(){
@@ -243,7 +249,6 @@ var messageHandlers = {
             r.open("GET", req.url);
             r.send();
         }
-
     }
 }
 
@@ -273,7 +278,7 @@ function executeScriptOnPage(tabId, code, callback){
     }, callback);
 }
 
-chrome.browserAction.onClicked.addListener(function (tab) {
+function onBrowserActionClicked(tab) {
     var session = getTabSession(tab.id);
     if (session){
         session.close();
@@ -283,7 +288,8 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     }
 
     updateBadge(tab)
-});
+}
+chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 
 function updateBadge(tab){
     var text = ""
@@ -305,6 +311,11 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     updateBadge(tab)
 
     var session = getTabSession(tabId);
+
+    if (!session && tab.url && changeInfo.status === "complete" && tab.url.indexOf("localhost:9856") !== -1 && tab.url.indexOf("#auto-activate-fromjs") !== -1) {
+        onBrowserActionClicked(tab);
+    }
+
     if (!session || session.isActive()){
         return
     }

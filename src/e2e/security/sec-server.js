@@ -6,7 +6,7 @@ function handleRequest(request, response){
         response.writeHead(200, {
             'Set-Cookie': 'val=SECRET',
         });
-        response.write("Cookie set")
+        response.write("<div id='confirm-cookie'>Cookie set</div>")
     }
     if (request.url === "/insecure.json") {
         response.write(JSON.stringify([parseCookies(request)]))

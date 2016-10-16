@@ -9,26 +9,28 @@
 			if (window.f__StringLiteral) {
 				var nativeStrLit = window.f__StringLiteral
 
-				var strSecret = "SECRET"
+				var strSecret = "SEC" + "RET"
 				var domEl = document.querySelector("#f-str-lit")
 				var strFailed = "FAILED"
 				window.f__StringLiteral = function(str){
 					if (str === strSecret) {
 						domEl.innerHTML = strFailed
 					}
-					console.log(str.toString())
+					console.trace(str.toString())
 					return nativeStrLit.apply(this, arguments)
 				}
 			}
 
 		</script>
-		f__StringLiteral overwrite:
-		<div id="f-str-lit">
-			 NO ISSUE FOUND SO FAR
-		</div>
-		Ajax request:
-		<div id="ajax">
-			 NO ISSUE FOUND SO FAR
+		<div id="result">
+			f__StringLiteral overwrite:
+			<div id="f-str-lit">
+				 NO ISSUE FOUND SO FAR
+			</div>
+			Ajax request:
+			<div id="ajax">
+				 NO ISSUE FOUND SO FAR
+			</div>
 		</div>
 
 		<script src="http://localhost:9855/insecure.json#.js"></script>
