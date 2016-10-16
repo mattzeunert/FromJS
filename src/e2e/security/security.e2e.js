@@ -24,8 +24,5 @@ describe('Security', function() {
                 expect(resultHtml.indexOf("FAILED")).toBe(-1)
             });
         })
-        .catch(function(){
-            console.log("FAIL")
-        })
     })
 });
