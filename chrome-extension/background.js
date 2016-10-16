@@ -84,31 +84,38 @@ class FromJSSession {
         this._stage = FromJSSessionStages.ACTIVE;
 
         chrome.tabs.insertCSS(this.tabId, {
-          code: fromJSCss[0][1]
+            code: fromJSCss[0][1]
         })
 
         var self = this;
 
         chrome.tabs.executeScript(this.tabId, {
-            file: "contentScript.js", // loads injected.js
-            runAt: "document_start"
+            code: `
+            var script = document.createElement("script")
+            script.text = "window.allowJSExecution();"
+            console.log("re-allowed js execution")
+            document.documentElement.appendChild(script)
+            `,
         }, function(){
-            var encodedPageHtml = encodeURI(self._pageHtml)
             chrome.tabs.executeScript(self.tabId, {
-                code: `
-                    var script = document.createElement("script");
+                file: "contentScript.js", // loads injected.js
+            }, function(){
+                var encodedPageHtml = encodeURI(self._pageHtml)
+                chrome.tabs.executeScript(self.tabId, {
+                    code: `
+                        var script = document.createElement("script");
 
-                    console.log('setting pag ehtml')
-                    script.innerHTML = "window.allowJSExecution();";
-                    script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
-                    script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
-                    document.documentElement.appendChild(script)
+                        console.log('setting pag ehtml')
+                        script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
+                        script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
+                        document.documentElement.appendChild(script)
 
-                    var script2 = document.createElement("script")
-                    script2.src = '${chrome.extension.getURL("from.js")}'
-                    script2.setAttribute("charset", "utf-8")
-                    document.documentElement.appendChild(script2)
-                  `
+                        var script2 = document.createElement("script")
+                        script2.src = '${chrome.extension.getURL("from.js")}'
+                        script2.setAttribute("charset", "utf-8")
+                        document.documentElement.appendChild(script2)
+                      `
+                })
             })
         })
     }

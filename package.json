@@ -64,6 +64,7 @@
     "mkdirp": "^0.5.1",
     "nodemon": "^1.9.2",
     "protractor": "^4.0.4",
+    "protractor-console": "^2.0.1",
     "react-addons-perf": "^15.2.1",
     "webpack-dev-server": "^1.14.1",
     "webpack-shell-plugin": "^0.4.3"

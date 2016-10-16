@@ -1,7 +1,7 @@
 window.allowJSExecution = inhibitJavaScriptExecution();
 
 function inhibitJavaScriptExecution(){
-
+    console.log("inhibiting js execution")
     var windowProperties = {};
     var Object = window.Object
     var console = window.console

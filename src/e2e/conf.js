@@ -5,11 +5,19 @@ exports.config = {
      seleniumArgs: ['-browserTimeout=20'],
     capabilities: {
         browserName: "chrome",
+        loggingPrefs: {browser:"ALL"},
         chromeOptions: {
+
             "args": ["load-extension=./chrome-extension/dist"]
         }
     },
     jasmineNodeOpts: {
         defaultTimeoutInterval: 20000
-    }
+    },
+    plugins: [
+        {
+            package: "protractor-console",
+            logLevels: ["debug", "info", "warning", "severe"]
+        }
+    ]
 }
