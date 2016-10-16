@@ -6,5 +6,5 @@ httpRequest.onreadystatechange = function(){
     }
     console.log(httpRequest.responseText.value)
 };
-httpRequest.open('GET', "http://localhost:1500/insecure.json#.js");
+httpRequest.open('GET', "http://localhost:9855/insecure.json#.js");
 httpRequest.send();
