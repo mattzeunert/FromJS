@@ -17,5 +17,6 @@ Then, in two separate terminal windows, run `npm run webpack` and `npm run serve
 ### E2E Tests
 
 ```
+npm run webdriver-manager-update
 npm run e2e-test
 ```
