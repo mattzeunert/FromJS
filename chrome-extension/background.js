@@ -110,13 +110,17 @@ class FromJSSession {
         return this._stage === FromJSSessionStages.ACTIVE;
     }
     getFile(url){
-        if (!this._downloadCache[url]) {
-            var xhr = new XMLHttpRequest()
-            xhr.open('GET', url, false);
-            xhr.send(null);
-            this._downloadCache[url] = xhr.responseText
-        }
-        return this._downloadCache[url]
+        var self = this;
+        return new Promise(function(resolve, reject){
+            if (self._downloadCache[url]) {
+                resolve(self._downloadCache[url])
+            } else {
+                fetch(url)
+                .then((r) => r.text())
+                .then((t) => resolve(t))
+            }
+
+        })
     }
     _processJavaScriptCode(code, options){
         var key = code + JSON.stringify(options);
@@ -129,34 +133,41 @@ class FromJSSession {
         }
         return this._processJSCodeCache[key]
     }
-    getCode(url, processCode, allowCookies){
-        var code = this.getFile(url, allowCookies)
-        // Ideally this would happen when displaying the code in the UI,
-        // rather than when it's downloaded (doing it now means the line
-        // numbers will be incorrect)
-        // But for now it's too much work to do it later, would need
-        // to apply source maps...
-        code = beautifyJS(code)
+    getCode(url, processCode){
+        var self = this;
+        var promise = new Promise(function(resolve, reject){
+            // debugger
+            self.getFile(url).then(function(code){
+                // Ideally this would happen when displaying the code in the UI,
+                // rather than when it's downloaded (doing it now means the line
+                // numbers will be incorrect)
+                // But for now it's too much work to do it later, would need
+                // to apply source maps...
+                code = beautifyJS(code)
 
-        if (processCode) {
-            try {
-                var res = this._processJavaScriptCode(code, {filename: url})
-                code = res.code
-                code += "\n//# sourceURL=" + url
-                code += "\n//# sourceMappingURL=" + url + ".map"
+                if (processCode) {
+                    try {
+                        var res = self._processJavaScriptCode(code, {filename: url})
+                        code = res.code
+                        code += "\n//# sourceURL=" + url
+                        code += "\n//# sourceMappingURL=" + url + ".map"
 
-                this._sourceMaps[url + ".map"] = JSON.stringify(res.map)
-            } catch (err) {
-                debugger
-                console.error("Error processing JavaScript code in " + url, err)
-                code = "console.error('FromJS couldn\\'t process JavaScript code " + url + "', '" + err.toString() + "', `" + err.stack + "`)"
-            }
-        }
+                        self._sourceMaps[url + ".map"] = JSON.stringify(res.map)
+                    } catch (err) {
+                        debugger
+                        console.error("Error processing JavaScript code in " + url, err)
+                        code = "console.error('FromJS couldn\\'t process JavaScript code " + url + "', '" + err.toString() + "', `" + err.stack + "`)"
+                    }
+                }
 
-        return code;
+                resolve(code)
+            })
+        })
+
+        return promise;
     }
-    getProcessedCode(url, allowCookies){
-        return this.getCode(url, true, allowCookies)
+    getProcessedCode(url){
+        return this.getCode(url, true)
     }
     getSourceMap(url){
         // this._sourceMaps is redundant since i already cache
@@ -170,12 +181,15 @@ class FromJSSession {
     }
     loadScript(requestUrl, callback){
         console.info("Fetching and processing", requestUrl)
-        var code = this.getProcessedCode(requestUrl)
-        console.info("Injecting", requestUrl)
-        executeScriptOnPage(this.tabId, code, function(){
-            if (callback){
-                callback()
-            }
+        var self =this;
+        this.getProcessedCode(requestUrl)
+        .then(function(code){
+            console.info("Injecting", requestUrl)
+            executeScriptOnPage(self.tabId, code, function(){
+                if (callback){
+                    callback()
+                }
+            })
         })
     }
 }
@@ -215,7 +229,9 @@ var messageHandlers = {
             callback(session.getSourceMap(url))
         } else if (urlLooksLikeJSFile(url)) {
             // debugger
-            callback(session.getCode(url, !dontProcess))
+            session.getCode(url, !dontProcess).then(function(code){
+                callback(code)
+            })
         } else if (urlLooksLikeHtmlFile(url)){
             var html = session.getPageHtml();
             callback(html)
@@ -347,7 +363,11 @@ function makeOnBeforeRequest(){
                 return;
             }
 
-            session.setPageHtml(session.getFile(info.url))
+            var xhr = new XMLHttpRequest()
+            xhr.open('GET', info.url, false);
+            xhr.send(null);
+            session.setPageHtml(xhr.responseText)
+
             var parts = info.url.split("/");parts.pop(); parts.push("");
             var basePath = parts.join("/")
             return
@@ -357,8 +377,8 @@ function makeOnBeforeRequest(){
             return {cancel: true}
         }
 
-        if (urlLooksLikeJSFile(url)) {
-            session.loadScript(url)
+        if (urlLooksLikeJSFile(info.url)) {
+            session.loadScript(info.url)
             return {cancel: true}
         }
     }
