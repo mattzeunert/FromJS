@@ -30,7 +30,9 @@ ValueMap.prototype.getItemAt = function(charIndex){
     var matchingItems = this.items.filter(function(o){
         return o.fromCharIndex <= charIndex && o.toCharIndex > charIndex
     })
-    if (matchingItems.length === 0) {throw "no matches :/"}
+    if (matchingItems.length === 0) {
+        throw Error("no matches :/")
+    }
     var matchingItem
     if (matchingItems.length > 1 && matchingItems[0].originObject.value === "") {
         // "" can't ever meaningfully be the source of a visible string

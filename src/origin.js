@@ -61,6 +61,9 @@ function getUsableInputValue(inputValue, error){
     if (inputValue.isFromJSOriginObject){
         return inputValue
     }
+    if (inputValue.isFromJSFrozenElement) {
+        return inputValue
+    }
     if (inputValue.origin && inputValue.origin.isFromJSOriginObject){
         return inputValue.origin
     }

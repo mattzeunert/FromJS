@@ -47057,6 +47057,9 @@
 	    if (inputValue.isFromJSOriginObject) {
 	        return inputValue;
 	    }
+	    if (inputValue.isFromJSFrozenElement) {
+	        return inputValue;
+	    }
 	    if (inputValue.origin && inputValue.origin.isFromJSOriginObject) {
 	        return inputValue.origin;
 	    }
@@ -58341,7 +58344,8 @@
 	        return o.fromCharIndex <= charIndex && o.toCharIndex > charIndex;
 	    });
 	    if (matchingItems.length === 0) {
-	        throw "no matches :/";
+	        debugger;
+	        throw Error("no matches :/");
 	    }
 	    var matchingItem;
 	    if (matchingItems.length > 1 && matchingItems[0].originObject.value === "") {
@@ -61853,6 +61857,9 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
 	exports.runFunctionWithTracingDisabled = runFunctionWithTracingDisabled;
 	exports.enableEventListeners = enableEventListeners;
 	exports.disableEventListeners = disableEventListeners;
@@ -62048,8 +62055,24 @@
 	    return tracingEnabled;
 	};
 	
+	function FrozenElement(el) {
+	    // element needs to be usable in getRootOriginAtChar
+	    runFunctionWithTracingDisabled(() => {
+	        this.innerHTML = el.innerHTML;
+	        this.outerHTML = el.outerHTML;
+	        this.textContent = el.textContent;
+	        this.tagName = el.tagName;
+	        this.nodeType = el.nodeType;
+	        this.parentNode = {
+	            tagName: el.parentNode ? el.parentNode.tagName : null
+	        };
+	        this.__elOrigin = _extends({}, el.__elOrigin);
+	        this.childNodes = Array.from(el.childNodes).map(e => new FrozenElement(e));
+	    });
+	}
+	FrozenElement.prototype.isFromJSFrozenElement = true;
+	
 	function enableTracing() {
-	    console.trace("Enable tracing called");
 	    if (tracingEnabled) {
 	        return;
 	    }
@@ -62549,7 +62572,7 @@
 	                origin: new _origin2.default({
 	                    value: outerHTML,
 	                    action: "Read Element outerHTML",
-	                    inputValues: [this]
+	                    inputValues: [new FrozenElement(this)]
 	                })
 	            });
 	        }
@@ -62577,7 +62600,7 @@
 	                origin: new _origin2.default({
 	                    value: innerHTML,
 	                    action: "Read Element innerHTML",
-	                    inputValues: [this]
+	                    inputValues: [new FrozenElement(this)]
 	                })
 	            });
 	        }
@@ -62924,9 +62947,7 @@
 	}
 	
 	function disableTracing() {
-	    console.trace("disable tracing called");
 	    if (!tracingEnabled) {
-	        console.trace("disable tracing skippped");
 	        return;
 	    }
 	    window.JSON.parse = window.nativeJSONParse;

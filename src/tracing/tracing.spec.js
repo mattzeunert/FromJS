@@ -1,6 +1,8 @@
 import {enableTracing, disableTracing} from "./tracing"
 import {makeTraceObject} from "./FromJSString"
+import babelFunctions from "./babelFunctions"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
+import getRootOriginAtChar from "../getRootOriginAtChar"
 import Origin from "../origin"
 import createResolveFrameWorker from "../createResolveFrameWorker"
 import _ from "underscore"
@@ -139,6 +141,21 @@ describe("Tracing", function(){
         expect(parsed.hello.there.origin.inputValues[0].action).toBe("Some Action")
         // {"hello": {"there": "[w]orld"}}
         expect(parsed.hello.there.origin.inputValuesCharacterIndex[0]).toBe(21)
+    })
+
+    it("Supports mapping an innerHTML value that's based on an earlier innerHTML value of the element", function(){
+        var el = document.createElement("div")
+        el.innerHTML = "Hello "
+        el.innerHTML = babelFunctions.f__add(el.innerHTML, makeString("World"))
+
+        // <div>Hell[o] World</div>
+        var firstStep = getRootOriginAtChar(el, 9);
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = _.last(steps).origin.value;
+            var characterIndex = _.last(steps).characterIndex
+            expect(value).toBe("Hello ")
+            expect(value[characterIndex]).toBe("o")
+        })
     })
 
     it("Supports mapping of code in new Function", function(done){

@@ -151,6 +151,22 @@ window.__forDebuggingIsTracingEnabled = function(){
     return tracingEnabled
 }
 
+function FrozenElement(el) {
+    // element needs to be usable in getRootOriginAtChar
+    runFunctionWithTracingDisabled(() =>{
+        this.innerHTML =el.innerHTML;
+        this.outerHTML =  el.outerHTML
+        this.textContent = el.textContent
+        this.tagName = el.tagName
+        this.nodeType = el.nodeType
+        this.parentNode = {
+            tagName: el.parentNode  ? el.parentNode.tagName : null
+        }
+        this.__elOrigin = {...el.__elOrigin}
+        this.childNodes = Array.from(el.childNodes).map((e) => new FrozenElement(e))
+    })
+}
+FrozenElement.prototype.isFromJSFrozenElement = true;
 
 export function enableTracing(){
     if (tracingEnabled){
@@ -664,6 +680,8 @@ export function enableTracing(){
         return ret;
     }
 
+
+
     Object.defineProperty(Element.prototype, "outerHTML", {
         get: function(){
             var outerHTML = nativeOuterHTMLDescriptor.get.apply(this, arguments)
@@ -672,7 +690,7 @@ export function enableTracing(){
                 origin: new Origin({
                     value: outerHTML,
                     action: "Read Element outerHTML",
-                    inputValues: [this]
+                    inputValues: [new FrozenElement(this)]
                 })
             })
         }
@@ -700,7 +718,7 @@ export function enableTracing(){
                 origin: new Origin({
                     value: innerHTML,
                     action: "Read Element innerHTML",
-                    inputValues: [this]
+                    inputValues: [new FrozenElement(this)]
                 })
             })
         }
