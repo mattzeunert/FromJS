@@ -3,6 +3,7 @@ import startsWith from "starts-with"
 import fromJSCss from "../src/fromjs.css"
 import manifest from "./manifest" // we don't use it but we want manifest changes to trigger a webpack re-build
 import beautify from "js-beautify"
+import config from "../src/config"
 
 
 chrome.tabs.query({ currentWindow: true }, function (tabs) {
@@ -147,7 +148,9 @@ class FromJSSession {
     }
     _log(){
         console.log.apply(console, arguments);
-        this._executeScript("console.log('Background page log: " + JSON.stringify(arguments) + "')")
+        if (config.logBGPageLogsOnInspectedPage) {
+            this._executeScript("console.log('Background page log: " + JSON.stringify(arguments) + "')")
+        }
     }
     getFile(url){
         var self = this;
