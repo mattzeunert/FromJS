@@ -3,6 +3,15 @@ import startsWith from "starts-with"
 import fromJSCss from "../src/fromjs.css"
 import manifest from "./manifest" // we don't use it but we want manifest changes to trigger a webpack re-build
 import beautify from "js-beautify"
+import config from "../src/config"
+
+
+chrome.tabs.query({ currentWindow: true }, function (tabs) {
+    var tab = tabs[0]
+    if (urlIsOnE2ETestServer(tab.url)){
+        setExtensionLoadedConfirmation(tab.id)
+    }
+});
 
 var resolveFrameWorkerCode = "not loaded yet"
 fetch(chrome.extension.getURL("resolveFrameWorker.js"))
@@ -16,6 +25,7 @@ fetch(chrome.extension.getURL("resolveFrameWorker.js"))
 const FromJSSessionStages = {
     RELOADING: "RELOADING",
     INITIALIZING: "INITIALIZING",
+    INITIALIZED: "INITIALIZED",
     ACTIVE: "ACTIVE",
     CLOSED: "CLOSED"
 }
@@ -31,6 +41,7 @@ class FromJSSession {
         this._open();
     }
     _open(){
+        this._log("Open tab", this.tabId)
         this._onBeforeRequest = makeOnBeforeRequest()
         this._onHeadersReceived = makeOnHeadersReceived();
 
@@ -53,6 +64,10 @@ class FromJSSession {
         return this._pageHtml;
     }
     initialize(){
+        this._log("Init tab", this.tabId)
+        var self = this;
+        this._stage = FromJSSessionStages.INITIALIZING;
+
         chrome.tabs.executeScript(this.tabId, {
             code: `
                 var el = document.createElement("script")
@@ -61,6 +76,9 @@ class FromJSSession {
                 document.documentElement.appendChild(el)
             `,
             runAt: "document_start"
+        }, function(){
+            self._log("INITIALIZED")
+            self._stage = FromJSSessionStages.INITIALIZED
         });
 
         chrome.tabs.insertCSS(this.tabId, {
@@ -74,49 +92,78 @@ class FromJSSession {
             code: "document.body.innerHTML = 'Loading...';document.body.parentElement.classList.add('fromJSRunning')",
             runAt: "document_idle"
         });
-
-        this._stage = FromJSSessionStages.INITIALIZING;
     }
     activate(){
+        if (this._stage !== FromJSSessionStages.INITIALIZED) {
+            this._log("Delay activation until stage is INITIALIZED")
+            setTimeout(() => this.activate(), 100)
+            return;
+        }
+        this._log("Activate tab", this.tabId)
         this._stage = FromJSSessionStages.ACTIVE;
 
         chrome.tabs.insertCSS(this.tabId, {
-          code: fromJSCss[0][1]
+            code: fromJSCss[0][1]
         })
 
-        chrome.tabs.executeScript(this.tabId, {
-            file: "contentScript.js",
-            runAt: "document_start"
-        });
+        var self = this;
 
-        var encodedPageHtml = encodeURI(this._pageHtml)
         chrome.tabs.executeScript(this.tabId, {
-          code: `
-            var script = document.createElement("script");
-
-            script.innerHTML = "window.allowJSExecution();";
-            script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
-            script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
+            code: `
+            var script = document.createElement("script")
+            script.text = "window.allowJSExecution();"
             document.documentElement.appendChild(script)
+            console.log("re-allowed js execution")
+            `,
+        }, function(){
+            chrome.tabs.executeScript(self.tabId, {
+                file: "contentScript.js", // loads injected.js
+            }, function(){
+                var encodedPageHtml = encodeURI(self._pageHtml)
+                chrome.tabs.executeScript(self.tabId, {
+                    code: `
+                        var script = document.createElement("script");
 
-            var script2 = document.createElement("script")
-            script2.src = '${chrome.extension.getURL("from.js")}'
-            script2.setAttribute("charset", "utf-8")
-            document.documentElement.appendChild(script2)
-          `
+                        console.log('setting pag ehtml')
+                        script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
+                        script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
+                        document.documentElement.appendChild(script)
+
+                        var script2 = document.createElement("script")
+                        script2.src = '${chrome.extension.getURL("from.js")}'
+                        script2.setAttribute("charset", "utf-8")
+                        document.documentElement.appendChild(script2)
+                      `
+                })
+            })
         })
     }
     isActive(){
         return this._stage === FromJSSessionStages.ACTIVE;
     }
-    getFile(url){
-        if (!this._downloadCache[url]) {
-            var xhr = new XMLHttpRequest()
-            xhr.open('GET', url, false);
-            xhr.send(null);
-            this._downloadCache[url] = xhr.responseText
+    _executeScript(code){
+        chrome.tabs.executeScript(this.tabId, {
+            code: code
+        })
+    }
+    _log(){
+        console.log.apply(console, arguments);
+        if (config.logBGPageLogsOnInspectedPage) {
+            this._executeScript("console.log('Background page log: " + JSON.stringify(arguments) + "')")
         }
-        return this._downloadCache[url]
+    }
+    getFile(url){
+        var self = this;
+        return new Promise(function(resolve, reject){
+            if (self._downloadCache[url]) {
+                resolve(self._downloadCache[url])
+            } else {
+                fetch(url)
+                .then((r) => r.text())
+                .then((t) => resolve(t))
+            }
+
+        })
     }
     _processJavaScriptCode(code, options){
         var key = code + JSON.stringify(options);
@@ -130,30 +177,38 @@ class FromJSSession {
         return this._processJSCodeCache[key]
     }
     getCode(url, processCode){
-        var code = this.getFile(url)
-        // Ideally this would happen when displaying the code in the UI,
-        // rather than when it's downloaded (doing it now means the line
-        // numbers will be incorrect)
-        // But for now it's too much work to do it later, would need
-        // to apply source maps...
-        code = beautifyJS(code)
+        var self = this;
+        var promise = new Promise(function(resolve, reject){
+            // debugger
+            self.getFile(url).then(function(code){
+                // Ideally this would happen when displaying the code in the UI,
+                // rather than when it's downloaded (doing it now means the line
+                // numbers will be incorrect)
+                // But for now it's too much work to do it later, would need
+                // to apply source maps...
+                code = beautifyJS(code)
 
-        if (processCode) {
-            try {
-                var res = this._processJavaScriptCode(code, {filename: url})
-                code = res.code
-                code += "\n//# sourceURL=" + url
-                code += "\n//# sourceMappingURL=" + url + ".map"
+                if (processCode) {
+                    try {
+                        var res = self._processJavaScriptCode(code, {filename: url})
+                        code = res.code
+                        code += "\n//# sourceURL=" + url
+                        code += "\n//# sourceMappingURL=" + url + ".map"
 
-                this._sourceMaps[url + ".map"] = JSON.stringify(res.map)
-            } catch (err) {
-                debugger
-                console.error("Error processing JavaScript code in " + url, err)
-                code = "console.error('FromJS couldn\\'t process JavaScript code " + url + "', '" + err.toString() + "', `" + err.stack + "`)"
-            }
-        }
+                        self._sourceMaps[url + ".map"] = JSON.stringify(res.map)
+                    } catch (err) {
+                        debugger
+                        this._log("Error processing JavaScript code in " + url + err.stack)
+                        console.error("Error processing JavaScript code in " + url, err)
+                        code = "console.error('FromJS couldn\\'t process JavaScript code " + url + "', '" + err.toString() + "', `" + err.stack + "`)"
+                    }
+                }
 
-        return code;
+                resolve(code)
+            })
+        })
+
+        return promise;
     }
     getProcessedCode(url){
         return this.getCode(url, true)
@@ -163,17 +218,22 @@ class FromJSSession {
         // getFile and processJavaScriptCode, but won't bother fixing for now
 
         if (!this._sourceMaps[url]) {
-            console.log("doensn't have source map")
+            this._log("doensn't have source map")
             debugger
         }
         return this._sourceMaps[url]
     }
     loadScript(requestUrl, callback){
-        console.info("Fetching and processing", requestUrl)
-        var code = this.getProcessedCode(requestUrl)
-        console.info("Injecting", requestUrl)
-        executeScriptOnPage(this.tabId, code, function(){
-            callback()
+        this._log("Fetching and processing", requestUrl)
+        var self =this;
+        this.getProcessedCode(requestUrl)
+        .then(function(code){
+            self._log("Injecting", requestUrl)
+            executeScriptOnPage(self.tabId, code, function(){
+                if (callback){
+                    callback()
+                }
+            })
         })
     }
 }
@@ -202,19 +262,27 @@ var messageHandlers = {
     // which can't be > 2MB)
     fetchUrl: function(req, sender, callback){
         var session = getTabSession(sender.tab.id)
-        var response = request(req.url, session)
+        var url = req.url
 
-        if (response.content) {
-            callback(response.content)
-        } else {
-            var r = new XMLHttpRequest();
-            r.addEventListener("load", function(){
-                callback(r.responseText)
-            });
-            r.open("GET", req.url);
-            r.send();
+        var dontProcess = endsWith(url, ".dontprocess")
+        if (dontProcess) {
+            // debugger;
+            url = url.slice(0, -".dontprocess".length)
         }
-
+        if (url.slice(url.length - ".js.map".length) === ".js.map") {
+            callback(session.getSourceMap(url))
+        } else if (urlLooksLikeJSFile(url)) {
+            // debugger
+            session.getCode(url, !dontProcess).then(function(code){
+                callback(code)
+            })
+        } else if (urlLooksLikeHtmlFile(url)){
+            var html = session.getPageHtml();
+            callback(html)
+        } else {
+            console.error("No handler to fetch file", url)
+            callback(null)
+        }
     }
 }
 
@@ -244,7 +312,7 @@ function executeScriptOnPage(tabId, code, callback){
     }, callback);
 }
 
-chrome.browserAction.onClicked.addListener(function (tab) {
+function onBrowserActionClicked(tab) {
     var session = getTabSession(tab.id);
     if (session){
         session.close();
@@ -254,7 +322,8 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     }
 
     updateBadge(tab)
-});
+}
+chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 
 function updateBadge(tab){
     var text = ""
@@ -276,10 +345,20 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     updateBadge(tab)
 
     var session = getTabSession(tabId);
+
+    if (tab.url && urlIsOnE2ETestServer(tab.url)){
+        setExtensionLoadedConfirmation(tab.id);
+    }
+
+    if (!session && tab.url && changeInfo.status === "complete" && urlIsOnE2ETestServer(tab.url) && tab.url.indexOf("#auto-activate-fromjs") !== -1) {
+        onBrowserActionClicked(tab);
+    }
+
     if (!session || session.isActive()){
         return
     }
 
+    console.log("changeInfo", changeInfo)
     if (changeInfo.status === "complete") {
         session.activate()
     }
@@ -334,7 +413,11 @@ function makeOnBeforeRequest(){
                 return;
             }
 
-            session.setPageHtml(session.getFile(info.url))
+            var xhr = new XMLHttpRequest()
+            xhr.open('GET', info.url, false);
+            xhr.send(null);
+            session.setPageHtml(xhr.responseText)
+
             var parts = info.url.split("/");parts.pop(); parts.push("");
             var basePath = parts.join("/")
             return
@@ -344,55 +427,42 @@ function makeOnBeforeRequest(){
             return {cancel: true}
         }
 
-        var response = request(info.url, session)
-
-        if (response.content) {
-            var url = "data:" + response.mimeType + ";charset=utf-8," + encodeURI(response.content)
-            if (url.length > 2 * 1024 * 1024) {
-                console.error("Data url is too large, greater than 2 MB: ", url.length / 1024 / 1024 + "MB", info.url)
-            }
-
-            return {redirectUrl: url}
-        } else {
-            return response
+        if (urlLooksLikeJSFile(info.url) && info.type === "script") {
+            session.loadScript(info.url)
+            return {cancel: true}
         }
     }
     return onBeforeRequest
 }
 
-function request(url, session){
-
-    if (url.slice(url.length - ".js.map".length) === ".js.map") {
-        return {
-            content: session.getSourceMap(url),
-            mimeType: "application/json"
-        }
-    }
-
-    var dontProcess = false
-    if (url.slice(url.length - ".dontprocess".length) === ".dontprocess") {
-        dontProcess = true
-        url = url.slice(0, - ".dontprocess".length)
-    }
-
-    var urlWithoutQueryParameters = url.split("?")[0]
-    if (endsWith(urlWithoutQueryParameters, ".html")) {
-        var html = session.getPageHtml();
-        return {
-            content: session.getPageHtml(),
-            mimeType: "text/html",
-        }
-    }
-    if (endsWith(urlWithoutQueryParameters, ".js")) {
-        var code = session.getCode(url, !dontProcess)
-        return {
-            content: code,
-            mimeType: "application/javascript"
-        }
-    }
-
-    return {};
+function setExtensionLoadedConfirmation(tabId){
+    chrome.tabs.executeScript(tabId, {
+        code: `
+        console.log('Extension is loaded');
+        var s = document.createElement("script")
+        s.text = "window.extensionLoaded = true;"
+        document.body.appendChild(s)
+        `
+    })
 }
+
+function urlLooksLikeJSFile(url){
+    var urlWithoutQueryParameters = url.split("?")[0]
+    if (endsWith(urlWithoutQueryParameters, ".dontprocess")) {
+        urlWithoutQueryParameters = urlWithoutQueryParameters.substr(0, - ".dontprocess".length)
+    }
+    return endsWith(urlWithoutQueryParameters, ".js")
+}
+
+function urlLooksLikeHtmlFile(url){
+    var urlWithoutQueryParameters = url.split("?")[0]
+    return endsWith(urlWithoutQueryParameters, ".html")
+}
+
+function urlIsOnE2ETestServer(url){
+    return url.indexOf("http://localhost:9856") == 0 || url.indexOf("http://localhost:9855") == 0
+}
+
 
 function beautifyJS(code){
     return beautify.js_beautify(code, {indent_size: 2})

@@ -12,8 +12,12 @@
     "build-demo": "webpack -p --config webpack/webpack.demo.config.js",
     "build": "webpack --config webpack/webpack.prod.config.js;rm chrome-extension/dist/*.map",
     "update-website-demos": "sh ./scripts/copy-demo-files-to-gh-pages.sh",
+    "e2e-test-background-processes": "sh ./scripts/e2e-background.sh",
     "e2e-test": "sh ./scripts/e2e.sh",
-    "webdriver-manager-update": "webdriver-manager update"
+    "webdriver-manager-update": "webdriver-manager update",
+    "static-file-server": "http-server -p 1234",
+    "ci-static-file-server": "http-server -p 9856",
+    "protractor": "protractor src/e2e/conf.js"
   },
   "author": "Matt Zeunert",
   "license": "MIT",
@@ -23,6 +27,7 @@
     "babel-core": "^6.14.0",
     "babel-generator": "^6.7.5",
     "babel-plugin-transform-strict-mode": "^6.8.0",
+    "babel-runtime": "^6.11.6",
     "babel-standalone": "^6.7.7",
     "babel-types": "^6.7.2",
     "babylon": "^6.11.2",
@@ -55,6 +60,7 @@
     "babel-preset-stage-0": "^6.5.0",
     "css-loader": "^0.23.1",
     "download": "^5.0.2",
+    "http-server": "^0.9.0",
     "jasmine-core": "^2.4.1",
     "karma": "^1.1.1",
     "karma-chrome-launcher": "^1.0.1",
@@ -63,6 +69,7 @@
     "mkdirp": "^0.5.1",
     "nodemon": "^1.9.2",
     "protractor": "^4.0.4",
+    "protractor-console": "^2.0.1",
     "react-addons-perf": "^15.2.1",
     "webpack-dev-server": "^1.14.1",
     "webpack-shell-plugin": "^0.4.3"

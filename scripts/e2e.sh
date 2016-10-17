@@ -1,9 +1,4 @@
-node dist/server.js 9999 &
-fromJSServerProcessId=$!
+trap "echo \"Killing child processes...\n\";pkill -P $$" EXIT SIGTERM SIGINT
 
-protractor src/e2e/conf.js
-e2eTestExitCode=$?
-
-kill $fromJSServerProcessId
-
-exit $e2eTestExitCode
+npm run e2e-test-background-processes &
+npm run protractor

@@ -9,7 +9,9 @@ var defaultConfig = {
     alwaysShowValue: false,
     // Catch errors to avoid making app crash completely, but annoying for debugging
     catchUIErrors: true,
-    logReceivedInspectorMessages: false
+    logReceivedInspectorMessages: false,
+    // useful for debugging, especially E2E tests in CI environement
+    logBGPageLogsOnInspectedPage: false,
 }
 
 var customConfig;
@@ -21,7 +23,8 @@ if (process.env.NODE_ENV === "production") {
         catchUIErrors: false,
         validateHtmlMapping: false,
         logTracingSteps: false,
-        logReceivedInspectorMessages: false
+        logReceivedInspectorMessages: false,
+        logBGPageLogsOnInspectedPage: true
     }
 }
 
