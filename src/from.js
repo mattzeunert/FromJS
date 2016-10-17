@@ -9,7 +9,7 @@ if (isMobile() && location.href.indexOf("/react-") !== -1){
 }
 
 import {makeSureInitialHTMLHasBeenProcessed} from "./tracing/processElementsAvailableOnInitialLoad"
-import {enableTracing, disableTracing} from "./tracing/tracing"
+import {enableTracing, disableTracing, runFunctionWithTracingDisabled} from "./tracing/tracing"
 import {addBabelFunctionsToGlobalObject} from "./tracing/babelFunctions"
 import {initializeSidebarContent, showShowFromJSInspectorButton} from "./ui/showFromJSSidebar"
 import $ from "jquery"
@@ -28,8 +28,10 @@ window.fromJSEnableTracing = enableTracing
 window.fromJSDisableTracing = disableTracing
 
 var resolveFrameWorker = createResolveFrameWorker()
-resolveFrameWorker.beforePostMessage = disableTracing
-resolveFrameWorker.afterPostMessage = enableTracing
+if (!window.isPlayground) {
+    resolveFrameWorker.beforePostMessage = disableTracing
+    resolveFrameWorker.afterPostMessage = enableTracing
+}
 resolveFrameWorker.on("fetchUrl", function(url, cb){
     if (window.isExtension) {
         sendMessageToBackgroundPage({
@@ -48,7 +50,9 @@ resolveFrameWorker.on("fetchUrl", function(url, cb){
 
 dynamicCodeRegistry.on("register", function(newFiles){
     console.log("newfiles", newFiles)
-    resolveFrameWorker.send("registerDynamicFiles", newFiles, function(){})
+    runFunctionWithTracingDisabled(function(){
+        resolveFrameWorker.send("registerDynamicFiles", newFiles, function(){})
+    })
 })
 
 if (document.readyState === "complete") {

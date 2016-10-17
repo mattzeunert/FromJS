@@ -82,8 +82,11 @@ document.getElementById("result").innerHTML = greeting`
       lineNumbers: true
     });
 
-    onClickRunButton();
-    document.getElementById("please-wait").remove();
-    document.getElementById("info").setAttribute("style", "")
+    // wit a little for resolveFrameWorker to be ready
+    setTimeout(function(){
+        onClickRunButton();
+        document.getElementById("please-wait").remove();
+        document.getElementById("info").setAttribute("style", "")
+    }, 500)
 }
 </script>

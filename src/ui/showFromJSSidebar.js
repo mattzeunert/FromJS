@@ -6,7 +6,7 @@ import _ from "underscore"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
 import getRootOriginAtChar from "../getRootOriginAtChar"
 import { OriginPath, PreviewElementMarker, SelectedElementMarker } from "../ui/ui"
-import {disableTracing, enableTracing, disableEventListeners, enableEventListeners} from "../tracing/tracing"
+import {disableTracing, enableTracing, disableEventListeners, enableEventListeners,runFunctionWithTracingDisabled} from "../tracing/tracing"
 import RoundTripMessageWrapper from "../RoundTripMessageWrapper"
 import getCodeFilePath from "./getCodeFilePath"
 
@@ -201,17 +201,15 @@ export default function showFromJSSidebar(resolveFrameWorker){
     }
 
     inspectorPage.on("whereDoesCharComeFrom", function(originId, characterIndex, callback){
-        disableTracing()
+        runFunctionWithTracingDisabled(function(){
+            var origin = getOriginById(originId)
 
-        var origin = getOriginById(originId)
-
-        whereDoesCharComeFrom([origin, characterIndex], function(steps){
-            steps.forEach(registerOriginIdsForStep)
-            steps = steps.map(serializeStep)
-            callback(steps)
-        }, resolveFrameWorker)
-
-        enableTracing();
+            whereDoesCharComeFrom([origin, characterIndex], function(steps){
+                steps.forEach(registerOriginIdsForStep)
+                steps = steps.map(serializeStep)
+                callback(steps)
+            }, resolveFrameWorker)
+        })
     })
 
     inspectorPage.on("getCodeFilePath", function(fileName, callback){
@@ -288,7 +286,7 @@ export function showFromJSSidebarOnPlaygroundPage(resolveFrameWorker){
     elementMarkerContainer.appendChild(selectedElementMarkerContainer)
 
     var inspectorPage = new RoundTripMessageWrapper(sidebarIframe.contentWindow, "Inspected App/Sidebar")
-    inspectorPage.beforePostMessage = disableTracing
+    // inspectorPage.beforePostMessage = disableTracing
     // inspectorPage.afterPostMessage = enableTracing
 
     var currentSelectedElement = null;
@@ -406,17 +404,15 @@ export function showFromJSSidebarOnPlaygroundPage(resolveFrameWorker){
     }
 
     inspectorPage.on("whereDoesCharComeFrom", function(originId, characterIndex, callback){
-        disableTracing()
+        runFunctionWithTracingDisabled(function(){
+            var origin = getOriginById(originId)
 
-        var origin = getOriginById(originId)
-
-        whereDoesCharComeFrom([origin, characterIndex], function(steps){
-            steps.forEach(registerOriginIdsForStep)
-            steps = steps.map(serializeStep)
-            callback(steps)
-        }, resolveFrameWorker)
-
-        enableTracing();
+            whereDoesCharComeFrom([origin, characterIndex], function(steps){
+                steps.forEach(registerOriginIdsForStep)
+                steps = steps.map(serializeStep)
+                callback(steps)
+            }, resolveFrameWorker)
+        })
     })
 
     inspectorPage.on("getCodeFilePath", function(fileName, callback){
@@ -448,8 +444,6 @@ export function showFromJSSidebarOnPlaygroundPage(resolveFrameWorker){
         inspectorPage.send("previewElement", serializeElement(el))
         ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
     }
-
-    enableTracing();
 }
 
 export function showShowFromJSInspectorButton(resolveFrameWorker){

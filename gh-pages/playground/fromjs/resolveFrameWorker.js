@@ -45,7 +45,7 @@
 /***/ 0:
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(836);
+	module.exports = __webpack_require__(842);
 
 
 /***/ },
@@ -237,24 +237,7 @@
 
 /***/ },
 
-/***/ 163:
-/***/ function(module, exports) {
-
-	module.exports = function(module) {
-		if(!module.webpackPolyfill) {
-			module.deprecate = function() {};
-			module.paths = [];
-			// module.parent = undefined by default
-			module.children = [];
-			module.webpackPolyfill = 1;
-		}
-		return module;
-	}
-
-
-/***/ },
-
-/***/ 512:
+/***/ 516:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;//     Underscore.js 1.8.3
@@ -1809,7 +1792,7 @@
 
 /***/ },
 
-/***/ 534:
+/***/ 539:
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1818,133 +1801,107 @@
 	    value: true
 	});
 	
-	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-	
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _underscore = __webpack_require__(512);
+	var _underscore = __webpack_require__(516);
 	
 	var _underscore2 = _interopRequireDefault(_underscore);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	var endsWith = __webpack_require__(535);
-	var StackTraceGPS = __webpack_require__(536);
-	var ErrorStackParser = __webpack_require__(539);
-	
-	var FrameResolver = function () {
-	    function FrameResolver(ajax) {
-	        _classCallCheck(this, FrameResolver);
-	
+	var endsWith = __webpack_require__(540);
+	var StackTraceGPS = __webpack_require__(541);
+	var ErrorStackParser = __webpack_require__(544);
+	class FrameResolver {
+	    constructor(ajax) {
 	        this._gps = new StackTraceGPS({ ajax: ajax });;
 	        this._resolvedFrameCache = {};
 	        this._frameStringsCurrentlyBeingResolved = {};
 	    }
+	    _addCodeToFrame(frameObject, callback) {
+	        this._gps._get(frameObject.fileName).then(function (src) {
+	            var lines = src.split("\n");
+	            var zeroIndexedLineNumber = frameObject.lineNumber - 1;
+	            frameObject = _extends({}, frameObject);
+	            frameObject.prevLines = lines.slice(0, zeroIndexedLineNumber);
+	            frameObject.line = lines[zeroIndexedLineNumber];
+	            frameObject.nextLines = lines.slice(zeroIndexedLineNumber + 1);
 	
-	    _createClass(FrameResolver, [{
-	        key: "_addCodeToFrame",
-	        value: function _addCodeToFrame(frameObject, callback) {
-	            this._gps._get(frameObject.fileName).then(function (src) {
-	                var lines = src.split("\n");
-	                var zeroIndexedLineNumber = frameObject.lineNumber - 1;
-	                frameObject = _extends({}, frameObject);
-	                frameObject.prevLines = lines.slice(0, zeroIndexedLineNumber);
-	                frameObject.line = lines[zeroIndexedLineNumber];
-	                frameObject.nextLines = lines.slice(zeroIndexedLineNumber + 1);
-	
-	                if (frameObject.line === undefined) {
-	                    debugger;
-	                }
-	
-	                callback(null, frameObject);
-	            });
-	        }
-	    }, {
-	        key: "resolve",
-	        value: function resolve(frameString, callback) {
-	            // console.time("Resolve Frame " + frameString)
-	            var self = this;
-	            if (this._resolvedFrameCache[frameString]) {
-	                done([null, this._resolvedFrameCache[frameString]]);
-	                return;
+	            if (frameObject.line === undefined) {
+	                debugger;
 	            }
 	
-	            var isCanceled = false;
+	            callback(null, frameObject);
+	        });
+	    }
+	    resolve(frameString, callback) {
+	        // console.time("Resolve Frame " + frameString)
+	        var self = this;
+	        if (this._resolvedFrameCache[frameString]) {
+	            done([null, this._resolvedFrameCache[frameString]]);
+	            return;
+	        }
 	
-	            var frameObject = ErrorStackParser.parse({ stack: frameString })[0];
+	        var isCanceled = false;
 	
-	            if (endsWith(frameObject.fileName, ".html")) {
-	                // don't bother looking for source map file
-	                frameObject.fileName += ".dontprocess";
-	                this._addCodeToFrame(frameObject, callback);
+	        var frameObject = ErrorStackParser.parse({ stack: frameString })[0];
+	
+	        if (endsWith(frameObject.fileName, ".html")) {
+	            // don't bother looking for source map file
+	            frameObject.fileName += ".dontprocess";
+	            this._addCodeToFrame(frameObject, callback);
+	        } else {
+	            // Use promises so we can re-use them, so if the same frame is requested again
+	            // before the first one succeeded we don't attempt to resolve again
+	            if (self._frameStringsCurrentlyBeingResolved[frameString]) {
+	                self._frameStringsCurrentlyBeingResolved[frameString].then(done);
 	            } else {
-	                // Use promises so we can re-use them, so if the same frame is requested again
-	                // before the first one succeeded we don't attempt to resolve again
-	                if (self._frameStringsCurrentlyBeingResolved[frameString]) {
-	                    self._frameStringsCurrentlyBeingResolved[frameString].then(done);
-	                } else {
-	                    self._frameStringsCurrentlyBeingResolved[frameString] = new Promise(function (resolve, reject) {
-	                        self._gps.pinpoint(frameObject).then(function (newFrame) {
-	                            self._addCodeToFrame(newFrame, function (err, frame) {
-	                                resolve([err, frame]);
-	                            });
-	                        }, function () {
-	                            self._addCodeToFrame(frameObject, function (err, frame) {
-	                                resolve([err, frame]);
-	                            });
-	                            console.log("error", arguments);
+	                self._frameStringsCurrentlyBeingResolved[frameString] = new Promise(function (resolve, reject) {
+	                    self._gps.pinpoint(frameObject).then(function (newFrame) {
+	                        self._addCodeToFrame(newFrame, function (err, frame) {
+	                            resolve([err, frame]);
 	                        });
+	                    }, function () {
+	                        self._addCodeToFrame(frameObject, function (err, frame) {
+	                            resolve([err, frame]);
+	                        });
+	                        console.log("error", arguments);
 	                    });
+	                });
 	
-	                    self._frameStringsCurrentlyBeingResolved[frameString].then(done);
-	                }
+	                self._frameStringsCurrentlyBeingResolved[frameString].then(done);
 	            }
+	        }
 	
-	            function done(args) {
-	                var _args = _slicedToArray(args, 2);
+	        function done(args) {
+	            var [err, frame] = args;
+	            // console.timeEnd("Resolve Frame " + frameString)
+	            delete self._frameStringsCurrentlyBeingResolved[frameString];
 	
-	                var err = _args[0];
-	                var frame = _args[1];
-	                // console.timeEnd("Resolve Frame " + frameString)
-	
-	                delete self._frameStringsCurrentlyBeingResolved[frameString];
-	
-	                self._resolvedFrameCache[frameString] = frame;
-	                if (!isCanceled) {
-	                    callback(err, frame);
-	                }
+	            self._resolvedFrameCache[frameString] = frame;
+	            if (!isCanceled) {
+	                callback(err, frame);
 	            }
-	
-	            return function cancel() {
-	                isCanceled = true;
-	            };
 	        }
-	    }, {
-	        key: "addFilesToCache",
-	        value: function addFilesToCache(files) {
-	            this._gps.sourceCache = _underscore2.default.extend(this._gps.sourceCache, files);
-	        }
-	    }, {
-	        key: "getSourceFileContent",
-	        value: function getSourceFileContent(filePath, callback) {
-	            this._gps._get(filePath).then(function (src) {
-	                callback(src);
-	            });
-	        }
-	    }]);
 	
-	    return FrameResolver;
-	}();
-	
+	        return function cancel() {
+	            isCanceled = true;
+	        };
+	    }
+	    addFilesToCache(files) {
+	        this._gps.sourceCache = _underscore2.default.extend(this._gps.sourceCache, files);
+	    }
+	    getSourceFileContent(filePath, callback) {
+	        this._gps._get(filePath).then(function (src) {
+	            callback(src);
+	        });
+	    }
+	}
 	exports.default = FrameResolver;
 
 /***/ },
 
-/***/ 535:
+/***/ 540:
 /***/ function(module, exports) {
 
 	/*!
@@ -1977,12 +1934,10 @@
 
 /***/ },
 
-/***/ 536:
+/***/ 541:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 	
 	(function (root, factory) {
 	    'use strict';
@@ -1991,8 +1946,8 @@
 	    /* istanbul ignore next */
 	
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(537), __webpack_require__(538)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	    } else if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object') {
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(542), __webpack_require__(543)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('source-map/lib/source-map-consumer'), require('./stackframe'));
 	    } else {
 	        root.StackTraceGPS = factory(root.SourceMap || root.sourceMap, root.StackFrame);
@@ -2095,7 +2050,7 @@
 	    }
 	
 	    function _ensureStackFrameIsLegit(stackframe) {
-	        if ((typeof stackframe === 'undefined' ? 'undefined' : _typeof(stackframe)) !== 'object') {
+	        if (typeof stackframe !== 'object') {
 	            throw new TypeError('Given StackFrame is not an object');
 	        } else if (typeof stackframe.fileName !== 'string') {
 	            throw new TypeError('Given file name is not a String');
@@ -2282,10 +2237,10 @@
 
 /***/ },
 
-/***/ 537:
+/***/ 542:
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module) {'use strict';var _typeof=typeof Symbol==="function"&&typeof Symbol.iterator==="symbol"?function(obj){return typeof obj;}:function(obj){return obj&&typeof Symbol==="function"&&obj.constructor===Symbol?"symbol":typeof obj;};(function webpackUniversalModuleDefinition(root,factory){if(( false?'undefined':_typeof(exports))==='object'&&( false?'undefined':_typeof(module))==='object')module.exports=factory();else if(true)!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));else if((typeof exports==='undefined'?'undefined':_typeof(exports))==='object')exports["sourceMap"]=factory();else root["sourceMap"]=factory();})(undefined,function(){return(/******/function(modules){// webpackBootstrap
+	'use strict';(function webpackUniversalModuleDefinition(root,factory){if(true)module.exports=factory();else if(typeof define==='function'&&define.amd)define([],factory);else if(typeof exports==='object')exports["sourceMap"]=factory();else root["sourceMap"]=factory();})(undefined,function(){return(/******/function(modules){// webpackBootstrap
 	/******/// The module cache
 	/******/var installedModules={};/******/// The require function
 	/******/function __webpack_require__(moduleId){/******/// Check if module is in cache
@@ -2645,7 +2600,7 @@
 	// `_generatedMappings` is ordered by the generated positions.
 	//
 	// `_originalMappings` is ordered by the original positions.
-	SourceMapConsumer.prototype.__generatedMappings=null;Object.defineProperty(SourceMapConsumer.prototype,'_generatedMappings',{get:function get(){if(!this.__generatedMappings){this._parseMappings(this._mappings,this.sourceRoot);}return this.__generatedMappings;}});SourceMapConsumer.prototype.__originalMappings=null;Object.defineProperty(SourceMapConsumer.prototype,'_originalMappings',{get:function get(){if(!this.__originalMappings){this._parseMappings(this._mappings,this.sourceRoot);}return this.__originalMappings;}});SourceMapConsumer.prototype._charIsMappingSeparator=function SourceMapConsumer_charIsMappingSeparator(aStr,index){var c=aStr.charAt(index);return c===";"||c===",";};/**
+	SourceMapConsumer.prototype.__generatedMappings=null;Object.defineProperty(SourceMapConsumer.prototype,'_generatedMappings',{get:function(){if(!this.__generatedMappings){this._parseMappings(this._mappings,this.sourceRoot);}return this.__generatedMappings;}});SourceMapConsumer.prototype.__originalMappings=null;Object.defineProperty(SourceMapConsumer.prototype,'_originalMappings',{get:function(){if(!this.__originalMappings){this._parseMappings(this._mappings,this.sourceRoot);}return this.__originalMappings;}});SourceMapConsumer.prototype._charIsMappingSeparator=function SourceMapConsumer_charIsMappingSeparator(aStr,index){var c=aStr.charAt(index);return c===";"||c===",";};/**
 		 * Parse the mappings in a string in to a data structure which we can easily
 		 * query (the ordered arrays in the `this.__generatedMappings` and
 		 * `this.__originalMappings` properties).
@@ -2752,7 +2707,7 @@
 		 * The version of the source mapping spec that we are consuming.
 		 */BasicSourceMapConsumer.prototype._version=3;/**
 		 * The list of original sources.
-		 */Object.defineProperty(BasicSourceMapConsumer.prototype,'sources',{get:function get(){return this._sources.toArray().map(function(s){return this.sourceRoot!=null?util.join(this.sourceRoot,s):s;},this);}});/**
+		 */Object.defineProperty(BasicSourceMapConsumer.prototype,'sources',{get:function(){return this._sources.toArray().map(function(s){return this.sourceRoot!=null?util.join(this.sourceRoot,s):s;},this);}});/**
 		 * Provide the JIT with a nice shape / hidden class.
 		 */function Mapping(){this.generatedLine=0;this.generatedColumn=0;this.source=null;this.originalLine=null;this.originalColumn=null;this.name=null;}/**
 		 * Parse the mappings in a string in to a data structure which we can easily
@@ -2888,7 +2843,7 @@
 		 * The version of the source mapping spec that we are consuming.
 		 */IndexedSourceMapConsumer.prototype._version=3;/**
 		 * The list of original sources.
-		 */Object.defineProperty(IndexedSourceMapConsumer.prototype,'sources',{get:function get(){var sources=[];for(var i=0;i<this._sections.length;i++){for(var j=0;j<this._sections[i].consumer.sources.length;j++){sources.push(this._sections[i].consumer.sources[j]);}}return sources;}});/**
+		 */Object.defineProperty(IndexedSourceMapConsumer.prototype,'sources',{get:function(){var sources=[];for(var i=0;i<this._sections.length;i++){for(var j=0;j<this._sections[i].consumer.sources.length;j++){sources.push(this._sections[i].consumer.sources[j]);}}return sources;}});/**
 		 * Returns the original source, line, and column information for the generated
 		 * source's line and column positions provided. The only argument is an object
 		 * with the following properties:
@@ -3088,7 +3043,7 @@
 	// while all odd indices are the newlines between two adjacent lines
 	// (since `REGEX_NEWLINE` captures its match).
 	// Processed fragments are removed from this array, by calling `shiftNextLine`.
-	var remainingLines=aGeneratedCode.split(REGEX_NEWLINE);var shiftNextLine=function shiftNextLine(){var lineContents=remainingLines.shift();// The last line of a file might not have a newline.
+	var remainingLines=aGeneratedCode.split(REGEX_NEWLINE);var shiftNextLine=function(){var lineContents=remainingLines.shift();// The last line of a file might not have a newline.
 	var newLine=remainingLines.shift()||"";return lineContents+newLine;};// We need to remember the position of "remainingLines"
 	var lastGeneratedLine=1,lastGeneratedColumn=0;// The generate SourceNodes we need a code range.
 	// To extract it current and last mapping is used.
@@ -3154,16 +3109,13 @@
 		 * map.
 		 */SourceNode.prototype.toStringWithSourceMap=function SourceNode_toStringWithSourceMap(aArgs){var generated={code:"",line:1,column:0};var map=new SourceMapGenerator(aArgs);var sourceMappingActive=false;var lastOriginalSource=null;var lastOriginalLine=null;var lastOriginalColumn=null;var lastOriginalName=null;this.walk(function(chunk,original){generated.code+=chunk;if(original.source!==null&&original.line!==null&&original.column!==null){if(lastOriginalSource!==original.source||lastOriginalLine!==original.line||lastOriginalColumn!==original.column||lastOriginalName!==original.name){map.addMapping({source:original.source,original:{line:original.line,column:original.column},generated:{line:generated.line,column:generated.column},name:original.name});}lastOriginalSource=original.source;lastOriginalLine=original.line;lastOriginalColumn=original.column;lastOriginalName=original.name;sourceMappingActive=true;}else if(sourceMappingActive){map.addMapping({generated:{line:generated.line,column:generated.column}});lastOriginalSource=null;sourceMappingActive=false;}for(var idx=0,length=chunk.length;idx<length;idx++){if(chunk.charCodeAt(idx)===NEWLINE_CODE){generated.line++;generated.column=0;// Mappings end at eol
 	if(idx+1===length){lastOriginalSource=null;sourceMappingActive=false;}else if(sourceMappingActive){map.addMapping({source:original.source,original:{line:original.line,column:original.column},generated:{line:generated.line,column:generated.column},name:original.name});}}else{generated.column++;}}});this.walkSourceContents(function(sourceFile,sourceContent){map.setSourceContent(sourceFile,sourceContent);});return{code:generated.code,map:map};};exports.SourceNode=SourceNode;/***/}/******/]));});;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(163)(module)))
 
 /***/ },
 
-/***/ 538:
+/***/ 543:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 	
 	(function (root, factory) {
 	    'use strict';
@@ -3173,7 +3125,7 @@
 	
 	    if (true) {
 	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	    } else if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object') {
+	    } else if (typeof exports === 'object') {
 	        module.exports = factory();
 	    } else {
 	        root.StackFrame = factory();
@@ -3234,20 +3186,20 @@
 	    }
 	
 	    StackFrame.prototype = {
-	        getArgs: function getArgs() {
+	        getArgs: function () {
 	            return this.args;
 	        },
-	        setArgs: function setArgs(v) {
+	        setArgs: function (v) {
 	            if (Object.prototype.toString.call(v) !== '[object Array]') {
 	                throw new TypeError('Args must be an Array');
 	            }
 	            this.args = v;
 	        },
 	
-	        getEvalOrigin: function getEvalOrigin() {
+	        getEvalOrigin: function () {
 	            return this.evalOrigin;
 	        },
-	        setEvalOrigin: function setEvalOrigin(v) {
+	        setEvalOrigin: function (v) {
 	            if (v instanceof StackFrame) {
 	                this.evalOrigin = v;
 	            } else if (v instanceof Object) {
@@ -3257,7 +3209,7 @@
 	            }
 	        },
 	
-	        toString: function toString() {
+	        toString: function () {
 	            var functionName = this.getFunctionName() || '{anonymous}';
 	            var args = '(' + (this.getArgs() || []).join(',') + ')';
 	            var fileName = this.getFileName() ? '@' + this.getFileName() : '';
@@ -3302,12 +3254,10 @@
 
 /***/ },
 
-/***/ 539:
+/***/ 544:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 	
 	(function (root, factory) {
 	    'use strict';
@@ -3316,8 +3266,8 @@
 	    /* istanbul ignore next */
 	
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(538)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	    } else if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object') {
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(543)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('./stackframe'));
 	    } else {
 	        root.ErrorStackParser = factory(root.StackFrame);
@@ -3505,7 +3455,7 @@
 
 /***/ },
 
-/***/ 549:
+/***/ 554:
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {"use strict";
@@ -3514,7 +3464,7 @@
 	    value: true
 	});
 	
-	var _underscore = __webpack_require__(512);
+	var _underscore = __webpack_require__(516);
 	
 	var _underscore2 = _interopRequireDefault(_underscore);
 	
@@ -3529,7 +3479,9 @@
 	    alwaysShowValue: false,
 	    // Catch errors to avoid making app crash completely, but annoying for debugging
 	    catchUIErrors: true,
-	    logReceivedInspectorMessages: false
+	    logReceivedInspectorMessages: false,
+	    // useful for debugging, especially E2E tests in CI environement
+	    logBGPageLogsOnInspectedPage: false
 	};
 	
 	var customConfig;
@@ -3541,7 +3493,8 @@
 	        catchUIErrors: false,
 	        validateHtmlMapping: false,
 	        logTracingSteps: false,
-	        logReceivedInspectorMessages: true
+	        logReceivedInspectorMessages: false,
+	        logBGPageLogsOnInspectedPage: true
 	    };
 	}
 	
@@ -3552,7 +3505,7 @@
 
 /***/ },
 
-/***/ 824:
+/***/ 830:
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3561,28 +3514,18 @@
 	    value: true
 	});
 	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _underscore = __webpack_require__(512);
+	var _underscore = __webpack_require__(516);
 	
 	var _underscore2 = _interopRequireDefault(_underscore);
 	
-	var _config = __webpack_require__(549);
+	var _config = __webpack_require__(554);
 	
 	var _config2 = _interopRequireDefault(_config);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	var RoundTripMessageWrapper = function () {
-	    function RoundTripMessageWrapper(target, connectionName) {
-	        var _this = this;
-	
-	        _classCallCheck(this, RoundTripMessageWrapper);
-	
+	class RoundTripMessageWrapper {
+	    constructor(target, connectionName) {
 	        var onMessage, postMessage, targetHref, close;
 	
 	        var userPassedInFunctions = target.onMessage && target.postMessage;
@@ -3595,34 +3538,34 @@
 	            onMessage = target.onMessage;
 	            postMessage = target.postMessage;
 	        } else if (targetIsWorkerGlobalScope) {
-	            onMessage = function onMessage(callback) {
+	            onMessage = function (callback) {
 	                target.addEventListener("message", callback);
 	            };
-	            close = function close() {
-	                target.removeEventListener("message", _this._handle);
+	            close = () => {
+	                target.removeEventListener("message", this._handle);
 	            };
-	            postMessage = function postMessage() {
+	            postMessage = function () {
 	                target.postMessage.apply(null, arguments);
 	            };
 	        } else if (targetIsWebWorker) {
-	            onMessage = function onMessage(callback) {
+	            onMessage = function (callback) {
 	                target.onmessage = callback;
 	            };
-	            close = function close() {
+	            close = function () {
 	                target.onmessage = null;
 	            };
-	            postMessage = function postMessage() {
+	            postMessage = function () {
 	                target.postMessage.apply(target, arguments);
 	            };
 	        } else if (targetIsWindow) {
 	            targetHref = target.location.href;
-	            onMessage = function onMessage(callback) {
+	            onMessage = function (callback) {
 	                window.addEventListener("message", callback);
 	            };
-	            close = function close() {
-	                window.removeEventListener("message", _this._handle);
+	            close = () => {
+	                window.removeEventListener("message", this._handle);
 	            };
-	            postMessage = function postMessage() {
+	            postMessage = function () {
 	                target.postMessage.apply(target, arguments);
 	            };
 	        } else {
@@ -3635,9 +3578,9 @@
 	        this._connectionName = connectionName;
 	        this._targetHref = targetHref;
 	        this.close = close;
-	        this._postMessage = function (data) {
-	            if (_this.beforePostMessage) {
-	                _this.beforePostMessage();
+	        this._postMessage = data => {
+	            if (this.beforePostMessage) {
+	                this.beforePostMessage();
 	            }
 	
 	            // necessary for some reason, but may not be great for perf
@@ -3645,116 +3588,105 @@
 	            data.timeSent = new Date();
 	            postMessage(data, targetHref);
 	
-	            if (_this.afterPostMessage) {
-	                _this.afterPostMessage();
+	            if (this.afterPostMessage) {
+	                this.afterPostMessage();
 	            }
 	        };
 	        this._handlers = {};
 	    }
-	
-	    _createClass(RoundTripMessageWrapper, [{
-	        key: "_handle",
-	        value: function _handle(e) {
-	            var data = e.data;
-	            if (!data.isRoundTripMessage) {
-	                return;
-	            }
-	
-	            var messageType = data.messageType;
-	            var handlers = this._handlers[messageType];
-	
-	            if (_config2.default.logReceivedInspectorMessages) {
-	                var timeTaken = new Date().valueOf() - new Date(data.timeSent).valueOf();
-	                console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms");
-	            }
-	
-	            if (!handlers) {
-	                return;
-	            }
-	
-	            var self = this;
-	            var callback = function callback() {
-	                self._postMessage({
-	                    isRoundTripMessage: true,
-	                    messageType: messageType + data.id,
-	                    args: Array.from(arguments),
-	                    isResponse: true
-	                });
-	            };
-	
-	            handlers.forEach(function (handler) {
-	                if (data.isResponse || !data.hasCallBack) {
-	                    handler.apply(null, [].concat(_toConsumableArray(data.args)));
-	                } else {
-	                    handler.apply(null, [].concat(_toConsumableArray(data.args), [callback]));
-	                }
-	            });
+	    _handle(e) {
+	        var data = e.data;
+	        if (!data.isRoundTripMessage) {
+	            return;
 	        }
-	    }, {
-	        key: "on",
-	        value: function on(messageType, callback) {
-	            var handlers = this._handlers[messageType];
-	            if (!handlers) {
-	                handlers = [];
-	            }
-	            handlers.push(callback);
-	            this._handlers[messageType] = handlers;
+	
+	        var messageType = data.messageType;
+	        var handlers = this._handlers[messageType];
+	
+	        if (_config2.default.logReceivedInspectorMessages) {
+	            var timeTaken = new Date().valueOf() - new Date(data.timeSent).valueOf();
+	            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms");
 	        }
-	    }, {
-	        key: "send",
-	        value: function send() {
-	            var args = Array.from(arguments);
-	            var messageType = args.shift();
-	            var canceled = false;
 	
-	            var callback;
-	            var hasCallBack = typeof _underscore2.default.last(args) === "function";
-	            if (hasCallBack) {
-	                callback = args.pop();
-	            }
+	        if (!handlers) {
+	            return;
+	        }
 	
-	            var id = _underscore2.default.uniqueId();
-	
-	            if (hasCallBack) {
-	                this.on(messageType + id, function () {
-	                    if (canceled) {
-	                        return;
-	                    }
-	                    callback.apply(null, arguments);
-	                });
-	            }
-	
-	            this._postMessage({
+	        var self = this;
+	        var callback = function () {
+	            self._postMessage({
 	                isRoundTripMessage: true,
-	                messageType: messageType,
-	                id: id,
-	                args: args,
-	                hasCallBack: hasCallBack
+	                messageType: messageType + data.id,
+	                args: Array.from(arguments),
+	                isResponse: true
 	            });
+	        };
 	
-	            return function cancel() {
-	                canceled = true;
-	            };
+	        handlers.forEach(function (handler) {
+	            if (data.isResponse || !data.hasCallBack) {
+	                handler.apply(null, [...data.args]);
+	            } else {
+	                handler.apply(null, [...data.args, callback]);
+	            }
+	        });
+	    }
+	    on(messageType, callback) {
+	        var handlers = this._handlers[messageType];
+	        if (!handlers) {
+	            handlers = [];
 	        }
-	    }]);
+	        handlers.push(callback);
+	        this._handlers[messageType] = handlers;
+	    }
+	    send() {
+	        var args = Array.from(arguments);
+	        var messageType = args.shift();
+	        var canceled = false;
 	
-	    return RoundTripMessageWrapper;
-	}();
+	        var callback;
+	        var hasCallBack = typeof _underscore2.default.last(args) === "function";
+	        if (hasCallBack) {
+	            callback = args.pop();
+	        }
 	
+	        var id = _underscore2.default.uniqueId();
+	
+	        if (hasCallBack) {
+	            this.on(messageType + id, function () {
+	                if (canceled) {
+	                    return;
+	                }
+	                callback.apply(null, arguments);
+	            });
+	        }
+	
+	        this._postMessage({
+	            isRoundTripMessage: true,
+	            messageType,
+	            id,
+	            args,
+	            hasCallBack
+	        });
+	
+	        return function cancel() {
+	            canceled = true;
+	        };
+	    }
+	}
 	exports.default = RoundTripMessageWrapper;
 
 /***/ },
 
-/***/ 836:
+/***/ 842:
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var _resolveFrame = __webpack_require__(534);
+	var _resolveFrame = __webpack_require__(539);
 	
 	var _resolveFrame2 = _interopRequireDefault(_resolveFrame);
 	
-	var _RoundTripMessageWrapper = __webpack_require__(824);
+	var _RoundTripMessageWrapper = __webpack_require__(830);
 	
 	var _RoundTripMessageWrapper2 = _interopRequireDefault(_RoundTripMessageWrapper);
 	
@@ -3776,6 +3708,7 @@
 	});
 	
 	wrapper.on("registerDynamicFiles", function (files, callback) {
+	    console.log("registerDynamicFiles in worker", files);
 	    frameResolver.addFilesToCache(files);
 	    callback();
 	});
@@ -3783,6 +3716,8 @@
 	wrapper.on("getSourceFileContent", function (path, callback) {
 	    frameResolver.getSourceFileContent(path, callback);
 	});
+	
+	console.log("resolveFrameWorker READY");
 
 /***/ }
 
