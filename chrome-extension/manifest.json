@@ -1,6 +1,6 @@
 {
   "name": "FromJS",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "manifest_version": 2,
   "description": "See where each character on the screen came from in code.",
   "minimum_chrome_version": "50.0",
