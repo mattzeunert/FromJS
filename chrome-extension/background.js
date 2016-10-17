@@ -4,6 +4,14 @@ import fromJSCss from "../src/fromjs.css"
 import manifest from "./manifest" // we don't use it but we want manifest changes to trigger a webpack re-build
 import beautify from "js-beautify"
 
+
+chrome.tabs.query({ currentWindow: true }, function (tabs) {
+    var tab = tabs[0]
+    if (urlIsOnE2ETestServer(tab.url)){
+        setExtensionLoadedConfirmation(tab.id)
+    }
+});
+
 var resolveFrameWorkerCode = "not loaded yet"
 fetch(chrome.extension.getURL("resolveFrameWorker.js"))
 .then(function(r){
@@ -16,6 +24,7 @@ fetch(chrome.extension.getURL("resolveFrameWorker.js"))
 const FromJSSessionStages = {
     RELOADING: "RELOADING",
     INITIALIZING: "INITIALIZING",
+    INITIALIZED: "INITIALIZED",
     ACTIVE: "ACTIVE",
     CLOSED: "CLOSED"
 }
@@ -31,7 +40,7 @@ class FromJSSession {
         this._open();
     }
     _open(){
-        console.log("Open tab", this.tabId)
+        this._log("Open tab", this.tabId)
         this._onBeforeRequest = makeOnBeforeRequest()
         this._onHeadersReceived = makeOnHeadersReceived();
 
@@ -54,7 +63,10 @@ class FromJSSession {
         return this._pageHtml;
     }
     initialize(){
-        console.log("Init tab", this.tabId)
+        this._log("Init tab", this.tabId)
+        var self = this;
+        this._stage = FromJSSessionStages.INITIALIZING;
+
         chrome.tabs.executeScript(this.tabId, {
             code: `
                 var el = document.createElement("script")
@@ -63,6 +75,9 @@ class FromJSSession {
                 document.documentElement.appendChild(el)
             `,
             runAt: "document_start"
+        }, function(){
+            self._log("INITIALIZED")
+            self._stage = FromJSSessionStages.INITIALIZED
         });
 
         chrome.tabs.insertCSS(this.tabId, {
@@ -76,11 +91,14 @@ class FromJSSession {
             code: "document.body.innerHTML = 'Loading...';document.body.parentElement.classList.add('fromJSRunning')",
             runAt: "document_idle"
         });
-
-        this._stage = FromJSSessionStages.INITIALIZING;
     }
     activate(){
-        console.log("Activate tab", this.tabId)
+        if (this._stage !== FromJSSessionStages.INITIALIZED) {
+            this._log("Delay activation until stage is INITIALIZED")
+            setTimeout(() => this.activate(), 100)
+            return;
+        }
+        this._log("Activate tab", this.tabId)
         this._stage = FromJSSessionStages.ACTIVE;
 
         chrome.tabs.insertCSS(this.tabId, {
@@ -93,8 +111,8 @@ class FromJSSession {
             code: `
             var script = document.createElement("script")
             script.text = "window.allowJSExecution();"
-            console.log("re-allowed js execution")
             document.documentElement.appendChild(script)
+            console.log("re-allowed js execution")
             `,
         }, function(){
             chrome.tabs.executeScript(self.tabId, {
@@ -121,6 +139,15 @@ class FromJSSession {
     }
     isActive(){
         return this._stage === FromJSSessionStages.ACTIVE;
+    }
+    _executeScript(code){
+        chrome.tabs.executeScript(this.tabId, {
+            code: code
+        })
+    }
+    _log(){
+        console.log.apply(console, arguments);
+        this._executeScript("console.log('Background page log: " + JSON.stringify(arguments) + "')")
     }
     getFile(url){
         var self = this;
@@ -168,6 +195,7 @@ class FromJSSession {
                         self._sourceMaps[url + ".map"] = JSON.stringify(res.map)
                     } catch (err) {
                         debugger
+                        this._log("Error processing JavaScript code in " + url + err.stack)
                         console.error("Error processing JavaScript code in " + url, err)
                         code = "console.error('FromJS couldn\\'t process JavaScript code " + url + "', '" + err.toString() + "', `" + err.stack + "`)"
                     }
@@ -187,17 +215,17 @@ class FromJSSession {
         // getFile and processJavaScriptCode, but won't bother fixing for now
 
         if (!this._sourceMaps[url]) {
-            console.log("doensn't have source map")
+            this._log("doensn't have source map")
             debugger
         }
         return this._sourceMaps[url]
     }
     loadScript(requestUrl, callback){
-        console.info("Fetching and processing", requestUrl)
+        this._log("Fetching and processing", requestUrl)
         var self =this;
         this.getProcessedCode(requestUrl)
         .then(function(code){
-            console.info("Injecting", requestUrl)
+            self._log("Injecting", requestUrl)
             executeScriptOnPage(self.tabId, code, function(){
                 if (callback){
                     callback()
@@ -249,12 +277,8 @@ var messageHandlers = {
             var html = session.getPageHtml();
             callback(html)
         } else {
-            var r = new XMLHttpRequest();
-            r.addEventListener("load", function(){
-                callback(r.responseText)
-            });
-            r.open("GET", req.url);
-            r.send();
+            console.error("No handler to fetch file", url)
+            callback(null)
         }
     }
 }
@@ -319,7 +343,11 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
 
     var session = getTabSession(tabId);
 
-    if (!session && tab.url && changeInfo.status === "complete" && tab.url.indexOf("http://localhost:9856") == 0 && tab.url.indexOf("#auto-activate-fromjs") !== -1) {
+    if (tab.url && urlIsOnE2ETestServer(tab.url)){
+        setExtensionLoadedConfirmation(tab.id);
+    }
+
+    if (!session && tab.url && changeInfo.status === "complete" && urlIsOnE2ETestServer(tab.url) && tab.url.indexOf("#auto-activate-fromjs") !== -1) {
         onBrowserActionClicked(tab);
     }
 
@@ -327,6 +355,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
         return
     }
 
+    console.log("changeInfo", changeInfo)
     if (changeInfo.status === "complete") {
         session.activate()
     }
@@ -403,6 +432,17 @@ function makeOnBeforeRequest(){
     return onBeforeRequest
 }
 
+function setExtensionLoadedConfirmation(tabId){
+    chrome.tabs.executeScript(tabId, {
+        code: `
+        console.log('Extension is loaded');
+        var s = document.createElement("script")
+        s.text = "window.extensionLoaded = true;"
+        document.body.appendChild(s)
+        `
+    })
+}
+
 function urlLooksLikeJSFile(url){
     var urlWithoutQueryParameters = url.split("?")[0]
     if (endsWith(urlWithoutQueryParameters, ".dontprocess")) {
@@ -414,6 +454,10 @@ function urlLooksLikeJSFile(url){
 function urlLooksLikeHtmlFile(url){
     var urlWithoutQueryParameters = url.split("?")[0]
     return endsWith(urlWithoutQueryParameters, ".html")
+}
+
+function urlIsOnE2ETestServer(url){
+    return url.indexOf("http://localhost:9856") == 0 || url.indexOf("http://localhost:9855") == 0
 }
 
 

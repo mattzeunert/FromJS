@@ -20,3 +20,15 @@ Then, in two separate terminal windows, run `npm run webpack` and `npm run serve
 npm run webdriver-manager-update
 npm run e2e-test
 ```
+
+The E2E tests require a few background processes. It can be useful to keep them running during development and then:
+
+```
+npm run e2e-test-background-processes
+```
+
+Then run the tests in a new terminal tab:
+
+```
+npm run protractor
+```

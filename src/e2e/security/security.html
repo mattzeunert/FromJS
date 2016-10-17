@@ -6,6 +6,20 @@
 	</head>
 	<body>
 		<script>
+			window.testsLeft = 3;
+			function testComplete(){
+				debugger;
+				window.testsLeft--;
+				if (window.testsLeft === 0) {
+					var done = document.createElement("div")
+			        done.innerHTML = "DONE"
+			        done.id = "security-done"
+					document.body.appendChild(done)
+				}
+			}
+
+		</script>
+		<script>
 			console.log("Loading security.html")
 			if (window.f__StringLiteral) {
 				var nativeStrLit = window.f__StringLiteral
@@ -21,6 +35,11 @@
 					return nativeStrLit.apply(this, arguments)
 				}
 			}
+			setTimeout(function(){
+				// can't be bothered to check exactly when the test above is done, but
+				// this should be fine, the test above is probably the first to finish anyway
+				testComplete();
+			})
 
 		</script>
 		<div id="result">
@@ -30,6 +49,10 @@
 			</div>
 			Ajax request:
 			<div id="ajax">
+				 NO ISSUE FOUND SO FAR
+			</div>
+			fetchUrl background page API:
+			<div id="fetch-url">
 				 NO ISSUE FOUND SO FAR
 			</div>
 		</div>

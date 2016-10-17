@@ -1,11 +1,11 @@
 window.allowJSExecution = inhibitJavaScriptExecution();
 
 function inhibitJavaScriptExecution(){
-    console.log("inhibiting js execution")
     var windowProperties = {};
     var Object = window.Object
     var console = window.console
     var Error = window.Error
+    console.log("inhibiting js execution")
 
     function getPropertyDescriptor(object, propertyName){
         var descriptor = Object.getOwnPropertyDescriptor(object, propertyName);
@@ -42,6 +42,7 @@ function inhibitJavaScriptExecution(){
                 delete windowProperties[propName]
             }
         }
+        delete window.allowJSExecution
 
         for (var propName in windowProperties){
             try {

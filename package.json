@@ -12,8 +12,12 @@
     "build-demo": "webpack -p --config webpack/webpack.demo.config.js",
     "build": "webpack --config webpack/webpack.prod.config.js;rm chrome-extension/dist/*.map",
     "update-website-demos": "sh ./scripts/copy-demo-files-to-gh-pages.sh",
+    "e2e-test-background-processes": "sh ./scripts/e2e-background.sh",
     "e2e-test": "sh ./scripts/e2e.sh",
-    "webdriver-manager-update": "webdriver-manager update"
+    "webdriver-manager-update": "webdriver-manager update",
+    "static-file-server": "http-server -p 1234",
+    "ci-static-file-server": "http-server -p 9856",
+    "protractor": "protractor src/e2e/conf.js"
   },
   "author": "Matt Zeunert",
   "license": "MIT",
@@ -56,6 +60,7 @@
     "babel-preset-stage-0": "^6.5.0",
     "css-loader": "^0.23.1",
     "download": "^5.0.2",
+    "http-server": "^0.9.0",
     "jasmine-core": "^2.4.1",
     "karma": "^1.1.1",
     "karma-chrome-launcher": "^1.0.1",
