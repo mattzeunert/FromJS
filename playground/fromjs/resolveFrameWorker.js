@@ -1792,7 +1792,57 @@
 
 /***/ },
 
-/***/ 539:
+/***/ 525:
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _underscore = __webpack_require__(516);
+	
+	var _underscore2 = _interopRequireDefault(_underscore);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var defaultConfig = {
+	    logUntrackedStrings: false,
+	    logUntrackedPropertyNames: false,
+	    validateHtmlMapping: false,
+	    logTracingSteps: false,
+	    // show value field below code, normally hidden for original page HTML
+	    alwaysShowValue: false,
+	    // Catch errors to avoid making app crash completely, but annoying for debugging
+	    catchUIErrors: true,
+	    logReceivedInspectorMessages: false,
+	    // useful for debugging, especially E2E tests in CI environement
+	    logBGPageLogsOnInspectedPage: false
+	};
+	
+	var customConfig;
+	if (process.env.NODE_ENV === "production") {
+	    customConfig = {};
+	} else {
+	    customConfig = {
+	        alwaysShowValue: true,
+	        catchUIErrors: false,
+	        validateHtmlMapping: false,
+	        logTracingSteps: false,
+	        logReceivedInspectorMessages: false,
+	        logBGPageLogsOnInspectedPage: true
+	    };
+	}
+	
+	var config = _underscore2.default.extend(defaultConfig, customConfig);
+	
+	exports.default = config;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+/***/ },
+
+/***/ 540:
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1809,9 +1859,9 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var endsWith = __webpack_require__(540);
-	var StackTraceGPS = __webpack_require__(541);
-	var ErrorStackParser = __webpack_require__(544);
+	var endsWith = __webpack_require__(541);
+	var StackTraceGPS = __webpack_require__(542);
+	var ErrorStackParser = __webpack_require__(545);
 	class FrameResolver {
 	    constructor(ajax) {
 	        this._gps = new StackTraceGPS({ ajax: ajax });;
@@ -1901,7 +1951,7 @@
 
 /***/ },
 
-/***/ 540:
+/***/ 541:
 /***/ function(module, exports) {
 
 	/*!
@@ -1934,7 +1984,7 @@
 
 /***/ },
 
-/***/ 541:
+/***/ 542:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -1946,7 +1996,7 @@
 	    /* istanbul ignore next */
 	
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(542), __webpack_require__(543)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(543), __webpack_require__(544)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('source-map/lib/source-map-consumer'), require('./stackframe'));
 	    } else {
@@ -2237,7 +2287,7 @@
 
 /***/ },
 
-/***/ 542:
+/***/ 543:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';(function webpackUniversalModuleDefinition(root,factory){if(true)module.exports=factory();else if(typeof define==='function'&&define.amd)define([],factory);else if(typeof exports==='object')exports["sourceMap"]=factory();else root["sourceMap"]=factory();})(undefined,function(){return(/******/function(modules){// webpackBootstrap
@@ -3112,7 +3162,7 @@
 
 /***/ },
 
-/***/ 543:
+/***/ 544:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -3254,7 +3304,7 @@
 
 /***/ },
 
-/***/ 544:
+/***/ 545:
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -3266,7 +3316,7 @@
 	    /* istanbul ignore next */
 	
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(543)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(544)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('./stackframe'));
 	    } else {
@@ -3455,56 +3505,6 @@
 
 /***/ },
 
-/***/ 554:
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _underscore = __webpack_require__(516);
-	
-	var _underscore2 = _interopRequireDefault(_underscore);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	var defaultConfig = {
-	    logUntrackedStrings: false,
-	    logUntrackedPropertyNames: false,
-	    validateHtmlMapping: false,
-	    logTracingSteps: false,
-	    // show value field below code, normally hidden for original page HTML
-	    alwaysShowValue: false,
-	    // Catch errors to avoid making app crash completely, but annoying for debugging
-	    catchUIErrors: true,
-	    logReceivedInspectorMessages: false,
-	    // useful for debugging, especially E2E tests in CI environement
-	    logBGPageLogsOnInspectedPage: false
-	};
-	
-	var customConfig;
-	if (process.env.NODE_ENV === "production") {
-	    customConfig = {};
-	} else {
-	    customConfig = {
-	        alwaysShowValue: true,
-	        catchUIErrors: false,
-	        validateHtmlMapping: false,
-	        logTracingSteps: false,
-	        logReceivedInspectorMessages: false,
-	        logBGPageLogsOnInspectedPage: true
-	    };
-	}
-	
-	var config = _underscore2.default.extend(defaultConfig, customConfig);
-	
-	exports.default = config;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
-
-/***/ },
-
 /***/ 830:
 /***/ function(module, exports, __webpack_require__) {
 
@@ -3518,7 +3518,7 @@
 	
 	var _underscore2 = _interopRequireDefault(_underscore);
 	
-	var _config = __webpack_require__(554);
+	var _config = __webpack_require__(525);
 	
 	var _config2 = _interopRequireDefault(_config);
 	
@@ -3682,7 +3682,7 @@
 
 	"use strict";
 	
-	var _resolveFrame = __webpack_require__(539);
+	var _resolveFrame = __webpack_require__(540);
 	
 	var _resolveFrame2 = _interopRequireDefault(_resolveFrame);
 	
