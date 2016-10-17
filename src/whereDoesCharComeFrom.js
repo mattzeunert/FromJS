@@ -229,15 +229,11 @@ function goUp(step, resolveFrameWorker, callback){
     else if (step.origin.action === "Read Element innerHTML" ||
         step.origin.action === "Read Element outerHTML"){
 
-        // var el = $("*").filter(function(){return this.innerHTML == step.origin.value})[0]
-        var el = step.origin.inputValues[0]
+        var frozenEl = step.origin.inputValues[0]
 
         var charIndexIsInInnerHTML = step.origin.action === "Read Element innerHTML"
 
-        // using an el reference is fragile, because it will create the current
-        // contents of the element rather than a snapshot from when the value was read,
-        // but oh well
-        var origin = getRootOriginAtChar(el, step.characterIndex, charIndexIsInInnerHTML);
+        var origin = getRootOriginAtChar(frozenEl, step.characterIndex, charIndexIsInInnerHTML);
 
         callback({
             origin: origin.origin,

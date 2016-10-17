@@ -18,6 +18,7 @@ wrapper.on("resolveFrame", function(frameString, callback){
 })
 
 wrapper.on("registerDynamicFiles", function(files, callback){
+    console.log("registerDynamicFiles in worker", files)
     frameResolver.addFilesToCache(files)
     callback()
 })
@@ -25,3 +26,5 @@ wrapper.on("registerDynamicFiles", function(files, callback){
 wrapper.on("getSourceFileContent", function(path, callback){
     frameResolver.getSourceFileContent(path, callback)
 })
+
+console.log("resolveFrameWorker READY")
