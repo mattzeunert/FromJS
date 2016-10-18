@@ -36,7 +36,6 @@ class FromJSSession {
         this._stage = FromJSSessionStages.RELOADING;
         this._pageHtml = null;
         this._downloadCache = {}
-        this._sourceMaps = {};
         this._processJSCodeCache = {};
         this._open();
     }
@@ -160,7 +159,10 @@ class FromJSSession {
             } else {
                 fetch(url)
                 .then((r) => r.text())
-                .then((t) => resolve(t))
+                .then((t) => {
+                    self._downloadCache[url] = t
+                    resolve(t)
+                })
             }
 
         })
@@ -194,8 +196,6 @@ class FromJSSession {
                         code = res.code
                         code += "\n//# sourceURL=" + url
                         code += "\n//# sourceMappingURL=" + url + ".map"
-
-                        self._sourceMaps[url + ".map"] = JSON.stringify(res.map)
                     } catch (err) {
                         debugger
                         this._log("Error processing JavaScript code in " + url + err.stack)
@@ -214,14 +214,13 @@ class FromJSSession {
         return this.getCode(url, true)
     }
     getSourceMap(url){
-        // this._sourceMaps is redundant since i already cache
-        // getFile and processJavaScriptCode, but won't bother fixing for now
-
-        if (!this._sourceMaps[url]) {
-            this._log("doensn't have source map")
-            debugger
+        url = url.slice(0, -".map".length)
+        if (!(url in this._downloadCache)) {
+            throw Error("URL needs to be in cache to be able to fetch source map")
         }
-        return this._sourceMaps[url]
+        code = this._downloadCache[url];
+        var sourceMap = self._processJavaScriptCode(code, {filename: url}).map
+        return JSON.stringify(sourceMap)
     }
     loadScript(requestUrl, callback){
         this._log("Fetching and processing", requestUrl)
