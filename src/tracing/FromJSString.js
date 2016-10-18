@@ -54,7 +54,8 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
     if (propertyName === "valueOf") { return }
 
     // these return numbers
-    if (propertyName === "indexOf" || propertyName === "charCodeAt" || propertyName === "localeCompare") {
+    if (propertyName === "indexOf" || propertyName === "lastIndexOf"
+        || propertyName === "charCodeAt" || propertyName === "localeCompare") {
         return;
     }
 
@@ -387,6 +388,15 @@ Object.defineProperties(FromJSString.prototype, {
                 search = search.value
             }
             return this.value.indexOf(search, fromIndex)
+        },
+        enumerable: false
+    },
+    lastIndexOf: {
+        value: function(search, fromIndex){
+            if (search && search.isStringTraceString) {
+                search = search.value
+            }
+            return this.value.lastIndexOf(search, fromIndex)
         },
         enumerable: false
     },
