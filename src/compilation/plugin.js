@@ -255,6 +255,7 @@ module.exports = function(babel) {
                   babel.types.identifier(replacement),
                   [path.node.left, path.node.right]
               )
+              call.loc = path.node.loc
 
               path.replaceWith(call)
           }
