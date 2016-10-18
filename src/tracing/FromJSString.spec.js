@@ -143,6 +143,17 @@ describe("FromJSString", function(){
         })
     })
 
+    describe("match", function(){
+        it("Works with a regex", function(){
+            var str = makeString("Hello")
+            expect(str.match(/l+/)[0]).toBe("ll")
+        })
+        it("Works with a string", function(){
+            var str = makeString("Hello")
+            expect(str.match("ll")[0]).toBe("ll")
+        })
+    })
+
     describe("replace", function(){
         it("Supports basic replace calls", function(){
             var str = makeTraceObject({
