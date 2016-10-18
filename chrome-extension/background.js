@@ -171,7 +171,7 @@ class FromJSSession {
     }
     _log(){
         console.log.apply(console, arguments);
-        if (config.logBGPageLogsOnInspectedPage) {
+        if (!this.isClosed() && config.logBGPageLogsOnInspectedPage) {
             this._executeScript("console.log('Background page log: " + JSON.stringify(arguments) + "')")
         }
     }
@@ -382,6 +382,16 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
         session.initialize();
     }
 })
+
+chrome.tabs.onRemoved.addListener(function(tabId){
+    var session = getTabSession(tabId);
+    console.log("onremoved")
+    if (session){
+        console.log("closing")
+        session.close();
+    }
+})
+
 
 
 function makeOnHeadersReceived(){
