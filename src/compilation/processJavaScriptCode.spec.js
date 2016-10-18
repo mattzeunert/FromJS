@@ -25,6 +25,20 @@ describe("processJavaScriptCode", function(){
         expect(eval(code)).toBe(false)
     })
 
+    it("Doesn't break when encountering an accessor in an object literal", function(){
+        var code = `
+        var val = null;
+        var obj = {
+            set val(newVal) {val = newVal + "!"},
+            get val(){return val}
+        }
+        obj.val = "Hi"
+        obj.val
+        `
+        code = processJavaScriptCode(code).code
+        expect(eval(code).value).toBe("Hi!")
+    })
+
     it("Supports for loop conditions that return a string", function(){
         var code = `
             var wasInBody = false;

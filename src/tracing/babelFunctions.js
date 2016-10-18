@@ -184,10 +184,23 @@ var babelFunctions = {
     },
     f__makeObject(properties){
         var obj = {}
+        var methodProperties = {};
         for (var i=0; i< properties.length ;i++){
             var property =  properties[i]
-            f__assign(obj, property[0], property[1])
+            var propertyType = property[0]
+            var propertyKey = property[1]
+            if (propertyType === "ObjectProperty") {
+                f__assign(obj, property[1], property[2])
+            } else if (propertyType === "ObjectMethod") {
+                var propertyKind = property[2]
+                var fn = property[3]
+                if (!methodProperties[propertyKey]){
+                    methodProperties[propertyKey] = {}
+                }
+                methodProperties[propertyKey][propertyKind] = fn
+            }
         }
+        Object.defineProperties(obj, methodProperties)
         return obj
     },
     f__getForInLoopKeyObject(object){
