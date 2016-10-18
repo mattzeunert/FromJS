@@ -115,6 +115,10 @@ describe("Tracing", function(){
             var parsed = JSON.parse('[{"Hello": "World"}]')
             expect(parsed[0].Hello.value).toBe("World")
         })
+        it("Supports parsing null", function(){
+            var parsed = JSON.parse(null)
+            expect(parsed).toBe(null)
+        })
     })
 
 
