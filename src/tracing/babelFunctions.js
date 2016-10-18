@@ -5,6 +5,7 @@ import untrackedString from "./untrackedString"
 import untrackedPropertyName from "./untrackedPropertyName"
 import toString from "../untracedToString"
 
+var globalObject = (function () { return this; })();
 
 var cachedValue;
 var documentReadyState = "loading"
@@ -201,6 +202,23 @@ var babelFunctions = {
     },
     f__setDocumentReadyState(value){
         documentReadyState = value
+    },
+    f__getToString(obj){
+        if (obj && obj.isStringTraceString) {
+            return function(){
+                // Return the object itself rather than native string
+                return obj;
+            }
+        } else {
+            return function(){
+                var calledWithCallOrApply = this !== globalObject;
+                if (calledWithCallOrApply){
+                    return obj.toString.apply(this, arguments)
+                } else {
+                    return obj.toString.apply(obj, arguments)
+                }
+            }
+        }
     }
 }
 

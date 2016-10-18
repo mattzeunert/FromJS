@@ -14,13 +14,16 @@ if (window.f__StringLiteral) {
 
 
     window.cb = function(responseText){
-        testComplete();
         if (responseText.indexOf("SEC" + "RET") !== -1) {
             document.querySelector("#fetch-url").innerHTML = "FAILED"
         }
+        testComplete();
     }
-    var data = {url:"http://localhost:9855/insecure.json".toString() , type: "fetchUrl".toString()};
-    data.callbackName = "cb".toString();
+    var data = {
+        url: f__useValue("http://localhost:9855/insecure.json") ,
+        type: f__useValue("fetchUrl")
+    };
+    data.callbackName = f__useValue("cb")
     data.isFromJSExtensionMessage = true
     var event = new CustomEvent("RebroadcastExtensionMessage", {detail: data});
     window.dispatchEvent(event);

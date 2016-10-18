@@ -35,6 +35,26 @@ describe("babelFunctions", function(){
         })
     })
 
+    describe("f__getToString", function(){
+        it("returned function returns the tracked value when passed a tracked value", function(){
+            var str = makeTraceObject({
+                value: "a",
+                origin: {}
+            })
+            expect(babelFunctions.f__getToString(str)()).toBe(str)
+        })
+        it("returned function returns the value's tostring method if something other than a tracked value is passed in", function(){
+            expect(babelFunctions.f__getToString(5)()).toBe("5")
+            expect(babelFunctions.f__getToString(3)(2)).toBe("11")
+            expect(babelFunctions.f__getToString({})()).toBe("[object Object]")
+        })
+        it("returned function uses the correct context when called with .call or .apply", function(){
+            var toString = babelFunctions.f__getToString(5)
+            expect(toString()).toBe("5")
+            expect(toString.call(11)).toBe("11")
+        })
+    })
+
     describe("f__tripleEqual", function(){
         it("Knowns that traced 'a' and traced 'a' are equal", function(){
             var a = makeTraceObject({
