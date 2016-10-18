@@ -884,7 +884,7 @@ export function enableTracing(){
                 var submatch = makeTraceObject({
                     value: res[i],
                     origin: new Origin({
-                        error: getError,
+                        error: getError(),
                         value: res[i],
                         action: "RegExp.exec Submatch",
                         inputValues: [str],
@@ -1067,7 +1067,6 @@ export function enableTracing(){
     //         return proxy;
     //     }
     // })
-
 }
 
 
