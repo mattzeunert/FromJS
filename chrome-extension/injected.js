@@ -25,7 +25,7 @@ window.isExtension = true;
 window.onFromJSReady = function(){
     console.log("Loading page from FromJS")
 
-    // measureTodoMVCRenderingTime()
+    measureTodoMVCRenderingTime()
 
     window.fromJSInitialPageHtml = pageHtml;
     var bodyContent, headContent;

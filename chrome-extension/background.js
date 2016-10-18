@@ -151,7 +151,7 @@ class FromJSSession {
             this._executeScript("console.log('Background page log: " + JSON.stringify(arguments) + "')")
         }
     }
-    getFile(url){
+    _getJavaScriptFile(url){
         var self = this;
         return new Promise(function(resolve, reject){
             if (self._downloadCache[url]) {
@@ -159,9 +159,16 @@ class FromJSSession {
             } else {
                 fetch(url)
                 .then((r) => r.text())
-                .then((t) => {
-                    self._downloadCache[url] = t
-                    resolve(t)
+                .then((code) => {
+                    // Ideally this would happen when displaying the code in the UI,
+                    // rather than when it's downloaded (doing it now means the line
+                    // numbers will be incorrect)
+                    // But for now it's too much work to do it later, would need
+                    // to apply source maps...
+                    code = beautifyJS(code)
+
+                    self._downloadCache[url] = code
+                    resolve(code)
                 })
             }
 
@@ -181,15 +188,7 @@ class FromJSSession {
     getCode(url, processCode){
         var self = this;
         var promise = new Promise(function(resolve, reject){
-            // debugger
-            self.getFile(url).then(function(code){
-                // Ideally this would happen when displaying the code in the UI,
-                // rather than when it's downloaded (doing it now means the line
-                // numbers will be incorrect)
-                // But for now it's too much work to do it later, would need
-                // to apply source maps...
-                code = beautifyJS(code)
-
+            self._getJavaScriptFile(url).then(function(code){
                 if (processCode) {
                     try {
                         var res = self._processJavaScriptCode(code, {filename: url})
@@ -215,13 +214,12 @@ class FromJSSession {
     }
     getSourceMap(url){
         url = url.slice(0, -".map".length)
-        if (!(url in this._downloadCache)) {
-            throw Error("URL needs to be in cache to be able to fetch source map")
-        }
-        var code = this._downloadCache[url];
-        code = beautifyJS(code)
-        var sourceMap = this._processJavaScriptCode(code, {filename: url}).map
-        return JSON.stringify(sourceMap)
+        return new Promise((resolve) => {
+            this._getJavaScriptFile(url).then((code) => {
+                var sourceMap = this._processJavaScriptCode(code, {filename: url}).map
+                resolve(sourceMap)
+            })
+        })
     }
     loadScript(requestUrl, callback){
         this._log("Fetching and processing", requestUrl)
@@ -270,9 +268,10 @@ var messageHandlers = {
             url = url.slice(0, -".dontprocess".length)
         }
         if (url.slice(url.length - ".js.map".length) === ".js.map") {
-            callback(session.getSourceMap(url))
+            session.getSourceMap(url).then(function(sourceMap){
+                callback(JSON.stringify(sourceMap))
+            })
         } else if (urlLooksLikeJSFile(url)) {
-            // debugger
             session.getCode(url, !dontProcess).then(function(code){
                 callback(code)
             })
