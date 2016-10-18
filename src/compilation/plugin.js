@@ -238,11 +238,32 @@ module.exports = function(babel) {
               babel.types.identifier("f__makeObject"),
               [babel.types.arrayExpression(
                    path.node.properties.map(function(prop){
-                       var propArray = babel.types.arrayExpression([
-                           prop.key,
-                           prop.value
-                       ])
-                       return propArray
+                       var type = babel.types.stringLiteral(prop.type)
+                       type.ignore = true
+                       if (prop.type === "ObjectMethod") {
+                            // getter/setter
+                            var kind = babel.types.stringLiteral(prop.kind);
+                            kind.ignore = true;
+                            var propArray = babel.types.arrayExpression([
+                                type,
+                                prop.key,
+                                kind,
+                                babel.types.functionExpression(
+                                    null,
+                                    prop.params,
+                                    prop.body
+                                )
+                            ])
+                            return propArray
+                       } else {
+                           var propArray = babel.types.arrayExpression([
+                               type,
+                               prop.key,
+                               prop.value
+                           ])
+                           return propArray
+                       }
+                       console.log("continue with type", prop.type)
                    })
                )
             ]
