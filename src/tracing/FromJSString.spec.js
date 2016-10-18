@@ -51,6 +51,11 @@ describe("FromJSString", function(){
         expect(str.indexOf("1", 2)).toBe(3)
     })
 
+    it("lastIndexOf supports a fromIndex", function(){
+        var str = makeString("abc")
+        expect(str.indexOf("a", 1)).toBe(-1)
+    })
+
     describe("substr", function(){
         it("Supports calls with one parameter", function(){
             var str = makeString("Hello")
