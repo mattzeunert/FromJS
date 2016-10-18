@@ -198,7 +198,7 @@ class FromJSSession {
                         code += "\n//# sourceMappingURL=" + url + ".map"
                     } catch (err) {
                         debugger
-                        this._log("Error processing JavaScript code in " + url + err.stack)
+                        self._log("Error processing JavaScript code in " + url + err.stack)
                         console.error("Error processing JavaScript code in " + url, err)
                         code = "console.error('FromJS couldn\\'t process JavaScript code " + url + "', '" + err.toString() + "', `" + err.stack + "`)"
                     }
