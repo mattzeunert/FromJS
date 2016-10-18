@@ -246,6 +246,9 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 valueItems = valueMap.serialize(inputValues)
             } else if (propertyName === "match") {
                 var regExp = args[0]
+                if (! (regExp instanceof RegExp)) {
+                    regExp = new RegExp(regExp)
+                }
                 if (regExp.global) {
                     var matches = [];
                     var match;
