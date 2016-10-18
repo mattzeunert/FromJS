@@ -218,8 +218,9 @@ class FromJSSession {
         if (!(url in this._downloadCache)) {
             throw Error("URL needs to be in cache to be able to fetch source map")
         }
-        code = this._downloadCache[url];
-        var sourceMap = self._processJavaScriptCode(code, {filename: url}).map
+        var code = this._downloadCache[url];
+        code = beautifyJS(code)
+        var sourceMap = this._processJavaScriptCode(code, {filename: url}).map
         return JSON.stringify(sourceMap)
     }
     loadScript(requestUrl, callback){
