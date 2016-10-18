@@ -431,6 +431,9 @@ export function enableTracing(){
         if (!error){
             error = Error();
         }
+        if (str === null){
+            str = "null"
+        }
         str = trackStringIfNotTracked(str, error)
 
         if (typeof parsedVal === "string") {
