@@ -542,12 +542,10 @@ export function enableTracing(){
             separator = defaultArrayJoinSeparator
         }
         var stringifiedItems = Array.prototype.map.call(this, function(item){
-            var stringifiedItem = item;
-
-            while (typeof stringifiedItem !== "string") {
-                stringifiedItem = stringifiedItem.toString()
+            if (item === null || item === undefined) {
+                return ""
             }
-            return stringifiedItem
+            return toString(item)
         })
 
         var trackIfNotTracked = makeTrackIfNotTrackedFunction();

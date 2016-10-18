@@ -21,6 +21,12 @@ export default function trackStringIfNotTracked(str, err){
 export function makeTrackIfNotTrackedFunction(){
     var getError = makeGetErrorFunction();
     var fn = function(str){
+        if(str === null){
+            str = "null"
+        }
+        if(str === undefined){
+            str = "undefined"
+        }
         return trackStringIfNotTracked(str, fn.getErrorObject())
     }
     fn.getErrorObject = function(){
