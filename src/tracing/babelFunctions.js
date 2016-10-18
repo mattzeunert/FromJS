@@ -195,9 +195,13 @@ var babelFunctions = {
                 var propertyKind = property[2]
                 var fn = property[3]
                 if (!methodProperties[propertyKey]){
-                    methodProperties[propertyKey] = {}
+                    methodProperties[propertyKey] = {
+                        enumerable: true,
+                        configurable: true
+                    }
                 }
                 methodProperties[propertyKey][propertyKind] = fn
+
             }
         }
         Object.defineProperties(obj, methodProperties)
