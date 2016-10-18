@@ -48,6 +48,20 @@ module.exports = function(babel) {
                   [path.node.object]
               )
               path.replaceWith(call)
+          } else if (path.node.property.value === "toString" || path.node.property.name === "toString"){
+              // toString calls on tracked objects return a native string, so call a special
+              // function that returns the tracked string again
+              // toString needs to return a stirng when called from native browser code
+
+              // There might be different ways to do this that don't require modifying code
+              // and that are more reliable
+              // (e.g. I could capture a call stack and see if it was a call by a native function, but
+              // my thinking right now is that I'd rather avoid the perf penality of getting a stack trace)
+              var call = babel.types.callExpression(
+                  babel.types.identifier("f__getToString"),
+                  [path.node.object]
+              )
+              path.replaceWith(call)
           }
       },
       ForInStatement(path){

@@ -146,6 +146,21 @@ describe("processJavaScriptCode", function(){
         expect(window.f__getReadyState).toHaveBeenCalledTimes(5)
     })
 
+    it("Replaces .toString lookups with f__getToString calls", function(){
+        spyOn(window, "f__getToString").and.callThrough()
+        var code = `
+            var str = "Hello";
+            str = str.toString();
+            str
+        `
+
+        code = processJavaScriptCode(code).code;
+        var res = eval(code);
+
+        expect(window.f__getToString).toHaveBeenCalled();
+        expect(res.value).not.toBe(undefined)
+    })
+
     describe("For..in loops", function(){
         it("Gives access to the tracked property names in a for...in loop", function(){
             var code = `
@@ -192,14 +207,14 @@ describe("processJavaScriptCode", function(){
             var code = `
                 var charIndices = [];
                 for (var charIndex in "abc") {
-                    charIndices.push(charIndex.toString())
+                    charIndices.push(parseFloat(charIndex))
                 }
                 charIndices;
                 `
             code = processJavaScriptCode(code).code;
             var evalRes = eval(code)
             expect(evalRes.length).toBe(3)
-            expect(evalRes).toEqual(["0", "1", "2"])
+            expect(evalRes).toEqual([0, 1, 2])
         });
     })
 
