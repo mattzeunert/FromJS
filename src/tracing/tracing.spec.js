@@ -265,6 +265,11 @@ describe("Tracing", function(){
             expect(joined.value).toBe("Hello-Hello")
         })
 
+        it("Works with null and undefined values", function(){
+            var joined = [null, undefined, null].join("-")
+            expect(joined.value).toBe("--")
+        })
+
         it("Works with arrays", function(){
             var array = [[1,2],[3,4]];
             var joined = array.join("x");
