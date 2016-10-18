@@ -56,6 +56,9 @@ class FromJSSession {
 
         this._stage = FromJSSessionStages.CLOSED;
     }
+    isClosed(){
+        return this._stage === FromJSSessionStages.CLOSED
+    }
     setPageHtml(pageHtml) {
         this._pageHtml = pageHtml;
     }
@@ -67,7 +70,7 @@ class FromJSSession {
         var self = this;
         this._stage = FromJSSessionStages.INITIALIZING;
 
-        chrome.tabs.executeScript(this.tabId, {
+        this._executeScript({
             code: `
                 var el = document.createElement("script")
                 el.src = "${chrome.extension.getURL("inhibitJavaScriptExecution.js")}";
@@ -87,7 +90,7 @@ class FromJSSession {
             `,
             runAt: "document_start"
         });
-        chrome.tabs.executeScript(this.tabId, {
+        this._executeScript({
             code: "document.body.innerHTML = 'Loading...';document.body.parentElement.classList.add('fromJSRunning')",
             runAt: "document_idle"
         });
@@ -107,7 +110,7 @@ class FromJSSession {
 
         var self = this;
 
-        chrome.tabs.executeScript(this.tabId, {
+        self._executeScript({
             code: `
             var script = document.createElement("script")
             script.text = "window.allowJSExecution();"
@@ -115,15 +118,15 @@ class FromJSSession {
             console.log("re-allowed js execution")
             `,
         }, function(){
-            chrome.tabs.executeScript(self.tabId, {
+            self._executeScript({
                 file: "contentScript.js", // loads injected.js
             }, function(){
                 var encodedPageHtml = encodeURI(self._pageHtml)
-                chrome.tabs.executeScript(self.tabId, {
+                self._executeScript({
                     code: `
                         var script = document.createElement("script");
 
-                        console.log('setting pag ehtml')
+                        console.log('setting page html')
                         script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
                         script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
                         document.documentElement.appendChild(script)
@@ -140,10 +143,31 @@ class FromJSSession {
     isActive(){
         return this._stage === FromJSSessionStages.ACTIVE;
     }
-    _executeScript(code){
-        chrome.tabs.executeScript(this.tabId, {
-            code: code
-        })
+    _executeScript(codeOrParamObject, callback){
+        if (this.isClosed()) {
+            this._log("Not executing code for closed session")
+            return;
+        }
+        var obj;
+        if (typeof codeOrParamObject === "string"){
+            obj = {
+                code: codeOrParamObject
+            }
+        } else {
+            obj = codeOrParamObject
+        }
+        chrome.tabs.executeScript(this.tabId, obj, callback)
+    }
+    executeScriptOnPage(code, callback){
+        var encodedCode = encodeURI(code);
+        this._executeScript({
+            code: `
+                var script = document.createElement("script");
+                script.text = decodeURI("${encodedCode}");
+                document.documentElement.appendChild(script)
+                script.remove();
+            `
+        }, callback);
     }
     _log(){
         console.log.apply(console, arguments);
@@ -227,7 +251,7 @@ class FromJSSession {
         this.getProcessedCode(requestUrl)
         .then(function(code){
             self._log("Injecting", requestUrl)
-            executeScriptOnPage(self.tabId, code, function(){
+            self.executeScriptOnPage(code, function(){
                 if (callback){
                     callback()
                 }
@@ -251,15 +275,13 @@ function createSession(tabId){
 
 
 var messageHandlers = {
-    loadScript: function(request, sender, callback){
-        var session = getTabSession(sender.tab.id)
+    loadScript: function(session, request, callback){
         session.loadScript(request.url, callback)
     },
     // Use fetchUrl instead of a normal request in order to be able to
     // return processed code > 2MB (normally we redirect to a data URL,
     // which can't be > 2MB)
-    fetchUrl: function(req, sender, callback){
-        var session = getTabSession(sender.tab.id)
+    fetchUrl: function(session, req, callback){
         var url = req.url
 
         var dontProcess = endsWith(url, ".dontprocess")
@@ -289,27 +311,22 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
     console.log("Got message", request)
     if (!request.isFromJSExtensionMessage) {return}
 
+    var session = getTabSession(sender.tab.id)
+    if (!session){
+        console.error("Got message for tab without session", request)
+        return
+    }
+
     var handler = messageHandlers[request.type];
     if (handler) {
-        handler(request, sender, function(){
-            executeScriptOnPage(sender.tab.id, request.callbackName + "(decodeURI(`" + encodeURI(JSON.stringify(Array.from(arguments))) + "`))");
+        handler(session, request, function(){
+            session.executeScriptOnPage(request.callbackName + "(decodeURI(`" + encodeURI(JSON.stringify(Array.from(arguments))) + "`))");
         })
     } else {
         throw "no handler for message type " + request.type
     }
 });
 
-function executeScriptOnPage(tabId, code, callback){
-    var encodedCode = encodeURI(code);
-    chrome.tabs.executeScript(tabId, {
-        code: `
-            var script = document.createElement("script");
-            script.text = decodeURI("${encodedCode}");
-            document.documentElement.appendChild(script)
-            script.remove();
-        `
-    }, callback);
-}
 
 function onBrowserActionClicked(tab) {
     var session = getTabSession(tab.id);
