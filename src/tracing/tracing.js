@@ -291,7 +291,7 @@ export function enableTracing(){
     window.XMLHttpRequest = function(){
         var self = this;
         self.xhr = new originalXMLHttpRequest()
-        this.open = function(){
+        this.open = function(method, url){
             self.xhr.onreadystatechange = function(e){
                 var isDone = self.xhr.readyState === originalXMLHttpRequest.DONE;
                 if (isDone) {
@@ -301,7 +301,7 @@ export function enableTracing(){
                                 value: self.xhr.responseText,
                                 origin: new Origin({
                                     value: self.xhr.responseText,
-                                    inputValues: [],
+                                    inputValues: [url],
                                     action: "XHR responseText"
                                 })
                             })

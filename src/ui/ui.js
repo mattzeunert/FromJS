@@ -295,7 +295,9 @@ class OriginPathItem extends React.Component {
         }
 
         var toggleFrameSelectorButton = null;
-        if (originObject.stack && originObject.stack.length > 1) {
+        var callStackDeeperThanOneLevel = originObject.stack && originObject.stack.length > 1
+        var hasInputValues = originObject.inputValues.length > 0
+        if (callStackDeeperThanOneLevel || hasInputValues) {
             toggleFrameSelectorButton = <button
                 className="fromjs-origin-path-step__stack-frame-selector-toggle"
                 onClick={() => this.setState({showDetailsDropdown: !this.state.showDetailsDropdown})}>
