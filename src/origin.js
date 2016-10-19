@@ -210,11 +210,8 @@ Origin.prototype._serialize = function(shallow){
         })
         serialized.stack = this.getStackFrames();
     }
-
     serialized.id = this.getId();
-    serialized.error = {
-        stack: this.error.stack
-    }
+    delete serialized.error
 
     return serialized;
 }

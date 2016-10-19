@@ -106,10 +106,12 @@ export default function showFromJSSidebar(resolveFrameWorker){
     }
 
     function setCurrentSelectedElement(el){
-        currentSelectedElement = el
-        nonElementOriginSelected = false;
-        inspectorPage.send("selectElement", serializeElement(el))
-        updateSelectionMarker();
+        runFunctionWithTracingDisabled(function(){
+            currentSelectedElement = el
+            nonElementOriginSelected = false;
+            inspectorPage.send("selectElement", serializeElement(el))
+            updateSelectionMarker();
+        })
     }
 
     function updateSelectionMarker(){
@@ -307,10 +309,12 @@ export function showFromJSSidebarOnPlaygroundPage(resolveFrameWorker){
     }
 
     function setCurrentSelectedElement(el){
-        currentSelectedElement = el
-        nonElementOriginSelected = false;
-        inspectorPage.send("selectElement", serializeElement(el))
-        updateSelectionMarker();
+        runFunctionWithTracingDisabled(function(){
+            currentSelectedElement = el
+            nonElementOriginSelected = false;
+            inspectorPage.send("selectElement", serializeElement(el))
+            updateSelectionMarker();
+        })
     }
 
     function updateSelectionMarker(){
@@ -441,10 +445,12 @@ export function showFromJSSidebarOnPlaygroundPage(resolveFrameWorker){
     }
 
     function setCurrentPreviewedElement(el){
-        currentPreviewedElement = el
+        runFunctionWithTracingDisabled(function(){
+            currentPreviewedElement = el
 
-        inspectorPage.send("previewElement", serializeElement(el))
-        ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
+            inspectorPage.send("previewElement", serializeElement(el))
+            ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
+        })
     }
 }
 
