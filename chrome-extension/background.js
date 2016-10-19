@@ -42,10 +42,8 @@ class FromJSSession {
     _open(){
         this._log("Open tab", this.tabId)
         this._onBeforeRequest = makeOnBeforeRequest()
-        this._onHeadersReceived = makeOnHeadersReceived();
 
         chrome.webRequest.onBeforeRequest.addListener(this._onBeforeRequest, {urls: ["<all_urls>"], tabId: this.tabId}, ["blocking"]);
-        chrome.webRequest.onHeadersReceived.addListener(this._onHeadersReceived, {urls: ["<all_urls>"], tabId: this.tabId}, ["blocking", "responseHeaders"])
 
         chrome.tabs.reload(this.tabId)
     }
@@ -391,24 +389,6 @@ chrome.tabs.onRemoved.addListener(function(tabId){
         session.close();
     }
 })
-
-
-
-function makeOnHeadersReceived(){
-    return function onHeadersReceived(details){
-        if (details.type !== "main_frame") {return}
-
-        for (var i=0; i<details.responseHeaders.length; i++) {
-            if (details.responseHeaders[i].name === "Content-Security-Policy") {
-                details.responseHeaders[i].value = ""
-            }
-        }
-
-        return {
-            responseHeaders: details.responseHeaders
-        }
-    }
-}
 
 function makeOnBeforeRequest(){
     // make unique function so we can call removeListener later
