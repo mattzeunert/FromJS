@@ -62,7 +62,7 @@ export default class RoundTripMessageWrapper {
             }
 
             // necessary for some reason, but may not be great for perf
-            data = JSON.parse(JSON.stringify(data))
+            // data = JSON.parse(JSON.stringify(data))
             data.timeSent = new Date();
             postMessage(data, targetHref)
 
@@ -83,7 +83,9 @@ export default class RoundTripMessageWrapper {
 
         if (config.logReceivedInspectorMessages) {
             var timeTaken = new Date().valueOf() - new Date(data.timeSent).valueOf()
-            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms")
+            var size = "";
+            // size += "Size: " + (JSON.stringify(data).length / 1024) + "KB"
+            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms", size)
         }
 
         if (!handlers) {

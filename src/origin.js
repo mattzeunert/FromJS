@@ -212,6 +212,9 @@ Origin.prototype._serialize = function(shallow){
     }
 
     serialized.id = this.getId();
+    serialized.error = {
+        stack: this.error.stack
+    }
 
     return serialized;
 }

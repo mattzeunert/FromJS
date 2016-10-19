@@ -236,10 +236,12 @@ export default function showFromJSSidebar(resolveFrameWorker){
     }
 
     function setCurrentPreviewedElement(el){
-        currentPreviewedElement = el
+        runFunctionWithTracingDisabled(function(){
+            currentPreviewedElement = el
 
-        inspectorPage.send("previewElement", serializeElement(el))
-        ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
+            inspectorPage.send("previewElement", serializeElement(el))
+            ReactDOM.render(<PreviewElementMarker el={currentPreviewedElement}/>, previewElementMarkerContainer)
+        })
     }
 
     enableTracing();
