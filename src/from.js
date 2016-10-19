@@ -86,3 +86,15 @@ function onReady(){
         showShowFromJSInspectorButton(resolveFrameWorker)
     }
 }
+
+function makeConsoleFunctionWorkWithTrackedStrings(fnName){
+    var originalFn = console[fnName];
+    console[fnName] = function(){
+        var args = Array.from(arguments);
+        args = args.map(f__useValue);
+        return originalFn.apply(this, args);
+    }
+}
+makeConsoleFunctionWorkWithTrackedStrings("log")
+makeConsoleFunctionWorkWithTrackedStrings("warn")
+makeConsoleFunctionWorkWithTrackedStrings("error")
