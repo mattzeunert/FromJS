@@ -123,7 +123,6 @@ describe("FromJSString", function(){
         })
         it("Works with a string literal", function(){
             var str = makeString("a-b-c")
-            debugger
             var res = str.split("-")
             expect(res.map(s => s.value)).toEqual(["a", "b", "c"])
             expect(res[0].origin.action).toBe("Split Call")

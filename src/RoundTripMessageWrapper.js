@@ -61,8 +61,6 @@ export default class RoundTripMessageWrapper {
                 this.beforePostMessage()
             }
 
-            // necessary for some reason, but may not be great for perf
-            // data = JSON.parse(JSON.stringify(data))
             data.timeSent = new Date();
             postMessage(data, targetHref)
 

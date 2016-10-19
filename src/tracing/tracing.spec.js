@@ -178,16 +178,16 @@ describe("Tracing", function(){
         var ret = fn();
         disableTracing()
 
-        resolveFrameWorker.send("registerDynamicFiles", dynamicCodeRegistry._content, function(){})
+        resolveFrameWorker.send("registerDynamicFiles", dynamicCodeRegistry._content, function(){
+            whereDoesCharComeFrom([ret.origin, 0], function(steps){
+                var lastStep = steps[steps.length - 1]
+                expect(lastStep.origin.action).toBe("Something")
 
-        whereDoesCharComeFrom([ret.origin, 0], function(steps){
-            var lastStep = steps[steps.length - 1]
-            expect(lastStep.origin.action).toBe("Something")
+                resolveFrameWorker.terminate();
 
-            resolveFrameWorker.terminate();
-
-            done();
-        }, resolveFrameWorker)
+                done();
+            }, resolveFrameWorker)
+        })
     })
 
     it("Eval returns the passed in value if it's not a code string", function(){

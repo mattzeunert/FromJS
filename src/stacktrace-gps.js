@@ -1,3 +1,13 @@
+/*
+    originally stored this file in repo because I had some issues loading the
+    correctly versioned files of the different stacktrace.js libraries
+
+    Now I also added a patch to cache the map consumer object.
+    See here: https://github.com/stacktracejs/stacktrace-gps/issues/41
+*/
+
+
+
 (function(root, factory) {
     'use strict';
     // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js, Rhino, and browsers.
@@ -134,9 +144,19 @@
         }
     }
 
+    var consumers = new Map();
+    function getMapConsumer(rawSourceMap){
+        var consumer = consumers.get(rawSourceMap)
+        if (!consumer) {
+            consumer = new SourceMap.SourceMapConsumer(rawSourceMap);
+            consumers.set(rawSourceMap, consumer)
+        }
+        return consumer;
+    }
+
     function _extractLocationInfoFromSourceMap(stackframe, rawSourceMap, sourceCache) {
         return new Promise(function(resolve, reject) {
-            var mapConsumer = new SourceMap.SourceMapConsumer(rawSourceMap);
+            var mapConsumer = getMapConsumer(rawSourceMap)
 
             var loc = mapConsumer.originalPositionFor({
                 line: stackframe.lineNumber,
@@ -300,6 +320,9 @@
                     this._get(sourceMappingURL).then(function(sourceMap) {
                         if (typeof sourceMap === 'string') {
                             sourceMap = _parseJson(sourceMap.replace(/^\)\]\}'/, ''));
+
+                            // map needs source map used in .get to be identical
+                            this.sourceCache[sourceMappingURL] = sourceMap
                         }
                         if (typeof sourceMap.sourceRoot === 'undefined') {
                             sourceMap.sourceRoot = base;
@@ -312,7 +335,7 @@
                             })['catch'](function() {
                             resolve(stackframe);
                         });
-                    }, reject)['catch'](reject);
+                    }.bind(this), reject)['catch'](reject);
                 }.bind(this), reject)['catch'](reject);
             }.bind(this));
         };
