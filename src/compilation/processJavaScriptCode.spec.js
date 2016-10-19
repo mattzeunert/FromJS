@@ -102,6 +102,24 @@ describe("processJavaScriptCode", function(){
         expect(eval(code)).toEqual({})
     })
 
+    it("Can handle chained AND expressions", function(){
+        var code = `true && false && true && true`
+        code = processJavaScriptCode(code).code
+        expect(eval(code)).toBe(false)
+    })
+
+    it("Can handle chained OR expressions", function(){
+        var code = `false || false || true || true`
+        code = processJavaScriptCode(code).code
+        expect(eval(code)).toBe(true)
+    })
+
+    it("Can handle parenthesis and OR/AND expressions", function(){
+        var code = `false && true && (false || true)`
+        code = processJavaScriptCode(code).code
+        expect(eval(code)).toBe(false)
+    })
+
     it("Returns the correct value from OR expressions on tracked strings", function(){
         var code = "'' || 'hi'"
         code = processJavaScriptCode(code).code
