@@ -41,7 +41,7 @@ resolveFrameWorker.on("fetchUrl", function(url, cb){
     } else {
         var r = new XMLHttpRequest();
         r.addEventListener("load", function(){
-            cb(r.responseText)
+            cb(f__useValue(r.responseText))
         });
         r.open("GET", url);
         r.send();

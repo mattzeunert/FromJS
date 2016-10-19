@@ -61,9 +61,6 @@ export default class RoundTripMessageWrapper {
                 this.beforePostMessage()
             }
 
-            // This is slow and I don't think it's needed
-            // but somehow stuff breaks without it
-            data = JSON.parse(JSON.stringify(data))
             data.timeSent = new Date();
             postMessage(data, targetHref)
 
