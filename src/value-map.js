@@ -50,12 +50,14 @@ ValueMap.prototype.getItemAt = function(charIndex){
     })
 
     var origin = matchingItem.origin
-    var characterIndex = charIndex - charCountBeforeMatch +
-        matchingItem.indexInOriginValue;
+    var charIndexInMatch = charIndex - charCountBeforeMatch
+    var characterIndex = charIndexInMatch + matchingItem.indexInOriginValue;
 
 
     return {
         origin,
+        match: matchingItem,
+        charIndexInMatch,
         characterIndex: characterIndex,
         __justForDebuggingStr: matchingItem.__justForDebuggingStr
     }

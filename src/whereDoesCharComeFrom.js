@@ -102,6 +102,21 @@ function goUp(step, resolveFrameWorker, callback){
             origin: step.origin.inputValues[0],
             characterIndex: characterIndex
         }
+    } else if (step.origin.action === "encodeURIComponent") {
+        var unencodedString = step.origin.inputValues[0].value;
+        var encodedString = step.origin.value;
+
+        var valueMap = new ValueMap()
+
+        var extraCharsSoFar = 0;
+        for (var i=0;i<unencodedString.length;i++) {
+            var unencodedChar = unencodedString[i];
+            var encodedChar = encodeURIComponent(unencodedChar)
+            valueMap.appendString(encodedChar, step.origin.inputValues[0], i)
+            extraCharsSoFar += encodedChar.length - unencodedChar.length
+        }
+        ret = valueMap.getItemAt(step.characterIndex)
+        ret.characterIndex -= ret.charIndexInMatch
     } else if (step.origin.action === "JSON.stringify") {
         ret = new OriginPathStep(
             step.origin.inputValues[0],
