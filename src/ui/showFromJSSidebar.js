@@ -156,11 +156,13 @@ export default function showFromJSSidebar(resolveFrameWorker){
 
 
     inspectorPage.on("getRootOriginAtChar", function(elementId, characterIndex, callback){
-        var el = getElementFromElementId(elementId)
-        var initialStep = getRootOriginAtChar(el, characterIndex)
-        registerOriginIdsForStep(initialStep)
-        initialStep = serializeStep(initialStep)
-        callback(initialStep)
+        runFunctionWithTracingDisabled(function(){
+            var el = getElementFromElementId(elementId)
+            var initialStep = getRootOriginAtChar(el, characterIndex)
+            registerOriginIdsForStep(initialStep)
+            initialStep = serializeStep(initialStep)
+            callback(initialStep)
+        })
     })
 
     function serializeStep(s) {
@@ -363,11 +365,13 @@ export function showFromJSSidebarOnPlaygroundPage(resolveFrameWorker){
 
 
     inspectorPage.on("getRootOriginAtChar", function(elementId, characterIndex, callback){
-        var el = getElementFromElementId(elementId)
-        var initialStep = getRootOriginAtChar(el, characterIndex)
-        registerOriginIdsForStep(initialStep)
-        initialStep = serializeStep(initialStep)
-        callback(initialStep)
+        runFunctionWithTracingDisabled(function(){
+            var el = getElementFromElementId(elementId)
+            var initialStep = getRootOriginAtChar(el, characterIndex)
+            registerOriginIdsForStep(initialStep)
+            initialStep = serializeStep(initialStep)
+            callback(initialStep)
+        })
     })
 
     function serializeStep(s) {
