@@ -282,6 +282,9 @@ export function enableTracing(){
                 }
                 return appendedEl;
             }
+        },
+        set: function(){
+            console.error("Not overwriting Node.prototype.appendChild")
         }
     })
 
