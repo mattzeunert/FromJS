@@ -200,7 +200,9 @@ Origin.prototype._serialize = function(shallow){
         serialized.inputValues = [];
         // Some input values can be elements, (which is wrong and should change at some point)
         // but for now avoid passing elements on to iframe.
+        // ===> this could very well be fixed  now
         serialized.__elOrigin = null;
+
     } else {
         serialized.inputValues = serialized.inputValues.filter(function(iv){
             return iv instanceof Origin;
@@ -212,6 +214,7 @@ Origin.prototype._serialize = function(shallow){
     }
     serialized.id = this.getId();
     delete serialized.error
+    delete serialized.valueItems
 
     return serialized;
 }
