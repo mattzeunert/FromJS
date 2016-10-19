@@ -9,14 +9,19 @@ root._ = old_
 function processJSScriptTagsInHtml(html, replace){
     var scriptTags = [];
 
-    html = html.replace(/(\<script).*?\>[\s\S]*?\<\/script\>/g, function(scriptTag){
-        var $ = cheerio.load(scriptTag)("*")
+    var $ = cheerio.load(html)
+    function getOuterHtml(el){
+        return $('<div>').append(el.clone()).html()
+    }
 
-        var isJS = !$.attr("type") || $.attr("type") === "text/javascript"
-        var isInlineJS = isJS && !$.attr("src");
-        var content = $.html()
+    $("script").each(function(i, scriptTag){
+        scriptTag = $(scriptTag)
+        var outerHtml = getOuterHtml(scriptTag);
+        var isJS = !scriptTag.attr("type") || scriptTag.attr("type") === "text/javascript"
+        var isInlineJS = isJS && !scriptTag.attr("src");
+        var content = scriptTag.html()
 
-        var parts = getOpeningAndClosingTags(scriptTag, content)
+        var parts = getOpeningAndClosingTags(outerHtml, content)
 
         if (isInlineJS && replace !== undefined) {
             content = replace(content)
@@ -33,10 +38,10 @@ function processJSScriptTagsInHtml(html, replace){
             })
         }
 
-        return completeTag
+        $(scriptTag[0]).replaceWith($(completeTag))
     })
     return {
-        html: html,
+        html: $.html(),
         scriptTags: scriptTags
     }
 }

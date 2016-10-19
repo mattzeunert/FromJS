@@ -2,7 +2,7 @@ import {replaceJSScriptTags, getJSScriptTags} from "./getJSScriptTags"
 
 describe("replaceJSScriptTags", function(){
     it("Replaces script tags", function(){
-        var html = `aaa<script>hello</script>bbb`
+        var html = `aaa<script >hello</script>bbb`
         html = replaceJSScriptTags(html, function(scriptContent){
             expect(scriptContent).toBe("hello")
             return "hi"
@@ -21,5 +21,10 @@ describe("getJSScriptTags", function(){
         var html = `aaa<script>hello</script>bbb`
         var scriptTags = getJSScriptTags(html)
         expect(scriptTags[0].content).toBe("hello")
+    })
+    it("Doesn't find commented out script tags", function(){
+        var html = `aaa<!--<script>hello</script>-->bbb`
+        var scriptTags = getJSScriptTags(html)
+        expect(scriptTags.length).toBe(0)
     })
 })
