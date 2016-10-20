@@ -73,6 +73,21 @@ describe("FromJSString", function(){
         })
     })
 
+    describe("Search", function(){
+        it("Works for regular expressions", function(){
+            var res = makeString("Hello").search(/l/)
+            expect(res).toBe(2)
+        })
+        it("Works for strings", function(){
+            var res = makeString("Hello").search("l")
+            expect(res).toBe(2)
+        })
+        it("Works when there's no match", function(){
+            var res = makeString("Hello").search("k")
+            expect(res).toBe(-1)
+        })
+    })
+
     describe("substring", function(){
         it("Supports calls with two parameters", function(){
             var str = makeTraceObject({

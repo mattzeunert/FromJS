@@ -55,7 +55,8 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
 
     // these return numbers
     if (propertyName === "indexOf" || propertyName === "lastIndexOf"
-        || propertyName === "charCodeAt" || propertyName === "localeCompare") {
+        || propertyName === "charCodeAt" || propertyName === "localeCompare"
+        || propertyName === "search") {
         return;
     }
 
@@ -403,6 +404,12 @@ Object.defineProperties(FromJSString.prototype, {
     charCodeAt: {
         value: function(index){
             return this.value.charCodeAt(index)
+        },
+        enumerable: false
+    },
+    search: {
+        value: function(index){
+            return this.value.search(index)
         },
         enumerable: false
     },
