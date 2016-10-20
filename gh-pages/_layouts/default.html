@@ -7,7 +7,15 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="initial-scale=1.0,width=device-width" />
         <link rel="shortcut icon" href="/favicon.ico">
-
+        <meta property="og:title" content="{{page.title}}" />
+        {% if page.og_image %}
+            <meta property="og:image" content="{{page.og_image}}" />
+        {% endif %}
+        {% if page.og_description %}
+            <meta property="og:description" content="{{page.og_description}}" />
+        {% endif %}
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:creator" content="@mattzeunert" />
     </head>
     <body>
 
