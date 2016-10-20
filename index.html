@@ -5,20 +5,18 @@ title: Understand JavaScript Apps
 
 <div class="container">
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <h2>What is FromJS?</h2>
             <p>
-                FromJS is a developer tool that helps you understand how an app works.
+                FromJS is a developer tool that helps you understand how a JavaScript app works.
             </p>
             <p>
-                You can select an HTML element in the inspected page and view where in the code it originated.
-                In this screenshot I've selected a label tag on the page, specifically
-                I'm tracing the origin of the "B" character.
-            </p>
+                You can select an HTML element in the page you're inspecting to view where its content came from.
+                In the screenshot you can see that the string "Hello" originally came from localStorage data.
             <p>
-                At the bottom you can see that it was added to the DOM through an
-                innerHTML assignment. At the top you can see that the "Buy milk" string
-                originally came from localStorage data.
+            <p>
+                Other possible string sources include string literals in the app's JS code, as well
+                as HTML served on the initial page load.
             </p>
             <h2>Demos</h2>
             <p>
@@ -30,8 +28,8 @@ title: Understand JavaScript Apps
                 <a href="/recordings.html">Demo Videos</a>
             </p>
         </div>
-        <div class="col-md-6">
-            <img src="/img/example.png" style="padding: 2px;border: 1px solid #ddd;width: 400px;max-width: 100%">
+        <div class="col-md-8">
+            <img src="/img/fromjs-chrome-extension.png" style="padding: 2px;border: 1px solid #ddd;max-width: 100%">
         </div>
     </div>
 
