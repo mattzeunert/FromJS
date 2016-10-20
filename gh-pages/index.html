@@ -1,5 +1,4 @@
 ---
-
 layout: default
 title: Understand JavaScript Apps
 ---
@@ -20,12 +19,12 @@ title: Understand JavaScript Apps
                 as HTML served on the initial page load.
             </p>
             <p>
-                <span class="hide-on-desktop-chrome">
-                    <h3 style="font-size: 20px;font-weight: normal">See it in action</h3>
+                <div class="hide-on-desktop-chrome">
+                    <h3>See it in action</h3>
                     FromJS only works on Chrome Desktop, but you can <a href="http://localhost:4000/recordings.html">watch some demo videos.</a>
                     <br>
                     There's also an older <a href="/todomvc">Backbone TodoMVC demo</a> that may work on your device.
-                </span>
+                </div>
                 <span class="desktop-chrome-only">
                     <a href="/react-todomvc" class="btn btn-primary">React TodoMVC Demo</a> <span style="color: #aaa"></span>
                 </span>
@@ -40,14 +39,11 @@ title: Understand JavaScript Apps
         <div class="col-md-6">
             <h2>Does it work for all sites?</h2>
             <p>
-                FromJS won't work on most sites, yet. There's a lot of work to be done to support more browser functionality.
-                Large sites currently also take a long time to load and use up large amounts of memory.
+                Currently enabling FromJS breaks a lot of pages.
+                Non-trivial apps also take a long time to load and use up large amounts of memory.
             </p>
-            <h2>Want to try it anyway?</h2>
+            <h3>Can I try it anyway?</h3>
             <p>
-                <a href="https://chrome.google.com/webstore/detail/fromjs/hjkhdaoomfphjmffaklelpmkllfbjjfd?hl=en">
-                    <img src="https://developer.chrome.com/webstore/images/ChromeWebStore_Badge_v2_206x58.png" alt="FromJS Chrome Extension"></img>
-                </a>
                 Yes, just install the <a href="https://chrome.google.com/webstore/detail/fromjs/hjkhdaoomfphjmffaklelpmkllfbjjfd?hl=en">FromJS Chrome Extension</a>.
                 The <a href="https://github.com/mattzeunert/fromjs#chrome-extension">Github readme</a> lists some sites where FromJS works fairly well.
             </p>
@@ -76,7 +72,7 @@ We recommend moving this block and the preceding CSS link to the HEAD of your HT
 </div>    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
 <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_6e1d1f58acfc60f4eb4adce31_62764a4d09" tabindex="-1" value=""></div>
 <div class="clear">
-    <input type="submit" value="Subscribe" name="subscribe"
+    <input type="submit" value="Sign Up" name="subscribe"
         id="mc-embedded-subscribe" class="btn btn-primary"
         style="margin: 0;border: inherit"></div>
 </div>
@@ -86,9 +82,10 @@ We recommend moving this block and the preceding CSS link to the HEAD of your HT
 <!--End mc_embed_signup-->
         <br><br><br>
     </div>
+</div>
 
+    <br>
     <center>
-        <iframe width="840" height="472" src="https://www.youtube.com/embed/jtGikR68y7s" frameborder="0" allowfullscreen></iframe>
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/jtGikR68y7s" frameborder="0" allowfullscreen></iframe>
     </center>
-    <br/><br/>
 </div>
