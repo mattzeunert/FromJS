@@ -43,6 +43,8 @@ window.nativeHTMLScriptElementTextDescriptor = nativeHTMLScriptElementTextDescri
 var nativeExec = RegExp.prototype.exec;
 window.nativeExec = nativeExec;
 
+var nativeEncodeURIComponent = window.encodeURIComponent
+
 var nativeRemoveAttribute = Element.prototype.removeAttribute;
 
 var nativeFunction = Function
@@ -1052,6 +1054,18 @@ export function enableTracing(){
         })
     }
 
+    window.encodeURIComponent = function(str){
+        var encoded = nativeEncodeURIComponent(str)
+        return makeTraceObject({
+            value: encoded,
+            origin: new Origin({
+                action: "encodeURIComponent",
+                value: encoded,
+                inputValues: [str]
+            })
+        })
+    }
+
 
     // try to add this once, but it turned out the .dataset[sth] assignment
     // was in a chrome extension that uses a different HTMLElement object
@@ -1122,6 +1136,8 @@ export function disableTracing(){
     Object.prototype.toString = nativeObjectToString
     Number.prototype.toString = nativeNumberToString
     Array.prototype.toString = nativeArrayToString
+
+    window.encodeURIComponent = nativeEncodeURIComponent
 
     Number.prototype.toFixed = nativeNumberToFixed;
 

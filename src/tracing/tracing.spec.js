@@ -643,6 +643,16 @@ describe("Tracing", function(){
         })
     })
 
+    describe("encodeURIComponent", function(){
+        it("Keeps track of the unencoded value", function(){
+            var str = makeString("a b#");
+            var encoded = encodeURIComponent(str);
+            expect(encoded.value).toBe("a%20b%23");
+            expect(encoded.origin.action).toBe("encodeURIComponent")
+            expect(encoded.origin.inputValues[0]).toBe(str.origin)
+        })
+    })
+
     describe("Object.getOwnPropertyNames", function(){
         it("Only returns 'length' when called on an empty string", function(){
             var str = makeTraceObject({

@@ -233,4 +233,33 @@ describe("whereDoesCharComeFrom", function(){
             expect(lastStep.characterIndex).toBe(0)
         })
     })
+
+    it("Can traverse encodeURIComponent calls", function(){
+        var origin = {
+            action: "encodeURIComponent",
+            value: "a%20b%23cde",
+            inputValues: [{
+                action: "String Literal",
+                value: "a b#cde",
+                inputValues: []
+            }]
+        }
+
+        whereDoesCharComeFrom([origin, 3], function(steps){
+            var lastStep = steps[steps.length - 1]
+            expect(lastStep.origin.action).toBe("String Literal")
+            var char = lastStep.origin.value[lastStep.characterIndex]
+            expect(char).toBe(" ")
+        })
+        whereDoesCharComeFrom([origin, 6], function(steps){
+            var lastStep = steps[steps.length - 1]
+            var char = lastStep.origin.value[lastStep.characterIndex]
+            expect(char).toBe("#")
+        })
+        whereDoesCharComeFrom([origin, 9], function(steps){
+            var lastStep = steps[steps.length - 1]
+            var char = lastStep.origin.value[lastStep.characterIndex]
+            expect(char).toBe("d")
+        })
+    })
 })
