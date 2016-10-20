@@ -19,7 +19,9 @@ FromJS won't currently work on most sites. Here are a few example apps that work
 [React Font Picker](https://andreasur.github.io/react-font-picker/)  
 [D3 Hexagonal Binning](http://bl.ocks.org/mbostock/raw/4248145/)  
 [React Examples](https://github.com/ruanyf/react-demos)  
-[UK Employment Data](http://www.mattzeunert.com/uk-employment)
+[UK Employment Map](http://www.mattzeunert.com/uk-employment)
+
+![FromJS screenshot](https://cloud.githubusercontent.com/assets/1303660/19559430/b4ffc33c-96c7-11e6-9d3f-424c1c45b84f.png)
 
 ## Contribute
 
