@@ -8,7 +8,7 @@ import config from "../src/config"
 
 chrome.tabs.query({ currentWindow: true }, function (tabs) {
     var tab = tabs[0]
-    if (urlIsOnE2ETestServer(tab.url)){
+    if (tab.url && urlIsOnE2ETestServer(tab.url)){
         setExtensionLoadedConfirmation(tab.id)
     }
 });
@@ -327,6 +327,11 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 
 
 function onBrowserActionClicked(tab) {
+    if (startsWith(tab.url, "chrome://")) {
+        alert("chrome:// URLS can't be loaded with FromJS")
+        return;
+    }
+
     var session = getTabSession(tab.id);
     if (session){
         session.close();
