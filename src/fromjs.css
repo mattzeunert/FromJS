@@ -90,6 +90,8 @@ body:not(.fromjsIsMobile) .fromjs-value span:hover {
 }
 #fromjs .fromjs-value {
     padding: 10px;
+    max-height: 151px;
+    overflow: auto;
 }
 #fromjs .fromjs-value span {
     cursor: pointer;
@@ -102,8 +104,7 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     background: #9ad0ff;
 }
 #fromjs .fromjs-value__content {
-    max-height: 131px;
-    overflow: auto;
+
 }
 #fromjs .fromjs-stack__code {
     line-height: 18px;
