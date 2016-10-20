@@ -1164,15 +1164,14 @@ class Intro extends React.Component {
     render(){
         var browserIsChrome = /chrom(e|ium)/.test(navigator.userAgent.toLowerCase());
         var notChromeMessage = null
-        if (!browserIsChrome) {
+        if (!browserIsChrome || isMobile()) {
             notChromeMessage = <div style={{border: "2px solid red", padding: 10}}>
-                FromJS is currently built to only work in Chrome. It sort of works
-                in other browsers too, but some things are broken.
+                FromJS is currently built to only work in Chrome Desktop.
             </div>
         }
         return <div className="fromjs-intro">
             {notChromeMessage}
-            <h2>What is this?</h2>
+            <h2>How to use FromJS</h2>
             <p>
                 FromJS helps you understand how an app works by showing how its UI relates to the source code.
             </p>
@@ -1182,12 +1181,10 @@ class Intro extends React.Component {
                 localStorage data, or directly from the HTML file.
             </p>
 
-            <h2>
-                Does this work for all apps?
-            </h2>
             <p>
-                Sometimes it works, but most of the time it doesn{"'"}t. I{"'"}m slowly trying to support more
-                JS functionality.
+                <a href="https://github.com/mattzeunert/fromjs/issues">
+                    Report an issue
+                </a>
             </p>
 
             <p>
