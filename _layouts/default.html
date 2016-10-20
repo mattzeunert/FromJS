@@ -50,31 +50,38 @@
             })()
         </script>
 
-
-        <div class="jumbotron" style="margin-bottom: 0px;">
-            <div class="container">
-                <a href="/" style="color: inherit;text-decoration: none;">
-                    <h1>From<span>JS</span></h1>
-                </a>
-                <p>
-                    Find the source of every HTML character in a JavaScript app.
-                </p>
-                <!-- <a class="btn btn-primary" href="/todomvc">Try Backbone TodoMVC Demo</a> -->
+        <div class="header-and-content">
+            <div class="jumbotron" style="margin-bottom: 0px;">
+                <div class="container">
+                    <a href="/" style="color: inherit;text-decoration: none;">
+                        <h1>From<span>JS</span></h1>
+                    </a>
+                    <p>
+                        Find the source of every HTML character in a JavaScript app.
+                    </p>
+                    <!-- <a class="btn btn-primary" href="/todomvc">Try Backbone TodoMVC Demo</a> -->
+                </div>
             </div>
+            <nav class="navbar navbar-default" style="margin-bottom: 30px">
+                <div class="container">
+                    <ul class="nav navbar-nav">
+                        <li><a href="https://chrome.google.com/webstore/detail/fromjs/hjkhdaoomfphjmffaklelpmkllfbjjfd">Chrome Extension</a></li>
+                        <li><a href="/recordings.html">Demo Videos</a></li>
+                        <li><a href="http://www.mattzeunert.com/2016/10/04/how-from-js-works.html">How It Works</a></li>
+                        <li><a href="/playground">Try It</a></li>
+                    </ul>
+                </div>
+            </nav>
+
+            {{content}}
+            <br>
         </div>
-        <nav class="navbar navbar-default" style="margin-bottom: 30px">
-            <div class="container">
-                <ul class="nav navbar-nav">
-                    <li><a href="https://chrome.google.com/webstore/detail/fromjs/hjkhdaoomfphjmffaklelpmkllfbjjfd">Chrome Extension</a></li>
-                    <li><a href="/recordings.html">Demo Videos</a></li>
-                    <li><a href="http://www.mattzeunert.com/2016/10/04/how-from-js-works.html">How It Works</a></li>
-                    <li><a href="/playground">Try It</a></li>
-                </ul>
-            </div>
-        </nav>
-
-        {{content}}
         <a href="https://github.com/mattzeunert/fromjs"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+
+        <div class="footer">
+                FromJS on <a href="https://github.com/mattzeunert/FromJS">Github</a> | Made by <a href="https://twitter.com/mattzeunert">@mattzeunert</a>.
+        </div>
+
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
         <script src="/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>

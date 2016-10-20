@@ -6,9 +6,36 @@
     max-width: 100%;
 }
 
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 .isDesktopChrome .hide-on-desktop-chrome {
     display: none;
 }
 body:not(.isDesktopChrome) .desktop-chrome-only {
     display: none;
+}
+
+
+h3 {
+    font-size: 20px;
+    font-weight: normal
+}
+
+.footer {
+    color: white;
+    background: #15054e;
+    padding-top: 10px;
+    padding-bottom:10px;
+    text-align: center;
+}
+.footer a {
+    color: white;
+    text-decoration: underline;
+}
+
+.header-and-content {
+    min-height: calc(100vh - 40px); // minus footer height
 }
