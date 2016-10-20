@@ -28,14 +28,16 @@ module.exports = function(babel) {
                 property = babel.types.stringLiteral(path.node.left.property.name)
                 property.loc = path.node.left.property.loc
             }
-            path.replaceWith(babel.types.callExpression(
+            var assignExpression = babel.types.callExpression(
                 babel.types.identifier("f__assign"),
                 [
                     path.node.left.object,
                     property,
                     path.node.right
                 ]
-            ))
+            )
+            assignExpression.loc = path.node.loc
+            path.replaceWith(assignExpression)
         }
       },
       MemberExpression(path){
