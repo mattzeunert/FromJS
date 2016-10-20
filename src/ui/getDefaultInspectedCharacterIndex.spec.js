@@ -2,7 +2,7 @@ import getDefaultInspectedCharacterIndex from "./getDefaultInspectedCharacterInd
 
 describe("getDefaultInspectedCharacterIndex", function(){
     it("Looks for the first bit of content in the HTML", function(){
-        var html = "<a>\n Hi</a>"
+        var html = "<span><a>\n Hi</a></span>"
         var index = getDefaultInspectedCharacterIndex(html)
         expect(index).toBe(html.indexOf("H"))
     })

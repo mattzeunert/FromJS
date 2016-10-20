@@ -4,7 +4,13 @@ export default function getDefaultInspectedCharacterIndex(outerHtml){
     var defaultCharacterIndex = 1;
 
     if (match){
-        defaultCharacterIndex = match[0].length
+        var nonContentCharCount = match[0].length
+        if (outerHtml[nonContentCharCount] == "<") {
+            return getDefaultInspectedCharacterIndex(outerHtml.slice(nonContentCharCount)) + nonContentCharCount
+        }
+        else {
+            defaultCharacterIndex = nonContentCharCount
+        }
     }
 
     if (defaultCharacterIndex >= outerHtml.length) {
