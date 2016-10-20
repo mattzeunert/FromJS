@@ -28,8 +28,11 @@ describe('Backbone TodoMVC', function() {
 
     it("Provides a button to inspect the parent element of the current selection", function(){
         helpers.inspectParentElement()
+        .then(helpers.inspectParentElement())
+        .then(helpers.inspectParentElement())
+        .then(helpers.inspectParentElement())
         .then(function(){
-            helpers.expectResult("<", "Initial Page HTML")
+            helpers.expectResult("M", "Initial Page HTML")
         })
     })
 });
