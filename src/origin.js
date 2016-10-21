@@ -215,6 +215,9 @@ Origin.prototype._serialize = function(shallow){
     serialized.id = this.getId();
     delete serialized.error
     delete serialized.valueItems
+    delete serialized.offsetAtCharIndex
+    delete serialized.inputValuesCharacterIndex
+    delete serialized._id
 
     return serialized;
 }
