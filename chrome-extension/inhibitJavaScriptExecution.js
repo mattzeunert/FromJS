@@ -5,7 +5,7 @@ function inhibitJavaScriptExecution(){
     var Object = window.Object
     var console = window.console
     var Error = window.Error
-    console.log("inhibiting js execution")
+    console.info("FromJS: Inhibiting JS execution")
 
     function getPropertyDescriptor(object, propertyName){
         var descriptor = Object.getOwnPropertyDescriptor(object, propertyName);
@@ -21,11 +21,11 @@ function inhibitJavaScriptExecution(){
             Object.defineProperty(window, propName, {
                 get: function(){
                     propName
-                    throw Error("JavaScript Execution Inhibited")
+                    throw Error("FromJS: JavaScript Execution Inhibited")
                 },
                 set: function(){
                     propName
-                    throw Error("JavaScript Execution Inhibited")
+                    throw Error("FromJS: JavaScript Execution Inhibited")
                 },
                 configurable: true
             })
@@ -52,5 +52,7 @@ function inhibitJavaScriptExecution(){
                 // console.info(err)
             }
         }
+
+        console.info("FromJS: Re-allowed JS Execution")
     }
 }

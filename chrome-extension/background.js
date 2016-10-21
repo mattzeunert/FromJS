@@ -113,7 +113,6 @@ class FromJSSession {
             var script = document.createElement("script")
             script.text = "window.allowJSExecution();"
             document.documentElement.appendChild(script)
-            console.log("re-allowed js execution")
             `,
         }, function(){
             self._executeScript({
@@ -124,7 +123,6 @@ class FromJSSession {
                     code: `
                         var script = document.createElement("script");
 
-                        console.log('setting page html')
                         script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
                         script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
                         document.documentElement.appendChild(script)

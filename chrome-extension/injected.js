@@ -23,7 +23,7 @@ function measureTodoMVCRenderingTime(){
 window.isExtension = true;
 
 window.onFromJSReady = function(){
-    console.log("Loading page from FromJS")
+    console.info("FromJS: Loading page...")
 
     // measureTodoMVCRenderingTime()
 
@@ -89,7 +89,7 @@ function appendScriptsOneAfterAnother(scripts, container, done){
             return
         }
         var script = scripts.shift()
-        console.log("loading script", script)
+        console.log("FromJS: Loading script", script)
 
         if (nativeInnerHTMLDescriptor.get.call(script) === ""){
             // Do this rather than appending script element, because

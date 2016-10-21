@@ -49,7 +49,6 @@ resolveFrameWorker.on("fetchUrl", function(url, cb){
 })
 
 dynamicCodeRegistry.on("register", function(newFiles){
-    console.log("newfiles", newFiles)
     runFunctionWithTracingDisabled(function(){
         resolveFrameWorker.send("registerDynamicFiles", newFiles, function(){})
     })
