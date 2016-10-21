@@ -45,11 +45,13 @@ function openFromJSInspector(){
 }
 
 function switchToIframe(){
+    isInIFrame = true;
     var el = browser.driver.findElement(by.css("#fromjs-sidebar iframe"))
     browser.switchTo().frame(el)
 }
 
 function switchToInspectedPage(){
+    isInIFrame = false;
     browser.switchTo().defaultContent()
 }
 
@@ -62,23 +64,28 @@ function inspectElement(cssSelector, /* zero-based */ charIndex) {
     return waitForEl('.fromjs-origin-path-step')
     .then(function(){
         if (charIndex !== undefined) {
-            var elSelector = "[data-test-marker-inspected-value] span:nth-child(" + (charIndex + 1) + ")"
             // I've tried simulating a click and it was fine locally, but on Travis CI
             // I got this error, even after waiting for the element to be clickable:
             // unknown error: Element is not clickable at point (32, 65). Other element would receive the click:
             // <div class="fromjs-value__content">...</div>
             browser.executeScript("e2eTestSimulateInpsectCharacter(" + charIndex + ")")
             .then(function(){
-                return waitForEl(elSelector + ".fromjs-highlighted-character")
-                .then(function(){
-                    switchToInspectedPage()
-                })
+                switchToInspectedPage()
+                return waitForHighlightedCharIndex(charIndex)
             })
         } else {
             switchToInspectedPage()
         }
     })
+}
 
+function waitForHighlightedCharIndex(charIndex){
+    switchToIframe();
+    var elSelector = "[data-test-marker-inspected-value] span:nth-child(" + (charIndex + 1) + ")"
+    return waitForEl(elSelector + ".fromjs-highlighted-character")
+    .then(function(){
+        return switchToInspectedPage()
+    })
 }
 
 function inspectParentElement() {
@@ -99,5 +106,6 @@ module.exports = {
     switchToIframe,
     switchToInspectedPage,
     inspectElement,
-    inspectParentElement
+    inspectParentElement,
+    waitForHighlightedCharIndex
 }
