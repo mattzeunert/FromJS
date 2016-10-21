@@ -1,0 +1,298 @@
+---
+layout: default
+title: How FromJS works
+rel_canonical: http://www.mattzeunert.com/2016/10/04/how-from-js-works.html
+---
+
+<div class="container">
+<div class="col-md-10">
+
+
+        <h1>How FromJS works</h1>
+
+        <p>When inspecting a page with <a href="http://www.fromjs.com/">FromJS</a> you can find the JavaScript code that’s responsible for a particular part of the UI. This article explains how that works.</p>
+
+        <p>We’ll take a look at this example. If you’re on Chrome Desktop you can <a href="http://www.fromjs.com/playground/#how-fromjs-works">try it online</a>.</p>
+
+        <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">greeting</span> <span class="o">=</span> <span class="s2">"Hello"</span>
+        <span class="nx">greeting</span> <span class="o">+=</span> <span class="s2">" World!"</span>
+        <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">"welcome"</span><span class="p">).</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="nx">greeting</span></code></pre></figure>
+
+        <p>Inspecting the final body HTML leads us back to the source code:</p>
+
+        <p><img src="/img/blog/how-fromjs/hello.png" alt="" /></p>
+
+        <h2 id="step-1-what-are-we-looking-at">Step 1: What are we looking at?</h2>
+
+        <p>The user has selected an element from the DOM. Its outerHTML looks like this, and the “H” in “Hello World!” is selected.</p>
+
+        <figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"welcome"</span><span class="nt">&gt;</span>[H]ello World<span class="nt">&lt;/div&gt;</span></code></pre></figure>
+
+        <p>The outerHTML came about as the combination of two events:</p>
+
+        <ol>
+          <li>The <code class="highlighter-rouge">&lt;div id="welcome"&gt;&lt;/div&gt;</code> in the initial page HTML</li>
+          <li>The <code class="highlighter-rouge">innerHTML</code> assignment in JavaScript</li>
+        </ol>
+
+        <p>Since the user clicked on the “H” character in the tag content it’s straightforward which event we’ll need to look at in more detail: the <code class="highlighter-rouge">innerHTML</code> assignment.</p>
+
+        <h2 id="step-2-finding-out-where-the-innerhtml-value-was-set">Step 2: Finding out where the innerHTML value was set</h2>
+
+        <p>To track where in the code the <code class="highlighter-rouge">innerHTML</code> assignment happened we need to run some code every time <code class="highlighter-rouge">innerHTML</code> is updated.</p>
+
+        <p>This is possible by adding a property setter to the <code class="highlighter-rouge">innerHTML</code> property of <code class="highlighter-rouge">Element.prototype</code>.</p>
+
+        <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">Element</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="s2">"innerHTML"</span><span class="p">,</span> <span class="p">{</span>
+            <span class="na">set</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">html</span><span class="p">){</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"Assigning html"</span><span class="p">,</span> <span class="nx">html</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">})</span>
+        <span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="s2">"Hello"</span> <span class="c1">// logs "Assigning html Hello"</span></code></pre></figure>
+
+        <p>Now, the downside is that we are no longer actually updating the <code class="highlighter-rouge">innerHTML</code> of our element, because we overwrote the original setter function that did that.</p>
+
+        <p>We want to call this native setter function in addition to running our tracking code. The details of a property -  such as its getter, setter, or whether it’s enumerable - are stored in something called a property descriptor. We can obtain the descriptor of a property using <code class="highlighter-rouge">Object.getOwnPropertyDescriptor</code>.</p>
+
+        <p>Once we have the original property descriptor we can call the old setter code in the new setter. This will restore the ability to update the DOM by assigning to <code class="highlighter-rouge">innerHTML</code>.</p>
+
+        <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">originalInnerHTMLDescriptor</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">getOwnPropertyDescriptor</span><span class="p">(</span><span class="nx">Element</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="s2">"innerHTML"</span><span class="p">)</span>
+        <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">Element</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="s2">"innerHTML"</span><span class="p">,</span> <span class="p">{</span>
+            <span class="na">set</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">html</span><span class="p">){</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"Assigning html"</span><span class="p">,</span> <span class="nx">html</span><span class="p">)</span>
+                <span class="k">return</span> <span class="nx">originalInnerHTMLDescriptor</span><span class="p">.</span><span class="nx">set</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">})</span></code></pre></figure>
+
+        <p>Now, in the setter we want to record some metadata about the assignment. We put that data into an <code class="highlighter-rouge">__innerHTMLOrigin</code> property that we store on the DOM element.</p>
+
+        <p>Most importantly, we want to capture a stack trace so we know where the assignment happened. We can obtain a stack trace by creating a new <code class="highlighter-rouge">Error</code> object.</p>
+
+        <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">{</span>
+            <span class="nl">set</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">html</span><span class="p">){</span>
+                <span class="k">this</span><span class="p">.</span><span class="nx">__innerHTMLOrigin</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="na">action</span><span class="p">:</span> <span class="s2">"Assign InnerHTML"</span><span class="p">,</span>
+                    <span class="na">value</span><span class="p">:</span> <span class="s2">"Hello World!"</span><span class="p">,</span>
+                    <span class="na">stack</span><span class="p">:</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">().</span><span class="nx">stack</span><span class="p">,</span>
+                    <span class="na">inputValues</span><span class="p">:</span> <span class="p">[</span><span class="nx">html</span><span class="p">],</span>
+                <span class="p">}</span>
+
+                <span class="k">return</span> <span class="nx">originalInnerHTMLDescriptor</span><span class="p">.</span><span class="nx">set</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span></code></pre></figure>
+
+        <p>Let’s run the “Hello World!” example code from earlier after overwriting the setter. We can now inspect the <code class="highlighter-rouge">#welcome</code> element and see where its <code class="highlighter-rouge">innerHTML</code> property is assigned:</p>
+
+        <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">"welcome"</span><span class="p">).</span><span class="nx">__innerHTMLOrigin</span><span class="p">.</span><span class="nx">stack</span>
+        <span class="c1">// Error</span>
+        <span class="c1">//    at HTMLDivElement.set [as innerHTML] (eval at evaluate (unknown source), &lt;anonymous&gt;:6:20)</span>
+        <span class="c1">//    at http://localhost:1234/example.js:3:46"</span></code></pre></figure>
+
+        <!-- 0__ (fix Atom Markdown highlighting) -->
+
+        <h2 id="step-3-going-from-hello-world-to-hello">Step 3: Going from “Hello World!” to “Hello”</h2>
+
+        <p>We now have a starting point in our quest to find the origin of the “H” character in the <code class="highlighter-rouge">#example</code> div. The <code class="highlighter-rouge">__innerHTMLOrigin</code> object above will be the first step in on this journey back to the “Hello” string declaration.</p>
+
+        <p>The <code class="highlighter-rouge">__innerHTMLOrigin</code> object keeps track of the HTML that was assigned. It’s actually an array of <code class="highlighter-rouge">inputValues</code> - we’ll see why later.</p>
+
+        <p>Unfortunately, the assigned value is a plain string that doesn’t contain any metadata telling us where the string came from. Let’s change that!</p>
+
+        <p>This is a bit trickier than tracking the HTML assignments. We could try overriding the constructor of the <code class="highlighter-rouge">String</code> object, but unfortunately that constructor is only called when we explicitly run <code class="highlighter-rouge">new String("abc")</code>.</p>
+
+        <p>To capture a call stack when the string is created we need to make changes to the source code before running it.</p>
+
+        <h3 id="writing-a-babel-plugin-that-turns-native-string-operations-into-function-calls">Writing a Babel plugin that turns native string operations into function calls</h3>
+
+        <p>Babel is usually used to compile ES 2015 code into ES5 code, but you can also write your own Babel plugins that contain custom code transformation rules.</p>
+
+        <p>Strings aren’t objects, so you can’t store metadata on them. Therefore, instead of creating a string literal we want to wrap each string in an object.</p>
+
+        <p>Rather than running the original code:</p>
+
+        <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">greeting</span> <span class="o">=</span> <span class="s2">"Hello"</span></code></pre></figure>
+
+        <p>We replace every string literal with an object:</p>
+
+        <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">greeting</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="na">value</span><span class="p">:</span> <span class="s2">"Hello"</span><span class="p">,</span>
+            <span class="na">action</span><span class="p">:</span> <span class="s2">"String Literal"</span><span class="p">,</span>
+            <span class="na">stack</span><span class="p">:</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">().</span><span class="nx">stack</span><span class="p">,</span>
+            <span class="na">inputValues</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="p">}</span></code></pre></figure>
+
+        <p>You can see that the object has the same structure we used to track the <code class="highlighter-rouge">innerHTML</code> assignment.</p>
+
+        <p>Putting an object literal in the code is a bit verbose and generating code in Babel isn’t much fun. So instead of using an object literal we instead write a function that generates the object for us:</p>
+
+        <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">greeting</span> <span class="o">=</span> <span class="nx">f__StringLiteral</span><span class="p">(</span><span class="s2">"Hello"</span><span class="p">)</span></code></pre></figure>
+
+        <p>We do something similar for string concatenation.</p>
+
+        <p><code class="highlighter-rouge">greeting += " World!"</code> becomes <code class="highlighter-rouge">greeting = f__add(greeting, " World!")</code>. Or, since we’re replacing every string literal, <code class="highlighter-rouge">greeting = f__add(greeting, f__StringLiteral(" World!"))</code>.</p>
+
+        <p>After this, the value of <code class="highlighter-rouge">greeting</code> is as follows:</p>
+
+        <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">{</span>
+            <span class="nl">action</span><span class="p">:</span> <span class="s2">"Concatenate String"</span><span class="p">,</span>
+            <span class="nx">value</span><span class="err">:</span> <span class="s2">"Hello World!"</span><span class="p">,</span>
+            <span class="nx">stack</span><span class="err">:</span> <span class="err">`</span><span class="nb">Error</span>
+                    <span class="nx">at</span> <span class="nx">f__add</span> <span class="p">(</span><span class="nx">http</span><span class="err">:</span><span class="c1">//localhost:1234/from.js:93754:22)</span>
+                    <span class="nx">at</span> <span class="nx">http</span><span class="err">:</span><span class="c1">//localhost:1234/example.js:2:12`,</span>
+            <span class="nl">inputValues</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="na">action</span><span class="p">:</span> <span class="s2">"String Literal"</span><span class="p">,</span>
+                    <span class="na">value</span><span class="p">:</span> <span class="s2">"Hello"</span>
+                    <span class="na">stack</span><span class="p">:</span> <span class="err">`</span><span class="nb">Error</span>
+                            <span class="nx">at</span> <span class="nx">f__StringLiteral</span> <span class="p">(</span><span class="na">http</span><span class="p">:</span><span class="c1">//localhost:1234/from.js:93709:22)</span>
+                            <span class="nx">at</span> <span class="na">http</span><span class="p">:</span><span class="c1">//localhost:1234/example.js:1:16`,</span>
+                    <span class="na">inputValues</span><span class="p">:</span> <span class="p">[]</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="na">action</span><span class="p">:</span> <span class="s2">"String Literal"</span><span class="p">,</span>
+                    <span class="na">value</span><span class="p">:</span> <span class="s2">" World!"</span><span class="p">,</span>
+                    <span class="na">stack</span><span class="p">:</span> <span class="err">`</span><span class="nb">Error</span>
+                            <span class="nx">at</span> <span class="nx">f__StringLiteral</span> <span class="p">(</span><span class="na">http</span><span class="p">:</span><span class="c1">//localhost:7500/from.js:93709:22)</span>
+                            <span class="nx">at</span> <span class="na">http</span><span class="p">:</span><span class="c1">//localhost:1234/example.js:2:29`,</span>
+                    <span class="na">inputValues</span><span class="p">:</span> <span class="p">[]</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span></code></pre></figure>
+
+        <p><code class="highlighter-rouge">greeting</code> is then assigned to our element’s innerHTML property. <code class="highlighter-rouge">__innerHTMLOrigin.inputValues</code> now stores a tracked string that tells us where it came from.</p>
+
+        <h2 id="step-4-traversing-the-nested-origin-data-to-find-the-string-literal">Step 4: Traversing the nested origin data to find the string literal</h2>
+
+        <p>We can now track the character “H” character in “Hello World!” from the <code class="highlighter-rouge">innerHTML</code> assignment back to the JavaScript string literal.</p>
+
+        <p>Starting from the div’s <code class="highlighter-rouge">__innerHTMLOrigin</code> we navigate through the metadata objects until we find the string literal. We do that by recursively looking at the <code class="highlighter-rouge">inputValues</code>, until <code class="highlighter-rouge">inputValues</code> is an empty array.</p>
+
+        <p>Our first step is the <code class="highlighter-rouge">innerHTML</code> assignment. It has only one <code class="highlighter-rouge">inputValue</code> - the <code class="highlighter-rouge">greeting</code> value shown above. The next step must therefore be the <code class="highlighter-rouge">greeting += " World!"</code> string concatenation.</p>
+
+        <p>The object returned by <code class="highlighter-rouge">f__add</code> has two input values, “Hello” and “ World!”. We need to figure out which of them contains the “H” character, that is, the character at index 0 in the string “Hello World!”.</p>
+
+        <p>This is not actually difficult. “Hello” has 5 characters, so the indices 0-4 in the concatenated string come from “Hello”. Everything after index 4 comes from the “ World!” string literal.</p>
+
+        <p>The <code class="highlighter-rouge">inputValues</code> array of our object is now empty, which means we’ve reached the final step in our origin path. This is what it looks like in FromJS:</p>
+
+        <p><img src="/img/blog/how-fromjs/full-path.png" alt="" /></p>
+
+        <h2 id="a-few-more-details">A few more details</h2>
+
+        <h3 id="how-do-the-string-wrapper-objects-interact-with-native-code">How do the string wrapper objects interact with native code?</h3>
+
+        <p>If you actually tried running the code above, you’d notice that it breaks the <code class="highlighter-rouge">innerHTML</code> assignment. When we call the native innerHTML setter, rather than setting the content to the original string, it’s set to “[object Object]”.</p>
+
+        <p>That’s because <code class="highlighter-rouge">innerHTML</code> needs a string and all Chrome has is an object, so it converts the object into a string.</p>
+
+        <p>The solution is to add a toString method to our object. Something like this:</p>
+
+        <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="na">action</span><span class="p">:</span> <span class="s2">"String Literal"</span><span class="p">,</span>
+            <span class="na">value</span><span class="p">:</span> <span class="s2">"Hello"</span><span class="p">,</span>
+            <span class="na">toString</span><span class="p">:</span> <span class="kd">function</span><span class="p">(){</span>
+                <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">value</span>
+            <span class="p">}</span>
+        <span class="p">}</span></code></pre></figure>
+
+        <p>When we assign an object to the innerHTML property, Chrome calls <code class="highlighter-rouge">toString</code> on that objects and assigns the result.</p>
+
+        <p>Now when we call code that’s unaware of our string wrappers the calls will still (mostly) work.</p>
+
+        <h3 id="writing-the-babel-plugin">Writing the Babel plugin</h3>
+
+        <p>I won’t go into too much detail about this, but the example below should give you a basic idea of how this works.</p>
+
+        <p>Babel allows you to specify “visitors” for certain types in the JavaScript parse tree. The function below is called for every string literal that Babel finds in the source code.</p>
+
+        <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">StringLiteral</span><span class="err">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">path</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">originalString</span> <span class="o">=</span> <span class="nx">path</span><span class="p">.</span><span class="nx">node</span>
+            <span class="kd">var</span> <span class="nx">call</span> <span class="o">=</span> <span class="nx">babel</span><span class="p">.</span><span class="nx">types</span><span class="p">.</span><span class="nx">callExpression</span><span class="p">(</span>
+               <span class="nx">babel</span><span class="p">.</span><span class="nx">types</span><span class="p">.</span><span class="nx">identifier</span><span class="p">(</span><span class="s2">"f__StringLiteral"</span><span class="p">),</span>
+               <span class="p">[</span><span class="nx">originalString</span><span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="nx">path</span><span class="p">.</span><span class="nx">replaceWith</span><span class="p">(</span><span class="nx">call</span><span class="p">)</span>
+        <span class="p">}</span></code></pre></figure>
+
+        <h3 id="call-stacks-and-source-maps">Call stacks and source maps</h3>
+
+        <p>Because Chrome runs the compiled code rather than the original source code, the line and column numbers in the call stack will refer to the compiled code.</p>
+
+        <p>Luckily Babel generates a source map that lets us convert the stack trace to match the original code. FromJS uses <a href="http://www.mattzeunert.com/2016/07/07/resolving-minified-production-stacktrace.html">StackTrace.JS</a> to handle the source map logic.</p>
+
+</div>
+</div>
+
+<style>
+.err {
+    border: none !important;
+
+}
+img {
+    padding: 5px;
+    border: 1px solid #eee;
+}
+
+.hll { background-color: #ffffcc }
+.c { color: #408080; font-style: italic } /* Comment */
+.err { border: 1px solid #FF0000 } /* Error */
+.k { color: #008000; font-weight: bold } /* Keyword */
+.o { color: #666666 } /* Operator */
+.cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.cp { color: #BC7A00 } /* Comment.Preproc */
+.c1 { color: #408080; font-style: italic } /* Comment.Single */
+.cs { color: #408080; font-style: italic } /* Comment.Special */
+.gd { color: #A00000 } /* Generic.Deleted */
+.ge { font-style: italic } /* Generic.Emph */
+.gr { color: #FF0000 } /* Generic.Error */
+.gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.gi { color: #00A000 } /* Generic.Inserted */
+.go { color: #888888 } /* Generic.Output */
+.gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.gs { font-weight: bold } /* Generic.Strong */
+.gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.gt { color: #0044DD } /* Generic.Traceback */
+.kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.kp { color: #008000 } /* Keyword.Pseudo */
+.kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.kt { color: #B00040 } /* Keyword.Type */
+.m { color: #666666 } /* Literal.Number */
+.s { color: #BA2121 } /* Literal.String */
+.na { color: #7D9029 } /* Name.Attribute */
+.nb { color: #008000 } /* Name.Builtin */
+.nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.no { color: #880000 } /* Name.Constant */
+.nd { color: #AA22FF } /* Name.Decorator */
+.ni { color: #999999; font-weight: bold } /* Name.Entity */
+.ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.nf { color: #0000FF } /* Name.Function */
+.nl { color: #A0A000 } /* Name.Label */
+.nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.nt { color: #008000; font-weight: bold } /* Name.Tag */
+.nv { color: #19177C } /* Name.Variable */
+.ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.w { color: #bbbbbb } /* Text.Whitespace */
+.mf { color: #666666 } /* Literal.Number.Float */
+.mh { color: #666666 } /* Literal.Number.Hex */
+.mi { color: #666666 } /* Literal.Number.Integer */
+.mo { color: #666666 } /* Literal.Number.Oct */
+.sb { color: #BA2121 } /* Literal.String.Backtick */
+.sc { color: #BA2121 } /* Literal.String.Char */
+.sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.s2 { color: #BA2121 } /* Literal.String.Double */
+.se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.sh { color: #BA2121 } /* Literal.String.Heredoc */
+.si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.sx { color: #008000 } /* Literal.String.Other */
+.sr { color: #BB6688 } /* Literal.String.Regex */
+.s1 { color: #BA2121 } /* Literal.String.Single */
+.ss { color: #19177C } /* Literal.String.Symbol */
+.bp { color: #008000 } /* Name.Builtin.Pseudo */
+.vc { color: #19177C } /* Name.Variable.Class */
+.vg { color: #19177C } /* Name.Variable.Global */
+.vi { color: #19177C } /* Name.Variable.Instance */
+.il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
