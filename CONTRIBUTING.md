@@ -32,3 +32,9 @@ Then run the tests in a new terminal tab:
 ```
 npm run protractor
 ```
+
+## Updating the website
+
+To update the React demo and playground make sure `npm run server` is running, then run `npm run build-website`.
+
+The Backbone TodoMVC demo isn't updated. It uses a pre-rendered DOM with tracking data in `data.json`, and with the current setup this can't be replicated. Either way, it would be a bunch of work to make the current setup work on mobile etc, whereas the old demo sort of does work on some phones.
