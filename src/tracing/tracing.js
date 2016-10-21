@@ -164,6 +164,16 @@ function FrozenElement(el) {
         this.parentNode = {
             tagName: el.parentNode  ? el.parentNode.tagName : null
         }
+        var attributes = [];
+        if (el.attributes) {
+            Array.from(el.attributes).forEach(function(attr){
+                attributes.push({
+                    name: attr.name,
+                    textContent: attr.textContent
+                })
+            })
+        }
+        this.attributes = attributes
         this.__elOrigin = {...el.__elOrigin}
         this.childNodes = Array.from(el.childNodes).map((e) => new FrozenElement(e))
     })
