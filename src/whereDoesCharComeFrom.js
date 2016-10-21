@@ -67,14 +67,9 @@ function goUp(step, resolveFrameWorker, callback){
         step.origin.action === "Initial Body HTML" ||
         step.origin.action === "InsertAdjacentHTML") {
         var offsetAtChar = 0;
-        if (step.origin.offsetAtCharIndex){
-            var index = step.characterIndex - step.origin.inputValuesCharacterIndex[0]
-            offsetAtChar = step.origin.offsetAtCharIndex[index]
-            if (offsetAtChar === undefined) debuggerStatementFunction()
-        }
         ret = {
             origin: step.origin.inputValues[0],
-            characterIndex: step.characterIndex - step.origin.extraCharsAdded + offsetAtChar
+            characterIndex: step.characterIndex - step.origin.extraCharsAdded
         }
     } else if (step.origin.action === "createElement" || step.origin.action === "createElementNS") {
         var characterIndex = step.characterIndex

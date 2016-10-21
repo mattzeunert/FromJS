@@ -82,8 +82,10 @@ export default class RoundTripMessageWrapper {
         if (config.logReceivedInspectorMessages) {
             var timeTaken = new Date().valueOf() - new Date(data.timeSent).valueOf()
             var size = "";
+            var content = "";
             // size += "Size: " + (JSON.stringify(data).length / 1024) + "KB"
-            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms", size)
+            // content = data
+            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms", size, content)
         }
 
         if (!handlers) {

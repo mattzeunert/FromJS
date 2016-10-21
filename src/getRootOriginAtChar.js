@@ -28,6 +28,8 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
         throw Error("Selected element doesn't have any origin data. This may be because you opened the FromJS inspector before the page finished loading.")
     }
 
+    var originPathStep = null;
+
     if (item.origin === "openingTag") {
         var vm = new ValueMap();
 
@@ -63,13 +65,13 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
         var item = vm.getItemAt(characterIndex)
 
         var characterIndex = item.characterIndex + (item.origin.inputValuesCharacterIndex ? item.origin.inputValuesCharacterIndex[0] : 0)
-        return new OriginPathStep(item.origin, characterIndex)
+        originPathStep = new OriginPathStep(item.origin, characterIndex)
     } else if (item.origin === "closingTag") {
         var ivIndex =  el.__elOrigin.closingTag.inputValuesCharacterIndex
         var indexInClosingTag = item.characterIndex;
 
         var characterIndex = indexInClosingTag + (ivIndex ? ivIndex[0] : 0)
-        return new OriginPathStep(el.__elOrigin.closingTag, characterIndex)
+        originPathStep = new OriginPathStep(el.__elOrigin.closingTag, characterIndex)
     } else if (item.origin === "innerHTML") {
         var vm = new ValueMap();
         characterIndex -= openingTag.length;
@@ -94,9 +96,9 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
         if (isTextNode) {
             var origin = item.origin.__elOrigin.textValue
             var characterIndex = item.characterIndex + (origin.inputValuesCharacterIndex ? origin.inputValuesCharacterIndex[0] : 0);
-            return new OriginPathStep(origin, characterIndex)
+            originPathStep = new OriginPathStep(origin, characterIndex)
         }
-        if (isCommentNode) {
+        else if (isCommentNode) {
             var vm = new ValueMap()
             var elOrigin = item.origin.__elOrigin
             vm.append(elOrigin.commentStart)
@@ -106,9 +108,23 @@ export default function getRootOriginAtChar(el, characterIndex, charIndexIsInInn
             var commentItem = vm.getItemAt(item.characterIndex)
 
             return new OriginPathStep(commentItem.origin, commentItem.characterIndex)
+        } else {
+            return getRootOriginAtChar(item.origin, item.characterIndex)
         }
-        return getRootOriginAtChar(item.origin, item.characterIndex)
     } else {
         throw "ooooossdfa"
     }
+
+    var origin = originPathStep.origin;
+    var characterIndex = originPathStep.characterIndex;
+    if (origin.offsetAtCharIndex){
+        var index = characterIndex - origin.inputValuesCharacterIndex[0]
+        var offsetAtChar = origin.offsetAtCharIndex[index]
+        if (offsetAtChar === undefined) {
+            debuggerStatementFunction()
+        }
+        characterIndex += offsetAtChar
+    }
+
+    return new OriginPathStep(origin, characterIndex)
 }
