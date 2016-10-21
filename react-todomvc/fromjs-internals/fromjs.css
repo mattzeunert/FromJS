@@ -322,8 +322,14 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     padding: 8px 21px;
 }
 
-.fromjs-no-phone-support-warning {
+.fromjs-unsupported-device {
+    padding: 20px;
     position: fixed;
     top: 0;
     font-size: 20px;
+    width: 100%;
+    height: 100%;
+    background: white;
+    font-family: Arial;
+    box-sizing: border-box;
 }

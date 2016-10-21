@@ -24,11 +24,11 @@
 			} else if (f__useValue(Array.isArray(arg))) {
 				classes = f__add(classes, f__add(f__StringLiteral(' '), classNames.apply(null, arg)));
 			} else if (f__useValue(f__tripleEqual(argType, f__StringLiteral('object')))) {
-				for (var __fromJSForIn2399 in f__getForInLoopKeyObject(arg)) {
-					var key;key = f__getTrackedPropertyName(arg, __fromJSForIn2399);
+				for (var __fromJSForIn4621 in f__getForInLoopKeyObject(arg)) {
+					var key;key = f__getTrackedPropertyName(arg, __fromJSForIn4621);
 
 					if (f__useValue(f__useValue((f__setCachedValue(hasOwn.call(arg, key)), f__useValue(f__getCachedValue()))) ? arg[key] : f__getCachedValue())) {
-						var key;key = f__getTrackedPropertyName(arg, __fromJSForIn2399);
+						var key;key = f__getTrackedPropertyName(arg, __fromJSForIn4621);
 
 						classes = f__add(classes, f__add(f__StringLiteral(' '), key));
 					}

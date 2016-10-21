@@ -46784,6 +46784,10 @@
 
 	"use strict";
 	
+	var _isMobile = __webpack_require__(816);
+	
+	var _isMobile2 = _interopRequireDefault(_isMobile);
+	
 	var _processElementsAvailableOnInitialLoad = __webpack_require__(528);
 	
 	var _tracing = __webpack_require__(555);
@@ -46795,10 +46799,6 @@
 	var _jquery = __webpack_require__(534);
 	
 	var _jquery2 = _interopRequireDefault(_jquery);
-	
-	var _isMobile = __webpack_require__(816);
-	
-	var _isMobile2 = _interopRequireDefault(_isMobile);
 	
 	var _createResolveFrameWorker = __webpack_require__(834);
 	
@@ -46814,17 +46814,20 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	if ((0, _isMobile2.default)() && location.href.indexOf("/react-") !== -1) {
+	var browserIsChrome = /chrom(e|ium)/.test(navigator.userAgent.toLowerCase());
+	var unsupportedEnvironment = (0, _isMobile2.default)() || !browserIsChrome;
+	if (unsupportedEnvironment && location.href.indexOf("/react-") !== -1) {
 	    var div = document.createElement("div");
-	    div.innerHTML = `<div class="fromjs-no-phone-support-warning">
-	        If you're on a phone,
-	        <a href="/todomvc">this demo might work better<a>.<br/>
-	        Or go to the <a href="/">FromJS homepage</a>.
+	    div.innerHTML = `<div class="fromjs-unsupported-device">
+	        FromJS only works on Chrome Desktop.<br><br>
+	        You can watch some <a href="http://www.fromjs.com/recordings.html">demo videos</a> on the FromJS website instead.
+	        This older <a href="http://www.fromjs.com/todomvc/">Backbone TodoMVC example</a> might sort of work on your device.
 	    </div>`;
 	    document.documentElement.appendChild(div);
+	    throw Error("Don't bother trying to run FromJS on this device");
 	}
 	
-	window.fromJSVersion = `1.1-${ "3e6b15165751aaea16b91a3c895563a3c5f14d96".substr(0, 7) }`;
+	window.fromJSVersion = `1.1-${ "031126a8f38600b27db7585a9c4fe57a5697e3e7".substr(0, 7) }`;
 	window.dynamicCodeRegistry = new _DynamicCodeRegistry2.default();
 	
 	(0, _babelFunctions.addBabelFunctionsToGlobalObject)();
@@ -118211,6 +118214,7 @@
 	                "div",
 	                { id: "fromjs", className: "fromjs" },
 	                _react2.default.createElement("button", {
+	                    style: { display: window.disableCloseInspectorElement ? "block" : "none" },
 	                    onClick: () => currentInspectedPage.send("UICloseInspector"),
 	                    className: "toggle-inspector-button close-inspector-button" }),
 	                intro,

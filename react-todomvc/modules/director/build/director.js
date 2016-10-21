@@ -307,15 +307,15 @@
 
   function paramifyString(str, params, mod) {
     mod = str;
-    for (var __fromJSForIn2396 in f__getForInLoopKeyObject(params)) {
-      var param;param = f__getTrackedPropertyName(params, __fromJSForIn2396);
+    for (var __fromJSForIn4622 in f__getForInLoopKeyObject(params)) {
+      var param;param = f__getTrackedPropertyName(params, __fromJSForIn4622);
 
       if (f__useValue(params.hasOwnProperty(param))) {
-        var param;param = f__getTrackedPropertyName(params, __fromJSForIn2396);
+        var param;param = f__getTrackedPropertyName(params, __fromJSForIn4622);
 
         mod = params[param](str);
         if (f__useValue(f__notTripleEqual(mod, str))) {
-          var param;param = f__getTrackedPropertyName(params, __fromJSForIn2396);
+          var param;param = f__getTrackedPropertyName(params, __fromJSForIn4622);
 
           break;
         }
@@ -555,33 +555,33 @@
       f__assign(next, f__StringLiteral('captures'), []);
       return filterRoutes(next);
     }
-    for (var __fromJSForIn2397 in f__getForInLoopKeyObject(routes)) {
-      var r;r = f__getTrackedPropertyName(routes, __fromJSForIn2397);
+    for (var __fromJSForIn4623 in f__getForInLoopKeyObject(routes)) {
+      var r;r = f__getTrackedPropertyName(routes, __fromJSForIn4623);
 
       if (f__useValue(f__useValue((f__setCachedValue(routes.hasOwnProperty(r)), f__useValue(f__getCachedValue()))) ? f__useValue((f__setCachedValue(f__not(this._methods[r])), f__useValue(f__getCachedValue()))) ? f__getCachedValue() : f__useValue((f__setCachedValue(f__useValue((f__setCachedValue(this._methods[r]), f__useValue(f__getCachedValue()))) ? f__tripleEqual(f__useValue(typeof routes[r] === 'undefined') ? 'undefined' : f__typeof(routes[r]), f__StringLiteral('object')) : f__getCachedValue()), f__useValue(f__getCachedValue()))) ? f__not(Array.isArray(routes[r])) : f__getCachedValue() : f__getCachedValue())) {
-        var r;r = f__getTrackedPropertyName(routes, __fromJSForIn2397);
+        var r;r = f__getTrackedPropertyName(routes, __fromJSForIn4623);
 
         current = exact = f__add(f__add(regexp, this.delimiter), r);
         if (f__useValue(f__not(this.strict))) {
-          var r;r = f__getTrackedPropertyName(routes, __fromJSForIn2397);
+          var r;r = f__getTrackedPropertyName(routes, __fromJSForIn4623);
 
           exact = f__add(exact, f__add(f__add(f__StringLiteral('['), this.delimiter), f__StringLiteral(']?')));
         }
         match = path.match(new RegExp(f__add(f__StringLiteral('^'), exact)));
         if (f__useValue(f__not(match))) {
-          var r;r = f__getTrackedPropertyName(routes, __fromJSForIn2397);
+          var r;r = f__getTrackedPropertyName(routes, __fromJSForIn4623);
 
           continue;
         }
         if (f__useValue(f__useValue((f__setCachedValue(f__useValue((f__setCachedValue(match[0]), f__useValue(f__getCachedValue()))) ? f__doubleEqual(match[0], path) : f__getCachedValue()), f__useValue(f__getCachedValue()))) ? routes[r][method] : f__getCachedValue())) {
-          var r;r = f__getTrackedPropertyName(routes, __fromJSForIn2397);
+          var r;r = f__getTrackedPropertyName(routes, __fromJSForIn4623);
 
           next = [[routes[r].before, routes[r][method]].filter(Boolean)];
           f__assign(next, f__StringLiteral('after'), [routes[r].after].filter(Boolean));
           f__assign(next, f__StringLiteral('matched'), true);
           f__assign(next, f__StringLiteral('captures'), match.slice(1));
           if (f__useValue(f__useValue((f__setCachedValue(this.recurse), f__useValue(f__getCachedValue()))) ? f__tripleEqual(routes, this.routes) : f__getCachedValue())) {
-            var r;r = f__getTrackedPropertyName(routes, __fromJSForIn2397);
+            var r;r = f__getTrackedPropertyName(routes, __fromJSForIn4623);
 
             next.push([routes.before, routes.on].filter(Boolean));
             f__assign(next, f__StringLiteral('after'), next.after.concat([routes.after].filter(Boolean)));
@@ -590,20 +590,20 @@
         }
         next = this.traverse(method, path, routes[r], current);
         if (f__useValue(next.matched)) {
-          var r;r = f__getTrackedPropertyName(routes, __fromJSForIn2397);
+          var r;r = f__getTrackedPropertyName(routes, __fromJSForIn4623);
 
           if (f__useValue(next.length > 0)) {
-            var r;r = f__getTrackedPropertyName(routes, __fromJSForIn2397);
+            var r;r = f__getTrackedPropertyName(routes, __fromJSForIn4623);
 
             fns = fns.concat(next);
           }
           if (f__useValue(this.recurse)) {
-            var r;r = f__getTrackedPropertyName(routes, __fromJSForIn2397);
+            var r;r = f__getTrackedPropertyName(routes, __fromJSForIn4623);
 
             fns.push([routes[r].before, routes[r].on].filter(Boolean));
             f__assign(next, f__StringLiteral('after'), next.after.concat([routes[r].after].filter(Boolean)));
             if (f__useValue(f__tripleEqual(routes, this.routes))) {
-              var r;r = f__getTrackedPropertyName(routes, __fromJSForIn2397);
+              var r;r = f__getTrackedPropertyName(routes, __fromJSForIn4623);
 
               fns.push([routes[f__StringLiteral('before')], routes[f__StringLiteral('on')]].filter(Boolean));
               f__assign(next, f__StringLiteral('after'), next.after.concat([routes[f__StringLiteral('after')]].filter(Boolean)));
@@ -728,11 +728,11 @@
       }
       self.insert(event, local, routes[route]);
     }
-    for (var __fromJSForIn2398 in f__getForInLoopKeyObject(routes)) {
-      var route;route = f__getTrackedPropertyName(routes, __fromJSForIn2398);
+    for (var __fromJSForIn4624 in f__getForInLoopKeyObject(routes)) {
+      var route;route = f__getTrackedPropertyName(routes, __fromJSForIn4624);
 
       if (f__useValue(routes.hasOwnProperty(route))) {
-        var route;route = f__getTrackedPropertyName(routes, __fromJSForIn2398);
+        var route;route = f__getTrackedPropertyName(routes, __fromJSForIn4624);
 
         insertOrMount(route, path.slice(0));
       }
