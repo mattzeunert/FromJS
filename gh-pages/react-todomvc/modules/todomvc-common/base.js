@@ -14,11 +14,11 @@
 			for (var argsIndex = 1, argsLength = arguments.length; f__useValue(argsIndex < argsLength); argsIndex++) {
 				var iterable = arguments[argsIndex];
 				if (f__useValue(iterable)) {
-					for (var __fromJSForIn2395 in f__getForInLoopKeyObject(iterable)) {
-						var key;key = f__getTrackedPropertyName(iterable, __fromJSForIn2395);
+					for (var __fromJSForIn4620 in f__getForInLoopKeyObject(iterable)) {
+						var key;key = f__getTrackedPropertyName(iterable, __fromJSForIn4620);
 
 						if (f__useValue(f__doubleEqual(object[key], null))) {
-							var key;key = f__getTrackedPropertyName(iterable, __fromJSForIn2395);
+							var key;key = f__getTrackedPropertyName(iterable, __fromJSForIn4620);
 
 							f__assign(object, key, iterable[key]);
 						}

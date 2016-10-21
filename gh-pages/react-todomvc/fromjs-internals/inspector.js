@@ -25199,6 +25199,7 @@
 	                "div",
 	                { id: "fromjs", className: "fromjs" },
 	                _react2.default.createElement("button", {
+	                    style: { display: window.disableCloseInspectorElement ? "block" : "none" },
 	                    onClick: () => currentInspectedPage.send("UICloseInspector"),
 	                    className: "toggle-inspector-button close-inspector-button" }),
 	                intro,

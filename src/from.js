@@ -1,11 +1,15 @@
-if (isMobile() && location.href.indexOf("/react-") !== -1){
+import isMobile from "./isMobile"
+var browserIsChrome = /chrom(e|ium)/.test(navigator.userAgent.toLowerCase());
+var unsupportedEnvironment = isMobile() || !browserIsChrome
+if (unsupportedEnvironment && location.href.indexOf("/react-") !== -1){
     var div = document.createElement("div")
-    div.innerHTML = `<div class="fromjs-no-phone-support-warning">
-        If you're on a phone,
-        <a href="/todomvc">this demo might work better<a>.<br/>
-        Or go to the <a href="/">FromJS homepage</a>.
+    div.innerHTML = `<div class="fromjs-unsupported-device">
+        FromJS only works on Chrome Desktop.<br><br>
+        You can watch some <a href="http://www.fromjs.com/recordings.html">demo videos</a> on the FromJS website instead.
+        This older <a href="http://www.fromjs.com/todomvc/">Backbone TodoMVC example</a> might sort of work on your device.
     </div>`
     document.documentElement.appendChild(div)
+    throw Error("Don't bother trying to run FromJS on this device")
 }
 
 import {makeSureInitialHTMLHasBeenProcessed} from "./tracing/processElementsAvailableOnInitialLoad"
@@ -13,7 +17,6 @@ import {enableTracing, disableTracing, runFunctionWithTracingDisabled} from "./t
 import {addBabelFunctionsToGlobalObject} from "./tracing/babelFunctions"
 import {initializeSidebarContent, showShowFromJSInspectorButton} from "./ui/showFromJSSidebar"
 import $ from "jquery"
-import isMobile from "./isMobile"
 import createResolveFrameWorker from "./createResolveFrameWorker"
 import sendMessageToBackgroundPage from "./sendMessageToBackgroundPage"
 import DynamicCodeRegistry from "./DynamicCodeRegistry"

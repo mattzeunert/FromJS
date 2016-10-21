@@ -32,11 +32,11 @@ var app = f__useValue((f__setCachedValue(app), f__useValue(f__getCachedValue()))
 		var newObj = f__makeObject([]);
 		for (var i = 0; f__useValue(i < arguments.length); i++) {
 			var obj = arguments[i];
-			for (var __fromJSForIn2400 in f__getForInLoopKeyObject(obj)) {
-				var key;key = f__getTrackedPropertyName(obj, __fromJSForIn2400);
+			for (var __fromJSForIn4708 in f__getForInLoopKeyObject(obj)) {
+				var key;key = f__getTrackedPropertyName(obj, __fromJSForIn4708);
 
 				if (f__useValue(obj.hasOwnProperty(key))) {
-					var key;key = f__getTrackedPropertyName(obj, __fromJSForIn2400);
+					var key;key = f__getTrackedPropertyName(obj, __fromJSForIn4708);
 
 					f__assign(newObj, key, obj[key]);
 				}
