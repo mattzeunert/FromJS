@@ -3,6 +3,8 @@
 /chrome-extension/dist
 /todomvc-master
 /react-compiled
+/gh-pages/playground/fromjs
+/gh-pages/react-todomvc
 .sass-cache
 _site
 .DS_Store
