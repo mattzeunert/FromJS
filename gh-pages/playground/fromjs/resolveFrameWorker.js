@@ -1830,7 +1830,7 @@
 	        catchUIErrors: false,
 	        validateHtmlMapping: false,
 	        logTracingSteps: false,
-	        logReceivedInspectorMessages: false,
+	        logReceivedInspectorMessages: true,
 	        logBGPageLogsOnInspectedPage: true
 	    };
 	}
@@ -1989,6 +1989,14 @@
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
 	
+	/*
+	    originally stored this file in repo because I had some issues loading the
+	    correctly versioned files of the different stacktrace.js libraries
+	
+	    Now I also added a patch to cache the map consumer object.
+	    See here: https://github.com/stacktracejs/stacktrace-gps/issues/41
+	*/
+	
 	(function (root, factory) {
 	    'use strict';
 	    // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js, Rhino, and browsers.
@@ -2122,9 +2130,19 @@
 	        }
 	    }
 	
+	    var consumers = new Map();
+	    function getMapConsumer(rawSourceMap) {
+	        var consumer = consumers.get(rawSourceMap);
+	        if (!consumer) {
+	            consumer = new SourceMap.SourceMapConsumer(rawSourceMap);
+	            consumers.set(rawSourceMap, consumer);
+	        }
+	        return consumer;
+	    }
+	
 	    function _extractLocationInfoFromSourceMap(stackframe, rawSourceMap, sourceCache) {
 	        return new Promise(function (resolve, reject) {
-	            var mapConsumer = new SourceMap.SourceMapConsumer(rawSourceMap);
+	            var mapConsumer = getMapConsumer(rawSourceMap);
 	
 	            var loc = mapConsumer.originalPositionFor({
 	                line: stackframe.lineNumber,
@@ -2267,6 +2285,9 @@
 	                    this._get(sourceMappingURL).then(function (sourceMap) {
 	                        if (typeof sourceMap === 'string') {
 	                            sourceMap = _parseJson(sourceMap.replace(/^\)\]\}'/, ''));
+	
+	                            // map needs source map used in .get to be identical
+	                            this.sourceCache[sourceMappingURL] = sourceMap;
 	                        }
 	                        if (typeof sourceMap.sourceRoot === 'undefined') {
 	                            sourceMap.sourceRoot = base;
@@ -2278,7 +2299,7 @@
 	                        })['catch'](function () {
 	                            resolve(stackframe);
 	                        });
-	                    }, reject)['catch'](reject);
+	                    }.bind(this), reject)['catch'](reject);
 	                }.bind(this), reject)['catch'](reject);
 	            }.bind(this));
 	        };
@@ -3583,8 +3604,6 @@
 	                this.beforePostMessage();
 	            }
 	
-	            // necessary for some reason, but may not be great for perf
-	            data = JSON.parse(JSON.stringify(data));
 	            data.timeSent = new Date();
 	            postMessage(data, targetHref);
 	
@@ -3605,7 +3624,11 @@
 	
 	        if (_config2.default.logReceivedInspectorMessages) {
 	            var timeTaken = new Date().valueOf() - new Date(data.timeSent).valueOf();
-	            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms");
+	            var size = "";
+	            var content = "";
+	            // size += "Size: " + (JSON.stringify(data).length / 1024) + "KB"
+	            // content = data
+	            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms", size, content);
 	        }
 	
 	        if (!handlers) {
@@ -3708,7 +3731,6 @@
 	});
 	
 	wrapper.on("registerDynamicFiles", function (files, callback) {
-	    console.log("registerDynamicFiles in worker", files);
 	    frameResolver.addFilesToCache(files);
 	    callback();
 	});
@@ -3716,8 +3738,6 @@
 	wrapper.on("getSourceFileContent", function (path, callback) {
 	    frameResolver.getSourceFileContent(path, callback);
 	});
-	
-	console.log("resolveFrameWorker READY");
 
 /***/ }
 

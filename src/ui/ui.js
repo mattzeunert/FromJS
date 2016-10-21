@@ -1278,6 +1278,7 @@ export class FromJSView extends React.Component {
         return <div>
             <div id="fromjs" className="fromjs">
                 <button
+                    style={{display: window.disableCloseInspectorElement ? "block": "none"}}
                     onClick={() => currentInspectedPage.send("UICloseInspector")}
                     className="toggle-inspector-button close-inspector-button">
 

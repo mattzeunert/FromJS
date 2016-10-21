@@ -2348,7 +2348,7 @@
 	        catchUIErrors: false,
 	        validateHtmlMapping: false,
 	        logTracingSteps: false,
-	        logReceivedInspectorMessages: false,
+	        logReceivedInspectorMessages: true,
 	        logBGPageLogsOnInspectedPage: true
 	    };
 	}
@@ -24100,7 +24100,9 @@
 	        }
 	
 	        var toggleFrameSelectorButton = null;
-	        if (originObject.stack && originObject.stack.length > 1) {
+	        var callStackDeeperThanOneLevel = originObject.stack && originObject.stack.length > 1;
+	        var hasInputValues = originObject.inputValues.length > 0;
+	        if (callStackDeeperThanOneLevel || hasInputValues) {
 	            toggleFrameSelectorButton = _react2.default.createElement(
 	                "button",
 	                {
@@ -25056,11 +25058,11 @@
 	    render() {
 	        var browserIsChrome = /chrom(e|ium)/.test(navigator.userAgent.toLowerCase());
 	        var notChromeMessage = null;
-	        if (!browserIsChrome) {
+	        if (!browserIsChrome || (0, _isMobile2.default)()) {
 	            notChromeMessage = _react2.default.createElement(
 	                "div",
 	                { style: { border: "2px solid red", padding: 10 } },
-	                "FromJS is currently built to only work in Chrome. It sort of works in other browsers too, but some things are broken."
+	                "FromJS is currently built to only work in Chrome Desktop."
 	            );
 	        }
 	        return _react2.default.createElement(
@@ -25070,7 +25072,7 @@
 	            _react2.default.createElement(
 	                "h2",
 	                null,
-	                "What is this?"
+	                "How to use FromJS"
 	            ),
 	            _react2.default.createElement(
 	                "p",
@@ -25083,18 +25085,13 @@
 	                "Select a DOM element on the left to see where its content came from. This could be a string in the JavaScript code, localStorage data, or directly from the HTML file."
 	            ),
 	            _react2.default.createElement(
-	                "h2",
-	                null,
-	                "Does this work for all apps?"
-	            ),
-	            _react2.default.createElement(
 	                "p",
 	                null,
-	                "Sometimes it works, but most of the time it doesn",
-	                "'",
-	                "t. I",
-	                "'",
-	                "m slowly trying to support more JS functionality."
+	                _react2.default.createElement(
+	                    "a",
+	                    { href: "https://github.com/mattzeunert/fromjs/issues" },
+	                    "Report an issue"
+	                )
 	            ),
 	            _react2.default.createElement(
 	                "p",
@@ -25202,6 +25199,7 @@
 	                "div",
 	                { id: "fromjs", className: "fromjs" },
 	                _react2.default.createElement("button", {
+	                    style: { display: window.disableCloseInspectorElement ? "block" : "none" },
 	                    onClick: () => currentInspectedPage.send("UICloseInspector"),
 	                    className: "toggle-inspector-button close-inspector-button" }),
 	                intro,
@@ -26594,7 +26592,12 @@
 	    var defaultCharacterIndex = 1;
 	
 	    if (match) {
-	        defaultCharacterIndex = match[0].length;
+	        var nonContentCharCount = match[0].length;
+	        if (outerHtml[nonContentCharCount] == "<") {
+	            return getDefaultInspectedCharacterIndex(outerHtml.slice(nonContentCharCount)) + nonContentCharCount;
+	        } else {
+	            defaultCharacterIndex = nonContentCharCount;
+	        }
 	    }
 	
 	    if (defaultCharacterIndex >= outerHtml.length) {
@@ -26683,8 +26686,6 @@
 	                this.beforePostMessage();
 	            }
 	
-	            // necessary for some reason, but may not be great for perf
-	            data = JSON.parse(JSON.stringify(data));
 	            data.timeSent = new Date();
 	            postMessage(data, targetHref);
 	
@@ -26705,7 +26706,11 @@
 	
 	        if (_config2.default.logReceivedInspectorMessages) {
 	            var timeTaken = new Date().valueOf() - new Date(data.timeSent).valueOf();
-	            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms");
+	            var size = "";
+	            var content = "";
+	            // size += "Size: " + (JSON.stringify(data).length / 1024) + "KB"
+	            // content = data
+	            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms", size, content);
 	        }
 	
 	        if (!handlers) {
