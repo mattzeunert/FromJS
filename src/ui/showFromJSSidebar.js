@@ -28,8 +28,12 @@ export default function showFromJSSidebar(resolveFrameWorker){
     container.appendChild(container2)
 
     document.body.appendChild(container)
-    var cssUrl = "/fromjs-internals/fromjs.css";
-    var jsUrl = "/fromjs-internals/inspector.js";
+    var rootUrl = "/fromjs-internals/"
+    if (window.fromJSInternalsRoot){
+        rootUrl = window.fromJSInternalsRoot
+    }
+    var cssUrl = rootUrl + "fromjs.css";
+    var jsUrl = rootUrl + "inspector.js";
     sidebarIframe.contentDocument.write(`
         <!doctype html>
         <html>
