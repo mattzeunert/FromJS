@@ -36,6 +36,13 @@ button:focus, {
     background: #1b0d80;
 }
 
+.fromjs-outer-container, .fromjs-outer-container div {
+    width: auto;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    border-radius: 0;
+}
 
 .toggle-inspector-button {
     position: fixed;
