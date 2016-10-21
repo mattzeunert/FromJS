@@ -31,7 +31,11 @@ webConfig.plugins.push(new WebpackShellPlugin({
         echo 'Finished onBuildExit';
         `
     ]
-}))
+}),
+new webpack.DefinePlugin({
+    'VERSION': "\"" + require("../chrome-extension/manifest.json").version + "\""
+})
+)
 
 var serverConfig = getBaseConfig()
 serverConfig.entry = {

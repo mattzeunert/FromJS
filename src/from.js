@@ -22,7 +22,7 @@ import sendMessageToBackgroundPage from "./sendMessageToBackgroundPage"
 import DynamicCodeRegistry from "./DynamicCodeRegistry"
 import {showFromJSSidebarOnPlaygroundPage} from "./ui/showFromJSSidebar"
 
-window.fromJSVersion = `1.1-${GIT_COMMIT.substr(0,7)}`
+window.fromJSVersion = `${VERSION}-${GIT_COMMIT.substr(0,7)}`
 window.dynamicCodeRegistry = new DynamicCodeRegistry()
 
 addBabelFunctionsToGlobalObject();
