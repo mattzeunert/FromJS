@@ -39,3 +39,7 @@ h3 {
 .header-and-content {
     min-height: calc(100vh - 40px); // minus footer height
 }
+
+img {
+    max-width: 100%;
+}
