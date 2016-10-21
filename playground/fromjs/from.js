@@ -44924,7 +44924,9 @@
 	                        property = babel.types.stringLiteral(path.node.left.property.name);
 	                        property.loc = path.node.left.property.loc;
 	                    }
-	                    path.replaceWith(babel.types.callExpression(babel.types.identifier("f__assign"), [path.node.left.object, property, path.node.right]));
+	                    var assignExpression = babel.types.callExpression(babel.types.identifier("f__assign"), [path.node.left.object, property, path.node.right]);
+	                    assignExpression.loc = path.node.loc;
+	                    path.replaceWith(assignExpression);
 	                }
 	            },
 	            MemberExpression(path) {
@@ -44933,6 +44935,17 @@
 	                // This won't catch document["ready" + "state"], but it's good enough
 	                if (path.node.property.value === "readyState" || path.node.property.name === "readyState") {
 	                    var call = babel.types.callExpression(babel.types.identifier("f__getReadyState"), [path.node.object]);
+	                    path.replaceWith(call);
+	                } else if (path.node.property.value === "toString" || path.node.property.name === "toString") {
+	                    // toString calls on tracked objects return a native string, so call a special
+	                    // function that returns the tracked string again
+	                    // toString needs to return a stirng when called from native browser code
+	
+	                    // There might be different ways to do this that don't require modifying code
+	                    // and that are more reliable
+	                    // (e.g. I could capture a call stack and see if it was a call by a native function, but
+	                    // my thinking right now is that I'd rather avoid the perf penality of getting a stack trace)
+	                    var call = babel.types.callExpression(babel.types.identifier("f__getToString"), [path.node.object]);
 	                    path.replaceWith(call);
 	                }
 	            },
@@ -45056,8 +45069,19 @@
 	                });
 	
 	                var call = babel.types.callExpression(babel.types.identifier("f__makeObject"), [babel.types.arrayExpression(path.node.properties.map(function (prop) {
-	                    var propArray = babel.types.arrayExpression([prop.key, prop.value]);
-	                    return propArray;
+	                    var type = babel.types.stringLiteral(prop.type);
+	                    type.ignore = true;
+	                    if (prop.type === "ObjectMethod") {
+	                        // getter/setter
+	                        var kind = babel.types.stringLiteral(prop.kind);
+	                        kind.ignore = true;
+	                        var propArray = babel.types.arrayExpression([type, prop.key, kind, babel.types.functionExpression(null, prop.params, prop.body)]);
+	                        return propArray;
+	                    } else {
+	                        var propArray = babel.types.arrayExpression([type, prop.key, prop.value]);
+	                        return propArray;
+	                    }
+	                    console.log("continue with type", prop.type);
 	                }))]);
 	                path.replaceWith(call);
 	            },
@@ -45080,6 +45104,7 @@
 	                var replacement = replacements[path.node.operator];
 	                if (replacement) {
 	                    var call = babel.types.callExpression(babel.types.identifier(replacement), [path.node.left, path.node.right]);
+	                    call.loc = path.node.loc;
 	
 	                    path.replaceWith(call);
 	                }
@@ -46742,7 +46767,7 @@
 	        catchUIErrors: false,
 	        validateHtmlMapping: false,
 	        logTracingSteps: false,
-	        logReceivedInspectorMessages: false,
+	        logReceivedInspectorMessages: true,
 	        logBGPageLogsOnInspectedPage: true
 	    };
 	}
@@ -46799,7 +46824,7 @@
 	    document.documentElement.appendChild(div);
 	}
 	
-	window.fromJSVersion = `1.1-${ "dac6771bb5442273dc48ea317b3aaf0e95f043aa".substr(0, 7) }`;
+	window.fromJSVersion = `1.1-${ "3e6b15165751aaea16b91a3c895563a3c5f14d96".substr(0, 7) }`;
 	window.dynamicCodeRegistry = new _DynamicCodeRegistry2.default();
 	
 	(0, _babelFunctions.addBabelFunctionsToGlobalObject)();
@@ -46821,7 +46846,7 @@
 	    } else {
 	        var r = new XMLHttpRequest();
 	        r.addEventListener("load", function () {
-	            cb(r.responseText);
+	            cb(f__useValue(r.responseText));
 	        });
 	        r.open("GET", url);
 	        r.send();
@@ -46829,7 +46854,6 @@
 	});
 	
 	dynamicCodeRegistry.on("register", function (newFiles) {
-	    console.log("newfiles", newFiles);
 	    (0, _tracing.runFunctionWithTracingDisabled)(function () {
 	        resolveFrameWorker.send("registerDynamicFiles", newFiles, function () {});
 	    });
@@ -46866,6 +46890,18 @@
 	        (0, _showFromJSSidebar.showShowFromJSInspectorButton)(resolveFrameWorker);
 	    }
 	}
+	
+	function makeConsoleFunctionWorkWithTrackedStrings(fnName) {
+	    var originalFn = console[fnName];
+	    console[fnName] = function () {
+	        var args = Array.from(arguments);
+	        args = args.map(f__useValue);
+	        return originalFn.apply(this, args);
+	    };
+	}
+	makeConsoleFunctionWorkWithTrackedStrings("log");
+	makeConsoleFunctionWorkWithTrackedStrings("warn");
+	makeConsoleFunctionWorkWithTrackedStrings("error");
 
 /***/ },
 /* 528 */
@@ -46907,12 +46943,9 @@
 	window.makeSureInitialHTMLHasBeenProcessed = makeSureInitialHTMLHasBeenProcessed;
 	
 	function processElementsAvailableOnInitialLoad() {
-	
 	    if (window.processElementsAvailableOnInitialLoadDisabled) {
 	        return;
 	    }
-	
-	    console.log("processElementsAvailableOnInitialLoad");
 	
 	    var initialHTMLContainer = document.getElementById("fromjs-initial-html");
 	    var htmlFilename = "page.html";
@@ -47243,6 +47276,7 @@
 	        serialized.inputValues = [];
 	        // Some input values can be elements, (which is wrong and should change at some point)
 	        // but for now avoid passing elements on to iframe.
+	        // ===> this could very well be fixed  now
 	        serialized.__elOrigin = null;
 	    } else {
 	        serialized.inputValues = serialized.inputValues.filter(function (iv) {
@@ -47253,8 +47287,9 @@
 	        });
 	        serialized.stack = this.getStackFrames();
 	    }
-	
 	    serialized.id = this.getId();
+	    delete serialized.error;
+	    delete serialized.valueItems;
 	
 	    return serialized;
 	};
@@ -58130,14 +58165,9 @@
 	        ret = new _OriginPathStep2.default(step.origin.inputValues[0], newCharIndex);
 	    } else if (step.origin.action === "Assign InnerHTML" || step.origin.action === "Initial Body HTML" || step.origin.action === "InsertAdjacentHTML") {
 	        var offsetAtChar = 0;
-	        if (step.origin.offsetAtCharIndex) {
-	            var index = step.characterIndex - step.origin.inputValuesCharacterIndex[0];
-	            offsetAtChar = step.origin.offsetAtCharIndex[index];
-	            if (offsetAtChar === undefined) (0, _debuggerStatementFunction2.default)();
-	        }
 	        ret = {
 	            origin: step.origin.inputValues[0],
-	            characterIndex: step.characterIndex - step.origin.extraCharsAdded + offsetAtChar
+	            characterIndex: step.characterIndex - step.origin.extraCharsAdded
 	        };
 	    } else if (step.origin.action === "createElement" || step.origin.action === "createElementNS") {
 	        var characterIndex = step.characterIndex;
@@ -58165,6 +58195,21 @@
 	            origin: step.origin.inputValues[0],
 	            characterIndex: characterIndex
 	        };
+	    } else if (step.origin.action === "encodeURIComponent") {
+	        var unencodedString = step.origin.inputValues[0].value;
+	        var encodedString = step.origin.value;
+	
+	        var valueMap = new _valueMap2.default();
+	
+	        var extraCharsSoFar = 0;
+	        for (var i = 0; i < unencodedString.length; i++) {
+	            var unencodedChar = unencodedString[i];
+	            var encodedChar = encodeURIComponent(unencodedChar);
+	            valueMap.appendString(encodedChar, step.origin.inputValues[0], i);
+	            extraCharsSoFar += encodedChar.length - unencodedChar.length;
+	        }
+	        ret = valueMap.getItemAt(step.characterIndex);
+	        ret.characterIndex -= ret.charIndexInMatch;
 	    } else if (step.origin.action === "JSON.stringify") {
 	        ret = new _OriginPathStep2.default(step.origin.inputValues[0], step.characterIndex - '"'.length);
 	    } else if (step.origin.inputValues.length === 1 && step.origin.inputValues[0].value === step.origin.value) {
@@ -58407,10 +58452,13 @@
 	    });
 	
 	    var origin = matchingItem.origin;
-	    var characterIndex = charIndex - charCountBeforeMatch + matchingItem.indexInOriginValue;
+	    var charIndexInMatch = charIndex - charCountBeforeMatch;
+	    var characterIndex = charIndexInMatch + matchingItem.indexInOriginValue;
 	
 	    return {
 	        origin,
+	        match: matchingItem,
+	        charIndexInMatch,
 	        characterIndex: characterIndex,
 	        __justForDebuggingStr: matchingItem.__justForDebuggingStr
 	    };
@@ -58695,6 +58743,14 @@
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
 	
+	/*
+	    originally stored this file in repo because I had some issues loading the
+	    correctly versioned files of the different stacktrace.js libraries
+	
+	    Now I also added a patch to cache the map consumer object.
+	    See here: https://github.com/stacktracejs/stacktrace-gps/issues/41
+	*/
+	
 	(function (root, factory) {
 	    'use strict';
 	    // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js, Rhino, and browsers.
@@ -58828,9 +58884,19 @@
 	        }
 	    }
 	
+	    var consumers = new Map();
+	    function getMapConsumer(rawSourceMap) {
+	        var consumer = consumers.get(rawSourceMap);
+	        if (!consumer) {
+	            consumer = new SourceMap.SourceMapConsumer(rawSourceMap);
+	            consumers.set(rawSourceMap, consumer);
+	        }
+	        return consumer;
+	    }
+	
 	    function _extractLocationInfoFromSourceMap(stackframe, rawSourceMap, sourceCache) {
 	        return new Promise(function (resolve, reject) {
-	            var mapConsumer = new SourceMap.SourceMapConsumer(rawSourceMap);
+	            var mapConsumer = getMapConsumer(rawSourceMap);
 	
 	            var loc = mapConsumer.originalPositionFor({
 	                line: stackframe.lineNumber,
@@ -58973,6 +59039,9 @@
 	                    this._get(sourceMappingURL).then(function (sourceMap) {
 	                        if (typeof sourceMap === 'string') {
 	                            sourceMap = _parseJson(sourceMap.replace(/^\)\]\}'/, ''));
+	
+	                            // map needs source map used in .get to be identical
+	                            this.sourceCache[sourceMappingURL] = sourceMap;
 	                        }
 	                        if (typeof sourceMap.sourceRoot === 'undefined') {
 	                            sourceMap.sourceRoot = base;
@@ -58984,7 +59053,7 @@
 	                        })['catch'](function () {
 	                            resolve(stackframe);
 	                        });
-	                    }, reject)['catch'](reject);
+	                    }.bind(this), reject)['catch'](reject);
 	                }.bind(this), reject)['catch'](reject);
 	            }.bind(this));
 	        };
@@ -61642,6 +61711,8 @@
 	        throw Error("Selected element doesn't have any origin data. This may be because you opened the FromJS inspector before the page finished loading.");
 	    }
 	
+	    var originPathStep = null;
+	
 	    if (item.origin === "openingTag") {
 	        var vm = new _valueMap2.default();
 	
@@ -61677,13 +61748,13 @@
 	        var item = vm.getItemAt(characterIndex);
 	
 	        var characterIndex = item.characterIndex + (item.origin.inputValuesCharacterIndex ? item.origin.inputValuesCharacterIndex[0] : 0);
-	        return new _OriginPathStep2.default(item.origin, characterIndex);
+	        originPathStep = new _OriginPathStep2.default(item.origin, characterIndex);
 	    } else if (item.origin === "closingTag") {
 	        var ivIndex = el.__elOrigin.closingTag.inputValuesCharacterIndex;
 	        var indexInClosingTag = item.characterIndex;
 	
 	        var characterIndex = indexInClosingTag + (ivIndex ? ivIndex[0] : 0);
-	        return new _OriginPathStep2.default(el.__elOrigin.closingTag, characterIndex);
+	        originPathStep = new _OriginPathStep2.default(el.__elOrigin.closingTag, characterIndex);
 	    } else if (item.origin === "innerHTML") {
 	        var vm = new _valueMap2.default();
 	        characterIndex -= openingTag.length;
@@ -61708,9 +61779,8 @@
 	        if (isTextNode) {
 	            var origin = item.origin.__elOrigin.textValue;
 	            var characterIndex = item.characterIndex + (origin.inputValuesCharacterIndex ? origin.inputValuesCharacterIndex[0] : 0);
-	            return new _OriginPathStep2.default(origin, characterIndex);
-	        }
-	        if (isCommentNode) {
+	            originPathStep = new _OriginPathStep2.default(origin, characterIndex);
+	        } else if (isCommentNode) {
 	            var vm = new _valueMap2.default();
 	            var elOrigin = item.origin.__elOrigin;
 	            vm.append(elOrigin.commentStart);
@@ -61720,11 +61790,25 @@
 	            var commentItem = vm.getItemAt(item.characterIndex);
 	
 	            return new _OriginPathStep2.default(commentItem.origin, commentItem.characterIndex);
+	        } else {
+	            return getRootOriginAtChar(item.origin, item.characterIndex);
 	        }
-	        return getRootOriginAtChar(item.origin, item.characterIndex);
 	    } else {
 	        throw "ooooossdfa";
 	    }
+	
+	    var origin = originPathStep.origin;
+	    var characterIndex = originPathStep.characterIndex;
+	    if (origin.offsetAtCharIndex) {
+	        var index = characterIndex - origin.inputValuesCharacterIndex[0];
+	        var offsetAtChar = origin.offsetAtCharIndex[index];
+	        if (offsetAtChar === undefined) {
+	            debuggerStatementFunction();
+	        }
+	        characterIndex += offsetAtChar;
+	    }
+	
+	    return new _OriginPathStep2.default(origin, characterIndex);
 	}
 
 /***/ },
@@ -61944,6 +62028,8 @@
 	
 	var nativeExec = RegExp.prototype.exec;
 	window.nativeExec = nativeExec;
+	
+	var nativeEncodeURIComponent = window.encodeURIComponent;
 	
 	var nativeRemoveAttribute = Element.prototype.removeAttribute;
 	
@@ -62180,13 +62266,16 @@
 	                }
 	                return appendedEl;
 	            };
+	        },
+	        set: function () {
+	            console.error("Not overwriting Node.prototype.appendChild");
 	        }
 	    });
 	
 	    window.XMLHttpRequest = function () {
 	        var self = this;
 	        self.xhr = new originalXMLHttpRequest();
-	        this.open = function () {
+	        this.open = function (method, url) {
 	            self.xhr.onreadystatechange = function (e) {
 	                var isDone = self.xhr.readyState === originalXMLHttpRequest.DONE;
 	                if (isDone) {
@@ -62196,7 +62285,7 @@
 	                                value: self.xhr.responseText,
 	                                origin: new _origin2.default({
 	                                    value: self.xhr.responseText,
-	                                    inputValues: [],
+	                                    inputValues: [url],
 	                                    action: "XHR responseText"
 	                                })
 	                            });
@@ -62318,6 +62407,9 @@
 	        if (!error) {
 	            error = Error();
 	        }
+	        if (str === null) {
+	            str = "null";
+	        }
 	        str = (0, _trackStringIfNotTracked2.default)(str, error);
 	
 	        if (typeof parsedVal === "string") {
@@ -62423,12 +62515,10 @@
 	            separator = defaultArrayJoinSeparator;
 	        }
 	        var stringifiedItems = Array.prototype.map.call(this, function (item) {
-	            var stringifiedItem = item;
-	
-	            while (typeof stringifiedItem !== "string") {
-	                stringifiedItem = stringifiedItem.toString();
+	            if (item === null || item === undefined) {
+	                return "";
 	            }
-	            return stringifiedItem;
+	            return (0, _untracedToString2.default)(item);
 	        });
 	
 	        var trackIfNotTracked = (0, _trackStringIfNotTracked.makeTrackIfNotTrackedFunction)();
@@ -62760,7 +62850,7 @@
 	                var submatch = (0, _FromJSString.makeTraceObject)({
 	                    value: res[i],
 	                    origin: new _origin2.default({
-	                        error: getError,
+	                        error: getError(),
 	                        value: res[i],
 	                        action: "RegExp.exec Submatch",
 	                        inputValues: [str],
@@ -62921,6 +63011,18 @@
 	        });
 	    };
 	
+	    window.encodeURIComponent = function (str) {
+	        var encoded = nativeEncodeURIComponent(str);
+	        return (0, _FromJSString.makeTraceObject)({
+	            value: encoded,
+	            origin: new _origin2.default({
+	                action: "encodeURIComponent",
+	                value: encoded,
+	                inputValues: [str]
+	            })
+	        });
+	    };
+	
 	    // try to add this once, but it turned out the .dataset[sth] assignment
 	    // was in a chrome extension that uses a different HTMLElement object
 	    window.nativeDataSetDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "dataset");
@@ -62989,6 +63091,8 @@
 	    Object.prototype.toString = nativeObjectToString;
 	    Number.prototype.toString = nativeNumberToString;
 	    Array.prototype.toString = nativeArrayToString;
+	
+	    window.encodeURIComponent = nativeEncodeURIComponent;
 	
 	    Number.prototype.toFixed = nativeNumberToFixed;
 	
@@ -63132,7 +63236,7 @@
 	    }
 	
 	    // these return numbers
-	    if (propertyName === "indexOf" || propertyName === "charCodeAt" || propertyName === "localeCompare") {
+	    if (propertyName === "indexOf" || propertyName === "lastIndexOf" || propertyName === "charCodeAt" || propertyName === "localeCompare" || propertyName === "search") {
 	        return;
 	    }
 	
@@ -63316,6 +63420,9 @@
 	                valueItems = valueMap.serialize(inputValues);
 	            } else if (propertyName === "match") {
 	                var regExp = args[0];
+	                if (!(regExp instanceof RegExp)) {
+	                    regExp = new RegExp(regExp);
+	                }
 	                if (regExp.global) {
 	                    var matches = [];
 	                    var match;
@@ -63453,9 +63560,24 @@
 	        },
 	        enumerable: false
 	    },
+	    lastIndexOf: {
+	        value: function (search, fromIndex) {
+	            if (search && search.isStringTraceString) {
+	                search = search.value;
+	            }
+	            return this.value.lastIndexOf(search, fromIndex);
+	        },
+	        enumerable: false
+	    },
 	    charCodeAt: {
 	        value: function (index) {
 	            return this.value.charCodeAt(index);
+	        },
+	        enumerable: false
+	    },
+	    search: {
+	        value: function (index) {
+	            return this.value.search(index);
 	        },
 	        enumerable: false
 	    },
@@ -63697,6 +63819,12 @@
 	function makeTrackIfNotTrackedFunction() {
 	    var getError = (0, _makeGetErrorFunction2.default)();
 	    var fn = function (str) {
+	        if (str === null) {
+	            str = "null";
+	        }
+	        if (str === undefined) {
+	            str = "undefined";
+	        }
 	        return trackStringIfNotTracked(str, fn.getErrorObject());
 	    };
 	    fn.getErrorObject = function () {
@@ -63789,14 +63917,19 @@
 	function processJSScriptTagsInHtml(html, replace) {
 	    var scriptTags = [];
 	
-	    html = html.replace(/(\<script).*?\>[\s\S]*?\<\/script\>/g, function (scriptTag) {
-	        var $ = cheerio.load(scriptTag)("*");
+	    var $ = cheerio.load(html);
+	    function getOuterHtml(el) {
+	        return $('<div>').append(el.clone()).html();
+	    }
 	
-	        var isJS = !$.attr("type") || $.attr("type") === "text/javascript";
-	        var isInlineJS = isJS && !$.attr("src");
-	        var content = $.html();
+	    $("script").each(function (i, scriptTag) {
+	        scriptTag = $(scriptTag);
+	        var outerHtml = getOuterHtml(scriptTag);
+	        var isJS = !scriptTag.attr("type") || scriptTag.attr("type") === "text/javascript";
+	        var isInlineJS = isJS && !scriptTag.attr("src");
+	        var content = scriptTag.html();
 	
-	        var parts = (0, _getOpeningAndClosingTags2.default)(scriptTag, content);
+	        var parts = (0, _getOpeningAndClosingTags2.default)(outerHtml, content);
 	
 	        if (isInlineJS && replace !== undefined) {
 	            content = replace(content);
@@ -63813,10 +63946,10 @@
 	            });
 	        }
 	
-	        return completeTag;
+	        $(scriptTag[0]).replaceWith($(completeTag));
 	    });
 	    return {
-	        html: html,
+	        html: $.html(),
 	        scriptTags: scriptTags
 	    };
 	}
@@ -94618,6 +94751,10 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
+	var globalObject = function () {
+	    return this;
+	}();
+	
 	var cachedValue;
 	var documentReadyState = "loading";
 	
@@ -94793,10 +94930,26 @@
 	    },
 	    f__makeObject(properties) {
 	        var obj = {};
+	        var methodProperties = {};
 	        for (var i = 0; i < properties.length; i++) {
 	            var property = properties[i];
-	            f__assign(obj, property[0], property[1]);
+	            var propertyType = property[0];
+	            var propertyKey = property[1];
+	            if (propertyType === "ObjectProperty") {
+	                f__assign(obj, property[1], property[2]);
+	            } else if (propertyType === "ObjectMethod") {
+	                var propertyKind = property[2];
+	                var fn = property[3];
+	                if (!methodProperties[propertyKey]) {
+	                    methodProperties[propertyKey] = {
+	                        enumerable: true,
+	                        configurable: true
+	                    };
+	                }
+	                methodProperties[propertyKey][propertyKind] = fn;
+	            }
 	        }
+	        Object.defineProperties(obj, methodProperties);
 	        return obj;
 	    },
 	    f__getForInLoopKeyObject(object) {
@@ -94811,6 +94964,23 @@
 	    },
 	    f__setDocumentReadyState(value) {
 	        documentReadyState = value;
+	    },
+	    f__getToString(obj) {
+	        if (obj && obj.isStringTraceString) {
+	            return function () {
+	                // Return the object itself rather than native string
+	                return obj;
+	            };
+	        } else {
+	            return function () {
+	                var calledWithCallOrApply = this !== globalObject;
+	                if (calledWithCallOrApply) {
+	                    return obj.toString.apply(this, arguments);
+	                } else {
+	                    return obj.toString.apply(obj, arguments);
+	                }
+	            };
+	        }
 	    }
 	};
 	
@@ -94931,8 +95101,12 @@
 	    container.appendChild(container2);
 	
 	    document.body.appendChild(container);
-	    var cssUrl = "/fromjs-internals/fromjs.css";
-	    var jsUrl = "/fromjs-internals/inspector.js";
+	    var rootUrl = "/fromjs-internals/";
+	    if (window.fromJSInternalsRoot) {
+	        rootUrl = window.fromJSInternalsRoot;
+	    }
+	    var cssUrl = rootUrl + "fromjs.css";
+	    var jsUrl = rootUrl + "inspector.js";
 	    sidebarIframe.contentDocument.write(`
 	        <!doctype html>
 	        <html>
@@ -95015,10 +95189,12 @@
 	    }
 	
 	    function setCurrentSelectedElement(el) {
-	        currentSelectedElement = el;
-	        nonElementOriginSelected = false;
-	        inspectorPage.send("selectElement", serializeElement(el));
-	        updateSelectionMarker();
+	        (0, _tracing.runFunctionWithTracingDisabled)(function () {
+	            currentSelectedElement = el;
+	            nonElementOriginSelected = false;
+	            inspectorPage.send("selectElement", serializeElement(el));
+	            updateSelectionMarker();
+	        });
 	    }
 	
 	    function updateSelectionMarker() {
@@ -95061,11 +95237,13 @@
 	    });
 	
 	    inspectorPage.on("getRootOriginAtChar", function (elementId, characterIndex, callback) {
-	        var el = getElementFromElementId(elementId);
-	        var initialStep = (0, _getRootOriginAtChar2.default)(el, characterIndex);
-	        registerOriginIdsForStep(initialStep);
-	        initialStep = serializeStep(initialStep);
-	        callback(initialStep);
+	        (0, _tracing.runFunctionWithTracingDisabled)(function () {
+	            var el = getElementFromElementId(elementId);
+	            var initialStep = (0, _getRootOriginAtChar2.default)(el, characterIndex);
+	            registerOriginIdsForStep(initialStep);
+	            initialStep = serializeStep(initialStep);
+	            callback(initialStep);
+	        });
 	    });
 	
 	    function serializeStep(s) {
@@ -95143,10 +95321,12 @@
 	    }
 	
 	    function setCurrentPreviewedElement(el) {
-	        currentPreviewedElement = el;
+	        (0, _tracing.runFunctionWithTracingDisabled)(function () {
+	            currentPreviewedElement = el;
 	
-	        inspectorPage.send("previewElement", serializeElement(el));
-	        _reactDom2.default.render(_react2.default.createElement(_ui.PreviewElementMarker, { el: currentPreviewedElement }), previewElementMarkerContainer);
+	            inspectorPage.send("previewElement", serializeElement(el));
+	            _reactDom2.default.render(_react2.default.createElement(_ui.PreviewElementMarker, { el: currentPreviewedElement }), previewElementMarkerContainer);
+	        });
 	    }
 	
 	    (0, _tracing.enableTracing)();
@@ -95210,10 +95390,12 @@
 	    }
 	
 	    function setCurrentSelectedElement(el) {
-	        currentSelectedElement = el;
-	        nonElementOriginSelected = false;
-	        inspectorPage.send("selectElement", serializeElement(el));
-	        updateSelectionMarker();
+	        (0, _tracing.runFunctionWithTracingDisabled)(function () {
+	            currentSelectedElement = el;
+	            nonElementOriginSelected = false;
+	            inspectorPage.send("selectElement", serializeElement(el));
+	            updateSelectionMarker();
+	        });
 	    }
 	
 	    function updateSelectionMarker() {
@@ -95260,11 +95442,13 @@
 	    });
 	
 	    inspectorPage.on("getRootOriginAtChar", function (elementId, characterIndex, callback) {
-	        var el = getElementFromElementId(elementId);
-	        var initialStep = (0, _getRootOriginAtChar2.default)(el, characterIndex);
-	        registerOriginIdsForStep(initialStep);
-	        initialStep = serializeStep(initialStep);
-	        callback(initialStep);
+	        (0, _tracing.runFunctionWithTracingDisabled)(function () {
+	            var el = getElementFromElementId(elementId);
+	            var initialStep = (0, _getRootOriginAtChar2.default)(el, characterIndex);
+	            registerOriginIdsForStep(initialStep);
+	            initialStep = serializeStep(initialStep);
+	            callback(initialStep);
+	        });
 	    });
 	
 	    function serializeStep(s) {
@@ -95342,10 +95526,12 @@
 	    }
 	
 	    function setCurrentPreviewedElement(el) {
-	        currentPreviewedElement = el;
+	        (0, _tracing.runFunctionWithTracingDisabled)(function () {
+	            currentPreviewedElement = el;
 	
-	        inspectorPage.send("previewElement", serializeElement(el));
-	        _reactDom2.default.render(_react2.default.createElement(_ui.PreviewElementMarker, { el: currentPreviewedElement }), previewElementMarkerContainer);
+	            inspectorPage.send("previewElement", serializeElement(el));
+	            _reactDom2.default.render(_react2.default.createElement(_ui.PreviewElementMarker, { el: currentPreviewedElement }), previewElementMarkerContainer);
+	        });
 	    }
 	}
 	
@@ -116926,7 +117112,9 @@
 	        }
 	
 	        var toggleFrameSelectorButton = null;
-	        if (originObject.stack && originObject.stack.length > 1) {
+	        var callStackDeeperThanOneLevel = originObject.stack && originObject.stack.length > 1;
+	        var hasInputValues = originObject.inputValues.length > 0;
+	        if (callStackDeeperThanOneLevel || hasInputValues) {
 	            toggleFrameSelectorButton = _react2.default.createElement(
 	                "button",
 	                {
@@ -117882,11 +118070,11 @@
 	    render() {
 	        var browserIsChrome = /chrom(e|ium)/.test(navigator.userAgent.toLowerCase());
 	        var notChromeMessage = null;
-	        if (!browserIsChrome) {
+	        if (!browserIsChrome || (0, _isMobile2.default)()) {
 	            notChromeMessage = _react2.default.createElement(
 	                "div",
 	                { style: { border: "2px solid red", padding: 10 } },
-	                "FromJS is currently built to only work in Chrome. It sort of works in other browsers too, but some things are broken."
+	                "FromJS is currently built to only work in Chrome Desktop."
 	            );
 	        }
 	        return _react2.default.createElement(
@@ -117896,7 +118084,7 @@
 	            _react2.default.createElement(
 	                "h2",
 	                null,
-	                "What is this?"
+	                "How to use FromJS"
 	            ),
 	            _react2.default.createElement(
 	                "p",
@@ -117909,18 +118097,13 @@
 	                "Select a DOM element on the left to see where its content came from. This could be a string in the JavaScript code, localStorage data, or directly from the HTML file."
 	            ),
 	            _react2.default.createElement(
-	                "h2",
-	                null,
-	                "Does this work for all apps?"
-	            ),
-	            _react2.default.createElement(
 	                "p",
 	                null,
-	                "Sometimes it works, but most of the time it doesn",
-	                "'",
-	                "t. I",
-	                "'",
-	                "m slowly trying to support more JS functionality."
+	                _react2.default.createElement(
+	                    "a",
+	                    { href: "https://github.com/mattzeunert/fromjs/issues" },
+	                    "Report an issue"
+	                )
 	            ),
 	            _react2.default.createElement(
 	                "p",
@@ -118028,6 +118211,7 @@
 	                "div",
 	                { id: "fromjs", className: "fromjs" },
 	                _react2.default.createElement("button", {
+	                    style: { display: window.disableCloseInspectorElement ? "block" : "none" },
 	                    onClick: () => currentInspectedPage.send("UICloseInspector"),
 	                    className: "toggle-inspector-button close-inspector-button" }),
 	                intro,
@@ -119420,7 +119604,12 @@
 	    var defaultCharacterIndex = 1;
 	
 	    if (match) {
-	        defaultCharacterIndex = match[0].length;
+	        var nonContentCharCount = match[0].length;
+	        if (outerHtml[nonContentCharCount] == "<") {
+	            return getDefaultInspectedCharacterIndex(outerHtml.slice(nonContentCharCount)) + nonContentCharCount;
+	        } else {
+	            defaultCharacterIndex = nonContentCharCount;
+	        }
 	    }
 	
 	    if (defaultCharacterIndex >= outerHtml.length) {
@@ -119509,8 +119698,6 @@
 	                this.beforePostMessage();
 	            }
 	
-	            // necessary for some reason, but may not be great for perf
-	            data = JSON.parse(JSON.stringify(data));
 	            data.timeSent = new Date();
 	            postMessage(data, targetHref);
 	
@@ -119531,7 +119718,11 @@
 	
 	        if (_config2.default.logReceivedInspectorMessages) {
 	            var timeTaken = new Date().valueOf() - new Date(data.timeSent).valueOf();
-	            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms");
+	            var size = "";
+	            var content = "";
+	            // size += "Size: " + (JSON.stringify(data).length / 1024) + "KB"
+	            // content = data
+	            console.log(this._connectionName + " received", messageType, "took", timeTaken + "ms", size, content);
 	        }
 	
 	        if (!handlers) {
@@ -120172,8 +120363,8 @@
 	
 	function createResolveFrameWorker() {
 	    var workerURL = "/fromjs-internals/resolveFrameWorker.js";
-	    if (window.isPlayground) {
-	        workerURL = "/playground/fromjs/resolveFrameWorker.js";
+	    if (window.fromJSInternalsRoot) {
+	        workerURL = window.fromJSInternalsRoot + "resolveFrameWorker.js";
 	    }
 	    if (window.fromJSResolveFrameWorkerCode) {
 	        // Load as string from background page, because
