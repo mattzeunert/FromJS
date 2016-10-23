@@ -261,13 +261,20 @@ describe("Tracing", function(){
         expect(div.__elOrigin.openingTagStart.action).toBe("Document.Write")
     })
 
-    it("Object(trackedString) should not be equal to trackedString", function(){
-        // this is a property of native strings where `"a" !== Object("a")`
-        // libraries sometimes use this property to detect if the value
-        // they're looking at is already a string
-        var str = makeString("Hello")
-        var strObj = Object(str);
-        expect(babelFunctions.f__tripleEqual(str, strObj)).toBe(false)
+    // it("Object(trackedString) should not be equal to trackedString", function(){
+    //     // this is a property of native strings where `"a" !== Object("a")`
+    //     // libraries sometimes use this property to detect if the value
+    //     // they're looking at is already a string
+    //     var str = makeString("Hello")
+    //     var strObj = Object(str);
+    //     expect(babelFunctions.f__tripleEqual(str, strObj)).toBe(false)
+    // })
+
+    it("Doesn't break the string value of Object", function(){
+        var objString = "function Object() { [native code] }"
+        debugger;
+        expect(window.Object.toString()).toBe(objString)
+        expect(Function.prototype.toString.call(window.Object)).toBe(objString)
     })
 
     describe("Array.join", function(){

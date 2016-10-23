@@ -260,22 +260,25 @@ export function enableTracing(){
         return node;
     }
 
-    window.Object = function(val){
-        if (val && val.isStringTraceString) {
-            // we want the Object(str) version to not be equal to the
-            // plain str
-            return Object(val.value)
-        } else {
-            return nativeObjectObject(val)
-        }
-    }
-    nativeObjectObject.getOwnPropertyNames(nativeObjectObject).forEach(function(propName){
-        var readyonlyArgumentsOfFunctions = ["length", "name", "arguments", "caller"]
-        if (_.contains(readyonlyArgumentsOfFunctions, propName)){
-            return
-        }
-        window.Object[propName] = nativeObjectObject[propName]
-    })
+    // disabled as it breaks other stuff, see tests that break when uncommenting
+    // there's also a test that checks for this to work, but that's also commented out
+    // (searchg for "Object(trackedString)")
+    // window.Object = function(val){
+    //     if (val && val.isStringTraceString) {
+    //         // we want the Object(str) version to not be equal to the
+    //         // plain str
+    //         return Object(val.value)
+    //     } else {
+    //         return nativeObjectObject(val)
+    //     }
+    // }
+    // nativeObjectObject.getOwnPropertyNames(nativeObjectObject).forEach(function(propName){
+    //     var readyonlyArgumentsOfFunctions = ["length", "name", "arguments", "caller"]
+    //     if (_.contains(readyonlyArgumentsOfFunctions, propName)){
+    //         return
+    //     }
+    //     window.Object[propName] = nativeObjectObject[propName]
+    // })
 
 
     nativeStringFunctions.forEach(function(prop){
