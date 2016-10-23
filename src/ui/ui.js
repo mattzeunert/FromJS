@@ -903,7 +903,6 @@ class ElementOriginPath extends React.Component {
     }
     componentWillReceiveProps(nextProps) {
         if (nextProps.el.__fromJSElementId !== this.props.el.__fromJSElementId){
-            console.log("resetting root origin", nextProps.el.outerHTML.substring(0, 100))
             this.setState({
                 rootOrigin: null,
                 characterIndex: getDefaultInspectedCharacterIndex(nextProps.el.outerHTML),
