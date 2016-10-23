@@ -7,6 +7,9 @@ rel_canonical: http://www.mattzeunert.com/2016/10/04/how-from-js-works.html
 <div class="container">
 <div class="col-md-10">
 
+        TLDR: FromJS patches native functions like <code>document.createElement</code> and also uses Babel to replace
+        some JavaScript language features with function calls. This makes it possible to capture a stack trace
+        when a string is modified. The stack trace and other origin data are then stored on the string.
 
         <h1>How FromJS works</h1>
 
