@@ -8,7 +8,7 @@ If you want to contribute code, either work on an existing issue or create a new
 
 Run `npm install` to install dependencies.
 
-Then, in two separate terminal windows, run `npm run webpack` and `npm run server`. Then go to [http://localhost:7500/demos/index.html](http://localhost:7500/demos/index.html).
+Then, in two separate terminal windows, run `npm run webpack` and `npm run server`. Then you can inspect any HTML page relative to the project root directly, e.g. [http://localhost:7500/demos/backbone-todomvc/index.html](http://localhost:7500/demos/backbone-todomvc/index.html).
 
 ### Unit / Integration Tests
 
