@@ -261,6 +261,15 @@ describe("Tracing", function(){
         expect(div.__elOrigin.openingTagStart.action).toBe("Document.Write")
     })
 
+    it("Object(trackedString) should not be equal to trackedString", function(){
+        // this is a property of native strings where `"a" !== Object("a")`
+        // libraries sometimes use this property to detect if the value
+        // they're looking at is already a string
+        var str = makeString("Hello")
+        var strObj = Object(str);
+        expect(babelFunctions.f__tripleEqual(str, strObj)).toBe(false)
+    })
+
     describe("Array.join", function(){
         it("Works with objects that have a custom toString function which returns a tracked string", function(){
             var obj = makeObjWithCustomToString("Hello")

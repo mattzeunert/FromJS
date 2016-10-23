@@ -25,6 +25,8 @@ var nativeCreateElementNS = document.createElementNS
 var nativeCreateComment = document.createComment;
 var nativeDocumentWrite = document.write;
 
+var nativeObjectObject = window.Object
+
 var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild");
 window.originalAppendChildPropertyDescriptor = appendChildPropertyDescriptor
 
@@ -258,8 +260,27 @@ export function enableTracing(){
         return node;
     }
 
+    window.Object = function(val){
+        if (val && val.isStringTraceString) {
+            // we want the Object(str) version to not be equal to the
+            // plain str
+            return Object(val.value)
+        } else {
+            return nativeObjectObject(val)
+        }
+    }
+    nativeObjectObject.getOwnPropertyNames(nativeObjectObject).forEach(function(propName){
+        var readyonlyArgumentsOfFunctions = ["length", "name", "arguments", "caller"]
+        if (_.contains(readyonlyArgumentsOfFunctions, propName)){
+            return
+        }
+        window.Object[propName] = nativeObjectObject[propName]
+    })
+
+
     nativeStringFunctions.forEach(function(prop){
-        // Don't do for now... breaks too much stuff
+        // Don't do for now... breaks too much stuff because my FromJS code
+        // relies on being able to use untracked strings normally
         // String.prototype[prop.name] = function(){
         //     var str = untrackedString(this)
         //     var ret = str[prop.name].apply(str, arguments)
@@ -303,6 +324,13 @@ export function enableTracing(){
     window.XMLHttpRequest = function(){
         var self = this;
         self.xhr = new originalXMLHttpRequest()
+        this.send = function(data){
+            debugger
+            if (data){
+                data = toString(data)
+            }
+            originalXMLHttpRequest.prototype.send.call(self.xhr, data)
+        }
         this.open = function(method, url){
             self.xhr.onreadystatechange = function(e){
                 var isDone = self.xhr.readyState === originalXMLHttpRequest.DONE;
@@ -340,8 +368,7 @@ export function enableTracing(){
             "upload",
             "responseURL", "status", "statusText", "responseType",
             "response", "responseXML", "setRequestHeader",
-            "abort",
-            "send", "getResponseHeader", "getAllResponseHeaders",
+            "abort", "getResponseHeader", "getAllResponseHeaders",
             "overrideMimeType", "addEventListener",
             "removeEventListener", "dispatchEvent"
         ]
@@ -976,6 +1003,8 @@ export function enableTracing(){
         return ret;
     }
 
+
+
     window.String = function(val){
         val = toString(val, true);
         if (new.target) {
@@ -1157,6 +1186,8 @@ export function disableTracing(){
     Object.keys = nativeObjectKeys
 
     Object.prototype.hasOwnProperty = nativeObjectHasOwnProperty
+
+    window.Object = nativeObjectObject;
 
     tracingEnabled = false;
 
