@@ -1,6 +1,6 @@
 # FromJS [![Build Status](https://travis-ci.org/mattzeunert/FromJS.svg?branch=master)](https://travis-ci.org/mattzeunert/FromJS)
 
-Understand JavaScript apps. See the code for responsible for every character on the screen.
+Understand JavaScript apps. See the code for responsible for each character on the screen.
 
 [fromjs.com](http://www.fromjs.com/)
 
@@ -10,16 +10,15 @@ Understand JavaScript apps. See the code for responsible for every character on 
 
 [FromJS Chrome Extension (Beta)](https://chrome.google.com/webstore/detail/fromjs/hjkhdaoomfphjmffaklelpmkllfbjjfd)
 
-FromJS won't currently work on most sites. Here are a few example apps that work pretty well:
+Enabling FromJS currently breaks a lot of sites. Here are a few example apps that work pretty well:
 
 [Trello Boards](https://trello.com/b/Jx4NVZmY/fromjs-test)
 [React TodoMVC](http://todomvc.com/examples/react/#/)  
 [Backbone TodoMVC](http://todomvc.com/examples/backbone/)  
 [jQuery TodoMVC](http://todomvc.com/examples/jquery/#)  
 [VanillaJS TodoMVC](http://todomvc.com/examples/vanillajs/)  
-[React Font Picker](https://andreasur.github.io/react-font-picker/)  
 [D3 Hexagonal Binning](http://bl.ocks.org/mbostock/raw/4248145/)  
-[React Examples](https://github.com/ruanyf/react-demos)  
+[React Examples](https://github.com/ruanyf/react-demos)
 [UK Employment Map](http://www.mattzeunert.com/uk-employment)
 
 ![FromJS screenshot](https://cloud.githubusercontent.com/assets/1303660/19559430/b4ffc33c-96c7-11e6-9d3f-424c1c45b84f.png)
