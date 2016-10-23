@@ -278,7 +278,7 @@ export function showFromJSSidebarOnPlaygroundPage(resolveFrameWorker){
         <html>
             <head></head>
             <body>
-                <script>window.disableSelectParentElement = true</script>
+                <script>window.disableSelectParentElement = true; window.disableCloseInspectorElement = true</script>
                 <div id='content'>Loading Inspector UI...</div>
                 <link rel="stylesheet" href="${cssUrl}">
                 <script src="${jsUrl}" charset="utf-8"></script>

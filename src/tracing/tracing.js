@@ -325,7 +325,6 @@ export function enableTracing(){
         var self = this;
         self.xhr = new originalXMLHttpRequest()
         this.send = function(data){
-            debugger
             if (data){
                 data = toString(data)
             }
