@@ -24,12 +24,9 @@ describe('Security', function() {
 
         .then(helpers.waitForEl("#security-done"))
         .then(function(){
-            var getInnerHtml = function(){
-                return "" + document.querySelector("#result").innerHTML
-            }
-            browser.executeScript(getInnerHtml).then(function (resultHtml) {
+            helpers.getInnerHtml("#result").then(function(resultHtml){
                 expect(resultHtml.indexOf("FAILED")).toBe(-1)
-            });
+            })
         })
     })
 

@@ -79,6 +79,17 @@ function inspectElement(cssSelector, /* zero-based */ charIndex) {
     })
 }
 
+function getInnerHtml(selector){
+    return new Promise(function(resolve){
+        var getInnerHtml = function(selector){
+            return "" + document.querySelector(selector).innerHTML
+        }
+        browser.executeScript(getInnerHtml, selector).then(function (resultHtml) {
+            resolve(resultHtml)
+        });
+    })
+}
+
 function waitForHighlightedCharIndex(charIndex){
     switchToIframe();
     var elSelector = "[data-test-marker-inspected-value] span:nth-child(" + (charIndex + 1) + ")"
@@ -107,5 +118,6 @@ module.exports = {
     switchToInspectedPage,
     inspectElement,
     inspectParentElement,
-    waitForHighlightedCharIndex
+    waitForHighlightedCharIndex,
+    getInnerHtml
 }

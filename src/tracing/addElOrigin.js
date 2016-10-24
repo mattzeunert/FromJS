@@ -2,6 +2,7 @@ import Origin from "../origin"
 import debuggerStatementFunction from "../debuggerStatementFunction"
 
 export default function addElOrigin(el, what, originInfo){
+
     if (!originInfo) {
         debuggerStatementFunction();
     }
@@ -9,7 +10,7 @@ export default function addElOrigin(el, what, originInfo){
         el.__elOrigin = {}
     }
 
-
+return;
 
     if (what === "replaceContents") {
         el.__elOrigin.contents = originInfo.children
