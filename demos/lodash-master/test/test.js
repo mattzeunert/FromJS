@@ -1069,7 +1069,7 @@
     lodashStable.forOwn(createCaches(pairs), function(cache, kind) {
       var isLarge = /^large/.test(kind);
 
-      if (kind === "large stacks") {
+      if (isLarge) {
         return; // disabled because it's slow
       }
 
@@ -17421,48 +17421,48 @@
     //     assert.deepEqual(actual, expected);
     //   });
 
-      lodashStable.each(['curry', 'curryRight'], function(methodName, index) {
-        var fn = function(a, b, c) { return [a, b, c]; },
-            curried = _[methodName](fn),
-            expected = index ? [3, 2, 1] :  [1, 2, 3];
+  //     lodashStable.each(['curry', 'curryRight'], function(methodName, index) {
+  //       var fn = function(a, b, c) { return [a, b, c]; },
+  //           curried = _[methodName](fn),
+  //           expected = index ? [3, 2, 1] :  [1, 2, 3];
 
-        var actual = _.last(lodashStable.times(HOT_COUNT, function() {
-          return curried(1)(2)(3);
-        }));
+  //       var actual = _.last(lodashStable.times(HOT_COUNT, function() {
+  //         return curried(1)(2)(3);
+  //       }));
 
-        assert.deepEqual(actual, expected);
+  //       assert.deepEqual(actual, expected);
 
-        actual = _.last(lodashStable.times(HOT_COUNT, function() {
-          var curried = _[methodName](fn);
-          return curried(1)(2)(3);
-        }));
+  //       actual = _.last(lodashStable.times(HOT_COUNT, function() {
+  //         var curried = _[methodName](fn);
+  //         return curried(1)(2)(3);
+  //       }));
 
-        assert.deepEqual(actual, expected);
-      });
+  //       assert.deepEqual(actual, expected);
+  //     });
 
-      lodashStable.each(['partial', 'partialRight'], function(methodName, index) {
-        var func = _[methodName],
-            fn = function() { return slice.call(arguments); },
-            par1 = func(fn, 1),
-            expected = index ? [3, 2, 1] : [1, 2, 3];
+  //     lodashStable.each(['partial', 'partialRight'], function(methodName, index) {
+  //       var func = _[methodName],
+  //           fn = function() { return slice.call(arguments); },
+  //           par1 = func(fn, 1),
+  //           expected = index ? [3, 2, 1] : [1, 2, 3];
 
-        var actual = _.last(lodashStable.times(HOT_COUNT, function() {
-          var par2 = func(par1, 2);
-          return par2(3);
-        }));
+  //       var actual = _.last(lodashStable.times(HOT_COUNT, function() {
+  //         var par2 = func(par1, 2);
+  //         return par2(3);
+  //       }));
 
-        assert.deepEqual(actual, expected);
+  //       assert.deepEqual(actual, expected);
 
-        actual = _.last(lodashStable.times(HOT_COUNT, function() {
-          var par1 = func(fn, 1),
-              par2 = func(par1, 2);
+  //       actual = _.last(lodashStable.times(HOT_COUNT, function() {
+  //         var par1 = func(fn, 1),
+  //             par2 = func(par1, 2);
 
-          return par2(3);
-        }));
+  //         return par2(3);
+  //       }));
 
-        assert.deepEqual(actual, expected);
-      });
-    });
+  //       assert.deepEqual(actual, expected);
+  //     });
+  //   });
   }());
 
   /*--------------------------------------------------------------------------*/
