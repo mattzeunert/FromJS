@@ -8,7 +8,7 @@ fdescribe('Lodash Unit tests', function() {
             helpers.getInnerHtml("#qunit-testresult .passed").then(function(html){
                 var passedTests = parseFloat(html)
                 console.log("Passed tests: " + passedTests)
-                expect(passedTests).toBeGreaterThan(6455 - 1)
+                expect(passedTests).toBeGreaterThan(6428 - 1)
             })
         })
     })
