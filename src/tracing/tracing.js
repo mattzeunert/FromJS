@@ -26,6 +26,7 @@ var nativeCreateComment = document.createComment;
 var nativeDocumentWrite = document.write;
 
 var nativeObjectObject = window.Object
+window.nativeObjectObject = nativeObjectObject
 
 var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild");
 window.originalAppendChildPropertyDescriptor = appendChildPropertyDescriptor
@@ -52,10 +53,13 @@ var nativeRemoveAttribute = Element.prototype.removeAttribute;
 var nativeFunction = Function
 window.nativeFunction = nativeFunction
 
+var nativeFunctionToString = Function.prototype.toString
+
 var nativeJSONParse = JSON.parse
 window.nativeJSONParse = nativeJSONParse
 
 var nativeJSONStringify = JSON.stringify
+
 
 var nativeObjectHasOwnProperty = Object.prototype.hasOwnProperty
 
@@ -260,25 +264,22 @@ export function enableTracing(){
         return node;
     }
 
-    // disabled as it breaks other stuff, see tests that break when uncommenting
-    // there's also a test that checks for this to work, but that's also commented out
-    // (searchg for "Object(trackedString)")
-    // window.Object = function(val){
-    //     if (val && val.isStringTraceString) {
-    //         // we want the Object(str) version to not be equal to the
-    //         // plain str
-    //         return Object(val.value)
-    //     } else {
-    //         return nativeObjectObject(val)
-    //     }
-    // }
-    // nativeObjectObject.getOwnPropertyNames(nativeObjectObject).forEach(function(propName){
-    //     var readyonlyArgumentsOfFunctions = ["length", "name", "arguments", "caller"]
-    //     if (_.contains(readyonlyArgumentsOfFunctions, propName)){
-    //         return
-    //     }
-    //     window.Object[propName] = nativeObjectObject[propName]
-    // })
+    window.Object = function(val){
+        if (val && val.isStringTraceString) {
+            // we want the Object(str) version to not be equal to the
+            // plain str
+            return Object(val.value)
+        } else {
+            return nativeObjectObject(val)
+        }
+    }
+    nativeObjectObject.getOwnPropertyNames(nativeObjectObject).forEach(function(propName){
+        var readyonlyArgumentsOfFunctions = ["length", "name", "arguments", "caller"]
+        if (_.contains(readyonlyArgumentsOfFunctions, propName)){
+            return
+        }
+        window.Object[propName] = nativeObjectObject[propName]
+    })
 
 
     nativeStringFunctions.forEach(function(prop){
@@ -1066,6 +1067,14 @@ export function enableTracing(){
     }
     window.Function.prototype = nativeFunction.prototype
 
+    window.Function.prototype.toString = function(){
+        var _this = this;
+        if (this === window.Object){
+            _this = nativeObjectObject
+        }
+        return nativeFunctionToString.apply(_this, arguments)
+    }
+
     function registerDynamicFile(filename, code, evalCode, sourceMap, actionName){
         var smFilename = filename + ".map"
         code = trackStringIfNotTracked(code)
@@ -1155,6 +1164,7 @@ export function disableTracing(){
     Object.defineProperty(HTMLInputElement.prototype, "value", nativeHTMLInputElementValueDescriptor)
     RegExp.prototype.exec = window.nativeExec
     window.Function = nativeFunction
+    window.Function.prototype.toString = nativeFunctionToString
     Object.defineProperty(Element.prototype, "className", window.nativeClassNameDescriptor)
     Object.defineProperty(HTMLElement.prototype, "dataset", window.nativeDataSetDescriptor)
     Object.defineProperty(Node.prototype, "textContent", nativeNodeTextContentDescriptor)

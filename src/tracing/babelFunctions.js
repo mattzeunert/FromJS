@@ -91,8 +91,14 @@ var babelFunctions = {
         if (a && a.isStringTraceString) {
             a = a.toString()
         }
+        if (a === window.Object){
+            a = nativeObjectObject;
+        }
         if(b && b.isStringTraceString) {
             b = b.toString()
+        }
+        if (b === window.Object){
+            b = window.nativeObjectObject
         }
         return a !== b;
     },
@@ -104,8 +110,14 @@ var babelFunctions = {
         if (a && a.isStringTraceString) {
             a = a.toString()
         }
+        if (a === window.Object){
+            a = nativeObjectObject
+        }
         if(b && b.isStringTraceString) {
             b = b.toString();
+        }
+        if (b === window.Object){
+            b = nativeObjectObject
         }
         if (typeof a === "string" || typeof b === "string") {
             // Make sure they're both strings,
@@ -230,10 +242,11 @@ var babelFunctions = {
             return function(){
                 var calledWithCallOrApply = this !== globalObject;
                 if (calledWithCallOrApply){
-                    return obj.toString.apply(this, arguments)
+                    var ret = obj.toString.apply(this, arguments)
                 } else {
-                    return obj.toString.apply(obj, arguments)
+                    var ret = obj.toString.apply(obj, arguments)
                 }
+                return ret;
             }
         }
     }

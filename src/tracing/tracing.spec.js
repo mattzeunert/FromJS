@@ -261,21 +261,32 @@ describe("Tracing", function(){
         expect(div.__elOrigin.openingTagStart.action).toBe("Document.Write")
     })
 
-    // it("Object(trackedString) should not be equal to trackedString", function(){
-    //     // this is a property of native strings where `"a" !== Object("a")`
-    //     // libraries sometimes use this property to detect if the value
-    //     // they're looking at is already a string
-    //     var str = makeString("Hello")
-    //     var strObj = Object(str);
-    //     expect(babelFunctions.f__tripleEqual(str, strObj)).toBe(false)
-    // })
+    describe("Object(trackedString)", function(){
+        it("Object(trackedString) should not be equal to trackedString", function(){
+            // this is a property of native strings where `"a" !== Object("a")`
+            // libraries sometimes use this property to detect if the value
+            // they're looking at is already a string
+            var str = makeString("Hello")
+            var strObj = Object(str);
+            expect(babelFunctions.f__tripleEqual(str, strObj)).toBe(false)
+        })
 
-    it("Doesn't break the string value of Object", function(){
-        var objString = "function Object() { [native code] }"
-        debugger;
-        expect(window.Object.toString()).toBe(objString)
-        expect(Function.prototype.toString.call(window.Object)).toBe(objString)
+        it("Doesn't break the string value of Object", function(){
+            var objString = "function Object() { [native code] }"
+            expect(window.Object.toString()).toBe(objString)
+            expect(Function.prototype.toString.call(window.Object)).toBe(objString)
+        })
+
+        it("The object constructor is still equal to window.Object", function(){
+            var objConstructor = ({}).constructor
+            var tripleEqual = babelFunctions.f__tripleEqual(objConstructor, Object)
+            var doubleEqual = babelFunctions.f__doubleEqual(objConstructor, Object)
+            expect(tripleEqual).toBe(true);
+            expect(doubleEqual).toBe(true)
+        })
     })
+
+
 
     describe("Array.join", function(){
         it("Works with objects that have a custom toString function which returns a tracked string", function(){
