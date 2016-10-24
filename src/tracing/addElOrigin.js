@@ -9,6 +9,9 @@ export default function addElOrigin(el, what, originInfo){
         el.__elOrigin = {}
     }
 
+    if (window.speedUpExecutionAndBreakTracing) {
+        return;
+    }
 
 
     if (what === "replaceContents") {
