@@ -762,7 +762,7 @@
       }
     });
 
-    QUnit.test('should support loading ' + basename + ' with the Require.js "shim" configuration option', function(assert) {
+    QUnit.only('should support loading ' + basename + ' with the Require.js "shim" configuration option', function(assert) {
       assert.expect(1);
 
       if (amd && lodashStable.includes(ui.loaderPath, 'requirejs')) {
