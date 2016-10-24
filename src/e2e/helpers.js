@@ -1,6 +1,6 @@
 function waitForEl(cssSelector){
+    console.log("Looking for ", cssSelector);
      return browser.driver.wait(function(){
-        console.log("Looking for ", cssSelector);
         return browser.driver.isElementPresent(by.css(cssSelector)).then(function(el){
             return el === true;
         });
