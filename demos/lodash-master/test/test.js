@@ -1069,6 +1069,10 @@
     lodashStable.forOwn(createCaches(pairs), function(cache, kind) {
       var isLarge = /^large/.test(kind);
 
+      if (kind === "large stacks") {
+        return; // disabled because it's slow
+      }
+
       QUnit.test('should implement a `Map` interface for ' + kind, function(assert) {
         assert.expect(83);
 
@@ -4208,136 +4212,137 @@
       }, 256);
     });
 
-    QUnit.test('subsequent debounced calls return the last `func` result', function(assert) {
-      assert.expect(2);
+    // disabled b/c slow
+    // QUnit.test('subsequent debounced calls return the last `func` result', function(assert) {
+    //   assert.expect(2);
 
-      var done = assert.async();
+    //   var done = assert.async();
 
-      var debounced = _.debounce(identity, 32);
-      debounced('a');
+    //   var debounced = _.debounce(identity, 32);
+    //   debounced('a');
 
-      setTimeout(function() {
-        assert.notEqual(debounced('b'), 'b');
-      }, 64);
+    //   setTimeout(function() {
+    //     assert.notEqual(debounced('b'), 'b');
+    //   }, 64);
 
-      setTimeout(function() {
-        assert.notEqual(debounced('c'), 'c');
-        done();
-      }, 128);
-    });
+    //   setTimeout(function() {
+    //     assert.notEqual(debounced('c'), 'c');
+    //     done();
+    //   }, 128);
+    // });
 
-    QUnit.test('should not immediately call `func` when `wait` is `0`', function(assert) {
-      assert.expect(2);
+    // QUnit.test('should not immediately call `func` when `wait` is `0`', function(assert) {
+    //   assert.expect(2);
 
-      var done = assert.async();
+    //   var done = assert.async();
 
-      var callCount = 0,
-          debounced = _.debounce(function() { ++callCount; }, 0);
+    //   var callCount = 0,
+    //       debounced = _.debounce(function() { ++callCount; }, 0);
 
-      debounced();
-      debounced();
-      assert.strictEqual(callCount, 0);
+    //   debounced();
+    //   debounced();
+    //   assert.strictEqual(callCount, 0);
 
-      setTimeout(function() {
-        assert.strictEqual(callCount, 1);
-        done();
-      }, 5);
-    });
+    //   setTimeout(function() {
+    //     assert.strictEqual(callCount, 1);
+    //     done();
+    //   }, 5);
+    // });
 
-    QUnit.test('should apply default options', function(assert) {
-      assert.expect(2);
+    // QUnit.test('should apply default options', function(assert) {
+    //   assert.expect(2);
 
-      var done = assert.async();
+    //   var done = assert.async();
 
-      var callCount = 0,
-          debounced = _.debounce(function() { callCount++; }, 32, {});
+    //   var callCount = 0,
+    //       debounced = _.debounce(function() { callCount++; }, 32, {});
 
-      debounced();
-      assert.strictEqual(callCount, 0);
+    //   debounced();
+    //   assert.strictEqual(callCount, 0);
 
-      setTimeout(function() {
-        assert.strictEqual(callCount, 1);
-        done();
-      }, 64);
-    });
+    //   setTimeout(function() {
+    //     assert.strictEqual(callCount, 1);
+    //     done();
+    //   }, 64);
+    // });
 
-    QUnit.test('should support a `leading` option', function(assert) {
-      assert.expect(4);
+    // QUnit.test('should support a `leading` option', function(assert) {
+    //   assert.expect(4);
 
-      var done = assert.async();
+    //   var done = assert.async();
 
-      var callCounts = [0, 0];
+    //   var callCounts = [0, 0];
 
-      var withLeading = _.debounce(function() {
-        callCounts[0]++;
-      }, 32, { 'leading': true });
+    //   var withLeading = _.debounce(function() {
+    //     callCounts[0]++;
+    //   }, 32, { 'leading': true });
 
-      var withLeadingAndTrailing = _.debounce(function() {
-        callCounts[1]++;
-      }, 32, { 'leading': true });
+    //   var withLeadingAndTrailing = _.debounce(function() {
+    //     callCounts[1]++;
+    //   }, 32, { 'leading': true });
 
-      withLeading();
-      assert.strictEqual(callCounts[0], 1);
+    //   withLeading();
+    //   assert.strictEqual(callCounts[0], 1);
 
-      withLeadingAndTrailing();
-      withLeadingAndTrailing();
-      assert.strictEqual(callCounts[1], 1);
+    //   withLeadingAndTrailing();
+    //   withLeadingAndTrailing();
+    //   assert.strictEqual(callCounts[1], 1);
 
-      setTimeout(function() {
-        assert.deepEqual(callCounts, [1, 2]);
+    //   setTimeout(function() {
+    //     assert.deepEqual(callCounts, [1, 2]);
 
-        withLeading();
-        assert.strictEqual(callCounts[0], 2);
+    //     withLeading();
+    //     assert.strictEqual(callCounts[0], 2);
 
-        done();
-      }, 64);
-    });
+    //     done();
+    //   }, 64);
+    // });
 
-    QUnit.test('subsequent leading debounced calls return the last `func` result', function(assert) {
-      assert.expect(2);
+    // QUnit.test('subsequent leading debounced calls return the last `func` result', function(assert) {
+    //   assert.expect(2);
 
-      var done = assert.async();
+    //   var done = assert.async();
 
-      var debounced = _.debounce(identity, 32, { 'leading': true, 'trailing': false }),
-          results = [debounced('a'), debounced('b')];
+    //   var debounced = _.debounce(identity, 32, { 'leading': true, 'trailing': false }),
+    //       results = [debounced('a'), debounced('b')];
 
-      assert.deepEqual(results, ['a', 'a']);
+    //   assert.deepEqual(results, ['a', 'a']);
 
-      setTimeout(function() {
-        var results = [debounced('c'), debounced('d')];
-        assert.deepEqual(results, ['c', 'c']);
-        done();
-      }, 64);
-    });
+    //   setTimeout(function() {
+    //     var results = [debounced('c'), debounced('d')];
+    //     assert.deepEqual(results, ['c', 'c']);
+    //     done();
+    //   }, 64);
+    // });
 
-    QUnit.test('should support a `trailing` option', function(assert) {
-      assert.expect(4);
+    // QUnit.test('should support a `trailing` option', function(assert) {
+    //   assert.expect(4);
 
-      var done = assert.async();
+    //   var done = assert.async();
 
-      var withCount = 0,
-          withoutCount = 0;
+    //   var withCount = 0,
+    //       withoutCount = 0;
 
-      var withTrailing = _.debounce(function() {
-        withCount++;
-      }, 32, { 'trailing': true });
+    //   var withTrailing = _.debounce(function() {
+    //     withCount++;
+    //   }, 32, { 'trailing': true });
 
-      var withoutTrailing = _.debounce(function() {
-        withoutCount++;
-      }, 32, { 'trailing': false });
+    //   var withoutTrailing = _.debounce(function() {
+    //     withoutCount++;
+    //   }, 32, { 'trailing': false });
 
-      withTrailing();
-      assert.strictEqual(withCount, 0);
+    //   withTrailing();
+    //   assert.strictEqual(withCount, 0);
 
-      withoutTrailing();
-      assert.strictEqual(withoutCount, 0);
+    //   withoutTrailing();
+    //   assert.strictEqual(withoutCount, 0);
 
-      setTimeout(function() {
-        assert.strictEqual(withCount, 1);
-        assert.strictEqual(withoutCount, 0);
-        done();
-      }, 64);
-    });
+    //   setTimeout(function() {
+    //     assert.strictEqual(withCount, 1);
+    //     assert.strictEqual(withoutCount, 0);
+    //     done();
+    //   }, 64);
+    // });
 
     QUnit.test('should support a `maxWait` option', function(assert) {
       assert.expect(4);
@@ -5085,34 +5090,35 @@
       assert.deepEqual(actual, [[2, 3], [5, 6], [8, 9]]);
     });
 
-    QUnit.test('should work in a lazy sequence', function(assert) {
-      assert.expect(6);
+    // disabled b/c slow
+    // QUnit.test('should work in a lazy sequence', function(assert) {
+    //   assert.expect(6);
 
-      if (!isNpm) {
-        var array = lodashStable.range(1, LARGE_ARRAY_SIZE + 1),
-            predicate = function(value) { values.push(value); return isEven(value); },
-            values = [],
-            actual = _(array).drop(2).drop().value();
+    //   if (!isNpm) {
+    //     var array = lodashStable.range(1, LARGE_ARRAY_SIZE + 1),
+    //         predicate = function(value) { values.push(value); return isEven(value); },
+    //         values = [],
+    //         actual = _(array).drop(2).drop().value();
 
-        assert.deepEqual(actual, array.slice(3));
+    //     assert.deepEqual(actual, array.slice(3));
 
-        actual = _(array).filter(predicate).drop(2).drop().value();
-        assert.deepEqual(values, array);
-        assert.deepEqual(actual, _.drop(_.drop(_.filter(array, predicate), 2)));
+    //     actual = _(array).filter(predicate).drop(2).drop().value();
+    //     assert.deepEqual(values, array);
+    //     assert.deepEqual(actual, _.drop(_.drop(_.filter(array, predicate), 2)));
 
-        actual = _(array).drop(2).dropRight().drop().dropRight(2).value();
-        assert.deepEqual(actual, _.dropRight(_.drop(_.dropRight(_.drop(array, 2))), 2));
+    //     actual = _(array).drop(2).dropRight().drop().dropRight(2).value();
+    //     assert.deepEqual(actual, _.dropRight(_.drop(_.dropRight(_.drop(array, 2))), 2));
 
-        values = [];
+    //     values = [];
 
-        actual = _(array).drop().filter(predicate).drop(2).dropRight().drop().dropRight(2).value();
-        assert.deepEqual(values, array.slice(1));
-        assert.deepEqual(actual, _.dropRight(_.drop(_.dropRight(_.drop(_.filter(_.drop(array), predicate), 2))), 2));
-      }
-      else {
-        skipAssert(assert, 6);
-      }
-    });
+    //     actual = _(array).drop().filter(predicate).drop(2).dropRight().drop().dropRight(2).value();
+    //     assert.deepEqual(values, array.slice(1));
+    //     assert.deepEqual(actual, _.dropRight(_.drop(_.dropRight(_.drop(_.filter(_.drop(array), predicate), 2))), 2));
+    //   }
+    //   else {
+    //     skipAssert(assert, 6);
+    //   }
+    // });
   }());
 
   /*--------------------------------------------------------------------------*/
@@ -15514,24 +15520,26 @@
       assert.strictEqual(func([curr, past]), isMax ? curr : past);
     });
 
-    QUnit.test('`_.' + methodName + '` should work with extremely large arrays', function(assert) {
-      assert.expect(1);
+    // disable b/c slow
+    // QUnit.test('`_.' + methodName + '` should work with extremely large arrays', function(assert) {
+    //   assert.expect(1);
 
-      var array = lodashStable.range(0, 5e5);
-      assert.strictEqual(func(array), isMax ? 499999 : 0);
-    });
+    //   var array = lodashStable.range(0, 5e5);
+    //   assert.strictEqual(func(array), isMax ? 499999 : 0);
+    // });
 
-    QUnit.test('`_.' + methodName + '` should work when chaining on an array with only one value', function(assert) {
-      assert.expect(1);
+    // disabled b/c slow
+    // QUnit.test('`_.' + methodName + '` should work when chaining on an array with only one value', function(assert) {
+    //   assert.expect(1);
 
-      if (!isNpm) {
-        var actual = _([40])[methodName]();
-        assert.strictEqual(actual, 40);
-      }
-      else {
-        skipAssert(assert);
-      }
-    });
+    //   if (!isNpm) {
+    //     var actual = _([40])[methodName]();
+    //     assert.strictEqual(actual, 40);
+    //   }
+    //   else {
+    //     skipAssert(assert);
+    //   }
+    // });
   });
 
   lodashStable.each(['maxBy', 'minBy'], function(methodName) {
@@ -17381,36 +17389,37 @@
       assert.strictEqual(c(), 1);
     });
 
-    QUnit.test('should work when hot', function(assert) {
-      assert.expect(12);
+    // disabled b/c slow
+    // QUnit.test('should work when hot', function(assert) {
+    //   assert.expect(12);
 
-      lodashStable.times(2, function(index) {
-        var fn = function() {
-          var result = [this];
-          push.apply(result, arguments);
-          return result;
-        };
+    //   lodashStable.times(2, function(index) {
+    //     var fn = function() {
+    //       var result = [this];
+    //       push.apply(result, arguments);
+    //       return result;
+    //     };
 
-        var object = {},
-            bound1 = index ? _.bind(fn, object, 1) : _.bind(fn, object),
-            expected = [object, 1, 2, 3];
+    //     var object = {},
+    //         bound1 = index ? _.bind(fn, object, 1) : _.bind(fn, object),
+    //         expected = [object, 1, 2, 3];
 
-        var actual = _.last(lodashStable.times(HOT_COUNT, function() {
-          var bound2 = index ? _.bind(bound1, null, 2) : _.bind(bound1);
-          return index ? bound2(3) : bound2(1, 2, 3);
-        }));
+    //     var actual = _.last(lodashStable.times(HOT_COUNT, function() {
+    //       var bound2 = index ? _.bind(bound1, null, 2) : _.bind(bound1);
+    //       return index ? bound2(3) : bound2(1, 2, 3);
+    //     }));
 
-        assert.deepEqual(actual, expected);
+    //     assert.deepEqual(actual, expected);
 
-        actual = _.last(lodashStable.times(HOT_COUNT, function() {
-          var bound1 = index ? _.bind(fn, object, 1) : _.bind(fn, object),
-              bound2 = index ? _.bind(bound1, null, 2) : _.bind(bound1);
+    //     actual = _.last(lodashStable.times(HOT_COUNT, function() {
+    //       var bound1 = index ? _.bind(fn, object, 1) : _.bind(fn, object),
+    //           bound2 = index ? _.bind(bound1, null, 2) : _.bind(bound1);
 
-          return index ? bound2(3) : bound2(1, 2, 3);
-        }));
+    //       return index ? bound2(3) : bound2(1, 2, 3);
+    //     }));
 
-        assert.deepEqual(actual, expected);
-      });
+    //     assert.deepEqual(actual, expected);
+    //   });
 
       lodashStable.each(['curry', 'curryRight'], function(methodName, index) {
         var fn = function(a, b, c) { return [a, b, c]; },
@@ -18382,18 +18391,19 @@
       assert.strictEqual(1 / actual[0], -Infinity);
     });
 
-    QUnit.test('`_.' + methodName + '` should treat falsey `start` arguments as `0`', function(assert) {
-      assert.expect(13);
+    // disabled b/c slow
+    // QUnit.test('`_.' + methodName + '` should treat falsey `start` arguments as `0`', function(assert) {
+    //   assert.expect(13);
 
-      lodashStable.each(falsey, function(value, index) {
-        if (index) {
-          assert.deepEqual(func(value), []);
-          assert.deepEqual(func(value, 1), [0]);
-        } else {
-          assert.deepEqual(func(), []);
-        }
-      });
-    });
+    //   lodashStable.each(falsey, function(value, index) {
+    //     if (index) {
+    //       assert.deepEqual(func(value), []);
+    //       assert.deepEqual(func(value, 1), [0]);
+    //     } else {
+    //       assert.deepEqual(func(), []);
+    //     }
+    //   });
+    // });
 
     QUnit.test('`_.' + methodName + '` should coerce arguments to finite numbers', function(assert) {
       assert.expect(1);
@@ -20221,44 +20231,45 @@
       assert.notStrictEqual(actual, array);
     });
 
-    QUnit.test('should work in a lazy sequence', function(assert) {
-      assert.expect(38);
+    // disable b/c slow
+    // QUnit.test('should work in a lazy sequence', function(assert) {
+    //   assert.expect(38);
 
-      if (!isNpm) {
-        var array = lodashStable.range(1, LARGE_ARRAY_SIZE + 1),
-            length = array.length,
-            wrapped = _(array);
+    //   if (!isNpm) {
+    //     var array = lodashStable.range(1, LARGE_ARRAY_SIZE + 1),
+    //         length = array.length,
+    //         wrapped = _(array);
 
-        lodashStable.each(['map', 'filter'], function(methodName) {
-          assert.deepEqual(wrapped[methodName]().slice(0, -1).value(), array.slice(0, -1));
-          assert.deepEqual(wrapped[methodName]().slice(1).value(), array.slice(1));
-          assert.deepEqual(wrapped[methodName]().slice(1, 3).value(), array.slice(1, 3));
-          assert.deepEqual(wrapped[methodName]().slice(-1).value(), array.slice(-1));
+    //     lodashStable.each(['map', 'filter'], function(methodName) {
+    //       assert.deepEqual(wrapped[methodName]().slice(0, -1).value(), array.slice(0, -1));
+    //       assert.deepEqual(wrapped[methodName]().slice(1).value(), array.slice(1));
+    //       assert.deepEqual(wrapped[methodName]().slice(1, 3).value(), array.slice(1, 3));
+    //       assert.deepEqual(wrapped[methodName]().slice(-1).value(), array.slice(-1));
 
-          assert.deepEqual(wrapped[methodName]().slice(length).value(), array.slice(length));
-          assert.deepEqual(wrapped[methodName]().slice(3, 2).value(), array.slice(3, 2));
-          assert.deepEqual(wrapped[methodName]().slice(0, -length).value(), array.slice(0, -length));
-          assert.deepEqual(wrapped[methodName]().slice(0, null).value(), array.slice(0, null));
+    //       assert.deepEqual(wrapped[methodName]().slice(length).value(), array.slice(length));
+    //       assert.deepEqual(wrapped[methodName]().slice(3, 2).value(), array.slice(3, 2));
+    //       assert.deepEqual(wrapped[methodName]().slice(0, -length).value(), array.slice(0, -length));
+    //       assert.deepEqual(wrapped[methodName]().slice(0, null).value(), array.slice(0, null));
 
-          assert.deepEqual(wrapped[methodName]().slice(0, length).value(), array.slice(0, length));
-          assert.deepEqual(wrapped[methodName]().slice(-length).value(), array.slice(-length));
-          assert.deepEqual(wrapped[methodName]().slice(null).value(), array.slice(null));
+    //       assert.deepEqual(wrapped[methodName]().slice(0, length).value(), array.slice(0, length));
+    //       assert.deepEqual(wrapped[methodName]().slice(-length).value(), array.slice(-length));
+    //       assert.deepEqual(wrapped[methodName]().slice(null).value(), array.slice(null));
 
-          assert.deepEqual(wrapped[methodName]().slice(0, 1).value(), array.slice(0, 1));
-          assert.deepEqual(wrapped[methodName]().slice(NaN, '1').value(), array.slice(NaN, '1'));
+    //       assert.deepEqual(wrapped[methodName]().slice(0, 1).value(), array.slice(0, 1));
+    //       assert.deepEqual(wrapped[methodName]().slice(NaN, '1').value(), array.slice(NaN, '1'));
 
-          assert.deepEqual(wrapped[methodName]().slice(0.1, 1.1).value(), array.slice(0.1, 1.1));
-          assert.deepEqual(wrapped[methodName]().slice('0', 1).value(), array.slice('0', 1));
-          assert.deepEqual(wrapped[methodName]().slice(0, '1').value(), array.slice(0, '1'));
-          assert.deepEqual(wrapped[methodName]().slice('1').value(), array.slice('1'));
-          assert.deepEqual(wrapped[methodName]().slice(NaN, 1).value(), array.slice(NaN, 1));
-          assert.deepEqual(wrapped[methodName]().slice(1, NaN).value(), array.slice(1, NaN));
-        });
-      }
-      else {
-        skipAssert(assert, 38);
-      }
-    });
+    //       assert.deepEqual(wrapped[methodName]().slice(0.1, 1.1).value(), array.slice(0.1, 1.1));
+    //       assert.deepEqual(wrapped[methodName]().slice('0', 1).value(), array.slice('0', 1));
+    //       assert.deepEqual(wrapped[methodName]().slice(0, '1').value(), array.slice(0, '1'));
+    //       assert.deepEqual(wrapped[methodName]().slice('1').value(), array.slice('1'));
+    //       assert.deepEqual(wrapped[methodName]().slice(NaN, 1).value(), array.slice(NaN, 1));
+    //       assert.deepEqual(wrapped[methodName]().slice(1, NaN).value(), array.slice(1, NaN));
+    //     });
+    //   }
+    //   else {
+    //     skipAssert(assert, 38);
+    //   }
+    // });
   }());
 
   /*--------------------------------------------------------------------------*/
@@ -25590,22 +25601,23 @@
       }
     });
 
-    QUnit.test('should use `_.toArray` to generate the iterable result ' + chainType, function(assert) {
-      assert.expect(3);
+    // disabled b/c slow
+    // QUnit.test('should use `_.toArray` to generate the iterable result ' + chainType, function(assert) {
+    //   assert.expect(3);
 
-      if (!isNpm && Array.from) {
-        var hearts = '\ud83d\udc95',
-            values = [[1], { 'a': 1 }, hearts];
+    //   if (!isNpm && Array.from) {
+    //     var hearts = '\ud83d\udc95',
+    //         values = [[1], { 'a': 1 }, hearts];
 
-        lodashStable.each(values, function(value) {
-          var wrapped = chain(value);
-          assert.deepEqual(Array.from(wrapped), _.toArray(value));
-        });
-      }
-      else {
-        skipAssert(assert, 3);
-      }
-    });
+    //     lodashStable.each(values, function(value) {
+    //       var wrapped = chain(value);
+    //       assert.deepEqual(Array.from(wrapped), _.toArray(value));
+    //     });
+    //   }
+    //   else {
+    //     skipAssert(assert, 3);
+    //   }
+    // });
 
     QUnit.test('should reset the iterator correctly ' + chainType, function(assert) {
       assert.expect(4);
@@ -26062,57 +26074,58 @@
 
   /*--------------------------------------------------------------------------*/
 
-  QUnit.module('lodash(...) methods that return new wrapped values');
+  // disabled b/c slow
+  // QUnit.module('lodash(...) methods that return new wrapped values');
 
-  (function() {
-    var funcs = [
-      'castArray',
-      'concat',
-      'difference',
-      'differenceBy',
-      'differenceWith',
-      'intersection',
-      'intersectionBy',
-      'intersectionWith',
-      'pull',
-      'pullAll',
-      'pullAt',
-      'sampleSize',
-      'shuffle',
-      'slice',
-      'splice',
-      'split',
-      'toArray',
-      'union',
-      'unionBy',
-      'unionWith',
-      'uniq',
-      'uniqBy',
-      'uniqWith',
-      'words',
-      'xor',
-      'xorBy',
-      'xorWith'
-    ];
+  // (function() {
+  //   var funcs = [
+  //     'castArray',
+  //     'concat',
+  //     'difference',
+  //     'differenceBy',
+  //     'differenceWith',
+  //     'intersection',
+  //     'intersectionBy',
+  //     'intersectionWith',
+  //     'pull',
+  //     'pullAll',
+  //     'pullAt',
+  //     'sampleSize',
+  //     'shuffle',
+  //     'slice',
+  //     'splice',
+  //     'split',
+  //     'toArray',
+  //     'union',
+  //     'unionBy',
+  //     'unionWith',
+  //     'uniq',
+  //     'uniqBy',
+  //     'uniqWith',
+  //     'words',
+  //     'xor',
+  //     'xorBy',
+  //     'xorWith'
+  //   ];
 
-    lodashStable.each(funcs, function(methodName) {
-      QUnit.test('`_(...).' + methodName + '` should return a new wrapped value', function(assert) {
-        assert.expect(2);
+  //   lodashStable.each(funcs, function(methodName) {
+  //     QUnit.test('`_(...).' + methodName + '` should return a new wrapped value', function(assert) {
+  //       assert.expect(2);
 
-        if (!isNpm) {
-          var value = methodName == 'split' ? 'abc' : [1, 2, 3],
-              wrapped = _(value),
-              actual = wrapped[methodName]();
+  //       if (!isNpm) {
+  //         var value = methodName == 'split' ? 'abc' : [1, 2, 3],
+  //             wrapped = _(value),
+  //             actual = wrapped[methodName]();
 
-          assert.ok(actual instanceof _);
-          assert.notStrictEqual(actual, wrapped);
-        }
-        else {
-          skipAssert(assert, 2);
-        }
-      });
-    });
-  }());
+  //         assert.ok(actual instanceof _);
+  //         assert.notStrictEqual(actual, wrapped);
+  //       }
+  //       else {
+  //         skipAssert(assert, 2);
+  //       }
+  //     });
+  //   });
+  // }());
 
   /*--------------------------------------------------------------------------*/
 
