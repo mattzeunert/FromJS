@@ -1,4 +1,5 @@
 import getOpeningAndClosingTags from "./getOpeningAndClosingTags"
+import useValue from "./tracing/stringTraceUseValue"
 
 // Loading cheerio accidentally adds lodash to window object
 var root = typeof window === "undefined" ? {} : window
@@ -8,6 +9,8 @@ root._ = old_
 
 function processJSScriptTagsInHtml(html, replace){
     var scriptTags = [];
+
+    html = useValue(html)
 
     var $ = cheerio.load(html)
     function getOuterHtml(el){

@@ -1100,7 +1100,9 @@ export function enableTracing(){
             document.body.appendChild(child)
         })
 
-        var scriptTags = getScriptElements(str);
+        var scriptTags = runFunctionWithTracingDisabled(function(){
+            return getScriptElements(str);
+        })
         scriptTags.forEach(function(scriptTag){
             document.body.appendChild(scriptTag)
         })
