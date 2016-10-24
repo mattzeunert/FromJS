@@ -184,6 +184,7 @@ describe("Tracing", function(){
                 expect(lastStep.origin.action).toBe("Something")
 
                 resolveFrameWorker.terminate();
+                delete window.dynamicCodeRegistry
 
                 done();
             }, resolveFrameWorker)
@@ -252,14 +253,27 @@ describe("Tracing", function(){
         expect(node.textContent).toBe("Hi")
     })
 
-    it("Supports document.write", function(){
-        document.write("<div>Hello</div>")
+    describe("document.write", function(){
+        it("Supports document.write", function(){
+            document.write("<div>Hello</div>")
 
-        disableTracing();
-        var div = _.last(document.body.children);
-        expect(div.outerHTML).toBe("<div>Hello</div>")
-        expect(div.__elOrigin.openingTagStart.action).toBe("Document.Write")
+            disableTracing();
+            var div = _.last(document.body.children);
+            expect(div.outerHTML).toBe("<div>Hello</div>")
+            expect(div.__elOrigin.openingTagStart.action).toBe("Document.Write")
+        })
+
+        it("Supports injecting script tags with document.write", function(){
+            window.dynamicCodeRegistry = new DynamicCodeRegistry();
+            document.write("<script>window.documentWriteTest = 'works'</script>")
+
+            disableTracing();
+            expect(window.documentWriteTest.value).toBe("works")
+            delete window.documentWriteTest
+            delete window.dynamicCodeRegistry
+        })
     })
+
 
     describe("Object(trackedString)", function(){
         it("Object(trackedString) should not be equal to trackedString", function(){

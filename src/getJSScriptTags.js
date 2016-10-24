@@ -1,5 +1,6 @@
 import getOpeningAndClosingTags from "./getOpeningAndClosingTags"
 import useValue from "./tracing/stringTraceUseValue"
+import {enableTracing, disableTracing} from "./tracing/tracing"
 
 // Loading cheerio accidentally adds lodash to window object
 var root = typeof window === "undefined" ? {} : window
@@ -70,9 +71,9 @@ export function getScriptElements(html){
             scriptEl.setAttribute(attr.name, attr.textContent)
         })
         if (tag.content !== "") {
-            window.fromJSEnableTracing();
+            enableTracing()
             scriptEl.text = tag.content // assignment will be processed by fromjs
-            window.fromJSDisableTracing();
+            disableTracing()
         }
         return scriptEl
     })
