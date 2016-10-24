@@ -10,7 +10,10 @@ export default function addElOrigin(el, what, originInfo){
         el.__elOrigin = {}
     }
 
-return;
+    if (window.speedUpExecutionAndBreakTracing) {
+        return;
+    }
+
 
     if (what === "replaceContents") {
         el.__elOrigin.contents = originInfo.children

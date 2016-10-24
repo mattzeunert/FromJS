@@ -2,15 +2,11 @@ import _ from "underscore"
 import toString from "./untracedToString"
 import debuggerStatementFunction from "./debuggerStatementFunction"
 
-window.Error = function(){
-
-}
-
 export default function Origin(opts){
     var error = opts.error;
     if (!error) {
         Error.stackTraceLimit = 500;
-        // error = new Error();
+        error = new Error();
     }
 
     this.action = opts.action;

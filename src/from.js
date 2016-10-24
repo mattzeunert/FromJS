@@ -100,3 +100,10 @@ function makeConsoleFunctionWorkWithTrackedStrings(fnName){
 makeConsoleFunctionWorkWithTrackedStrings("log")
 makeConsoleFunctionWorkWithTrackedStrings("warn")
 makeConsoleFunctionWorkWithTrackedStrings("error")
+
+if (location.hash === "#speed-up-execution-and-break-tracing") {
+    window.speedUpExecutionAndBreakTracing
+    window.Error = function(){
+
+    }
+}
