@@ -327,8 +327,10 @@ export function enableTracing(){
     window.XMLHttpRequest = function(){
         var self = this;
         self.xhr = new originalXMLHttpRequest()
+        var postData = "";
         this.send = function(data){
             if (data){
+                postData = data;
                 data = toString(data)
             }
             originalXMLHttpRequest.prototype.send.call(self.xhr, data)
@@ -343,7 +345,7 @@ export function enableTracing(){
                                 value: self.xhr.responseText,
                                 origin: new Origin({
                                     value: self.xhr.responseText,
-                                    inputValues: [url],
+                                    inputValues: [url, postData],
                                     action: "XHR responseText"
                                 })
                             })
