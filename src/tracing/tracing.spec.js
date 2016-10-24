@@ -264,6 +264,8 @@ describe("Tracing", function(){
         })
 
         it("Supports injecting script tags with document.write", function(){
+            window.fromJSEnableTracing = enableTracing
+            window.fromJSDisableTracing = disableTracing
             window.dynamicCodeRegistry = new DynamicCodeRegistry();
             document.write("<script>window.documentWriteTest = 'works'</script>")
 
@@ -271,6 +273,8 @@ describe("Tracing", function(){
             expect(window.documentWriteTest.value).toBe("works")
             delete window.documentWriteTest
             delete window.dynamicCodeRegistry
+            delete window.fromJSEnableTracing
+            delete window.fromJSDisableTracing
         })
     })
 
