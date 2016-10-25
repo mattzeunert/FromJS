@@ -181,6 +181,9 @@ Origin.prototype.getStackFrames = function(){
         if (frame === "Error"){
             return false;
         }
+        if (frame.indexOf("<anonymous>") !== -1) {
+            return false;
+        }
         return true
     });
 }
