@@ -262,6 +262,7 @@ class OriginPathItem extends React.Component {
         return <div className="fromjs-origin-path-step" style={{border: "1px solid #ddd", marginBottom: 20}}>
             <div >
                 <OriginPathItemHeader
+                    handleValueSpanClick={this.props.handleValueSpanClick}
                     originObject={originObject}
                     selectedFrameIndex={this.state.selectedFrameIndex}
                     resolvedFrame={this.state.resolvedFrame}
