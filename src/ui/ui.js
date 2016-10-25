@@ -261,6 +261,7 @@ class OriginPathItem extends React.Component {
                     resolvedFrame={this.state.resolvedFrame}
                     onFrameIndexHovered={(frameIndex) => this.setState({previewFrameIndex: frameIndex})}
                     onFrameIndexSelected={(frameIndex) => this.selectFrameIndex(frameIndex)}
+                    codeFilePath={this.state.codeFilePath}
                     />
 
                 {stack}
@@ -290,41 +291,22 @@ class OriginPathItemHeader extends React.Component {
     render(){
         var originObject = this.props.originObject
 
-        var filenameLink = null
+        var filename = null
         if (this.props.resolvedFrame) {
             var uiFileName = this.props.resolvedFrame.uiFileName;
 
-            filenameLink = <a
-                className="origin-path-step__filename"
-                href={this.state.codeFilePath}
-                target="_blank"
-            >
+            filename = <span className="origin-path-step__filename">
                 {uiFileName}
-            </a>
+            </span>
         }
 
-        var stackFrameSelector = null;
-        if (this.state.showDetailsDropdown){
-            stackFrameSelector = <StackFrameSelector
-                stack={originObject.stack}
-                selectedFrameIndex={this.props.selectedFrameIndex}
-                onFrameSelected={(frameIndex) => {
-                    this.props.onFrameIndexSelected(frameIndex)
-                    this.setState({showDetailsDropdown: false})
-                }}
-                onFrameHovered={(frameIndex) => {
-                    this.props.onFrameIndexHovered(frameIndex)
-                }}
-            />
-        }
-
-        var inputValueLinks = null;
+        var detailsDropdown = null;
         if (this.state.showDetailsDropdown){
             var noParametersMessage = null;
             if (originObject.inputValues.length === 0){
                 noParametersMessage = <div style={{color: "#777"}}>(No parameters.)</div>
             }
-            inputValueLinks = <div style={{background: "aliceblue", paddingLeft: 10, paddingBottom: 10}}>
+            var inputValueLinks = <div style={{paddingBottom: 5}}>
                 <div>
                     <span data-multiline data-tip={
                         "These are the input values of the string transformation.<br>"
@@ -343,6 +325,39 @@ class OriginPathItemHeader extends React.Component {
                     </div>
                 })}
             </div>
+
+
+            var stackFrameSelector = null;
+            if (this.state.showDetailsDropdown){
+                stackFrameSelector = <StackFrameSelector
+                    stack={originObject.stack}
+                    selectedFrameIndex={this.props.selectedFrameIndex}
+                    onFrameSelected={(frameIndex) => {
+                        this.props.onFrameIndexSelected(frameIndex)
+                        this.setState({showDetailsDropdown: false})
+                    }}
+                    onFrameHovered={(frameIndex) => {
+                        this.props.onFrameIndexHovered(frameIndex)
+                    }}
+                />
+            }
+
+
+            var codeLink = null;
+            if (this.props.resolvedFrame && this.props.codeFilePath){
+                codeLink = <a href={this.props.codeFilePath} target="_blank" style={{color: "#08f"}}>
+                    Open {this.props.resolvedFrame.uiFileName} in new window
+                </a>
+            }
+
+
+            detailsDropdown = <div>
+                <div style={{background: "aliceblue", paddingLeft: 10, paddingBottom: 10}}>
+                    {inputValueLinks}
+                    {codeLink}
+                </div>
+                {stackFrameSelector}
+            </div>
         }
 
         var toggleFrameSelectorButton = null;
@@ -357,6 +372,7 @@ class OriginPathItemHeader extends React.Component {
         }
 
 
+
         var callStackPath = <CallStackPath
             stack={originObject.stack}
             selectedIndex={this.props.selectedFrameIndex}
@@ -366,25 +382,28 @@ class OriginPathItemHeader extends React.Component {
 
         return <div>
             <div style={{background: "aliceblue"}}>
-                <span style={{
-                    display: "inline-block",
-                    padding: 5
-                 }}>
-                    <span style={{fontWeight: "bold", marginRight: 5}}
-                        data-test-marker-step-action>
-                        {this.props.originObject.action}
+                <div>
+                    <span style={{
+                        display: "inline-block",
+                        padding: 5
+                     }}>
+                        <span style={{fontWeight: "bold", marginRight: 5}}
+                            data-test-marker-step-action>
+                            {this.props.originObject.action}
+                        </span>
+                        &nbsp;
+                        <span>
+                            {filename}
+                            {callStackPath}
+                        </span>
                     </span>
-                    &nbsp;
-                    <span>
-                        {filenameLink}
-                        {callStackPath}
-                    </span>
-                </span>
-                {toggleFrameSelectorButton}
+                    {toggleFrameSelectorButton}
+                </div>
             </div>
 
-            {inputValueLinks}
-            {stackFrameSelector}
+            {detailsDropdown}
+
+
 
         </div>
     }

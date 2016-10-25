@@ -320,6 +320,13 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     color: red;
 }
 
+.open-file-in-new-window {
+    display: inline-block;
+    padding-left: 10px;
+    padding-bottom: 10px;
+    font-size: 12px;
+}
+
 
 .fromjs-info-icon {
     background: black;

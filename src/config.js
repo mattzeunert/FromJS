@@ -23,7 +23,7 @@ if (process.env.NODE_ENV === "production") {
         catchUIErrors: false,
         validateHtmlMapping: false,
         logTracingSteps: false,
-        logReceivedInspectorMessages: true,
+        logReceivedInspectorMessages: false,
         logBGPageLogsOnInspectedPage: true
     }
 }
