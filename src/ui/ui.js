@@ -984,10 +984,10 @@ class StackFrame extends React.Component {
 
             if (self.state.truncate) {
                 var previousTwo = _.last(frame.prevLines, 2)
-                return [
-                    getLine(previousTwo[0], frame.lineNumber - 1, "\u25B2"),
-                    getLine(previousTwo[1], frame.lineNumber - 2, "")
-                ]
+
+                return previousTwo.map(function(line, i){
+                    return getLine(line, frame.lineNumber - i - 1, i === 0 ? "\u25B2" : "")
+                })
             } else {
                 var prevLinesToShow = frame.prevLines;
                 if (prevLinesToShow.length > MAX_LINES_TO_SHOW_BEFORE_AND_AFTER) {
@@ -1005,10 +1005,9 @@ class StackFrame extends React.Component {
             }
             if (self.state.truncate) {
                 var nextTwo = _.first(frame.nextLines, 2)
-                return [
-                    getLine(nextTwo[0], frame.lineNumber + 1, ""),
-                    getLine(nextTwo[1], frame.lineNumber + 2, "\u25BC")
-                ]
+                return nextTwo.map(function(line, i){
+                    return getLine(line, frame.lineNumber + 1 + i, (i === nextTwo.length - 1) ? "\u25BC" : "");
+                })
             } else {
                 var nextLinesToShow = frame.nextLines;
                 if (frame.nextLines.length > MAX_LINES_TO_SHOW_BEFORE_AND_AFTER) {
