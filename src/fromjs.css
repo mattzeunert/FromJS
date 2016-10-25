@@ -309,6 +309,7 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     color: #08f;
     cursor: pointer;
     margin: 0;
+    outline: none;
     padding: 0;
     background: none;
     vertical-align: baseline;
