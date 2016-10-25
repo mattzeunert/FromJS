@@ -463,9 +463,9 @@ class CallStackPath extends React.Component {
 function getUniqueFrameFilenamesToDisplay(stack, selectedIndex, callback){
     const NUM_OF_FRAMES_TO_SHOW = 3;
 
+    var canceled = false;
     var framesToDisplay = [];
-    var cancelResolveFrame = function(){}
-    resolveFrame(stack[selectedIndex], (err, resolvedFrame) => {
+    var cancelResolveFrame = resolveFrame(stack[selectedIndex], (err, resolvedFrame) => {
         addFrame(resolvedFrame, selectedIndex)
         lookForDifferentFile({}, 0)
     })
@@ -475,6 +475,7 @@ function getUniqueFrameFilenamesToDisplay(stack, selectedIndex, callback){
             indexInStack++;
         }
         if (framesToDisplay.length === NUM_OF_FRAMES_TO_SHOW || indexInStack >= stack.length) {
+            if (canceled) debugger
             callback(framesToDisplay)
         }
         else {
@@ -522,6 +523,7 @@ function getUniqueFrameFilenamesToDisplay(stack, selectedIndex, callback){
     }
 
     return function cancel(){
+        canceled = true;
         cancelResolveFrame();
     }
 }
