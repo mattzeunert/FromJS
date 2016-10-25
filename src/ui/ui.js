@@ -307,7 +307,7 @@ class OriginPathItemHeader extends React.Component {
         if (this.state.showDetailsDropdown){
             stackFrameSelector = <StackFrameSelector
                 stack={originObject.stack}
-                selectedFrameIndex={this.state.selectedFrameIndex}
+                selectedFrameIndex={this.props.selectedFrameIndex}
                 onFrameSelected={(frameIndex) => {
                     this.props.onFrameIndexSelected(frameIndex)
                     this.setState({showDetailsDropdown: false})
