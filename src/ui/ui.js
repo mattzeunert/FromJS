@@ -290,12 +290,9 @@ class OriginPathItemHeader extends React.Component {
     render(){
         var originObject = this.props.originObject
 
-        console.log("props", this.props)
-
         var filenameLink = null
         if (this.props.resolvedFrame) {
             var uiFileName = this.props.resolvedFrame.uiFileName;
-            console.log("YESSSS")
 
             filenameLink = <a
                 className="origin-path-step__filename"
@@ -405,7 +402,6 @@ class CallStackPath extends React.Component {
         }
     }
     componentWillReceiveProps(newProps){
-        console.log("receirved prosp")
         this.updateFrames(newProps);
     }
     updateFrames(props){
@@ -510,10 +506,31 @@ function getUniqueFrameFilenamesToDisplay(stack, selectedIndex, callback){
 }
 
 class StackFrameSelector extends React.Component {
+    constructor(props){
+        super(props)
+        this.state = {
+            showAllFrames: false
+        }
+    }
     render(){
+        const MAX_FRAMES_TO_SHOW = 15
+
         var self = this;
+        var frames = this.props.stack
+        var showAllButton = null;
+        if (!this.state.showAllFrames){
+            var totalNumberOfCallFrames = frames.length;
+            frames = frames.slice(0, MAX_FRAMES_TO_SHOW);
+            var numberOfFramesHidden = totalNumberOfCallFrames - MAX_FRAMES_TO_SHOW;
+            if (numberOfFramesHidden > 0) {
+                showAllButton = <a className="fromjs-stack-frame-selector__show-all-button"
+                    onClick={() => this.setState({showAllFrames: true})}>
+                    Show {numberOfFramesHidden} more call frames
+                </a>
+            }
+        }
         return <div>
-            {this.props.stack.map(function(frameString, i){
+            {frames.map(function(frameString, i){
                 return <StackFrameSelectorItem
                     isSelected={self.props.selectedFrameIndex === i}
                     onMouseEnter={() => self.props.onFrameHovered(i)}
@@ -522,6 +539,7 @@ class StackFrameSelector extends React.Component {
                     onClick={() => self.props.onFrameSelected(i)}
                 />
             })}
+            {showAllButton}
         </div>
     }
 }

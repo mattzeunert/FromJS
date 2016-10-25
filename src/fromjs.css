@@ -208,9 +208,8 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
 }
 
 
-
-
-#fromjs .fromjs-stack-frame-selector__item {
+#fromjs .fromjs-stack-frame-selector__item,
+.fromjs-stack-frame-selector__show-all-button {
     padding: 2px;
     padding-left: 10px;
     border-bottom: 1px solid #eee;
@@ -226,6 +225,18 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
 .fromjs-stack-frame-selector__item:hover * {
     color: red !important;
 }
+
+.fromjs-stack-frame-selector__show-all-button {
+    display: block;
+    color: green;
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.fromjs-stack-frame-selector__show-all-button:hover {
+    color: red;
+}
+
 
 #fromjs-sidebar {
     position: fixed;
