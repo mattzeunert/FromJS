@@ -443,14 +443,15 @@ class CallStackPath extends React.Component {
         }
         var children = []
         var previousFrameIndex = 0;
-        this.state.framesToDisplay.forEach((frameItem) => {
+        this.state.framesToDisplay.forEach((frameItem, i) => {
             if (frameItem.index > previousFrameIndex + 1) {
-                children.push(<span>&nbsp;&lt; …</span>)
+                children.push(<span key={"frame-separator-a-" + i}>&nbsp;&lt; …</span>)
             }
             if (frameItem.index !== 0){
-                children.push(<span>&lt;&nbsp;</span>)
+                children.push(<span key={"frame-separator-b-" + i}>&lt;&nbsp;</span>)
             }
             children.push(<span
+                    key={"filename-" + frameItem.index}
                     className={"call-stack-path__item " + (frameItem.isSelected ? "call-stack-path__item--selected" : "")}
                     onClick={() => this.props.onFrameIndexSelected(frameItem.index)}
                     onMouseEnter={() => this.props.onFrameIndexHovered(frameItem.index)}
