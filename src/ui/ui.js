@@ -963,7 +963,7 @@ class StackFrame extends React.Component {
         }
 
         function getLine(lineStr, lineNumber, arrow){
-            return <div>
+            return <div key={"line" + lineNumber}>
                 <LineNumber lineNumber={lineNumber} arrow={arrow} />
                 <span style={{opacity: .75}}>{processFrameString(lineStr)}</span>
             </div>
