@@ -1402,21 +1402,21 @@ class Intro extends React.Component {
             </p>
 
             <p>
-                <a href="https://github.com/mattzeunert/fromjs/issues">
+                <a href="https://github.com/mattzeunert/fromjs/issues" target="_blank">
                     Report an issue
                 </a>
             </p>
 
             <p>
-                <a href="https://github.com/mattzeunert/fromjs">Github</a>
+                <a href="https://github.com/mattzeunert/fromjs"  target="_blank">Github</a>
                 &nbsp;
                 &ndash;
                 &nbsp;
-                <a href="http://www.fromjs.com/">FromJS.com</a>
+                <a href="http://www.fromjs.com/" target="_blank">FromJS.com</a>
                 &nbsp;
                 &ndash;
                 &nbsp;
-                <a href="https://twitter.com/mattzeunert">Twitter</a>
+                <a href="https://twitter.com/mattzeunert" target="_blank">Twitter</a>
             </p>
         </div>
     }
