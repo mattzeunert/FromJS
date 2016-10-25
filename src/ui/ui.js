@@ -153,22 +153,13 @@ class OriginPathItem extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            selectedFrameString: null,
+            selectedFrameIndex: 0,
             resolvedFrame: null,
             codeFilePath: null,
-            previewFrameString: null
+            previewFrameIndex: null
         }
     }
     componentDidMount(){
-        var origin = this.props.originPathItem.origin
-        if (origin.isHTMLFileContent) {
-            this.selectFrameString(getFrameFromHTMLFileContentOriginPathItem(this.props.originPathItem))
-        } else {
-            if (!origin.stack) {
-                return
-            }
-            this.selectFrameString(_.first(origin.stack))
-        }
         this.makeSureIsResolvingFrame();
     }
     componentDidUpdate(){
@@ -194,6 +185,22 @@ class OriginPathItem extends React.Component {
             this.cancelGetCodeFilePath()
         }
     }
+    getSelectedFrameString(){
+        return this.getFrameStringAtIndex(this.state.selectedFrameIndex)
+    }
+    getPreviewFrameString(){
+        return this.getFrameStringAtIndex(this.state.previewFrameIndex)
+    }
+    getFrameStringAtIndex(index){
+        var origin = this.props.originPathItem.origin
+        if (index === null) {
+            return null
+        }
+        if (origin.isHTMLFileContent) {
+            return getFrameFromHTMLFileContentOriginPathItem(this.props.originPathItem)
+        }
+        return origin.stack[index]
+    }
     render(){
         var originObject = this.props.originPathItem.origin
 
@@ -214,16 +221,16 @@ class OriginPathItem extends React.Component {
         var stack = null;
         var originPathItem = this.props.originPathItem;
         var previewStack = null;
-        if (this.state.previewFrameString){
+        if (this.getPreviewFrameString()){
             previewStack = <StackFrame
-                frame={this.state.previewFrameString}
-                key={this.state.previewFrameString}
+                frame={this.getPreviewFrameString()}
+                key={this.getPreviewFrameString()}
                 originPathItem={originPathItem} />
         }
-        else if (this.state.selectedFrameString) {
+        else if (this.getSelectedFrameString()) {
             stack = <StackFrame
-                frame={this.state.selectedFrameString}
-                key={this.state.selectedFrameString}
+                frame={this.getSelectedFrameString()}
+                key={this.getSelectedFrameString()}
                 originPathItem={originPathItem}
             />
         } else {
@@ -241,16 +248,17 @@ class OriginPathItem extends React.Component {
                 <ValueEl
                     originPathItem={this.props.originPathItem}
                     handleValueSpanClick={this.props.handleValueSpanClick} />
-                </div>
+            </div>
         }
 
         return <div className="fromjs-origin-path-step" style={{border: "1px solid #ddd", marginBottom: 20}}>
             <div >
                 <OriginPathItemHeader
                     originObject={originObject}
+                    selectedFrameIndex={this.state.selectedFrameIndex}
                     resolvedFrame={this.state.resolvedFrame}
-                    onFrameStringHovered={(frameString) => this.setState({previewFrameString: frameString})}
-                    onFrameStringSelected={(frameString) => this.selectFrameString(frameString)}
+                    onFrameIndexHovered={(frameIndex) => this.setState({previewFrameIndex: frameIndex})}
+                    onFrameIndexSelected={(frameIndex) => this.selectFrameIndex(frameIndex)}
                     />
 
                 {stack}
@@ -261,9 +269,9 @@ class OriginPathItem extends React.Component {
 
         </div>
     }
-    selectFrameString(frameString){
+    selectFrameIndex(frameIndex){
         this.setState({
-            selectedFrameString: frameString,
+            selectedFrameIndex: frameIndex,
             resolvedFrame: null,
             codeFilePath: null
         })
@@ -281,32 +289,29 @@ class OriginPathItemHeader extends React.Component {
         var originObject = this.props.originObject
 
         var filenameLink = null
-        if (this.props.resolvedFrame) {
-            var filename = this.props.resolvedFrame.fileName;
-            var originalFilename = filename.replace(".dontprocess", "");
-            var filenameParts = originalFilename.split("/")
-            var uiFilename  = _.last(filenameParts)
-
-            filenameLink = <a
-                className="origin-path-step__filename"
-                href={this.state.codeFilePath}
-                target="_blank"
-            >
-                {uiFilename}
-            </a>
-        }
+        // if (this.props.resolvedFrame) {
+        //     var uiFileName = this.props.resolvedFrame.uiFileName;
+        //
+        //     filenameLink = <a
+        //         className="origin-path-step__filename"
+        //         href={this.state.codeFilePath}
+        //         target="_blank"
+        //     >
+        //         {uiFileName}
+        //     </a>
+        // }
 
         var stackFrameSelector = null;
         if (this.state.showDetailsDropdown){
             stackFrameSelector = <StackFrameSelector
                 stack={originObject.stack}
-                selectedFrameString={this.state.selectedFrameString}
-                onFrameSelected={(frameString) => {
-                    this.props.onFrameStringSelected(frameString)
+                selectedFrameIndex={this.state.selectedFrameIndex}
+                onFrameSelected={(frameIndex) => {
+                    this.props.onFrameIndexSelected(frameIndex)
                     this.setState({showDetailsDropdown: false})
                 }}
-                onFrameHovered={(frameString) => {
-                    this.props.onFrameStringHovered(frameString)
+                onFrameHovered={(frameIndex) => {
+                    this.props.onFrameIndexHovered(frameIndex)
                 }}
             />
         }
@@ -349,6 +354,17 @@ class OriginPathItemHeader extends React.Component {
             </button>
         }
 
+
+
+        console.log("state", this.state, "props", this.props)
+
+        var callStackPath = <CallStackPath
+            stack={originObject.stack}
+            selectedIndex={this.props.selectedFrameIndex}
+            onFrameIndexSelected={(frameIndex) => this.props.onFrameIndexSelected(frameIndex)}
+            onFrameIndexHovered={(frameIndex) => this.props.onFrameIndexHovered(frameIndex)}
+            key={originObject.id}/>
+
         return <div>
             <div style={{background: "aliceblue"}}>
                 <span style={{
@@ -362,6 +378,7 @@ class OriginPathItemHeader extends React.Component {
                     &nbsp;
                     <span>
                         {filenameLink}
+                        {callStackPath}
                     </span>
                 </span>
                 {toggleFrameSelectorButton}
@@ -374,17 +391,129 @@ class OriginPathItemHeader extends React.Component {
     }
 }
 
+class CallStackPath extends React.Component {
+    constructor(props){
+        super(props)
+        this.state = {}
+        this.updateFrames(props)
+    }
+    componentWillUnmount(){
+        if (this.cancelLoadFrames) {
+            this.cancelLoadFrames();
+        }
+    }
+    componentWillReceiveProps(newProps){
+        console.log("receirved prosp")
+        this.updateFrames(newProps);
+    }
+    updateFrames(props){
+        if (this.cancelLoadFrames) {
+            this.cancelLoadFrames();
+        }
+        this.cancelLoadFrames = getUniqueFrameFilenamesToDisplay(props.stack, props.selectedIndex, (framesToDisplay) => {
+            this.setState({framesToDisplay})
+        })
+    }
+    render(){
+        if (!this.state.framesToDisplay) {
+            return null;
+        }
+        var children = []
+        var previousFrameIndex = 0;
+        this.state.framesToDisplay.forEach((frameItem) => {
+            if (frameItem.index > previousFrameIndex + 1) {
+                children.push(<span>&nbsp;&lt; …</span>)
+            }
+            children.push(<span
+                    style={{background: frameItem.isSelected ? "orange": "yellow"}}
+                    onClick={() => this.props.onFrameIndexSelected(frameItem.index)}
+                    onMouseEnter={() => this.props.onFrameIndexHovered(frameItem.index)}
+                    onMouseLeave={() => this.props.onFrameIndexHovered(null)}>
+                    {frameItem.index === 0 ? null : <span>&lt;</span>} {frameItem.resolvedFrame.uiFileName}
+                &nbsp;
+            </span>)
+        })
+
+        return <span>{children}</span>
+    }
+}
+
+function getUniqueFrameFilenamesToDisplay(stack, selectedIndex, callback){
+    const NUM_OF_FRAMES_TO_SHOW = 3;
+
+    var framesToDisplay = [];
+    var cancelResolveFrame = function(){}
+    resolveFrame(stack[selectedIndex], (err, resolvedFrame) => {
+        addFrame(resolvedFrame, selectedIndex)
+        lookForDifferentFile({}, 0)
+    })
+
+    function lookForDifferentFile(previousFrame, indexInStack){
+        if (indexInStack === selectedIndex) {
+            indexInStack++;
+        }
+
+        cancelResolveFrame = resolveFrame(stack[indexInStack], (err, resolvedFrame) => {
+            if (resolvedFrame.fileName !== previousFrame.fileName || selectedIndex === indexInStack) {
+                addFrame(resolvedFrame, indexInStack)
+            }
+            if (framesToDisplay.length < NUM_OF_FRAMES_TO_SHOW && indexInStack + 1 < stack.length) {
+                lookForDifferentFile(resolvedFrame, indexInStack + 1)
+            } else {
+                callback(framesToDisplay)
+            }
+        })
+    }
+
+    function addFrame(resolvedFrame, indexInStack){
+        framesToDisplay.push({
+            isSelected: indexInStack === selectedIndex,
+            resolvedFrame,
+            index: indexInStack,
+            frameString: stack[indexInStack]
+        })
+        framesToDisplay = _.sortBy(framesToDisplay, "index") // need to sort because selected frame is inserted at start
+        framesToDisplay = framesToDisplay.filter(function preventIdenticalAdjecentFiles(frameItem, i){
+            if (frameItem.isSelected) {
+                return true;
+            }
+            var previousFrameItem = framesToDisplay[i - 1]
+            var nextFrameItem = framesToDisplay[i + 1]
+            var previousFrameWasDifferent = doFileNamesDiffer(previousFrameItem, frameItem)
+            if (!previousFrameWasDifferent) {
+                return false
+            }
+            if (nextFrameItem && nextFrameItem.isSelected){
+                return doFileNamesDiffer(frameItem, nextFrameItem)
+            }
+            return true;
+
+            function doFileNamesDiffer(frameItem1, frameItem2){
+                if (!frameItem1 || !frameItem2) {
+                    return true;
+                }
+                return frameItem1.resolvedFrame.fileName !== frameItem2.resolvedFrame.fileName
+            }
+        })
+
+    }
+
+    return function cancel(){
+        cancelResolveFrame();
+    }
+}
+
 class StackFrameSelector extends React.Component {
     render(){
         var self = this;
         return <div>
-            {this.props.stack.map(function(frameString){
+            {this.props.stack.map(function(frameString, i){
                 return <StackFrameSelectorItem
-                    isSelected={self.props.selectedFrameString === frameString}
-                    onMouseEnter={() => self.props.onFrameHovered(frameString)}
+                    isSelected={self.props.selectedFrameIndex === i}
+                    onMouseEnter={() => self.props.onFrameHovered(i)}
                     onMouseLeave={() => self.props.onFrameHovered(null)}
                     frameString={frameString}
-                    onClick={() => self.props.onFrameSelected(frameString)}
+                    onClick={() => self.props.onFrameSelected(i)}
                 />
             })}
         </div>
