@@ -419,7 +419,9 @@ class CallStackPath extends React.Component {
     constructor(props){
         super(props)
         this.state = {}
-        this.updateFrames(props)
+    }
+    componentDidMount(){
+        this.updateFrames(this.props)
     }
     componentWillUnmount(){
         if (this.cancelLoadFrames) {
@@ -480,7 +482,6 @@ function getUniqueFrameFilenamesToDisplay(stack, selectedIndex, callback){
             indexInStack++;
         }
         if (framesToDisplay.length === NUM_OF_FRAMES_TO_SHOW || indexInStack >= stack.length) {
-            if (canceled) { return /* I'm not sure why this is necessary, but it is for some reason */ }
             callback(framesToDisplay)
         }
         else {
