@@ -156,7 +156,6 @@ class OriginPathItem extends React.Component {
             selectedFrameString: null,
             resolvedFrame: null,
             codeFilePath: null,
-            showDetailsDropdown: false,
             previewFrameString: null
         }
     }
@@ -191,9 +190,6 @@ class OriginPathItem extends React.Component {
         }
     }
     componentWillUnmount(){
-        if (this.cancelFrameResolution){
-            this.cancelFrameResolution()
-        }
         if (this.cancelGetCodeFilePath){
             this.cancelGetCodeFilePath()
         }
@@ -201,26 +197,10 @@ class OriginPathItem extends React.Component {
     render(){
         var originObject = this.props.originPathItem.origin
 
-        var filenameLink = null
-        var viewSourceOriginButton = null;
-        if (this.state.resolvedFrame) {
-            var filename = this.state.resolvedFrame.fileName;
-            var originalFilename = filename.replace(".dontprocess", "");
-            var filenameParts = originalFilename.split("/")
-            var uiFilename  = _.last(filenameParts)
-
-            filenameLink = <a
-                className="origin-path-step__filename"
-                href={this.state.codeFilePath}
-                target="_blank"
-            >
-                {uiFilename}
-            </a>
-        }
-
         // This isn't a crucial feature... you can just click on the origin inside the path
         // I disabled this feature because the fromJSDynamicFileOrigins is not available in the
         // inspector iframe,
+        // var viewSourceOriginButton = null;
         // if (this.state.resolvedFrame && fileIsDynamicCode(this.state.resolvedFrame.fileName)){
         //     viewSourceOriginButton = <button
         //         className="fromjs-btn-link fromjs-origin-path-step__only-show-on-step-hover"
@@ -252,17 +232,81 @@ class OriginPathItem extends React.Component {
             </div>
         }
 
+
+        var valueView = null;
+        if (!config.alwaysShowValue && originObject.action === "Initial Page HTML") {
+            valueView = <div></div>
+        } else {
+            valueView = <div style={{borderTop: "1px dotted #ddd"}} data-test-marker-step-value>
+                <ValueEl
+                    originPathItem={this.props.originPathItem}
+                    handleValueSpanClick={this.props.handleValueSpanClick} />
+                </div>
+        }
+
+        return <div className="fromjs-origin-path-step" style={{border: "1px solid #ddd", marginBottom: 20}}>
+            <div >
+                <OriginPathItemHeader
+                    originObject={originObject}
+                    resolvedFrame={this.state.resolvedFrame}
+                    onFrameStringHovered={(frameString) => this.setState({previewFrameString: frameString})}
+                    onFrameStringSelected={(frameString) => this.selectFrameString(frameString)}
+                    />
+
+                {stack}
+                {previewStack}
+            </div>
+
+                {valueView}
+
+        </div>
+    }
+    selectFrameString(frameString){
+        this.setState({
+            selectedFrameString: frameString,
+            resolvedFrame: null,
+            codeFilePath: null
+        })
+    }
+}
+
+class OriginPathItemHeader extends React.Component {
+    constructor(props){
+        super(props)
+        this.state = {
+            showDetailsDropdown: false,
+        }
+    }
+    render(){
+        var originObject = this.props.originObject
+
+        var filenameLink = null
+        if (this.props.resolvedFrame) {
+            var filename = this.props.resolvedFrame.fileName;
+            var originalFilename = filename.replace(".dontprocess", "");
+            var filenameParts = originalFilename.split("/")
+            var uiFilename  = _.last(filenameParts)
+
+            filenameLink = <a
+                className="origin-path-step__filename"
+                href={this.state.codeFilePath}
+                target="_blank"
+            >
+                {uiFilename}
+            </a>
+        }
+
         var stackFrameSelector = null;
         if (this.state.showDetailsDropdown){
             stackFrameSelector = <StackFrameSelector
                 stack={originObject.stack}
                 selectedFrameString={this.state.selectedFrameString}
                 onFrameSelected={(frameString) => {
-                    this.selectFrameString(frameString)
+                    this.props.onFrameStringSelected(frameString)
                     this.setState({showDetailsDropdown: false})
                 }}
                 onFrameHovered={(frameString) => {
-                    this.setState({previewFrameString: frameString})
+                    this.props.onFrameStringHovered(frameString)
                 }}
             />
         }
@@ -305,57 +349,28 @@ class OriginPathItem extends React.Component {
             </button>
         }
 
-        var valueView = null;
-        if (!config.alwaysShowValue && originObject.action === "Initial Page HTML") {
-            valueView = <div></div>
-        } else {
-            valueView = <div style={{borderTop: "1px dotted #ddd"}} data-test-marker-step-value>
-                <ValueEl
-                    originPathItem={this.props.originPathItem}
-                    handleValueSpanClick={this.props.handleValueSpanClick} />
-                </div>
-        }
-
-        return <div className="fromjs-origin-path-step" style={{border: "1px solid #ddd", marginBottom: 20}}>
-            <div >
-                <div style={{background: "aliceblue"}}>
-                    <span style={{
-                        display: "inline-block",
-                        padding: 5
-                     }}>
-                        <span style={{fontWeight: "bold", marginRight: 5}}
-                            data-test-marker-step-action>
-                            {originObject.action}
-                        </span>
-                        &nbsp;
-                        <span>
-                            {filenameLink}
-                        </span>
-                        &nbsp;{viewSourceOriginButton}
-
-
+        return <div>
+            <div style={{background: "aliceblue"}}>
+                <span style={{
+                    display: "inline-block",
+                    padding: 5
+                 }}>
+                    <span style={{fontWeight: "bold", marginRight: 5}}
+                        data-test-marker-step-action>
+                        {this.props.originObject.action}
                     </span>
-                    {toggleFrameSelectorButton}
-                </div>
-
-                {inputValueLinks}
-                {stackFrameSelector}
-
-
-                {stack}
-                {previewStack}
+                    &nbsp;
+                    <span>
+                        {filenameLink}
+                    </span>
+                </span>
+                {toggleFrameSelectorButton}
             </div>
 
-                {valueView}
+            {inputValueLinks}
+            {stackFrameSelector}
 
         </div>
-    }
-    selectFrameString(frameString){
-        this.setState({
-            selectedFrameString: frameString,
-            resolvedFrame: null,
-            codeFilePath: null
-        })
     }
 }
 
