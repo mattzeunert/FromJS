@@ -35,9 +35,9 @@ var codeFilePathCache = {}
 function getCodeFilePath(path, callback) {
     if (codeFilePathCache[path]) {
         callback(codeFilePathCache[path])
-        return;
+        return function(){};
     } else {
-        currentInspectedPage.send("getCodeFilePath", path, function(newPath){
+        return currentInspectedPage.send("getCodeFilePath", path, function(newPath){
             codeFilePathCache[path] = newPath
             callback(newPath)
         })
@@ -169,9 +169,7 @@ class OriginPathItem extends React.Component {
     }
     makeSureIsResolvingFrame(){
         if (!this.state.resolvedFrame){
-            if (this.cancelFrameResolution) {
-                this.cancelFrameResolution()
-            }
+            this.cancelInProgessRequests()
             var origin = this.props.originPathItem.origin;
             this.cancelFrameResolution = resolveFrame(origin.stack[this.state.selectedFrameIndex], (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
@@ -183,8 +181,14 @@ class OriginPathItem extends React.Component {
         }
     }
     componentWillUnmount(){
+        this.cancelInProgessRequests();
+    }
+    cancelInProgessRequests(){
         if (this.cancelGetCodeFilePath){
             this.cancelGetCodeFilePath()
+        }
+        if (this.cancelFrameResolution) {
+            this.cancelFrameResolution()
         }
     }
     getSelectedFrameString(){
@@ -475,7 +479,7 @@ function getUniqueFrameFilenamesToDisplay(stack, selectedIndex, callback){
             indexInStack++;
         }
         if (framesToDisplay.length === NUM_OF_FRAMES_TO_SHOW || indexInStack >= stack.length) {
-            if (canceled) debugger
+            if (canceled) { return /* I'm not sure why this is necessary, but it is for some reason */ }
             callback(framesToDisplay)
         }
         else {
@@ -1181,6 +1185,12 @@ class ElementOriginPath extends React.Component {
     componentWillUnmount(){
         if (this.cancelGetRootOriginAtChar) {
             this.cancelGetRootOriginAtChar();
+        }
+        if (this.cancelSelectionGetOriginKeyAndPath) {
+            this.cancelSelectionGetOriginKeyAndPath();
+        }
+        if (this.cancelPreviewGetOriginKeyAndPath) {
+            this.cancelPreviewGetOriginKeyAndPath();
         }
     }
     render(){
