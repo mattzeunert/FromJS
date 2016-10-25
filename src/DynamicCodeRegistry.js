@@ -27,6 +27,6 @@ export default class DynamicCodeRegistry {
         return this._origins[filename]
     }
     fileIsDynamicCode(filename){
-        return this._content[filename] !== undefined
+        return filename.indexOf("DynamicFunction") !== -1;
     }
 }
