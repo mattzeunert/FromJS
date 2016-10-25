@@ -324,8 +324,10 @@ class OriginPathItemHeader extends React.Component {
                     </span>
                 </div>
                 {noParametersMessage}
-                {originObject.inputValues.map((iv) => {
-                    return <div className="fromjs-input-value-link"
+                {originObject.inputValues.map((iv,i) => {
+                    return <div
+                        key={"inputValue" + i}
+                        className="fromjs-input-value-link"
                         onClick={() => this.props.handleValueSpanClick(iv, 0)}>
                         &quot;{truncate(iv.value, 40)}&quot;
                     </div>
@@ -482,6 +484,9 @@ function getUniqueFrameFilenamesToDisplay(stack, selectedIndex, callback){
             indexInStack++;
         }
         if (framesToDisplay.length === NUM_OF_FRAMES_TO_SHOW || indexInStack >= stack.length) {
+            if (canceled) {
+                return /* I'm not sure why this is necessary, but it is for some reason */
+            }
             callback(framesToDisplay)
         }
         else {
@@ -561,6 +566,7 @@ class StackFrameSelector extends React.Component {
         return <div>
             {frames.map(function(frameString, i){
                 return <StackFrameSelectorItem
+                    key={"stack-frame-selector-item" + i}
                     isSelected={self.props.selectedFrameIndex === i}
                     onMouseEnter={() => self.props.onFrameHovered(i)}
                     onMouseLeave={() => self.props.onFrameHovered(null)}
@@ -1106,8 +1112,9 @@ class ElementOriginPath extends React.Component {
             originPath: null,
             previewOriginPath: null
         }
-
-        this.componentWillUpdate(props, this.state, true);
+    }
+    componentDidMount(){
+        this.componentWillUpdate(this.props, this.state, true);
     }
     componentWillReceiveProps(nextProps) {
         if (nextProps.el.__fromJSElementId !== this.props.el.__fromJSElementId){
