@@ -225,12 +225,14 @@ class OriginPathItem extends React.Component {
         var previewStack = null;
         if (this.getPreviewFrameString()){
             previewStack = <StackFrame
+                frameIndex={this.state.previewFrameIndex}
                 frame={this.getPreviewFrameString()}
                 key={this.getPreviewFrameString()}
                 originPathItem={originPathItem} />
         }
         else if (this.getSelectedFrameString()) {
             stack = <StackFrame
+                frameIndex={this.state.selectedFrameIndex}
                 frame={this.getSelectedFrameString()}
                 key={this.getSelectedFrameString()}
                 originPathItem={originPathItem}
@@ -873,7 +875,7 @@ class TextEl extends React.Component {
 
 
 const MAX_LINES_TO_SHOW_BEFORE_AND_AFTER = 200;
-class StackFrame extends React.Component{
+class StackFrame extends React.Component {
     constructor(props){
         super(props)
         this.state = {
@@ -909,13 +911,16 @@ class StackFrame extends React.Component{
         var originPathItem = this.props.originPathItem;
 
         var highlighNthCharAfterColumn = null;
-        if (originPathItem.origin.action === "String Literal" ){
-            highlighNthCharAfterColumn = "'".length + originPathItem.characterIndex
+        if (this.props.frameIndex === 0) {
+            if (originPathItem.origin.action === "String Literal" ){
+                highlighNthCharAfterColumn = "'".length + originPathItem.characterIndex
+            }
+            if (originPathItem.origin.action === "Initial Page HTML"){
+                highlighNthCharAfterColumn = 0;
+                barSpan = null;
+            }
         }
-        if (originPathItem.origin.action === "Initial Page HTML"){
-            highlighNthCharAfterColumn = 0;
-            barSpan = null;
-        }
+
         var highlightClass = "fromjs-highlighted-character"
         var hasHighlight = highlighNthCharAfterColumn !== null
         if (!hasHighlight) {
