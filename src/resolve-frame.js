@@ -18,6 +18,9 @@ export default class FrameResolver {
             frameObject.line = lines[zeroIndexedLineNumber];
             frameObject.nextLines = lines.slice(zeroIndexedLineNumber + 1)
 
+            var originalFilename = frameObject.fileName.replace(".dontprocess", "");
+            var filenameParts = originalFilename.split("/")
+            frameObject.uiFileName = _.last(filenameParts)
             if (frameObject.line === undefined) {
                 debugger
             }

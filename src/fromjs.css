@@ -194,9 +194,22 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     display: inline-block;
 }
 
+#fromjs .fromjs-origin-path-step .call-stack-path {
+    display: none;
+}
+#fromjs .fromjs-origin-path-step:hover .call-stack-path {
+    display: inline;
+}
+#fromjs .fromjs-origin-path-step .origin-path-step__filename {
+    display: inline;
+}
+#fromjs .fromjs-origin-path-step:hover .origin-path-step__filename {
+    display: none;
+}
 
 
-#fromjs .fromjs-stack-frame-selector__item {
+#fromjs .fromjs-stack-frame-selector__item,
+.fromjs-stack-frame-selector__show-all-button {
     padding: 2px;
     padding-left: 10px;
     border-bottom: 1px solid #eee;
@@ -212,6 +225,18 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
 .fromjs-stack-frame-selector__item:hover * {
     color: red !important;
 }
+
+.fromjs-stack-frame-selector__show-all-button {
+    display: block;
+    color: green;
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.fromjs-stack-frame-selector__show-all-button:hover {
+    color: red;
+}
+
 
 #fromjs-sidebar {
     position: fixed;
@@ -284,6 +309,7 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     color: #08f;
     cursor: pointer;
     margin: 0;
+    outline: none;
     padding: 0;
     background: none;
     vertical-align: baseline;
@@ -292,6 +318,13 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
 }
 .fromjs-go-up-button:hover {
     color: red;
+}
+
+.open-file-in-new-window {
+    display: inline-block;
+    padding-left: 10px;
+    padding-bottom: 10px;
+    font-size: 12px;
 }
 
 
@@ -339,4 +372,17 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     background: white;
     font-family: Arial;
     box-sizing: border-box;
+}
+
+.call-stack-path {
+    color: rgba(51, 51, 51, 0.5);
+}
+.call-stack-path__item {
+    cursor: pointer;
+}
+.call-stack-path__item:hover {
+    color: #08f;
+}
+.call-stack-path__item--selected {
+    color: #333;
 }
