@@ -194,6 +194,20 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     display: inline-block;
 }
 
+#fromjs .fromjs-origin-path-step .call-stack-path {
+    display: none;
+}
+#fromjs .fromjs-origin-path-step:hover .call-stack-path {
+    display: inline;
+}
+#fromjs .fromjs-origin-path-step .origin-path-step__filename {
+    display: inline;
+}
+#fromjs .fromjs-origin-path-step:hover .origin-path-step__filename {
+    display: none;
+}
+
+
 
 
 #fromjs .fromjs-stack-frame-selector__item {
@@ -339,4 +353,17 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     background: white;
     font-family: Arial;
     box-sizing: border-box;
+}
+
+.call-stack-path {
+    color: rgba(51, 51, 51, 0.5);
+}
+.call-stack-path__item {
+    cursor: pointer;
+}
+.call-stack-path__item:hover {
+    color: #08f;
+}
+.call-stack-path__item--selected {
+    color: #333;
 }

@@ -16,6 +16,8 @@ var currentInspectedPage;
 
 var resolvedFrameCache = {}
 function resolveFrame(frameString, callback) {
+    if (frameString === undefined) debugger
+
     if (resolvedFrameCache[frameString]) {
         callback(null, resolvedFrameCache[frameString])
         return function cancel(){}
@@ -166,12 +168,12 @@ class OriginPathItem extends React.Component {
         this.makeSureIsResolvingFrame();
     }
     makeSureIsResolvingFrame(){
-        var frame = this.state.selectedFrameString
-        if (frame && !this.state.resolvedFrame){
+        if (!this.state.resolvedFrame){
             if (this.cancelFrameResolution) {
                 this.cancelFrameResolution()
             }
-            this.cancelFrameResolution = resolveFrame(frame, (err, resolvedFrame) => {
+            var origin = this.props.originPathItem.origin;
+            this.cancelFrameResolution = resolveFrame(origin.stack[this.state.selectedFrameIndex], (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
 
                 this.cancelGetCodeFilePath = getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
@@ -288,18 +290,21 @@ class OriginPathItemHeader extends React.Component {
     render(){
         var originObject = this.props.originObject
 
+        console.log("props", this.props)
+
         var filenameLink = null
-        // if (this.props.resolvedFrame) {
-        //     var uiFileName = this.props.resolvedFrame.uiFileName;
-        //
-        //     filenameLink = <a
-        //         className="origin-path-step__filename"
-        //         href={this.state.codeFilePath}
-        //         target="_blank"
-        //     >
-        //         {uiFileName}
-        //     </a>
-        // }
+        if (this.props.resolvedFrame) {
+            var uiFileName = this.props.resolvedFrame.uiFileName;
+            console.log("YESSSS")
+
+            filenameLink = <a
+                className="origin-path-step__filename"
+                href={this.state.codeFilePath}
+                target="_blank"
+            >
+                {uiFileName}
+            </a>
+        }
 
         var stackFrameSelector = null;
         if (this.state.showDetailsDropdown){
@@ -354,9 +359,6 @@ class OriginPathItemHeader extends React.Component {
             </button>
         }
 
-
-
-        console.log("state", this.state, "props", this.props)
 
         var callStackPath = <CallStackPath
             stack={originObject.stack}
@@ -424,17 +426,20 @@ class CallStackPath extends React.Component {
             if (frameItem.index > previousFrameIndex + 1) {
                 children.push(<span>&nbsp;&lt; …</span>)
             }
+            if (frameItem.index !== 0){
+                children.push(<span>&lt;&nbsp;</span>)
+            }
             children.push(<span
-                    style={{background: frameItem.isSelected ? "orange": "yellow"}}
+                    className={"call-stack-path__item " + (frameItem.isSelected ? "call-stack-path__item--selected" : "")}
                     onClick={() => this.props.onFrameIndexSelected(frameItem.index)}
                     onMouseEnter={() => this.props.onFrameIndexHovered(frameItem.index)}
                     onMouseLeave={() => this.props.onFrameIndexHovered(null)}>
-                    {frameItem.index === 0 ? null : <span>&lt;</span>} {frameItem.resolvedFrame.uiFileName}
+                    {frameItem.resolvedFrame.uiFileName}
                 &nbsp;
             </span>)
         })
 
-        return <span>{children}</span>
+        return <span className="call-stack-path">{children}</span>
     }
 }
 
@@ -452,17 +457,18 @@ function getUniqueFrameFilenamesToDisplay(stack, selectedIndex, callback){
         if (indexInStack === selectedIndex) {
             indexInStack++;
         }
+        if (framesToDisplay.length === NUM_OF_FRAMES_TO_SHOW || indexInStack >= stack.length) {
+            callback(framesToDisplay)
+        }
+        else {
+            cancelResolveFrame = resolveFrame(stack[indexInStack], (err, resolvedFrame) => {
+                if (resolvedFrame.fileName !== previousFrame.fileName || selectedIndex === indexInStack) {
+                    addFrame(resolvedFrame, indexInStack)
+                }
 
-        cancelResolveFrame = resolveFrame(stack[indexInStack], (err, resolvedFrame) => {
-            if (resolvedFrame.fileName !== previousFrame.fileName || selectedIndex === indexInStack) {
-                addFrame(resolvedFrame, indexInStack)
-            }
-            if (framesToDisplay.length < NUM_OF_FRAMES_TO_SHOW && indexInStack + 1 < stack.length) {
                 lookForDifferentFile(resolvedFrame, indexInStack + 1)
-            } else {
-                callback(framesToDisplay)
-            }
-        })
+            })
+        }
     }
 
     function addFrame(resolvedFrame, indexInStack){
