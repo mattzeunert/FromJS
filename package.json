@@ -45,8 +45,7 @@
     "stacktrace-js": "^1.2.0",
     "starts-with": "^1.0.2",
     "string-contains": "^0.1.0",
-    "underscore": "^1.8.3",
-    "webpack": "^1.13.1"
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "babel-loader": "^6.2.4",
@@ -70,6 +69,7 @@
     "protractor": "^4.0.4",
     "protractor-console": "^2.0.1",
     "react-addons-perf": "^15.2.1",
+    "webpack": "^2.1.0-beta.25",
     "webpack-dev-server": "^1.14.1",
     "webpack-shell-plugin": "^0.4.3"
   },
