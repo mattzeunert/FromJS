@@ -6,7 +6,7 @@ import sendMessageToBackgroundPage from "../src/sendMessageToBackgroundPage"
 
 window.isExtension = true;
 
-window.onFromJSReady = function(){
+window.startLoadingPage = function(){
     console.info("FromJS: Loading page...")
 
     window.fromJSInitialPageHtml = pageHtml;

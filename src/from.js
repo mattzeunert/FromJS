@@ -77,9 +77,8 @@ window.playgroundShowSidebar = function(){
 
 function onReady(){
     // hook for Chrome Extension to proceed when FromJS has been set up
-    window.fromJSIsReady = true;
-    if (window.onFromJSReady) {
-        window.onFromJSReady();
+    if (window.startLoadingPage) {
+        window.startLoadingPage();
     }
 
     // extension replaces body html after head has loaded, so wait until that
