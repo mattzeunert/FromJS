@@ -3,29 +3,19 @@ import _ from "underscore"
 import getHeadAndBodyContent from "./getHeadAndBodyContent"
 import sendMessageToBackgroundPage from "../src/sendMessageToBackgroundPage"
 
-function measureTodoMVCRenderingTime(){
-    // see perf.txt for more info
-    console.time("TodoMVC Rendering")
-    var start = new Date();
-
-    checkIfDone();
-    function checkIfDone(){
-        if (document.querySelectorAll("ul.todo-list li").length > 0){
-            console.timeEnd("TodoMVC Rendering")
-            var time = new Date().valueOf() - start.valueOf();
-            alert("TodoMVC took " + time + "s to render")
-        } else {
-            setTimeout(checkIfDone, 10)
-        }
-    }
-}
-
 window.isExtension = true;
 
-window.onFromJSReady = function(){
-    console.info("FromJS: Loading page...")
+function enableNativeMethodPatching(){
+    window.fromJSEnableTracing();
+}
+function disableNativeMethodPatching(){
+    window.fromJSDisableTracing()
+}
 
-    // measureTodoMVCRenderingTime()
+window.startLoadingPage = function(){
+    console.info("FromJS: Loading page...")
+    window.forTestsIsLoadingPage = true;
+
 
     window.fromJSInitialPageHtml = pageHtml;
     var bodyContent, headContent;
@@ -37,7 +27,7 @@ window.onFromJSReady = function(){
         var headScripts = getScriptElements(headAndBody.headContent);
     }
 
-    window.fromJSEnableTracing() // be careful calling global functions like regexp.exec, array.join etc after this
+    enableNativeMethodPatching() // be careful calling global functions like regexp.exec, array.join etc after this
     if (headAndBody.headContent) {
         document.head.innerHTML = headAndBody.headContent
         appendScriptsOneAfterAnother(headScripts, document.head, function(){
@@ -55,12 +45,6 @@ window.onFromJSReady = function(){
             simulateOnLoad()
         })
     }
-}
-
-// Normally this file is loaded before fromJS is ready, but sometimes not
-if (window.fromJSIsReady) {
-    debugger; // this shoudln't happen! if it does the logic for inhibiting js execution is wrong
-    window.onFromJSReady()
 }
 
 function simulateOnLoad(){

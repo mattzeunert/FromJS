@@ -77,9 +77,8 @@ window.playgroundShowSidebar = function(){
 
 function onReady(){
     // hook for Chrome Extension to proceed when FromJS has been set up
-    window.fromJSIsReady = true;
-    if (window.onFromJSReady) {
-        window.onFromJSReady();
+    if (window.startLoadingPage) {
+        window.startLoadingPage();
     }
 
     // extension replaces body html after head has loaded, so wait until that
@@ -105,5 +104,26 @@ if (location.hash === "#speed-up-execution-and-break-tracing") {
     window.speedUpExecutionAndBreakTracing
     window.Error = function(){
 
+    }
+}
+
+if (window.isExtension) {
+        // measureTodoMVCRenderingTime()
+
+    function measureTodoMVCRenderingTime(){
+        // see perf.txt for more info
+        console.time("TodoMVC Rendering")
+        var start = new Date();
+
+        checkIfDone();
+        function checkIfDone(){
+            if (document.querySelectorAll("ul.todo-list li").length > 0){
+                console.timeEnd("TodoMVC Rendering")
+                var time = new Date().valueOf() - start.valueOf();
+                alert("TodoMVC took " + time + "s to render")
+            } else {
+                setTimeout(checkIfDone, 10)
+            }
+        }
     }
 }

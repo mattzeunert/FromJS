@@ -30,8 +30,8 @@ const FromJSSessionStages = {
     CLOSED: "CLOSED"
 }
 
-class FromJSSession {
-    constructor(tabId) {
+class BabelSession {
+    constructor(tabId){
         this.tabId = tabId;
         this._stage = FromJSSessionStages.RELOADING;
         this._pageHtml = null;
@@ -46,22 +46,6 @@ class FromJSSession {
         chrome.webRequest.onBeforeRequest.addListener(this._onBeforeRequest, {urls: ["<all_urls>"], tabId: this.tabId}, ["blocking"]);
 
         chrome.tabs.reload(this.tabId)
-    }
-    close(){
-        chrome.webRequest.onBeforeRequest.removeListener(this._onBeforeRequest)
-        chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
-        delete sessionsByTabId[this.tabId]
-
-        this._stage = FromJSSessionStages.CLOSED;
-    }
-    isClosed(){
-        return this._stage === FromJSSessionStages.CLOSED
-    }
-    setPageHtml(pageHtml) {
-        this._pageHtml = pageHtml;
-    }
-    getPageHtml(){
-        return this._pageHtml;
     }
     initialize(){
         this._log("Init tab", this.tabId)
@@ -118,6 +102,7 @@ class FromJSSession {
             self._executeScript({
                 file: "contentScript.js", // loads injected.js
             }, function(){
+
                 var encodedPageHtml = encodeURI(self._pageHtml)
                 self._executeScript({
                     code: `
@@ -126,18 +111,18 @@ class FromJSSession {
                         script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
                         script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
                         document.documentElement.appendChild(script)
-
-                        var script2 = document.createElement("script")
-                        script2.src = '${chrome.extension.getURL("from.js")}'
-                        script2.setAttribute("charset", "utf-8")
-                        document.documentElement.appendChild(script2)
                       `
+                }, function(){
+                    self.onBeforeLoad()
                 })
             })
         })
     }
-    isActive(){
-        return this._stage === FromJSSessionStages.ACTIVE;
+    _log(){
+        console.log.apply(console, arguments);
+        if (!this.isClosed() && config.logBGPageLogsOnInspectedPage) {
+            this._executeScript("console.log('Background page log: " + JSON.stringify(arguments) + "')")
+        }
     }
     _executeScript(codeOrParamObject, callback){
         if (this.isClosed()) {
@@ -165,12 +150,7 @@ class FromJSSession {
             `
         }, callback);
     }
-    _log(){
-        console.log.apply(console, arguments);
-        if (!this.isClosed() && config.logBGPageLogsOnInspectedPage) {
-            this._executeScript("console.log('Background page log: " + JSON.stringify(arguments) + "')")
-        }
-    }
+
     _getJavaScriptFile(url){
         var self = this;
         return new Promise(function(resolve, reject){
@@ -253,6 +233,42 @@ class FromJSSession {
                 }
             })
         })
+    }
+    isActive(){
+        return this._stage === FromJSSessionStages.ACTIVE;
+    }
+    close(){
+        chrome.webRequest.onBeforeRequest.removeListener(this._onBeforeRequest)
+        chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
+
+        this._stage = FromJSSessionStages.CLOSED;
+        this.onClosed();
+    }
+    isClosed(){
+        return this._stage === FromJSSessionStages.CLOSED
+    }
+    setPageHtml(pageHtml) {
+        this._pageHtml = pageHtml;
+    }
+    getPageHtml(){
+        return this._pageHtml;
+    }
+}
+
+class FromJSSession extends BabelSession {
+    constructor(tabId) {
+        super(tabId);
+    }
+    onClosed(){
+        delete sessionsByTabId[this.tabId]
+    }
+    onBeforeLoad(){
+        this._executeScript(`
+            var script2 = document.createElement("script")
+            script2.src = '${chrome.extension.getURL("from.js")}'
+            script2.setAttribute("charset", "utf-8")
+            document.documentElement.appendChild(script2)`
+        )
     }
 }
 

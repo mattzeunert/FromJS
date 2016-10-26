@@ -41,16 +41,7 @@ module.exports = function(babel) {
         }
       },
       MemberExpression(path){
-          // We can't overwrite document.readyState in the brower, so instead
-          // try to intercept lookups for `readyState` properties
-          // This won't catch document["ready" + "state"], but it's good enough
-          if (path.node.property.value === "readyState" || path.node.property.name === "readyState") {
-              var call = babel.types.callExpression(
-                  babel.types.identifier("f__getReadyState"),
-                  [path.node.object]
-              )
-              path.replaceWith(call)
-          } else if (path.node.property.value === "toString" || path.node.property.name === "toString"){
+          if (path.node.property.value === "toString" || path.node.property.name === "toString"){
               // toString calls on tracked objects return a native string, so call a special
               // function that returns the tracked string again
               // toString needs to return a stirng when called from native browser code
