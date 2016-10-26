@@ -37,21 +37,7 @@ class BabelSession {
         this._pageHtml = null;
         this._downloadCache = {}
         this._processJSCodeCache = {};
-        this._createPromises();
         this._open();
-    }
-    _createPromises(){
-        var promiseNames = ["onClosed"]
-
-        promiseNames.forEach((promiseName) => {
-            var resolveFunction;
-            this[promiseName] = new Promise((resolve) => {
-                resolveFunction = resolve;
-            })
-            this[promiseName].resolve = resolveFunction
-        })
-
-        debugger
     }
     _open(){
         this._log("Open tab", this.tabId)
@@ -116,6 +102,7 @@ class BabelSession {
             self._executeScript({
                 file: "contentScript.js", // loads injected.js
             }, function(){
+
                 var encodedPageHtml = encodeURI(self._pageHtml)
                 self._executeScript({
                     code: `
@@ -124,12 +111,9 @@ class BabelSession {
                         script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
                         script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
                         document.documentElement.appendChild(script)
-
-                        var script2 = document.createElement("script")
-                        script2.src = '${chrome.extension.getURL("from.js")}'
-                        script2.setAttribute("charset", "utf-8")
-                        document.documentElement.appendChild(script2)
                       `
+                }, function(){
+                    self.onBeforeLoad()
                 })
             })
         })
@@ -250,7 +234,6 @@ class BabelSession {
             })
         })
     }
-
     isActive(){
         return this._stage === FromJSSessionStages.ACTIVE;
     }
@@ -259,7 +242,7 @@ class BabelSession {
         chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
 
         this._stage = FromJSSessionStages.CLOSED;
-        this.onClosed.resolve();
+        this.onClosed();
     }
     isClosed(){
         return this._stage === FromJSSessionStages.CLOSED
@@ -275,10 +258,17 @@ class BabelSession {
 class FromJSSession extends BabelSession {
     constructor(tabId) {
         super(tabId);
-        this.onClosed.then(() => {
-            delete sessionsByTabId[this.tabId]
-            alert("closed")
-        })
+    }
+    onClosed(){
+        delete sessionsByTabId[this.tabId]
+    }
+    onBeforeLoad(){
+        this._executeScript(`
+            var script2 = document.createElement("script")
+            script2.src = '${chrome.extension.getURL("from.js")}'
+            script2.setAttribute("charset", "utf-8")
+            document.documentElement.appendChild(script2)`
+        )
     }
 }
 
