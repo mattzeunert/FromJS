@@ -171,7 +171,7 @@ class OriginPathItem extends React.Component {
         if (!this.state.resolvedFrame){
             this.cancelInProgessRequests()
             var origin = this.props.originPathItem.origin;
-            this.cancelFrameResolution = resolveFrame(origin.stack[this.state.selectedFrameIndex], (err, resolvedFrame) => {
+            this.cancelFrameResolution = resolveFrame(this.getSelectedFrameString(), (err, resolvedFrame) => {
                 this.setState({resolvedFrame})
 
                 this.cancelGetCodeFilePath = getCodeFilePath(resolvedFrame.fileName, (codeFilePath) => {
@@ -437,6 +437,12 @@ class CallStackPath extends React.Component {
     updateFrames(props){
         if (this.cancelLoadFrames) {
             this.cancelLoadFrames();
+        }
+        if (props.stack.length === 0) {
+            this.setState({
+                framesToDisplay: null
+            })
+            return;
         }
         this.cancelLoadFrames = getUniqueFrameFilenamesToDisplay(props.stack, props.selectedIndex, (framesToDisplay) => {
             this.setState({framesToDisplay})
