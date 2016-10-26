@@ -5,6 +5,27 @@ if (!process.env.isDemo) {
     var babylon = require("babylon")
 }
 
+// This code is required to simulate the fake page load in the Chrome extension
+// Might reuse it later if moving the fake load / Babel processing to a separate module
+var sharedPlugin = function(babel) {
+    return {
+        visitor: {
+            MemberExpression(path){
+                // We can't overwrite document.readyState in the brower, so instead
+                // try to intercept lookups for `readyState` properties
+                // This won't catch document["ready" + "state"], but it's good enough
+                if (path.node.property.value === "readyState" || path.node.property.name === "readyState") {
+                    var call = babel.types.callExpression(
+                        babel.types.identifier("f__getReadyState"),
+                        [path.node.object]
+                    )
+                    path.replaceWith(call)
+                }
+            }
+        }
+    }
+}
+
 var sourceMapRegex = /\/\/#[\W]*sourceMappingURL=.*$/
 export function removeSourceMapIfAny(code){
     // In theory we might be able to use this source map, but right now
@@ -32,7 +53,8 @@ export default function processJavaScriptCode(code, options){
         sourceMaps: true,
         compact: false,
         plugins: [
-            Plugin,
+            sharedPlugin,
+            Plugin
         ]
     });
     res.map.sourcesContent = undefined
