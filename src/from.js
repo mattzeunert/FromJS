@@ -107,3 +107,24 @@ if (location.hash === "#speed-up-execution-and-break-tracing") {
 
     }
 }
+
+if (window.isExtension) {
+        // measureTodoMVCRenderingTime()
+
+    function measureTodoMVCRenderingTime(){
+        // see perf.txt for more info
+        console.time("TodoMVC Rendering")
+        var start = new Date();
+
+        checkIfDone();
+        function checkIfDone(){
+            if (document.querySelectorAll("ul.todo-list li").length > 0){
+                console.timeEnd("TodoMVC Rendering")
+                var time = new Date().valueOf() - start.valueOf();
+                alert("TodoMVC took " + time + "s to render")
+            } else {
+                setTimeout(checkIfDone, 10)
+            }
+        }
+    }
+}

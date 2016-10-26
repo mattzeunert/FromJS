@@ -1,7 +1,7 @@
 Measured manually with DevTools closed, memory info taken from Chrome task manager
 
 1) python -m SimpleHTTPServer 1234
-2) uncomment measureTodoMVCRenderingTime in injected.js
+2) uncomment measureTodoMVCRenderingTime in src/from.js
 3) Backbone
     - http://localhost:1234/demos/backbone-todomvc/index.html
     - Create 2 todo items

@@ -3,29 +3,11 @@ import _ from "underscore"
 import getHeadAndBodyContent from "./getHeadAndBodyContent"
 import sendMessageToBackgroundPage from "../src/sendMessageToBackgroundPage"
 
-function measureTodoMVCRenderingTime(){
-    // see perf.txt for more info
-    console.time("TodoMVC Rendering")
-    var start = new Date();
-
-    checkIfDone();
-    function checkIfDone(){
-        if (document.querySelectorAll("ul.todo-list li").length > 0){
-            console.timeEnd("TodoMVC Rendering")
-            var time = new Date().valueOf() - start.valueOf();
-            alert("TodoMVC took " + time + "s to render")
-        } else {
-            setTimeout(checkIfDone, 10)
-        }
-    }
-}
 
 window.isExtension = true;
 
 window.onFromJSReady = function(){
     console.info("FromJS: Loading page...")
-
-    // measureTodoMVCRenderingTime()
 
     window.fromJSInitialPageHtml = pageHtml;
     var bodyContent, headContent;
