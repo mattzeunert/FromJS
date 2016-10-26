@@ -14,6 +14,8 @@ function disableNativeMethodPatching(){
 
 window.startLoadingPage = function(){
     console.info("FromJS: Loading page...")
+    window.forTestsIsLoadingPage = true;
+
 
     window.fromJSInitialPageHtml = pageHtml;
     var bodyContent, headContent;
