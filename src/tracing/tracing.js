@@ -186,11 +186,128 @@ function FrozenElement(el) {
 }
 FrozenElement.prototype.isFromJSFrozenElement = true;
 
+// ===================================================
+
+function registerDynamicFile(filename, code, evalCode, sourceMap, actionName){
+    var smFilename = filename + ".map"
+    code = trackStringIfNotTracked(code)
+
+    dynamicCodeRegistry.register(smFilename, sourceMap)
+    dynamicCodeRegistry.register(filename, evalCode)
+    var codeOrigin = new Origin({
+        action: actionName === undefined ? "Dynamic Script" : actionName,
+        value: code.value,
+        inputValues: [code.origin]
+    })
+    dynamicCodeRegistry.register(filename + ".dontprocess", code.value, codeOrigin)
+}
+
+function enableDynamicCodeBabelProcessing(){
+    window.eval = function(code){
+        if (typeof code !== "string" && (!code || !code.isStringTraceString)) {
+            return code
+        }
+
+        var id = _.uniqueId();
+        var filename = "DynamicScript" + id + ".js"
+        var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
+
+        var smFilename = filename + ".map"
+        var evalCode = res.code + "\n//# sourceURL=" + filename +
+            "\n//# sourceMappingURL=" + smFilename
+
+        registerDynamicFile(filename, code, evalCode, res.map)
+
+        return nativeEval(evalCode)
+    };
+
+    ["text", "textContent"].forEach(function(propertyName){
+        Object.defineProperty(HTMLScriptElement.prototype, propertyName, {
+            get: function(){
+                // text !== textContent, but close enough
+                return nativeHTMLScriptElementTextDescriptor.get.apply(this, arguments)
+            },
+            set: function(text){
+                text = processScriptTagCodeAssignment(text)
+                // text !== textContent, but close enough
+                return nativeHTMLScriptElementTextDescriptor.set.apply(this, [text])
+            },
+            configurable: true
+        })
+    })
+
+    window.Function = function(code){
+        var args = Array.prototype.slice.apply(arguments)
+        var code = args.pop()
+        code = removeSourceMapIfAny(code)
+        var argsWithoutCode = args.slice()
+
+        var id = _.uniqueId();
+        var filename = "DynamicFunction" + id + ".js"
+
+        var fnName = "DynamicFunction" + id
+        code = f__add("function " + fnName + "(" + argsWithoutCode.join(",") + "){", code);
+        code = f__add(code, "}")
+        var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
+        args.push(res.code)
+
+        var smFilename = filename + ".map"
+        var evalCode = res.code +
+            "\n//# sourceURL=" + filename +
+            "\n//# sourceMappingURL=" + smFilename
+
+        // create script tag instead of eval to prevent strict mode from propagating
+        // (I'm guessing if you call eval from code that's in strict mode  strict mode will
+        // propagate to the eval'd code.)
+        var script = document.createElement("script")
+        script.innerHTML = evalCode
+        document.body.appendChild(script)
+
+        script.remove();
+
+        registerDynamicFile(filename, code, evalCode, res.map, "Dynamic Function")
+
+        return function(){
+            return window[fnName].apply(this, arguments)
+        }
+    }
+
+    window.Function.prototype = nativeFunction.prototype
+}
+
+function disableDynamicCodeBabelProcessing(){
+    window.eval = nativeEval
+    Object.defineProperty(HTMLScriptElement.prototype, "text", nativeHTMLScriptElementTextDescriptor)
+    // HTMLScriptElement doesn't normally have textcontent on own prototype, inherits the prop from Node
+    Object.defineProperty(HTMLScriptElement.prototype, "textContent", nativeNodeTextContentDescriptor)
+
+    window.Function = nativeFunction
+}
+
+function processScriptTagCodeAssignment(code){
+    var id = _.uniqueId();
+    var filename = "ScriptTag" + id + ".js"
+    var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
+
+    var fnName = "DynamicFunction" + id
+    var smFilename = filename + ".map"
+    var evalCode = res.code + "\n" +
+        "\n//# sourceURL=" + filename +
+        "\n//# sourceMappingURL=" + smFilename
+
+    registerDynamicFile(filename, code, evalCode, res.map)
+
+    return evalCode
+}
+
+// ===================================================
+
 export function enableTracing(){
     if (tracingEnabled){
         return
     }
     tracingEnabled = true
+    enableDynamicCodeBabelProcessing();
 
     function addOriginInfoToCreatedElement(el, tagName, action){
         var error = Error();
@@ -280,7 +397,6 @@ export function enableTracing(){
         }
         window.Object[propName] = nativeObjectObject[propName]
     })
-
 
     nativeStringFunctions.forEach(function(prop){
         // Don't do for now... breaks too much stuff because my FromJS code
@@ -637,21 +753,7 @@ export function enableTracing(){
         return nativeArrayIndexOf.apply(arrayItems, [specialToString(value)])
     }
 
-    function processScriptTagCodeAssignment(code){
-        var id = _.uniqueId();
-        var filename = "ScriptTag" + id + ".js"
-        var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
 
-        var fnName = "DynamicFunction" + id
-        var smFilename = filename + ".map"
-        var evalCode = res.code + "\n" +
-            "\n//# sourceURL=" + filename +
-            "\n//# sourceMappingURL=" + smFilename
-
-        registerDynamicFile(filename, code, evalCode, res.map)
-
-        return evalCode
-    }
 
     Object.defineProperty(Node.prototype, "textContent", {
         get: function(){
@@ -659,10 +761,6 @@ export function enableTracing(){
         },
         set: function(newTextContent){
             var el = this;
-
-            if (el.tagName === "SCRIPT") {
-                newTextContent = processScriptTagCodeAssignment(newTextContent)
-            }
 
             var ret = nativeNodeTextContentDescriptor.set.apply(this, [newTextContent])
 
@@ -689,15 +787,6 @@ export function enableTracing(){
         }
     })
 
-    Object.defineProperty(HTMLScriptElement.prototype, "text", {
-        get: function(){
-            return nativeHTMLScriptElementTextDescriptor.get.apply(this, arguments)
-        },
-        set: function(text){
-            text = processScriptTagCodeAssignment(text)
-            return nativeHTMLScriptElementTextDescriptor.set.apply(this, [text])
-        }
-    })
 
     Number.prototype.toFixed = function(digits){
         var str = nativeNumberToFixed.call(this, digits);
@@ -871,23 +960,7 @@ export function enableTracing(){
         }
     })
 
-    window.eval = function(code){
-        if (typeof code !== "string" && (!code || !code.isStringTraceString)) {
-            return code
-        }
 
-        var id = _.uniqueId();
-        var filename = "DynamicScript" + id + ".js"
-        var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
-
-        var smFilename = filename + ".map"
-        var evalCode = res.code + "\n//# sourceURL=" + filename +
-            "\n//# sourceMappingURL=" + smFilename
-
-        registerDynamicFile(filename, code, evalCode, res.map)
-
-        return nativeEval(evalCode)
-    }
 
     RegExp.prototype.exec = function(str){
         var args = unstringTracifyArguments(arguments)
@@ -1030,42 +1103,8 @@ export function enableTracing(){
     window.String.fromCodePoint = nativeStringObject.fromCodePoint
     window.String.fromCharCode = nativeStringObject.fromCharCode
 
-    window.Function = function(code){
-        var args = Array.prototype.slice.apply(arguments)
-        var code = args.pop()
-        code = removeSourceMapIfAny(code)
-        var argsWithoutCode = args.slice()
 
-        var id = _.uniqueId();
-        var filename = "DynamicFunction" + id + ".js"
 
-        var fnName = "DynamicFunction" + id
-        code = f__add("function " + fnName + "(" + argsWithoutCode.join(",") + "){", code);
-        code = f__add(code, "}")
-        var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
-        args.push(res.code)
-
-        var smFilename = filename + ".map"
-        var evalCode = res.code +
-            "\n//# sourceURL=" + filename +
-            "\n//# sourceMappingURL=" + smFilename
-
-        // create script tag instead of eval to prevent strict mode from propagating
-        // (I'm guessing if you call eval from code that's in strict mode  strict mode will
-        // propagate to the eval'd code.)
-        var script = document.createElement("script")
-        script.innerHTML = evalCode
-        document.body.appendChild(script)
-
-        script.remove();
-
-        registerDynamicFile(filename, code, evalCode, res.map, "Dynamic Function")
-
-        return function(){
-            return window[fnName].apply(this, arguments)
-        }
-    }
-    window.Function.prototype = nativeFunction.prototype
 
     window.Function.prototype.toString = function(){
         var _this = this;
@@ -1075,19 +1114,6 @@ export function enableTracing(){
         return nativeFunctionToString.apply(_this, arguments)
     }
 
-    function registerDynamicFile(filename, code, evalCode, sourceMap, actionName){
-        var smFilename = filename + ".map"
-        code = trackStringIfNotTracked(code)
-
-        dynamicCodeRegistry.register(smFilename, sourceMap)
-        dynamicCodeRegistry.register(filename, evalCode)
-        var codeOrigin = new Origin({
-            action: actionName === undefined ? "Dynamic Script" : actionName,
-            value: code.value,
-            inputValues: [code.origin]
-        })
-        dynamicCodeRegistry.register(filename + ".dontprocess", code.value, codeOrigin)
-    }
 
     document.write = function(str){
         var div = originalCreateElement.call(document, "div");
@@ -1146,6 +1172,9 @@ export function disableTracing(){
     if (!tracingEnabled) {
         return;
     }
+
+    disableDynamicCodeBabelProcessing();
+
     window.JSON.parse = window.nativeJSONParse
     window.JSON.stringify = nativeJSONStringify
     document.createElement = window.originalCreateElement
@@ -1165,17 +1194,15 @@ export function disableTracing(){
     })
     Object.defineProperty(HTMLInputElement.prototype, "value", nativeHTMLInputElementValueDescriptor)
     RegExp.prototype.exec = window.nativeExec
-    window.Function = nativeFunction
     window.Function.prototype.toString = nativeFunctionToString
     Object.defineProperty(Element.prototype, "className", window.nativeClassNameDescriptor)
     Object.defineProperty(HTMLElement.prototype, "dataset", window.nativeDataSetDescriptor)
     Object.defineProperty(Node.prototype, "textContent", nativeNodeTextContentDescriptor)
-    Object.defineProperty(HTMLScriptElement.prototype, "text", nativeHTMLScriptElementTextDescriptor)
+
     window.XMLHttpRequest = originalXMLHttpRequest
     Array.prototype.join = nativeArrayJoin
     Array.prototype.indexOf = nativeArrayIndexOf
     document.createTextNode = nativeCreateTextNode
-    window.eval = nativeEval
     Node.prototype.cloneNode = nativeCloneNode
     Node.prototype.addEventListener =  nativeAddEventListener
     Node.prototype.removeEventListener = nativeRemoveEventListener
@@ -1210,6 +1237,8 @@ export function disableTracing(){
     nativeStringFunctions.forEach(function(property) {
         String.prototype[property.name] = property.fn
     })
+
+
 
 }
 
