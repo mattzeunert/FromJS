@@ -30,14 +30,28 @@ const FromJSSessionStages = {
     CLOSED: "CLOSED"
 }
 
-class FromJSSession {
-    constructor(tabId) {
+class BabelSession {
+    constructor(tabId){
         this.tabId = tabId;
         this._stage = FromJSSessionStages.RELOADING;
         this._pageHtml = null;
         this._downloadCache = {}
         this._processJSCodeCache = {};
+        this._createPromises();
         this._open();
+    }
+    _createPromises(){
+        var promiseNames = ["onClosed"]
+
+        promiseNames.forEach((promiseName) => {
+            var resolveFunction;
+            this[promiseName] = new Promise((resolve) => {
+                resolveFunction = resolve;
+            })
+            this[promiseName].resolve = resolveFunction
+        })
+
+        debugger
     }
     _open(){
         this._log("Open tab", this.tabId)
@@ -46,22 +60,6 @@ class FromJSSession {
         chrome.webRequest.onBeforeRequest.addListener(this._onBeforeRequest, {urls: ["<all_urls>"], tabId: this.tabId}, ["blocking"]);
 
         chrome.tabs.reload(this.tabId)
-    }
-    close(){
-        chrome.webRequest.onBeforeRequest.removeListener(this._onBeforeRequest)
-        chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
-        delete sessionsByTabId[this.tabId]
-
-        this._stage = FromJSSessionStages.CLOSED;
-    }
-    isClosed(){
-        return this._stage === FromJSSessionStages.CLOSED
-    }
-    setPageHtml(pageHtml) {
-        this._pageHtml = pageHtml;
-    }
-    getPageHtml(){
-        return this._pageHtml;
     }
     initialize(){
         this._log("Init tab", this.tabId)
@@ -136,8 +134,11 @@ class FromJSSession {
             })
         })
     }
-    isActive(){
-        return this._stage === FromJSSessionStages.ACTIVE;
+    _log(){
+        console.log.apply(console, arguments);
+        if (!this.isClosed() && config.logBGPageLogsOnInspectedPage) {
+            this._executeScript("console.log('Background page log: " + JSON.stringify(arguments) + "')")
+        }
     }
     _executeScript(codeOrParamObject, callback){
         if (this.isClosed()) {
@@ -165,12 +166,7 @@ class FromJSSession {
             `
         }, callback);
     }
-    _log(){
-        console.log.apply(console, arguments);
-        if (!this.isClosed() && config.logBGPageLogsOnInspectedPage) {
-            this._executeScript("console.log('Background page log: " + JSON.stringify(arguments) + "')")
-        }
-    }
+
     _getJavaScriptFile(url){
         var self = this;
         return new Promise(function(resolve, reject){
@@ -252,6 +248,36 @@ class FromJSSession {
                     callback()
                 }
             })
+        })
+    }
+
+    isActive(){
+        return this._stage === FromJSSessionStages.ACTIVE;
+    }
+    close(){
+        chrome.webRequest.onBeforeRequest.removeListener(this._onBeforeRequest)
+        chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
+
+        this._stage = FromJSSessionStages.CLOSED;
+        this.onClosed.resolve();
+    }
+    isClosed(){
+        return this._stage === FromJSSessionStages.CLOSED
+    }
+    setPageHtml(pageHtml) {
+        this._pageHtml = pageHtml;
+    }
+    getPageHtml(){
+        return this._pageHtml;
+    }
+}
+
+class FromJSSession extends BabelSession {
+    constructor(tabId) {
+        super(tabId);
+        this.onClosed.then(() => {
+            delete sessionsByTabId[this.tabId]
+            alert("closed")
         })
     }
 }
