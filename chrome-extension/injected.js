@@ -39,12 +39,6 @@ window.onFromJSReady = function(){
     }
 }
 
-// Normally this file is loaded before fromJS is ready, but sometimes not
-if (window.fromJSIsReady) {
-    debugger; // this shoudln't happen! if it does the logic for inhibiting js execution is wrong
-    window.onFromJSReady()
-}
-
 function simulateOnLoad(){
     f__setDocumentReadyState("interactive")
 
