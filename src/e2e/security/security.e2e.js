@@ -17,11 +17,6 @@ describe('Security', function() {
 
         browser.get("http://localhost:9856/src/e2e/security/security.html#auto-activate-fromjs")
 
-        // .then(function(){
-        //     browser.pause();
-        // })
-        .then(waitForFromJSReady)
-
         .then(helpers.waitForEl("#security-done"))
         .then(function(){
             helpers.getInnerHtml("#result").then(function(resultHtml){
