@@ -22,6 +22,7 @@ describe("getHeadAndBodyContent", function(){
             <html lang="en">
               <head><!-- <head></head> --></head>
               <body><!-- <body></body> --></body>
+              <!-- <body></body> -->
             </html>
         `
         var res = getHeadAndBodyContent(html)
@@ -29,5 +30,46 @@ describe("getHeadAndBodyContent", function(){
         expect(res.bodyContent).toBe("<!-- <body></body> -->")
     })
 
-    // todo: support capitalized html tags
+    it("Returns the original content of the head/body tags, rather than a serialized version", function(){
+        var html = `
+            <!doctype html>
+            <html lang="en">
+              <head><div ></div></head>
+              <body><div ></div></body>
+            </html>
+        `
+        var res = getHeadAndBodyContent(html)
+        expect(res.headContent).toBe("<div ></div>")
+        expect(res.bodyContent).toBe("<div ></div>")
+    })
+
+    it("Supports uppercase HTML tags", function(){
+        var html = `
+            <!doctype html>
+            <html lang="en">
+              <HEAD>head</HEAD>
+              <BODY>body</BODY>
+            </html>
+        `
+        var res = getHeadAndBodyContent(html)
+        expect(res.headContent).toBe("head")
+        expect(res.bodyContent).toBe("body")
+    })
+
+    it("Supports whitespace in the closing head or body tag", function(){
+        var html = `
+            <!doctype html>
+            <html lang="en">
+              <head>head</ head
+              >
+              <body>body</ body
+              >
+            </html>
+        `
+        var res = getHeadAndBodyContent(html)
+        expect(res.headContent).toBe("head")
+        expect(res.bodyContent).toBe("body")
+    })
+
+
 })
