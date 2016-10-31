@@ -239,7 +239,6 @@ class BabelSession {
     }
     close(){
         chrome.webRequest.onBeforeRequest.removeListener(this._onBeforeRequest)
-        chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
 
         this._stage = FromJSSessionStages.CLOSED;
         this.onClosed();
@@ -262,6 +261,17 @@ class FromJSSession extends BabelSession {
     onClosed(){
         delete sessionsByTabId[this.tabId]
     }
+    _open(){
+        BabelSession.prototype._open.apply(this, arguments)
+
+        this._onHeadersReceived = makeOnHeadersReceived();
+        chrome.webRequest.onHeadersReceived.addListener(this._onHeadersReceived, {urls: ["<all_urls>"], tabId: this.tabId}, ["blocking", "responseHeaders"])
+    }
+    close(){
+        BabelSession.prototype.close.apply(this, arguments)
+
+        chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
+    }
     onBeforeLoad(){
         this._executeScript(`
             var script2 = document.createElement("script")
@@ -271,6 +281,29 @@ class FromJSSession extends BabelSession {
         )
     }
 }
+
+
+/*
+We're modifying the headers because some websites (e.g. twitter) otherwise prevent us
+from creating a webworker from a blob origin.
+Instead of modifying the headers we could instead move the resolveFrame web worker
+into the bg page.
+*/
+function makeOnHeadersReceived(){
+     return function onHeadersReceived(details){
+         if (details.type !== "main_frame") {return}
+
+         for (var i=0; i<details.responseHeaders.length; i++) {
+             if (details.responseHeaders[i].name === "Content-Security-Policy") {
+                 details.responseHeaders[i].value = ""
+             }
+         }
+
+         return {
+             responseHeaders: details.responseHeaders
+         }
+     }
+ }
 
 var sessionsByTabId = {};
 function getTabSession(tabId){
