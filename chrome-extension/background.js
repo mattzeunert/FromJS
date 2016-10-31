@@ -26,6 +26,7 @@ const FromJSSessionStages = {
     RELOADING: "RELOADING",
     INITIALIZING: "INITIALIZING",
     INITIALIZED: "INITIALIZED",
+    ACTIVATING: "ACTIVATING",
     ACTIVE: "ACTIVE",
     CLOSED: "CLOSED"
 }
@@ -84,7 +85,7 @@ class BabelSession {
             return;
         }
         this._log("Activate tab", this.tabId)
-        this._stage = FromJSSessionStages.ACTIVE;
+        this._stage = FromJSSessionStages.ACTIVATING;
 
         chrome.tabs.insertCSS(this.tabId, {
             code: fromJSCss[0][1]
@@ -113,7 +114,9 @@ class BabelSession {
                         document.documentElement.appendChild(script)
                       `
                 }, function(){
-                    self.onBeforeLoad()
+                    self.onBeforeLoad(function(){
+                        self._stage = FromJSSessionStages.ACTIVE;
+                    })
                 })
             })
         })
@@ -272,13 +275,19 @@ class FromJSSession extends BabelSession {
 
         chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
     }
-    onBeforeLoad(){
+    onBeforeLoad(callback){
         this._executeScript(`
             var script2 = document.createElement("script")
             script2.src = '${chrome.extension.getURL("from.js")}'
             script2.setAttribute("charset", "utf-8")
             document.documentElement.appendChild(script2)`
-        )
+        , function(){
+            // ideally we'd wait for a message from the page,
+            // but for now this will work
+            setTimeout(function(){
+                callback();
+            },100)
+        })
     }
 }
 
@@ -294,7 +303,7 @@ function makeOnHeadersReceived(){
          if (details.type !== "main_frame") {return}
 
          for (var i=0; i<details.responseHeaders.length; i++) {
-             if (details.responseHeaders[i].name === "Content-Security-Policy") {
+             if (details.responseHeaders[i].name.toLowerCase() === "content-security-policy" ) {
                  details.responseHeaders[i].value = ""
              }
          }

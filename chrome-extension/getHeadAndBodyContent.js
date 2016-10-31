@@ -33,7 +33,6 @@ function getHeadOrBodyContent(pageHtml, tagName){
 }
 
 function hasHead(pageHtml){
-    debugger
     return cheerio.load(pageHtml)("head").length > 0;
 }
 
