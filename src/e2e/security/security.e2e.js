@@ -22,7 +22,7 @@ describe('Security', function() {
         .then(helpers.waitForEl("#security-done"))
         .then(function(){
             helpers.getInnerHtml("#result").then(function(resultHtml){
-                expect(resultHtml.indexOf("FAILED")).toBe(-1)
+                expect(resultHtml.match(/PASSING/g).length).toBe(3)
             })
         })
     })
