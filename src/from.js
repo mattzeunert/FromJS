@@ -32,8 +32,9 @@ window.fromJSDisableTracing = disableTracing
 
 var resolveFrameWorker = createResolveFrameWorker()
 if (!window.isPlayground) {
-    resolveFrameWorker.beforePostMessage = disableTracing
-    resolveFrameWorker.afterPostMessage = enableTracing
+    resolveFrameWorker.postMessageWrapper = function(doPostMessage){
+        runFunctionWithTracingDisabled(doPostMessage)
+    }
 }
 resolveFrameWorker.on("fetchUrl", function(url, cb){
     if (window.isExtension) {

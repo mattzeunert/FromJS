@@ -27,9 +27,10 @@ window.startLoadingPage = function(){
         var headScripts = getScriptElements(headAndBody.headContent);
     }
 
-    enableNativeMethodPatching() // be careful calling global functions like regexp.exec, array.join etc after this
+
     if (headAndBody.headContent) {
         document.head.innerHTML = headAndBody.headContent
+        enableNativeMethodPatching() // be careful calling global functions like regexp.exec, array.join etc after this
         appendScriptsOneAfterAnother(headScripts, document.head, function(){
             loadBody()
         })
@@ -38,7 +39,9 @@ window.startLoadingPage = function(){
     }
 
     function loadBody(){
+        disableNativeMethodPatching();
         document.body.innerHTML = headAndBody.bodyContent
+        enableNativeMethodPatching();
         makeSureInitialHTMLHasBeenProcessed()
         window.extensionShowFromJSInspectorButton()
         appendScriptsOneAfterAnother(bodyScripts, document.body, function(){

@@ -68,8 +68,7 @@ export default function showFromJSSidebar(resolveFrameWorker){
     disableEventListeners()
 
     var inspectorPage = new RoundTripMessageWrapper(sidebarIframe.contentWindow, "Inspected App/Sidebar")
-    inspectorPage.beforePostMessage = disableTracing
-    inspectorPage.afterPostMessage = enableTracing
+    inspectorPage.postMessageWrapper = runFunctionWithTracingDisabled
 
     var currentSelectedElement = null;
     var currentPreviewedElement = null;
@@ -109,6 +108,10 @@ export default function showFromJSSidebar(resolveFrameWorker){
         $("body").css("padding-right", "40vw")
     }
 
+    // this should be part of public API, to make it easier to inspect elements
+    // that are hard to select in the UI
+    window.fromJSInspectElememt = setCurrentSelectedElement
+
     function setCurrentSelectedElement(el){
         runFunctionWithTracingDisabled(function(){
             currentSelectedElement = el
@@ -138,6 +141,8 @@ export default function showFromJSSidebar(resolveFrameWorker){
     })
 
     inspectorPage.on("UICloseInspector", function(){
+        delete window.fromJSInspectElememt
+
         disableTracing();
 
         sidebarIframe.remove();

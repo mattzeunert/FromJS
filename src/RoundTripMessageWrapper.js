@@ -57,15 +57,15 @@ export default class RoundTripMessageWrapper {
         this._targetHref = targetHref
         this.close = close
         this._postMessage = (data) => {
-            if (this.beforePostMessage) {
-                this.beforePostMessage()
+            if (this.postMessageWrapper){
+                this.postMessageWrapper(doPostMessage);
+            } else {
+                doPostMessage();
             }
 
-            data.timeSent = new Date();
-            postMessage(data, targetHref)
-
-            if (this.afterPostMessage) {
-                this.afterPostMessage();
+            function doPostMessage(){
+                data.timeSent = new Date();
+                postMessage(data, targetHref)
             }
         }
         this._handlers = {}
