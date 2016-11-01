@@ -19,6 +19,13 @@ describe('Backbone TodoMVC', function() {
         })
     });
 
+    it('Static HTML from the initial page load', function() {
+        helpers.inspectElement('h1')
+        .then(function(){
+            helpers.expectResult("t", "Initial Page HTML")
+        })
+    });
+
     it("Correctly traces the value of a newly created todo item", function(){
         helpers.inspectElement('.todo-list li label')
         .then(function(){
