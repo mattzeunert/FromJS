@@ -5,6 +5,8 @@ if (window.f__StringLiteral) {
         testComplete();
         if (httpRequest.responseText.indexOf("SEC" + "RET") !== -1) {
             document.querySelector("#ajax").innerHTML = "FAILED"
+        } else {
+            document.querySelector("#ajax").innerHTML = "PASSING"
         }
         console.log(httpRequest.responseText.value)
     };
@@ -16,6 +18,8 @@ if (window.f__StringLiteral) {
     window.cb = function(responseText){
         if (responseText.indexOf("SEC" + "RET") !== -1) {
             document.querySelector("#fetch-url").innerHTML = "FAILED"
+        } else {
+            document.querySelector("#fetch-url").innerHTML = "PASSING"
         }
         testComplete();
     }

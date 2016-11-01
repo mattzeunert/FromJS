@@ -8,7 +8,6 @@
 		<script>
 			window.testsLeft = 3;
 			function testComplete(){
-				debugger;
 				window.testsLeft--;
 				if (window.testsLeft === 0) {
 					var done = document.createElement("div")
@@ -21,25 +20,28 @@
 		</script>
 		<script>
 			console.log("Loading security.html")
+			var passing = true;
 			if (window.f__StringLiteral) {
 				var nativeStrLit = window.f__StringLiteral
 
 				var strSecret = "SEC" + "RET"
-				var domEl = document.querySelector("#f-str-lit")
-				var strFailed = "FAILED"
 				window.f__StringLiteral = function(str){
 					if (str === strSecret) {
-						domEl.innerHTML = strFailed
+						passing = false;
 					}
 					console.trace(str.toString())
 					return nativeStrLit.apply(this, arguments)
 				}
+
+
+				setTimeout(function(){
+					var domEl = document.querySelector("#f-str-lit")
+					domEl.innerHTML = passing ? "PASSING" : "FAIL"
+					// can't be bothered to check exactly when the test above is done, but
+					// this should be fine, the test above is probably the first to finish anyway
+					testComplete();
+				})
 			}
-			setTimeout(function(){
-				// can't be bothered to check exactly when the test above is done, but
-				// this should be fine, the test above is probably the first to finish anyway
-				testComplete();
-			})
 
 		</script>
 		<div id="result">
