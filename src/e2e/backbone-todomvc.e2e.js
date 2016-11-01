@@ -12,6 +12,14 @@ describe('Backbone TodoMVC', function() {
         .then(helpers.openFromJSInspector)
     })
 
+    it("Exposes a global fromJSInspectElement method", function(){
+        browser.executeScript(function(){
+            return window.fromJSInspectElememt !== undefined
+        }).then(function(hasFromJSInspectElement){
+            expect(hasFromJSInspectElement).toBe(true)
+        })
+    })
+
     it('Correctly traces a checkbox input', function() {
         helpers.inspectElement('input[type="checkbox"]')
         .then(function(){
