@@ -29,7 +29,11 @@ function getHeadOrBodyContent(pageHtml, tagName){
     var fromIndex = getIndexFromComment(tagContents.first())
     var toIndex = getIndexFromComment(tagContents.last())
 
-    return pageHtml.slice(fromIndex, toIndex);
+    return {
+        content: pageHtml.slice(fromIndex, toIndex),
+        fromIndex,
+        toIndex
+    }
 }
 
 function hasHead(pageHtml){
@@ -46,11 +50,20 @@ export default function getHeadAndBodyContent(pageHtml){
     } else {
         // Presumably this page has neither a head nor a body tag,
         // so just put everything into the body
-        bodyContent = pageHtml
+        bodyContent = {
+            content: pageHtml,
+            fromIndex: 0,
+            toIndex: pageHtml.length
+        }
     }
 
     return {
-        headContent,
-        bodyContent
+        // if headContent is null return null, otherwise get index
+        headContent: headContent && headContent.content,
+        headFromIndex: headContent && headContent.fromIndex,
+        headToIndex: headContent && headContent.toIndex,
+        bodyContent: bodyContent.content,
+        bodyFromIndex: bodyContent.fromIndex,
+        bodyToIndex: bodyContent.toIndex
     }
 }

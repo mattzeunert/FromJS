@@ -68,8 +68,7 @@ export default function showFromJSSidebar(resolveFrameWorker){
     disableEventListeners()
 
     var inspectorPage = new RoundTripMessageWrapper(sidebarIframe.contentWindow, "Inspected App/Sidebar")
-    inspectorPage.beforePostMessage = disableTracing
-    inspectorPage.afterPostMessage = enableTracing
+    inspectorPage.postMessageWrapper = runFunctionWithTracingDisabled
 
     var currentSelectedElement = null;
     var currentPreviewedElement = null;
