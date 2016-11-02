@@ -22,6 +22,18 @@ fetch(chrome.extension.getURL("resolveFrameWorker.js"))
     resolveFrameWorkerCode = text
 })
 
+// Needs to be injected as text as otherewise execution is delayed by a tiny bit,
+// which means page JS is executed beforehand.
+// looks like a chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=634381#c11
+var inhibitJSExecutionCode = "not loaded yet"
+fetch(chrome.extension.getURL("inhibitJavaScriptExecution.js"))
+.then(function(r){
+    return r.text()
+})
+.then(function(text){
+    inhibitJSExecutionCode = text
+})
+
 const FromJSSessionStages = {
     RELOADING: "RELOADING",
     INITIALIZING: "INITIALIZING",
@@ -56,7 +68,7 @@ class BabelSession {
         this._executeScript({
             code: `
                 var el = document.createElement("script")
-                el.src = "${chrome.extension.getURL("inhibitJavaScriptExecution.js")}";
+                el.textContent = decodeURI("${encodeURI(inhibitJSExecutionCode)}")
 
                 document.documentElement.appendChild(el)
             `,
