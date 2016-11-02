@@ -267,6 +267,9 @@ class BabelSession {
     getPageHtml(){
         return this._pageHtml;
     }
+    pageHasBeenLoaded(){
+        return this._pageHtml !== null;
+    }
 }
 
 class FromJSSession extends BabelSession {
@@ -487,7 +490,7 @@ function makeOnBeforeRequest(){
 
         if (info.type === "main_frame") {
             var session = getTabSession(info.tabId);
-            if (session.isActive()){
+            if (session.pageHasBeenLoaded()){
                 session.close();
                 return;
             }
