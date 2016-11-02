@@ -470,7 +470,7 @@ describe("HTML Mapping", function(){
         })
     })
 
-    it("Supports insertAdjacentHTML with positin 'afterBegin'", function(done){
+    it("Supports insertAdjacentHTML with position 'afterBegin'", function(done){
         var el = document.createElement("div");
         el.innerHTML = " World";
         el.insertAdjacentHTML("afterBegin", "Hello")
@@ -486,6 +486,25 @@ describe("HTML Mapping", function(){
             var characterIndex = steps[1].characterIndex
             expect(value).toBe(' World')
             expect(value[characterIndex]).toBe("W")
+            done()
+        })
+    })
+
+
+    it("Supports attributes that have spaces between the attr name and the value", function(done){
+        var el = document.createElement("div");
+        el.innerHTML = '<span a  \t\n =\n   "b">Hello</span>';
+
+        disableTracing()
+        expect(el.innerHTML).toBe('<span a="b">Hello</span>')
+
+        // <div><span a="b">[H]ello</span></div>
+        var firstStep = getRootOriginAtChar(el, 17)
+
+        whereDoesCharComeFrom(firstStep, function(steps){
+            var value = steps[1].origin.value;
+            var characterIndex = steps[1].characterIndex
+            expect(value[characterIndex]).toBe("H")
             done()
         })
     })

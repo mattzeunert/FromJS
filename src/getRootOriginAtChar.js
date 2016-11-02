@@ -3,6 +3,7 @@ import tagTypeHasClosingTag from "./tracing/tagTypeHasClosingTag"
 import getOpeningAndClosingTags from "./getOpeningAndClosingTags"
 import normalizeHtml, {normalizeHtmlAttribute} from "./normalizeHtml"
 import OriginPathStep from "./OriginPathStep"
+import debuggerStatementFunction from "./debuggerStatementFunction"
 
 window.getRootOriginAtChar = getRootOriginAtChar
 

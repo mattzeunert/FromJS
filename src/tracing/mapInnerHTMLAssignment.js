@@ -251,36 +251,50 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                         var offsetAtCharIndex = []
 
-                        var extraWhitespaceInAssignedHtml = whitespaceBeforeAttributeInAssignedHtml.length - whitespaceBeforeAttributeInSerializedHtml.length
-                        extraCharsAddedHere -= extraWhitespaceInAssignedHtml
+                        var extraWhitespaceBeforeAttributeInAssignedHtml = whitespaceBeforeAttributeInAssignedHtml.length - whitespaceBeforeAttributeInSerializedHtml.length
+                        extraCharsAddedHere -= extraWhitespaceBeforeAttributeInAssignedHtml
 
                         offsetAtCharIndex.push(-extraCharsAddedHere); // char index for " " before attr
 
-                        if (attr.textContent === ""){
-                            var offsetInAssigned = getCharOffsetInAssignedHTML() + whitespaceBeforeAttributeInAssignedHtml.length
-                            offsetInAssigned += attr.name.length + "=".length
-                            var firstTwoValueChars = assignedString.substr(offsetInAssigned, 2)
-                            if (twoQuoteSignsRegex.test(firstTwoValueChars)) {
-                                for (var charIndex in attrStr){
-                                    offsetAtCharIndex.push(-extraCharsAddedHere)
-                                }
-                            } else {
-                                for (var charIndex in attrStr){
-                                    if (charIndex >= attrStr.length - '=""'.length){
-                                        extraCharsAddedHere++;
-                                        offsetAtCharIndex.push(-extraCharsAddedHere)
-                                    } else {
-                                        offsetAtCharIndex.push(-extraCharsAddedHere)
-                                    }
-                                }
+                        var offsetInAssigned = getCharOffsetInAssignedHTML() + whitespaceBeforeAttributeInAssignedHtml.length
+
+                        // add mapping for attribute name
+                        for (var charIndex in attr.name){
+                            offsetAtCharIndex.push(-extraCharsAddedHere)
+                        }
+                        offsetInAssigned += attr.name.length;
+
+                        var nextCharacters = assignedString.substr(offsetInAssigned, 50);
+                        var equalsSignIsNextNonWhitespaceCharacter = /^[\s]*=/.test(nextCharacters)
+
+                        if (!equalsSignIsNextNonWhitespaceCharacter) {
+                            if (attr.textContent !== "") {
+                                debuggerStatementFunction();
                             }
-                        } else {
-                            var attrStrStart = attr.name + "='"
-                            for (var charIndex in attrStrStart){
+                            // value of attribute is omitted in original html
+                            for (var charIndex in '=""'){
+                                extraCharsAddedHere++;
                                 offsetAtCharIndex.push(-extraCharsAddedHere)
                             }
+                        } else {
+                            var whitespaceBeforeEqualsSign = nextCharacters.match(/^([\s]*)=/)[1]
+                            extraCharsAddedHere -= whitespaceBeforeEqualsSign.length;
+                            offsetInAssigned += whitespaceBeforeEqualsSign.length;
 
-                            var charOffsetAdjustmentInAssignedHtml = whitespaceBeforeAttributeInAssignedHtml.length + attrStrStart.length
+                            // map `=` character
+                            offsetAtCharIndex.push(-extraCharsAddedHere)
+                            offsetInAssigned += "=".length
+
+                            var nextCharacters = assignedString.substr(offsetInAssigned, 50)
+                            var whitespaceBeforeNonWhiteSpace = nextCharacters.match(/^([\s]*)[\S]/)[1]
+                            extraCharsAddedHere -= whitespaceBeforeNonWhiteSpace.length
+                            offsetInAssigned += whitespaceBeforeNonWhiteSpace.length
+
+                            // map `"` character
+                            offsetAtCharIndex.push(-extraCharsAddedHere)
+                            offsetInAssigned += '"'.length
+
+                            var charOffsetAdjustmentInAssignedHtml = offsetInAssigned - getCharOffsetInAssignedHTML()
                             var res = getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml, child.tagName)
 
                             if (res.offsets === undefined){
@@ -317,7 +331,7 @@ export default function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName
 
                         charsAddedInSerializedHtml += extraCharsAddedHere
 
-                         charOffsetInSerializedHtml += whitespaceBeforeAttributeInSerializedHtml.length + attrStr.length
+                        charOffsetInSerializedHtml += whitespaceBeforeAttributeInSerializedHtml.length + attrStr.length
                         forDebuggingProcessedHtml += whitespaceBeforeAttributeInSerializedHtml + attrStr
 
                         var attrPropName = "attribute_" + attr.name;
