@@ -12,6 +12,7 @@ import endsWith from "ends-with"
 import toString from "../untracedToString"
 import {getScriptElements} from "../getJSScriptTags"
 import makeGetErrorFunction from "./makeGetErrorFunction"
+import CodePreprocessor from "./code-preprocessor"
 
 var tracingEnabled = false;
 
@@ -24,6 +25,38 @@ window.originalCreateElement = originalCreateElement
 var nativeCreateElementNS = document.createElementNS
 var nativeCreateComment = document.createComment;
 var nativeDocumentWrite = document.write;
+
+function registerDynamicFile(filename, code, evalCode, sourceMap, actionName){
+    var smFilename = filename + ".map"
+    code = trackStringIfNotTracked(code)
+
+    dynamicCodeRegistry.register(smFilename, sourceMap)
+    dynamicCodeRegistry.register(filename, evalCode)
+    var codeOrigin = new Origin({
+        action: actionName === undefined ? "Dynamic Script" : actionName,
+        value: code.value,
+        inputValues: [code.origin]
+    })
+    dynamicCodeRegistry.register(filename + ".dontprocess", code.value, codeOrigin)
+}
+
+var codePreprocessor = new CodePreprocessor({
+    preprocessCode: function(code, options){
+        return processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), options)
+    },
+    wrap: function(fn){
+        return function(){
+            var args = Array.from(arguments)
+            return fn.apply(this, args)
+
+        }
+    },
+    getNewFunctionCode: function(fnStart, code, fnEnd){
+        return f__add(f__add(fnStart, code), fnEnd)
+    },
+    useValue: stringTraceUseValue,
+    onCodeProcessed: registerDynamicFile
+});
 
 var nativeObjectObject = window.Object
 window.nativeObjectObject = nativeObjectObject
@@ -186,128 +219,12 @@ function FrozenElement(el) {
 }
 FrozenElement.prototype.isFromJSFrozenElement = true;
 
-// ===================================================
-
-function registerDynamicFile(filename, code, evalCode, sourceMap, actionName){
-    var smFilename = filename + ".map"
-    code = trackStringIfNotTracked(code)
-
-    dynamicCodeRegistry.register(smFilename, sourceMap)
-    dynamicCodeRegistry.register(filename, evalCode)
-    var codeOrigin = new Origin({
-        action: actionName === undefined ? "Dynamic Script" : actionName,
-        value: code.value,
-        inputValues: [code.origin]
-    })
-    dynamicCodeRegistry.register(filename + ".dontprocess", code.value, codeOrigin)
-}
-
-function enableDynamicCodeBabelProcessing(){
-    window.eval = function(code){
-        if (typeof code !== "string" && (!code || !code.isStringTraceString)) {
-            return code
-        }
-
-        var id = _.uniqueId();
-        var filename = "DynamicScript" + id + ".js"
-        var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
-
-        var smFilename = filename + ".map"
-        var evalCode = res.code + "\n//# sourceURL=" + filename +
-            "\n//# sourceMappingURL=" + smFilename
-
-        registerDynamicFile(filename, code, evalCode, res.map)
-
-        return nativeEval(evalCode)
-    };
-
-    ["text", "textContent"].forEach(function(propertyName){
-        Object.defineProperty(HTMLScriptElement.prototype, propertyName, {
-            get: function(){
-                // text !== textContent, but close enough
-                return nativeHTMLScriptElementTextDescriptor.get.apply(this, arguments)
-            },
-            set: function(text){
-                text = processScriptTagCodeAssignment(text)
-                // text !== textContent, but close enough
-                return nativeHTMLScriptElementTextDescriptor.set.apply(this, [text])
-            },
-            configurable: true
-        })
-    })
-
-    window.Function = function(code){
-        var args = Array.prototype.slice.apply(arguments)
-        var code = args.pop()
-        code = removeSourceMapIfAny(code)
-        var argsWithoutCode = args.slice()
-
-        var id = _.uniqueId();
-        var filename = "DynamicFunction" + id + ".js"
-
-        var fnName = "DynamicFunction" + id
-        code = f__add("function " + fnName + "(" + argsWithoutCode.join(",") + "){", code);
-        code = f__add(code, "}")
-        var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
-        args.push(res.code)
-
-        var smFilename = filename + ".map"
-        var evalCode = res.code +
-            "\n//# sourceURL=" + filename +
-            "\n//# sourceMappingURL=" + smFilename
-
-        // create script tag instead of eval to prevent strict mode from propagating
-        // (I'm guessing if you call eval from code that's in strict mode  strict mode will
-        // propagate to the eval'd code.)
-        var script = document.createElement("script")
-        script.innerHTML = evalCode
-        document.body.appendChild(script)
-
-        script.remove();
-
-        registerDynamicFile(filename, code, evalCode, res.map, "Dynamic Function")
-
-        return function(){
-            return window[fnName].apply(this, arguments)
-        }
-    }
-
-    window.Function.prototype = nativeFunction.prototype
-}
-
-function disableDynamicCodeBabelProcessing(){
-    window.eval = nativeEval
-    Object.defineProperty(HTMLScriptElement.prototype, "text", nativeHTMLScriptElementTextDescriptor)
-    // HTMLScriptElement doesn't normally have textcontent on own prototype, inherits the prop from Node
-    Object.defineProperty(HTMLScriptElement.prototype, "textContent", nativeNodeTextContentDescriptor)
-
-    window.Function = nativeFunction
-}
-
-function processScriptTagCodeAssignment(code){
-    var id = _.uniqueId();
-    var filename = "ScriptTag" + id + ".js"
-    var res = processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), {filename: filename})
-
-    var fnName = "DynamicFunction" + id
-    var smFilename = filename + ".map"
-    var evalCode = res.code + "\n" +
-        "\n//# sourceURL=" + filename +
-        "\n//# sourceMappingURL=" + smFilename
-
-    registerDynamicFile(filename, code, evalCode, res.map)
-
-    return evalCode
-}
-
-// ===================================================
-
 export function enableTracing(){
     if (tracingEnabled){
         return
     }
     tracingEnabled = true
-    enableDynamicCodeBabelProcessing();
+    codePreprocessor.enable();
 
     function addOriginInfoToCreatedElement(el, tagName, action){
         var error = Error();
@@ -1173,7 +1090,7 @@ export function disableTracing(){
         return;
     }
 
-    disableDynamicCodeBabelProcessing();
+    codePreprocessor.disable();
 
     window.JSON.parse = window.nativeJSONParse
     window.JSON.stringify = nativeJSONStringify
