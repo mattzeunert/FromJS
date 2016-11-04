@@ -1173,6 +1173,14 @@ class ElementOriginPath extends React.Component {
                 } else {
                     setState()
                 }
+            }, () => {
+                // if getting the origin path is taking a while show the loading message
+                this.setState({
+                    previewOriginPath: null,
+                    previewOriginPathKey: null,
+                    originPath: null,
+                    originPathKey: null
+                })
             })
         } else {
             // Don't reset yet so it doesn't flash the previous value, instead we want to continue showing the
@@ -1185,15 +1193,18 @@ class ElementOriginPath extends React.Component {
             }))
         }
     }
-    getOriginKeyAndPath(props, state, characterIndex, callback){
+    getOriginKeyAndPath(props, state, characterIndex, callback, onSlowResponse){
         var canceled = false;
+        var slowResponseTimeout = setTimeout(onSlowResponse, 300)
         this.getOriginPathKey(props, state, characterIndex, key => {
             this.getOriginPath(props, state, characterIndex, originPath => {
                 if (canceled) {return}
+                clearTimeout(slowResponseTimeout);
                 callback(key, originPath)
             })
         })
         return function cancel(){
+            clearTimeout(slowResponseTimeout);
             canceled = true;
         }
     }
