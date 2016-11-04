@@ -44,13 +44,6 @@ var codePreprocessor = new CodePreprocessor({
     preprocessCode: function(code, options){
         return processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), options)
     },
-    wrap: function(fn){
-        return function(){
-            var args = Array.from(arguments)
-            return fn.apply(this, args)
-
-        }
-    },
     getNewFunctionCode: function(fnStart, code, fnEnd){
         return f__add(f__add(fnStart, code), fnEnd)
     },

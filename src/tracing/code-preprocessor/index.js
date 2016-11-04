@@ -9,8 +9,7 @@ var nativeFunction = window.Function
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
 
 export default class CodePreprocessor {
-    constructor({wrap, preprocessCode, onCodeProcessed, getNewFunctionCode, useValue}){
-        this.wrap = wrap
+    constructor({preprocessCode, onCodeProcessed, getNewFunctionCode, useValue}){
         this.preprocessCode = preprocessCode
         this.onCodeProcessed = onCodeProcessed
         this.getNewFunctionCode = getNewFunctionCode
@@ -54,24 +53,18 @@ export default class CodePreprocessor {
 
             return nativeEval(evalCode)
         };
-        window.eval = self.wrap(window.eval)
-
-        var textAssignmentGetter = function (){
-            // text !== textContent, but close enough
-            return nativeHTMLScriptElementTextDescriptor.get.apply(this, arguments)
-        }
-        var textAssignmentSetter = function(text){
-            text = processScriptTagCodeAssignment(text)
-            // text !== textContent, but close enough
-            return nativeHTMLScriptElementTextDescriptor.set.apply(this, [text])
-        }
-        textAssignmentSetter = self.wrap(textAssignmentSetter);
-        textAssignmentGetter = self.wrap(textAssignmentGetter);
 
         ["text", "textContent"].forEach(function handleTextAssignment(propertyName){
             Object.defineProperty(HTMLScriptElement.prototype, propertyName, {
-                get: textAssignmentGetter,
-                set: textAssignmentSetter,
+                get: function (){
+                    // text !== textContent, but close enough
+                    return nativeHTMLScriptElementTextDescriptor.get.apply(this, arguments)
+                },
+                set: function(text){
+                    text = processScriptTagCodeAssignment(text)
+                    // text !== textContent, but close enough
+                    return nativeHTMLScriptElementTextDescriptor.set.apply(this, [text])
+                },
                 configurable: true
             })
         })
@@ -113,7 +106,6 @@ export default class CodePreprocessor {
                 return window[fnName].apply(this, arguments)
             }
         }
-        window.Function = self.wrap(window.Function);
 
         window.Function.prototype = nativeFunction.prototype
     }
