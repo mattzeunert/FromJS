@@ -164,6 +164,7 @@ describe("processJavaScriptCode", function(){
     })
 
     it("Replaces .readyState lookups with f__getReadyState calls", function(){
+        window.f__getReadyState = function(){}
         spyOn(window, "f__getReadyState").and.returnValue("abc");
         var code = `
             document.readyState;

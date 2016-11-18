@@ -1,4 +1,4 @@
-import processJavaScriptCode, {removeSourceMapIfAny} from "../../compilation/processJavaScriptCode"
+import {removeSourceMapIfAny} from "../../compilation/processJavaScriptCode"
 import _ from "underscore"
 
 
@@ -14,6 +14,7 @@ export default class CodePreprocessor {
         this.onCodeProcessed = onCodeProcessed
         this.getNewFunctionCode = getNewFunctionCode
         this.useValue = useValue
+        this.documentReadyState = "loading"
     }
     enable(){
         var self = this;
@@ -108,6 +109,18 @@ export default class CodePreprocessor {
         }
 
         window.Function.prototype = nativeFunction.prototype
+
+        var self = this;
+        window.f__getReadyState = function f__getReadyState(obj){
+            if (obj === document){
+                return self.documentReadyState;
+            } else {
+                return obj.readyState
+            }
+        }
+        window.f__setDocumentReadyState = function f__setDocumentReadyState(value){
+            self.documentReadyState = value
+        }
     }
     disable(){
         window.eval = nativeEval
