@@ -113,21 +113,37 @@ class BabelSession {
             `,
         }, function(){
             self._executeScript({
-                file: "contentScript.js", // loads injected.js
+                code: `
+                    var script = document.createElement("script")
+                    script.text = \`
+                        window.createCodePreprocessor = function(CodePreprocessor){
+
+                            window.codePreprocessor = new CodePreprocessor({
+                                babelPlugin: eval(decodeURI("(${encodeURI(self._babelPlugin.toString())})"))
+                            })
+                            console.log("assigned", window.codePreprocessor)
+                        }
+                    \`
+
+                    document.documentElement.appendChild(script)
+                `
             }, function(){
-
-                var encodedPageHtml = encodeURI(self._pageHtml)
                 self._executeScript({
-                    code: `
-                        var script = document.createElement("script");
-
-                        script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
-                        script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
-                        document.documentElement.appendChild(script)
-                      `
+                    file: "contentScript.js", // loads injected.js
                 }, function(){
-                    self.onBeforeLoad(function(){
-                        self._stage = FromJSSessionStages.ACTIVE;
+                    var encodedPageHtml = encodeURI(self._pageHtml)
+                    self._executeScript({
+                        code: `
+                            var script = document.createElement("script");
+
+                            script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
+                            script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
+                            document.documentElement.appendChild(script)
+                          `
+                    }, function(){
+                        self.onBeforeLoad(function(){
+                            self._stage = FromJSSessionStages.ACTIVE;
+                        })
                     })
                 })
             })

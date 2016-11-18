@@ -2,7 +2,9 @@ import {getScriptElements} from "../src/getJSScriptTags"
 import _ from "underscore"
 import getHeadAndBodyContent from "./getHeadAndBodyContent"
 import sendMessageToBackgroundPage from "../src/sendMessageToBackgroundPage"
+import CodePreprocessor from "../src/tracing/code-preprocessor"
 
+window.createCodePreprocessor(CodePreprocessor)
 window.isExtension = true;
 
 function enableNativeMethodPatching(){
