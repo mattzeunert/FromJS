@@ -192,7 +192,7 @@ class BabelSession {
     _processJavaScriptCode(code, options){
         var key = code + JSON.stringify(options);
         if (!this._processJSCodeCache[key]) {
-            var res = processJavaScriptCode(this.babelPlugin)(code, options);
+            var res = processJavaScriptCode(this._babelPlugin)(code, options);
             this._processJSCodeCache[key] = {
                 map: res.map,
                 code: res.code
