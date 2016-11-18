@@ -43,11 +43,13 @@ function registerDynamicFile(filename, code, evalCode, sourceMap, actionName){
     dynamicCodeRegistry.register(filename + ".dontprocess", code.value, codeOrigin)
 }
 
+var codePreprocessor;
 if (!window.isExtension){
-    window.codePreprocessor = new CodePreprocessor({
+    codePreprocessor = new CodePreprocessor({
         babelPlugin: babelPlugin
     });
 } else {
+    codePreprocessor = window.codePreprocessor
     console.log("existing codePreprocessor", window.codePreprocessor)
 }
 
