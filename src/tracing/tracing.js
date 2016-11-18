@@ -43,16 +43,24 @@ function registerDynamicFile(filename, code, evalCode, sourceMap, actionName){
     dynamicCodeRegistry.register(filename + ".dontprocess", code.value, codeOrigin)
 }
 
+
 var codePreprocessor = new CodePreprocessor({
-    preprocessCode: function(code, options){
-        return processJavaScriptCodeWithTracingDisabled(stringTraceUseValue(code), options)
+    babelPlugin: babelPlugin
+});
+codePreprocessor.setOptions({
+    wrapPreprocessCode: function(code, options, doProcess){
+        var self = this;
+        return runFunctionWithTracingDisabled(function(){
+            code = stringTraceUseValue(code)
+            return doProcess(code, options)
+        })
     },
     getNewFunctionCode: function(fnStart, code, fnEnd){
         return f__add(f__add(fnStart, code), fnEnd)
     },
     useValue: stringTraceUseValue,
     onCodeProcessed: registerDynamicFile
-});
+})
 
 var nativeObjectObject = window.Object
 window.nativeObjectObject = nativeObjectObject
@@ -161,14 +169,6 @@ export function runFunctionWithTracingDisabled(fn){
         }
     }
     return ret
-}
-
-function processJavaScriptCodeWithTracingDisabled(){
-    var args = arguments
-    var self = this
-    return runFunctionWithTracingDisabled(function(){
-        return processJavaScriptCode.apply(self, args)
-    })
 }
 
 var eventListenersEnabled = true;

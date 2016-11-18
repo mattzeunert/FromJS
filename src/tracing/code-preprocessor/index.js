@@ -1,4 +1,4 @@
-import {removeSourceMapIfAny} from "../../compilation/processJavaScriptCode"
+import processJSCode, {removeSourceMapIfAny} from "../../compilation/processJavaScriptCode"
 import _ from "underscore"
 
 
@@ -9,12 +9,19 @@ var nativeFunction = window.Function
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
 
 export default class CodePreprocessor {
-    constructor({preprocessCode, onCodeProcessed, getNewFunctionCode, useValue}){
-        this.preprocessCode = preprocessCode
+    constructor({babelPlugin}){
+        this.documentReadyState = "loading"
+        this.babelPlugin = babelPlugin
+    }
+    setOptions({onCodeProcessed, getNewFunctionCode, useValue, wrapPreprocessCode}){
         this.onCodeProcessed = onCodeProcessed
         this.getNewFunctionCode = getNewFunctionCode
         this.useValue = useValue
-        this.documentReadyState = "loading"
+
+        var self = this;
+        this.preprocessCode = function(code, options){
+            return wrapPreprocessCode.apply(self, [code, options, processJSCode(self.babelPlugin)])
+        }
     }
     enable(){
         var self = this;
