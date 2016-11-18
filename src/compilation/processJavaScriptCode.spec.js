@@ -1,4 +1,7 @@
-import processJavaScriptCode from "./processJavaScriptCode"
+import processJSCode from "./processJavaScriptCode"
+import babelPlugin from "./plugin"
+
+var processJavaScriptCode = processJSCode(babelPlugin)
 
 describe("processJavaScriptCode", function(){
     it("Wraps string literals with an object with an origin", function(){

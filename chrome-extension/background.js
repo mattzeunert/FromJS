@@ -192,7 +192,7 @@ class BabelSession {
     _processJavaScriptCode(code, options){
         var key = code + JSON.stringify(options);
         if (!this._processJSCodeCache[key]) {
-            var res = processJavaScriptCode(code, options);
+            var res = processJavaScriptCode(this.babelPlugin)(code, options);
             this._processJSCodeCache[key] = {
                 map: res.map,
                 code: res.code
@@ -275,6 +275,7 @@ class BabelSession {
 class FromJSSession extends BabelSession {
     constructor(tabId) {
         super(tabId);
+        this._babelPlugin = require("../src/compilation/plugin")
     }
     onClosed(){
         delete sessionsByTabId[this.tabId]

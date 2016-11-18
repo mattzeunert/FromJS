@@ -4,7 +4,7 @@ import {makeTraceObject} from "./FromJSString"
 import Origin from "../origin"
 import _ from "underscore"
 import stringTraceUseValue from "./stringTraceUseValue"
-import processJavaScriptCode, {removeSourceMapIfAny} from "../compilation/processJavaScriptCode"
+import processJSCode from "../compilation/processJavaScriptCode"
 import mapInnerHTMLAssignment from "./mapInnerHTMLAssignment"
 import untrackedString from "./untrackedString"
 import trackStringIfNotTracked, {makeTrackIfNotTrackedFunction} from "./trackStringIfNotTracked"
@@ -13,6 +13,9 @@ import toString from "../untracedToString"
 import {getScriptElements} from "../getJSScriptTags"
 import makeGetErrorFunction from "./makeGetErrorFunction"
 import CodePreprocessor from "./code-preprocessor"
+import babelPlugin from "../compilation/plugin"
+
+var processJavaScriptCode = processJSCode(babelPlugin)
 
 var tracingEnabled = false;
 

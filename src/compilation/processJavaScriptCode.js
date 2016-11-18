@@ -1,9 +1,5 @@
-if (!process.env.isDemo) {
-    // Data is pre-processed, so we don't need to include babel in the build
-    var babel = require("babel-core")
-    var Plugin = require("./plugin")
-    var babylon = require("babylon")
-}
+var babel = require("babel-core")
+var babylon = require("babylon")
 
 // This code is required to simulate the fake page load in the Chrome extension
 // Might reuse it later if moving the fake load / Babel processing to a separate module
@@ -40,24 +36,28 @@ export function removeSourceMapIfAny(code){
     return code
 }
 
-export default function processJavaScriptCode(code, options){
-    code = removeSourceMapIfAny(code)
+export default function(babelPlugin){
 
-    const ast = babylon.parse(code, {
-        strict: false,
-        allowReturnOutsideFunction: true,
-        sourceFilename: options !== undefined ? options.filename + ".dontprocess" : undefined
-    });
 
-    var res = babel.transformFromAst(ast, code, {
-        sourceMaps: true,
-        compact: false,
-        plugins: [
-            sharedPlugin,
-            Plugin
-        ]
-    });
-    res.map.sourcesContent = undefined
+    return function processJavaScriptCode(code, options){
+        code = removeSourceMapIfAny(code)
 
-    return res
+        const ast = babylon.parse(code, {
+            strict: false,
+            allowReturnOutsideFunction: true,
+            sourceFilename: options !== undefined ? options.filename + ".dontprocess" : undefined
+        });
+
+        var res = babel.transformFromAst(ast, code, {
+            sourceMaps: true,
+            compact: false,
+            plugins: [
+                sharedPlugin,
+                babelPlugin
+            ]
+        });
+        res.map.sourcesContent = undefined
+
+        return res
+    }
 }
