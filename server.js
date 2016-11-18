@@ -3,9 +3,12 @@ var fs = require("fs");
 var endsWith = require('ends-with');
 var startsWith = require("starts-with")
 var stringContains = require("string-contains");
-import processJavaScriptCode from "./src/compilation/processJavaScriptCode"
+import processJSCode from "./src/compilation/processJavaScriptCode"
+import babelPlugin from "./src/compilation/plugin"
 import { replaceJSScriptTags } from "./src/getJSScriptTags"
 var _ = require("underscore")
+
+var processJavaScriptCode = processJSCode(babelPlugin)
 
 var port = parseFloat(process.argv[2])
 if (!port) {
