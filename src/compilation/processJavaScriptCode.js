@@ -7,10 +7,16 @@ var sharedPlugin = function(babel) {
     return {
         visitor: {
             MemberExpression(path){
+                var ancestor = path.parentPath;
+                while (ancestor.node.type === "MemberExpression") {
+                    ancestor = ancestor.parentPath;
+                }
+                var ancestorIsAssignmentExpression = ancestor.node.type === "AssignmentExpression"
+
                 // We can't overwrite document.readyState in the brower, so instead
                 // try to intercept lookups for `readyState` properties
                 // This won't catch document["ready" + "state"], but it's good enough
-                if (path.node.property.value === "readyState" || path.node.property.name === "readyState") {
+                if (!ancestorIsAssignmentExpression && (path.node.property.value === "readyState" || path.node.property.name === "readyState")) {
                     var call = babel.types.callExpression(
                         babel.types.identifier("f__getReadyState"),
                         [path.node.object]
