@@ -12,6 +12,21 @@ export default class CodePreprocessor {
     constructor({babelPlugin}){
         this.documentReadyState = "loading"
         this.babelPlugin = babelPlugin
+
+        this.setGlobalFunctions()
+    }
+    setGlobalFunctions(){
+        var self = this;
+        window.f__getReadyState = function f__getReadyState(obj){
+            if (obj === document){
+                return self.documentReadyState;
+            } else {
+                return obj.readyState
+            }
+        }
+        window.f__setDocumentReadyState = function f__setDocumentReadyState(value){
+            self.documentReadyState = value
+        }
     }
     setOptions({onCodeProcessed, getNewFunctionCode, useValue, wrapPreprocessCode}){
         this.onCodeProcessed = onCodeProcessed
@@ -116,18 +131,6 @@ export default class CodePreprocessor {
         }
 
         window.Function.prototype = nativeFunction.prototype
-
-        var self = this;
-        window.f__getReadyState = function f__getReadyState(obj){
-            if (obj === document){
-                return self.documentReadyState;
-            } else {
-                return obj.readyState
-            }
-        }
-        window.f__setDocumentReadyState = function f__setDocumentReadyState(value){
-            self.documentReadyState = value
-        }
     }
     disable(){
         window.eval = nativeEval

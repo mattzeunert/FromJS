@@ -7,12 +7,10 @@ import CodePreprocessor from "../src/tracing/code-preprocessor"
 window.createCodePreprocessor(CodePreprocessor)
 window.isExtension = true;
 
-function enableNativeMethodPatching(){
-    window.fromJSEnableTracing();
-}
-function disableNativeMethodPatching(){
-    window.fromJSDisableTracing()
-}
+
+console.log("inside Injected.js")
+window.originalCreateElement = document.createElement
+window.nativeInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML")
 
 window.startLoadingPage = function(){
     console.info("FromJS: Loading page...")
@@ -44,8 +42,7 @@ window.startLoadingPage = function(){
         disableNativeMethodPatching();
         document.body.innerHTML = headAndBody.bodyContent
         enableNativeMethodPatching();
-        makeSureInitialHTMLHasBeenProcessed()
-        window.extensionShowFromJSInspectorButton()
+        onAfterBodyHTMLInserted()
         appendScriptsOneAfterAnother(bodyScripts, document.body, function(){
             simulateOnLoad()
         })

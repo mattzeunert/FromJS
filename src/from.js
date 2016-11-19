@@ -109,6 +109,13 @@ if (location.hash === "#speed-up-execution-and-break-tracing") {
 }
 
 if (window.isExtension) {
+    window.onAfterBodyHTMLInserted = function(){
+        makeSureInitialHTMLHasBeenProcessed();
+        window.extensionShowFromJSInspectorButton()
+    }
+}
+
+if (window.isExtension) {
         // measureTodoMVCRenderingTime()
 
     function measureTodoMVCRenderingTime(){

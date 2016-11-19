@@ -1162,3 +1162,6 @@ export function disableTracing(){
 }
 
 window._disableTracing = disableTracing
+
+window.enableNativeMethodPatching = enableTracing
+window.disableNativeMethodPatching = disableTracing
