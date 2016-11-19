@@ -1,4 +1,3 @@
-
 var webpack = require('webpack');
 var WebpackShellPlugin = require("webpack-shell-plugin")
 var getBaseConfig = require("./getBaseConfig")
@@ -11,8 +10,7 @@ webConfig.entry = {
     inspector: ['./src/inspector.js'],
     injected: ["./chrome-extension/injected.js"],
     resolveFrameWorker: ["./src/resolveFrameWorker.js"],
-    inhibitJavaScriptExecution: ["./chrome-extension/inhibitJavaScriptExecution.js"],
-    reusePreprocessor: ["./reuse-preprocessor/re.js"]
+    inhibitJavaScriptExecution: ["./chrome-extension/inhibitJavaScriptExecution.js"]
 };
 webConfig.output = {
     path: "./",

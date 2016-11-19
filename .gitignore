@@ -1,6 +1,7 @@
 /node_modules
 /dist
 /chrome-extension/dist
+/code-preprocessing-test/dist
 /todomvc-master
 /react-compiled
 /gh-pages/playground/fromjs
