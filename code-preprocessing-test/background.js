@@ -43,37 +43,5 @@ function onBrowserActionClicked(tab) {
     } else {
         codeInstrumentor.createSession(tab.id)
     }
-
-
 }
 chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
-
-
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-    var session = getTabSession(tabId);
-
-    if (!session && tab.url && changeInfo.status === "complete" && urlIsOnE2ETestServer(tab.url) && tab.url.indexOf("#auto-activate-fromjs") !== -1) {
-        onBrowserActionClicked(tab);
-    }
-
-    if (!session || session.isActive()){
-        return
-    }
-
-    console.log("changeInfo", changeInfo)
-    if (changeInfo.status === "complete") {
-        session.activate()
-    }
-    if (changeInfo.status === "loading") {
-        session.initialize();
-    }
-})
-
-chrome.tabs.onRemoved.addListener(function(tabId){
-    var session = getTabSession(tabId);
-    console.log("onremoved")
-    if (session){
-        console.log("closing")
-        session.close();
-    }
-})
