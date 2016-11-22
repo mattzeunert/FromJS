@@ -18,6 +18,7 @@ export default class CodePreprocessor {
     setGlobalFunctions(){
         var self = this;
         window.f__getReadyState = function f__getReadyState(obj){
+            debugger
             if (obj === document){
                 return self.documentReadyState;
             } else {
