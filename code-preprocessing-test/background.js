@@ -21,6 +21,7 @@ var codeInstrumentor = new ChromeCodeInstrumentor({
      };
   },
   logBGPageLogsOnInspectedPage: config.logBGPageLogsOnInspectedPage,
+  showTabStatusBadge: true,
   onBeforeLoad: function(callback){
       this._executeScript(`
           var script = document.createElement("script")
@@ -50,29 +51,12 @@ function onBrowserActionClicked(tab) {
         codeInstrumentor.createSession(tab.id)
     }
 
-    updateBadge(tab)
+
 }
 chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 
-function updateBadge(tab){
-    var text = ""
-    var session = getTabSession(tab.id)
-    if (session) {
-        text = "ON"
-    }
-    chrome.browserAction.setBadgeText({
-        text: text,
-        tabId: tab.id
-    });
-    chrome.browserAction.setBadgeBackgroundColor({
-        tabId: tab.id,
-        color: "#cc5214"
-    })
-}
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-    updateBadge(tab)
-
     var session = getTabSession(tabId);
 
     if (tab.url && urlIsOnE2ETestServer(tab.url)){

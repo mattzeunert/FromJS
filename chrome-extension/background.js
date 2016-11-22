@@ -13,6 +13,7 @@ chrome.tabs.query({ currentWindow: true }, function (tabs) {
 var codeInstrumentor = new ChromeCodeInstrumentor({
     babelPlugin: require("../src/compilation/plugin"),
     logBGPageLogsOnInspectedPage: config.logBGPageLogsOnInspectedPage,
+    showTabStatusBadge: true,
     onSessionOpened: function(session){
         session._onHeadersReceived = makeOnHeadersReceived();
         chrome.webRequest.onHeadersReceived.addListener(session._onHeadersReceived, {urls: ["<all_urls>"], tabId: session.tabId}, ["blocking", "responseHeaders"])
@@ -74,30 +75,11 @@ function onBrowserActionClicked(tab) {
     } else {
         codeInstrumentor.createSession(tab.id)
     }
-
-    updateBadge(tab)
 }
 chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 
-function updateBadge(tab){
-    var text = ""
-    var session = getTabSession(tab.id)
-    if (session) {
-        text = "ON"
-    }
-    chrome.browserAction.setBadgeText({
-        text: text,
-        tabId: tab.id
-    });
-    chrome.browserAction.setBadgeBackgroundColor({
-        tabId: tab.id,
-        color: "#cc5214"
-    })
-}
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-    updateBadge(tab)
-
     var session = getTabSession(tabId);
 
     if (tab.url && urlIsOnE2ETestServer(tab.url)){
@@ -149,6 +131,3 @@ function endsWith(str, strEnd){
 function urlIsOnE2ETestServer(url){
     return url.indexOf("http://localhost:9856") == 0 || url.indexOf("http://localhost:9855") == 0
 }
-
-
-setSessionClass(FromJSSession)

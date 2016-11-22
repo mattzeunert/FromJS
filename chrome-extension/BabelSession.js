@@ -1,6 +1,7 @@
 import fromJSCss from "../src/fromjs.css"
 import beautify from "js-beautify"
 import processJavaScriptCode from "../src/compilation/processJavaScriptCode"
+import _ from "underscore"
 
 const FromJSSessionStages = {
     RELOADING: "RELOADING",
@@ -35,16 +36,32 @@ fetch(chrome.extension.getURL("inhibitJavaScriptExecution.js"))
 
 
 class ChromeCodeInstrumentor {
-    constructor(defaultOptions){
-        this._defaultOptions = defaultOptions;
+    constructor(options){
+        this.options = options;
+
+        if (options.showTabStatusBadge){
+            chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
+                updateBadge(tabId)
+            })
+        }
     }
     createSession(tabId){
         if (getTabSession(tabId)) {
             debugger;
             console.error("Tab already has session")
         }
-        var session = new BabelSession(tabId, this._defaultOptions)
+        var session = new BabelSession(tabId,
+            {
+                ...this.options,
+                onClosedCallbackForInstrumenterClass: function(session){
+                    updateBadge(session.tabId)
+                }
+            })
         sessionsByTabId[tabId] = session;
+
+        if (this.options.showTabStatusBadge){
+            updateBadge(tabId)
+        }
     }
 }
 
@@ -58,7 +75,8 @@ class BabelSession {
         this._babelPlugin = options.babelPlugin
         this._logBGPageLogsOnInspectedPage = options.logBGPageLogsOnInspectedPage,
         this._onBeforeLoad = options.onBeforeLoad
-        this._open();
+        this.onClosedCallbackForInstrumenterClass = options.onClosedCallbackForInstrumenterClass
+        _.defer(() => this._open())
     }
     _open(){
         this._log("Open tab", this.tabId)
@@ -299,6 +317,8 @@ class BabelSession {
 
         this._stage = FromJSSessionStages.CLOSED;
         delete sessionsByTabId[this.tabId]
+
+        this.onClosedCallbackForInstrumenterClass(this)
     }
     isClosed(){
         return this._stage === FromJSSessionStages.CLOSED
@@ -360,6 +380,24 @@ function makeOnBeforeRequest(session){
     }
     return onBeforeRequest
 }
+
+
+function updateBadge(tabId){
+    var text = ""
+    var session = getTabSession(tabId)
+    if (session) {
+        text = "ON"
+    }
+    chrome.browserAction.setBadgeText({
+        text: text,
+        tabId: tabId
+    });
+    chrome.browserAction.setBadgeBackgroundColor({
+        tabId: tabId,
+        color: "#cc5214"
+    })
+}
+
 
 
 function urlLooksLikeJSFile(url){
