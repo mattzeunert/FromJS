@@ -3,13 +3,6 @@ import manifest from "./manifest" // we don't use it but we want manifest change
 import config from "../src/config"
 import ChromeCodeInstrumentor, {getTabSession, setSessionClass} from "../chrome-extension/BabelSession"
 
-chrome.tabs.query({ currentWindow: true }, function (tabs) {
-    var tab = tabs[0]
-    if (tab.url && urlIsOnE2ETestServer(tab.url)){
-        setExtensionLoadedConfirmation(tab.id)
-    }
-});
-
 
 var codeInstrumentor = new ChromeCodeInstrumentor({
     babelPlugin: function(babel) {
@@ -59,10 +52,6 @@ chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     var session = getTabSession(tabId);
 
-    if (tab.url && urlIsOnE2ETestServer(tab.url)){
-        setExtensionLoadedConfirmation(tab.id);
-    }
-
     if (!session && tab.url && changeInfo.status === "complete" && urlIsOnE2ETestServer(tab.url) && tab.url.indexOf("#auto-activate-fromjs") !== -1) {
         onBrowserActionClicked(tab);
     }
@@ -88,23 +77,3 @@ chrome.tabs.onRemoved.addListener(function(tabId){
         session.close();
     }
 })
-
-
-function setExtensionLoadedConfirmation(tabId){
-    chrome.tabs.executeScript(tabId, {
-        code: `
-        console.log('Extension is loaded');
-        var s = document.createElement("script")
-        s.text = "window.extensionLoaded = true;"
-        document.body.appendChild(s)
-        `
-    })
-}
-
-function endsWith(str, strEnd){
-  return str.slice(str.length - strEnd.length) === strEnd
-}
-
-function urlIsOnE2ETestServer(url){
-    return url.indexOf("http://localhost:9856") == 0 || url.indexOf("http://localhost:9855") == 0
-}
