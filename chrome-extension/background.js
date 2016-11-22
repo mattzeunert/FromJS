@@ -1,7 +1,7 @@
 import startsWith from "starts-with"
 import manifest from "./manifest" // we don't use it but we want manifest changes to trigger a webpack re-build
 import config from "../src/config"
-import BabelSession, {getTabSession, createSession, setSessionClass} from "./BabelSession"
+import ChromeCodeInstrumentor, {getTabSession} from "./BabelSession"
 
 chrome.tabs.query({ currentWindow: true }, function (tabs) {
     var tab = tabs[0]
@@ -10,25 +10,17 @@ chrome.tabs.query({ currentWindow: true }, function (tabs) {
     }
 });
 
-
-class FromJSSession extends BabelSession {
-    constructor(tabId) {
-        super(tabId);
-        this.logBGPageLogsOnInspectedPage = config.logBGPageLogsOnInspectedPage;
-        this._babelPlugin = require("../src/compilation/plugin")
-    }
-    _open(){
-        BabelSession.prototype._open.apply(this, arguments)
-
-        this._onHeadersReceived = makeOnHeadersReceived();
-        chrome.webRequest.onHeadersReceived.addListener(this._onHeadersReceived, {urls: ["<all_urls>"], tabId: this.tabId}, ["blocking", "responseHeaders"])
-    }
-    close(){
-        BabelSession.prototype.close.apply(this, arguments)
-
-        chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
-    }
-    onBeforeLoad(callback){
+var codeInstrumentor = new ChromeCodeInstrumentor({
+    babelPlugin: require("../src/compilation/plugin"),
+    logBGPageLogsOnInspectedPage: config.logBGPageLogsOnInspectedPage,
+    onSessionOpened: function(session){
+        session._onHeadersReceived = makeOnHeadersReceived();
+        chrome.webRequest.onHeadersReceived.addListener(session._onHeadersReceived, {urls: ["<all_urls>"], tabId: session.tabId}, ["blocking", "responseHeaders"])
+    },
+    onSessionClosed: function(session){
+        chrome.webRequest.onHeadersReceived.removeListener(session._onHeadersReceived)
+    },
+    onBeforeLoad: function(callback){
         this._executeScript(`
             var script2 = document.createElement("script")
             script2.src = '${chrome.extension.getURL("from.js")}'
@@ -42,8 +34,7 @@ class FromJSSession extends BabelSession {
             },100)
         })
     }
-}
-
+})
 
 /*
 We're modifying the headers because some websites (e.g. twitter) otherwise prevent us
@@ -70,6 +61,7 @@ function makeOnHeadersReceived(){
 
 
 function onBrowserActionClicked(tab) {
+
     if (startsWith(tab.url, "chrome://")) {
         alert("chrome:// URLS can't be loaded with FromJS")
         return;
@@ -80,7 +72,7 @@ function onBrowserActionClicked(tab) {
         session.close();
         chrome.tabs.reload(tab.id)
     } else {
-        createSession(tab.id)
+        codeInstrumentor.createSession(tab.id)
     }
 
     updateBadge(tab)

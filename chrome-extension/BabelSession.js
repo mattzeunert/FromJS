@@ -33,13 +33,31 @@ fetch(chrome.extension.getURL("inhibitJavaScriptExecution.js"))
     inhibitJSExecutionCode = text
 })
 
+
+class ChromeCodeInstrumentor {
+    constructor(defaultOptions){
+        this._defaultOptions = defaultOptions;
+    }
+    createSession(tabId){
+        if (getTabSession(tabId)) {
+            debugger;
+            console.error("Tab already has session")
+        }
+        var session = new BabelSession(tabId, this._defaultOptions)
+        sessionsByTabId[tabId] = session;
+    }
+}
+
 class BabelSession {
-    constructor(tabId){
+    constructor(tabId, options){
         this.tabId = tabId;
         this._stage = FromJSSessionStages.RELOADING;
         this._pageHtml = null;
         this._downloadCache = {}
         this._processJSCodeCache = {};
+        this._babelPlugin = options.babelPlugin
+        this._logBGPageLogsOnInspectedPage = options.logBGPageLogsOnInspectedPage,
+        this._onBeforeLoad = options.onBeforeLoad
         this._open();
     }
     _open(){
@@ -147,7 +165,7 @@ class BabelSession {
                     }, function(){
                         console.log("waiting for injected.js to be injected")
                         setTimeout(function(){
-                            self.onBeforeLoad(function(){
+                            self._onBeforeLoad(function(){
                                 self._stage = FromJSSessionStages.ACTIVE;
                             })
                         }, 1000)
@@ -159,7 +177,7 @@ class BabelSession {
     }
     _log(){
         console.log.apply(console, arguments);
-        if (!this.isClosed() && this.logBGPageLogsOnInspectedPage) {
+        if (!this.isClosed() && this._logBGPageLogsOnInspectedPage) {
             this._executeScript("console.log('Background page log: " + JSON.stringify(arguments) + "')")
         }
     }
@@ -406,19 +424,6 @@ var sessionsByTabId = {};
 function getTabSession(tabId){
     return sessionsByTabId[tabId]
 }
-function createSession(tabId){
-    if (getTabSession(tabId)) {
-        debugger;
-        console.error("Tab already has session")
-    }
-    var session = new sessionClass(tabId)
-    sessionsByTabId[tabId] = session;
-}
-
-var sessionClass = null
-export function setSessionClass(klass){
-    sessionClass = klass
-}
 
 chrome.runtime.onMessage.addListener(function(request, sender) {
     console.log("Got message", request)
@@ -442,6 +447,6 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 
 
 
-export default BabelSession
+export default ChromeCodeInstrumentor
 
-export {getTabSession, createSession}
+export {getTabSession}
