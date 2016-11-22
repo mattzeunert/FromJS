@@ -31,11 +31,6 @@ var codeInstrumentor = new ChromeCodeInstrumentor({
 });
 
 function onBrowserActionClicked(tab) {
-    if (startsWith(tab.url, "chrome://")) {
-        alert("chrome:// URLS can't be loaded with FromJS")
-        return;
-    }
-
     var session = getTabSession(tab.id);
     if (session){
         session.close();

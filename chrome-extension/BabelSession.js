@@ -2,6 +2,7 @@ import fromJSCss from "../src/fromjs.css"
 import beautify from "js-beautify"
 import processJavaScriptCode from "../src/compilation/processJavaScriptCode"
 import _ from "underscore"
+import startsWith from "starts-with"
 
 const FromJSSessionStages = {
     RELOADING: "RELOADING",
@@ -101,7 +102,19 @@ class BabelSession {
         this._logBGPageLogsOnInspectedPage = options.logBGPageLogsOnInspectedPage,
         this._onBeforeLoad = options.onBeforeLoad
         this.onClosedCallbackForInstrumenterClass = options.onClosedCallbackForInstrumenterClass
-        _.defer(() => this._open())
+
+        chrome.tabs.get(tabId, (tab) => {
+            if (!tab.url || startsWith(tab.url, "chrome://")) {
+                if (options.onCantInstrumentThisPage){
+                    options.onCantInstrumentThisPage();
+                } else {
+                    alert("Can't instrument code for this URL")
+                }
+
+                return;
+            }
+            _.defer(() => this._open())
+        });
     }
     _open(){
         this._log("Open tab", this.tabId)

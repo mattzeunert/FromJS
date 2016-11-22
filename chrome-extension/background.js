@@ -14,6 +14,9 @@ var codeInstrumentor = new ChromeCodeInstrumentor({
     babelPlugin: require("../src/compilation/plugin"),
     logBGPageLogsOnInspectedPage: config.logBGPageLogsOnInspectedPage,
     showTabStatusBadge: true,
+    onCantInstrumentThisPage: function(){
+        alert("This URL can't be inspected with FromJS")
+    },
     onSessionOpened: function(session){
         session._onHeadersReceived = makeOnHeadersReceived();
         chrome.webRequest.onHeadersReceived.addListener(session._onHeadersReceived, {urls: ["<all_urls>"], tabId: session.tabId}, ["blocking", "responseHeaders"])
@@ -63,10 +66,7 @@ function makeOnHeadersReceived(){
 
 function onBrowserActionClicked(tab) {
 
-    if (startsWith(tab.url, "chrome://")) {
-        alert("chrome:// URLS can't be loaded with FromJS")
-        return;
-    }
+
 
     var session = getTabSession(tab.id);
     if (session){
