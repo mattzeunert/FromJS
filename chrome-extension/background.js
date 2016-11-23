@@ -1,7 +1,7 @@
 import startsWith from "starts-with"
 import manifest from "./manifest" // we don't use it but we want manifest changes to trigger a webpack re-build
 import config from "../src/config"
-import ChromeCodeInstrumentor from "./BabelSession"
+import ChromeCodeInstrumenter from "./ChromeCodeInstrumenter"
 
 chrome.tabs.query({ currentWindow: true }, function (tabs) {
     var tab = tabs[0]
@@ -10,7 +10,7 @@ chrome.tabs.query({ currentWindow: true }, function (tabs) {
     }
 });
 
-var codeInstrumentor = new ChromeCodeInstrumentor({
+var codeInstrumenter = new ChromeCodeInstrumenter({
     babelPlugin: require("../src/compilation/plugin"),
     logBGPageLogsOnInspectedPage: config.logBGPageLogsOnInspectedPage,
     onCantInstrumentThisPage: function(){
@@ -63,19 +63,19 @@ function makeOnHeadersReceived(){
 
 
 function onBrowserActionClicked(tab) {
-    var session = codeInstrumentor.getTabSession(tab.id);
+    var session = codeInstrumenter.getTabSession(tab.id);
     if (session){
         session.close();
         chrome.tabs.reload(tab.id)
     } else {
-        codeInstrumentor.createSession(tab.id)
+        codeInstrumenter.createSession(tab.id)
     }
 }
 chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-    var session = codeInstrumentor.getTabSession(tabId);
+    var session = codeInstrumenter.getTabSession(tabId);
 
     if (tab.url && urlIsOnE2ETestServer(tab.url)){
         setExtensionLoadedConfirmation(tab.id);

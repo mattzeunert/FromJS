@@ -1,28 +1,25 @@
-import startsWith from "starts-with"
 import manifest from "./manifest" // we don't use it but we want manifest changes to trigger a webpack re-build
-import config from "../src/config"
-import ChromeCodeInstrumentor from "../chrome-extension/BabelSession"
+import ChromeCodeInstrumenter from "../chrome-extension/ChromeCodeInstrumenter"
 
-
-var codeInstrumentor = new ChromeCodeInstrumentor({
+var codeInstrumenter = new ChromeCodeInstrumenter({
     babelPlugin: function(babel) {
         return {
             visitor: {
                 AssignmentExpression(path){
+                }
             }
-        }
-     };
-  },
-  logBGPageLogsOnInspectedPage: config.logBGPageLogsOnInspectedPage
+        };
+    },
+    logBGPageLogsOnInspectedPage: true
 });
 
 function onBrowserActionClicked(tab) {
-    var session = codeInstrumentor.getTabSession(tab.id);
+    var session = codeInstrumenter.getTabSession(tab.id);
     if (session){
         session.close();
         chrome.tabs.reload(tab.id)
     } else {
-        codeInstrumentor.createSession(tab.id)
+        codeInstrumenter.createSession(tab.id)
     }
 }
 chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
