@@ -101,6 +101,15 @@ class ChromeCodeInstrumentor {
     getTabSession(tabId){
         return this.sessionsByTabId[tabId]
     }
+    toggleTabInstrumentation(tabId){
+        var session = this.getTabSession(tabId);
+        if (session){
+            session.close();
+            chrome.tabs.reload(tabId)
+        } else {
+            this.createSession(tabId)
+        }
+    }
     createSession(tabId){
         if (this.getTabSession(tabId)) {
             debugger;

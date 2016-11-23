@@ -63,13 +63,7 @@ function makeOnHeadersReceived(){
 
 
 function onBrowserActionClicked(tab) {
-    var session = codeInstrumenter.getTabSession(tab.id);
-    if (session){
-        session.close();
-        chrome.tabs.reload(tab.id)
-    } else {
-        codeInstrumenter.createSession(tab.id)
-    }
+    codeInstrumenter.toggleTabInstrumentation(tab.id)
 }
 chrome.browserAction.onClicked.addListener(onBrowserActionClicked);
 
