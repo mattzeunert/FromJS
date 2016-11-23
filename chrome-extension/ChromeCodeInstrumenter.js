@@ -35,6 +35,15 @@ fetch(chrome.extension.getURL("inhibitJavaScriptExecution.js"))
     inhibitJSExecutionCode = text
 })
 
+var injectedJSCode = "not loaded yet"
+fetch(chrome.extension.getURL("injected.js"))
+.then(function(r){
+    return r.text()
+})
+.then(function(text){
+    injectedJSCode = text
+})
+
 
 class ChromeCodeInstrumentor {
     constructor(options){
@@ -252,7 +261,7 @@ class BabelSession {
                         console.log("going to load injected.js")
 
                         var el = document.createElement("script")
-                        el.src = chrome.extension.getURL("injected.js")
+                        el.text = decodeURI("${encodeURI(injectedJSCode)}")
                         el.setAttribute("charset", "utf-8")
                         document.documentElement.appendChild(el)
 
@@ -275,21 +284,18 @@ class BabelSession {
                           `
                     }, function(){
                         console.log("waiting for injected.js to be injected")
-                        setTimeout(function(){
-                            if (self._onBeforePageLoad){
-                                self._onBeforePageLoad(function(){
-                                    cont()
-                                })
-                            } else {
-                                cont();
-                            }
-                            function cont(){
-                                self._stage = FromJSSessionStages.ACTIVE;
-                                self.executeScriptOnPage(`window.startLoadingPage()`)
-                            }
 
-                        }, 1000)
-
+                        if (self._onBeforePageLoad){
+                            self._onBeforePageLoad(function(){
+                                cont()
+                            })
+                        } else {
+                            cont();
+                        }
+                        function cont(){
+                            self._stage = FromJSSessionStages.ACTIVE;
+                            self.executeScriptOnPage(`window.startLoadingPage()`)
+                        }
                     })
                 })
             })
