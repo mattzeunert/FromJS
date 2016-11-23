@@ -13,8 +13,7 @@ var codeInstrumentor = new ChromeCodeInstrumentor({
         }
      };
   },
-  logBGPageLogsOnInspectedPage: config.logBGPageLogsOnInspectedPage,
-  showTabStatusBadge: true
+  logBGPageLogsOnInspectedPage: config.logBGPageLogsOnInspectedPage
 });
 
 function onBrowserActionClicked(tab) {

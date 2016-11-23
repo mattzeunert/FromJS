@@ -38,6 +38,10 @@ fetch(chrome.extension.getURL("inhibitJavaScriptExecution.js"))
 
 class ChromeCodeInstrumentor {
     constructor(options){
+        var defaultOptions = {
+            showTabStatusBadge: true
+        }
+        options = _.extend({}, options, defaultOptions)
         this.options = options;
         this.sessionsByTabId = {};
 
