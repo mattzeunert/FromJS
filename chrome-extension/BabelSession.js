@@ -39,15 +39,18 @@ fetch(chrome.extension.getURL("inhibitJavaScriptExecution.js"))
 class ChromeCodeInstrumentor {
     constructor(options){
         this.options = options;
+        this.sessionsByTabId = {};
+
+        var self = this;
 
         if (options.showTabStatusBadge){
-            chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-                updateBadge(tabId)
+            chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+                this.updateBadge(tabId)
             })
         }
 
         chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-            var session = getTabSession(tabId);
+            var session = self.getTabSession(tabId);
 
             if (!session || session.isActive()){
                 return
@@ -63,31 +66,70 @@ class ChromeCodeInstrumentor {
         })
 
         chrome.tabs.onRemoved.addListener(function(tabId){
-            var session = getTabSession(tabId);
+            var session = self.getTabSession(tabId);
             console.log("onremoved")
             if (session){
                 console.log("closing")
                 session.close();
             }
         })
+
+        chrome.runtime.onMessage.addListener(function(request, sender) {
+            console.log("Got message", request)
+            if (!request.isFromJSExtensionMessage) {return}
+
+            var session = self.getTabSession(sender.tab.id)
+            if (!session){
+                console.error("Got message for tab without session", request)
+                return
+            }
+
+            var handler = messageHandlers[request.type];
+            if (handler) {
+                handler(session, request, function(){
+                    session.executeScriptOnPage(request.callbackName + "(decodeURI(`" + encodeURI(JSON.stringify(Array.from(arguments))) + "`))");
+                })
+            } else {
+                throw "no handler for message type " + request.type
+            }
+        });
+    }
+    getTabSession(tabId){
+        return this.sessionsByTabId[tabId]
     }
     createSession(tabId){
-        if (getTabSession(tabId)) {
+        if (this.getTabSession(tabId)) {
             debugger;
             console.error("Tab already has session")
         }
         var session = new BabelSession(tabId,
             {
                 ...this.options,
-                onClosedCallbackForInstrumenterClass: function(session){
-                    updateBadge(session.tabId)
+                onClosedCallbackForInstrumenterClass: (session) => {
+                    delete this.sessionsByTabId[session.tabId]
+                    this.updateBadge(session.tabId)
                 }
             })
-        sessionsByTabId[tabId] = session;
+        this.sessionsByTabId[tabId] = session;
 
         if (this.options.showTabStatusBadge){
-            updateBadge(tabId)
+            this.updateBadge(tabId)
         }
+    }
+    updateBadge(tabId){
+        var text = ""
+        var session = this.getTabSession(tabId)
+        if (session) {
+            text = "ON"
+        }
+        chrome.browserAction.setBadgeText({
+            text: text,
+            tabId: tabId
+        });
+        chrome.browserAction.setBadgeBackgroundColor({
+            tabId: tabId,
+            color: "#cc5214"
+        })
     }
 }
 
@@ -354,8 +396,6 @@ class BabelSession {
         chrome.webRequest.onBeforeRequest.removeListener(this._onBeforeRequest)
 
         this._stage = FromJSSessionStages.CLOSED;
-        delete sessionsByTabId[this.tabId]
-
         this.onClosedCallbackForInstrumenterClass(this)
     }
     isClosed(){
@@ -420,21 +460,7 @@ function makeOnBeforeRequest(session){
 }
 
 
-function updateBadge(tabId){
-    var text = ""
-    var session = getTabSession(tabId)
-    if (session) {
-        text = "ON"
-    }
-    chrome.browserAction.setBadgeText({
-        text: text,
-        tabId: tabId
-    });
-    chrome.browserAction.setBadgeBackgroundColor({
-        tabId: tabId,
-        color: "#cc5214"
-    })
-}
+
 
 
 
@@ -496,33 +522,4 @@ var messageHandlers = {
     }
 }
 
-var sessionsByTabId = {};
-function getTabSession(tabId){
-    return sessionsByTabId[tabId]
-}
-
-chrome.runtime.onMessage.addListener(function(request, sender) {
-    console.log("Got message", request)
-    if (!request.isFromJSExtensionMessage) {return}
-
-    var session = getTabSession(sender.tab.id)
-    if (!session){
-        console.error("Got message for tab without session", request)
-        return
-    }
-
-    var handler = messageHandlers[request.type];
-    if (handler) {
-        handler(session, request, function(){
-            session.executeScriptOnPage(request.callbackName + "(decodeURI(`" + encodeURI(JSON.stringify(Array.from(arguments))) + "`))");
-        })
-    } else {
-        throw "no handler for message type " + request.type
-    }
-});
-
-
-
 export default ChromeCodeInstrumentor
-
-export {getTabSession}

@@ -1,7 +1,7 @@
 import startsWith from "starts-with"
 import manifest from "./manifest" // we don't use it but we want manifest changes to trigger a webpack re-build
 import config from "../src/config"
-import ChromeCodeInstrumentor, {getTabSession, setSessionClass} from "../chrome-extension/BabelSession"
+import ChromeCodeInstrumentor from "../chrome-extension/BabelSession"
 
 
 var codeInstrumentor = new ChromeCodeInstrumentor({
@@ -31,7 +31,7 @@ var codeInstrumentor = new ChromeCodeInstrumentor({
 });
 
 function onBrowserActionClicked(tab) {
-    var session = getTabSession(tab.id);
+    var session = codeInstrumentor.getTabSession(tab.id);
     if (session){
         session.close();
         chrome.tabs.reload(tab.id)
