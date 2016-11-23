@@ -12,6 +12,16 @@ console.log("inside Injected.js")
 window.originalCreateElement = document.createElement
 window.nativeInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML")
 
+if (!window.onAfterBodyHTMLInserted) {
+    window.onAfterBodyHTMLInserted = function(){}
+}
+if (!window.enableNativeMethodPatching){
+    window.enableNativeMethodPatching = function(){}
+}
+if (!window.disableNativeMethodPatching){
+    window.disableNativeMethodPatching = function(){}
+}
+
 window.startLoadingPage = function(){
     console.info("FromJS: Loading page...")
     window.forTestsIsLoadingPage = true;

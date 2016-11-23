@@ -24,7 +24,7 @@ var codeInstrumentor = new ChromeCodeInstrumentor({
     onSessionClosed: function(session){
         chrome.webRequest.onHeadersReceived.removeListener(session._onHeadersReceived)
     },
-    onBeforeLoad: function(callback){
+    onBeforePageLoad: function(callback){
         this._executeScript(`
             var script2 = document.createElement("script")
             script2.src = '${chrome.extension.getURL("from.js")}'

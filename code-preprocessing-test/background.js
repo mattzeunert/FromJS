@@ -14,20 +14,7 @@ var codeInstrumentor = new ChromeCodeInstrumentor({
      };
   },
   logBGPageLogsOnInspectedPage: config.logBGPageLogsOnInspectedPage,
-  showTabStatusBadge: true,
-  onBeforeLoad: function(callback){
-      this._executeScript(`
-          var script = document.createElement("script")
-          script.text = 'window.onAfterBodyHTMLInserted= function(){};window.enableNativeMethodPatching = function(){};window.disableNativeMethodPatching = function(){};window.startLoadingPage();'
-          document.documentElement.appendChild(script)`
-      , function(){
-          // ideally we'd wait for a message from the page,
-          // but for now this will work
-          setTimeout(function(){
-              callback();
-          },100)
-      })
-  }
+  showTabStatusBadge: true
 });
 
 function onBrowserActionClicked(tab) {

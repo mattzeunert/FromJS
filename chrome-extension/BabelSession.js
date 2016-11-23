@@ -142,7 +142,7 @@ class BabelSession {
         this._processJSCodeCache = {};
         this._babelPlugin = options.babelPlugin
         this._logBGPageLogsOnInspectedPage = options.logBGPageLogsOnInspectedPage,
-        this._onBeforeLoad = options.onBeforeLoad
+        this._onBeforePageLoad = options.onBeforePageLoad
         this.onClosedCallbackForInstrumenterClass = options.onClosedCallbackForInstrumenterClass
 
         chrome.tabs.get(tabId, (tab) => {
@@ -263,9 +263,18 @@ class BabelSession {
                     }, function(){
                         console.log("waiting for injected.js to be injected")
                         setTimeout(function(){
-                            self._onBeforeLoad(function(){
+                            if (self._onBeforePageLoad){
+                                self._onBeforePageLoad(function(){
+                                    cont()
+                                })
+                            } else {
+                                cont();
+                            }
+                            function cont(){
                                 self._stage = FromJSSessionStages.ACTIVE;
-                            })
+                                self.executeScriptOnPage(`window.startLoadingPage()`)
+                            }
+
                         }, 1000)
 
                     })
