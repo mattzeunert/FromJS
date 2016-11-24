@@ -12,6 +12,14 @@ export default class CodePreprocessor {
     constructor({babelPlugin}){
         this.documentReadyState = "loading"
         this.babelPlugin = babelPlugin
+        this.onCodeProcessed = function(){}
+        this.getNewFunctionCode = (fnStart, code, fnEnd) => fnStart + code + fnEnd
+        this.useValue = val => val
+
+        var self= this;
+        this.preprocessCode = function(code, options){
+            return processJSCode(self.babelPlugin)(code, options)
+        }
 
         this.setGlobalFunctions()
     }
@@ -34,9 +42,6 @@ export default class CodePreprocessor {
         this.useValue = useValue
 
         var self = this;
-        this.preprocessCode = function(code, options){
-            return wrapPreprocessCode.apply(self, [code, options, processJSCode(self.babelPlugin)])
-        }
     }
     enable(){
         var self = this;

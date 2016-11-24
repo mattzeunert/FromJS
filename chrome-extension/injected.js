@@ -16,10 +16,14 @@ if (!window.onAfterBodyHTMLInserted) {
     window.onAfterBodyHTMLInserted = function(){}
 }
 if (!window.enableNativeMethodPatching){
-    window.enableNativeMethodPatching = function(){}
+    window.enableNativeMethodPatching = function(){
+        window.codePreprocessor.enable();
+    }
 }
 if (!window.disableNativeMethodPatching){
-    window.disableNativeMethodPatching = function(){}
+    window.disableNativeMethodPatching = function(){
+        window.codePreprocessor.disable();
+    }
 }
 
 window.startLoadingPage = function(){
