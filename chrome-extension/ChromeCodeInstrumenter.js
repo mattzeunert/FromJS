@@ -45,7 +45,7 @@ fetch(chrome.extension.getURL("injected.js"))
 })
 
 
-class ChromeCodeInstrumentor {
+class ChromeCodeInstrumenter {
     constructor(options){
         var defaultOptions = {
             showTabStatusBadge: true
@@ -550,4 +550,6 @@ var messageHandlers = {
     }
 }
 
-export default ChromeCodeInstrumentor
+export default ChromeCodeInstrumenter
+
+window.ChromeCodeInstrumenter = ChromeCodeInstrumenter

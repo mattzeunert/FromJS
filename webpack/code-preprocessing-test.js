@@ -5,6 +5,7 @@ var getBaseConfig = require("./getBaseConfig")
 var webConfig = getBaseConfig()
 webConfig.entry = {
     background: ['./code-preprocessing-test/background.js'],
+    ChromeCodeInstrumenter: ["./chrome-extension/ChromeCodeInstrumenter.js"]
 };
 webConfig.output = {
     path: "./",
