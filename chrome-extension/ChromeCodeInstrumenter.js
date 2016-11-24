@@ -110,23 +110,24 @@ class ChromeCodeInstrumenter {
     getTabSession(tabId){
         return this.sessionsByTabId[tabId]
     }
-    toggleTabInstrumentation(tabId){
+    toggleTabInstrumentation(tabId, options){
         var session = this.getTabSession(tabId);
         if (session){
             session.close();
             chrome.tabs.reload(tabId)
         } else {
-            this.createSession(tabId)
+            this.createSession(tabId, options)
         }
     }
-    createSession(tabId){
+    createSession(tabId, options = {}){
         if (this.getTabSession(tabId)) {
             debugger;
             console.error("Tab already has session")
         }
+        options = Object.assign({}, this.options, options)
         var session = new BabelSession(tabId,
             {
-                ...this.options,
+                ...options,
                 onClosedCallbackForInstrumenterClass: (session) => {
                     delete this.sessionsByTabId[session.tabId]
                     this.updateBadge(session.tabId)
