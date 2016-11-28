@@ -17,8 +17,6 @@ import babelPlugin from "../compilation/plugin"
 
 var processJavaScriptCode = processJSCode(babelPlugin)
 
-var tracingEnabled = false;
-
 // This code does both window.sth and var sth because I've been inconsistent in the past, not because it's good...
 // should be easy ish to change, however some FromJS functions run while
 // tracing is enabled, so they use window.nativeSth to access it
@@ -43,6 +41,7 @@ function registerDynamicFile(filename, code, evalCode, sourceMap, actionName){
     dynamicCodeRegistry.register(filename + ".dontprocess", code.value, codeOrigin)
 }
 
+
 var codePreprocessor;
 if (!window.isExtension){
     codePreprocessor = new CodePreprocessor({
@@ -52,6 +51,9 @@ if (!window.isExtension){
     codePreprocessor = window.codePreprocessor
     console.log("existing codePreprocessor", window.codePreprocessor)
 }
+
+window.enableNativeMethodPatching = () => codePreprocessor.enable();
+window.disableNativeMethodPatching = () => codePreprocessor.disable();
 
 codePreprocessor.setOptions({
     wrapPreprocessCode: function(code, options, doProcess){
@@ -64,6 +66,8 @@ codePreprocessor.setOptions({
     getNewFunctionCode: function(fnStart, code, fnEnd){
         return f__add(f__add(fnStart, code), fnEnd)
     },
+    onAfterEnable,
+    onAfterDisable,
     useValue: stringTraceUseValue,
     onCodeProcessed: registerDynamicFile,
     makeDocumentWrite: function(write){
@@ -79,7 +83,6 @@ codePreprocessor.setOptions({
                 document.body.appendChild(scriptTag)
             })
         }
-
     }
 })
 
@@ -178,18 +181,7 @@ var nativeStringFunctions = Object.getOwnPropertyNames(String.prototype)
     })
 
 export function runFunctionWithTracingDisabled(fn){
-    var tracingEnabledAtStart = tracingEnabled;
-    if (tracingEnabledAtStart) {
-        disableTracing();
-    }
-    try {
-        var ret = fn();
-    } finally {
-        if (tracingEnabledAtStart) {
-            enableTracing();
-        }
-    }
-    return ret
+    return codePreprocessor.runFunctionWhileDisabled(fn)
 }
 
 var eventListenersEnabled = true;
@@ -206,7 +198,7 @@ function isTracedString(val){
 }
 
 window.__forDebuggingIsTracingEnabled = function(){
-    return tracingEnabled
+    return codePreprocessor.isEnabled
 }
 
 function FrozenElement(el) {
@@ -236,13 +228,7 @@ function FrozenElement(el) {
 }
 FrozenElement.prototype.isFromJSFrozenElement = true;
 
-export function enableTracing(){
-    if (tracingEnabled){
-        return
-    }
-    tracingEnabled = true
-    codePreprocessor.enable();
-
+function onAfterEnable(){
     function addOriginInfoToCreatedElement(el, tagName, action){
         var error = Error();
         addElOrigin(el, "openingTagStart", {
@@ -1081,14 +1067,7 @@ export function enableTracing(){
     // })
 }
 
-
-export function disableTracing(){
-    if (!tracingEnabled) {
-        return;
-    }
-
-    codePreprocessor.disable();
-
+function onAfterDisable(){
     window.JSON.parse = window.nativeJSONParse
     window.JSON.stringify = nativeJSONStringify
     document.createElement = window.originalCreateElement
@@ -1146,17 +1125,15 @@ export function disableTracing(){
 
     window.Object = nativeObjectObject;
 
-    tracingEnabled = false;
-
     nativeStringFunctions.forEach(function(property) {
         String.prototype[property.name] = property.fn
     })
-
-
-
 }
 
-window._disableTracing = disableTracing
+export function enableTracing(){
+    codePreprocessor.enable();
+}
 
-window.enableNativeMethodPatching = enableTracing
-window.disableNativeMethodPatching = disableTracing
+export function disableTracing(){
+    codePreprocessor.disable();
+}

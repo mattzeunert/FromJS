@@ -21,16 +21,22 @@ export default class CodePreprocessor {
                 write.apply(this, arguments)
             }
         }
+        this.onBeforeEnable = function(){}
+        this.onAfterEnable = function(){}
+        this.onBeforeDisable = function(){}
+        this.onAfterDisable = function(){}
+        this.isEnabled = false;
 
         var self= this;
         this.preprocessCode = function(code, options){
-            window.disableNativeMethodPatching();
+            self.disable();
             var ret = processJSCode(self.babelPlugin)(code, options)
-            window.enableNativeMethodPatching();
+            self.enable();
             return ret;
         }
 
         this.setGlobalFunctions()
+
     }
     setGlobalFunctions(){
         var self = this;
@@ -45,16 +51,35 @@ export default class CodePreprocessor {
             self.documentReadyState = value
         }
     }
-    setOptions({onCodeProcessed, getNewFunctionCode, useValue, makeDocumentWrite}){
+    setOptions({onCodeProcessed, getNewFunctionCode, useValue, makeDocumentWrite, onBeforeEnable, onBeforeDisable, onAfterEnable, onAfterDisable}){
         this.onCodeProcessed = onCodeProcessed
         this.getNewFunctionCode = getNewFunctionCode
         this.useValue = useValue
         this.makeDocumentWrite = makeDocumentWrite
 
+        if (onBeforeEnable) {
+            this.onBeforeEnable = onBeforeEnable
+        }
+        if (onAfterEnable) {
+            this.onAfterEnable = onAfterEnable
+        }
+        if (onBeforeDisable) {
+            this.onBeforeDisable = onBeforeDisable
+        }
+        if (onAfterDisable) {
+            this.onAfterDisable = onAfterDisable
+        }
+
         var self = this;
     }
     enable(){
         var self = this;
+        if (this.isEnabled){
+            return;
+        }
+        this.isEnabled = true;
+
+        self.onBeforeEnable();
 
         function processScriptTagCodeAssignment(code){
             var id = _.uniqueId();
@@ -163,8 +188,26 @@ export default class CodePreprocessor {
 
             return div
         });
+
+        this.onAfterEnable();
+    }
+    runFunctionWhileDisabled(fn){
+        var enabledAtStart = this.isEnabled;
+        if (enabledAtStart) {
+            this.disable();
+        }
+        try {
+            var ret = fn();
+        } finally {
+            if (enabledAtStart) {
+                this.enable();
+            }
+        }
+        return ret
     }
     disable(){
+        this.onBeforeDisable();
+
         window.eval = nativeEval
         Object.defineProperty(HTMLScriptElement.prototype, "text", nativeHTMLScriptElementTextDescriptor)
         // HTMLScriptElement doesn't normally have textcontent on own prototype, inherits the prop from Node
@@ -172,5 +215,9 @@ export default class CodePreprocessor {
 
         document.write = nativeDocumentWrite
         window.Function = nativeFunction
+
+        this.isEnabled = false;
+
+        this.onAfterDisable();
     }
 }

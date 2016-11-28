@@ -1,4 +1,3 @@
-import {enableTracing, disableTracing} from "./tracing/tracing"
 import getRootOriginAtChar from "./getRootOriginAtChar"
 import whereDoesCharComeFrom from "./whereDoesCharComeFrom"
 
@@ -7,10 +6,10 @@ disableProcessHTMLOnInitialLoad()
 
 describe("HTML Mapping", function(){
     beforeEach(function(){
-        enableTracing()
+        enableNativeMethodPatching()
     })
     afterEach(function(){
-        disableTracing()
+        disableNativeMethodPatching()
     })
 
     it("Traces a basic string assignment", function(){
@@ -42,7 +41,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = '<span hello world>Hi</span>'
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         // just to clarify what's going on, Chrome is adding the "" to the attribute
         expect(el.innerHTML).toBe('<span hello="" world="">Hi</span>')
 
@@ -66,7 +65,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = '<span hello="">Hi</span>'
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
 
         // <span hello="">[H]i</span>
         var firstStep = getRootOriginAtChar(span, 15);
@@ -85,7 +84,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = '<span hi="&amp;test"></span>'
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<span hi="&amp;test"></span>')
 
         // <span hi="&amp;test"></span>
@@ -105,7 +104,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = '<span hi="&test"></span>'
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<span hi="&amp;test"></span>')
 
         // <span hi="&amp;test"></span>
@@ -125,7 +124,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = '<span hi="&raquo;test"></span>'
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<span hi="»test"></span>')
 
         // <span hi="»test"></span>
@@ -145,7 +144,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = '<span hi="&#39;world"></span>'
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<span hi="\'world"></span>')
 
         // <span hi="\'worl[d]"></span>
@@ -165,7 +164,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = '<span >Hi</span>'
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<span>Hi</span>')
 
         // <span>[H]i</span>
@@ -185,7 +184,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = '<span><input \n/>Hey</span>'
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(span.innerHTML).toBe('<input>Hey')
 
         // <span><input>[H]ey</span>
@@ -205,7 +204,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = '<span \n\n\t>Hi</span>'
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<span>Hi</span>')
 
         // <span>[H]i</span>
@@ -226,7 +225,7 @@ describe("HTML Mapping", function(){
 
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<span hi="hey" cake="cookie"></span>')
 
         // <span hi="hey" ca[k]e="cookie"></span>
@@ -247,7 +246,7 @@ describe("HTML Mapping", function(){
 
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<span hi="hey" cake="cookie"></span>')
 
         // <span hi="hey" ca[k]e="cookie"></span>
@@ -266,7 +265,7 @@ describe("HTML Mapping", function(){
         var el = document.createElement("div")
         el.innerHTML = '&'
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('&amp;')
 
         // <div>&a[m]p;</div>
@@ -285,7 +284,7 @@ describe("HTML Mapping", function(){
         var el = document.createElement("div")
         el.innerHTML = '»'
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('»')
 
         // <div>»</div>
@@ -304,7 +303,7 @@ describe("HTML Mapping", function(){
         var el = document.createElement("div")
         el.innerHTML = 'sth&raquo;'
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('sth»')
 
         // <div>sth[»]</div>
@@ -323,7 +322,7 @@ describe("HTML Mapping", function(){
         var el = document.createElement("div")
         el.innerHTML = 'ab<!-- hi -->cd'
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('ab<!-- hi -->cd')
 
         // <div>ab<!-- hi -->[c]d</div>
@@ -351,7 +350,7 @@ describe("HTML Mapping", function(){
         var el = document.createElement("div")
         el.innerHTML = '<input/>Hello'
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<input>Hello')
 
         // <div><input>H[e]llo</div>
@@ -370,7 +369,7 @@ describe("HTML Mapping", function(){
         var el = document.createElement("noscript")
         el.innerHTML = '&gt;abc&#x3D;'
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('&amp;gt;abc&amp;#x3D;')
 
         // <noscript>&amp;[g]t;abc&amp;#x3D;</noscript>
@@ -395,7 +394,7 @@ describe("HTML Mapping", function(){
         var el = document.createElement("div")
         el.innerHTML = '<input></input>Hello'
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<input>Hello')
 
         // <div><input>H[e]llo</div>
@@ -415,7 +414,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = '<span>ab\r\ncd</span>'
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<span>ab\ncd</span>')
 
         // <span>ab\ncd</span>
@@ -435,7 +434,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = '<span\r\n hi="ho"\r\n>abc</span>'
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<span hi="ho">abc</span>')
 
         // <span hi="ho">abc</span>
@@ -455,7 +454,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = '<span hi="\r\nhey"></span>'
         var span = el.children[0]
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<span hi="\nhey"></span>')
 
         // <span hi="\nhey"></span>
@@ -475,7 +474,7 @@ describe("HTML Mapping", function(){
         el.innerHTML = " World";
         el.insertAdjacentHTML("afterBegin", "Hello")
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('Hello World')
 
         // <div>Hello [W]orld</div>
@@ -495,7 +494,7 @@ describe("HTML Mapping", function(){
         var el = document.createElement("div");
         el.innerHTML = '<span a  \t\n =\n   "b">Hello</span>';
 
-        disableTracing()
+        disableNativeMethodPatching()
         expect(el.innerHTML).toBe('<span a="b">Hello</span>')
 
         // <div><span a="b">[H]ello</span></div>
@@ -508,5 +507,4 @@ describe("HTML Mapping", function(){
             done()
         })
     })
-
 })
