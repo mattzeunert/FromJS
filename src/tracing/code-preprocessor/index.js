@@ -7,6 +7,7 @@ var nativeEval = window.eval;
 var nativeHTMLScriptElementTextDescriptor = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, "text");
 var nativeFunction = window.Function
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
+var nativeDocumentWrite = document.write;
 
 export default class CodePreprocessor {
     constructor({babelPlugin}){
@@ -15,10 +16,18 @@ export default class CodePreprocessor {
         this.onCodeProcessed = function(){}
         this.getNewFunctionCode = (fnStart, code, fnEnd) => fnStart + code + fnEnd
         this.useValue = val => val
+        this.makeDocumentWrite = function(write){
+            return function(){
+                write.apply(this, arguments)
+            }
+        }
 
         var self= this;
         this.preprocessCode = function(code, options){
-            return processJSCode(self.babelPlugin)(code, options)
+            window.disableNativeMethodPatching();
+            var ret = processJSCode(self.babelPlugin)(code, options)
+            window.enableNativeMethodPatching();
+            return ret;
         }
 
         this.setGlobalFunctions()
@@ -36,10 +45,11 @@ export default class CodePreprocessor {
             self.documentReadyState = value
         }
     }
-    setOptions({onCodeProcessed, getNewFunctionCode, useValue, wrapPreprocessCode}){
+    setOptions({onCodeProcessed, getNewFunctionCode, useValue, makeDocumentWrite}){
         this.onCodeProcessed = onCodeProcessed
         this.getNewFunctionCode = getNewFunctionCode
         this.useValue = useValue
+        this.makeDocumentWrite = makeDocumentWrite
 
         var self = this;
     }
@@ -111,7 +121,7 @@ export default class CodePreprocessor {
             var fnEnd = "}"
             code = self.getNewFunctionCode(fnStart, code, fnEnd)
 
-            var res = self.preprocessCode(code, {filename: filename})
+            var res = self.preprocessCode(self.useValue(code), {filename: filename})
             args.push(res.code)
 
             var smFilename = filename + ".map"
@@ -136,6 +146,23 @@ export default class CodePreprocessor {
         }
 
         window.Function.prototype = nativeFunction.prototype
+
+        document.write = this.makeDocumentWrite(function(str, beforeAppend){
+            var div = originalCreateElement.call(document, "div");
+            div.innerHTML = str;
+            nativeInnerHTMLDescriptor.set.call(div, str)
+
+            if (beforeAppend){
+                beforeAppend(div)
+            }
+
+            var children = Array.from(div.childNodes);
+            children.forEach(function(child){
+                document.body.appendChild(child)
+            })
+
+            return div
+        });
     }
     disable(){
         window.eval = nativeEval
@@ -143,6 +170,7 @@ export default class CodePreprocessor {
         // HTMLScriptElement doesn't normally have textcontent on own prototype, inherits the prop from Node
         Object.defineProperty(HTMLScriptElement.prototype, "textContent", nativeNodeTextContentDescriptor)
 
+        document.write = nativeDocumentWrite
         window.Function = nativeFunction
     }
 }

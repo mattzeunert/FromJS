@@ -295,7 +295,17 @@ class BabelSession {
                         }
                         function cont(){
                             self._stage = FromJSSessionStages.ACTIVE;
-                            self.executeScriptOnPage(`window.startLoadingPage()`)
+                            self.executeScriptOnPage(`
+                                if (document.readyState === "complete") {
+                                    setTimeout(window.startLoadingPage, 0)
+                                } else {
+                                    document.addEventListener("readystatechange", function(){
+                                        if (document.readyState === "complete") {
+                                            window.startLoadingPage()
+                                        }
+                                    })
+                                }
+                            `)
                         }
                     })
                 })

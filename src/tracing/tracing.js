@@ -65,7 +65,22 @@ codePreprocessor.setOptions({
         return f__add(f__add(fnStart, code), fnEnd)
     },
     useValue: stringTraceUseValue,
-    onCodeProcessed: registerDynamicFile
+    onCodeProcessed: registerDynamicFile,
+    makeDocumentWrite: function(write){
+        return function(str){
+            write(toString(str), function beforeAppend(div){
+                mapInnerHTMLAssignment(div, str, "Document.Write")
+            })
+
+            var scriptTags = runFunctionWithTracingDisabled(function(){
+                return getScriptElements(str);
+            })
+            scriptTags.forEach(function(scriptTag){
+                document.body.appendChild(scriptTag)
+            })
+        }
+
+    }
 })
 
 var nativeObjectObject = window.Object
@@ -1031,26 +1046,6 @@ export function enableTracing(){
             _this = nativeObjectObject
         }
         return nativeFunctionToString.apply(_this, arguments)
-    }
-
-
-    document.write = function(str){
-        var div = originalCreateElement.call(document, "div");
-        div.innerHTML = str;
-        var ret = nativeInnerHTMLDescriptor.set.call(div, toString(str))
-        mapInnerHTMLAssignment(div, str, "Document.Write")
-
-        var children = Array.from(div.children);
-        children.forEach(function(child){
-            document.body.appendChild(child)
-        })
-
-        var scriptTags = runFunctionWithTracingDisabled(function(){
-            return getScriptElements(str);
-        })
-        scriptTags.forEach(function(scriptTag){
-            document.body.appendChild(scriptTag)
-        })
     }
 
     window.encodeURIComponent = function(str){

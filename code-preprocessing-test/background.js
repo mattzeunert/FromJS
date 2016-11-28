@@ -5,13 +5,14 @@ var codeInstrumenter = new ChromeCodeInstrumenter({
     babelPlugin: function(babel) {
         return {
             visitor: {
-                AssignmentExpression(path){
+                StringLiteral(path){
+					path.node.value = "Cakesss"
                 }
             }
         };
     },
     logBGPageLogsOnInspectedPage: true
-});
+})
 
 function onBrowserActionClicked(tab) {
     codeInstrumenter.toggleTabInstrumentation(tab.id)
