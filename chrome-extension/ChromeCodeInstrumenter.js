@@ -119,6 +119,13 @@ class ChromeCodeInstrumenter {
             this.createSession(tabId, options)
         }
     }
+    reloadTabWithInstrumentationEnabled(tabId, options){
+        var session = this.getTabSession(tabId);
+        if (session){
+            session.close();
+        }
+        this.createSession(tabId, options)
+    }
     createSession(tabId, options = {}){
         if (this.getTabSession(tabId)) {
             debugger;
