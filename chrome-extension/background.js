@@ -16,6 +16,12 @@ var codeInstrumenter = new ChromeCodeInstrumenter({
     onCantInstrumentThisPage: function(){
         alert("This URL can't be inspected with FromJS")
     },
+    onInstrumentationError(err, filename, session){
+        session._log("Error processing JavaScript code in " + filename + err.stack)
+        console.error("Error processing JavaScript code in " + filename, err)
+        var code = "console.error('FromJS couldn\\'t process JavaScript code " + filename + "', '" + err.toString() + "', `" + err.stack + "`)"
+        session.executeScriptOnPage(code)
+    },
     onSessionOpened: function(session){
         session._onHeadersReceived = makeOnHeadersReceived();
         chrome.webRequest.onHeadersReceived.addListener(session._onHeadersReceived, {urls: ["<all_urls>"], tabId: session.tabId}, ["blocking", "responseHeaders"])

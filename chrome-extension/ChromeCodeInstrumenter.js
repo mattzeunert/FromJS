@@ -164,8 +164,9 @@ class BabelSession {
         this._downloadCache = {}
         this._processJSCodeCache = {};
         this._babelPlugin = options.babelPlugin
-        this._logBGPageLogsOnInspectedPage = options.logBGPageLogsOnInspectedPage,
+        this._logBGPageLogsOnInspectedPage = options.logBGPageLogsOnInspectedPage
         this._onBeforePageLoad = options.onBeforePageLoad
+        this._onInstrumentationError = options.onInstrumentationError
         this.onClosedCallbackForInstrumenterClass = options.onClosedCallbackForInstrumenterClass
 
         chrome.tabs.get(tabId, (tab) => {
@@ -371,7 +372,15 @@ class BabelSession {
     _processJavaScriptCode(code, options){
         var key = code + JSON.stringify(options);
         if (!this._processJSCodeCache[key]) {
-            var res = processJavaScriptCode(this._babelPlugin)(code, options);
+            try {
+                var res = processJavaScriptCode(this._babelPlugin)(code, options);
+            } catch (err) {
+                if (this._onInstrumentationError) {
+                    this._onInstrumentationError(err, options, this);
+                }
+                throw err
+            }
+
             this._processJSCodeCache[key] = {
                 map: res.map,
                 code: res.code
@@ -384,17 +393,10 @@ class BabelSession {
         var promise = new Promise(function(resolve, reject){
             self._getJavaScriptFile(url).then(function(code){
                 if (processCode) {
-                    try {
-                        var res = self._processJavaScriptCode(code, {filename: url})
-                        code = res.code
-                        code += "\n//# sourceURL=" + url
-                        code += "\n//# sourceMappingURL=" + url + ".map"
-                    } catch (err) {
-                        debugger
-                        self._log("Error processing JavaScript code in " + url + err.stack)
-                        console.error("Error processing JavaScript code in " + url, err)
-                        code = "console.error('FromJS couldn\\'t process JavaScript code " + url + "', '" + err.toString() + "', `" + err.stack + "`)"
-                    }
+                    var res = self._processJavaScriptCode(code, {filename: url})
+                    code = res.code
+                    code += "\n//# sourceURL=" + url
+                    code += "\n//# sourceMappingURL=" + url + ".map"
                 }
 
                 resolve(code)
