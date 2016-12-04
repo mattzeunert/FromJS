@@ -13,6 +13,7 @@ chrome.tabs.query({ currentWindow: true }, function (tabs) {
 var codeInstrumenter = new ChromeCodeInstrumenter({
     babelPlugin: require("../src/compilation/plugin"),
     logBGPageLogsOnInspectedPage: config.logBGPageLogsOnInspectedPage,
+    jsExecutionInhibitedMessage: "FromJS: JavaScript Execution Inhibited",
     onCantInstrumentThisPage: function(){
         alert("This URL can't be inspected with FromJS")
     },

@@ -1,6 +1,8 @@
-window.allowJSExecution = inhibitJavaScriptExecution();
+function inhibitJavaScriptExecution(jsExecutionInhibitedMessage){
+    if (!jsExecutionInhibitedMessage){
+        jsExecutionInhibitedMessage = "JavaScript Execution Inhibited"
+    }
 
-function inhibitJavaScriptExecution(){
     var windowProperties = {};
     var Object = window.Object
     var console = window.console
@@ -21,11 +23,11 @@ function inhibitJavaScriptExecution(){
             Object.defineProperty(window, propName, {
                 get: function(){
                     propName
-                    throw Error("FromJS: JavaScript Execution Inhibited")
+                    throw Error(jsExecutionInhibitedMessage)
                 },
                 set: function(){
                     propName
-                    throw Error("FromJS: JavaScript Execution Inhibited")
+                    throw Error(jsExecutionInhibitedMessage)
                 },
                 configurable: true
             })
@@ -56,3 +58,5 @@ function inhibitJavaScriptExecution(){
         console.info("FromJS: Re-allowed JS Execution")
     }
 }
+
+window.inhibitJavaScriptExecution = inhibitJavaScriptExecution
