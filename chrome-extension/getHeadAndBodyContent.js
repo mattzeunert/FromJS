@@ -10,9 +10,11 @@ function getHeadOrBodyContent(pageHtml, tagName){
     // after parsing
 
     var pageHtmlWithIndices = pageHtml;
+    var matchedClosingTag = false;
     var pageHtmlWithIndices = pageHtmlWithIndices.replace(tagRegExp, function(match, index){
         var isClosingTag = match[1] == "/"
         if (isClosingTag) {
+            matchedClosingTag = true;
             return "<index>" + index + "</index>" + match
         } else {
             return match + "<index>" + (index + match.length) + "</index>"
@@ -27,7 +29,15 @@ function getHeadOrBodyContent(pageHtml, tagName){
     var tag = $(tagName).first();
     var tagContents = $(tagName).contents()
     var fromIndex = getIndexFromComment(tagContents.first())
-    var toIndex = getIndexFromComment(tagContents.last())
+    var toIndex;
+
+    if (matchedClosingTag) {
+        toIndex = getIndexFromComment(tagContents.last())
+    } else {
+        // sometimes there's an opening tag but no closing tag...
+        // so just go to end of content
+        toIndex = pageHtml.length
+    }
 
     return {
         content: pageHtml.slice(fromIndex, toIndex),
