@@ -26,8 +26,11 @@ if (!window.disableNativeMethodPatching){
     }
 }
 
-window.startLoadingPage = function(){
-    console.info("FromJS: Loading page...")
+window.startLoadingPage = function(loadingMessagePrefix){
+    if (!loadingMessagePrefix) {
+        loadingMessagePrefix = "";
+    }
+    console.info(loadingMessagePrefix + "Loading page...")
     window.forTestsIsLoadingPage = true;
 
 
@@ -61,6 +64,32 @@ window.startLoadingPage = function(){
             simulateOnLoad()
         })
     }
+
+    function appendScriptsOneAfterAnother(scripts, container, done){
+        next()
+        function next(){
+            if (scripts.length === 0) {
+                done();
+                return
+            }
+            var script = scripts.shift()
+            console.log(loadingMessagePrefix + "Loading script", script)
+
+            if (nativeInnerHTMLDescriptor.get.call(script) === ""){
+                // Do this rather than appending script element, because
+                // requests on https may be cross origin
+                sendMessageToBackgroundPage({
+                    type: "loadScript",
+                    url: script.src
+                }, function(){
+                    next();
+                })
+            } else {
+                container.appendChild(script)
+                next();
+            }
+        }
+    }
 }
 
 function simulateOnLoad(){
@@ -77,32 +106,4 @@ function simulateOnLoad(){
     window.dispatchEvent(new Event("load"))
     document.dispatchEvent(new Event("load"))
     document.dispatchEvent(new Event("readystatechange"))
-}
-
-
-
-function appendScriptsOneAfterAnother(scripts, container, done){
-    next()
-    function next(){
-        if (scripts.length === 0) {
-            done();
-            return
-        }
-        var script = scripts.shift()
-        console.log("FromJS: Loading script", script)
-
-        if (nativeInnerHTMLDescriptor.get.call(script) === ""){
-            // Do this rather than appending script element, because
-            // requests on https may be cross origin
-            sendMessageToBackgroundPage({
-                type: "loadScript",
-                url: script.src
-            }, function(){
-                next();
-            })
-        } else {
-            container.appendChild(script)
-            next();
-        }
-    }
 }

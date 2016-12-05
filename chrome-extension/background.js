@@ -14,6 +14,7 @@ var codeInstrumenter = new ChromeCodeInstrumenter({
     babelPlugin: require("../src/compilation/plugin"),
     logBGPageLogsOnInspectedPage: config.logBGPageLogsOnInspectedPage,
     jsExecutionInhibitedMessage: "FromJS: JavaScript Execution Inhibited",
+    loadingMessagePrefix: "FromJS: ",
     onCantInstrumentThisPage: function(){
         alert("This URL can't be inspected with FromJS")
     },
