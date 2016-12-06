@@ -45,6 +45,11 @@ module.exports = function(config) {
     },
 
     webpack: webpackTestConfig,
+    webpackMiddleware: {
+        // webpack-dev-middleware configuration
+        // i. e.
+        stats: 'errors-only'
+    },
 
 
     // test results reporter to use
