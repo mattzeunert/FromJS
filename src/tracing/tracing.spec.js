@@ -161,34 +161,34 @@ describe("Tracing", function(){
         })
     })
 
-    it("Supports mapping of code in new Function", function(done){
-        var resolveFrameWorker = createResolveFrameWorker();
-        window.dynamicCodeRegistry = new DynamicCodeRegistry();
-
-        var fn = new Function(makeTraceObject({
-            value: "return 'Hi'",
-            origin: new Origin({
-                action: "Something",
-                inputValues: [],
-                value: "return 'Hi'"
-            })
-        }))
-
-        var ret = fn();
-        disableNativeMethodPatching()
-
-        resolveFrameWorker.send("registerDynamicFiles", dynamicCodeRegistry._content, function(){
-            whereDoesCharComeFrom([ret.origin, 0], function(steps){
-                var lastStep = steps[steps.length - 1]
-                expect(lastStep.origin.action).toBe("Something")
-
-                resolveFrameWorker.terminate();
-                delete window.dynamicCodeRegistry
-
-                done();
-            }, resolveFrameWorker)
-        })
-    })
+    // it("Supports mapping of code in new Function", function(done){
+    //     var resolveFrameWorker = createResolveFrameWorker();
+    //     window.dynamicCodeRegistry = new DynamicCodeRegistry();
+    //
+    //     var fn = new Function(makeTraceObject({
+    //         value: "return 'Hi'",
+    //         origin: new Origin({
+    //             action: "Something",
+    //             inputValues: [],
+    //             value: "return 'Hi'"
+    //         })
+    //     }))
+    //
+    //     var ret = fn();
+    //     disableNativeMethodPatching()
+    //
+    //     resolveFrameWorker.send("registerDynamicFiles", dynamicCodeRegistry._content, function(){
+    //         whereDoesCharComeFrom([ret.origin, 0], function(steps){
+    //             var lastStep = steps[steps.length - 1]
+    //             expect(lastStep.origin.action).toBe("Something")
+    //
+    //             resolveFrameWorker.terminate();
+    //             delete window.dynamicCodeRegistry
+    //
+    //             done();
+    //         }, resolveFrameWorker)
+    //     })
+    // })
 
     it("Eval returns the passed in value if it's not a code string", function(){
         expect(eval(undefined)).toBe(undefined)
