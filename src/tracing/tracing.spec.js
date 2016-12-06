@@ -1,4 +1,3 @@
-import {enableTracing, disableTracing} from "./tracing"
 import {makeTraceObject} from "./FromJSString"
 import babelFunctions from "./babelFunctions"
 import whereDoesCharComeFrom from "../whereDoesCharComeFrom"
@@ -30,10 +29,10 @@ function makeString(str){
 
 describe("Tracing", function(){
     beforeEach(function(){
-        enableTracing();
+        enableNativeMethodPatching();
     })
     afterEach(function(){
-        disableTracing()
+        disableNativeMethodPatching()
     })
 
     it("Tracks outerHTML that is read from an element", function(){
@@ -176,7 +175,7 @@ describe("Tracing", function(){
         }))
 
         var ret = fn();
-        disableTracing()
+        disableNativeMethodPatching()
 
         resolveFrameWorker.send("registerDynamicFiles", dynamicCodeRegistry._content, function(){
             whereDoesCharComeFrom([ret.origin, 0], function(steps){
@@ -257,19 +256,20 @@ describe("Tracing", function(){
         it("Supports document.write", function(){
             document.write("<div>Hello</div>")
 
-            disableTracing();
+            disableNativeMethodPatching();
             var div = _.last(document.body.children);
             expect(div.outerHTML).toBe("<div>Hello</div>")
             expect(div.__elOrigin.openingTagStart.action).toBe("Document.Write")
         })
 
         it("Supports injecting script tags with document.write", function(){
-            window.fromJSEnableTracing = enableTracing
-            window.fromJSDisableTracing = disableTracing
+            window.fromJSEnableTracing = enableNativeMethodPatching
+            window.fromJSDisableTracing = disableNativeMethodPatching
             window.dynamicCodeRegistry = new DynamicCodeRegistry();
+
             document.write("<script>window.documentWriteTest = 'works'</script>")
 
-            disableTracing();
+            disableNativeMethodPatching();
             expect(window.documentWriteTest.value).toBe("works")
             delete window.documentWriteTest
             delete window.dynamicCodeRegistry
@@ -601,7 +601,7 @@ describe("Tracing", function(){
 
             div.style.setProperty("color", red)
 
-            disableTracing();
+            disableNativeMethodPatching();
             expect(div.getAttribute("style")).toBe("color: red")
 
             var origin = div.__elOrigin.attribute_style
@@ -652,7 +652,7 @@ describe("Tracing", function(){
 
         el.innerHTML = obj;
 
-        disableTracing();
+        disableNativeMethodPatching();
         expect(el.innerHTML).toBe("Cake")
     })
 

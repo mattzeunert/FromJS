@@ -8,7 +8,6 @@ import toString from "../untracedToString"
 var globalObject = (function () { return this; })();
 
 var cachedValue;
-var documentReadyState = "loading"
 
 function ensureIsNumber(value){
     if (typeof value === "number") {
@@ -221,16 +220,6 @@ var babelFunctions = {
     },
     f__getForInLoopKeyObject(object){
         return f__useValue(object);
-    },
-    f__getReadyState(obj){
-        if (obj === document){
-            return documentReadyState;
-        } else {
-            return obj.readyState
-        }
-    },
-    f__setDocumentReadyState(value){
-        documentReadyState = value
     },
     f__getToString(obj){
         if (obj && obj.isStringTraceString) {

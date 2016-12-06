@@ -71,5 +71,12 @@ describe("getHeadAndBodyContent", function(){
         expect(res.bodyContent).toBe("body")
     })
 
+    it("Handle a body tag that's not closed", function(){
+        var res = getHeadAndBodyContent(`
+            <head>HEAD</head>
+            <body>BODY`)
+        expect(res.headContent).toBe("HEAD")
+        expect(res.bodyContent).toBe("BODY")
+    })
 
 })

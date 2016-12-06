@@ -2,18 +2,35 @@ import {getScriptElements} from "../src/getJSScriptTags"
 import _ from "underscore"
 import getHeadAndBodyContent from "./getHeadAndBodyContent"
 import sendMessageToBackgroundPage from "../src/sendMessageToBackgroundPage"
+import CodePreprocessor from "../src/tracing/code-preprocessor"
 
+window.createCodePreprocessor(CodePreprocessor)
 window.isExtension = true;
 
-function enableNativeMethodPatching(){
-    window.fromJSEnableTracing();
+
+console.log("inside Injected.js")
+window.originalCreateElement = document.createElement
+window.nativeInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML")
+
+if (!window.onAfterBodyHTMLInserted) {
+    window.onAfterBodyHTMLInserted = function(){}
 }
-function disableNativeMethodPatching(){
-    window.fromJSDisableTracing()
+if (!window.enableNativeMethodPatching){
+    window.enableNativeMethodPatching = function(){
+        window.codePreprocessor.enable();
+    }
+}
+if (!window.disableNativeMethodPatching){
+    window.disableNativeMethodPatching = function(){
+        window.codePreprocessor.disable();
+    }
 }
 
-window.startLoadingPage = function(){
-    console.info("FromJS: Loading page...")
+window.startLoadingPage = function(loadingMessagePrefix){
+    if (!loadingMessagePrefix) {
+        loadingMessagePrefix = "";
+    }
+    console.info(loadingMessagePrefix + "Loading page...")
     window.forTestsIsLoadingPage = true;
 
 
@@ -42,11 +59,36 @@ window.startLoadingPage = function(){
         disableNativeMethodPatching();
         document.body.innerHTML = headAndBody.bodyContent
         enableNativeMethodPatching();
-        makeSureInitialHTMLHasBeenProcessed()
-        window.extensionShowFromJSInspectorButton()
+        onAfterBodyHTMLInserted()
         appendScriptsOneAfterAnother(bodyScripts, document.body, function(){
             simulateOnLoad()
         })
+    }
+
+    function appendScriptsOneAfterAnother(scripts, container, done){
+        next()
+        function next(){
+            if (scripts.length === 0) {
+                done();
+                return
+            }
+            var script = scripts.shift()
+            console.log(loadingMessagePrefix + "Loading script", script)
+
+            if (nativeInnerHTMLDescriptor.get.call(script) === ""){
+                // Do this rather than appending script element, because
+                // requests on https may be cross origin
+                sendMessageToBackgroundPage({
+                    type: "loadScript",
+                    url: script.src
+                }, function(){
+                    next();
+                })
+            } else {
+                container.appendChild(script)
+                next();
+            }
+        }
     }
 }
 
@@ -64,32 +106,4 @@ function simulateOnLoad(){
     window.dispatchEvent(new Event("load"))
     document.dispatchEvent(new Event("load"))
     document.dispatchEvent(new Event("readystatechange"))
-}
-
-
-
-function appendScriptsOneAfterAnother(scripts, container, done){
-    next()
-    function next(){
-        if (scripts.length === 0) {
-            done();
-            return
-        }
-        var script = scripts.shift()
-        console.log("FromJS: Loading script", script)
-
-        if (nativeInnerHTMLDescriptor.get.call(script) === ""){
-            // Do this rather than appending script element, because
-            // requests on https may be cross origin
-            sendMessageToBackgroundPage({
-                type: "loadScript",
-                url: script.src
-            }, function(){
-                next();
-            })
-        } else {
-            container.appendChild(script)
-            next();
-        }
-    }
 }

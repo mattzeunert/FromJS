@@ -47,9 +47,8 @@ export default class FrameResolver {
         } else {
             // Use promises so we can re-use them, so if the same frame is requested again
             // before the first one succeeded we don't attempt to resolve again
-            if (self._frameStringsCurrentlyBeingResolved[frameString]) {
-                self._frameStringsCurrentlyBeingResolved[frameString].then(done)
-            } else {
+            var isAlreadyResolvingFrameString = !!self._frameStringsCurrentlyBeingResolved[frameString]
+            if (!isAlreadyResolvingFrameString) {
                 self._frameStringsCurrentlyBeingResolved[frameString] = new Promise(function(resolve, reject){
                     self._gps.pinpoint(frameObject).then(function(newFrame){
                         self._addCodeToFrame(newFrame, function(err, frame){
@@ -62,9 +61,8 @@ export default class FrameResolver {
                         console.log("error", arguments)
                     });
                 })
-
-                self._frameStringsCurrentlyBeingResolved[frameString].then(done)
             }
+            self._frameStringsCurrentlyBeingResolved[frameString].then(done)
         }
 
         function done(args){

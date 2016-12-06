@@ -5,7 +5,6 @@ var getBaseConfig = require("./getBaseConfig")
 var webConfig = getBaseConfig()
 webConfig.entry = {
     background: ['./chrome-extension/background.js'],
-    contentScript: ['./chrome-extension/contentScript.js'],
     from: ['./src/from.js'],
     inspector: ['./src/inspector.js'],
     injected: ["./chrome-extension/injected.js"],

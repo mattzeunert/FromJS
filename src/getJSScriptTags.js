@@ -66,9 +66,9 @@ export function getScriptElements(html){
             scriptEl.setAttribute(attr.name, attr.textContent)
         })
         if (tag.content !== "") {
-            window.fromJSEnableTracing()
+            window.enableNativeMethodPatching()
             scriptEl.text = tag.content // assignment will be processed by fromjs
-            window.fromJSDisableTracing()
+            window.disableNativeMethodPatching()
         }
         return scriptEl
     })

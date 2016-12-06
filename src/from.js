@@ -77,11 +77,6 @@ window.playgroundShowSidebar = function(){
 }
 
 function onReady(){
-    // hook for Chrome Extension to proceed when FromJS has been set up
-    if (window.startLoadingPage) {
-        window.startLoadingPage();
-    }
-
     // extension replaces body html after head has loaded, so wait until that
     // has been done before showing the button
     if (!window.isExtension && !window.isPlayground) {
@@ -105,6 +100,13 @@ if (location.hash === "#speed-up-execution-and-break-tracing") {
     window.speedUpExecutionAndBreakTracing
     window.Error = function(){
 
+    }
+}
+
+if (window.isExtension) {
+    window.onAfterBodyHTMLInserted = function(){
+        makeSureInitialHTMLHasBeenProcessed();
+        window.extensionShowFromJSInspectorButton()
     }
 }
 
