@@ -10,7 +10,6 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install google-chrome-stable
   - google-chrome-stable --version
-  - java -version
   - sudo apt-get install default-jre
 script:
   - npm run webdriver-manager-update
