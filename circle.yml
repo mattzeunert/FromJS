@@ -1,0 +1,6 @@
+test:
+  pre:
+    - npm run build
+    - npm run webdriver-manager-update
+  override:
+    - npm run e2e-test
