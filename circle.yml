@@ -1,0 +1,10 @@
+machine:
+  post:
+    - npm install npm@3.10.3 -g
+test:
+  pre:
+    - npm run build
+    - npm run webdriver-manager-update
+  override:
+    - npm run ci-test
+    - npm run e2e-test
