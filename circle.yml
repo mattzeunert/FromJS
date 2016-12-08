@@ -1,6 +1,6 @@
 dependencies:
   pre:
-    sudo npm install npm@3.10.3 -g
+    - sudo npm install npm@3.10.3 -g
 test:
   pre:
     - npm run build
