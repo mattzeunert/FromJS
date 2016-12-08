@@ -1,5 +1,5 @@
-dependencies:
-  pre:
+machine:
+  post:
     - sudo npm install npm@3.10.3 -g
 test:
   pre:
