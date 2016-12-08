@@ -6,4 +6,5 @@ test:
     - npm run build
     - npm run webdriver-manager-update
   override:
+    - npm run ci-test
     - npm run e2e-test
