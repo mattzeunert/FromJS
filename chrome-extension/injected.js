@@ -5,6 +5,10 @@ import sendMessageToBackgroundPage from "../src/sendMessageToBackgroundPage"
 import CodePreprocessor from "../src/tracing/code-preprocessor"
 
 window.createCodePreprocessor(CodePreprocessor)
+window.__sendMessageToBackgroundPage = function(type, data, callback){
+    data = {...data, type}
+    sendMessageToBackgroundPage(data, callback)
+}
 window.isExtension = true;
 
 

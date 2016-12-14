@@ -97,7 +97,9 @@ class ChromeCodeInstrumenter {
                 return
             }
 
-            var handler = messageHandlers[request.type];
+            var usedMessageHandlers = _.extend({}, self.options.additionalMessageHandlers, messageHandlers)
+
+            var handler = usedMessageHandlers[request.type];
             if (handler) {
                 handler(session, request, function(){
                     session.executeScriptOnPage(request.callbackName + "(decodeURI(`" + encodeURI(JSON.stringify(Array.from(arguments))) + "`))");
