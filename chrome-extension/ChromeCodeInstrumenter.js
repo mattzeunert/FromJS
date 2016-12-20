@@ -13,37 +13,41 @@ const FromJSSessionStages = {
     CLOSED: "CLOSED"
 }
 
-
 var resolveFrameWorkerCode = "not loaded yet"
-fetch(chrome.extension.getURL("resolveFrameWorker.js"))
-.then(function(r){
-    return r.text()
-})
-.then(function(text){
-    resolveFrameWorkerCode = text
-})
-
-// Needs to be injected as text as otherewise execution is delayed by a tiny bit,
-// which means page JS is executed beforehand.
-// looks like a chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=634381#c11
 var inhibitJSExecutionCode = "not loaded yet"
-fetch(chrome.extension.getURL("inhibitJavaScriptExecution.js"))
-.then(function(r){
-    return r.text()
-})
-.then(function(text){
-    inhibitJSExecutionCode = text
-})
-
 var injectedJSCode = "not loaded yet"
-fetch(chrome.extension.getURL("injected.js"))
-.then(function(r){
-    return r.text()
-})
-.then(function(text){
-    injectedJSCode = text
-})
+/* PRE_EMBED_SCRIPTS_HERE_INSTEAD_OF_FETCH */
 
+var hasEmbedded = resolveFrameWorkerCode !== "not loaded yet"
+
+if (!hasEmbedded) {
+    fetch(chrome.extension.getURL("resolveFrameWorker.js"))
+    .then(function(r){
+        return r.text()
+    })
+    .then(function(text){
+        resolveFrameWorkerCode = text
+    })
+
+    // Needs to be injected as text as otherewise execution is delayed by a tiny bit,
+    // which means page JS is executed beforehand.
+    // looks like a chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=634381#c11
+    fetch(chrome.extension.getURL("inhibitJavaScriptExecution.js"))
+    .then(function(r){
+        return r.text()
+    })
+    .then(function(text){
+        inhibitJSExecutionCode = text
+    })
+
+    fetch(chrome.extension.getURL("injected.js"))
+    .then(function(r){
+        return r.text()
+    })
+    .then(function(text){
+        injectedJSCode = text
+    })
+}
 
 class ChromeCodeInstrumenter {
     constructor(options){
