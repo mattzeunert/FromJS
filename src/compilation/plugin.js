@@ -1,6 +1,10 @@
-var _ = require("underscore")
-
 module.exports = function(babel) {
+    var nextId = 1;
+    function getUniqueId(){
+        var id = nextId;
+        nextId++
+        return id
+    }
   return {
     visitor: {
       AssignmentExpression(path){
@@ -73,7 +77,7 @@ module.exports = function(babel) {
           path.node.right = newObject;
 
           var oldLoopVariableDeclaration = path.node.left
-          var newVarName = "__fromJSForIn" + _.uniqueId()
+          var newVarName = "__fromJSForIn" + getUniqueId()
 
           var untrackedProperty;
           var originalVariableDeclaration

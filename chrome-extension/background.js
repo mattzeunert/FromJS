@@ -25,11 +25,10 @@ var codeInstrumenter = new ChromeCodeInstrumenter({
         session.executeScriptOnPage(code)
     },
     onSessionOpened: function(session){
-        session._onHeadersReceived = makeOnHeadersReceived();
-        chrome.webRequest.onHeadersReceived.addListener(session._onHeadersReceived, {urls: ["<all_urls>"], tabId: session.tabId}, ["blocking", "responseHeaders"])
+
     },
     onSessionClosed: function(session){
-        chrome.webRequest.onHeadersReceived.removeListener(session._onHeadersReceived)
+
     },
     onBeforePageLoad: function(callback){
         this._executeScript(`
@@ -46,29 +45,6 @@ var codeInstrumenter = new ChromeCodeInstrumenter({
         })
     }
 })
-
-/*
-We're modifying the headers because some websites (e.g. twitter) otherwise prevent us
-from creating a webworker from a blob origin.
-Instead of modifying the headers we could instead move the resolveFrame web worker
-into the bg page.
-*/
-function makeOnHeadersReceived(){
-     return function onHeadersReceived(details){
-         if (details.type !== "main_frame") {return}
-
-         for (var i=0; i<details.responseHeaders.length; i++) {
-             if (details.responseHeaders[i].name.toLowerCase() === "content-security-policy" ) {
-                 details.responseHeaders[i].value = ""
-             }
-         }
-
-         return {
-             responseHeaders: details.responseHeaders
-         }
-     }
- }
-
 
 function onBrowserActionClicked(tab) {
     codeInstrumenter.toggleTabInstrumentation(tab.id)
