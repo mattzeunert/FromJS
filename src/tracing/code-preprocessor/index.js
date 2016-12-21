@@ -8,6 +8,8 @@ var nativeHTMLScriptElementTextDescriptor = Object.getOwnPropertyDescriptor(HTML
 var nativeFunction = window.Function
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
 var nativeDocumentWrite = document.write;
+var nativeAppendChildDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild")
+var nativeInsertBefore = Node.prototype.insertBefore
 
 export default class CodePreprocessor {
     constructor({babelPlugin}){
@@ -19,6 +21,11 @@ export default class CodePreprocessor {
         this.makeDocumentWrite = function(write){
             return function(){
                 write.apply(this, arguments)
+            }
+        }
+        this.makeAppendChild = function(appendChild){
+            return function(){
+                appendChild.apply(this, arguments)
             }
         }
         this.onBeforeEnable = function(){}
@@ -51,11 +58,12 @@ export default class CodePreprocessor {
             self.documentReadyState = value
         }
     }
-    setOptions({onCodeProcessed, getNewFunctionCode, useValue, makeDocumentWrite, onBeforeEnable, onBeforeDisable, onAfterEnable, onAfterDisable}){
+    setOptions({onCodeProcessed, getNewFunctionCode, useValue, makeDocumentWrite, onBeforeEnable, onBeforeDisable, onAfterEnable, onAfterDisable, makeAppendChild}){
         this.onCodeProcessed = onCodeProcessed
         this.getNewFunctionCode = getNewFunctionCode
         this.useValue = useValue
         this.makeDocumentWrite = makeDocumentWrite
+        this.makeAppendChild = makeAppendChild
 
         if (onBeforeEnable) {
             this.onBeforeEnable = onBeforeEnable
@@ -159,7 +167,7 @@ export default class CodePreprocessor {
             // propagate to the eval'd code.)
             var script = document.createElement("script")
             script.innerHTML = evalCode
-            document.body.appendChild(script)
+            nativeAppendChildDescriptor.value.apply(document.body, [script])
 
             script.remove();
 
@@ -189,6 +197,28 @@ export default class CodePreprocessor {
             return div
         });
 
+        Node.prototype.insertBefore = function(newEl, referenceEl){
+            if (newEl.tagName === "SCRIPT") {
+                __loadScriptTag(newEl, function(){},this)
+            } else {
+                return nativeInsertBefore.apply(this, arguments)
+            }
+        }
+
+        Object.defineProperty(Node.prototype, "appendChild", {
+            get: function(){
+                return function(appendedEl) {
+                    if (appendedEl.tagName === "SCRIPT") {
+                        __loadScriptTag(appendedEl, function(){}, this)
+                    }
+                    return self.makeAppendChild(nativeAppendChildDescriptor.value).apply(this, arguments)
+                }
+            },
+            set: function(){
+                console.error("Not overwriting Node.prototype.appendChild")
+            }
+        })
+
         this.onAfterEnable();
     }
     runFunctionWhileDisabled(fn){
@@ -212,6 +242,8 @@ export default class CodePreprocessor {
         Object.defineProperty(HTMLScriptElement.prototype, "text", nativeHTMLScriptElementTextDescriptor)
         // HTMLScriptElement doesn't normally have textcontent on own prototype, inherits the prop from Node
         Object.defineProperty(HTMLScriptElement.prototype, "textContent", nativeNodeTextContentDescriptor)
+        Node.prototype.insertBefore = nativeInsertBefore
+        Object.defineProperty(Node.prototype, "appendChild", nativeAppendChildDescriptor)
 
         document.write = nativeDocumentWrite
         window.Function = nativeFunction

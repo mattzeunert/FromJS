@@ -83,14 +83,37 @@ codePreprocessor.setOptions({
                 document.body.appendChild(scriptTag)
             })
         }
+    },
+    makeAppendChild: function(appendChild){
+        return function(appendedEl){
+            if (appendedEl instanceof DocumentFragment){
+                var childNodes = []
+                // appending a child from a doc fragment to the DOM
+                // means it's removed from the doc fragment, so
+                // make a list that won't change when calling appendChild
+                appendedEl.childNodes.forEach((child) => {
+                    childNodes.push(child)
+                })
+                childNodes.forEach((child) => {
+                    this.appendChild(child)
+                })
+            } else {
+                addElOrigin(this, "appendChild",{
+                    // looks like at least for now none of this is used
+                    // action: "appendChild",
+                    // inputValues: [appendedEl],
+                    child: appendedEl
+                })
+
+                appendChild.apply(this, arguments)
+            }
+            return appendedEl;
+        }
     }
 })
 
 var nativeObjectObject = window.Object
 window.nativeObjectObject = nativeObjectObject
-
-var appendChildPropertyDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild");
-window.originalAppendChildPropertyDescriptor = appendChildPropertyDescriptor
 
 var nativeSetAttribute = Element.prototype.setAttribute;
 window.nativeSetAttribute = nativeSetAttribute
@@ -103,6 +126,9 @@ window.nativeInnerHTMLDescriptor = nativeInnerHTMLDescriptor;
 
 var nativeHTMLScriptElementTextDescriptor = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, "text")
 window.nativeHTMLScriptElementTextDescriptor = nativeHTMLScriptElementTextDescriptor
+
+var nativeAppendChildDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild")
+window.originalAppendChildPropertyDescriptor = nativeAppendChildDescriptor
 
 var nativeExec = RegExp.prototype.exec;
 window.nativeExec = nativeExec;
@@ -326,39 +352,6 @@ function onAfterEnable(){
         //     var ret = str[prop.name].apply(str, arguments)
         //     return ret;
         // }
-    })
-
-
-    Object.defineProperty(Node.prototype, "appendChild", {
-        get: function(){
-            return function(appendedEl){
-                if (appendedEl instanceof DocumentFragment){
-                    var childNodes = []
-                    // appending a child from a doc fragment to the DOM
-                    // means it's removed from the doc fragment, so
-                    // make a list that won't change when calling appendChild
-                    appendedEl.childNodes.forEach((child) => {
-                        childNodes.push(child)
-                    })
-                    childNodes.forEach((child) => {
-                        this.appendChild(child)
-                    })
-                } else {
-                    addElOrigin(this, "appendChild",{
-                        // looks like at least for now none of this is used
-                        // action: "appendChild",
-                        // inputValues: [appendedEl],
-                        child: appendedEl
-                    })
-
-                    appendChildPropertyDescriptor.value.apply(this, arguments)
-                }
-                return appendedEl;
-            }
-        },
-        set: function(){
-            console.error("Not overwriting Node.prototype.appendChild")
-        }
     })
 
     window.XMLHttpRequest = function(){
@@ -1076,7 +1069,6 @@ function onAfterDisable(){
 
     document.write = nativeDocumentWrite
 
-    Object.defineProperty(Node.prototype, "appendChild", window.originalAppendChildPropertyDescriptor);
     Element.prototype.setAttribute = window.nativeSetAttribute
     Object.defineProperty(Element.prototype, "innerHTML", nativeInnerHTMLDescriptor)
     Object.defineProperty(Element.prototype, "outerHTML", nativeOuterHTMLDescriptor)
