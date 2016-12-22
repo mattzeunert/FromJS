@@ -4,6 +4,8 @@ import getHeadAndBodyContent from "./getHeadAndBodyContent"
 import sendMessageToBackgroundPage from "../src/sendMessageToBackgroundPage"
 import CodePreprocessor from "../src/tracing/code-preprocessor"
 
+var nativeAppendChild = Node.prototype.appendChild
+
 window.createCodePreprocessor(CodePreprocessor)
 window.__sendMessageToBackgroundPage = function(type, data, callback){
     data = {...data, type}
@@ -31,7 +33,7 @@ window.__loadScriptTag = function(script, callback, container){
             callback();
         })
     } else {
-        container.appendChild(script)
+        nativeAppendChild.apply(container, [script])
         callback();
     }
 }
