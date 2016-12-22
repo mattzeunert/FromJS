@@ -78,7 +78,15 @@ class ChromeCodeInstrumenter {
                 session.activate()
             }
             if (changeInfo.status === "loading") {
-                session.initialize();
+                // Need to check if stage is RELOADING, because the
+                // tab state provided by changeInfo can revert
+                // back to loading after the session has already been
+                // initialized
+                if (session.isReloading()) {
+                    session.initialize();
+                } else {
+                    console.log("changeinfo status is back to loading, but session is already initialized (stage:", session._stage, ")")
+                }
             }
         })
 
@@ -247,7 +255,7 @@ class BabelSession {
     }
     activate(){
         if (this._stage !== FromJSSessionStages.INITIALIZED) {
-            this._log("Delay activation until stage is INITIALIZED")
+            this._log("Delay activation until stage is INITIALIZED, current stage: ", this._stage)
             setTimeout(() => this.activate(), 100)
             return;
         }
@@ -267,6 +275,7 @@ class BabelSession {
             document.documentElement.appendChild(script)
             `,
         }, function(){
+            self._log("re-enabled js execution")
             self._executeScript({
                 code: `
                     var script = document.createElement("script")
@@ -283,6 +292,7 @@ class BabelSession {
                     document.documentElement.appendChild(script)
                 `
             }, function(){
+
                 self._executeScript({
                     code: `
                         console.log("going to load injected.js")
@@ -305,6 +315,7 @@ class BabelSession {
                         }, false);
                     `
                 }, function(){
+                    self._log("added injectedjs")
                     var encodedPageHtml = encodeURI(self._pageHtml)
                     self._executeScript({
                         code: `
@@ -325,6 +336,7 @@ class BabelSession {
                             cont();
                         }
                         function cont(){
+                            console.log("about to start loading")
                             self._stage = FromJSSessionStages.ACTIVE;
                             self.executeScriptOnPage(`
                                 if (document.readyState === "complete") {
@@ -337,6 +349,10 @@ class BabelSession {
                                     })
                                 }
                                 function startLoading(){
+                                    if (!window.startLoadingPage) {
+                                        setTimeout(startLoading, 100)
+                                        return;
+                                    }
                                     window.startLoadingPage(decodeURI("${encodeURI(self._loadingMessagePrefix)}"))
                                 }
                             `)
@@ -466,6 +482,9 @@ class BabelSession {
     isActive(){
         return this._stage === FromJSSessionStages.ACTIVE;
     }
+    isReloading(){
+        return this._stage === FromJSSessionStages.RELOADING;
+    }
     close(){
         chrome.webRequest.onBeforeRequest.removeListener(this._onBeforeRequest)
         chrome.webRequest.onHeadersReceived.removeListener(this._onHeadersReceived)
@@ -513,7 +532,7 @@ function makeOnHeadersReceived(){
 function makeOnBeforeRequest(session){
     // make unique function so we can call removeListener later
     function onBeforeRequest(info){
-        console.log("request for url", info.url)
+        console.log("request for url", info.url, info)
         if (session.isClosed()){
             return;
         }
