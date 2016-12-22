@@ -292,6 +292,11 @@ class BabelSession {
                         el.setAttribute("charset", "utf-8")
                         document.documentElement.appendChild(el)
 
+                        if (window.fromJSRebroadcastListenerAdded) {
+                            // not sure exactly why this happens, but sometimes this code runs twice...
+                            alert("Error: already loaded")
+                        }
+                        window.fromJSRebroadcastListenerAdded = true;
                         window.addEventListener("RebroadcastExtensionMessage", function(evt) {
                             if (!evt.detail || !evt.detail.isFromJSExtensionMessage) {
                                 return
