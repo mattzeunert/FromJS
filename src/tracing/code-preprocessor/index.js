@@ -34,6 +34,16 @@ export default class CodePreprocessor {
         this.onAfterDisable = function(){}
         this.isEnabled = false;
 
+        this.loadScriptTag = function(script, callback, container){
+            if (window.__loadScriptTag){
+                // Chrome extension
+                window.__loadScriptTag.apply(null, arguments)
+            } else {
+                // local server
+                nativeAppendChildDescriptor.value.apply(container, [script])
+            }
+        }
+
         var self= this;
         this.preprocessCode = function(code, options){
             self.disable();
@@ -199,7 +209,7 @@ export default class CodePreprocessor {
 
         Node.prototype.insertBefore = function(newEl, referenceEl){
             if (newEl.tagName === "SCRIPT") {
-                __loadScriptTag(newEl, function(){},this)
+                self.loadScriptTag(newEl, function(){},this)
             } else {
                 return nativeInsertBefore.apply(this, arguments)
             }
@@ -209,7 +219,7 @@ export default class CodePreprocessor {
             get: function(){
                 return function(appendedEl) {
                     if (appendedEl.tagName === "SCRIPT") {
-                        __loadScriptTag(appendedEl, function(){}, this)
+                        self.loadScriptTag(appendedEl, function(){}, this)
                     }
                     return self.makeAppendChild(nativeAppendChildDescriptor.value).apply(this, arguments)
                 }
