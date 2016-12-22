@@ -16,6 +16,9 @@ function ensureIsNumber(value){
     if (typeof value === "undefined") {
         return NaN
     }
+    if (value === null){
+        return 0
+    }
 
     var num = parseFloat(value.toString())
     if (num === 0 && 1 / value === Number.NEGATIVE_INFINITY){
