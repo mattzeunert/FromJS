@@ -25,7 +25,7 @@ export default class CodePreprocessor {
         }
         this.makeAppendChild = function(appendChild){
             return function(){
-                appendChild.apply(this, arguments)
+                return appendChild.apply(this, arguments)
             }
         }
         this.onBeforeEnable = function(){}
