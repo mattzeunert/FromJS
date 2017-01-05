@@ -15,6 +15,8 @@ webConfig.plugins.push(new WebpackShellPlugin({
     onBuildExit: [
         `
         node scripts/embed-scripts-in-instrumenter.js
+        rm code-preprocessing-test/dist/ChromeCodeInstrumenterBeforeEmbedding.js
+        rm code-preprocessing-test/dist/ChromeCodeInstrumenterBeforeEmbedding.js.map
         cp code-preprocessing-test/manifest.json code-preprocessing-test/dist/manifest.json;
         echo 'Finished onBuildExit';
         `
