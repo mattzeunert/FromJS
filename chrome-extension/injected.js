@@ -30,6 +30,10 @@ window.__loadScriptTag = function(script, callback, container){
                 }
                 script.onload(e)
             }
+            if (script.onreadystatechange){
+                debugger
+                script.onreadystatechange.apply(script, [])
+            }
             callback();
         })
     } else {
