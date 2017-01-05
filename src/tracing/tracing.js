@@ -41,7 +41,6 @@ function registerDynamicFile(filename, code, evalCode, sourceMap, actionName){
     dynamicCodeRegistry.register(filename + ".dontprocess", code.value, codeOrigin)
 }
 
-
 var codePreprocessor;
 if (!window.isExtension){
     codePreprocessor = new CodePreprocessor({
@@ -51,6 +50,8 @@ if (!window.isExtension){
     codePreprocessor = window.codePreprocessor
     console.log("existing codePreprocessor", window.codePreprocessor)
 }
+
+window.codePreprocessor = codePreprocessor
 
 window.enableNativeMethodPatching = () => codePreprocessor.enable();
 window.disableNativeMethodPatching = () => codePreprocessor.disable();
