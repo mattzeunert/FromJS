@@ -210,6 +210,7 @@ export default class CodePreprocessor {
         Node.prototype.insertBefore = function(newEl, referenceEl){
             if (newEl.tagName === "SCRIPT") {
                 self.loadScriptTag(newEl, function(){},this)
+                return newEl
             } else {
                 return nativeInsertBefore.apply(this, arguments)
             }
@@ -220,8 +221,10 @@ export default class CodePreprocessor {
                 return function(appendedEl) {
                     if (appendedEl.tagName === "SCRIPT") {
                         self.loadScriptTag(appendedEl, function(){}, this)
+                        return appendedEl
+                    } else {
+                        return self.makeAppendChild(nativeAppendChildDescriptor.value).apply(this, arguments)
                     }
-                    return self.makeAppendChild(nativeAppendChildDescriptor.value).apply(this, arguments)
                 }
             },
             set: function(){
