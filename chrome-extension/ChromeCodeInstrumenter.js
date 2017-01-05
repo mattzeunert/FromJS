@@ -281,6 +281,7 @@ class BabelSession {
                 code: `
                     var script = document.createElement("script")
                     script.text = \`
+                        window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");
                         window.createCodePreprocessor = function(CodePreprocessor){
 
                             window.codePreprocessor = new CodePreprocessor({
@@ -323,7 +324,6 @@ class BabelSession {
                             var script = document.createElement("script");
 
                             script.innerHTML += "window.pageHtml = decodeURI(\\"${encodedPageHtml}\\");";
-                            script.innerHTML += "window.fromJSResolveFrameWorkerCode = decodeURI(\\"${encodeURI(resolveFrameWorkerCode)}\\");"
                             document.documentElement.appendChild(script)
                           `
                     }, function(){

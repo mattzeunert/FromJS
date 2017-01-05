@@ -1,6 +1,6 @@
 import processJSCode, {removeSourceMapIfAny} from "../../compilation/processJavaScriptCode"
 import _ from "underscore"
-
+import createResolveFrameWorker from "../../createResolveFrameWorker"
 
 
 var nativeEval = window.eval;
@@ -54,6 +54,24 @@ export default class CodePreprocessor {
 
         this.setGlobalFunctions()
 
+        this.resolveFrameWorker = createResolveFrameWorker()
+        this.resolveFrameWorker.on("fetchUrl", function(url, cb){
+            if (window.__sendMessageToBackgroundPage) {
+                window.__sendMessageToBackgroundPage("fetchUrl", {
+                    url: url
+                }, cb)
+            } else {
+                var r = new XMLHttpRequest();
+                r.addEventListener("load", function(){
+                    cb(f__useValue(r.responseText))
+                });
+                r.open("GET", url);
+                r.send();
+            }
+        })
+    }
+    resolveFrame(frameString, callback){
+        this.resolveFrameWorker.send("resolveFrame", frameString, callback)
     }
     setGlobalFunctions(){
         var self = this;

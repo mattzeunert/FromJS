@@ -17,8 +17,6 @@ import {enableTracing, disableTracing, runFunctionWithTracingDisabled} from "./t
 import {addBabelFunctionsToGlobalObject} from "./tracing/babelFunctions"
 import {initializeSidebarContent, showShowFromJSInspectorButton} from "./ui/showFromJSSidebar"
 import $ from "jquery"
-import createResolveFrameWorker from "./createResolveFrameWorker"
-import sendMessageToBackgroundPage from "./sendMessageToBackgroundPage"
 import DynamicCodeRegistry from "./DynamicCodeRegistry"
 import {showFromJSSidebarOnPlaygroundPage} from "./ui/showFromJSSidebar"
 
@@ -30,27 +28,12 @@ addBabelFunctionsToGlobalObject();
 window.fromJSEnableTracing = enableTracing
 window.fromJSDisableTracing = disableTracing
 
-var resolveFrameWorker = createResolveFrameWorker()
+var resolveFrameWorker = window.codePreprocessor.resolveFrameWorker
 if (!window.isPlayground) {
     resolveFrameWorker.postMessageWrapper = function(doPostMessage){
         runFunctionWithTracingDisabled(doPostMessage)
     }
 }
-resolveFrameWorker.on("fetchUrl", function(url, cb){
-    if (window.isExtension) {
-        sendMessageToBackgroundPage({
-            type: "fetchUrl",
-            url: url
-        }, cb)
-    } else {
-        var r = new XMLHttpRequest();
-        r.addEventListener("load", function(){
-            cb(f__useValue(r.responseText))
-        });
-        r.open("GET", url);
-        r.send();
-    }
-})
 
 dynamicCodeRegistry.on("register", function(newFiles){
     runFunctionWithTracingDisabled(function(){
