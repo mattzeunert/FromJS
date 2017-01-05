@@ -192,6 +192,7 @@ class BabelSession {
         this.onClosedCallbackForInstrumenterClass = options.onClosedCallbackForInstrumenterClass
         this._jsExecutionInhibitedMessage = options.jsExecutionInhibitedMessage
         this._loadingMessagePrefix = options.loadingMessagePrefix
+        this._beautifyCode = options.beautifyCode
 
         chrome.tabs.get(tabId, (tab) => {
             if (!tab.url || startsWith(tab.url, "chrome://")) {
@@ -405,12 +406,14 @@ class BabelSession {
                 fetch(url)
                 .then((r) => r.text())
                 .then((code) => {
-                    // Ideally this would happen when displaying the code in the UI,
-                    // rather than when it's downloaded (doing it now means the line
-                    // numbers will be incorrect)
-                    // But for now it's too much work to do it later, would need
-                    // to apply source maps...
-                    code = beautifyJS(code)
+                    if (self._beautifyCode){
+                        // Ideally this would happen when displaying the code in the UI,
+                        // rather than when it's downloaded (doing it now means the line
+                        // numbers will be incorrect)
+                        // But for now it's too much work to do it later, would need
+                        // to apply source maps...
+                        code = beautifyJS(code)
+                    }
 
                     self._downloadCache[url] = code
                     resolve(code)

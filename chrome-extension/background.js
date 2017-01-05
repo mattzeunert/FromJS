@@ -15,6 +15,7 @@ var codeInstrumenter = new ChromeCodeInstrumenter({
     logBGPageLogsOnInspectedPage: config.logBGPageLogsOnInspectedPage,
     jsExecutionInhibitedMessage: "FromJS: JavaScript Execution Inhibited",
     loadingMessagePrefix: "FromJS: ",
+    beautifyCode: true,
     onCantInstrumentThisPage: function(){
         alert("This URL can't be inspected with FromJS")
     },
