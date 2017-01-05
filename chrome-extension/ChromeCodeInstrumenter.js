@@ -184,6 +184,7 @@ class BabelSession {
         this._pageHtml = null;
         this._downloadCache = {}
         this._processJSCodeCache = {};
+        this._loadedScriptURLs = [];
         this._babelPlugin = options.babelPlugin
         this._logBGPageLogsOnInspectedPage = options.logBGPageLogsOnInspectedPage
         this._onBeforePageLoad = options.onBeforePageLoad
@@ -467,7 +468,17 @@ class BabelSession {
         })
     }
     loadScript(requestUrl, callback){
+        if (this._loadedScriptURLs.indexOf(requestUrl) !== -1) {
+            // On StackOverflow.com the full.en.js script was loaded twice, once through a
+            // script tag in the initial HTML and once through an injected script tag
+            // That might just be because we both inject the script in the DOM and try to fetch it???
+            console.warn("Canceling attempt to load same script URL twice, probably not intended", requestUrl)
+            return
+        }
+
         this._log("Fetching and processing", requestUrl)
+        this._loadedScriptURLs.push(requestUrl)
+
         var self =this;
         this.getProcessedCode(requestUrl)
         .then(function(code){
