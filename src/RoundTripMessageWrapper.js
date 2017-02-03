@@ -11,7 +11,7 @@ import config from "./config"
         console.log("Progress:", percentageDone)
     })
     wrapper.send("isPrime", 74978348934, function(isPrime){
-        console.log("hasPrime")
+        console.log("isPrime", isPrime)
     })
 */
 export default class RoundTripMessageWrapper {
@@ -133,7 +133,6 @@ export default class RoundTripMessageWrapper {
                 handler.apply(null, [...data.args, callback])
             }
         })
-
     }
     on(messageType, callback){
         var handlers = this._handlers[messageType];
