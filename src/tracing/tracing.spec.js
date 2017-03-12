@@ -87,6 +87,18 @@ describe("Tracing", function(){
         expect(value.origin).not.toBe(undefined);
     });
 
+    it("Can handle custom toString functions that return tracked strings", function(){
+        var obj = {
+            toString(){
+                return babelFunctions.f__StringLiteral("Hi")
+            }
+        }
+    
+        var obj2 = {"Hi": 7}
+
+        // Object lookup results in toPrimitive call
+        expect(obj2[obj]).toBe(7)
+    })
 
 
     describe("JSON.parse", function(){
