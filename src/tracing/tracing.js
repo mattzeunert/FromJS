@@ -149,6 +149,8 @@ var nativeOuterHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototyp
 var nativeObjectGetOwnPropertyNames = Object.getOwnPropertyNames
 var nativeObjectKeys = Object.keys
 
+var nativeObjectToPrimitive = Object.prototype[Symbol.toPrimitive] // undefined
+
 var nativeCSSStyleDeclarationSetProperty = CSSStyleDeclaration.prototype.setProperty
 
 var nativeArrayJoin = Array.prototype.join
@@ -1046,6 +1048,11 @@ function onAfterEnable(){
         })
     }
 
+    Object.prototype[Symbol.toPrimitive] = function(){
+        var value = this.toString();
+        return stringTraceUseValue(value)
+    }
+
 
     // try to add this once, but it turned out the .dataset[sth] assignment
     // was in a chrome extension that uses a different HTMLElement object
@@ -1122,6 +1129,7 @@ function onAfterDisable(){
     Object.keys = nativeObjectKeys
 
     Object.prototype.hasOwnProperty = nativeObjectHasOwnProperty
+    Object.prototype[Symbol.toPrimitive] = nativeObjectToPrimitive
 
     window.Object = nativeObjectObject;
 
