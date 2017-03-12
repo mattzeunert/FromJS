@@ -209,6 +209,39 @@ describe("Tracing", function(){
         expect(eval(false)).toBe(false)
     })
 
+    describe("Script tags created in JavaScript", function(){
+        beforeEach(function(){
+            window.dynamicCodeRegistry = {
+                register: jasmine.createSpy()
+            }
+        })
+        afterEach(function(){
+            delete window.dynamicCodeRegistry;
+        })
+
+        it("Calls __loadScriptTag when appending script element with appendChild", function(){
+            var script = document.createElement("script")
+            script.src = "/src/test-script.js"
+            spyOn(window, "__loadScriptTag")
+            document.body.appendChild(script)
+            expect(window.__loadScriptTag).toHaveBeenCalled()
+        })
+
+        it("Calls __loadScriptTag when inserting script with insertBefore", function(){
+            var div = document.createElement("div")
+            document.body.appendChild(div)
+            window.inTestScript = function(){}
+            spyOn(window, "__loadScriptTag")
+
+            var script = document.createElement("script")
+            script.src = "/src/test-script.js"
+            document.body.insertBefore(script, div)
+
+            expect(window.__loadScriptTag).toHaveBeenCalled()
+
+        })
+    })
+
     describe("Dynamic code processing", function(){
         beforeEach(function(){
             window.dynamicCodeRegistry = {

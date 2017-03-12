@@ -4,7 +4,42 @@ import getHeadAndBodyContent from "./getHeadAndBodyContent"
 import sendMessageToBackgroundPage from "../src/sendMessageToBackgroundPage"
 import CodePreprocessor from "../src/tracing/code-preprocessor"
 
+var nativeAppendChild = Node.prototype.appendChild
+
 window.createCodePreprocessor(CodePreprocessor)
+window.__sendMessageToBackgroundPage = function(type, data, callback){
+    data = {...data, type}
+    sendMessageToBackgroundPage(data, callback)
+}
+window.__loadScriptTag = function(script, callback, container){
+    if (!container){
+        container = document.body
+    }
+
+    if (nativeInnerHTMLDescriptor.get.call(script) === ""){
+        // Do this rather than appending script element, because
+        // requests on https may be cross origin
+        sendMessageToBackgroundPage({
+            type: "loadScript",
+            url: script.src
+        }, function(){
+            script.readyState = "complete"
+            if (script.onload) {
+                var e = {
+                    type: "load"
+                }
+                script.onload(e)
+            }
+            if (script.onreadystatechange){
+                script.onreadystatechange.apply(script, [])
+            }
+            callback();
+        })
+    } else {
+        nativeAppendChild.apply(container, [script])
+        callback();
+    }
+}
 window.isExtension = true;
 
 
@@ -75,19 +110,7 @@ window.startLoadingPage = function(loadingMessagePrefix){
             var script = scripts.shift()
             console.log(loadingMessagePrefix + "Loading script", script)
 
-            if (nativeInnerHTMLDescriptor.get.call(script) === ""){
-                // Do this rather than appending script element, because
-                // requests on https may be cross origin
-                sendMessageToBackgroundPage({
-                    type: "loadScript",
-                    url: script.src
-                }, function(){
-                    next();
-                })
-            } else {
-                container.appendChild(script)
-                next();
-            }
+            __loadScriptTag(script, next, container)
         }
     }
 }
@@ -95,9 +118,6 @@ window.startLoadingPage = function(loadingMessagePrefix){
 function simulateOnLoad(){
     f__setDocumentReadyState("interactive")
 
-    if (document.body.onload) {
-        document.body.onload({});
-    }
     window.dispatchEvent(new Event("DOMContentLoaded"))
     document.dispatchEvent(new Event("DOMContentLoaded"))
     document.dispatchEvent(new Event("readystatechange"))

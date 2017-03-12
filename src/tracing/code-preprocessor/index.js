@@ -1,6 +1,6 @@
 import processJSCode, {removeSourceMapIfAny} from "../../compilation/processJavaScriptCode"
 import _ from "underscore"
-
+import createResolveFrameWorker from "../../createResolveFrameWorker"
 
 
 var nativeEval = window.eval;
@@ -8,6 +8,8 @@ var nativeHTMLScriptElementTextDescriptor = Object.getOwnPropertyDescriptor(HTML
 var nativeFunction = window.Function
 var nativeNodeTextContentDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "textContent")
 var nativeDocumentWrite = document.write;
+var nativeAppendChildDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild")
+var nativeInsertBefore = Node.prototype.insertBefore
 
 export default class CodePreprocessor {
     constructor({babelPlugin}){
@@ -21,11 +23,26 @@ export default class CodePreprocessor {
                 write.apply(this, arguments)
             }
         }
+        this.makeAppendChild = function(appendChild){
+            return function(){
+                return appendChild.apply(this, arguments)
+            }
+        }
         this.onBeforeEnable = function(){}
         this.onAfterEnable = function(){}
         this.onBeforeDisable = function(){}
         this.onAfterDisable = function(){}
         this.isEnabled = false;
+
+        this.loadScriptTag = function(script, callback, container){
+            if (window.__loadScriptTag){
+                // Chrome extension
+                window.__loadScriptTag.apply(null, arguments)
+            } else {
+                // local server
+                nativeAppendChildDescriptor.value.apply(container, [script])
+            }
+        }
 
         var self= this;
         this.preprocessCode = function(code, options){
@@ -37,6 +54,24 @@ export default class CodePreprocessor {
 
         this.setGlobalFunctions()
 
+        this.resolveFrameWorker = createResolveFrameWorker()
+        this.resolveFrameWorker.on("fetchUrl", function(url, cb){
+            if (window.__sendMessageToBackgroundPage) {
+                window.__sendMessageToBackgroundPage("fetchUrl", {
+                    url: url
+                }, cb)
+            } else {
+                var r = new XMLHttpRequest();
+                r.addEventListener("load", function(){
+                    cb(f__useValue(r.responseText))
+                });
+                r.open("GET", url);
+                r.send();
+            }
+        })
+    }
+    resolveFrame(frameString, callback){
+        this.resolveFrameWorker.send("resolveFrame", frameString, callback)
     }
     setGlobalFunctions(){
         var self = this;
@@ -51,11 +86,12 @@ export default class CodePreprocessor {
             self.documentReadyState = value
         }
     }
-    setOptions({onCodeProcessed, getNewFunctionCode, useValue, makeDocumentWrite, onBeforeEnable, onBeforeDisable, onAfterEnable, onAfterDisable}){
+    setOptions({onCodeProcessed, getNewFunctionCode, useValue, makeDocumentWrite, onBeforeEnable, onBeforeDisable, onAfterEnable, onAfterDisable, makeAppendChild}){
         this.onCodeProcessed = onCodeProcessed
         this.getNewFunctionCode = getNewFunctionCode
         this.useValue = useValue
         this.makeDocumentWrite = makeDocumentWrite
+        this.makeAppendChild = makeAppendChild
 
         if (onBeforeEnable) {
             this.onBeforeEnable = onBeforeEnable
@@ -159,7 +195,7 @@ export default class CodePreprocessor {
             // propagate to the eval'd code.)
             var script = document.createElement("script")
             script.innerHTML = evalCode
-            document.body.appendChild(script)
+            nativeAppendChildDescriptor.value.apply(document.body, [script])
 
             script.remove();
 
@@ -189,6 +225,31 @@ export default class CodePreprocessor {
             return div
         });
 
+        Node.prototype.insertBefore = function(newEl, referenceEl){
+            if (newEl.tagName === "SCRIPT") {
+                self.loadScriptTag(newEl, function(){},this)
+                return newEl
+            } else {
+                return nativeInsertBefore.apply(this, arguments)
+            }
+        }
+
+        Object.defineProperty(Node.prototype, "appendChild", {
+            get: function(){
+                return function(appendedEl) {
+                    if (appendedEl.tagName === "SCRIPT") {
+                        self.loadScriptTag(appendedEl, function(){}, this)
+                        return appendedEl
+                    } else {
+                        return self.makeAppendChild(nativeAppendChildDescriptor.value).apply(this, arguments)
+                    }
+                }
+            },
+            set: function(){
+                console.error("Not overwriting Node.prototype.appendChild")
+            }
+        })
+
         this.onAfterEnable();
     }
     runFunctionWhileDisabled(fn){
@@ -212,6 +273,8 @@ export default class CodePreprocessor {
         Object.defineProperty(HTMLScriptElement.prototype, "text", nativeHTMLScriptElementTextDescriptor)
         // HTMLScriptElement doesn't normally have textcontent on own prototype, inherits the prop from Node
         Object.defineProperty(HTMLScriptElement.prototype, "textContent", nativeNodeTextContentDescriptor)
+        Node.prototype.insertBefore = nativeInsertBefore
+        Object.defineProperty(Node.prototype, "appendChild", nativeAppendChildDescriptor)
 
         document.write = nativeDocumentWrite
         window.Function = nativeFunction

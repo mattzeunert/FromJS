@@ -6,7 +6,7 @@ var codeInstrumenter = new ChromeCodeInstrumenter({
         return {
             visitor: {
                 StringLiteral(path){
-					path.node.value = "Cakesss"
+					// path.node.value = "Cakesss"
                 }
             }
         };
