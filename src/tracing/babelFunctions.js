@@ -232,17 +232,31 @@ var babelFunctions = {
             }
         } else {
             return function(){
+                // if (Error().stack.split("\n").length > 300) debugger
+                // For some reason this gets called recursively forever sometimes.
+                // Instead of fixing the underlying issue I'm just defaulting
+                // to returning an empty string if this appears to be the case.
+                if (isInToString){
+                    // not setting isInToString to false, that's done
+                    // further up in the call stack
+                    return ""
+                } else {
+                    isInToString = true
+                }
                 var calledWithCallOrApply = this !== globalObject;
                 if (calledWithCallOrApply){
                     var ret = obj.toString.apply(this, arguments)
                 } else {
                     var ret = obj.toString.apply(obj, arguments)
                 }
+                isInToString = false
                 return ret;
             }
         }
     }
 }
+
+let isInToString;
 
 export default babelFunctions
 
