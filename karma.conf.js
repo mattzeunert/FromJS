@@ -24,11 +24,18 @@ module.exports = function(config) {
           watched: true,
           included: false,
           served: true
+      },
+      {
+          pattern: 'src/test-script.js',
+          watched: true,
+          included: false,
+          served: true
       }
     ],
 
     proxies: {
         '/fromjs-internals': '/base/dist',
+        '/src': '/base/src'
     },
 
 
