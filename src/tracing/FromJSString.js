@@ -7,6 +7,7 @@ import config from "../config"
 import toString from "../untracedToString"
 import cloneRegExp from "clone-regexp"
 import debuggerStatementFunction from "../debuggerStatementFunction"
+import { runFunctionWithTracingDisabled } from "./tracing"
 
 function FromJSString(options){
     var value = options.value
@@ -278,11 +279,16 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                             separators.push(separator)
                         }
                     } else if (separator instanceof RegExp) {
-                        var regExp = cloneRegExp(separator, {global: true})
-                        separators = oldString.match(regExp)
-                        if (separators === null) {
-                            separators = [];
-                        }
+                        // cloneRegExp says a regular expression isn't a regex
+                        // if obj.proto.tostring returns a tracked string
+                        // ==> temporarily disable tracing
+                        runFunctionWithTracingDisabled(function(){
+                            var regExp = cloneRegExp(separator, {global: true})
+                            separators = oldString.match(regExp)
+                            if (separators === null) {
+                                separators = [];
+                            }
+                        })
                     } else {
                         debuggerStatementFunction();
                         dontTrack();
