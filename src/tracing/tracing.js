@@ -113,6 +113,10 @@ codePreprocessor.setOptions({
     }
 })
 
+// Hmm, I think when running the lodash test suite global Symbol is overwritten
+// That breaks the E2E test, so keep a reference to it.
+const TO_PRIMITIVE = Symbol.toPrimitive
+
 var nativeObjectObject = window.Object
 window.nativeObjectObject = nativeObjectObject
 
@@ -176,7 +180,7 @@ var nativeOuterHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototyp
 var nativeObjectGetOwnPropertyNames = Object.getOwnPropertyNames
 var nativeObjectKeys = Object.keys
 
-var nativeObjectToPrimitive = Object.prototype[Symbol.toPrimitive] // undefined
+var nativeObjectToPrimitive = Object.prototype[TO_PRIMITIVE] // undefined
 
 var nativeCSSStyleDeclarationSetProperty = CSSStyleDeclaration.prototype.setProperty
 
@@ -1042,7 +1046,7 @@ function onAfterEnable(){
         })
     }
 
-    Object.prototype[Symbol.toPrimitive] = function(){
+    Object.prototype[TO_PRIMITIVE] = function(){
         var value = this.toString();
         return stringTraceUseValue(value)
     }
@@ -1122,7 +1126,7 @@ function onAfterDisable(){
     Object.keys = nativeObjectKeys
 
     Object.prototype.hasOwnProperty = nativeObjectHasOwnProperty
-    Object.prototype[Symbol.toPrimitive] = nativeObjectToPrimitive
+    Object.prototype[TO_PRIMITIVE] = nativeObjectToPrimitive
 
     window.Object = nativeObjectObject;
 
