@@ -390,6 +390,7 @@ describe("Tracing", function(){
             expect(String({}).value).toBe("[object Object]")
             expect(String(false).value).toBe("false")
             expect(String(undefined).value).toBe("undefined")
+            expect(String().value).toBe("")
         })
         it("Returns a new String instance when called with new", function(){
             expect(new String("hello") instanceof nativeStringObject).toBe(true)

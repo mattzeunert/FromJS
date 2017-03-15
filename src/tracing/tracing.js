@@ -998,7 +998,11 @@ function onAfterEnable(){
 
 
     window.String = function(val){
-        val = toString(val, true);
+        if (arguments.length === 0){
+            val = nativeStringObject().toString()
+        } else {
+            val = nativeStringObject(stringTraceUseValue(val)).toString()
+        }
         if (new.target) {
             return new nativeStringObject(val)
         } else {
