@@ -54,6 +54,8 @@ export default function(babelPlugin){
             sourceFilename: options !== undefined ? options.filename + ".dontprocess" : undefined
         });
 
+        babelPlugin.sourceCode = code;
+
         var res = babel.transformFromAst(ast, code, {
             sourceMaps: true,
             compact: false,
@@ -63,6 +65,8 @@ export default function(babelPlugin){
             ]
         });
         res.map.sourcesContent = undefined
+
+        delete babelPlugin.sourceCode
 
         return res
     }

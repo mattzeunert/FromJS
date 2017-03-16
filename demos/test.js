@@ -18,22 +18,36 @@ function onload(){
 
      // valEl.appendTo($("body"))
 
-     var div = document.createElement("div")
-     div.innerHTML = "Hello"
+    //  var div = document.createElement("div")
+    //  div.innerHTML = "Hello"
+     //
+    //  var comment = document.createComment("Hello")
+    //  div.appendChild(comment)
+     //
+    //  document.body.appendChild(div)
 
-     var comment = document.createComment("Hello")
-     div.appendChild(comment)
 
-     document.body.appendChild(div)
+    var src = document.createElement("script")
+    src.src = "simple.js"
+    src.onerror = () => document.body.innerHTML = "OMG NO"
+    src.onload = (e) => {
+        if (e.type === "load") {
+            document.body.innerHTML = "YAY"
+        }
+    }
 
+    // document.body.appendChild(src)
+
+    var a = document.querySelector("#aaa");
+    a.parentNode.insertBefore(src, a)
 }
 
-document.onreadystatechange = function(){
-    console.log("document.onreadystatechange")
-}
-document.addEventListener("readystatechange", function(arg){
-    console.log("readystatechange", document.readyState)
-})
+// document.onreadystatechange = function(){
+//     console.log("document.onreadystatechange")
+// }
+// document.addEventListener("readystatechange", function(arg){
+//     console.log("readystatechange", document.readyState)
+// })
 
 //
 // console.log(333)
