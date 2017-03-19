@@ -128,6 +128,13 @@ describe("Tracing", function(){
         expect(chars).toEqual(["a", "b", "c"])
     })
 
+    it("Can call array map on a string", function(){
+        var ret = Array.prototype.map.call(f__StringLiteral("abc"), function(char){
+            return char + char 
+        })
+        expect(ret).toEqual(["aa", "bb", "cc"])
+    })
+
 
     it("JSON.parse can handle arrays in JSON objects", function(){
         var parsed = JSON.parse({
