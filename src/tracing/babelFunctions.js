@@ -152,6 +152,8 @@ var babelFunctions = {
         var propertyNameString = toString(propertyName, true);
         var storagePropName = propertyNameString + "_trackedName";
 
+        if (("" + object) === "function Promise() { [native code] }" && propertyNameString === "prototype") debugger
+
         // This would be a nice to have, but
         // 1) it costs a lot of memory
         // 2) it's not something that happens to the string,
@@ -186,7 +188,20 @@ var babelFunctions = {
             object[storagePropName] = propertyName
         }
 
-        return object[propertyName] = value
+        try {
+            object[propertyName] = value
+        } catch (err) {
+            var acceptableErrors = [
+                "TypeError: Cannot assign to read only property 'prototype' of function 'function Promise() { [native code] }'"
+            ]
+
+            var isntAcceptable = acceptableErrors.indexOf(err.toString()) === -1
+            if (isntAcceptable) {
+                throw err
+            }
+        }
+
+        return value;
     },
     f__getTrackedPropertyName(object, propertyName){
         var trackedPropertyName = object[propertyName + "_trackedName"]

@@ -170,5 +170,17 @@ describe("babelFunctions", function(){
 
             expect(obj["Symbol()"]).toBe(undefined)
         })
+        it("Can always attempt to overwrite Promise.prototype", function(){
+            "use strict" // In strict mode overwriting Promise.prototype is normally illegal, but FromJS
+            // is always in strict mode, so the assignment might actually be valid in the non-strict code
+            // that has been instrumented with f__assign
+            var hadError = false
+            try {
+                babelFunctions.f__assign(Promise, "prototype", {})
+            } catch (err) {
+                hadError = true
+            }
+            expect(hadError).toBe(false)
+        })
     })
 })
