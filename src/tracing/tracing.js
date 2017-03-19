@@ -1031,7 +1031,7 @@ function onAfterEnable(){
             if (obj && obj.isStringTraceString){
                 obj = stringTraceUseValue(obj)
             }
-            return nativeArrayPrototypeFunctions[fnName].call(obj, callback)
+            return nativeArrayPrototypeFunctions[fnName].apply(obj, arguments)
         }
     })
 

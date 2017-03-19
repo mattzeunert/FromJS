@@ -120,22 +120,31 @@ describe("Tracing", function(){
         })
     })
 
-    it("Can call array foreach on a string", function(){
-        var chars = []
-        Array.prototype.forEach.call(f__StringLiteral("abc"), function(char){
-            chars.push(char)
+    describe("Array.prototype", function(){
+        it("Can call array foreach on a string", function(){
+            debugger
+            var chars = []
+            Array.prototype.forEach.call(f__StringLiteral("abc"), function(char){
+                chars.push(char)
+            })
+            expect(chars).toEqual(["a", "b", "c"])
         })
-        expect(chars).toEqual(["a", "b", "c"])
-    })
 
-    it("Can call array map on a string", function(){
-        var ret = Array.prototype.map.call(f__StringLiteral("abc"), function(char){
-            return char + char 
+        it("Can call array map on a string", function(){
+            var ret = Array.prototype.map.call(f__StringLiteral("abc"), function(char){
+                return char + char 
+            })
+            expect(ret).toEqual(["aa", "bb", "cc"])
         })
-        expect(ret).toEqual(["aa", "bb", "cc"])
+
+        it("Can call array filter with a `this` argument", function(){
+            var res = [1,2,3].filter(function(n) {
+                return n >= this.min
+            }, {min: 2})
+            expect(res).toEqual([2, 3])
+        })
     })
-
-
+    
     it("JSON.parse can handle arrays in JSON objects", function(){
         var parsed = JSON.parse({
             toString: () => '{"hello": ["one", "two"]}',
