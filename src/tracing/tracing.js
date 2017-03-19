@@ -161,13 +161,11 @@ var nativeObjectToString = Object.prototype.toString
 window.nativeObjectToString = nativeObjectToString
 var nativeArrayToString = Array.prototype.toString
 
-var nativeArrayPrototypeFunctions = {
-    forEach: Array.prototype.forEach,
-    map: Array.prototype.map,
-    some: Array.prototype.some,
-    every: Array.prototype.every,
-    filter: Array.prototype.filter   
-}
+var arrayPrototypeFunctionsThatShouldWorkForStrings = ["forEach", "map", "filter", "some", "every", "reduce", "reduceRight"]
+var nativeArrayPrototypeFunctions = {}
+arrayPrototypeFunctionsThatShouldWorkForStrings.forEach(function(fnName){
+    nativeArrayPrototypeFunctions[fnName] = Array.prototype[fnName]
+})
 
 var nativeAddEventListener = Node.prototype.addEventListener
 var nativeRemoveEventListener = Node.prototype.removeEventListener
@@ -1025,7 +1023,9 @@ function onAfterEnable(){
     window.String.fromCodePoint = nativeStringObject.fromCodePoint
     window.String.fromCharCode = nativeStringObject.fromCharCode;
 
-    ["forEach", "map", "filter", "some", "every"].forEach(function(fnName){
+    arrayPrototypeFunctionsThatShouldWorkForStrings.forEach(function(fnName){
+        // this functions have to work for strings when called like this:
+        // Array.prototype.map.call("abc", function(){})
         Array.prototype[fnName] = function(callback){
             var obj = this;
             if (obj && obj.isStringTraceString){
@@ -1104,7 +1104,7 @@ function onAfterDisable(){
     Array.prototype.join = nativeArrayJoin
     Array.prototype.indexOf = nativeArrayIndexOf
 
-    Object.keys(nativeArrayPrototypeFunctions).forEach(function(fnName){
+    arrayPrototypeFunctionsThatShouldWorkForStrings.forEach(function(fnName){
         Array.prototype[fnName] = nativeArrayPrototypeFunctions[fnName]
     })
 
