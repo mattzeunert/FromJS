@@ -152,8 +152,6 @@ var babelFunctions = {
         var propertyNameString = toString(propertyName, true);
         var storagePropName = propertyNameString + "_trackedName";
 
-        if (("" + object) === "function Promise() { [native code] }" && propertyNameString === "prototype") debugger
-
         // This would be a nice to have, but
         // 1) it costs a lot of memory
         // 2) it's not something that happens to the string,
