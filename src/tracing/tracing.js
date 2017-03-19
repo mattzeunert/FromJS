@@ -160,6 +160,7 @@ window.originalLocalStorage = nativeLocalStorage
 var nativeObjectToString = Object.prototype.toString
 window.nativeObjectToString = nativeObjectToString
 var nativeArrayToString = Array.prototype.toString
+var nativeArrayForEach = Array.prototype.forEach
 
 var nativeAddEventListener = Node.prototype.addEventListener
 var nativeRemoveEventListener = Node.prototype.removeEventListener
@@ -1017,7 +1018,13 @@ function onAfterEnable(){
     window.String.fromCodePoint = nativeStringObject.fromCodePoint
     window.String.fromCharCode = nativeStringObject.fromCharCode
 
-
+    Array.prototype.forEach = function(callback){
+        var obj = this;
+        if (obj && obj.isStringTraceString){
+            obj = stringTraceUseValue(obj)
+        }
+        return nativeArrayForEach.call(obj, callback)
+    }
 
 
     window.Function.prototype.toString = function(){
@@ -1088,6 +1095,7 @@ function onAfterDisable(){
     window.XMLHttpRequest = originalXMLHttpRequest
     Array.prototype.join = nativeArrayJoin
     Array.prototype.indexOf = nativeArrayIndexOf
+    Array.prototype.forEach = nativeArrayForEach
     document.createTextNode = nativeCreateTextNode
     Node.prototype.cloneNode = nativeCloneNode
     Node.prototype.addEventListener =  nativeAddEventListener

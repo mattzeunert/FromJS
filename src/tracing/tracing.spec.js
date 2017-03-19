@@ -120,6 +120,14 @@ describe("Tracing", function(){
         })
     })
 
+    it("Can call array foreach on a string", function(){
+        var chars = []
+        Array.prototype.forEach.call(f__StringLiteral("abc"), function(char){
+            chars.push(char)
+        })
+        expect(chars).toEqual(["a", "b", "c"])
+    })
+
 
     it("JSON.parse can handle arrays in JSON objects", function(){
         var parsed = JSON.parse({
