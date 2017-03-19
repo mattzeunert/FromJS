@@ -482,6 +482,18 @@ function makeOnBeforeRequest(session){
             return;
         }
 
+        // We don't want to send any errors or tracked objects or similar to
+        // analytics services.
+        // However, this could in theory break some code too.
+        if (info.url.indexOf("segment.io") !== -1 ||
+            info.url.indexOf("googleadservices") !== -1 ||
+            info.url.indexOf("google-analytics") !== -1 ||
+            info.url.indexOf("mixpanel") !== -1 ||
+            info.url.indexOf("newrelic") !== -1 ||
+            info.url.indexOf("bugsnag") !== -1){
+            return {cancel: true}
+        }
+
         if (info.url.slice(0, "chrome-extension://".length) === "chrome-extension://") {
             return
         }
