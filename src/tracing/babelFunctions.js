@@ -244,12 +244,13 @@ var babelFunctions = {
                 return obj;
             }
         } else {
+            var objToString = obj.toString
             return function(){
                 var calledWithCallOrApply = this !== globalObject;
                 if (calledWithCallOrApply){
-                    var ret = obj.toString.apply(this, arguments)
+                    var ret = objToString.apply(this, arguments)
                 } else {
-                    var ret = obj.toString.apply(obj, arguments)
+                    var ret = objToString.apply(obj, arguments)
                 }
                 return ret;
             }

@@ -53,6 +53,14 @@ describe("babelFunctions", function(){
             expect(toString()).toBe("5")
             expect(toString.call(11)).toBe("11")
         })
+        it("Uses the old object toString function if obj.toString changes after toString was accessed", function(){
+            var toString1 = function(){ return "abc" }
+            var toString2 = function(){ return "xyz" }
+            var obj = { toString: toString1 }
+            var toString = babelFunctions.f__getToString(obj)
+            obj.toString = toString2
+            expect(toString()).toBe("abc")
+        })
     })
 
     describe("f__tripleEqual", function(){

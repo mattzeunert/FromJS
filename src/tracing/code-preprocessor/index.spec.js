@@ -34,7 +34,7 @@ describe("ChromeCodeInstrumenter", function(){
     })
 
     describe("insertBefore", function(){
-        fit("After calling insertBefore on a script tag the script tag exists in the DOM", function(){
+        it("After calling insertBefore on a script tag the script tag exists in the DOM", function(){
             // This may sound obvious, but actually we don't want to use the native script loading
             // mechanism (not sure why actually) and instead manually call loadScript
             window.__loadScriptTag = function(){}
