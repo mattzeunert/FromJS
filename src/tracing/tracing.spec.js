@@ -222,19 +222,22 @@ describe("Tracing", function(){
     })
 
     describe("Script tags created in JavaScript", function(){
+        var previousLoadScriptTag;
         beforeEach(function(){
+            previousLoadScriptTag = window.__loadScriptTag
+            window.__loadScriptTag = jasmine.createSpy()
             window.dynamicCodeRegistry = {
                 register: jasmine.createSpy()
             }
         })
         afterEach(function(){
+            window.__loadScriptTag = previousLoadScriptTag
             delete window.dynamicCodeRegistry;
         })
 
         it("Calls __loadScriptTag when appending script element with appendChild", function(){
             var script = document.createElement("script")
             script.src = "/src/test-script.js"
-            spyOn(window, "__loadScriptTag")
             document.body.appendChild(script)
             expect(window.__loadScriptTag).toHaveBeenCalled()
         })
@@ -243,7 +246,6 @@ describe("Tracing", function(){
             var div = document.createElement("div")
             document.body.appendChild(div)
             window.inTestScript = function(){}
-            spyOn(window, "__loadScriptTag")
 
             var script = document.createElement("script")
             script.src = "/src/test-script.js"
@@ -591,6 +593,8 @@ describe("Tracing", function(){
         expect(clone.__elOrigin.action).toBe("test")
         expect(clone.children[0].__elOrigin.action).toBe("cake")
     })
+
+    
 
     it("Returns [object Number] when calling Obj.prototype.toString on a number", function(){
         var toString = Object.prototype.toString
