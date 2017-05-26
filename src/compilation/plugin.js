@@ -60,6 +60,13 @@ module.exports = function(babel) {
               )
               path.replaceWith(call)
           }
+          else if (path.node.property.value === "pathname" || path.node.property.name === "pathname"){
+              var call = babel.types.callExpression(
+                  babel.types.identifier("f__getPathname"),
+                  [path.node.object]
+              )
+              path.replaceWith(call)
+          }
       },
       ForInStatement(path){
           if (path.node.ignore)return

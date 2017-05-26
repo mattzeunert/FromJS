@@ -276,4 +276,19 @@ describe("processJavaScriptCode", function(){
         code = processJavaScriptCode(code).code
         expect(eval(code)).toBe(true)
     })
+
+    it("Replaces .pathname lookups with f__getPathname calls", function(){
+        spyOn(window, "f__getPathname").and.callThrough()
+        var code = `
+            debugger
+            var str = location.pathname;
+            str
+        `
+
+        code = processJavaScriptCode(code).code;
+        var res = eval(code);
+
+        expect(window.f__getPathname).toHaveBeenCalled();
+        expect(res.value).toBe("cake")
+    })
 })

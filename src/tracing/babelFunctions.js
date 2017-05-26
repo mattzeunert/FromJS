@@ -224,6 +224,20 @@ var babelFunctions = {
     f__getForInLoopKeyObject(object){
         return f__useValue(object);
     },
+    f__getPathname(obj) {
+        if (obj !== location) {
+            return obj.pathname;
+        } 
+
+        return makeTraceObject({
+            value: obj.pathname,
+            origin: new Origin({
+                action: "location.pathname",
+                value: obj.pathname,
+                inputValues: []
+            })
+        })
+    },
     f__getToString(obj){
         if (obj && obj.isStringTraceString) {
             return function(){
