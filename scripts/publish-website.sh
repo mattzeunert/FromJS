@@ -4,7 +4,7 @@
 
 STATUS="$(git status)"
 
-if [[ $STATUS == *"nothing to commit, working directory clean"* ]]
+if [[ $STATUS == *"working tree clean"* ]]
 then
     sed -i "" '/gh-pages/d' ./.gitignore
     git add .
