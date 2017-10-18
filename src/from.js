@@ -5,7 +5,7 @@ if (unsupportedEnvironment && location.href.indexOf("/react-") !== -1){
     var div = document.createElement("div")
     div.innerHTML = `<div class="fromjs-unsupported-device" style="overflow: auto">
         FromJS only works in Chrome Desktop. The demo on this page looks like this:<br><br>
-        <video autoplay loop style="width: 100%; max-width: 1200px;">
+        <video autoplay loop style="width: 100%; max-width: 1200px;" controls="true">
             <source src="/react-todomvc-video.mp4" type="video/mp4" />
         </video>
         <br>
