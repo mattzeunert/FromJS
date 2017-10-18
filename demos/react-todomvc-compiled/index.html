@@ -41,15 +41,11 @@
 				return document.querySelectorAll('.fromjs-show-inspector-button').length > 0
 			}, function(){
 				document.querySelector('.fromjs-show-inspector-button').click()
-				waitFor(function(){
-					return document.querySelectorAll('#fromjs-sidebar iframe').length > 0
-				}, function(){
-					// reasonable delay to wait for the iframe to load
-					setTimeout(function(){
-						document.querySelector('.todo-list label').click()
-					}, 500)
-				})    
+				
 			})
+			window.onInspectorReady = function(){
+				document.querySelector('.todo-list label').click()
+			}
 
 		</script>
 		<script src="modules/todomvc-common/base.js"></script>

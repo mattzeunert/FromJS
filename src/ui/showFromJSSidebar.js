@@ -229,6 +229,10 @@ export default function showFromJSSidebar(resolveFrameWorker){
         getCodeFilePath(fileName, callback, resolveFrameWorker)
     })
 
+    inspectorPage.on("InspectorReady", function(){
+        window.onInspectorReady && window.onInspectorReady()
+    })
+
     function getElementFromElementId(elementId){
         return elementsByElementId[elementId]
     }
