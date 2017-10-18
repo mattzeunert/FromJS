@@ -3,9 +3,13 @@ var browserIsChrome = /chrom(e|ium)/.test(navigator.userAgent.toLowerCase());
 var unsupportedEnvironment = isMobile() || !browserIsChrome
 if (unsupportedEnvironment && location.href.indexOf("/react-") !== -1){
     var div = document.createElement("div")
-    div.innerHTML = `<div class="fromjs-unsupported-device">
-        FromJS only works on Chrome Desktop.<br><br>
-        You can watch some <a href="http://www.fromjs.com/recordings.html">demo videos</a> on the FromJS website instead.
+    div.innerHTML = `<div class="fromjs-unsupported-device" style="overflow: auto">
+        FromJS only works in Chrome Desktop. The demo on this page looks like this:<br><br>
+        <video autoplay loop style="width: 100%; max-width: 1200px;">
+            <source src="/react-todomvc-video.mp4" type="video/mp4" />
+        </video>
+        <br>
+        You can find more <a href="http://www.fromjs.com/recordings.html">demo videos</a> on the FromJS website. <br>
         This older <a href="http://www.fromjs.com/todomvc/">Backbone TodoMVC example</a> might sort of work on your device.
     </div>`
     document.documentElement.appendChild(div)

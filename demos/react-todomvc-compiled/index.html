@@ -8,17 +8,49 @@
 	</head>
 	<body>
 
+		<div style="background: white; padding: 5px; border-radius: 2px; margin-top: 30px">
+			<p style="margin-top: 0">
+				Inspect the DOM to see where the data you're seeing come from.
+				For example, "Hello" was read from localStorage.
+			</p>
+			<p>
+				Each character in the DOM HTML has a location in the JS code where the character was first loaded.
+			</p>
+		</div>
 		<section class="todoapp"></section>
 		<footer class="info">
 			<p>Double-click to edit a todo</p>
-			<p>Created by <a href="http://github.com/petehunt/">petehunt</a></p>
-			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+			<p>React TodoMVC Created by <a href="http://github.com/petehunt/">petehunt</a></p>
+			<p>TodoMVC and FromJS are unrelated</p>
 		</footer>
 
 		<script>
 			if (localStorage["react-todos"] === undefined) {
 				localStorage["react-todos"] = `[{"id":"0eec7aa6-6544-4758-abb6-db8c0ff54880","title":"Hello","completed":true},{"id":"1dd5cb20-7aeb-4ce0-81c1-8fd8c754c552","title":"World","completed":false}]`
 			}
+			function waitFor(condition, onConditionTrue) {
+				var interval =  setInterval(function() {
+					var isDone = condition()
+					if (isDone) {
+						clearInterval(interval)
+						onConditionTrue()   
+					}
+				}, 10)
+			}
+			waitFor(function(){
+				return document.querySelectorAll('.fromjs-show-inspector-button').length > 0
+			}, function(){
+				document.querySelector('.fromjs-show-inspector-button').click()
+				waitFor(function(){
+					return document.querySelectorAll('#fromjs-sidebar iframe').length > 0
+				}, function(){
+					// reasonable delay to wait for the iframe to load
+					setTimeout(function(){
+						document.querySelector('.todo-list label').click()
+					}, 500)
+				})    
+			})
+
 		</script>
 		<script src="modules/todomvc-common/base.js"></script>
 		<script src="modules/react/dist/react-with-addons.js"></script>
