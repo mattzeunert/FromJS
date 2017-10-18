@@ -41,7 +41,9 @@ og_description: Find the source of every HTML character in a JavaScript app.
         <div class="col-md-6">
             <h2 style="margin-top: 0">Does it work on all websites?</h2>
             <p>
-                Currently, enabling FromJS breaks a lot of pages.
+                Nope, most websites will break if you try to inspect them with FromJS.
+                FromJS uses Babel to add tracking to strings, but this results in a lot of flakiness.
+                A better approach would be to build the tracking into the JavaScript engine.<br/>
                 Non-trivial apps also take a long time to load and use up large amounts of memory.
             </p>
             <h2>Chrome Extension</h2>
