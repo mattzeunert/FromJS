@@ -4,13 +4,25 @@ var unsupportedEnvironment = isMobile() || !browserIsChrome
 if (unsupportedEnvironment && location.href.indexOf("/react-") !== -1){
     var div = document.createElement("div")
     div.innerHTML = `<div class="fromjs-unsupported-device" style="overflow: auto">
-        FromJS only works in Chrome Desktop. The demo on this page looks like this:<br><br>
+        <p> 
+            FromJS only works in Chrome Desktop.
+        </p>
+        <p>
+            It lets you inspect the DOM to see where the data on the page came from. Each character in the DOM HTML has a location
+            in the JS code where the character was first loaded.
+        </p>
+
+        <p>In Chrome the demo on this page looks like this:
+        </p>
         <video autoplay loop style="width: 100%; max-width: 1200px;" controls="true">
             <source src="/react-todomvc-video.mp4" type="video/mp4" />
         </video>
-        <br>
-        You can find more <a href="http://www.fromjs.com/recordings.html">demo videos</a> on the FromJS website. <br>
-        This older <a href="http://www.fromjs.com/todomvc/">Backbone TodoMVC example</a> might sort of work on your device.
+        <p>
+            You can find more <a href="http://www.fromjs.com/recordings.html">demo videos</a> on the FromJS website. <br>
+        <p>
+        <p>
+            This older <a href="http://www.fromjs.com/todomvc/">Backbone TodoMVC example</a> might sort of work on your device.
+        </p>
     </div>`
     document.documentElement.appendChild(div)
     throw Error("Don't bother trying to run FromJS on this device")
