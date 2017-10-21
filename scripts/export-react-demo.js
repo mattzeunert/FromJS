@@ -25,7 +25,7 @@ files.push("http://localhost:7500/fromjs-internals/from.js")
 files.push("http://localhost:7500/fromjs-internals/resolveFrameWorker.js")
 files.push("http://localhost:7500/fromjs-internals/inspector.js")
 
-var OUT_DIR = "./gh-pages/react-todomvc2/"
+var OUT_DIR = "./gh-pages/react-todomvc/"
 files.push("http://localhost:7500/demos/react-todomvc-compiled/index.html")
 
 files.push("http://localhost:7500/demos/react-todomvc-compiled/modules/todomvc-common/base.css")
@@ -65,3 +65,5 @@ files.forEach(function(file){
         console.log("fail", arguments)
     })
 })
+
+// /usr/local/bin/minify ./gh-pages/react-todomvc/fromjs-internals -d ./gh-pages/react-todomvc/fjsimin   
