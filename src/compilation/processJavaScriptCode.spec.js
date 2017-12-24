@@ -290,4 +290,19 @@ describe("processJavaScriptCode", function(){
         expect(window.f__getPathname).toHaveBeenCalled();
         expect(res.value).toBe("cake")
     })
+
+    it("Doesn't break for in statements that contain a for loop", function(){
+        var code = `
+            var obj = {a: [1,2,3]}
+            var arr = []
+            for (var key in obj) 
+                for (var i=0; i< obj[key].length; i++)
+                    arr.push(obj[key][i])
+            arr
+        `
+        code = processJavaScriptCode(code).code
+        var res = eval(code)
+        expect(res).toEqual([1,2,3])
+    })
+    
 })
