@@ -203,6 +203,8 @@ var nativeNumberToFixed = Number.prototype.toFixed
 
 var nativeWindowPostMessage = window.postMessage
 
+var nativeDocumentOpen = document.open
+
 var nativeStringFunctions = Object.getOwnPropertyNames(String.prototype)
     .map(function(propertyName){
         var value = String.prototype[propertyName];
@@ -1063,6 +1065,11 @@ function onAfterEnable(){
         return nativeWindowPostMessage.apply(this, args)
     }
 
+    document.open = function(){
+        // Do nothing... running document.open breaks script injection
+        // as all content is removed (including document.documentElement)
+    }
+
     // try to add this once, but it turned out the .dataset[sth] assignment
     // was in a chrome extension that uses a different HTMLElement object
     window.nativeDataSetDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "dataset")
@@ -1150,6 +1157,8 @@ function onAfterDisable(){
     })
 
     window.postMessage = nativeWindowPostMessage
+
+    document.open = nativeDocumentOpen
 }
 
 export function enableTracing(){
