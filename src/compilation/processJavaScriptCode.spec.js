@@ -278,9 +278,8 @@ describe("processJavaScriptCode", function(){
     })
 
     it("Replaces .pathname lookups with f__getPathname calls", function(){
-        spyOn(window, "f__getPathname").and.callThrough()
+        spyOn(window, "f__getPathname").and.returnValue({ value: "cake" })
         var code = `
-            debugger
             var str = location.pathname;
             str
         `
