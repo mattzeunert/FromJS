@@ -557,6 +557,7 @@ function makeOnBeforeRequest(session){
         if (info.url.indexOf("segment.io") !== -1 ||
             info.url.indexOf("googleadservices") !== -1 ||
             info.url.indexOf("google-analytics") !== -1 ||
+            info.url.indexOf("googletagmanager") !== -1 ||
             info.url.indexOf("mixpanel") !== -1 ||
             info.url.indexOf("newrelic") !== -1 ||
             info.url.indexOf("bugsnag") !== -1){
