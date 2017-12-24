@@ -186,7 +186,20 @@ var babelFunctions = {
             object[storagePropName] = propertyName
         }
 
-        return object[propertyName] = value
+        try {
+            object[propertyName] = value
+        } catch (err) {
+            var acceptableErrors = [
+                "TypeError: Cannot assign to read only property 'prototype' of function 'function Promise() { [native code] }'"
+            ]
+
+            var isntAcceptable = acceptableErrors.indexOf(err.toString()) === -1
+            if (isntAcceptable) {
+                throw err
+            }
+        }
+
+        return value;
     },
     f__getTrackedPropertyName(object, propertyName){
         var trackedPropertyName = object[propertyName + "_trackedName"]
@@ -245,12 +258,13 @@ var babelFunctions = {
                 return obj;
             }
         } else {
+            var objToString = obj.toString
             return function(){
                 var calledWithCallOrApply = this !== globalObject;
                 if (calledWithCallOrApply){
-                    var ret = obj.toString.apply(this, arguments)
+                    var ret = objToString.apply(this, arguments)
                 } else {
-                    var ret = obj.toString.apply(obj, arguments)
+                    var ret = objToString.apply(obj, arguments)
                 }
                 return ret;
             }

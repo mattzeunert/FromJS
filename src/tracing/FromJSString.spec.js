@@ -160,6 +160,16 @@ describe("FromJSString", function(){
             var res = str.split(/[-]+/)
             expect(res.length).toEqual(1)
         })
+        it("Can split strings using a regular expression containing a parentheses that don't match anything", function(){
+            var res = makeString("ab").split(/(c)*/)
+            res = res.map(function(r) {
+                if (r && r.isStringTraceString){
+                    return r.value
+                }
+                return r;
+            })
+            expect(res).toEqual(["a", undefined, "b"])
+        })
     })
 
     describe("match", function(){

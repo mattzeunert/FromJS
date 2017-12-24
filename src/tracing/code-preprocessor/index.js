@@ -38,6 +38,11 @@ export default class CodePreprocessor {
             if (window.__loadScriptTag){
                 // Chrome extension
                 window.__loadScriptTag.apply(null, arguments)
+                var temp = document.createElement('template');
+                temp.innerHTML = script.outerHTML;
+                var fragment = temp.content
+                fragment.innerHTML = script.outerHTML           
+                nativeAppendChildDescriptor.value.apply(container, [fragment])
             } else {
                 // local server
                 nativeAppendChildDescriptor.value.apply(container, [script])
