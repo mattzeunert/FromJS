@@ -304,5 +304,10 @@ describe("processJavaScriptCode", function(){
         var res = eval(code)
         expect(res).toEqual([1,2,3])
     })
-    
+
+    it("Always uses a real value for memberexpression property", function(){
+        var code = `a[b]`
+        code = processJavaScriptCode(code).code
+        expect(code).toBe(`a[f__useValueAsPropertyKey(b)];`)
+    })
 })

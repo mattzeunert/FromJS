@@ -49,6 +49,25 @@ var babelFunctions = {
     f__useValue(thing){
         return stringTraceUseValue(thing)
     },
+    f__useValueAsPropertyKey(thing) {
+        var ret = thing
+        if (typeof thing !== "symbol") {
+            ret = toString(babelFunctions.f__useValue(thing), true)
+        }
+        /*
+        try {
+            var obj = {}
+            obj[thing] = 123
+            if (obj[ret] !== 123) {
+                debugger
+            }
+        } catch (err) {
+            // hmm... i guess this is fine and it means the f__useValueAsPropertyKey call was necessary
+        }
+        */
+
+        return ret
+    },
     f__add(a, b){
         var aIsString = typeof a === "string" || (a !== null && typeof a === "object" && a.isStringTraceString)
         var bIsString = typeof b === "string" || (b !== null && typeof b === "object" && b.isStringTraceString)

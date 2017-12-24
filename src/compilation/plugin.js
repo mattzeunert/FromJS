@@ -67,6 +67,13 @@ module.exports = function(babel) {
               )
               path.replaceWith(call)
           }
+
+          if (path.node.computed) {
+            path.node.property = babel.types.callExpression(
+                babel.types.identifier("f__useValueAsPropertyKey"),
+                [path.node.property]
+            )
+          }
       },
       ForInStatement(path){
           if (path.node.ignore)return
