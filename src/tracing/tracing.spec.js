@@ -790,4 +790,18 @@ describe("Tracing", function(){
         expect(str.hasOwnProperty(1)).toBe(true);
         expect(str.hasOwnProperty(2)).toBe(false)
     })
+
+    it("Doesn't break window.postMessage", function(){
+        var message = makeTraceObject({
+            value: "Hi",
+            origin: {}
+        })
+
+        var targetOrigin = makeTraceObject({
+            value: "*",
+            origin: {}
+        })
+
+        window.postMessage(message, targetOrigin)
+    })
 })

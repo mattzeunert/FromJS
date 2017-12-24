@@ -201,6 +201,8 @@ window.nativeNumberToString = nativeNumberToString
 
 var nativeNumberToFixed = Number.prototype.toFixed
 
+var nativeWindowPostMessage = window.postMessage
+
 var nativeStringFunctions = Object.getOwnPropertyNames(String.prototype)
     .map(function(propertyName){
         var value = String.prototype[propertyName];
@@ -1055,6 +1057,11 @@ function onAfterEnable(){
         })
     }
 
+    window.postMessage = function(){
+        var args = Array.from(arguments)
+        args = args.map(arg => f__useValue(arg))
+        return nativeWindowPostMessage.apply(this, args)
+    }
 
     // try to add this once, but it turned out the .dataset[sth] assignment
     // was in a chrome extension that uses a different HTMLElement object
@@ -1141,6 +1148,8 @@ function onAfterDisable(){
     nativeStringFunctions.forEach(function(property) {
         String.prototype[property.name] = property.fn
     })
+
+    window.postMessage = nativeWindowPostMessage
 }
 
 export function enableTracing(){
