@@ -298,6 +298,12 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     var currentCharIndex = 0;
                     res.forEach(function(str, i){
                         var inputValuesCharacterIndex = [currentCharIndex];
+                        if (typeof str !== "string") {
+                            // can be undefined, see here: http://stackoverflow.com/questions/20693388/why-do-string-split-results-include-undefined
+                            newVal.push(str)
+                            return
+                        }
+
                         currentCharIndex += str.length;
                         if (separators[i]) {
                             currentCharIndex += separators[i].length;

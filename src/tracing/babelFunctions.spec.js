@@ -53,6 +53,14 @@ describe("babelFunctions", function(){
             expect(toString()).toBe("5")
             expect(toString.call(11)).toBe("11")
         })
+        it("Uses the old object toString function if obj.toString changes after toString was accessed", function(){
+            var toString1 = function(){ return "abc" }
+            var toString2 = function(){ return "xyz" }
+            var obj = { toString: toString1 }
+            var toString = babelFunctions.f__getToString(obj)
+            obj.toString = toString2
+            expect(toString()).toBe("abc")
+        })
     })
 
     describe("f__tripleEqual", function(){
@@ -169,6 +177,18 @@ describe("babelFunctions", function(){
             babelFunctions.f__assign(obj, key, "value")
 
             expect(obj["Symbol()"]).toBe(undefined)
+        })
+        it("Can always attempt to overwrite Promise.prototype", function(){
+            "use strict" // In strict mode overwriting Promise.prototype is normally illegal, but FromJS
+            // is always in strict mode, so the assignment might actually be valid in the non-strict code
+            // that has been instrumented with f__assign
+            var hadError = false
+            try {
+                babelFunctions.f__assign(Promise, "prototype", {})
+            } catch (err) {
+                hadError = true
+            }
+            expect(hadError).toBe(false)
         })
     })
 })

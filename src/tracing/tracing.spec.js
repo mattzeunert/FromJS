@@ -120,7 +120,31 @@ describe("Tracing", function(){
         })
     })
 
+    describe("Array.prototype", function(){
+        it("Can call array foreach on a string", function(){
+            debugger
+            var chars = []
+            Array.prototype.forEach.call(f__StringLiteral("abc"), function(char){
+                chars.push(char)
+            })
+            expect(chars).toEqual(["a", "b", "c"])
+        })
 
+        it("Can call array map on a string", function(){
+            var ret = Array.prototype.map.call(f__StringLiteral("abc"), function(char){
+                return char + char 
+            })
+            expect(ret).toEqual(["aa", "bb", "cc"])
+        })
+
+        it("Can call array filter with a `this` argument", function(){
+            var res = [1,2,3].filter(function(n) {
+                return n >= this.min
+            }, {min: 2})
+            expect(res).toEqual([2, 3])
+        })
+    })
+    
     it("JSON.parse can handle arrays in JSON objects", function(){
         var parsed = JSON.parse({
             toString: () => '{"hello": ["one", "two"]}',
@@ -198,19 +222,22 @@ describe("Tracing", function(){
     })
 
     describe("Script tags created in JavaScript", function(){
+        var previousLoadScriptTag;
         beforeEach(function(){
+            previousLoadScriptTag = window.__loadScriptTag
+            window.__loadScriptTag = jasmine.createSpy()
             window.dynamicCodeRegistry = {
                 register: jasmine.createSpy()
             }
         })
         afterEach(function(){
+            window.__loadScriptTag = previousLoadScriptTag
             delete window.dynamicCodeRegistry;
         })
 
         it("Calls __loadScriptTag when appending script element with appendChild", function(){
             var script = document.createElement("script")
             script.src = "/src/test-script.js"
-            spyOn(window, "__loadScriptTag")
             document.body.appendChild(script)
             expect(window.__loadScriptTag).toHaveBeenCalled()
         })
@@ -219,7 +246,6 @@ describe("Tracing", function(){
             var div = document.createElement("div")
             document.body.appendChild(div)
             window.inTestScript = function(){}
-            spyOn(window, "__loadScriptTag")
 
             var script = document.createElement("script")
             script.src = "/src/test-script.js"
@@ -567,6 +593,8 @@ describe("Tracing", function(){
         expect(clone.__elOrigin.action).toBe("test")
         expect(clone.children[0].__elOrigin.action).toBe("cake")
     })
+
+    
 
     it("Returns [object Number] when calling Obj.prototype.toString on a number", function(){
         var toString = Object.prototype.toString

@@ -161,6 +161,12 @@ var nativeObjectToString = Object.prototype.toString
 window.nativeObjectToString = nativeObjectToString
 var nativeArrayToString = Array.prototype.toString
 
+var arrayPrototypeFunctionsThatShouldWorkForStrings = ["forEach", "map", "filter", "some", "every", "reduce", "reduceRight"]
+var nativeArrayPrototypeFunctions = {}
+arrayPrototypeFunctionsThatShouldWorkForStrings.forEach(function(fnName){
+    nativeArrayPrototypeFunctions[fnName] = Array.prototype[fnName]
+})
+
 var nativeAddEventListener = Node.prototype.addEventListener
 var nativeRemoveEventListener = Node.prototype.removeEventListener
 
@@ -1015,10 +1021,19 @@ function onAfterEnable(){
     window.String.prototype = nativeStringObject.prototype
     window.String.raw = nativeStringObject.raw
     window.String.fromCodePoint = nativeStringObject.fromCodePoint
-    window.String.fromCharCode = nativeStringObject.fromCharCode
+    window.String.fromCharCode = nativeStringObject.fromCharCode;
 
-
-
+    arrayPrototypeFunctionsThatShouldWorkForStrings.forEach(function(fnName){
+        // this functions have to work for strings when called like this:
+        // Array.prototype.map.call("abc", function(){})
+        Array.prototype[fnName] = function(callback){
+            var obj = this;
+            if (obj && obj.isStringTraceString){
+                obj = stringTraceUseValue(obj)
+            }
+            return nativeArrayPrototypeFunctions[fnName].apply(obj, arguments)
+        }
+    })
 
     window.Function.prototype.toString = function(){
         var _this = this;
@@ -1088,6 +1103,11 @@ function onAfterDisable(){
     window.XMLHttpRequest = originalXMLHttpRequest
     Array.prototype.join = nativeArrayJoin
     Array.prototype.indexOf = nativeArrayIndexOf
+
+    arrayPrototypeFunctionsThatShouldWorkForStrings.forEach(function(fnName){
+        Array.prototype[fnName] = nativeArrayPrototypeFunctions[fnName]
+    })
+
     document.createTextNode = nativeCreateTextNode
     Node.prototype.cloneNode = nativeCloneNode
     Node.prototype.addEventListener =  nativeAddEventListener

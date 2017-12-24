@@ -32,4 +32,23 @@ describe("ChromeCodeInstrumenter", function(){
             processor.disable();
         })
     })
+
+    describe("insertBefore", function(){
+        it("After calling insertBefore on a script tag the script tag exists in the DOM", function(){
+            // This may sound obvious, but actually we don't want to use the native script loading
+            // mechanism (not sure why actually) and instead manually call loadScript
+            window.__loadScriptTag = function(){}
+            var processor = new CodePreprocessor({})
+            processor.enable()
+
+            var div = document.createElement("div")
+            document.body.appendChild(div)
+            var script = document.createElement("script")
+            script.src = "doesntMatterWhatSrc.js"
+            document.body.insertBefore(script, div)
+            expect(document.querySelectorAll("script[src='doesntMatterWhatSrc.js']").length).toBe(1)
+            processor.disable()
+            window.__loadScriptTag = undefined
+        })
+    })
 })
