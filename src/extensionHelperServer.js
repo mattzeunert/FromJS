@@ -27,7 +27,7 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 app.post('/processJavaScriptCode', function(req, res) {
     
     const compiled = processJavaScriptCode(req.body.code, req.body.options)
-    ret = {
+    const ret = {
         code: compiled.code,
         map: compiled.map
     }
