@@ -84,7 +84,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 return {
                     value: str,
                     origin: new Origin({
-                        error: {stack: ""},
+                        error: {stack: Error().stack },
                         inputValues: [],
                         value: str
                     })

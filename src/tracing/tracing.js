@@ -620,7 +620,7 @@ function onAfterEnable(){
         value: ",",
         origin: new Origin({
             action: "Default Array Join Separator",
-            error: {stack: ""},
+            error: {stack: Error().stack},
             value: ",",
             inputValues: []
         })
