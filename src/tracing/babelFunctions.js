@@ -30,6 +30,7 @@ function ensureIsNumber(value){
 
 var babelFunctions = {
     f__StringLiteral(value){
+        return value
         return makeTraceObject({
             value: value,
             origin: new Origin({
