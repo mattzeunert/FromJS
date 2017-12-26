@@ -66,6 +66,22 @@ class ChromeCodeInstrumenter {
             })
         }
 
+        // I moved this outside the main handler since it didn't seem to pick it up anymore... maybe because it's in an iframe
+        chrome.webRequest.onBeforeRequest.addListener(function(info){
+            console.log("general onbeforerequst", info.url)
+            
+            if (self.getTabSession(info.tabId)) {
+                if (info.url.indexOf("/fromjs-internals/") !== -1) {
+                    var parts = info.url.split("/fromjs-internals/")
+                    var fileName = parts[1]
+                    console.log("redirecting to ", chrome.extension.getURL(fileName))
+                    return {
+                        redirectUrl: chrome.extension.getURL(fileName)
+                    }
+                }
+            }
+        }, {urls: ["<all_urls>"]}, ["blocking"]);
+
         chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
             var session = self.getTabSession(tabId);
 
@@ -564,16 +580,12 @@ function makeOnBeforeRequest(session){
             return {cancel: true}
         }
 
-        if (info.url.slice(0, "chrome-extension://".length) === "chrome-extension://") {
-            return
+        if (info.url.indexOf("/fromjs-internals/") !== -1) {
+            return // handled by global handler
         }
 
-        if (info.url.indexOf("/fromjs-internals/") !== -1) {
-            var parts = info.url.split("/fromjs-internals/")
-            var fileName = parts[1]
-            return {
-                redirectUrl: chrome.extension.getURL(fileName)
-            }
+        if (info.url.slice(0, "chrome-extension://".length) === "chrome-extension://") {
+            return
         }
 
         if (info.type === "main_frame") {
