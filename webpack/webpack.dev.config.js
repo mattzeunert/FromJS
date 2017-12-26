@@ -38,7 +38,8 @@ new webpack.DefinePlugin({
 
 var serverConfig = getBaseConfig()
 serverConfig.entry = {
-    server: ['./server.js']
+    server: ['./server.js'],
+    extensionHelperServer: ['./src/extensionHelperServer.js']
 };
 serverConfig.output = {
     path: "./",

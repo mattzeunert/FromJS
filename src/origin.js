@@ -39,6 +39,8 @@ export default function Origin(opts){
     if (opts.valueItems) {
         this.valueItems = opts.valueItems
     }
+
+    if (!this.error.stack) { debugger }
 }
 
 function getUsableInputValue(inputValue, error){

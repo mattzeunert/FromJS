@@ -439,36 +439,58 @@ class BabelSession {
         })
     }
     _processJavaScriptCode(code, options){
-        var key = code + JSON.stringify(options);
-        if (!this._processJSCodeCache[key]) {
-            try {
-                var res = processJavaScriptCode(this._babelPlugin)(code, options);
-            } catch (err) {
-                if (this._onInstrumentationError) {
-                    this._onInstrumentationError(err, options, this);
-                }
-                throw err
-            }
+        return new Promise(resolve => {
+            var key = code + JSON.stringify(options);
+            if (!this._processJSCodeCache[key]) {
+                // try {
+                //     var res = processJavaScriptCode(this._babelPlugin)(code, options);
+                // } catch (err) {
+                //     if (this._onInstrumentationError) {
+                //         this._onInstrumentationError(err, options, this);
+                //     }
+                //     throw err
+                // }
 
-            this._processJSCodeCache[key] = {
-                map: res.map,
-                code: res.code
-            };
-        }
-        return this._processJSCodeCache[key]
+                console.log("send to 9544", options)
+                fetch("http://localhost:9544/processJavaScriptCode", {
+                    method: 'post',
+                    body: JSON.stringify({
+                        code,
+                        options
+                    }),
+                    headers: {"Content-Type": "application/json"}
+
+                })
+                .then(r => r.json())
+                .then(res => {
+                    console.log(res)
+                    this._processJSCodeCache[key] = {
+                        map: res.map,
+                        code: res.code
+                    };
+                    resolve(this._processJSCodeCache[key])
+                })
+                
+            }
+            else {
+                resolve(this._processJSCodeCache[key])
+            }
+        })
     }
     getCode(url, processCode){
         var self = this;
         var promise = new Promise(function(resolve, reject){
             self._getJavaScriptFile(url).then(function(code){
                 if (processCode) {
-                    var res = self._processJavaScriptCode(code, {filename: url})
-                    code = res.code
-                    code += "\n//# sourceURL=" + url
-                    code += "\n//# sourceMappingURL=" + url + ".map"
+                    var res = self._processJavaScriptCode(code, {filename: url}).then((res) => {
+                        code = res.code
+                        code += "\n//# sourceURL=" + url
+                        code += "\n//# sourceMappingURL=" + url + ".map"
+                        resolve(code)
+                    })
+                } else {
+                    resolve(code)
                 }
-
-                resolve(code)
             })
         })
 
@@ -481,8 +503,10 @@ class BabelSession {
         url = url.slice(0, -".map".length)
         return new Promise((resolve) => {
             this._getJavaScriptFile(url).then((code) => {
-                var sourceMap = this._processJavaScriptCode(code, {filename: url}).map
-                resolve(sourceMap)
+                var sourceMap = this._processJavaScriptCode(code, {filename: url}).then(res => {
+                    resolve(res.map)
+                })
+                
             })
         })
     }
