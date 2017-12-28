@@ -804,4 +804,40 @@ describe("Tracing", function(){
 
         window.postMessage(message, targetOrigin)
     })
+
+    // Disabled for now... in practice allowing overwrite property doesn't break
+    // babel-polyfill... to prevent this would have to hijack delete, or hijack f__assign, ...
+    // describe("Doesn't break if the site code tries to overwrite String.prototype methods", function(){
+    //     /*
+    //         Overwriting currently can cause infinite loop because:
+    //         1) site calls custom method
+    //         2) custom method calls tracked FromJS version
+    //         3) FromJS version calls supposedly native function on prototype
+    //         4) but actually we're back at step 2)
+    //     */
+    //     it("String.prototype.split", function(){
+    //         var emptyString = makeTraceObject({
+    //             value: '',
+    //             origin: {}
+    //         })
+
+    //         // This is how babel-polyfill gets the split method...
+    //         const originalSplitMethod = emptyString.split
+    //         function customSplit(){
+    //             debugger
+    //             return originalSplitMethod.apply(this, arguments)
+    //         }
+    //         String.prototype.split = customSplit
+
+    //         var str = makeTraceObject({
+    //             value: "a-b",
+    //             origin: {}
+    //         })
+            
+    //         var splitResult = str.split(/-/)
+
+    //         expect(splitResult[0].value).toEqual('a')
+    //         expect(splitResult[1].value).toEqual('b')
+    //     })
+    // })
 })

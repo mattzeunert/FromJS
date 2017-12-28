@@ -148,6 +148,7 @@ window.nativeJSONParse = nativeJSONParse
 
 var nativeJSONStringify = JSON.stringify
 
+var nativeObjectDefineProperty = Object.defineProperty
 
 var nativeObjectHasOwnProperty = Object.prototype.hasOwnProperty
 
@@ -204,6 +205,17 @@ var nativeNumberToFixed = Number.prototype.toFixed
 var nativeWindowPostMessage = window.postMessage
 
 var nativeDocumentOpen = document.open
+
+const unoverwritableRegExpFunctions = [
+    Symbol.replace,
+    Symbol.split,
+    Symbol.match,
+    Symbol.search  
+]
+const regexpSymbolValues = {}
+unoverwritableRegExpFunctions.forEach(function(symbol){
+    regexpSymbolValues[symbol] = RegExp.prototype[symbol]
+})
 
 var nativeStringFunctions = Object.getOwnPropertyNames(String.prototype)
     .map(function(propertyName){
@@ -355,15 +367,49 @@ function onAfterEnable(){
         window.Object[propName] = nativeObjectObject[propName]
     })
 
-    nativeStringFunctions.forEach(function(prop){
-        // Don't do for now... breaks too much stuff because my FromJS code
-        // relies on being able to use untracked strings normally
-        // String.prototype[prop.name] = function(){
-        //     var str = untrackedString(this)
-        //     var ret = str[prop.name].apply(str, arguments)
-        //     return ret;
-        // }
-    })
+    function setStringFunctions(){
+        nativeStringFunctions.forEach(function(prop){
+            nativeObjectDefineProperty.call(Object, String.prototype, prop.name, {
+                value:  prop.fn,
+                writeable: false, // prevent e.g. babel-polyfil from removing it
+            })
+    
+            // Don't do for now... breaks too much stuff because my FromJS code
+            // relies on being able to use untracked strings normally
+            // String.prototype[prop.name] = function(){
+            //     var str = untrackedString(this)
+            //     var ret = str[prop.name].apply(str, arguments)
+            //     return ret;
+            // }
+        })
+    }
+
+    setStringFunctions()
+    
+    function setRegexFunctions() {
+        unoverwritableRegExpFunctions.forEach(function(symbol){
+            nativeObjectDefineProperty.call(Object, RegExp.prototype, symbol, {
+                value: regexpSymbolValues[symbol],
+                writable: false, // prevent e.g. babel-polyfil from removing it
+            })
+        })
+    }
+    setRegexFunctions()
+    
+    
+    Object.defineProperty = function(obj, propName, desriptor, INTERNAL){
+        var ret = nativeObjectDefineProperty.apply(this, arguments)
+        if (obj === String.prototype) {
+            // soft reject the overwrite
+
+            // if we did configurable: false it would throw an error
+            setStringFunctions()
+        }
+        if (obj === RegExp.prototype) {
+            setStringFunctions()
+        }
+        return ret
+    }
 
     window.XMLHttpRequest = function(){
         var self = this;
@@ -921,7 +967,11 @@ function onAfterEnable(){
             })
         })
 
-        res[0] = match
+        // hmmm, this seems to break stuff sometimes (exec being called over and over)
+        // so disable it for now
+        if (matchValue !== '') {
+            res[0] = match
+        }
 
         var regExpString = this.toString();
         for (var i=1; i<res.length; i++){
@@ -1153,12 +1203,22 @@ function onAfterDisable(){
     window.Object = nativeObjectObject;
 
     nativeStringFunctions.forEach(function(property) {
-        String.prototype[property.name] = property.fn
+        Object.defineProperty(String.prototype, property.name, {
+            value: property.fn
+        })
+    })
+
+    unoverwritableRegExpFunctions.forEach(function(symbol){
+        Object.defineProperty(RegExp.prototype, symbol, {
+            value: regexpSymbolValues[symbol]
+        })
     })
 
     window.postMessage = nativeWindowPostMessage
 
     document.open = nativeDocumentOpen
+
+    Object.defineProperty = nativeObjectDefineProperty
 }
 
 export function enableTracing(){
