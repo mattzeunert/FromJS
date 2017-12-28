@@ -967,7 +967,11 @@ function onAfterEnable(){
             })
         })
 
-        res[0] = match
+        // hmmm, this seems to break stuff sometimes (exec being called over and over)
+        // so disable it for now
+        if (matchValue !== '') {
+            res[0] = match
+        }
 
         var regExpString = this.toString();
         for (var i=1; i<res.length; i++){
