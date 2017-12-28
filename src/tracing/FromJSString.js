@@ -48,6 +48,25 @@ function countGroupsInRegExp(re){
     return new RegExp(re.toString() + '|').exec('').length
 }
 
+// some pages overwrite this split method, in which case you can get infinite recursion
+// e.g. because of babel-polyfill
+const nativeStringFunctions = {}
+
+
+
+    //   // 21.2.5.8 RegExp.prototype[@@replace](string, replaceValue)
+    //   // 21.2.5.11 RegExp.prototype[@@split](string, limit)
+    // ) ? function (string, arg) {
+    //     return rxfn.call(string, this, arg);
+    //   }
+    //   // 21.2.5.6 RegExp.prototype[@@match](string)
+    //   // 21.2.5.9 RegExp.prototype[@@search](string)
+const nativeRegExpFunctions = {}
+Object.getOwnPropertyNames(RegExp.prototype).forEach(function(propertyName){
+    nativeRegExpFunctions[propertyName] = RegExp.prototype[propertyName]
+})
+
+
 // getOwnPropertyNames instead of for loop b/c props aren't enumerable
 Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
     if (propertyName === "toString") { return }
@@ -62,16 +81,31 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
     }
 
     if (typeof String.prototype[propertyName] === "function") {
+        nativeStringFunctions[propertyName] = String.prototype[propertyName]
+
         Object.defineProperty(FromJSString.prototype, propertyName, {
             value: handlerFunction,
             enumerable: false
         })
 
         function handlerFunction(){
+
+            restoreNormalStringPrototypeFunctions()
+            Error.stackTraceLimit = 500;
+            // console.log(Error().stack.length)
+            if (Error().stack.length > 10000) debugger
+
+            // if (Error().stack.split("\n").length> 200){
+            //     debugger
+            // }
+
             var oldValue = this;
             var args = unstringTracifyArguments(arguments)
             var newVal;
             var error = Error();
+
+
+            // console.log("handlerfunction", args, oldValue)
 
             var argumentOrigins = Array.from(arguments).map(function(arg){
                 if (arg instanceof FromJSString) {
@@ -99,7 +133,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 var valueMap = new ValueMap();
                 var inputMappedSoFar = ""
 
-                var newVal = oldString.replace(args[0], function(){
+                var newVal = nativeStringFunctions.replace.call(oldString, args[0], function(){
                     var argumentsArray = Array.prototype.slice.apply(arguments, [])
                     var match = argumentsArray[0];
                     var submatches = argumentsArray.slice(1, argumentsArray.length - 2)
@@ -138,7 +172,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     // confusing... args[1] is basically inputValues[2].value
                     if (typeof args[1] === "string" || typeof args[1] === "number") {
                         var value = args[1].toString();
-                        value = value.replace(/\$([0-9]{1,2}|[$`&'])/g, function(dollarMatch, dollarSubmatch){
+                        value = nativeStringFunctions.replace.call(value, /\$([0-9]{1,2}|[$`&'])/g, function(dollarMatch, dollarSubmatch){
                             var submatchIndex = parseFloat(dollarSubmatch)
                             if (!isNaN(submatchIndex)){
                                 var submatch = submatches[submatchIndex - 1] // $n is one-based, array is zero-based
@@ -248,6 +282,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 valueMap.appendString(newVal, oldValue.origin, start)
                 valueItems = valueMap.serialize(inputValues)
             } else if (propertyName === "match") {
+                
                 var regExp = args[0]
                 if (! (regExp instanceof RegExp)) {
                     regExp = new RegExp(regExp)
@@ -255,7 +290,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                 if (regExp.global) {
                     var matches = [];
                     var match;
-                    while (match = regExp.exec(this)) {
+                    while (matches.length < 100 && (match = regExp.exec(this))) {
                         matches.push(match[0])
                     }
                     if (matches.length === 0) {
@@ -266,12 +301,14 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                     return regExp.exec(this)
                 }
             } else if (propertyName === "split") {
+                
+                
                 var separator = args[0]
                 var limit = args[1]
                 if (limit !== undefined) {
                     dontTrack()
                 } else {
-                    var res = oldString.split(args[0])
+                    var res = nativeStringFunctions.split.apply(oldString, [args[0]])
 
                     var separators = [];
                     if (typeof separator === "string") {
@@ -284,7 +321,7 @@ Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
                         // ==> temporarily disable tracing
                         runFunctionWithTracingDisabled(function(){
                             var regExp = cloneRegExp(separator, {global: true})
-                            separators = oldString.match(regExp)
+                            separators = nativeStringFunctions.match.call(oldString, regExp)
                             if (separators === null) {
                                 separators = [];
                             }
@@ -448,6 +485,11 @@ var traps = {
             return window.String
         }
 
+        if (!target[name] && String.prototype[name]) {
+            // user has added new key to string prototype...
+            return String.prototype[name]
+        }
+        
         return target[name]
     },
     has: function(target, propName){

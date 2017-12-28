@@ -1060,9 +1060,18 @@ function onAfterEnable(){
     }
 
     window.postMessage = function(){
+        // todo: handle posting objects that contain traced values....
+        // recusrvieObjectUsevalue
+
+
         var args = Array.from(arguments)
         args = args.map(arg => f__useValue(arg))
-        return nativeWindowPostMessage.apply(this, args)
+        try {
+            var ret = nativeWindowPostMessage.apply(this, args)
+        } catch (err) {
+            debugger
+        }
+        return ret
     }
 
     document.open = function(){
@@ -1167,4 +1176,9 @@ export function enableTracing(){
 
 export function disableTracing(){
     codePreprocessor.disable();
+}
+
+
+window.history.replaceState = function(){
+    debugger
 }

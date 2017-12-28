@@ -30,7 +30,7 @@ function ensureIsNumber(value){
 
 var babelFunctions = {
     f__StringLiteral(value){
-        return value
+        // return value
         return makeTraceObject({
             value: value,
             origin: new Origin({
@@ -129,6 +129,14 @@ var babelFunctions = {
         return ret
     },
     f__notDoubleEqual(a,b){
+        // Error.stackTraceLimit = 500;
+        // const l = Error().stack.split("\n").length
+        // if (l > 20) console.log(l)
+        // console.log("not double equal", a, b, l)
+
+        // console.log(Error().stack + "s")
+        // if (l > 3) {debugger}
+
         if (a && a.isStringTraceString) {
             a = a.toString()
         }

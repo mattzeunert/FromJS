@@ -11,6 +11,32 @@ var nativeDocumentWrite = document.write;
 var nativeAppendChildDescriptor = Object.getOwnPropertyDescriptor(Node.prototype, "appendChild")
 var nativeInsertBefore = Node.prototype.insertBefore
 
+const nativeStringPrototypeFunctions = {}
+window.nativeStringPrototypeFunctions = nativeStringPrototypeFunctions
+Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
+    nativeStringPrototypeFunctions[propertyName] = String.prototype[propertyName]
+})
+function restoreNormalStringPrototypeFunctions() {
+
+    RegExp.prototype[Symbol.split] = normalRegexSplit
+    RegExp.prototype[Symbol.match] = normalRegexMatch
+
+    Object.getOwnPropertyNames(String.prototype).forEach(function(propertyName){
+        try {
+
+            if (nativeStringPrototypeFunctions[propertyName]) {
+                String.prototype[propertyName] = nativeStringPrototypeFunctions[propertyName]
+            }
+            
+        } catch (err) {}
+    })
+}
+var normalObjectPrototypeToString = Object.prototype.toString
+
+const normalRegexSplit =  RegExp.prototype[Symbol.split]
+const normalRegexMatch = RegExp.prototype[Symbol.match]
+window.restoreNormalStringPrototypeFunctions = restoreNormalStringPrototypeFunctions
+
 export default class CodePreprocessor {
     constructor({babelPlugin}){
         this.documentReadyState = "loading"
@@ -52,6 +78,8 @@ export default class CodePreprocessor {
         var self= this;
         this.preprocessCode = function(code, options){
             self.disable();
+            restoreNormalStringPrototypeFunctions()
+            Object.prototype.toString = normalObjectPrototypeToString
             var ret = processJSCode(self.babelPlugin)(code, options)
             self.enable();
             return ret;
@@ -259,6 +287,7 @@ export default class CodePreprocessor {
     }
     runFunctionWhileDisabled(fn){
         var enabledAtStart = this.isEnabled;
+        Object.prototype.toString = normalObjectPrototypeToString
         if (enabledAtStart) {
             this.disable();
         }

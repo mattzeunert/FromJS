@@ -48,6 +48,8 @@ export default function(babelPlugin){
     return function processJavaScriptCode(code, options){
         code = removeSourceMapIfAny(code)
 
+        // console.log("options.filename", options.filename)
+
         const ast = babylon.parse(code, {
             strict: false,
             allowReturnOutsideFunction: true,

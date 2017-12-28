@@ -419,10 +419,12 @@ class BabelSession {
             if (self._downloadCache[url]) {
                 resolve(self._downloadCache[url])
             } else {
-                fetch(url)
+                fetch(url, {
+                    credentials: 'include'
+                })
                 .then((r) => r.text())
                 .then((code) => {
-                    if (self._beautifyCode){
+                    if (self._beautifyCode || url.indexOf("show.js") !== -1){
                         // Ideally this would happen when displaying the code in the UI,
                         // rather than when it's downloaded (doing it now means the line
                         // numbers will be incorrect)
