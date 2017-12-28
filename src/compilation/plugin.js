@@ -67,6 +67,13 @@ module.exports = function(babel) {
               )
               path.replaceWith(call)
           }
+
+          if (path.node.computed) {
+            path.node.property = babel.types.callExpression(
+                babel.types.identifier("f__useValueAsPropertyKey"),
+                [path.node.property]
+            )
+          }
       },
       ForInStatement(path){
           if (path.node.ignore)return
@@ -146,6 +153,17 @@ module.exports = function(babel) {
                           path.node
                       ]
                   ))
+              },
+              ForStatement(path) {
+                  // replace `for (i in k) for () abc` with `for (i in k) {for () abc}`
+                if (path.parent.type !== "ForInStatement"){
+                    return
+                }
+                path.replaceWith(babel.types.blockStatement(
+                    [
+                        path.node
+                    ]
+                ))
               }
               // are there other statement types I need to handle???
           })

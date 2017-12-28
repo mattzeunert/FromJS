@@ -2,6 +2,9 @@ function waitForEl(cssSelector){
     console.log("Looking for ", cssSelector);
      return browser.driver.wait(function(){
         return browser.driver.isElementPresent(by.css(cssSelector)).then(function(el){
+            if (el === true) {
+                console.log("Found element", cssSelector)
+            }
             return el === true;
         });
     })
@@ -27,7 +30,19 @@ function loadPage(url){
     browser.ignoreSynchronization = true;
     browser.get(url);
 
-    return waitForEl('.fromjs-show-inspector-button')
+    if (url === "http://localhost:9999/demos/react-todomvc-compiled/index.html") {
+        // This is the demo page that auto-opens the show inspector button
+        return waitForEl("#fromjs-sidebar").then(function(){
+            switchToIframe()
+            return waitForEl('.close-inspector-button')
+        })
+        .then(function(){
+            switchToInspectedPage()
+            return closeFromJSInspector()
+        })
+    } else {
+        return waitForEl('.fromjs-show-inspector-button')
+    }    
 }
 
 function openFromJSInspector(){
@@ -42,6 +57,13 @@ function openFromJSInspector(){
     })
 
     return promise;
+}
+
+function closeFromJSInspector(){
+    switchToIframe()
+    element(by.css('.close-inspector-button')).click();
+    switchToInspectedPage()
+    return waitForEl(".fromjs-show-inspector-button")
 }
 
 function switchToIframe(){
