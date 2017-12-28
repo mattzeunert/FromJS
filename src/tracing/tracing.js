@@ -356,6 +356,17 @@ function onAfterEnable(){
     })
 
     nativeStringFunctions.forEach(function(prop){
+        Object.defineProperty(String.prototype, prop.name, {
+            get: function(){
+                return prop.fn
+            },
+            set: function(value){
+                debugger
+                console.log("trying to assign to string prototype function, ignored by FromJS")
+                return value
+            }
+        })
+
         // Don't do for now... breaks too much stuff because my FromJS code
         // relies on being able to use untracked strings normally
         // String.prototype[prop.name] = function(){
@@ -1153,7 +1164,9 @@ function onAfterDisable(){
     window.Object = nativeObjectObject;
 
     nativeStringFunctions.forEach(function(property) {
-        String.prototype[property.name] = property.fn
+        Object.defineProperty(String.prototype, property.name, {
+            value: property.fn
+        })
     })
 
     window.postMessage = nativeWindowPostMessage
