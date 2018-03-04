@@ -1,0 +1,12 @@
+{
+  "name": "babel-plugin-data-flow",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "jest": "^22.4.2"
+  }
+}

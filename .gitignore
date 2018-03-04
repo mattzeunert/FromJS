@@ -1,4 +1,4 @@
-/node_modules
+node_modules
 /dist
 /chrome-extension/dist
 /code-preprocessing-test/dist

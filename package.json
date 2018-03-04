@@ -65,6 +65,7 @@
     "karma-chrome-launcher": "1.0.1",
     "karma-jasmine": "1.0.2",
     "karma-webpack": "1.7.0",
+    "lerna": "^2.4.0",
     "mkdirp": "0.5.1",
     "nodemon": "1.9.2",
     "protractor": "4.0.4",
