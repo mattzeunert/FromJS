@@ -84,54 +84,6 @@
     return lastOpResult;
   };
 
-  var meta = [];
-  var identicalMappings = {};
-  var contextIds = 1;
-  var allValues = {};
-  function startCallAndGetContextId(paramNames) {
-    var contextId = contextIds++;
-    paramNames.forEach((paramName, i) => {
-      var callingWith = global.callingWith[i];
-      identicalMappings[contextId + "_" + paramName] =
-        callingWith[1] + "_" + callingWith[0];
-    });
-    console.log({ identicalMappings });
-    return contextId;
-  }
-  function assignVar(contextId, identifier, info, infoId) {
-    console.log("assignVar", { contextId, identifier, info, infoId });
-    if (!meta[contextId]) {
-      meta[contextId] = {};
-    }
-    meta[contextId][identifier] = infoId;
-    return info;
-  }
-  function stringLiteral(str, contextId, codeId) {
-    console.log("stringliteral", str, codeId);
-    return str;
-  }
-  function add(a, b, contextId, addMeta, leftmeta, rightmeta) {
-    console.log("add", { contextId, addMeta, leftmeta, rightmeta });
-    return a + b;
-  }
-  function beforeCall(fnName, argInfo) {
-    console.log("Calling ", fnName, "with", argInfo);
-    global.callingWith = argInfo;
-  }
-  var lastRet;
-  var retWholeId;
-  function beforeReturn(ret, contextId, valueId) {
-    console.log("beforereturn", ret, contextId, valueId);
-    retWholeId = contextId + "_" + valueId;
-    lastRet = ret;
-  }
-  function afterCall(contextId, valueId) {
-    console.log("aftercall", arguments);
-    identicalMappings[retWholeId] = contextId + "_" + valueId;
-    console.log("IDENT", identicalMappings);
-    return lastRet;
-  }
-
   function inspect(value, n) {
     // console.log("Should inspect", value, n, JSON.stringify(argTrackingInfo, null, 4))
     console.log("#### should inspect", value);
@@ -154,40 +106,5 @@
         inspectInner(rightValue, rightTrackingValue, charIndex);
       }
     }
-  }
-
-  function iV(type, ivLoc, rawArgs) {
-    function getArg(arg) {
-      return {
-        value: arg[0],
-        // contextId: arg[1],
-        // loc: arg[2],
-        key: arg[1] + "_" + arg[2]
-      };
-    }
-    var args = rawArgs.map(getArg);
-    // console.log(args)
-    allValues[args[0].key] = {
-      type,
-      args
-    };
-    var ret;
-    if (type === "add") {
-      ret = args[0].value + args[1].value;
-    } else if (type === "stringLiteral") {
-      ret = args[0].value;
-    } else if (type === "identifier") {
-      ret = args[0].value;
-    } else if (type === "numberLiteral") {
-      ret = args[0].value;
-    } else {
-      throw "unhandled: " + type;
-    }
-    allValues[ivLoc[0] + "_" + ivLoc[1]] = {
-      type,
-      args,
-      value: ret
-    };
-    return ret;
   }
 })(__FUNCTION_NAMES__, __OPERATION_TYPES__);
