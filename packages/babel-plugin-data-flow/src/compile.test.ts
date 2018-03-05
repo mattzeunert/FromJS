@@ -60,12 +60,24 @@ test("Can handle variable declarations with init value", done => {
   });
 });
 
-test("Can handle object literal", done => {
+test("Can handle object literals", done => {
   instrumentAndRun(`
     var stringKey = {"a": "a"}
     return {a: "a"}
   `).then(({ normal, tracking }) => {
     expect(normal.a).toBe("a");
+    done();
+  });
+});
+
+test("Can handle try catch statements", done => {
+  instrumentAndRun(`
+    try {
+       
+    } catch (err) {
+
+    }
+  `).then(({ normal, tracking }) => {
     done();
   });
 });
