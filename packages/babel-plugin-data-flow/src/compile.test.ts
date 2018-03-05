@@ -87,5 +87,13 @@ test("Can handle for in statements", done => {
   });
 });
 
+test("Can handle function expressions", done => {
+  instrumentAndRun(`
+    var fn = function sth(){}
+  `).then(({ normal, tracking }) => {
+    done();
+  });
+});
+
 // test return [a,b]
 // todo: handle objects somehow
