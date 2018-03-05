@@ -72,11 +72,16 @@ test("Can handle object literals", done => {
 
 test("Can handle try catch statements", done => {
   instrumentAndRun(`
-    try {
-       
-    } catch (err) {
+    try {} catch (err) {}
+  `).then(({ normal, tracking }) => {
+    done();
+  });
+});
 
-    }
+test("Can handle for in statements", done => {
+  instrumentAndRun(`
+    var obj = {}
+    for (key in obj) {}
   `).then(({ normal, tracking }) => {
     done();
   });

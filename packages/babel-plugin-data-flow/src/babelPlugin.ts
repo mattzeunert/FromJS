@@ -174,7 +174,8 @@ export default function plugin(babel) {
           path.parent.type === "MemberExpression" ||
           path.parent.type === "AssignmentExpression" ||
           path.parent.type === "ObjectProperty" ||
-          path.parent.type === "CatchClause"
+          path.parent.type === "CatchClause" ||
+          path.parent.type === "ForInStatement"
         ) {
           return;
         }
