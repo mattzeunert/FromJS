@@ -95,6 +95,9 @@ export default function plugin(babel) {
         path.replaceWith(call);
       },
       NumericLiteral(path) {
+        if (path.parent.type === "ObjectProperty") {
+          return;
+        }
         if (path.node.ignore) {
           return;
         }

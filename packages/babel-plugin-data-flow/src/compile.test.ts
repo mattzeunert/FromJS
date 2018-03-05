@@ -63,6 +63,7 @@ test("Can handle variable declarations with init value", done => {
 test("Can handle object literals", done => {
   instrumentAndRun(`
     var stringKey = {"a": "a"}
+    var numberKey = {1: "a"}
     return {a: "a"}
   `).then(({ normal, tracking }) => {
     expect(normal.a).toBe("a");
