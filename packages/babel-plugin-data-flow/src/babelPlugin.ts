@@ -101,8 +101,15 @@ export default function plugin(babel) {
         var newDeclarations = [];
         originalDeclarations.forEach(function(decl) {
           newDeclarations.push(decl);
+          if (!decl.init) {
+            decl.init = t.undefinedLiteral()
+          }
+          
           newDeclarations.push(
-            t.variableDeclarator(ignoredIdentifier(decl.id.name + "_t"))
+            t.variableDeclarator(
+              ignoredIdentifier(decl.id.name + "_t"),
+              ignoredCallExpression(FunctionNames.getLastOperationTrackingResult, [])
+            ),
           );
         });
         path.node.declarations = newDeclarations;

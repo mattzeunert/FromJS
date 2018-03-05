@@ -12,10 +12,10 @@
     objectKey,
     args
   ) {
-    console.log("makecall", {
-      fn: fn.toString(),
-      args: JSON.stringify(args, null, 4)
-    });
+    // console.log("makecall", {
+    //   fn: fn.toString(),
+    //   args: JSON.stringify(args, null, 4)
+    // });
     // console.log({fn, object, objectKey, args})
     if (fn) {
       // not called as part of a member expresison
@@ -45,7 +45,7 @@
 
   var lastOpResult = null;
   global[functionNames.doOperation] = function op(opName, ...args) {
-    console.log(opName, JSON.stringify(args, null, 4));
+    // console.log(opName, JSON.stringify(args, null, 4));
     var value, trackingValue;
     var argValues = args.map(arg => arg[0]);
     var argTrackingValues = args.map(arg => arg[1]);

@@ -5,9 +5,9 @@ function instrumentAndRun(code) {
   return new Promise(resolve => {
     code = `getTrackingAndNormalValue((function(){ ${code} })())`;
     compile(code).then(result => {
-      console.log(result.code);
+      // console.log(result.code);
       var result = eval(result.code);
-      console.log(JSON.stringify(result.tracking, null, 4));
+      // console.log(JSON.stringify(result.tracking, null, 4));
       resolve(result);
     });
   });
@@ -47,4 +47,18 @@ test("Can track values across function calls", done => {
   });
 });
 
+test("Can handle variable declarations with init value", done => {
+  instrumentAndRun(`
+    var a = "Hello", b = 2
+    return b
+  `).then(({ normal, tracking }) => {
+    console.log({ tracking });
+    expect(normal).toBe(2);
+    expect(tracking.argTrackingValues[0].type).toBe("numericLiteral");
+
+    done();
+  });
+});
+
+// test return [a,b]
 // todo: handle objects somehow
