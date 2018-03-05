@@ -4,9 +4,19 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "test-watch": "jest --watch"
   },
   "dependencies": {
-    "jest": "^22.4.2"
+    "@babel/core": "^7.0.0-beta.40",
+    "jest": "^22.4.2",
+    "typescript": "^2.7.2"
+  },
+  "jest": {
+    "moduleFileExtensions": ["ts", "tsx", "js"],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "../../preprocessor.js"
+    },
+    "testMatch": ["**/*.test.(ts|tsx|js)"]
   }
 }

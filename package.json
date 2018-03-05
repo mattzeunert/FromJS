@@ -45,6 +45,7 @@
     "stacktrace-js": "1.2.0",
     "starts-with": "1.0.2",
     "string-contains": "0.1.0",
+    "typescript": "^2.7.2",
     "underscore": "1.8.3",
     "webpack": "1.13.1"
   },
