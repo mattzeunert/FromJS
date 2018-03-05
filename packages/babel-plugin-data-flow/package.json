@@ -9,14 +9,21 @@
   },
   "dependencies": {
     "@babel/core": "^7.0.0-beta.40",
+    "babylon": "^6.18.0",
     "jest": "^22.4.2",
     "typescript": "^2.7.2"
   },
   "jest": {
-    "moduleFileExtensions": ["ts", "tsx", "js"],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
     "transform": {
       "^.+\\.(ts|tsx)$": "../../preprocessor.js"
     },
-    "testMatch": ["**/*.test.(ts|tsx|js)"]
+    "testMatch": [
+      "**/*.test.(ts|tsx|js)"
+    ]
   }
 }

@@ -1,6 +1,13 @@
 import * as FunctionNames from "./FunctionNames";
 import * as babel from "@babel/core";
 import * as OperationTypes from "./OperationTypes";
+import * as fs from "fs";
+import * as babylon from "babylon"
+
+let helperCode = fs.readFileSync(__dirname + "/helperFunctions.ts").toString();
+helperCode = helperCode.replace("__FUNCTION_NAMES__", JSON.stringify(FunctionNames));
+helperCode = helperCode.replace("__OPERATION_TYPES__", JSON.stringify(OperationTypes));
+
 
 export default function plugin(babel) {
   const { types: t } = babel;
@@ -37,6 +44,17 @@ export default function plugin(babel) {
   return {
     name: "babel-plugin-data-flow",
     visitor: {
+      Program: {
+        // Run on exit so injected code isn't processed by other babel plugins
+        exit: function(path) {
+          var initCodeAstNodes = babylon
+            .parse(helperCode)
+            .program.body.reverse();
+          initCodeAstNodes.forEach(node => {
+            path.node.body.unshift(node);
+          });
+        }
+      }
       FunctionDeclaration(path) {
         path.node.params.forEach((param, i) => {
           var d = t.variableDeclaration("var", [
