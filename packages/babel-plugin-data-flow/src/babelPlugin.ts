@@ -75,6 +75,9 @@ export default function plugin(babel) {
         });
       },
       StringLiteral(path) {
+        if (path.parent.type === "ObjectProperty") {
+          return;
+        }
         if (path.node.ignore) {
           return;
         }
