@@ -2,12 +2,17 @@ import * as FunctionNames from "./FunctionNames";
 import * as babel from "@babel/core";
 import * as OperationTypes from "./OperationTypes";
 import * as fs from "fs";
-import * as babylon from "babylon"
+import * as babylon from "babylon";
 
 let helperCode = fs.readFileSync(__dirname + "/helperFunctions.ts").toString();
-helperCode = helperCode.replace("__FUNCTION_NAMES__", JSON.stringify(FunctionNames));
-helperCode = helperCode.replace("__OPERATION_TYPES__", JSON.stringify(OperationTypes));
-
+helperCode = helperCode.replace(
+  "__FUNCTION_NAMES__",
+  JSON.stringify(FunctionNames)
+);
+helperCode = helperCode.replace(
+  "__OPERATION_TYPES__",
+  JSON.stringify(OperationTypes)
+);
 
 export default function plugin(babel) {
   const { types: t } = babel;
@@ -54,7 +59,7 @@ export default function plugin(babel) {
             path.node.body.unshift(node);
           });
         }
-      }
+      },
       FunctionDeclaration(path) {
         path.node.params.forEach((param, i) => {
           var d = t.variableDeclaration("var", [
@@ -76,10 +81,13 @@ export default function plugin(babel) {
         path.node.ignore = true;
         const locId = t.stringLiteral(path.node.start + "-" + path.node.end);
         locId.ignore = true;
-        var call = t.callExpression(ignoredIdentifier(FunctionNames.doOperation), [
-          ignoredStringLiteral("stringLiteral"),
-          t.arrayExpression([path.node, t.nullLiteral()])
-        ]);
+        var call = t.callExpression(
+          ignoredIdentifier(FunctionNames.doOperation),
+          [
+            ignoredStringLiteral("stringLiteral"),
+            t.arrayExpression([path.node, t.nullLiteral()])
+          ]
+        );
         call.ignore = true;
         path.replaceWith(call);
       },
@@ -89,24 +97,27 @@ export default function plugin(babel) {
         }
         path.node.ignore = true;
 
-        var call = t.callExpression(ignoredIdentifier(FunctionNames.doOperation), [
-          ignoredStringLiteral("numericLiteral")
-          t.arrayExpression([
-            path.node,
-            t.nullLiteral()
-          ])
-        ]);
+        var call = t.callExpression(
+          ignoredIdentifier(FunctionNames.doOperation),
+          [
+            ignoredStringLiteral("numericLiteral"),
+            t.arrayExpression([path.node, t.nullLiteral()])
+          ]
+        );
         call.ignore = true;
         path.replaceWith(call);
       },
       BinaryExpression(path) {
         if (path.node.operator === "+") {
-          var call = t.callExpression(ignoredIdentifier(FunctionNames.doOperation), [
-            ignoredStringLiteral(OperationTypes.binaryExpression),
-            ignoredStringLiteral("+"),
-            t.arrayExpression([path.node.left, getLastOp]),
-            t.arrayExpression([path.node.right, getLastOp])
-          ]);
+          var call = t.callExpression(
+            ignoredIdentifier(FunctionNames.doOperation),
+            [
+              ignoredStringLiteral(OperationTypes.binaryExpression),
+              ignoredStringLiteral("+"),
+              t.arrayExpression([path.node.left, getLastOp]),
+              t.arrayExpression([path.node.right, getLastOp])
+            ]
+          );
           call.ignore = true;
           path.replaceWith(call);
         }
@@ -120,14 +131,17 @@ export default function plugin(babel) {
         originalDeclarations.forEach(function(decl) {
           newDeclarations.push(decl);
           if (!decl.init) {
-            decl.init = t.undefinedLiteral()
+            decl.init = ignoredIdentifier("undefined");
           }
-          
+
           newDeclarations.push(
             t.variableDeclarator(
               ignoredIdentifier(decl.id.name + "_t"),
-              ignoredCallExpression(FunctionNames.getLastOperationTrackingResult, [])
-            ),
+              ignoredCallExpression(
+                FunctionNames.getLastOperationTrackingResult,
+                []
+              )
+            )
           );
         });
         path.node.declarations = newDeclarations;
@@ -155,7 +169,8 @@ export default function plugin(babel) {
           path.parent.type === "CallExpression" ||
           path.parent.type === "VariableDeclarator" ||
           path.parent.type === "MemberExpression" ||
-          path.parent.type === "AssignmentExpression"
+          path.parent.type === "AssignmentExpression" ||
+          path.parent.type === "ObjectProperty"
         ) {
           return;
         }
@@ -166,14 +181,12 @@ export default function plugin(babel) {
         path.node.ignore = true;
 
         var call = ignoredCallExpression(FunctionNames.doOperation, [
-          
-            ignoredStringLiteral("identifier"),
-            t.arrayExpression([
-              path.node,
-              ignoredIdentifier(path.node.name + "_t")
-            ])
-          ]
-        );
+          ignoredStringLiteral("identifier"),
+          t.arrayExpression([
+            path.node,
+            ignoredIdentifier(path.node.name + "_t")
+          ])
+        ]);
 
         try {
           path.replaceWith(call);

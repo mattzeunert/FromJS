@@ -10,3 +10,4 @@ node_modules
 .sass-cache
 _site
 .DS_Store
+packages/proxy-instrumenter/ca
