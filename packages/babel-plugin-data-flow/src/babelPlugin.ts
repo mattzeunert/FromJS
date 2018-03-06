@@ -192,6 +192,9 @@ export default function plugin(babel) {
         if (path.node.ignore) {
           return;
         }
+        if (path.parent.type === "WhileStatement") {
+          return;
+        }
         path.node.ignore = true;
         if (!path.node.left.name) {
           return;
@@ -221,7 +224,10 @@ export default function plugin(babel) {
           path.parent.type === "ObjectProperty" ||
           path.parent.type === "CatchClause" ||
           path.parent.type === "ForInStatement" ||
+          path.parent.type === "IfStatement" ||
+          path.parent.type === "ForStatement" ||
           path.parent.type === "FunctionExpression" ||
+          path.parent.type === "UpdateExpression" ||
           (path.parent.type === "UnaryExpression" &&
             path.parent.operator === "typeof")
         ) {

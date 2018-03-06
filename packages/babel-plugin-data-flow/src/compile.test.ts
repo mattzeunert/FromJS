@@ -134,6 +134,35 @@ describe("Can handle variables that aren't declared explicitly", () => {
   });
 });
 
+test("Can handle ++ unary expresion", done => {
+  instrumentAndRun(`
+    var a = 0
+    a++
+    return a
+  `).then(({ normal, tracking }) => {
+    expect(normal).toBe(1);
+    done();
+  });
+});
+
+test("Can handle while loops correctly", done => {
+  instrumentAndRun(`
+    var list = [1]
+    var item
+    var counter =0
+    while (item = list.pop()) {
+      counter++
+      if (counter > 1) {
+        throw Error("no")
+      }
+    }
+    return counter
+  `).then(({ normal, tracking }) => {
+    expect(normal).toBe(1);
+    done();
+  });
+});
+
 /*
 var four = (function(v){
   fn(v)
