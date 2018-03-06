@@ -82,6 +82,7 @@ test("Can handle try catch statements", done => {
 test("Can handle for in statements", done => {
   instrumentAndRun(`
     var obj = {}
+    for (var key in obj) {}
     for (key in obj) {}
   `).then(({ normal, tracking }) => {
     done();

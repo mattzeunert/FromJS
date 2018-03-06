@@ -135,6 +135,9 @@ export default function plugin(babel) {
         if (path.node.ignore) {
           return;
         }
+        if (path.parent.type === "ForInStatement") {
+          return;
+        }
         var originalDeclarations = path.node.declarations;
         var newDeclarations = [];
         originalDeclarations.forEach(function(decl) {
@@ -160,6 +163,9 @@ export default function plugin(babel) {
           return;
         }
         path.node.ignore = true;
+        if (!path.node.left.name) {
+          return;
+        }
         const trackingAssignment = t.AssignmentExpression(
           "=",
           t.identifier(path.node.left.name + "_t"),
