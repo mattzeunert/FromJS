@@ -105,17 +105,32 @@ test("Can handle typeof on non existent variables", done => {
   });
 });
 
-test("Can handle variables that aren't declared explicitly", done => {
-  instrumentAndRun(`
-    var fnGlobal = function(){}
-    fnGlobal(global)
-
-    var fn = function(a){ return a * 2 }
-    var fn2 = function() { return fn(arguments[0]) }
-    return fn2(2)
-  `).then(({ normal, tracking }) => {
-    expect(normal).toBe(4);
-    done();
+describe("Can handle variables that aren't declared explicitly", () => {
+  test("global variables", done => {
+    instrumentAndRun(`
+      global.__abcdef = "a"
+      __abcdef = "b"
+    `).then(({ normal, tracking }) => {
+      done();
+    });
+  });
+  test("global variables in function calls", done => {
+    instrumentAndRun(`
+      var fnGlobal = function(){}
+      fnGlobal(global)
+    `).then(({ normal, tracking }) => {
+      done();
+    });
+  });
+  test("arguments object", done => {
+    instrumentAndRun(`
+      var fn = function(a){ return a * 2 }
+      var fn2 = function() { return fn(arguments[0]) }
+      return fn2(2)
+    `).then(({ normal, tracking }) => {
+      expect(normal).toBe(4);
+      done();
+    });
   });
 });
 

@@ -49,29 +49,34 @@ export default function plugin(babel) {
     []
   );
 
-  function ignoreNode(node){
-    node.ignore = true
-    return node 
+  function ignoreNode(node) {
+    node.ignore = true;
+    return node;
   }
 
   function runIfIdentifierExists(identifierName, thenNode) {
-    const iN = ignoreNode
-    return iN(t.logicalExpression(
+    const iN = ignoreNode;
+    return iN(
+      t.logicalExpression(
         "&&",
-        iN(t.binaryExpression(
-          "!==",
-          iN(t.UnaryExpression("typeof", ignoredIdentifier(identifierName))),
-          ignoredStringLiteral("undefined")
-        ))
-        ,
+        iN(
+          t.binaryExpression(
+            "!==",
+            iN(t.UnaryExpression("typeof", ignoredIdentifier(identifierName))),
+            ignoredStringLiteral("undefined")
+          )
+        ),
         ignoredIdentifier(identifierName)
       )
-    )
+    );
   }
 
   function trackingIdentifierIfExists(identifierName) {
-    var trackingIdentifierName = identifierName + "_t"
-    return runIfIdentifierExists(trackingIdentifierName, ignoredIdentifier(trackingIdentifierName))
+    var trackingIdentifierName = identifierName + "_t";
+    return runIfIdentifierExists(
+      trackingIdentifierName,
+      ignoredIdentifier(trackingIdentifierName)
+    );
   }
 
   return {
@@ -191,10 +196,13 @@ export default function plugin(babel) {
         if (!path.node.left.name) {
           return;
         }
-        const trackingAssignment = makeTrackingAssignment()t.AssignmentExpression(
-          "=",
-          t.identifier(path.node.left.name + "_t"),
-          getLastOp
+        const trackingAssignment = runIfIdentifierExists(
+          path.node.left.name + "_t",
+          t.AssignmentExpression(
+            "=",
+            ignoredIdentifier(path.node.left.name + "_t"),
+            getLastOp
+          )
         );
         trackingAssignment.ignore = true;
 
