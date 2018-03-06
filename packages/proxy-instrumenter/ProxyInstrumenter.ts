@@ -14,6 +14,8 @@ const log = logWithPrefix("[PROXY]");
 
 ////////////////////////
 
+Error.stackTraceLimit = Infinity;
+
 const spawn = require("threads").spawn;
 
 function requestProcessCode(body, url, analysisDirectory) {

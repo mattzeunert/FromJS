@@ -1,5 +1,7 @@
 var instrumentCode = require("./instrumentCode");
 
+Error.stackTraceLimit = Infinity;
+
 module.exports = function instrument(args, done) {
   console.log("---");
   console.log("args", args);

@@ -13,6 +13,9 @@ helperCode = helperCode.replace(
   "__OPERATION_TYPES__",
   JSON.stringify(OperationTypes)
 );
+// I got some babel-generator "cannot read property 'type' of undefined" errors
+// when prepending the code itself, so just prepend a single eval call expression
+helperCode = "eval(`" + helperCode + "`)";
 
 export default function plugin(babel) {
   const { types: t } = babel;
@@ -235,7 +238,7 @@ export default function plugin(babel) {
           objectKey,
           t.arrayExpression(args)
         ]);
-        call.loc = path.node.callee.loc;
+        // call.loc = path.node.callee.loc;
         call.ignore = true;
 
         // todo: would it be better for perf if I just updated the existing call expression instead?
