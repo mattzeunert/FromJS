@@ -97,5 +97,35 @@ test("Can handle function expressions", done => {
   });
 });
 
+test("Can handle typeof on non existent variables", done => {
+  instrumentAndRun(`
+    return typeof a
+  `).then(({ normal, tracking }) => {
+    done();
+  });
+});
+
+test("Can handle variables that aren't declared explicitly", done => {
+  instrumentAndRun(`
+    var fnGlobal = function(){}
+    fnGlobal(global)
+
+    var fn = function(a){ return a * 2 }
+    var fn2 = function() { return fn(arguments[0]) }
+    return fn2(2)
+  `).then(({ normal, tracking }) => {
+    expect(normal).toBe(4);
+    done();
+  });
+});
+
+/*
+var four = (function(v){
+  fn(v)
+})(2)
+
+v_t not defined!
+*/
+
 // test return [a,b]
 // todo: handle objects somehow

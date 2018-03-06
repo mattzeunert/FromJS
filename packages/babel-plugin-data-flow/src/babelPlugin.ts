@@ -49,6 +49,31 @@ export default function plugin(babel) {
     []
   );
 
+  function ignoreNode(node){
+    node.ignore = true
+    return node 
+  }
+
+  function runIfIdentifierExists(identifierName, thenNode) {
+    const iN = ignoreNode
+    return iN(t.logicalExpression(
+        "&&",
+        iN(t.binaryExpression(
+          "!==",
+          iN(t.UnaryExpression("typeof", ignoredIdentifier(identifierName))),
+          ignoredStringLiteral("undefined")
+        ))
+        ,
+        ignoredIdentifier(identifierName)
+      )
+    )
+  }
+
+  function trackingIdentifierIfExists(identifierName) {
+    var trackingIdentifierName = identifierName + "_t"
+    return runIfIdentifierExists(trackingIdentifierName, ignoredIdentifier(trackingIdentifierName))
+  }
+
   return {
     name: "babel-plugin-data-flow",
     visitor: {
@@ -166,7 +191,7 @@ export default function plugin(babel) {
         if (!path.node.left.name) {
           return;
         }
-        const trackingAssignment = t.AssignmentExpression(
+        const trackingAssignment = makeTrackingAssignment()t.AssignmentExpression(
           "=",
           t.identifier(path.node.left.name + "_t"),
           getLastOp
@@ -188,7 +213,9 @@ export default function plugin(babel) {
           path.parent.type === "ObjectProperty" ||
           path.parent.type === "CatchClause" ||
           path.parent.type === "ForInStatement" ||
-          path.parent.type === "FunctionExpression"
+          path.parent.type === "FunctionExpression" ||
+          (path.parent.type === "UnaryExpression" &&
+            path.parent.operator === "typeof")
         ) {
           return;
         }
@@ -202,7 +229,7 @@ export default function plugin(babel) {
           ignoredStringLiteral("identifier"),
           t.arrayExpression([
             path.node,
-            ignoredIdentifier(path.node.name + "_t")
+            trackingIdentifierIfExists(path.node.name)
           ])
         ]);
 
