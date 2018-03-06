@@ -49,6 +49,18 @@ export default function plugin(babel) {
     []
   );
 
+  function isInWhileStatement(path) {
+    if (path.parent.type === "Program") {
+      return false;
+    }
+    if (path.parent.type === "WhileStatement") {
+      return true;
+    }
+    if (path.parentPath.parent) {
+      return isInWhileStatement(path.parentPath);
+    }
+  }
+
   function ignoreNode(node) {
     node.ignore = true;
     return node;
@@ -192,7 +204,7 @@ export default function plugin(babel) {
         if (path.node.ignore) {
           return;
         }
-        if (path.parent.type === "WhileStatement") {
+        if (isInWhileStatement(path)) {
           return;
         }
         path.node.ignore = true;
@@ -259,6 +271,10 @@ export default function plugin(babel) {
         if (path.node.ignore) {
           return;
         }
+        if (isInWhileStatement(path)) {
+          return;
+        }
+
         var fn = t.nullLiteral();
         var object = t.nullLiteral();
         var objectKey = t.nullLiteral();

@@ -145,21 +145,42 @@ test("Can handle ++ unary expresion", done => {
   });
 });
 
-test("Can handle while loops correctly", done => {
-  instrumentAndRun(`
-    var list = [1]
-    var item
-    var counter =0
-    while (item = list.pop()) {
-      counter++
-      if (counter > 1) {
-        throw Error("no")
+describe("Can handle while loops correctly", () => {
+  test("simple", done => {
+    instrumentAndRun(`
+      var list = [1]
+      var item
+      var counter =0
+      while (item = list.pop()) {
+        counter++
+        if (counter > 1) {
+          throw Error("no")
+        }
       }
-    }
-    return counter
-  `).then(({ normal, tracking }) => {
-    expect(normal).toBe(1);
-    done();
+      return counter
+    `).then(({ normal, tracking }) => {
+      expect(normal).toBe(1);
+      done();
+    });
+  });
+  test("complex", done => {
+    instrumentAndRun(`
+      var list = [1, null]
+      var item
+      var counter = 0
+      while ((item = list.shift()) !== null) {
+        counter++
+        console.log("aaaa", item, counter)
+        if (counter > 1) {
+          throw Error("no")
+        }
+      }
+      
+      return counter
+    `).then(({ normal, tracking }) => {
+      expect(normal).toBe(1);
+      done();
+    });
   });
 });
 

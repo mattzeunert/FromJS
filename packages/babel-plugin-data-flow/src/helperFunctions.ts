@@ -20,8 +20,11 @@
     if (fn) {
       // not called as part of a member expresison
       object = this;
-    } else {
+    } else if (typeof object !== "undefined") {
       fn = object[objectKey];
+    } else {
+      debugger;
+      throw Error("Can't find which function to call");
     }
     argTrackingInfo = args.map(arg => arg[1]);
     var ret = fn.apply(object, args.map(arg => arg[0]));
