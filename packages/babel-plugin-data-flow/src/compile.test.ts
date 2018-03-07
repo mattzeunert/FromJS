@@ -184,13 +184,18 @@ describe("Can handle while loops correctly", () => {
   });
 });
 
-/*
-var four = (function(v){
-  fn(v)
-})(2)
-
-v_t not defined!
-*/
+test("Can handle assignments in if statements", done => {
+  instrumentAndRun(`
+    var a
+    if (a=0) {
+      return "not ok"
+    }
+    return "ok"
+  `).then(({ normal, tracking }) => {
+    expect(normal).toBe("ok");
+    done();
+  });
+});
 
 // test return [a,b]
 // todo: handle objects somehow
