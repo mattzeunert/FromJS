@@ -57,6 +57,10 @@ export default function plugin(babel) {
     return isInStatement("IfStatement", path);
   }
 
+  function isInForStatement(path) {
+    return isInStatement("ForStatement", path);
+  }
+
   function isInStatement(type, path) {
     if (path.parent.type === "Program") {
       return false;
@@ -212,7 +216,11 @@ export default function plugin(babel) {
         if (path.node.ignore) {
           return;
         }
-        if (isInWhileStatement(path) || isInIfStatement(path)) {
+        if (
+          isInWhileStatement(path) ||
+          isInIfStatement(path) ||
+          isInForStatement(path)
+        ) {
           return;
         }
         path.node.ignore = true;

@@ -36,6 +36,10 @@
   global[
     functionNames.getFunctionArgTrackingInfo
   ] = function getArgTrackingInfo(index) {
+    if (!argTrackingInfo) {
+      console.log("no arg tracking info...");
+      return { info: "none" };
+    }
     return argTrackingInfo[index];
   };
 

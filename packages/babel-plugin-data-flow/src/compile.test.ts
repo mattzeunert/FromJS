@@ -197,5 +197,21 @@ test("Can handle assignments in if statements", done => {
   });
 });
 
+test("Can handle for loops that contain assignments in the condition", done => {
+  instrumentAndRun(`
+    var elems = [{n: 1}, {n: 2}]
+    var elem
+    var i = 0
+    for ( ; (elem = elems[ i ]) !== undefined; i++ ) {
+      if (!elem || typeof elem.n !== "number") {
+        throw Error("fail")
+      }
+    }
+  `).then(({ normal, tracking }) => {
+    // expect(normal).toBe("ok");
+    done();
+  });
+});
+
 // test return [a,b]
 // todo: handle objects somehow
