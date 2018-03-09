@@ -213,5 +213,32 @@ test("Can handle for loops that contain assignments in the condition", done => {
   });
 });
 
+test("Does not call getters twice when making calls", done => {
+  instrumentAndRun(`
+    var obj = {}
+    var getterInvocationCount = 0
+    Object.defineProperty(obj, "sth", {
+      get: function(){
+        getterInvocationCount++
+        return {
+          fn: function(){
+            return 99
+          }
+        }
+      }
+    })
+
+
+    var val = obj.sth.fn()
+    console.log({ getterInvocationCount })
+    if (getterInvocationCount > 1) {
+      throw Error("getter called too often")
+    }
+  `).then(({ normal, tracking }) => {
+    // expect(normal).toBe("ok");
+    done();
+  });
+});
+
 // test return [a,b]
 // todo: handle objects somehow
