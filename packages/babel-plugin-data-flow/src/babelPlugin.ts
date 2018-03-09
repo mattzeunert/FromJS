@@ -49,6 +49,11 @@ export default function plugin(babel) {
     []
   );
 
+  var getLastOpValue = ignoredCallExpression(
+    FunctionNames.getLastOperationValueResult,
+    []
+  );
+
   function isInWhileStatement(path) {
     return isInStatement("WhileStatement", path);
   }
@@ -216,13 +221,6 @@ export default function plugin(babel) {
         if (path.node.ignore) {
           return;
         }
-        if (
-          isInWhileStatement(path) ||
-          isInIfStatement(path) ||
-          isInForStatement(path)
-        ) {
-          return;
-        }
         path.node.ignore = true;
         if (!path.node.left.name) {
           return;
@@ -237,7 +235,18 @@ export default function plugin(babel) {
         );
         trackingAssignment.ignore = true;
 
-        path.replaceWith(t.sequenceExpression([path.node, trackingAssignment]));
+        var call = t.callExpression(
+          ignoredIdentifier(FunctionNames.doOperation),
+          [
+            ignoredStringLiteral("evaluateAssignment"),
+            t.arrayExpression([path.node, t.nullLiteral()])
+          ]
+        );
+        call.ignore = true;
+
+        path.replaceWith(
+          t.sequenceExpression([call, trackingAssignment, getLastOpValue])
+        );
       },
       Identifier(path) {
         if (path.node.ignore) {

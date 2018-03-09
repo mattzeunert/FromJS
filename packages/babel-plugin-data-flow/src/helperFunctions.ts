@@ -50,7 +50,8 @@
     };
   };
 
-  var lastOpResult = null;
+  var lastOpValueResult = null;
+  var lastOpTrackingResult = null;
   global[functionNames.doOperation] = function op(opName, ...args) {
     // console.log(opName, JSON.stringify(args, null, 4));
     var value, trackingValue;
@@ -69,6 +70,8 @@
       ret = argValues[0];
     } else if (opName === "identifier") {
       ret = argValues[0];
+    } else if (opName === "evaluateAssignment") {
+      ret = argValues[0];
     } else if (opName === operationTypes.binaryExpression) {
       var [operation, left, right] = argValues;
       if (operation === "+") {
@@ -83,12 +86,20 @@
       throw Error("oh no");
     }
 
-    lastOpResult = trackingValue;
+    lastOpValueResult = ret;
+    lastOpTrackingResult = trackingValue;
     return ret;
   };
 
+  global[functionNames.getLastOperationValueResult] = function getLastOp() {
+    var ret = lastOpValueResult;
+    lastOpValueResult = null;
+    return ret;
+  };
   global[functionNames.getLastOperationTrackingResult] = function getLastOp() {
-    return lastOpResult;
+    var ret = lastOpTrackingResult;
+    lastOpTrackingResult = null;
+    return ret;
   };
 
   function inspect(value, n) {

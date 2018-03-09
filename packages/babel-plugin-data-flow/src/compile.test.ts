@@ -228,14 +228,22 @@ test("Does not call getters twice when making calls", done => {
       }
     })
 
-
     var val = obj.sth.fn()
-    console.log({ getterInvocationCount })
     if (getterInvocationCount > 1) {
       throw Error("getter called too often")
     }
   `).then(({ normal, tracking }) => {
-    // expect(normal).toBe("ok");
+    done();
+  });
+});
+
+test("Returns the assigned value from assignments", done => {
+  instrumentAndRun(`
+    var b
+    var a = (b = 5)
+    return a
+  `).then(({ normal, tracking }) => {
+    expect(normal).toBe(5);
     done();
   });
 });
