@@ -25,6 +25,8 @@ test("Can track values across function calls", done => {
     return appendB("a")
   `).then(({ normal, tracking }) => {
     expect(normal).toBe("ab");
+    // remove the two return statements
+    tracking = tracking.argTrackingValues[0].argTrackingValues[0];
     expect(tracking.type).toBe(OperationTypes.binaryExpression);
     expect(
       tracking.argTrackingValues[1].argTrackingValues[0].argTrackingValues[0]

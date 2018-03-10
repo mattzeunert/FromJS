@@ -36,6 +36,7 @@ export default function traverse(trackingValue, charIndex, steps = []) {
       }
       break;
     case OperationTypes.identifier:
+    case OperationTypes.returnStatement:
       nextStep = {
         trackingValue: trackingValue.argTrackingValues[0],
         charIndex: charIndex

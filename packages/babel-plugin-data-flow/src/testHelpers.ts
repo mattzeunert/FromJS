@@ -9,6 +9,12 @@ export function instrumentAndRun(code) {
       var result = eval(result.code);
       result.code = code.split("getTrackingAndNormalValue")[2]; // only the interesting code
       // console.log(JSON.stringify(result.tracking, null, 4));
+
+      if (result.tracking) {
+        // remove the extra return statment from getTrackingAndNormalValue
+        result.tracking = result.tracking.argTrackingValues[0];
+      }
+
       resolve(result);
     });
   });

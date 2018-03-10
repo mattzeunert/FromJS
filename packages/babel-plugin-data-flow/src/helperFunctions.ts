@@ -70,6 +70,8 @@
       ret = argValues[0];
     } else if (opName === "identifier") {
       ret = argValues[0];
+    } else if (opName === "returnStatement") {
+      ret = argValues[0];
     } else if (opName === "evaluateAssignment") {
       ret = argValues[0];
     } else if (opName === operationTypes.binaryExpression) {

@@ -248,6 +248,19 @@ export default function plugin(babel) {
           t.sequenceExpression([call, trackingAssignment, getLastOpValue])
         );
       },
+      ReturnStatement(path) {
+        if (path.ignore) {
+          return;
+        }
+        path.node.ignore = true;
+
+        var opCall = ignoredCallExpression(FunctionNames.doOperation, [
+          ignoredStringLiteral(OperationTypes.returnStatement),
+          t.arrayExpression([path.node.argument, getLastOp])
+        ]);
+
+        path.node.argument = opCall;
+      },
       Identifier(path) {
         if (path.node.ignore) {
           return;

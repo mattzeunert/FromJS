@@ -42,6 +42,7 @@ test("Can track concatenation of 'a' and 'b' in an add function", done => {
     expect(t2LastStep.trackingValue.argValues[0]).toBe("b");
 
     expect(getStepTypeList(t1)).toEqual([
+      "returnStatement",
       "binaryExpression",
       "identifier",
       "stringLiteral"
