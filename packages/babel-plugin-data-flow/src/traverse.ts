@@ -6,7 +6,7 @@ export default function traverse(trackingValue, charIndex, steps = []) {
     trackingValue,
     charIndex
   });
-  console.log("Traversing", { trackingValue, charIndex });
+  // console.log("Traversing", { trackingValue, charIndex });
   let nextStep = null;
   switch (trackingValue.type) {
     case OperationTypes.binaryExpression:
@@ -34,6 +34,12 @@ export default function traverse(trackingValue, charIndex, steps = []) {
       } else {
         console.log("todo binexp operator");
       }
+      break;
+    case OperationTypes.identifier:
+      nextStep = {
+        trackingValue: trackingValue.argTrackingValues[0],
+        charIndex: charIndex
+      };
       break;
   }
   if (nextStep) {
