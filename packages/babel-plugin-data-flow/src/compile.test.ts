@@ -1,17 +1,5 @@
-import compile from "./compile";
 import * as OperationTypes from "./OperationTypes";
-
-function instrumentAndRun(code) {
-  return new Promise(resolve => {
-    code = `getTrackingAndNormalValue((function(){ ${code} })())`;
-    compile(code).then(result => {
-      // console.log(result.code);
-      var result = eval(result.code);
-      // console.log(JSON.stringify(result.tracking, null, 4));
-      resolve(result);
-    });
-  });
-}
+import { instrumentAndRun } from "./testHelpers";
 
 test("adds 1 + 2 to equal 3", done => {
   instrumentAndRun("return 1 + 2").then(({ normal, tracking }) => {
