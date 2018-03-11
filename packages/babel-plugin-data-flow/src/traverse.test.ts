@@ -51,3 +51,38 @@ test("Can track concatenation of 'a' and 'b' in an add function", done => {
     done();
   });
 });
+
+test("Can track values through object assignments", done => {
+  instrumentAndRun(`
+    var obj = {}
+    obj.a = "x"
+    return obj.a
+  `).then(({ normal, tracking, code }) => {
+    var t = traverse(tracking, 0);
+
+    expect(getStepTypeList(t)).toEqual([
+      "memberExpression",
+      "objectPropertyAssignment",
+      "stringLiteral"
+    ]);
+
+    done();
+  });
+});
+
+test("Can track values through object literals", done => {
+  instrumentAndRun(`
+    var obj = {a: "x"}
+    return obj.a
+  `).then(({ normal, tracking, code }) => {
+    var t = traverse(tracking, 0);
+
+    expect(getStepTypeList(t)).toEqual([
+      "memberExpression",
+      "objectExpression",
+      "stringLiteral"
+    ]);
+
+    done();
+  });
+});

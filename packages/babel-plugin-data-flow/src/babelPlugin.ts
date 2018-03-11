@@ -13,6 +13,8 @@ helperCode = helperCode.replace(
   "__OPERATION_TYPES__",
   JSON.stringify(OperationTypes)
 );
+helperCode += "/* HELPER_FUNCTIONS_END */ ";
+
 // I got some babel-generator "cannot read property 'type' of undefined" errors
 // when prepending the code itself, so just prepend a single eval call expression
 helperCode = "eval(`" + helperCode + "`)";
@@ -55,27 +57,58 @@ export default function plugin(babel) {
   );
 
   function isInWhileStatement(path) {
-    return isInStatement("WhileStatement", path);
+    return isInNodeType("WhileStatement", path);
   }
 
   function isInIfStatement(path) {
-    return isInStatement("IfStatement", path);
+    return isInNodeType("IfStatement", path);
   }
 
   function isInForStatement(path) {
-    return isInStatement("ForStatement", path);
+    return isInNodeType("ForStatement", path);
   }
 
-  function isInStatement(type, path) {
-    if (path.parent.type === "Program") {
+  function isInAssignmentExpression(path) {
+    return isInNodeType("AssignmentExpression", path);
+  }
+
+  function isInLeftPartOfAssignmentExpression(path) {
+    return isInNodeType("AssignmentExpression", path, function(path, prevPath) {
+      return path.node.left === prevPath.node;
+    });
+  }
+
+  function isInCallExpressionCallee(path) {
+    return isInNodeType("CallExpression", path, function(path, prevPath) {
+      return path.node.callee === prevPath.node;
+    });
+  }
+
+  function isInNodeType(type, path, extraCondition = null, prevPath = null) {
+    if (prevPath === null) {
+      isInNodeType(type, path.parentPath, extraCondition, path);
+    }
+    if (path.node.type === "Program") {
       return false;
     }
-    if (path.parent.type === type) {
-      return true;
+    if (path.node.type === type) {
+      if (!extraCondition || extraCondition(path, prevPath)) {
+        return true;
+      }
     }
-    if (path.parentPath.parent) {
-      return isInStatement(type, path.parentPath);
+    if (path.parentPath) {
+      return isInNodeType(type, path.parentPath, extraCondition, path);
     }
+  }
+
+  function createOperation(opType, opArgs) {
+    var call = babel.types.callExpression(
+      ignoredIdentifier(FunctionNames.doOperation),
+      [ignoredStringLiteral(opType), ...opArgs]
+    );
+
+    call.ignore = true;
+    return call;
   }
 
   function ignoreNode(node) {
@@ -222,6 +255,29 @@ export default function plugin(babel) {
           return;
         }
         path.node.ignore = true;
+
+        if (
+          path.node.operator === "=" &&
+          path.node.left.type === "MemberExpression"
+        ) {
+          var property;
+          if (path.node.left.computed === true) {
+            property = path.node.left.property;
+          } else {
+            property = babel.types.stringLiteral(path.node.left.property.name);
+            property.loc = path.node.left.property.loc;
+          }
+          let call = createOperation(OperationTypes.objectPropertyAssignment, [
+            t.arrayExpression([path.node.left.object, t.nullLiteral()]),
+            t.arrayExpression([property, t.nullLiteral()]),
+            t.arrayExpression([path.node.right, getLastOp])
+          ]);
+
+          call.loc = path.node.loc;
+          path.replaceWith(call);
+          return;
+        }
+
         if (!path.node.left.name) {
           return;
         }
@@ -246,6 +302,88 @@ export default function plugin(babel) {
 
         path.replaceWith(
           t.sequenceExpression([call, trackingAssignment, getLastOpValue])
+        );
+      },
+      ObjectExpression(path) {
+        path.node.properties.forEach(function(prop) {
+          if (prop.key.type === "Identifier") {
+            var keyLoc = prop.key.loc;
+            prop.key = babel.types.stringLiteral(prop.key.name);
+            prop.key.loc = keyLoc;
+            // move start a bit to left to compensate for there not
+            // being quotes in the original "string", since
+            // it's just an identifier
+            if (prop.key.loc.start.column > 0) {
+              prop.key.loc.start.column--;
+            }
+          }
+        });
+
+        var call = createOperation(
+          OperationTypes.objectExpression,
+          path.node.properties.map(function(prop) {
+            var type = t.stringLiteral(prop.type);
+            type.ignore = true;
+            if (prop.type === "ObjectMethod") {
+              // getter/setter
+              var kind = ignoredStringLiteral(prop.kind);
+              kind.ignore = true;
+              var propArray = t.arrayExpression([
+                t.arrayExpression([type]),
+                t.arrayExpression([prop.key]),
+                t.arrayExpression(kind),
+                t.arrayExpression([
+                  babel.types.functionExpression(null, prop.params, prop.body)
+                ])
+              ]);
+              return propArray;
+            } else {
+              var propArray = t.arrayExpression([
+                t.arrayExpression([type]),
+                t.arrayExpression([prop.key]),
+                t.arrayExpression([prop.value, getLastOp])
+              ]);
+              return propArray;
+            }
+            console.log("continue with type", prop.type);
+          })
+        );
+
+        path.replaceWith(call);
+      },
+      MemberExpression(path) {
+        if (isInLeftPartOfAssignmentExpression(path)) {
+          return;
+        }
+        if (isInCallExpressionCallee(path)) {
+          // don't break this up, the mem exp is needed to know what the correct
+          // execution context for the call should be
+          return;
+        }
+
+        // todo: dedupe this code
+        var property;
+        if (path.node.property.computed === true) {
+          property = path.node.property;
+        } else {
+          // console.log("nn", path.node.property.name, path.node.property);
+          if (path.node.property.type === "Identifier") {
+            property = babel.types.stringLiteral(path.node.property.name);
+            property.loc = path.node.property.loc;
+          } else if (path.node.property.type === "NumericLiteral") {
+            property = babel.types.stringLiteral(
+              path.node.property.value.toString()
+            );
+            property.loc = path.node.property.loc;
+          } else {
+            throw "asdfsdfsd";
+          }
+        }
+        path.replaceWith(
+          createOperation(OperationTypes.memberExpression, [
+            t.arrayExpression([path.node.object, getLastOp]),
+            t.arrayExpression([property, getLastOp])
+          ])
         );
       },
       ReturnStatement(path) {

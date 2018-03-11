@@ -50,6 +50,24 @@
     };
   };
 
+  const objTrackingMap = new Map();
+  function trackObjectPropertyAssignment(obj, propName, trackingValue) {
+    // console.log("setting to", obj, propName, trackingValue);
+    var objectPropertyTrackingInfo = objTrackingMap.get(obj);
+    if (!objectPropertyTrackingInfo) {
+      objectPropertyTrackingInfo = {};
+      objTrackingMap.set(obj, objectPropertyTrackingInfo);
+    }
+    objectPropertyTrackingInfo[propName] = trackingValue;
+  }
+  function getObjectPropertyTrackingValue(obj, propName) {
+    var objectPropertyTrackingInfo = objTrackingMap.get(obj);
+    if (!objectPropertyTrackingInfo) {
+      return null;
+    }
+    return objectPropertyTrackingInfo[propName];
+  }
+
   var lastOpValueResult = null;
   var lastOpTrackingResult = null;
   global[functionNames.doOperation] = function op(opName, ...args) {
@@ -57,14 +75,7 @@
     var value, trackingValue;
     var argValues = args.map(arg => arg[0]);
     var argTrackingValues = args.map(arg => arg[1]);
-    trackingValue = {
-      type: opName,
-      argValues,
-      argTrackingValues
-      // place: Error()
-      //   .stack.split("\\n")
-      //   .slice(2, 3)
-    };
+    var extraTrackingValues = [];
     var ret;
     if (opName === "stringLiteral") {
       ret = argValues[0];
@@ -81,12 +92,69 @@
       } else {
         throw Error("unknown bine exp operation");
       }
+    } else if (opName === operationTypes.objectPropertyAssignment) {
+      let [obj, propName, value] = argValues;
+      let [objT, propNameT, valueT] = argTrackingValues;
+      ret = obj[propName] = value;
+      trackObjectPropertyAssignment(obj, propName, {
+        type: opName,
+        argValues: [],
+        argTrackingValues: [valueT]
+      });
+    } else if (opName === "memberExpression") {
+      var [object, property] = argValues;
+      ret = object[property];
+      extraTrackingValues.push(
+        getObjectPropertyTrackingValue(object, property)
+      );
     } else if (opName === "numericLiteral") {
       ret = argValues[0];
+    } else if (opName === operationTypes.objectExpression) {
+      var obj = {};
+      var methodProperties = {};
+      for (var i = 0; i < args.length; i++) {
+        var property = args[i];
+        // console.log(property);
+        var propertyV = property.map(x => x[0]);
+        var propertyT = property.map(x => x[1]);
+        var [propertyType, propertyKey, propertyValue] = propertyV;
+        var [propertyTypeT, propertyKeyT, propertyValueT] = propertyT;
+        if (propertyType === "ObjectProperty") {
+          var [object, property] = argValues;
+          obj[propertyKey] = propertyValue;
+          trackObjectPropertyAssignment(obj, propertyKey, {
+            type: opName,
+            argValues: [],
+            argTrackingValues: [propertyValueT]
+          });
+        } else if (propertyType === "ObjectMethod") {
+          var propertyKind = property[2];
+          var fn = property[3];
+          if (!methodProperties[propertyKey]) {
+            methodProperties[propertyKey] = {
+              enumerable: true,
+              configurable: true
+            };
+          }
+          methodProperties[propertyKey][propertyKind] = fn;
+        }
+      }
+      Object.defineProperties(obj, methodProperties);
+      return obj;
     } else {
       console.log("unhandled op", opName, args);
       throw Error("oh no");
     }
+
+    trackingValue = {
+      type: opName,
+      argValues,
+      argTrackingValues,
+      extraTrackingValues
+      // place: Error()
+      //   .stack.split("\\n")
+      //   .slice(2, 3)
+    };
 
     lastOpValueResult = ret;
     lastOpTrackingResult = trackingValue;

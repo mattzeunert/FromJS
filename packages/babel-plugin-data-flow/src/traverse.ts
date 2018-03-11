@@ -35,6 +35,19 @@ export default function traverse(trackingValue, charIndex, steps = []) {
         console.log("todo binexp operator");
       }
       break;
+    case OperationTypes.memberExpression:
+      nextStep = {
+        trackingValue: trackingValue.extraTrackingValues[0],
+        charIndex: charIndex
+      };
+      break;
+    case OperationTypes.objectExpression:
+    case OperationTypes.objectPropertyAssignment:
+      nextStep = {
+        trackingValue: trackingValue.argTrackingValues[0],
+        charIndex: charIndex
+      };
+      break;
     case OperationTypes.identifier:
     case OperationTypes.returnStatement:
       nextStep = {

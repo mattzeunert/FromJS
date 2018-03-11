@@ -42,7 +42,6 @@ test("Can handle variable declarations with init value", done => {
     var a = "Hello", b = 2
     return b
   `).then(({ normal, tracking }) => {
-    console.log({ tracking });
     expect(normal).toBe(2);
     expect(tracking.argTrackingValues[0].type).toBe("numericLiteral");
 
@@ -148,7 +147,7 @@ describe("Can handle while loops correctly", () => {
         }
       }
       return counter
-    `).then(({ normal, tracking }) => {
+    `).then(({ normal, tracking, code }) => {
       expect(normal).toBe(1);
       done();
     });
@@ -160,7 +159,6 @@ describe("Can handle while loops correctly", () => {
       var counter = 0
       while ((item = list.shift()) !== null) {
         counter++
-        console.log("aaaa", item, counter)
         if (counter > 1) {
           throw Error("no")
         }
@@ -234,6 +232,43 @@ test("Returns the assigned value from assignments", done => {
     return a
   `).then(({ normal, tracking }) => {
     expect(normal).toBe(5);
+    done();
+  });
+});
+
+test("Tracks object literal values", done => {
+  instrumentAndRun(`
+    var obj = {
+      a: 5,
+      b: 6
+    }
+    return obj.a
+  `).then(({ normal, tracking }) => {
+    expect(normal).toBe(5);
+
+    done();
+  });
+});
+
+test("Tracks object property assignments", done => {
+  instrumentAndRun(`
+    var obj = {}
+    obj.a = 5
+    return obj.a
+  `).then(({ normal, tracking }) => {
+    expect(normal).toBe(5);
+    done();
+  });
+});
+
+test("Tracks object property assignments with computed properties", done => {
+  instrumentAndRun(`
+    var obj = {}
+    obj["a"] = 5
+    return obj.a
+  `).then(({ normal, tracking }) => {
+    expect(normal).toBe(5);
+
     done();
   });
 });
