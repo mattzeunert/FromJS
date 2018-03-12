@@ -13,30 +13,6 @@ test("adds 1 + 2 to equal 3", done => {
   });
 });
 
-test("Can track values across function calls", done => {
-  instrumentAndRun(`
-    function appendB(str) {
-      
-      return add(str, "b")
-    }
-    function add(arg1, arg2) {
-      return arg1 + arg2
-    }
-    return appendB("a")
-  `).then(({ normal, tracking }) => {
-    expect(normal).toBe("ab");
-    // remove the two return statements
-    tracking = tracking.argTrackingValues[0].argTrackingValues[0];
-    expect(tracking.type).toBe(OperationTypes.binaryExpression);
-    expect(
-      tracking.argTrackingValues[1].argTrackingValues[0].argTrackingValues[0]
-        .type
-    ).toBe(OperationTypes.stringLiteral);
-
-    done();
-  });
-});
-
 test("Can handle variable declarations with init value", done => {
   instrumentAndRun(`
     var a = "Hello", b = 2
@@ -163,7 +139,7 @@ describe("Can handle while loops correctly", () => {
           throw Error("no")
         }
       }
-      
+
       return counter
     `).then(({ normal, tracking }) => {
       expect(normal).toBe(1);
@@ -274,4 +250,3 @@ test("Tracks object property assignments with computed properties", done => {
 });
 
 // test return [a,b]
-// todo: handle objects somehow

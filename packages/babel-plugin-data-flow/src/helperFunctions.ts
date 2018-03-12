@@ -26,7 +26,12 @@
       debugger;
       throw Error("Can't find which function to call");
     }
-    argTrackingInfo = args.map(arg => arg[1]);
+    argTrackingInfo = args.map(arg => ({
+      type: operationTypes.functionArgument,
+      argValues: [arg[0]],
+      argTrackingValues: [arg[1]],
+      fnToString: fn.toString()
+    }));
     var ret = fn.apply(object, args.map(arg => arg[0]));
     argTrackingInfo = null;
 
@@ -171,28 +176,4 @@
     lastOpTrackingResult = null;
     return ret;
   };
-
-  function inspect(value, n) {
-    // console.log("Should inspect", value, n, JSON.stringify(argTrackingInfo, null, 4))
-    console.log("#### should inspect", value);
-    inspectInner(value, argTrackingInfo[0], n);
-  }
-
-  function inspectInner(value, trackingValue, charIndex) {
-    console.log(value, "char", value[charIndex], trackingValue.type);
-    if (trackingValue.type === "identifier") {
-      inspectInner(value, trackingValue.args[1], charIndex);
-    } else if (trackingValue.type === "plusBinEx") {
-      var [leftValue, leftTrackingValue] = trackingValue.args[0];
-      var [rightValue, rightTrackingValue] = trackingValue.args[1];
-      leftValue += "";
-      rightValue += "";
-      if (charIndex < leftValue.length) {
-        inspectInner(leftValue, leftTrackingValue, charIndex);
-      } else {
-        charIndex -= leftValue.length;
-        inspectInner(rightValue, rightTrackingValue, charIndex);
-      }
-    }
-  }
 })(__FUNCTION_NAMES__, __OPERATION_TYPES__);

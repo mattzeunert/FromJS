@@ -6,3 +6,4 @@ export const returnStatement = "returnStatement";
 export const objectPropertyAssignment = "objectPropertyAssignment";
 export const memberExpression = "memberExpression";
 export const objectExpression = "objectExpression";
+export const functionArgument = "functionArgument";
