@@ -12,39 +12,13 @@
     objectKey,
     args
   ) {
-    // console.log({fn, object, objectKey, args})
-    if (fn) {
-      // not called as part of a member expresison
-      object = this;
-    } else if (typeof object !== "undefined") {
-      fn = object[objectKey];
-    } else {
-      debugger;
-      throw Error("Can't find which function to call");
-    }
-    argTrackingInfo = args.map(arg => ({
-      type: operationTypes.functionArgument,
-      argValues: [ret],
-      argTrackingValues: [arg[1]],
-      fnToString: fn.toString(),
-      resVal: [arg[0]]
-    }));
-    var argValues = args.map(arg => arg[0]);
-    var ret = fn.apply(object, argValues);
-
-    // debugger;
-    lastOpValueResult = ret;
-    lastOpTrackingResult = {
-      type: operationTypes.functionReturnValue,
-      argValues,
-      argTrackingValues: [lastOpTrackingResult],
-      resVal: ret,
-      fnToString: [fn.toString()]
-    };
-
-    argTrackingInfo = null;
-
-    return ret;
+    return global[functionNames.doOperation](
+      operationTypes.functionReturnValue,
+      [fn, null],
+      [object, null],
+      [objectKey, null],
+      ...args
+    );
   };
 
   global[
@@ -85,13 +59,47 @@
   var lastOpValueResult = null;
   var lastOpTrackingResult = null;
   global[functionNames.doOperation] = function op(opName, ...args) {
-    // console.log(opName, JSON.stringify(args, null, 4));
     var value, trackingValue;
     var argValues = args.map(arg => arg[0]);
     var argTrackingValues = args.map(arg => arg[1]);
     var extraTrackingValues = [];
     var ret;
-    if (opName === "stringLiteral") {
+    if (opName === operationTypes.functionReturnValue) {
+      var [__, ___, ____, ...fnArgs] = args;
+      var [fn, object, objectKey] = argValues;
+      if (fn) {
+        // not called as part of a member expresison
+        object = this;
+      } else if (typeof object !== "undefined") {
+        fn = object[objectKey];
+      } else {
+        throw Error("Can't find which function to call");
+      }
+      argTrackingInfo = fnArgs.map(arg => ({
+        type: operationTypes.functionArgument,
+        argValues: [ret],
+        argTrackingValues: [arg[1]],
+        fnToString: fn.toString(),
+        resVal: [arg[0]]
+      }));
+      var fnArgValues = fnArgs.map(arg => arg[0]);
+      ret = fn.apply(object, fnArgValues);
+      argTrackingInfo = null;
+
+      // TODO: I don't think this is what this should be...
+      // I should not need a special case!
+      lastOpTrackingResult = {
+        type: operationTypes.functionReturnValue,
+        argValues: fnArgValues,
+        argTrackingValues: [lastOpTrackingResult],
+        resVal: ret,
+        fnToString: [fn.toString()]
+      };
+
+      lastOpValueResult = ret;
+
+      return ret;
+    } else if (opName === "stringLiteral") {
       ret = argValues[0];
     } else if (opName === "identifier") {
       ret = argValues[0];
