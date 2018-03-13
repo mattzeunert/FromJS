@@ -9,12 +9,10 @@ export function instrumentAndRun(code) {
       result.code = code.split("getTrackingAndNormalValue")[2]; // only the interesting code
 
       if (result.tracking) {
-        // remove the extra fn arg from getTrackingAndNormalValue
+        // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
         result.tracking = result.tracking.argTrackingValues[0];
-        // remove the extra return statment from getTrackingAndNormalValue
-        if (result.tracking) {
-          result.tracking = result.tracking.argTrackingValues[0];
-        }
+        result.tracking = result.tracking.argTrackingValues[0];
+        result.tracking = result.tracking.argTrackingValues[0];
       }
 
       resolve(result);

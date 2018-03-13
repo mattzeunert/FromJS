@@ -12,10 +12,6 @@
     objectKey,
     args
   ) {
-    // console.log("makecall", {
-    //   fn: fn.toString(),
-    //   args: JSON.stringify(args, null, 4)
-    // });
     // console.log({fn, object, objectKey, args})
     if (fn) {
       // not called as part of a member expresison
@@ -28,11 +24,24 @@
     }
     argTrackingInfo = args.map(arg => ({
       type: operationTypes.functionArgument,
-      argValues: [arg[0]],
+      argValues: [ret],
       argTrackingValues: [arg[1]],
-      fnToString: fn.toString()
+      fnToString: fn.toString(),
+      resVal: [arg[0]]
     }));
-    var ret = fn.apply(object, args.map(arg => arg[0]));
+    var argValues = args.map(arg => arg[0]);
+    var ret = fn.apply(object, argValues);
+
+    // debugger;
+    lastOpValueResult = ret;
+    lastOpTrackingResult = {
+      type: operationTypes.functionReturnValue,
+      argValues,
+      argTrackingValues: [lastOpTrackingResult],
+      resVal: ret,
+      fnToString: [fn.toString()]
+    };
+
     argTrackingInfo = null;
 
     return ret;
@@ -155,7 +164,8 @@
       type: opName,
       argValues,
       argTrackingValues,
-      extraTrackingValues
+      extraTrackingValues,
+      resVal: ret
       // place: Error()
       //   .stack.split("\\n")
       //   .slice(2, 3)

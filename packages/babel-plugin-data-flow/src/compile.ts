@@ -1,5 +1,6 @@
 import * as babel from "@babel/core";
 import plugin from "./babelPlugin";
+const prettier = require("prettier");
 
 export default function transform(code) {
   return new Promise((resolve, reject) => {
@@ -12,6 +13,8 @@ export default function transform(code) {
         if (err) {
           reject(err);
         } else {
+          result.code = prettier.format(result.code);
+          result.map = null;
           resolve(result);
         }
       }

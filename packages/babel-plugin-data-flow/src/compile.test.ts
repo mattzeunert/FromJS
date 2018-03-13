@@ -39,6 +39,7 @@ test("Can handle object literals", done => {
 test("Can handle try catch statements", done => {
   instrumentAndRun(`
     try {} catch (err) {}
+    return null
   `).then(({ normal, tracking }) => {
     done();
   });
@@ -49,6 +50,7 @@ test("Can handle for in statements", done => {
     var obj = {}
     for (var key in obj) {}
     for (key in obj) {}
+    return null
   `).then(({ normal, tracking }) => {
     done();
   });
@@ -57,6 +59,7 @@ test("Can handle for in statements", done => {
 test("Can handle function expressions", done => {
   instrumentAndRun(`
     var fn = function sth(){}
+    return null
   `).then(({ normal, tracking }) => {
     done();
   });
