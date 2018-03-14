@@ -86,19 +86,9 @@
       ret = fn.apply(object, fnArgValues);
       argTrackingInfo = null;
 
-      // TODO: I don't think this is what this should be...
-      // I should not need a special case!
-      lastOpTrackingResult = {
-        type: operationTypes.functionReturnValue,
-        argValues: fnArgValues,
-        argTrackingValues: [lastOpTrackingResult],
-        resVal: ret,
-        fnToString: [fn.toString()]
-      };
-
-      lastOpValueResult = ret;
-
-      return ret;
+      extraTrackingValues.push(
+        lastOpTrackingResult // pick up value from returnStatement
+      );
     } else if (opName === "stringLiteral") {
       ret = argValues[0];
     } else if (opName === "identifier") {
