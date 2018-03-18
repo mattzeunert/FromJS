@@ -35,12 +35,13 @@
     #compiled-code {
       float: left;
       width: 500px;
-      height: 200px;
+      height: 100px;
       font-size: 14px;
       font-family: Courier New;
     }
 
     #compiled-code {
+      display: none;
       width: 900px;
       font-size: 10px;
     }
@@ -80,16 +81,21 @@
 </head>
 
 <body>
-
-  <textarea id="code">
-      var a = "hello" + " world"
-
-      var b = a.slice(0,2)
-
-      inspect(b)
+  <div id="codemirrorcontainer">
+    <textarea id="code">
+    
+var a = "hello" + " world"
+var b = a.slice(0,2)
+inspect(b)
   </textarea>
+  </div>
   <textarea id="compiled-code"></textarea>
   <br style="clear:both">
+
+
+  <link rel="stylesheet" href="codemirror/codemirror.css"></link>
+  <script src="codemirror/codemirror.js"></script>
+  <script src="codemirror/javascript.js"></script>
 
   <div class="chart" id="basic-example"></div>
   <script src="./raphael.js"></script>

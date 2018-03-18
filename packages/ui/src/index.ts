@@ -2,25 +2,37 @@ import babelPlugin from "../../babel-plugin-data-flow";
 // import Babel from "@babel/standalone";
 // document.write("hi");
 
-const codeTextarea = <HTMLInputElement>document.querySelector("#code");
-codeTextarea.addEventListener("keyup", function(e) {
-  setTimeout(function() {
-    try {
-      showResult();
-    } catch (err) {
-      console.error(err);
-    }
-  });
+var editor = window["CodeMirror"].fromTextArea(
+  document.getElementById("code"),
+  {
+    mode: "javascript",
+    lineNumbers: true
+  }
+);
+editor.on("change", function(cMirror) {
+  // get value right from instance
+  codeTextarea.value = cMirror.getValue();
+  try {
+    chart.setAttribute("style", "opacity: 0.3");
+    showResult();
+    chart.setAttribute("style", "opacity: 1");
+  } catch (err) {
+    console.log(err);
+  }
 });
+
+const codeTextarea = <HTMLInputElement>document.querySelector("#code");
 
 const compiledCodeTextarea = <HTMLInputElement>document.querySelector(
   "#compiled-code"
 );
 
+const chart = <HTMLElement>document.querySelector(".chart");
+
 showResult();
 
 function showResult() {
-  var code = codeTextarea.value;
+  var code = editor.getValue();
   var res = window["Babel"].transform(code, {
     plugins: [babelPlugin]
   });
@@ -34,6 +46,10 @@ function showResult() {
 
   var data =
     window["inspectedValue"].tracking.argTrackingValues[0].argTrackingValues[0];
+
+  if (window["inspectedValue"].normal === undefined) {
+    throw Error("value is undefiend");
+  }
   var config = {
     container: "#basic-example",
 
