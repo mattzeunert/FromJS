@@ -80,6 +80,12 @@ export default function plugin(babel) {
     });
   }
 
+  function isInIdOfVariableDeclarator(path) {
+    return isInNodeType("VariableDeclarator", path, function(path, prevPath) {
+      return path.node.id === prevPath.node;
+    });
+  }
+
   function isInCallExpressionCallee(path) {
     return isInNodeType("CallExpression", path, function(path, prevPath) {
       return path.node.callee === prevPath.node;
@@ -130,7 +136,7 @@ export default function plugin(babel) {
             ignoredStringLiteral("undefined")
           )
         ),
-        ignoredIdentifier(identifierName)
+        thenNode
       )
     );
   }
@@ -285,10 +291,12 @@ export default function plugin(babel) {
         }
         const trackingAssignment = runIfIdentifierExists(
           path.node.left.name + "_t",
-          t.AssignmentExpression(
-            "=",
-            ignoredIdentifier(path.node.left.name + "_t"),
-            getLastOp
+          ignoreNode(
+            t.assignmentExpression(
+              "=",
+              ignoredIdentifier(path.node.left.name + "_t"),
+              getLastOp
+            )
           )
         );
         trackingAssignment.ignore = true;
@@ -297,7 +305,7 @@ export default function plugin(babel) {
           ignoredIdentifier(FunctionNames.doOperation),
           [
             ignoredStringLiteral("evaluateAssignment"),
-            t.arrayExpression([path.node, t.nullLiteral()])
+            t.arrayExpression([path.node, getLastOp])
           ]
         );
         call.ignore = true;
@@ -408,9 +416,7 @@ export default function plugin(babel) {
         if (
           path.parent.type === "FunctionDeclaration" ||
           path.parent.type === "CallExpression" ||
-          path.parent.type === "VariableDeclarator" ||
           path.parent.type === "MemberExpression" ||
-          path.parent.type === "AssignmentExpression" ||
           path.parent.type === "ObjectProperty" ||
           path.parent.type === "CatchClause" ||
           path.parent.type === "ForInStatement" ||
@@ -420,6 +426,12 @@ export default function plugin(babel) {
           path.parent.type === "UpdateExpression" ||
           (path.parent.type === "UnaryExpression" &&
             path.parent.operator === "typeof")
+        ) {
+          return;
+        }
+        if (
+          isInLeftPartOfAssignmentExpression(path) ||
+          isInIdOfVariableDeclarator(path)
         ) {
           return;
         }

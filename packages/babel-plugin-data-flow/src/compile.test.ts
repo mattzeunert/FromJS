@@ -266,4 +266,35 @@ test("Tracks where a function's context came from", done => {
   });
 });
 
+describe("Tracks values across assignments", () => {
+  it("Works when assigning a new value", done => {
+    instrumentAndRun(`
+    var a = "a"
+    a = "b"
+    return a
+  `).then(({ normal, tracking, code }) => {
+      expect(normal).toBe("b");
+      expect(tracking.argTrackingValues[0].argValues[0]).toBe("b");
+
+      done();
+    });
+  });
+  it("Works when assigning a variable value", done => {
+    instrumentAndRun(`
+    var a = "a"
+    var b = "b"
+    a = b
+    return a
+  `).then(({ normal, tracking, code }) => {
+      expect(normal).toBe("b");
+      expect(
+        tracking.argTrackingValues[0].argTrackingValues[0].argTrackingValues[0]
+          .argValues[0]
+      ).toBe("b");
+
+      done();
+    });
+  });
+});
+
 // test return [a,b]

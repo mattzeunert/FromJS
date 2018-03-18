@@ -64,6 +64,17 @@ function showResult() {
   var nodeStructure;
 
   function makeNode(data) {
+    if (
+      data &&
+      (data.type === "identifier" ||
+        // data.type === "functionReturnValue" ||
+        data.type === "evaluateAssignment")
+    ) {
+      // skip it because it's not very interesting
+      console.log("skipping", data);
+      return makeNode(data.argTrackingValues[0]);
+    }
+
     var childValues;
     if (data) {
       childValues = data.argTrackingValues.map((child, i) => {
@@ -71,15 +82,8 @@ function showResult() {
         if (child === null || child === undefined) {
           return;
         }
-        if (
-          child.type === "identifier" ||
-          child.type === "functionReturnValue"
-        ) {
-          // skip it because it's not very interesting
-          return child.argTrackingValues[0];
-        } else {
-          return child;
-        }
+
+        return child;
       });
     } else {
       childValues = [];
