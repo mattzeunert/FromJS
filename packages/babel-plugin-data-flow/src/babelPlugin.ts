@@ -1,11 +1,12 @@
 import * as FunctionNames from "./FunctionNames";
 import * as babel from "@babel/core";
 import * as OperationTypes from "./OperationTypes";
-import * as fs from "fs";
+// import * as fs from "fs";
 import * as babylon from "babylon";
 
-let helperCode = fs.readFileSync(__dirname + "/helperFunctions.ts").toString();
-helperCode = helperCode.replace(
+import helperCodeLoaded from "./helperFunctions";
+import helperFunctions from "./helperFunctions";
+let helperCode = helperCodeLoaded.replace(
   "__FUNCTION_NAMES__",
   JSON.stringify(FunctionNames)
 );
@@ -18,6 +19,7 @@ helperCode += "/* HELPER_FUNCTIONS_END */ ";
 // I got some babel-generator "cannot read property 'type' of undefined" errors
 // when prepending the code itself, so just prepend a single eval call expression
 helperCode = "eval(`" + helperCode + "`)";
+// console.log(helperCode);
 
 export default function plugin(babel) {
   const { types: t } = babel;
@@ -345,7 +347,7 @@ export default function plugin(babel) {
               ]);
               return propArray;
             }
-            console.log("continue with type", prop.type);
+            // console.log("continue with type", prop.type);
           })
         );
 

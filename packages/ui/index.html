@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="./Treant.css">
+  <style>
+    .chart {
+      height: 500px;
+      ;
+      margin: 5px;
+      width: 99vw;
+    }
+
+    .node-name {
+      font-weight: bold;
+    }
+
+    .nodeExample1 {
+      padding: 2px;
+      -webkit-border-radius: 3px;
+      -moz-border-radius: 3px;
+      border-radius: 3px;
+      background-color: #ffffff;
+      border: 1px solid #000;
+      width: 200px;
+      font-family: Tahoma;
+      font-size: 12px;
+    }
+
+
+    #code,
+    #compiled-code {
+      float: left;
+      width: 500px;
+      height: 200px;
+    }
+
+    #compiled-code {
+      width: 900px;
+      font-size: 10px;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <textarea id="code">
+      var a = "hello" + " world"
+
+      var b = a.slice(0,2)
+
+      window.x = getTrackingAndNormalValue(b)
+  </textarea>
+  <textarea id="compiled-code"></textarea>
+  <br style="clear:both">
+  <button onClick="showResult()">sdfa</button>
+
+  <div class="chart" id="basic-example"></div>
+  <script src="./raphael.js"></script>
+  <script src="./Treant.js"></script>
+
+  <script charset="utf-8" src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.js">
+  </script>
+  <script charset="utf-8" src="dist/bundle.js"></script>
+  <script>
+
+  </script>
+</body>
+
+</html>

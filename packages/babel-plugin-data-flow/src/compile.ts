@@ -1,6 +1,6 @@
 import * as babel from "@babel/core";
 import plugin from "./babelPlugin";
-const prettier = require("prettier");
+import * as prettier from "prettier";
 
 export default function transform(code) {
   return new Promise((resolve, reject) => {

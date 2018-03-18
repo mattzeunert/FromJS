@@ -1,4 +1,4 @@
-(function(functionNames, operationTypes) {
+export default `(function(functionNames, operationTypes) {
   var global = Function("return this")();
   if (global.__didInitializeDataFlowTracking) {
     return;
@@ -165,7 +165,7 @@
       extraTrackingValues,
       resVal: ret
       // place: Error()
-      //   .stack.split("\\n")
+      //   .stack.split("\\\\n")
       //   .slice(2, 3)
     };
 
@@ -184,4 +184,4 @@
     lastOpTrackingResult = null;
     return ret;
   };
-})(__FUNCTION_NAMES__, __OPERATION_TYPES__);
+})(__FUNCTION_NAMES__, __OPERATION_TYPES__);`;
