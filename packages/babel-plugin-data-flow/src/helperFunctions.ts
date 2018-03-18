@@ -14,9 +14,9 @@ export default `(function(functionNames, operationTypes) {
   ) {
     return global[functionNames.doOperation](
       operationTypes.functionReturnValue,
-      [fn, null],
-      [object, null],
-      [objectKey, null],
+      fn,
+      object,
+      objectKey,
       ...args
     );
   };

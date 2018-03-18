@@ -456,7 +456,9 @@ export default function plugin(babel) {
         var fn = t.nullLiteral();
         var object = t.nullLiteral();
         var objectKey = t.nullLiteral();
-        if (path.node.callee.type === "MemberExpression") {
+        var isMemberExpressionCall =
+          path.node.callee.type === "MemberExpression";
+        if (isMemberExpressionCall) {
           object = path.node.callee.object;
           if (path.node.callee.computed) {
             objectKey = path.node.callee.property;
@@ -474,9 +476,18 @@ export default function plugin(babel) {
         });
 
         var call = t.callExpression(ignoredIdentifier(FunctionNames.makeCall), [
-          fn,
-          object,
-          objectKey,
+          t.arrayExpression([
+            fn,
+            isMemberExpressionCall ? t.nullLiteral() : getLastOp
+          ]),
+          t.arrayExpression([
+            object,
+            isMemberExpressionCall ? getLastOp : t.nullLiteral()
+          ]),
+          t.arrayExpression([
+            objectKey,
+            isMemberExpressionCall ? t.nullLiteral() : getLastOp
+          ]),
           t.arrayExpression(args)
         ]);
         // call.loc = path.node.callee.loc;

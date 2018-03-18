@@ -252,4 +252,18 @@ test("Tracks object property assignments with computed properties", done => {
   });
 });
 
+test("Tracks where a function's context came from", done => {
+  instrumentAndRun(`
+    var a = "a"
+    return a.slice(0)
+  `).then(({ normal, tracking, code }) => {
+    // function context is string "a"
+    expect(tracking.argTrackingValues[1].argTrackingValues[0].type).toBe(
+      "stringLiteral"
+    );
+
+    done();
+  });
+});
+
 // test return [a,b]
