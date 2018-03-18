@@ -27,7 +27,7 @@
       border: 1px solid #000;
       width: 200px;
       font-family: Tahoma;
-      font-size: 12px;
+      font-size: 14px;
     }
 
 
@@ -36,11 +36,44 @@
       float: left;
       width: 500px;
       height: 200px;
+      font-size: 14px;
+      font-family: Courier New;
     }
 
     #compiled-code {
       width: 900px;
       font-size: 10px;
+    }
+
+    .chart {
+      font-weight: bold;
+    }
+
+    .value {
+      font-family: Courier New;
+    }
+
+    .value--string {
+      color: #a00;
+    }
+
+    .value--number {
+      color: #00a;
+    }
+
+    .value--other {
+      color: #0a0;
+    }
+
+    .operation {}
+
+    .node {
+      border-color: #999;
+      padding: 3px;
+    }
+
+    path {
+      stroke: #999;
     }
   </style>
 
@@ -53,11 +86,10 @@
 
       var b = a.slice(0,2)
 
-      window.x = getTrackingAndNormalValue(b)
+      inspect(b)
   </textarea>
   <textarea id="compiled-code"></textarea>
   <br style="clear:both">
-  <button onClick="showResult()">sdfa</button>
 
   <div class="chart" id="basic-example"></div>
   <script src="./raphael.js"></script>

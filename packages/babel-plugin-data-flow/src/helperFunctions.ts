@@ -38,6 +38,13 @@ export default `(function(functionNames, operationTypes) {
     };
   };
 
+  global.inspect = function(value) {
+    global.inspectedValue = {
+      normal: value,
+      tracking: argTrackingInfo[0]
+    };
+  };
+
   const objTrackingMap = new Map();
   function trackObjectPropertyAssignment(obj, propName, trackingValue) {
     // console.log("setting to", obj, propName, trackingValue);

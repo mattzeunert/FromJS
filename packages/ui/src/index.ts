@@ -24,14 +24,16 @@ function showResult() {
   var res = window["Babel"].transform(code, {
     plugins: [babelPlugin]
   });
+
   code = res.code;
   compiledCodeTextarea.value = res.code.split("/* HELPER_FUNCTIONS_END */ ")[1];
   eval(code);
-  console.log(window["x"]);
+  console.log(window["inspectedValue"]);
 
   document.querySelector("#basic-example").innerHTML = "";
 
-  var data = window["x"].tracking; //.argTrackingValues[0].argTrackingValues[0];
+  var data =
+    window["inspectedValue"].tracking.argTrackingValues[0].argTrackingValues[0];
   var config = {
     container: "#basic-example",
 
@@ -67,11 +69,20 @@ function showResult() {
       childValues = [];
     }
 
+    childValues = childValues.filter(c => !!c);
     var children = childValues.map(makeNode);
 
     var type;
     if (data) {
       type = data.type;
+      if (type === "binaryExpression") {
+        type =
+          "<span style='color: green;font-weight: bold;'>" +
+          data.argValues[0] +
+          "</span>" +
+          " " +
+          type;
+      }
     } else {
       type = "(" + data + ")";
     }
@@ -79,24 +90,34 @@ function showResult() {
     var resVal;
     if (data) {
       resVal =
-        data.type === "functionArgument"
-          ? data.argValues[0] + ""
-          : data.resVal || "";
+        data.type === "functionArgument" ? data.argValues[0] + "" : data.resVal;
     } else {
       resVal = "todo..";
     }
 
-    var name = type + " -> " + resVal;
     var extra = data
       ? data.type === "functionArgument" ? data.fnToString.slice(0, 20) : "-"
       : "";
-    return {
-      innerHTML: `<div>
-        <b>${name}</b>
-        <div>${extra}</div>
-      </div>`,
 
-      children: children
+    var valueClass = "value--other";
+    if (typeof resVal == "string") {
+      valueClass = "value--string";
+      resVal = `"${resVal}"`;
+    } else if (typeof resVal == "number") {
+      valueClass = "value--number";
+    }
+    return {
+      innerHTML: `<span class="value ${valueClass}">${resVal}</span>`,
+
+      children: [
+        {
+          innerHTML: `<div class="operation">
+            ${type}
+            <!--<div>${extra}</div>-->
+          </div>`,
+          children
+        }
+      ]
     };
   }
 
