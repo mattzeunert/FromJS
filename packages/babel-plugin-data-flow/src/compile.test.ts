@@ -318,7 +318,7 @@ it("Can track `/=` binary expressions", done => {
   `).then(({ normal, tracking, code }) => {
     expect(normal).toBe(5);
     var assignmentExpression = tracking.argTrackingValues[0];
-    expect(assignmentExpression.type).toBe("evaluateAssignment");
+    expect(assignmentExpression.type).toBe(OperationTypes.assignmentExpression);
     expect(assignmentExpression.argValues[0]).toBe("/=");
     expect(assignmentExpression.argTrackingValues[1].argValues[0]).toBe(10);
     expect(assignmentExpression.argTrackingValues[2].argValues[0]).toBe(2);

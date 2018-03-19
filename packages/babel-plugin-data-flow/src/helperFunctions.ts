@@ -112,7 +112,7 @@ export default `(function(functionNames, operationTypes) {
       ret = argValues[0];
     } else if (opName === "returnStatement") {
       ret = argValues[0];
-    } else if (opName === "evaluateAssignment") {
+    } else if (opName === operationTypes.assignmentExpression) {
       const [operator, currentValue, result] = argValues
       ret = result;
     } else if (opName === operationTypes.binaryExpression) {

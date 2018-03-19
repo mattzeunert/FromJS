@@ -69,7 +69,7 @@ function showResult() {
       eval("false") &&
       (data.type === "identifier" ||
         // data.type === "functionReturnValue" ||
-        data.type === "evaluateAssignment")
+        data.type === "assignmentExpression") // tood: don't ignore assignmentexpr, contains info like += operator
     ) {
       // skip it because it's not very interesting
       console.log("skipping", data);

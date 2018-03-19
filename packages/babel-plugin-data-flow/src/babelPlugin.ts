@@ -304,7 +304,7 @@ export default function plugin(babel) {
         var call = t.callExpression(
           ignoredIdentifier(FunctionNames.doOperation),
           [
-            ignoredStringLiteral("evaluateAssignment"),
+            ignoredStringLiteral(OperationTypes.assignmentExpression),
             t.arrayExpression([
               ignoredStringLiteral(path.node.operator),
               t.nullLiteral()
