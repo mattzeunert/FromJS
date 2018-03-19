@@ -68,7 +68,17 @@ export default `(function(functionNames, operationTypes) {
   global[functionNames.doOperation] = function op(opName, ...args) {
     var value, trackingValue;
     var argValues = args.map(arg => arg[0]);
-    var argTrackingValues = args.map(arg => arg[1]);
+    var argTrackingValues = args.map(arg => {
+      if (arg[1] === null) {
+        return {
+          type: "Unknown type",
+          resVal: arg[0],
+          argTrackingValues: [],
+          argValues: []
+        }
+      }
+      return arg[1]
+    });
     var extraTrackingValues = [];
     var ret;
     if (opName === operationTypes.functionReturnValue) {
@@ -103,7 +113,8 @@ export default `(function(functionNames, operationTypes) {
     } else if (opName === "returnStatement") {
       ret = argValues[0];
     } else if (opName === "evaluateAssignment") {
-      ret = argValues[0];
+      const [operator, currentValue, result] = argValues
+      ret = result;
     } else if (opName === operationTypes.binaryExpression) {
       var [operation, left, right] = argValues;
       if (operation === "+") {

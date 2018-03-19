@@ -305,6 +305,11 @@ export default function plugin(babel) {
           ignoredIdentifier(FunctionNames.doOperation),
           [
             ignoredStringLiteral("evaluateAssignment"),
+            t.arrayExpression([
+              ignoredStringLiteral(path.node.operator),
+              t.nullLiteral()
+            ]),
+            t.arrayExpression([path.node.left, getLastOp]),
             t.arrayExpression([path.node, getLastOp])
           ]
         );

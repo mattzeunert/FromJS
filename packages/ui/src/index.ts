@@ -66,6 +66,7 @@ function showResult() {
   function makeNode(data) {
     if (
       data &&
+      eval("false") &&
       (data.type === "identifier" ||
         // data.type === "functionReturnValue" ||
         data.type === "evaluateAssignment")
@@ -79,9 +80,9 @@ function showResult() {
     if (data) {
       childValues = data.argTrackingValues.map((child, i) => {
         console.log(child);
-        if (child === null || child === undefined) {
-          return;
-        }
+        // if (child === null || child === undefined) {
+        //   return;
+        // }
 
         return child;
       });
@@ -89,7 +90,7 @@ function showResult() {
       childValues = [];
     }
 
-    childValues = childValues.filter(c => !!c);
+    // childValues = childValues.filter(c => !!c);
     var children = childValues.map(makeNode);
 
     var type;

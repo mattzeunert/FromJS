@@ -274,7 +274,7 @@ describe("Tracks values across assignments", () => {
     return a
   `).then(({ normal, tracking, code }) => {
       expect(normal).toBe("b");
-      expect(tracking.argTrackingValues[0].argValues[0]).toBe("b");
+      expect(tracking.argTrackingValues[0].argValues[2]).toBe("b");
 
       done();
     });
@@ -288,7 +288,7 @@ describe("Tracks values across assignments", () => {
   `).then(({ normal, tracking, code }) => {
       expect(normal).toBe("b");
       expect(
-        tracking.argTrackingValues[0].argTrackingValues[0].argTrackingValues[0]
+        tracking.argTrackingValues[0].argTrackingValues[2].argTrackingValues[0]
           .argValues[0]
       ).toBe("b");
 
@@ -305,6 +305,23 @@ it("Can track `-` binary expressions", done => {
     expect(normal).toBe(2);
     expect(tracking.argTrackingValues[0].type).toBe("binaryExpression");
     // expect(tracking.argTrackingValues[0].argValues[0]).toBe("b");
+
+    done();
+  });
+});
+
+it("Can track `/=` binary expressions", done => {
+  instrumentAndRun(`
+    var a = 10
+    a /= 2
+    return a
+  `).then(({ normal, tracking, code }) => {
+    expect(normal).toBe(5);
+    var assignmentExpression = tracking.argTrackingValues[0];
+    expect(assignmentExpression.type).toBe("evaluateAssignment");
+    expect(assignmentExpression.argValues[0]).toBe("/=");
+    expect(assignmentExpression.argTrackingValues[1].argValues[0]).toBe(10);
+    expect(assignmentExpression.argTrackingValues[2].argValues[0]).toBe(2);
 
     done();
   });
