@@ -108,8 +108,14 @@ export default `(function(functionNames, operationTypes) {
       var [operation, left, right] = argValues;
       if (operation === "+") {
         ret = left + right;
+      } else if (operation === "-") {
+        ret = left - right
+      } else if (operation === "*") {
+        ret = left * right
+      } else if (operation === "/") {
+        ret = left / right
       } else {
-        throw Error("unknown bine exp operation");
+        throw Error("unknown bin exp operation: " + operation);
       }
     } else if (opName === operationTypes.objectPropertyAssignment) {
       let [obj, propName, value] = argValues;

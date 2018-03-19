@@ -3,6 +3,6 @@
     "module": "commonjs",
     "jsx": "react",
     "noImplicitAny": false,
-    "target": "es2015"
+    "target": "es2017"
   }
 }

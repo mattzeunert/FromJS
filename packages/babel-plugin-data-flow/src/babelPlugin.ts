@@ -217,12 +217,12 @@ export default function plugin(babel) {
         path.replaceWith(call);
       },
       BinaryExpression(path) {
-        if (path.node.operator === "+") {
+        if (["+", "-", "/", "*"].includes(path.node.operator)) {
           var call = t.callExpression(
             ignoredIdentifier(FunctionNames.doOperation),
             [
               ignoredStringLiteral(OperationTypes.binaryExpression),
-              ignoredStringLiteral("+"),
+              ignoredStringLiteral(path.node.operator),
               t.arrayExpression([path.node.left, getLastOp]),
               t.arrayExpression([path.node.right, getLastOp])
             ]

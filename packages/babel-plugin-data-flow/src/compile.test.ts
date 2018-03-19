@@ -297,4 +297,17 @@ describe("Tracks values across assignments", () => {
   });
 });
 
+it("Can track `-` binary expressions", done => {
+  instrumentAndRun(`
+    var a = 10 - 8
+    return a
+  `).then(({ normal, tracking, code }) => {
+    expect(normal).toBe(2);
+    expect(tracking.argTrackingValues[0].type).toBe("binaryExpression");
+    // expect(tracking.argTrackingValues[0].argValues[0]).toBe("b");
+
+    done();
+  });
+});
+
 // test return [a,b]
