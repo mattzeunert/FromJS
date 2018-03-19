@@ -30,7 +30,6 @@ test("Can track concatenation of 'a' and 'b' in an add function", done => {
     }
     return add('a', 'b')
   `).then(({ normal, tracking, code }) => {
-    // console.log(code);
     expect(normal).toBe("ab");
     var t1 = traverse(tracking, 0);
     var t2 = traverse(tracking, 1);

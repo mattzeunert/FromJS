@@ -385,11 +385,6 @@ export default function plugin(babel) {
         if (isInLeftPartOfAssignmentExpression(path)) {
           return;
         }
-        if (isInCallExpressionCallee(path)) {
-          // don't break this up, the mem exp is needed to know what the correct
-          // execution context for the call should be
-          return;
-        }
 
         // todo: dedupe this code
         var property;
@@ -487,26 +482,10 @@ export default function plugin(babel) {
         if (path.node.ignore) {
           return;
         }
-        if (isInWhileStatement(path)) {
-          return;
-        }
 
-        var fn = t.nullLiteral();
-        var object = t.nullLiteral();
-        var objectKey = t.nullLiteral();
-        var isMemberExpressionCall =
-          path.node.callee.type === "MemberExpression";
-        if (isMemberExpressionCall) {
-          object = path.node.callee.object;
-          if (path.node.callee.computed) {
-            objectKey = path.node.callee.property;
-          } else {
-            // identifier
-            objectKey = t.stringLiteral(path.node.callee.property.name);
-          }
-        } else {
-          fn = path.node.callee;
-        }
+        const { callee } = path.node;
+
+        var isMemberExpressionCall = callee.type === "MemberExpression";
 
         var args = [];
         path.node.arguments.forEach(arg => {
@@ -515,25 +494,30 @@ export default function plugin(babel) {
           );
         });
 
+        let executionContext;
+        let executionContextTrackingValue;
+        if (isMemberExpressionCall) {
+          executionContext = ignoredCallExpression(
+            "getLastMemberExpressionObjectValue",
+            []
+          );
+          executionContextTrackingValue = ignoredCallExpression(
+            "getLastMemberExpressionObjectTrackingValue",
+            []
+          );
+        } else {
+          executionContext = t.identifier("undefined");
+          executionContextTrackingValue = t.nullLiteral();
+        }
+
         var call = t.callExpression(ignoredIdentifier(FunctionNames.makeCall), [
           t.arrayExpression([
-            fn,
+            ignoreNode(path.node.callee),
             isMemberExpressionCall
               ? t.nullLiteral()
               : getLastOperationTrackingResultCall
           ]),
-          t.arrayExpression([
-            object,
-            isMemberExpressionCall
-              ? getLastOperationTrackingResultCall
-              : t.nullLiteral()
-          ]),
-          t.arrayExpression([
-            objectKey,
-            isMemberExpressionCall
-              ? t.nullLiteral()
-              : getLastOperationTrackingResultCall
-          ]),
+          t.arrayExpression([executionContext, executionContextTrackingValue]),
           t.arrayExpression(args)
         ]);
         // call.loc = path.node.callee.loc;

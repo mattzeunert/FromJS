@@ -9,14 +9,12 @@ export default `(function(functionNames, operationTypes) {
   global[functionNames.makeCall] = function _makeCall(
     fn,
     object,
-    objectKey,
     args
   ) {
     return global[functionNames.doOperation](
       operationTypes.functionReturnValue,
       fn,
       object,
-      objectKey,
       ...args
     );
   };
@@ -47,7 +45,6 @@ export default `(function(functionNames, operationTypes) {
 
   const objTrackingMap = new Map();
   function trackObjectPropertyAssignment(obj, propName, trackingValue) {
-    // console.log("setting to", obj, propName, trackingValue);
     var objectPropertyTrackingInfo = objTrackingMap.get(obj);
     if (!objectPropertyTrackingInfo) {
       objectPropertyTrackingInfo = {};
@@ -62,6 +59,17 @@ export default `(function(functionNames, operationTypes) {
     }
     return objectPropertyTrackingInfo[propName];
   }
+
+  var lastMemberExpressionObjectValue = null
+  var lastMemberExpressionObjectTrackingValue = null
+  global["getLastMemberExpressionObjectValue"] = function(){
+    return lastMemberExpressionObjectValue
+  }
+
+  global["getLastMemberExpressionObjectTrackingValue"] = function(){
+    return lastMemberExpressionObjectTrackingValue
+  }
+  
 
   var lastOpValueResult = null;
   var lastOpTrackingResult = null;
@@ -82,16 +90,8 @@ export default `(function(functionNames, operationTypes) {
     var extraTrackingValues = [];
     var ret;
     if (opName === operationTypes.functionReturnValue) {
-      var [__, ___, ____, ...fnArgs] = args;
-      var [fn, object, objectKey] = argValues;
-      if (fn) {
-        // not called as part of a member expresison
-        object = this;
-      } else if (typeof object !== "undefined") {
-        fn = object[objectKey];
-      } else {
-        throw Error("Can't find which function to call");
-      }
+      var [__, ___, ...fnArgs] = args;
+      var [fn, object] = argValues;
       argTrackingInfo = fnArgs.map(arg => ({
         type: operationTypes.functionArgument,
         argValues: [ret],
@@ -101,6 +101,7 @@ export default `(function(functionNames, operationTypes) {
       }));
       var fnArgValues = fnArgs.map(arg => arg[0]);
       ret = fn.apply(object, fnArgValues);
+      
       argTrackingInfo = null;
 
       extraTrackingValues.push(
@@ -139,10 +140,14 @@ export default `(function(functionNames, operationTypes) {
       });
     } else if (opName === "memberExpression") {
       var [object, property] = argValues;
+      var [objectT, propertyT] = argTrackingValues
       ret = object[property];
       extraTrackingValues.push(
         getObjectPropertyTrackingValue(object, property)
       );
+
+      lastMemberExpressionObjectValue = object
+      lastMemberExpressionObjectTrackingValue = objectT
     } else if (opName === "numericLiteral") {
       ret = argValues[0];
     } else if (opName === operationTypes.objectExpression) {
@@ -150,7 +155,6 @@ export default `(function(functionNames, operationTypes) {
       var methodProperties = {};
       for (var i = 0; i < args.length; i++) {
         var property = args[i];
-        // console.log(property);
         var propertyV = property.map(x => x[0]);
         var propertyT = property.map(x => x[1]);
         var [propertyType, propertyKey, propertyValue] = propertyV;
@@ -195,6 +199,7 @@ export default `(function(functionNames, operationTypes) {
 
     lastOpValueResult = ret;
     lastOpTrackingResult = trackingValue;
+
     return ret;
   };
 
