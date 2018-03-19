@@ -48,7 +48,7 @@ export default function plugin(babel) {
     return n;
   }
 
-  var getLastOp = ignoredCallExpression(
+  var getLastOperationTrackingResultCall = ignoredCallExpression(
     FunctionNames.getLastOperationTrackingResult,
     []
   );
@@ -223,8 +223,14 @@ export default function plugin(babel) {
             [
               ignoredStringLiteral(OperationTypes.binaryExpression),
               ignoredStringLiteral(path.node.operator),
-              t.arrayExpression([path.node.left, getLastOp]),
-              t.arrayExpression([path.node.right, getLastOp])
+              t.arrayExpression([
+                path.node.left,
+                getLastOperationTrackingResultCall
+              ]),
+              t.arrayExpression([
+                path.node.right,
+                getLastOperationTrackingResultCall
+              ])
             ]
           );
           call.ignore = true;
@@ -278,7 +284,10 @@ export default function plugin(babel) {
           let call = createOperation(OperationTypes.objectPropertyAssignment, [
             t.arrayExpression([path.node.left.object, t.nullLiteral()]),
             t.arrayExpression([property, t.nullLiteral()]),
-            t.arrayExpression([path.node.right, getLastOp])
+            t.arrayExpression([
+              path.node.right,
+              getLastOperationTrackingResultCall
+            ])
           ]);
 
           call.loc = path.node.loc;
@@ -295,7 +304,7 @@ export default function plugin(babel) {
             t.assignmentExpression(
               "=",
               ignoredIdentifier(path.node.left.name + "_t"),
-              getLastOp
+              getLastOperationTrackingResultCall
             )
           )
         );
@@ -309,8 +318,11 @@ export default function plugin(babel) {
               ignoredStringLiteral(path.node.operator),
               t.nullLiteral()
             ]),
-            t.arrayExpression([path.node.left, getLastOp]),
-            t.arrayExpression([path.node, getLastOp])
+            t.arrayExpression([
+              path.node.left,
+              getLastOperationTrackingResultCall
+            ]),
+            t.arrayExpression([path.node, getLastOperationTrackingResultCall])
           ]
         );
         call.ignore = true;
@@ -356,7 +368,10 @@ export default function plugin(babel) {
               var propArray = t.arrayExpression([
                 t.arrayExpression([type]),
                 t.arrayExpression([prop.key]),
-                t.arrayExpression([prop.value, getLastOp])
+                t.arrayExpression([
+                  prop.value,
+                  getLastOperationTrackingResultCall
+                ])
               ]);
               return propArray;
             }
@@ -396,8 +411,11 @@ export default function plugin(babel) {
         }
         path.replaceWith(
           createOperation(OperationTypes.memberExpression, [
-            t.arrayExpression([path.node.object, getLastOp]),
-            t.arrayExpression([property, getLastOp])
+            t.arrayExpression([
+              path.node.object,
+              getLastOperationTrackingResultCall
+            ]),
+            t.arrayExpression([property, getLastOperationTrackingResultCall])
           ])
         );
       },
@@ -409,7 +427,10 @@ export default function plugin(babel) {
 
         var opCall = ignoredCallExpression(FunctionNames.doOperation, [
           ignoredStringLiteral(OperationTypes.returnStatement),
-          t.arrayExpression([path.node.argument, getLastOp])
+          t.arrayExpression([
+            path.node.argument,
+            getLastOperationTrackingResultCall
+          ])
         ]);
 
         path.node.argument = opCall;
@@ -489,21 +510,29 @@ export default function plugin(babel) {
 
         var args = [];
         path.node.arguments.forEach(arg => {
-          args.push(t.arrayExpression([arg, getLastOp]));
+          args.push(
+            t.arrayExpression([arg, getLastOperationTrackingResultCall])
+          );
         });
 
         var call = t.callExpression(ignoredIdentifier(FunctionNames.makeCall), [
           t.arrayExpression([
             fn,
-            isMemberExpressionCall ? t.nullLiteral() : getLastOp
+            isMemberExpressionCall
+              ? t.nullLiteral()
+              : getLastOperationTrackingResultCall
           ]),
           t.arrayExpression([
             object,
-            isMemberExpressionCall ? getLastOp : t.nullLiteral()
+            isMemberExpressionCall
+              ? getLastOperationTrackingResultCall
+              : t.nullLiteral()
           ]),
           t.arrayExpression([
             objectKey,
-            isMemberExpressionCall ? t.nullLiteral() : getLastOp
+            isMemberExpressionCall
+              ? t.nullLiteral()
+              : getLastOperationTrackingResultCall
           ]),
           t.arrayExpression(args)
         ]);
