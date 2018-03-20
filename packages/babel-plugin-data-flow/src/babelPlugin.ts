@@ -514,7 +514,7 @@ export default function plugin(babel) {
           t.arrayExpression([
             ignoreNode(path.node.callee),
             isMemberExpressionCall
-              ? t.nullLiteral()
+              ? getLastOperationTrackingResultCall
               : getLastOperationTrackingResultCall
           ]),
           t.arrayExpression([executionContext, executionContextTrackingValue]),
