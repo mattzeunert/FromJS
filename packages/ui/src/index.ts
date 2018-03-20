@@ -74,6 +74,16 @@ function showResult() {
     return false;
   }
 
+  function truncate(str, maxLength) {
+    if (!str || !str.slice) {
+      return str;
+    }
+    if (str.length <= maxLength) {
+      return str;
+    }
+    return str.slice(0, maxLength - 1) + "...";
+  }
+
   function makeNode(data) {
     if (
       data &&
@@ -144,6 +154,9 @@ function showResult() {
     } else if (typeof resVal == "number") {
       valueClass = "value--number";
     }
+
+    resVal = truncate(resVal + "", 20);
+
     return {
       innerHTML: `<span class="value ${valueClass}">${resVal}</span>`,
 

@@ -48,6 +48,10 @@ export default function plugin(babel) {
     return n;
   }
 
+  function ignoredArrayExpression(items) {
+    return ignoreNode(t.arrayExpression(items));
+  }
+
   var getLastOperationTrackingResultCall = ignoredCallExpression(
     FunctionNames.getLastOperationTrackingResult,
     []
@@ -191,7 +195,7 @@ export default function plugin(babel) {
           ignoredIdentifier(FunctionNames.doOperation),
           [
             ignoredStringLiteral("stringLiteral"),
-            t.arrayExpression([path.node, t.nullLiteral()])
+            ignoredArrayExpression([path.node, t.nullLiteral()])
           ]
         );
         call.ignore = true;
@@ -210,7 +214,7 @@ export default function plugin(babel) {
           ignoredIdentifier(FunctionNames.doOperation),
           [
             ignoredStringLiteral("numericLiteral"),
-            t.arrayExpression([path.node, t.nullLiteral()])
+            ignoredArrayExpression([path.node, t.nullLiteral()])
           ]
         );
         call.ignore = true;
@@ -223,11 +227,11 @@ export default function plugin(babel) {
             [
               ignoredStringLiteral(OperationTypes.binaryExpression),
               ignoredStringLiteral(path.node.operator),
-              t.arrayExpression([
+              ignoredArrayExpression([
                 path.node.left,
                 getLastOperationTrackingResultCall
               ]),
-              t.arrayExpression([
+              ignoredArrayExpression([
                 path.node.right,
                 getLastOperationTrackingResultCall
               ])
@@ -282,9 +286,9 @@ export default function plugin(babel) {
             property.loc = path.node.left.property.loc;
           }
           let call = createOperation(OperationTypes.objectPropertyAssignment, [
-            t.arrayExpression([path.node.left.object, t.nullLiteral()]),
-            t.arrayExpression([property, t.nullLiteral()]),
-            t.arrayExpression([
+            ignoredArrayExpression([path.node.left.object, t.nullLiteral()]),
+            ignoredArrayExpression([property, t.nullLiteral()]),
+            ignoredArrayExpression([
               path.node.right,
               getLastOperationTrackingResultCall
             ])
@@ -314,15 +318,18 @@ export default function plugin(babel) {
           ignoredIdentifier(FunctionNames.doOperation),
           [
             ignoredStringLiteral(OperationTypes.assignmentExpression),
-            t.arrayExpression([
+            ignoredArrayExpression([
               ignoredStringLiteral(path.node.operator),
               t.nullLiteral()
             ]),
-            t.arrayExpression([
+            ignoredArrayExpression([
               path.node.left,
               getLastOperationTrackingResultCall
             ]),
-            t.arrayExpression([path.node, getLastOperationTrackingResultCall])
+            ignoredArrayExpression([
+              path.node,
+              getLastOperationTrackingResultCall
+            ])
           ]
         );
         call.ignore = true;
@@ -355,20 +362,20 @@ export default function plugin(babel) {
               // getter/setter
               var kind = ignoredStringLiteral(prop.kind);
               kind.ignore = true;
-              var propArray = t.arrayExpression([
-                t.arrayExpression([type]),
-                t.arrayExpression([prop.key]),
-                t.arrayExpression(kind),
-                t.arrayExpression([
+              var propArray = ignoredArrayExpression([
+                ignoredArrayExpression([type]),
+                ignoredArrayExpression([prop.key]),
+                ignoredArrayExpression(kind),
+                ignoredArrayExpression([
                   babel.types.functionExpression(null, prop.params, prop.body)
                 ])
               ]);
               return propArray;
             } else {
-              var propArray = t.arrayExpression([
-                t.arrayExpression([type]),
-                t.arrayExpression([prop.key]),
-                t.arrayExpression([
+              var propArray = ignoredArrayExpression([
+                ignoredArrayExpression([type]),
+                ignoredArrayExpression([prop.key]),
+                ignoredArrayExpression([
                   prop.value,
                   getLastOperationTrackingResultCall
                 ])
@@ -398,11 +405,14 @@ export default function plugin(babel) {
         }
         path.replaceWith(
           createOperation(OperationTypes.memberExpression, [
-            t.arrayExpression([
+            ignoredArrayExpression([
               path.node.object,
               getLastOperationTrackingResultCall
             ]),
-            t.arrayExpression([property, getLastOperationTrackingResultCall])
+            ignoredArrayExpression([
+              property,
+              getLastOperationTrackingResultCall
+            ])
           ])
         );
       },
@@ -414,7 +424,7 @@ export default function plugin(babel) {
 
         var opCall = ignoredCallExpression(FunctionNames.doOperation, [
           ignoredStringLiteral(OperationTypes.returnStatement),
-          t.arrayExpression([
+          ignoredArrayExpression([
             path.node.argument,
             getLastOperationTrackingResultCall
           ])
@@ -456,7 +466,7 @@ export default function plugin(babel) {
 
         var call = ignoredCallExpression(FunctionNames.doOperation, [
           ignoredStringLiteral("identifier"),
-          t.arrayExpression([
+          ignoredArrayExpression([
             path.node,
             trackingIdentifierIfExists(path.node.name)
           ])
@@ -482,7 +492,7 @@ export default function plugin(babel) {
         var args = [];
         path.node.arguments.forEach(arg => {
           args.push(
-            t.arrayExpression([arg, getLastOperationTrackingResultCall])
+            ignoredArrayExpression([arg, getLastOperationTrackingResultCall])
           );
         });
 
@@ -503,14 +513,17 @@ export default function plugin(babel) {
         }
 
         var call = t.callExpression(ignoredIdentifier(FunctionNames.makeCall), [
-          t.arrayExpression([
+          ignoredArrayExpression([
             ignoreNode(path.node.callee),
             isMemberExpressionCall
               ? getLastOperationTrackingResultCall
               : getLastOperationTrackingResultCall
           ]),
-          t.arrayExpression([executionContext, executionContextTrackingValue]),
-          t.arrayExpression(args)
+          ignoredArrayExpression([
+            executionContext,
+            executionContextTrackingValue
+          ]),
+          ignoredArrayExpression(args)
         ]);
         // call.loc = path.node.callee.loc;
         call.ignore = true;
