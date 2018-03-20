@@ -63,6 +63,17 @@ function showResult() {
 
   var nodeStructure;
 
+  function isDataRootOrigin(data) {
+    if (!data) {
+      return false;
+    }
+    if (["stringLiteral", "numericLiteral"].includes(data.type)) {
+      return true;
+    }
+
+    return false;
+  }
+
   function makeNode(data) {
     if (
       data &&
@@ -91,7 +102,13 @@ function showResult() {
     }
 
     // childValues = childValues.filter(c => !!c);
-    var children = childValues.map(makeNode);
+    var children = [];
+    if (!isDataRootOrigin(data)) {
+      children = childValues.map(makeNode);
+      if (data && data.type === "binaryExpression") {
+        children = children.slice(1);
+      }
+    }
 
     var type;
     if (data) {
