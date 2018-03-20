@@ -388,20 +388,12 @@ export default function plugin(babel) {
 
         // todo: dedupe this code
         var property;
-        if (path.node.property.computed === true) {
+        if (path.node.computed === true) {
           property = path.node.property;
         } else {
-          // console.log("nn", path.node.property.name, path.node.property);
           if (path.node.property.type === "Identifier") {
             property = babel.types.stringLiteral(path.node.property.name);
             property.loc = path.node.property.loc;
-          } else if (path.node.property.type === "NumericLiteral") {
-            property = babel.types.stringLiteral(
-              path.node.property.value.toString()
-            );
-            property.loc = path.node.property.loc;
-          } else {
-            throw "asdfsdfsd";
           }
         }
         path.replaceWith(
