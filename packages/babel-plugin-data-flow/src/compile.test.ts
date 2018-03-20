@@ -327,4 +327,17 @@ it("Can track `/=` binary expressions", done => {
   });
 });
 
+it("Trakcs array expressions", done => {
+  instrumentAndRun(`
+    var a = [1,2,3]
+    return a
+  `).then(({ normal, tracking, code }) => {
+    expect(normal).toEqual([1, 2, 3]);
+    var arrayExpression = tracking.argTrackingValues[0];
+    expect(arrayExpression.argTrackingValues[0].type).toBe("numericLiteral");
+
+    done();
+  });
+});
+
 // test return [a,b]

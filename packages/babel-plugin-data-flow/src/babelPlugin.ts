@@ -201,6 +201,22 @@ export default function plugin(babel) {
         call.ignore = true;
         path.replaceWith(call);
       },
+      ArrayExpression(path) {
+        if (path.node.ignore) {
+          return;
+        }
+
+        path.replaceWith(
+          createOperation(OperationTypes.arrayExpression, [
+            ignoredArrayExpression(
+              path.node.elements.map(el =>
+                ignoredArrayExpression([el, getLastOperationTrackingResultCall])
+              )
+            ),
+            getLastOperationTrackingResultCall
+          ])
+        );
+      },
       NumericLiteral(path) {
         if (path.parent.type === "ObjectProperty") {
           return;

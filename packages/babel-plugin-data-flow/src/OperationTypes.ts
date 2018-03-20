@@ -9,3 +9,4 @@ export const objectExpression = "objectExpression";
 export const functionArgument = "functionArgument";
 export const functionReturnValue = "functionReturnValue";
 export const assignmentExpression = "assignmentExpression";
+export const arrayExpression = "arrayExpression";

@@ -75,6 +75,9 @@ export default `(function(functionNames, operationTypes) {
   var lastOpTrackingResult = null;
   global[functionNames.doOperation] = function op(opName, ...args) {
     var value, trackingValue;
+    if (opName === operationTypes.arrayExpression) {
+      args = args[0]
+    }
     var argValues = args.map(arg => arg[0]);
     var argTrackingValues = args.map(arg => {
       if (arg[1] === null) {
@@ -100,7 +103,10 @@ export default `(function(functionNames, operationTypes) {
         resVal: [arg[0]]
       }));
       var fnArgValues = fnArgs.map(arg => arg[0]);
-      ret = fn.apply(object, fnArgValues);
+      try {
+        ret = fn.apply(object, fnArgValues);
+      } catch (err) {debugger}
+      
       
       argTrackingInfo = null;
 
@@ -113,6 +119,8 @@ export default `(function(functionNames, operationTypes) {
       ret = argValues[0];
     } else if (opName === "returnStatement") {
       ret = argValues[0];
+    } else if (opName === operationTypes.arrayExpression) {
+      ret = argValues
     } else if (opName === operationTypes.assignmentExpression) {
       const [operator, currentValue, result] = argValues
       ret = result;
