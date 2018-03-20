@@ -188,6 +188,18 @@ export default `(function(functionNames, operationTypes) {
         }
       }
       Object.defineProperties(obj, methodProperties);
+
+      lastOpTrackingResult = {
+        type: opName,
+        argValues: [],
+        argTrackingValues: [],
+        extraTrackingValues: [],
+        resVal: obj
+        // place: Error()
+        //   .stack.split("\\\\n")
+        //   .slice(2, 3)
+      };
+
       return obj;
     } else {
       console.log("unhandled op", opName, args);

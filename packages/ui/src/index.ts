@@ -1,4 +1,5 @@
 import babelPlugin from "../../babel-plugin-data-flow";
+
 // import Babel from "@babel/standalone";
 // document.write("hi");
 
@@ -38,7 +39,7 @@ function showResult() {
   });
 
   code = res.code;
-  compiledCodeTextarea.value = res.code.split("/* HELPER_FUNCTIONS_END */ ")[1];
+  compiledCodeTextarea.value = code.split("/* HELPER_FUNCTIONS_END */ ")[1];
   eval(code);
   console.log(window["inspectedValue"]);
 
