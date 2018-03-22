@@ -103,9 +103,9 @@ export default `(function(functionNames, operationTypes) {
         resVal: [arg[0]]
       }));
       var fnArgValues = fnArgs.map(arg => arg[0]);
-      try {
-        ret = fn.apply(object, fnArgValues);
-      } catch (err) {debugger}
+      
+      ret = fn.apply(object, fnArgValues);
+      
       
       
       argTrackingInfo = null;
