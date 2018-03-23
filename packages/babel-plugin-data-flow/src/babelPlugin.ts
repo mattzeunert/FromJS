@@ -169,483 +169,420 @@ export default function plugin(babel) {
     );
   }
 
-  return {
-    name: "babel-plugin-data-flow",
-    visitor: {
-      Program: {
-        // Run on exit so injected code isn't processed by other babel plugins
-        exit: function(path) {
-          var initCodeAstNodes = babylon
-            .parse(helperCode)
-            .program.body.reverse();
-          initCodeAstNodes.forEach(node => {
-            path.node.body.unshift(node);
-          });
-        }
-      },
-      FunctionDeclaration(path) {
-        path.node.params.forEach((param, i) => {
-          var d = t.variableDeclaration("var", [
-            t.variableDeclarator(
-              ignoredIdentifier(param.name + "_t"),
-              ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [
-                ignoredNumericLiteral(i)
-              ])
-            )
-          ]);
-          d.ignore = true;
-          path.node.body.body.unshift(d);
+  const visitors = {
+    Program: {
+      // Run on exit so injected code isn't processed by other babel plugins
+      exit: function(path) {
+        var initCodeAstNodes = babylon.parse(helperCode).program.body.reverse();
+        initCodeAstNodes.forEach(node => {
+          path.node.body.unshift(node);
         });
-      },
-      StringLiteral(path) {
-        if (path.parent.type === "ObjectProperty") {
-          return;
-        }
-        if (path.node.ignore) {
-          return;
-        }
-        path.node.ignore = true;
-        const locId = t.stringLiteral(path.node.start + "-" + path.node.end);
-        locId.ignore = true;
-        var call = t.callExpression(
-          ignoredIdentifier(FunctionNames.doOperation),
-          [
-            ignoredStringLiteral("stringLiteral"),
-            ignoredArrayExpression([path.node, t.nullLiteral()])
-          ]
-        );
-        call.ignore = true;
-        path.replaceWith(call);
-      },
-      ArrayExpression(path) {
-        if (path.node.ignore) {
-          return;
-        }
-
-        path.replaceWith(
-          createOperation(OperationTypes.arrayExpression, [
-            ignoredArrayExpression(
-              path.node.elements.map(el =>
-                ignoredArrayExpression([el, getLastOperationTrackingResultCall])
-              )
-            ),
-            getLastOperationTrackingResultCall
-          ])
-        );
-      },
-      NumericLiteral(path) {
-        if (path.parent.type === "ObjectProperty") {
-          return;
-        }
-        if (path.node.ignore) {
-          return;
-        }
-        path.node.ignore = true;
-
-        var call = t.callExpression(
-          ignoredIdentifier(FunctionNames.doOperation),
-          [
-            ignoredStringLiteral("numericLiteral"),
-            ignoredArrayExpression([path.node, t.nullLiteral()])
-          ]
-        );
-        call.ignore = true;
-        path.replaceWith(call);
-      },
-      BinaryExpression(path) {
-        if (["+", "-", "/", "*"].includes(path.node.operator)) {
-          var call = t.callExpression(
-            ignoredIdentifier(FunctionNames.doOperation),
-            [
-              ignoredStringLiteral(OperationTypes.binaryExpression),
-              ignoredStringLiteral(path.node.operator),
-              ignoredArrayExpression([
-                path.node.left,
-                getLastOperationTrackingResultCall
-              ]),
-              ignoredArrayExpression([
-                path.node.right,
-                getLastOperationTrackingResultCall
-              ])
-            ]
-          );
-          call.ignore = true;
-          path.replaceWith(call);
-        }
-      },
-      VariableDeclaration(path) {
-        if (path.node.ignore) {
-          return;
-        }
-        if (path.parent.type === "ForInStatement") {
-          return;
-        }
-        var originalDeclarations = path.node.declarations;
-        var newDeclarations = [];
-        originalDeclarations.forEach(function(decl) {
-          newDeclarations.push(decl);
-          if (!decl.init) {
-            decl.init = ignoredIdentifier("undefined");
-          }
-
-          newDeclarations.push(
-            t.variableDeclarator(
-              ignoredIdentifier(decl.id.name + "_t"),
-              ignoredCallExpression(
-                FunctionNames.getLastOperationTrackingResult,
-                []
-              )
-            )
-          );
-        });
-        path.node.declarations = newDeclarations;
-      },
-      AssignmentExpression(path) {
-        if (path.node.ignore) {
-          return;
-        }
-        path.node.ignore = true;
-
-        let operationArguments = [
-          ignoredArrayExpression([
-            ignoredStringLiteral(path.node.operator),
-            t.nullLiteral()
-          ]),
-          ignoredArrayExpression([
-            ignoredStringLiteral(path.node.left.type),
-            t.nullLiteral()
-          ])
-        ];
-
-        let trackingAssignment = null;
-
-        if (path.node.left.type === "MemberExpression") {
-          var property;
-          if (path.node.left.computed === true) {
-            property = path.node.left.property;
-          } else {
-            property = babel.types.stringLiteral(path.node.left.property.name);
-            property.loc = path.node.left.property.loc;
-          }
-
-          operationArguments = operationArguments.concat([
-            ignoredArrayExpression([path.node.left.object, t.nullLiteral()]),
-            ignoredArrayExpression([property, t.nullLiteral()]),
-            ignoredArrayExpression([
-              path.node.right,
-              getLastOperationTrackingResultCall
+      }
+    },
+    FunctionDeclaration(path) {
+      path.node.params.forEach((param, i) => {
+        var d = t.variableDeclaration("var", [
+          t.variableDeclarator(
+            ignoredIdentifier(param.name + "_t"),
+            ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [
+              ignoredNumericLiteral(i)
             ])
-          ]);
-        } else if (path.node.left.type === "Identifier") {
-          var right = createSetMemoValue(
-            "lastAssignmentExpressionArgument",
-            path.node.right,
-            getLastOperationTrackingResultCall
-          );
-          path.node.right = right;
+          )
+        ]);
+        d.ignore = true;
+        path.node.body.body.unshift(d);
+      });
+    },
 
-          trackingAssignment = runIfIdentifierExists(
-            path.node.left.name + "_t",
-            ignoreNode(
-              t.assignmentExpression(
-                "=",
-                ignoredIdentifier(path.node.left.name + "_t"),
-                getLastOperationTrackingResultCall
-              )
+    ArrayExpression(path) {
+      if (path.node.ignore) {
+        return;
+      }
+
+      path.replaceWith(
+        createOperation(OperationTypes.arrayExpression, [
+          ignoredArrayExpression(
+            path.node.elements.map(el =>
+              ignoredArrayExpression([el, getLastOperationTrackingResultCall])
             )
-          );
-          trackingAssignment.ignore = true;
-
-          path.node.left.ignore = true;
-          path.node.ignore = true;
-          operationArguments = operationArguments.concat([
+          ),
+          getLastOperationTrackingResultCall
+        ])
+      );
+    },
+    BinaryExpression(path) {
+      if (["+", "-", "/", "*"].includes(path.node.operator)) {
+        var call = t.callExpression(
+          ignoredIdentifier(FunctionNames.doOperation),
+          [
+            ignoredStringLiteral(OperationTypes.binaryExpression),
+            ignoredStringLiteral(path.node.operator),
             ignoredArrayExpression([
               path.node.left,
               getLastOperationTrackingResultCall
             ]),
             ignoredArrayExpression([
-              path.node,
+              path.node.right,
               getLastOperationTrackingResultCall
-            ]),
-            ignoredArrayExpression([
-              createGetMemoValue("lastAssignmentExpressionArgument"),
-              createGetMemoTrackingValue("lastAssignmentExpressionArgument")
             ])
-
-            // ignoredArrayExpression([path.node.left.object, t.nullLiteral()]),
-            // ignoredArrayExpression([property, t.nullLiteral()]),
-            // ignoredArrayExpression([
-            //   path.node.right,
-            //   getLastOperationTrackingResultCall
-            // ]),
-            // ignoredArrayExpression([
-            //   path.node.left,
-            //   getLastOperationTrackingResultCall
-            // ])
-
-            // ignoredArrayExpression([
-            //       ignoredStringLiteral(path.node.operator),
-            //       t.nullLiteral()
-            //     ]),
-            //
-            //     ignoredArrayExpression([
-            //       path.node,
-            //       getLastOperationTrackingResultCall
-            //     ])
-          ]);
-        } else {
-          throw Error("unhandled assignmentexpression node.left type");
-        }
-
-        const operation = createOperation(
-          "assignmentExpression",
-          operationArguments
+          ]
         );
-
-        if (trackingAssignment) {
-          path.replaceWith(
-            t.sequenceExpression([
-              operation,
-              trackingAssignment,
-              getLastOpValue
-            ])
-          );
-        } else {
-          path.replaceWith(operation);
-        }
-
-        // if (path.node.left.type === "MemberExpression") {
-        //   let call = createOperation(
-        //     OperationTypes.objectPropertyAssignment,
-        //     []
-        //   );
-
-        //   call.loc = path.node.loc;
-        //   path.replaceWith(call);
-        //   return;
-        // }
-
-        // if (!path.node.left.name) {
-        //   return;
-        // }
-
-        // var call = t.callExpression(
-        //   ignoredIdentifier(FunctionNames.doOperation),
-        //   [
-        //     ignoredStringLiteral(OperationTypes.assignmentExpression),
-        //     ignoredArrayExpression([
-        //       ignoredStringLiteral(path.node.operator),
-        //       t.nullLiteral()
-        //     ]),
-        //     ignoredArrayExpression([
-        //       path.node.left,
-        //       getLastOperationTrackingResultCall
-        //     ]),
-        //     ignoredArrayExpression([
-        //       path.node,
-        //       getLastOperationTrackingResultCall
-        //     ])
-        //   ]
-        // );
-        // call.ignore = true;
-
-        // path.replaceWith(
-        //   t.sequenceExpression([call, trackingAssignment, getLastOpValue])
-        // );
-      },
-      ObjectExpression(path) {
-        path.node.properties.forEach(function(prop) {
-          if (prop.key.type === "Identifier") {
-            var keyLoc = prop.key.loc;
-            prop.key = babel.types.stringLiteral(prop.key.name);
-            prop.key.loc = keyLoc;
-            // move start a bit to left to compensate for there not
-            // being quotes in the original "string", since
-            // it's just an identifier
-            if (prop.key.loc.start.column > 0) {
-              prop.key.loc.start.column--;
-            }
-          }
-        });
-
-        var call = createOperation(
-          OperationTypes.objectExpression,
-          path.node.properties.map(function(prop) {
-            var type = t.stringLiteral(prop.type);
-            type.ignore = true;
-            if (prop.type === "ObjectMethod") {
-              // getter/setter
-              var kind = ignoredStringLiteral(prop.kind);
-              kind.ignore = true;
-              var propArray = ignoredArrayExpression([
-                ignoredArrayExpression([type]),
-                ignoredArrayExpression([prop.key]),
-                ignoredArrayExpression(kind),
-                ignoredArrayExpression([
-                  babel.types.functionExpression(null, prop.params, prop.body)
-                ])
-              ]);
-              return propArray;
-            } else {
-              var propArray = ignoredArrayExpression([
-                ignoredArrayExpression([type]),
-                ignoredArrayExpression([prop.key]),
-                ignoredArrayExpression([
-                  prop.value,
-                  getLastOperationTrackingResultCall
-                ])
-              ]);
-              return propArray;
-            }
-            // console.log("continue with type", prop.type);
-          })
-        );
-
+        call.ignore = true;
         path.replaceWith(call);
-      },
-      MemberExpression(path) {
-        if (isInLeftPartOfAssignmentExpression(path)) {
-          return;
+      }
+    },
+    VariableDeclaration(path) {
+      if (path.node.ignore) {
+        return;
+      }
+      if (path.parent.type === "ForInStatement") {
+        return;
+      }
+      var originalDeclarations = path.node.declarations;
+      var newDeclarations = [];
+      originalDeclarations.forEach(function(decl) {
+        newDeclarations.push(decl);
+        if (!decl.init) {
+          decl.init = ignoredIdentifier("undefined");
         }
 
-        // todo: dedupe this code
-        var property;
-        if (path.node.computed === true) {
-          property = path.node.property;
-        } else {
-          if (path.node.property.type === "Identifier") {
-            property = babel.types.stringLiteral(path.node.property.name);
-            property.loc = path.node.property.loc;
-          }
-        }
-        path.replaceWith(
-          createOperation(OperationTypes.memberExpression, [
-            ignoredArrayExpression([
-              path.node.object,
-              getLastOperationTrackingResultCall
-            ]),
-            ignoredArrayExpression([
-              property,
-              getLastOperationTrackingResultCall
-            ])
-          ])
+        newDeclarations.push(
+          t.variableDeclarator(
+            ignoredIdentifier(decl.id.name + "_t"),
+            ignoredCallExpression(
+              FunctionNames.getLastOperationTrackingResult,
+              []
+            )
+          )
         );
-      },
-      ReturnStatement(path) {
-        if (path.ignore) {
-          return;
-        }
-        path.node.ignore = true;
+      });
+      path.node.declarations = newDeclarations;
+    },
+    AssignmentExpression(path) {
+      if (path.node.ignore) {
+        return;
+      }
+      path.node.ignore = true;
 
-        var opCall = ignoredCallExpression(FunctionNames.doOperation, [
-          ignoredStringLiteral(OperationTypes.returnStatement),
+      let operationArguments = [
+        ignoredArrayExpression([
+          ignoredStringLiteral(path.node.operator),
+          t.nullLiteral()
+        ]),
+        ignoredArrayExpression([
+          ignoredStringLiteral(path.node.left.type),
+          t.nullLiteral()
+        ])
+      ];
+
+      let trackingAssignment = null;
+
+      if (path.node.left.type === "MemberExpression") {
+        var property;
+        if (path.node.left.computed === true) {
+          property = path.node.left.property;
+        } else {
+          property = babel.types.stringLiteral(path.node.left.property.name);
+          property.loc = path.node.left.property.loc;
+        }
+
+        operationArguments = operationArguments.concat([
+          ignoredArrayExpression([path.node.left.object, t.nullLiteral()]),
+          ignoredArrayExpression([property, t.nullLiteral()]),
           ignoredArrayExpression([
-            path.node.argument,
+            path.node.right,
             getLastOperationTrackingResultCall
           ])
         ]);
+      } else if (path.node.left.type === "Identifier") {
+        var right = createSetMemoValue(
+          "lastAssignmentExpressionArgument",
+          path.node.right,
+          getLastOperationTrackingResultCall
+        );
+        path.node.right = right;
 
-        path.node.argument = opCall;
-      },
-      Identifier(path) {
-        if (path.node.ignore) {
-          return;
-        }
-        if (
-          path.parent.type === "FunctionDeclaration" ||
-          path.parent.type === "CallExpression" ||
-          path.parent.type === "MemberExpression" ||
-          path.parent.type === "ObjectProperty" ||
-          path.parent.type === "CatchClause" ||
-          path.parent.type === "ForInStatement" ||
-          path.parent.type === "IfStatement" ||
-          path.parent.type === "ForStatement" ||
-          path.parent.type === "FunctionExpression" ||
-          path.parent.type === "UpdateExpression" ||
-          (path.parent.type === "UnaryExpression" &&
-            path.parent.operator === "typeof")
-        ) {
-          return;
-        }
-        if (
-          isInLeftPartOfAssignmentExpression(path) ||
-          isInIdOfVariableDeclarator(path)
-        ) {
-          return;
-        }
-        if (path.node.name === "globalFn") {
-          return;
-        }
+        trackingAssignment = runIfIdentifierExists(
+          path.node.left.name + "_t",
+          ignoreNode(
+            t.assignmentExpression(
+              "=",
+              ignoredIdentifier(path.node.left.name + "_t"),
+              getLastOperationTrackingResultCall
+            )
+          )
+        );
+        trackingAssignment.ignore = true;
 
+        path.node.left.ignore = true;
         path.node.ignore = true;
-
-        var call = ignoredCallExpression(FunctionNames.doOperation, [
-          ignoredStringLiteral("identifier"),
+        operationArguments = operationArguments.concat([
+          ignoredArrayExpression([
+            path.node.left,
+            getLastOperationTrackingResultCall
+          ]),
           ignoredArrayExpression([
             path.node,
-            trackingIdentifierIfExists(path.node.name)
+            getLastOperationTrackingResultCall
+          ]),
+          ignoredArrayExpression([
+            createGetMemoValue("lastAssignmentExpressionArgument"),
+            createGetMemoTrackingValue("lastAssignmentExpressionArgument")
           ])
         ]);
+      } else {
+        throw Error("unhandled assignmentexpression node.left type");
+      }
 
-        try {
-          path.replaceWith(call);
-        } catch (err) {
-          console.log(err);
-          console.log(path.parent.type);
-          throw Error("end");
+      const operation = createOperation(
+        "assignmentExpression",
+        operationArguments
+      );
+
+      if (trackingAssignment) {
+        path.replaceWith(
+          t.sequenceExpression([operation, trackingAssignment, getLastOpValue])
+        );
+      } else {
+        path.replaceWith(operation);
+      }
+    },
+    ObjectExpression(path) {
+      path.node.properties.forEach(function(prop) {
+        if (prop.key.type === "Identifier") {
+          var keyLoc = prop.key.loc;
+          prop.key = babel.types.stringLiteral(prop.key.name);
+          prop.key.loc = keyLoc;
+          // move start a bit to left to compensate for there not
+          // being quotes in the original "string", since
+          // it's just an identifier
+          if (prop.key.loc.start.column > 0) {
+            prop.key.loc.start.column--;
+          }
         }
-      },
-      CallExpression(path) {
-        if (path.node.ignore) {
-          return;
+      });
+
+      var call = createOperation(
+        OperationTypes.objectExpression,
+        path.node.properties.map(function(prop) {
+          var type = t.stringLiteral(prop.type);
+          type.ignore = true;
+          if (prop.type === "ObjectMethod") {
+            // getter/setter
+            var kind = ignoredStringLiteral(prop.kind);
+            kind.ignore = true;
+            var propArray = ignoredArrayExpression([
+              ignoredArrayExpression([type]),
+              ignoredArrayExpression([prop.key]),
+              ignoredArrayExpression(kind),
+              ignoredArrayExpression([
+                babel.types.functionExpression(null, prop.params, prop.body)
+              ])
+            ]);
+            return propArray;
+          } else {
+            var propArray = ignoredArrayExpression([
+              ignoredArrayExpression([type]),
+              ignoredArrayExpression([prop.key]),
+              ignoredArrayExpression([
+                prop.value,
+                getLastOperationTrackingResultCall
+              ])
+            ]);
+            return propArray;
+          }
+          // console.log("continue with type", prop.type);
+        })
+      );
+
+      path.replaceWith(call);
+    },
+    MemberExpression(path) {
+      if (isInLeftPartOfAssignmentExpression(path)) {
+        return;
+      }
+
+      // todo: dedupe this code
+      var property;
+      if (path.node.computed === true) {
+        property = path.node.property;
+      } else {
+        if (path.node.property.type === "Identifier") {
+          property = babel.types.stringLiteral(path.node.property.name);
+          property.loc = path.node.property.loc;
         }
-
-        const { callee } = path.node;
-
-        var isMemberExpressionCall = callee.type === "MemberExpression";
-
-        var args = [];
-        path.node.arguments.forEach(arg => {
-          args.push(
-            ignoredArrayExpression([arg, getLastOperationTrackingResultCall])
-          );
-        });
-
-        let executionContext;
-        let executionContextTrackingValue;
-        if (isMemberExpressionCall) {
-          executionContext = ignoredCallExpression(
-            "getLastMemberExpressionObjectValue",
-            []
-          );
-          executionContextTrackingValue = ignoredCallExpression(
-            "getLastMemberExpressionObjectTrackingValue",
-            []
-          );
-        } else {
-          executionContext = t.identifier("undefined");
-          executionContextTrackingValue = t.nullLiteral();
-        }
-
-        var call = t.callExpression(ignoredIdentifier(FunctionNames.makeCall), [
+      }
+      path.replaceWith(
+        createOperation(OperationTypes.memberExpression, [
           ignoredArrayExpression([
-            ignoreNode(path.node.callee),
-            isMemberExpressionCall
-              ? getLastOperationTrackingResultCall
-              : getLastOperationTrackingResultCall
+            path.node.object,
+            getLastOperationTrackingResultCall
           ]),
-          ignoredArrayExpression([
-            executionContext,
-            executionContextTrackingValue
-          ]),
-          ignoredArrayExpression(args)
-        ]);
-        // call.loc = path.node.callee.loc;
-        call.ignore = true;
+          ignoredArrayExpression([property, getLastOperationTrackingResultCall])
+        ])
+      );
+    },
+    ReturnStatement(path) {
+      if (path.ignore) {
+        return;
+      }
+      path.node.ignore = true;
 
-        // todo: would it be better for perf if I just updated the existing call expression instead?
+      var opCall = ignoredCallExpression(FunctionNames.doOperation, [
+        ignoredStringLiteral(OperationTypes.returnStatement),
+        ignoredArrayExpression([
+          path.node.argument,
+          getLastOperationTrackingResultCall
+        ])
+      ]);
+
+      path.node.argument = opCall;
+    },
+    Identifier(path) {
+      if (path.node.ignore) {
+        return;
+      }
+      if (
+        path.parent.type === "FunctionDeclaration" ||
+        path.parent.type === "CallExpression" ||
+        path.parent.type === "MemberExpression" ||
+        path.parent.type === "ObjectProperty" ||
+        path.parent.type === "CatchClause" ||
+        path.parent.type === "ForInStatement" ||
+        path.parent.type === "IfStatement" ||
+        path.parent.type === "ForStatement" ||
+        path.parent.type === "FunctionExpression" ||
+        path.parent.type === "UpdateExpression" ||
+        (path.parent.type === "UnaryExpression" &&
+          path.parent.operator === "typeof")
+      ) {
+        return;
+      }
+      if (
+        isInLeftPartOfAssignmentExpression(path) ||
+        isInIdOfVariableDeclarator(path)
+      ) {
+        return;
+      }
+      if (path.node.name === "globalFn") {
+        return;
+      }
+
+      path.node.ignore = true;
+
+      var call = ignoredCallExpression(FunctionNames.doOperation, [
+        ignoredStringLiteral("identifier"),
+        ignoredArrayExpression([
+          path.node,
+          trackingIdentifierIfExists(path.node.name)
+        ])
+      ]);
+
+      try {
         path.replaceWith(call);
+      } catch (err) {
+        console.log(err);
+        console.log(path.parent.type);
+        throw Error("end");
+      }
+    },
+    CallExpression(path) {
+      if (path.node.ignore) {
+        return;
+      }
+
+      const { callee } = path.node;
+
+      var isMemberExpressionCall = callee.type === "MemberExpression";
+
+      var args = [];
+      path.node.arguments.forEach(arg => {
+        args.push(
+          ignoredArrayExpression([arg, getLastOperationTrackingResultCall])
+        );
+      });
+
+      let executionContext;
+      let executionContextTrackingValue;
+      if (isMemberExpressionCall) {
+        executionContext = ignoredCallExpression(
+          "getLastMemberExpressionObjectValue",
+          []
+        );
+        executionContextTrackingValue = ignoredCallExpression(
+          "getLastMemberExpressionObjectTrackingValue",
+          []
+        );
+      } else {
+        executionContext = t.identifier("undefined");
+        executionContextTrackingValue = t.nullLiteral();
+      }
+
+      var call = t.callExpression(ignoredIdentifier(FunctionNames.makeCall), [
+        ignoredArrayExpression([
+          ignoreNode(path.node.callee),
+          isMemberExpressionCall
+            ? getLastOperationTrackingResultCall
+            : getLastOperationTrackingResultCall
+        ]),
+        ignoredArrayExpression([
+          executionContext,
+          executionContextTrackingValue
+        ]),
+        ignoredArrayExpression(args)
+      ]);
+      // call.loc = path.node.callee.loc;
+      call.ignore = true;
+
+      // todo: would it be better for perf if I just updated the existing call expression instead?
+      path.replaceWith(call);
+    }
+  };
+
+  const simpleHooks = {
+    StringLiteral: {
+      skipIf: path => path.parent.type === "ObjectProperty",
+      args: path => {
+        return [ignoredArrayExpression([path.node, t.nullLiteral()])];
+      }
+    },
+    NumericLiteral: {
+      skipIf: path => path.parent.type === "ObjectProperty",
+      args: path => {
+        return [ignoredArrayExpression([path.node, t.nullLiteral()])];
       }
     }
+  };
+
+  function camelCase(str) {
+    return str[0].toLowerCase() + str.slice(1);
+  }
+
+  Object.keys(simpleHooks).forEach(nodeName => {
+    var hook = simpleHooks[nodeName];
+
+    visitors[nodeName] = function(path) {
+      if (path.node.ignore) {
+        return;
+      }
+      if (hook.skipIf) {
+        if (hook.skipIf(path)) {
+          return;
+        }
+      }
+      path.node.ignore = true;
+
+      const operation = createOperation(
+        camelCase(path.node.type),
+        hook.args(path)
+      );
+
+      path.replaceWith(operation);
+    };
+  });
+
+  return {
+    name: "babel-plugin-data-flow",
+    visitor: visitors
   };
 }
