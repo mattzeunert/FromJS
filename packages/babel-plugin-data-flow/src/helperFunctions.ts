@@ -30,6 +30,7 @@ export default `(function(functionNames, operationTypes) {
   };
 
   global.getTrackingAndNormalValue = function(value) {
+    // console.log("getTrackingAndNormalValue", value)
     return {
       normal: value,
       tracking: argTrackingInfo[0]
@@ -45,6 +46,7 @@ export default `(function(functionNames, operationTypes) {
 
   const objTrackingMap = new Map();
   function trackObjectPropertyAssignment(obj, propName, trackingValue) {
+    // console.log("trackObjectPropertyAssignment", obj, propName, trackingValue)
     var objectPropertyTrackingInfo = objTrackingMap.get(obj);
     if (!objectPropertyTrackingInfo) {
       objectPropertyTrackingInfo = {};
@@ -59,6 +61,7 @@ export default `(function(functionNames, operationTypes) {
     }
     return objectPropertyTrackingInfo[propName];
   }
+  window.getObjectPropertyTrackingValue = getObjectPropertyTrackingValue
 
   var lastMemberExpressionObjectValue = null
   var lastMemberExpressionObjectTrackingValue = null
@@ -68,6 +71,20 @@ export default `(function(functionNames, operationTypes) {
 
   global["getLastMemberExpressionObjectTrackingValue"] = function(){
     return lastMemberExpressionObjectTrackingValue
+  }
+
+
+  const memoValues = {}
+  global["__setMemoValue"] = function(key, value, trackingValue) {
+    // console.log("setmemovalue", value)
+    memoValues[key] = { value, trackingValue}
+    return value
+  }
+  global["__getMemoValue"] = function(key) {
+    return memoValues[key].value
+  }
+  global["__getMemoTrackingValue"] = function(key, value, trackingValue) {
+    return memoValues[key].trackingValue
   }
   
 
@@ -118,12 +135,45 @@ export default `(function(functionNames, operationTypes) {
     } else if (opName === "identifier") {
       ret = argValues[0];
     } else if (opName === "returnStatement") {
+      // console.log("returnstatement", argValues[0])
       ret = argValues[0];
     } else if (opName === operationTypes.arrayExpression) {
       ret = argValues
     } else if (opName === operationTypes.assignmentExpression) {
-      const [operator, currentValue, result] = argValues
-      ret = result;
+      const assignmentType = argValues[1]
+      if (assignmentType === "MemberExpression") {
+        let [operator, aType, obj, propName, argument] = argValues
+        let [operatorT, aTypeT, objT, propNameT, argumentT] = argTrackingValues
+
+        var currentValue = obj[propName]
+        var currentValueT = {
+          type: "memexpAsLeftAssExp",
+          argValues: [obj, propName],
+          argTrackingValues: [objT, propNameT],
+        }
+
+        if (operator === "=") {
+          ret = obj[propName] = argument
+        } else if (operator === "+=" ) {
+          ret = obj[propName] = obj[propName] + argument
+        } else {
+          throw Error("unknown op " + operator)
+        }
+
+      
+        trackObjectPropertyAssignment(obj, propName, {
+          type: opName,
+          argValues: [currentValue, argument],
+          argTrackingValues: [currentValueT, argumentT]
+        });
+        
+      } else if (assignmentType === "Identifier") {
+        const [operator, aType, currentValue, resultValue, argument] = argValues
+        // console.log({resultValue})
+        ret = resultValue
+      } else {
+        throw Error("unknown: " + assignmentType)
+      }
     } else if (opName === operationTypes.binaryExpression) {
       var [operation, left, right] = argValues;
       if (operation === "+") {
@@ -137,15 +187,6 @@ export default `(function(functionNames, operationTypes) {
       } else {
         throw Error("unknown bin exp operation: " + operation);
       }
-    } else if (opName === operationTypes.objectPropertyAssignment) {
-      let [obj, propName, value] = argValues;
-      let [objT, propNameT, valueT] = argTrackingValues;
-      ret = obj[propName] = value;
-      trackObjectPropertyAssignment(obj, propName, {
-        type: opName,
-        argValues: [],
-        argTrackingValues: [valueT]
-      });
     } else if (opName === "memberExpression") {
       var [object, property] = argValues;
       var [objectT, propertyT] = argTrackingValues

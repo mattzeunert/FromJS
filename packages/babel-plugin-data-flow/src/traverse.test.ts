@@ -63,7 +63,7 @@ test("Can track values through object assignments", done => {
 
     expect(getStepTypeList(t)).toEqual([
       "memberExpression",
-      "objectPropertyAssignment",
+      "assignmentExpression",
       "stringLiteral"
     ]);
 

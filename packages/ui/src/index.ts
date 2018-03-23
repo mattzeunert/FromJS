@@ -102,12 +102,17 @@ function showResult() {
     if (data) {
       childValues = data.argTrackingValues.map((child, i) => {
         console.log(child);
+
         // if (child === null || child === undefined) {
         //   return;
         // }
 
         return child;
       });
+
+      if (data.extraTrackingValues) {
+        childValues = childValues.concat(data.extraTrackingValues);
+      }
     } else {
       childValues = [];
     }

@@ -273,8 +273,7 @@ describe("Tracks values across assignments", () => {
     a = "b"
     return a
   `).then(({ normal, tracking, code }) => {
-      expect(normal).toBe("b");
-      expect(tracking.argTrackingValues[0].argValues[2]).toBe("b");
+      expect(tracking.argTrackingValues[0].argValues[3]).toBe("b");
 
       done();
     });
@@ -287,10 +286,9 @@ describe("Tracks values across assignments", () => {
     return a
   `).then(({ normal, tracking, code }) => {
       expect(normal).toBe("b");
-      expect(
-        tracking.argTrackingValues[0].argTrackingValues[2].argTrackingValues[0]
-          .argValues[0]
-      ).toBe("b");
+      expect(tracking.argTrackingValues[0].argTrackingValues[4].resVal).toBe(
+        "b"
+      );
 
       done();
     });
@@ -320,10 +318,32 @@ it("Can track `/=` binary expressions", done => {
     var assignmentExpression = tracking.argTrackingValues[0];
     expect(assignmentExpression.type).toBe(OperationTypes.assignmentExpression);
     expect(assignmentExpression.argValues[0]).toBe("/=");
-    expect(assignmentExpression.argTrackingValues[1].argValues[0]).toBe(10);
-    expect(assignmentExpression.argTrackingValues[2].argValues[0]).toBe(2);
+    expect(assignmentExpression.argTrackingValues[2].resVal).toBe(10);
+    expect(assignmentExpression.argTrackingValues[4].argValues[0]).toBe(2);
 
     done();
+  });
+});
+
+describe("AssignmentExpression", () => {
+  it("Does not invoke memberExpression objects more than once", done => {
+    instrumentAndRun(`
+      var counter = 0
+      var obj = {val:"a"}
+      function a() {
+        counter++;
+        return obj
+      }
+      a().val += "b"
+      return [counter, obj.val]    
+    `).then(({ normal, tracking, code }) => {
+      const memberExpression = tracking.argTrackingValues[1]; // obj.val
+
+      expect(normal[0]).toBe(1);
+      expect(normal[1]).toBe("ab");
+
+      done();
+    });
   });
 });
 

@@ -123,6 +123,22 @@ export default function plugin(babel) {
     return call;
   }
 
+  function createSetMemoValue(key, value, trackingValue) {
+    return ignoredCallExpression("__setMemoValue", [
+      ignoredStringLiteral(key),
+      value,
+      trackingValue
+    ]);
+  }
+  function createGetMemoValue(key) {
+    return ignoredCallExpression("__getMemoValue", [ignoredStringLiteral(key)]);
+  }
+  function createGetMemoTrackingValue(key) {
+    return ignoredCallExpression("__getMemoTrackingValue", [
+      ignoredStringLiteral(key)
+    ]);
+  }
+
   function ignoreNode(node) {
     node.ignore = true;
     return node;
@@ -290,10 +306,20 @@ export default function plugin(babel) {
         }
         path.node.ignore = true;
 
-        if (
-          path.node.operator === "=" &&
-          path.node.left.type === "MemberExpression"
-        ) {
+        let operationArguments = [
+          ignoredArrayExpression([
+            ignoredStringLiteral(path.node.operator),
+            t.nullLiteral()
+          ]),
+          ignoredArrayExpression([
+            ignoredStringLiteral(path.node.left.type),
+            t.nullLiteral()
+          ])
+        ];
+
+        let trackingAssignment = null;
+
+        if (path.node.left.type === "MemberExpression") {
           var property;
           if (path.node.left.computed === true) {
             property = path.node.left.property;
@@ -301,7 +327,8 @@ export default function plugin(babel) {
             property = babel.types.stringLiteral(path.node.left.property.name);
             property.loc = path.node.left.property.loc;
           }
-          let call = createOperation(OperationTypes.objectPropertyAssignment, [
+
+          operationArguments = operationArguments.concat([
             ignoredArrayExpression([path.node.left.object, t.nullLiteral()]),
             ignoredArrayExpression([property, t.nullLiteral()]),
             ignoredArrayExpression([
@@ -309,35 +336,29 @@ export default function plugin(babel) {
               getLastOperationTrackingResultCall
             ])
           ]);
+        } else if (path.node.left.type === "Identifier") {
+          var right = createSetMemoValue(
+            "lastAssignmentExpressionArgument",
+            path.node.right,
+            getLastOperationTrackingResultCall
+          );
+          path.node.right = right;
 
-          call.loc = path.node.loc;
-          path.replaceWith(call);
-          return;
-        }
-
-        if (!path.node.left.name) {
-          return;
-        }
-        const trackingAssignment = runIfIdentifierExists(
-          path.node.left.name + "_t",
-          ignoreNode(
-            t.assignmentExpression(
-              "=",
-              ignoredIdentifier(path.node.left.name + "_t"),
-              getLastOperationTrackingResultCall
+          trackingAssignment = runIfIdentifierExists(
+            path.node.left.name + "_t",
+            ignoreNode(
+              t.assignmentExpression(
+                "=",
+                ignoredIdentifier(path.node.left.name + "_t"),
+                getLastOperationTrackingResultCall
+              )
             )
-          )
-        );
-        trackingAssignment.ignore = true;
+          );
+          trackingAssignment.ignore = true;
 
-        var call = t.callExpression(
-          ignoredIdentifier(FunctionNames.doOperation),
-          [
-            ignoredStringLiteral(OperationTypes.assignmentExpression),
-            ignoredArrayExpression([
-              ignoredStringLiteral(path.node.operator),
-              t.nullLiteral()
-            ]),
+          path.node.left.ignore = true;
+          path.node.ignore = true;
+          operationArguments = operationArguments.concat([
             ignoredArrayExpression([
               path.node.left,
               getLastOperationTrackingResultCall
@@ -345,14 +366,92 @@ export default function plugin(babel) {
             ignoredArrayExpression([
               path.node,
               getLastOperationTrackingResultCall
+            ]),
+            ignoredArrayExpression([
+              createGetMemoValue("lastAssignmentExpressionArgument"),
+              createGetMemoTrackingValue("lastAssignmentExpressionArgument")
             ])
-          ]
-        );
-        call.ignore = true;
 
-        path.replaceWith(
-          t.sequenceExpression([call, trackingAssignment, getLastOpValue])
+            // ignoredArrayExpression([path.node.left.object, t.nullLiteral()]),
+            // ignoredArrayExpression([property, t.nullLiteral()]),
+            // ignoredArrayExpression([
+            //   path.node.right,
+            //   getLastOperationTrackingResultCall
+            // ]),
+            // ignoredArrayExpression([
+            //   path.node.left,
+            //   getLastOperationTrackingResultCall
+            // ])
+
+            // ignoredArrayExpression([
+            //       ignoredStringLiteral(path.node.operator),
+            //       t.nullLiteral()
+            //     ]),
+            //
+            //     ignoredArrayExpression([
+            //       path.node,
+            //       getLastOperationTrackingResultCall
+            //     ])
+          ]);
+        } else {
+          throw Error("unhandled assignmentexpression node.left type");
+        }
+
+        const operation = createOperation(
+          "assignmentExpression",
+          operationArguments
         );
+
+        if (trackingAssignment) {
+          path.replaceWith(
+            t.sequenceExpression([
+              operation,
+              trackingAssignment,
+              getLastOpValue
+            ])
+          );
+        } else {
+          path.replaceWith(operation);
+        }
+
+        // if (path.node.left.type === "MemberExpression") {
+        //   let call = createOperation(
+        //     OperationTypes.objectPropertyAssignment,
+        //     []
+        //   );
+
+        //   call.loc = path.node.loc;
+        //   path.replaceWith(call);
+        //   return;
+        // }
+
+        // if (!path.node.left.name) {
+        //   return;
+        // }
+
+        // var call = t.callExpression(
+        //   ignoredIdentifier(FunctionNames.doOperation),
+        //   [
+        //     ignoredStringLiteral(OperationTypes.assignmentExpression),
+        //     ignoredArrayExpression([
+        //       ignoredStringLiteral(path.node.operator),
+        //       t.nullLiteral()
+        //     ]),
+        //     ignoredArrayExpression([
+        //       path.node.left,
+        //       getLastOperationTrackingResultCall
+        //     ]),
+        //     ignoredArrayExpression([
+        //       path.node,
+        //       getLastOperationTrackingResultCall
+        //     ])
+        //   ]
+        // );
+        // call.ignore = true;
+
+        // path.replaceWith(
+        //   t.sequenceExpression([call, trackingAssignment, getLastOpValue])
+        // );
       },
       ObjectExpression(path) {
         path.node.properties.forEach(function(prop) {

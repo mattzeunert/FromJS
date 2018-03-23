@@ -49,9 +49,14 @@ export default function traverse(trackingValue, charIndex, steps = []) {
       };
       break;
     case OperationTypes.objectExpression:
-    case OperationTypes.objectPropertyAssignment:
       nextStep = {
         trackingValue: trackingValue.argTrackingValues[0],
+        charIndex: charIndex
+      };
+      break;
+    case OperationTypes.assignmentExpression:
+      nextStep = {
+        trackingValue: trackingValue.argTrackingValues[1],
         charIndex: charIndex
       };
       break;
