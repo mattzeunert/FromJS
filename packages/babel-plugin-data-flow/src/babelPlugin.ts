@@ -308,6 +308,10 @@ export default function plugin(babel) {
       }
     },
     ObjectExpression(path) {
+      if (path.node.ignore) {
+        return;
+      }
+
       path.node.properties.forEach(function(prop) {
         if (prop.key.type === "Identifier") {
           var keyLoc = prop.key.loc;

@@ -102,7 +102,7 @@ function runCodeAndshowResult(code) {
     return str.slice(0, maxLength - 1) + "...";
   }
 
-  function makeNode(data, argName = "") {
+  function makeNode(data, argName = "", siblingCount = null) {
     if (
       data &&
       eval("false") &&
@@ -138,7 +138,7 @@ function runCodeAndshowResult(code) {
     var children = [];
     if (!isDataRootOrigin(data)) {
       children = childValues.map((child, i) =>
-        makeNode(child, data.argNames[i])
+        makeNode(child, data.argNames[i], childValues.length - 1)
       );
     }
 
@@ -193,7 +193,11 @@ function runCodeAndshowResult(code) {
       ]
     };
 
-    if (argName) {
+    if (
+      argName &&
+      siblingCount >
+        0 /* if only one child in total don't bother explaining it */
+    ) {
       node = {
         innerHTML: `<div style="font-weight: normal">${argName}</div>`,
         children: [node]
