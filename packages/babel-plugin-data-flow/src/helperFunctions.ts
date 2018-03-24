@@ -6,18 +6,6 @@ export default `(function(functionNames, operationTypes) {
   global.__didInitializeDataFlowTracking = true;
 
   var argTrackingInfo = null;
-  global[functionNames.makeCall] = function _makeCall(
-    fn,
-    object,
-    args
-  ) {
-    return global[functionNames.doOperation](
-      operationTypes.callExpression,
-      fn,
-      object,
-      ...args
-    );
-  };
 
   global[
     functionNames.getFunctionArgTrackingInfo

@@ -5,7 +5,8 @@ function createNode(args, astArgs = null) {}
 
 const operations = {
   memberExpression: { createNode: null },
-  binaryExpression: { createNode: null }
+  binaryExpression: { createNode: null },
+  callExpression: { createNode: null }
 };
 
 Object.keys(operations).forEach(opName => {

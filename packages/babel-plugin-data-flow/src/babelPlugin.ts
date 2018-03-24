@@ -480,21 +480,21 @@ export default function plugin(babel) {
         executionContextTrackingValue = t.nullLiteral();
       }
 
-      var call = t.callExpression(ignoredIdentifier(FunctionNames.makeCall), [
-        ignoredArrayExpression([
+      var fnArgs = {};
+      args.forEach((arg, i) => {
+        fnArgs["arg" + i] = arg;
+      });
+
+      var call = operations.callExpression.createNode({
+        function: [
           ignoreNode(path.node.callee),
           isMemberExpressionCall
             ? getLastOperationTrackingResultCall
             : getLastOperationTrackingResultCall
-        ]),
-        ignoredArrayExpression([
-          executionContext,
-          executionContextTrackingValue
-        ]),
-        ignoredArrayExpression(args)
-      ]);
-      // call.loc = path.node.callee.loc;
-      call.ignore = true;
+        ],
+        context: [executionContext, executionContextTrackingValue],
+        ...fnArgs
+      });
 
       // todo: would it be better for perf if I just updated the existing call expression instead?
       path.replaceWith(call);
