@@ -92,6 +92,14 @@ export default `(function(functionNames, operationTypes) {
   var lastOpTrackingResult = null;
   global[functionNames.doOperation] = function op(opName, ...args) {
     var value, trackingValue;
+    
+    var objArgs = args[0]
+    if (args && args[0] && args[0].isUsingObjectSyntax) {
+      // todo: remove this condition, should always use obj syntax
+      delete args[0].isUsingObjectSyntax
+      args = Object.values(args[0])
+    }
+    
     if (opName === operationTypes.arrayExpression) {
       args = args[0]
     }
@@ -188,11 +196,15 @@ export default `(function(functionNames, operationTypes) {
         throw Error("unknown bin exp operation: " + operation);
       }
     } else if (opName === "memberExpression") {
-      var [object, property] = argValues;
-      var [objectT, propertyT] = argTrackingValues
-      ret = object[property];
+      
+      // var [object, property] = argValues;
+      // var [objectT, propertyT] = argTrackingValues
+      var object = objArgs.object[0]
+      var objectT = objArgs.object[1]
+      var propertyName = objArgs.propName[0]
+      ret = object[propertyName];
       extraTrackingValues.push(
-        getObjectPropertyTrackingValue(object, property)
+        getObjectPropertyTrackingValue(object, propertyName)
       );
 
       lastMemberExpressionObjectValue = object

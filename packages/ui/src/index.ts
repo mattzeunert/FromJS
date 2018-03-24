@@ -49,10 +49,10 @@ function showResult() {
   })
     .then(res => res.json())
     .then(r => {
-      runCodeAndshowResult(r.code);
       compiledCodeTextarea.value = r.code.split(
         "/* HELPER_FUNCTIONS_END */ "
       )[1];
+      runCodeAndshowResult(r.code);
     });
 }
 

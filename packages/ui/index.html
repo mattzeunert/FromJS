@@ -85,25 +85,8 @@
 
   <textarea id="code">
     
-/* var a = "hello" + " world"
+var a = "hello" + " world"
 var b = a.slice(0,2)
-inspect(b) */
-
-function bubbleSort(arr){
-  var len = arr.length;
-  for (var i = len-1; i>=0; i--){
-    for(var j = 1; j<=i; j++){
-      if(arr[j-1]>arr[j]){
-          var temp = arr[j-1];
-          arr[j-1] = arr[j];
-          arr[j] = temp;
-       }
-    }
-  }
-  return arr;
-}
-var a = bubbleSort([7,5,2,4,3,9]); //[2, 3, 4, 5, 7, 9]
-var b = a[0]
 inspect(b)
   </textarea>
 

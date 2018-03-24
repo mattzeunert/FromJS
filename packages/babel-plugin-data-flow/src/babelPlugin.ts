@@ -3,6 +3,16 @@ import * as babel from "@babel/core";
 import * as OperationTypes from "./OperationTypes";
 // import * as fs from "fs";
 import * as babylon from "babylon";
+import operations from "./operations";
+import {
+  ignoreNode,
+  ignoredArrayExpression,
+  ignoredStringLiteral,
+  ignoredIdentifier,
+  ignoredCallExpression,
+  ignoredNumericLiteral,
+  createOperation
+} from "./babelPluginHelpers";
 
 import helperCodeLoaded from "./helperFunctions";
 import helperFunctions from "./helperFunctions";
@@ -23,34 +33,6 @@ helperCode = "eval(`" + helperCode + "`)";
 
 export default function plugin(babel) {
   const { types: t } = babel;
-
-  var ignoredStringLiteral = function(str) {
-    var l = t.stringLiteral(str);
-    l.ignore = true;
-    return l;
-  };
-
-  function ignoredIdentifier(name) {
-    var id = t.identifier(name);
-    id.ignore = true;
-    return id;
-  }
-
-  function ignoredCallExpression(identifier, args) {
-    var call = t.callExpression(ignoredIdentifier(identifier), args);
-    call.ignore = true;
-    return call;
-  }
-
-  function ignoredNumericLiteral(number) {
-    var n = t.numericLiteral(number);
-    n.ignore = true;
-    return n;
-  }
-
-  function ignoredArrayExpression(items) {
-    return ignoreNode(t.arrayExpression(items));
-  }
 
   var getLastOperationTrackingResultCall = ignoredCallExpression(
     FunctionNames.getLastOperationTrackingResult,
@@ -113,16 +95,6 @@ export default function plugin(babel) {
     }
   }
 
-  function createOperation(opType, opArgs) {
-    var call = babel.types.callExpression(
-      ignoredIdentifier(FunctionNames.doOperation),
-      [ignoredStringLiteral(opType), ...opArgs]
-    );
-
-    call.ignore = true;
-    return call;
-  }
-
   function createSetMemoValue(key, value, trackingValue) {
     return ignoredCallExpression("__setMemoValue", [
       ignoredStringLiteral(key),
@@ -137,11 +109,6 @@ export default function plugin(babel) {
     return ignoredCallExpression("__getMemoTrackingValue", [
       ignoredStringLiteral(key)
     ]);
-  }
-
-  function ignoreNode(node) {
-    node.ignore = true;
-    return node;
   }
 
   function runIfIdentifierExists(identifierName, thenNode) {
@@ -412,15 +379,13 @@ export default function plugin(babel) {
           property.loc = path.node.property.loc;
         }
       }
-      path.replaceWith(
-        createOperation(OperationTypes.memberExpression, [
-          ignoredArrayExpression([
-            path.node.object,
-            getLastOperationTrackingResultCall
-          ]),
-          ignoredArrayExpression([property, getLastOperationTrackingResultCall])
-        ])
-      );
+
+      const op = operations.memberExpression.createNode({
+        object: [path.node.object, getLastOperationTrackingResultCall],
+        propName: [property, getLastOperationTrackingResultCall]
+      });
+
+      path.replaceWith(op);
     },
     ReturnStatement(path) {
       if (path.ignore) {
