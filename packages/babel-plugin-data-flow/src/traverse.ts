@@ -10,11 +10,11 @@ export default function traverse(trackingValue, charIndex, steps = []) {
   let nextStep = null;
   switch (trackingValue.type) {
     case OperationTypes.binaryExpression:
-      const operator = trackingValue.argValues[0];
-      const left = trackingValue.argValues[1];
-      const leftTracking = trackingValue.argTrackingValues[1];
-      const right = trackingValue.argValues[2];
-      const rightTracking = trackingValue.argTrackingValues[2];
+      const { operator } = trackingValue.astArgs;
+      const left = trackingValue.argValues[0];
+      const leftTracking = trackingValue.argTrackingValues[0];
+      const right = trackingValue.argValues[1];
+      const rightTracking = trackingValue.argTrackingValues[1];
       if (operator == "+") {
         if (typeof left === "string" && typeof right === "string") {
           if (charIndex < left.length) {

@@ -179,25 +179,18 @@ export default function plugin(babel) {
     },
     BinaryExpression(path) {
       if (["+", "-", "/", "*"].includes(path.node.operator)) {
-        var call = t.callExpression(
-          ignoredIdentifier(FunctionNames.doOperation),
-          [
-            ignoredStringLiteral(OperationTypes.binaryExpression),
-            ignoredStringLiteral(path.node.operator),
-            ignoredArrayExpression([
-              path.node.left,
-              getLastOperationTrackingResultCall
-            ]),
-            ignoredArrayExpression([
-              path.node.right,
-              getLastOperationTrackingResultCall
-            ])
-          ]
+        path.replaceWith(
+          operations.binaryExpression.createNode(
+            {
+              left: [path.node.left, getLastOperationTrackingResultCall],
+              right: [path.node.right, getLastOperationTrackingResultCall]
+            },
+            { operator: ignoredStringLiteral(path.node.operator) }
+          )
         );
-        call.ignore = true;
-        path.replaceWith(call);
       }
     },
+
     VariableDeclaration(path) {
       if (path.node.ignore) {
         return;

@@ -63,7 +63,9 @@ export function ignoredObjectExpression(props) {
       return ignoreNode(
         t.objectProperty(
           ignoredStringLiteral(propKey),
-          ignoredArrayExpression(props[propKey])
+          props[propKey].length > 0
+            ? ignoredArrayExpression(props[propKey])
+            : props[propKey]
         )
       );
     })
@@ -71,7 +73,7 @@ export function ignoredObjectExpression(props) {
   return ignoreNode(t.objectExpression(properties));
 }
 
-export function createOperation(opType, opArgs) {
+export function createOperation(opType, opArgs, astArgs = {}) {
   const argsAreArray = opArgs.length !== undefined;
 
   if (argsAreArray) {
@@ -84,7 +86,8 @@ export function createOperation(opType, opArgs) {
     // object
     var call = ignoredCallExpression(FunctionNames.doOperation, [
       ignoredStringLiteral(opType),
-      ignoredObjectExpression(opArgs)
+      ignoredObjectExpression(opArgs),
+      ignoredObjectExpression(astArgs)
     ]);
   }
 

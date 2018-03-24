@@ -140,9 +140,6 @@ function runCodeAndshowResult(code) {
       children = childValues.map((child, i) =>
         makeNode(child, data.argNames[i])
       );
-      if (data && data.type === "binaryExpression") {
-        children = children.slice(1);
-      }
     }
 
     var type;
@@ -151,7 +148,7 @@ function runCodeAndshowResult(code) {
       if (type === "binaryExpression") {
         type =
           "<span style='color: green;font-weight: bold;'>" +
-          data.argValues[0] +
+          data.astArgs.operator +
           "</span>" +
           " " +
           type;
@@ -198,7 +195,7 @@ function runCodeAndshowResult(code) {
 
     if (argName) {
       node = {
-        innerHTML: argName,
+        innerHTML: `<div style="font-weight: normal">${argName}</div>`,
         children: [node]
       };
     }

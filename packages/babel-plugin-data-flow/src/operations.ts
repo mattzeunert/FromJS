@@ -9,6 +9,18 @@ const operations = {
         propName
       });
     }
+  },
+  binaryExpression: {
+    createNode({ left, right }, { operator }) {
+      return createOperation(
+        OperationTypes.binaryExpression,
+        {
+          left,
+          right
+        },
+        { operator }
+      );
+    }
   }
 };
 

@@ -93,10 +93,13 @@ export default `(function(functionNames, operationTypes) {
   global[functionNames.doOperation] = function op(opName, ...args) {
     var value, trackingValue;
     
-    var objArgs = args[0]
+    var objArgs
+    var astArgs
     var argNames = []
     if (args && args[0] && args[0].isUsingObjectSyntax) {
       // todo: remove this condition, should always use obj syntax
+      objArgs = args[0]
+      astArgs = args[1]
       delete objArgs.isUsingObjectSyntax
       args = Object.values(objArgs)
       argNames = Object.keys(objArgs)
@@ -187,17 +190,21 @@ export default `(function(functionNames, operationTypes) {
         throw Error("unknown: " + assignmentType)
       }
     } else if (opName === operationTypes.binaryExpression) {
-      var [operation, left, right] = argValues;
-      if (operation === "+") {
+      var {left, right} = objArgs;
+      left = left[0]
+      right = right[0]
+
+      var { operator } = astArgs
+      if (operator === "+") {
         ret = left + right;
-      } else if (operation === "-") {
+      } else if (operator === "-") {
         ret = left - right
-      } else if (operation === "*") {
+      } else if (operator === "*") {
         ret = left * right
-      } else if (operation === "/") {
+      } else if (operator === "/") {
         ret = left / right
       } else {
-        throw Error("unknown bin exp operation: " + operation);
+        throw Error("unknown bin exp operator: " + operator);
       }
     } else if (opName === "memberExpression") {
       
@@ -269,7 +276,8 @@ export default `(function(functionNames, operationTypes) {
       argTrackingValues,
       extraTrackingValues,
       resVal: ret,
-      argNames
+      argNames,
+      astArgs
       // place: Error()
       //   .stack.split("\\\\n")
       //   .slice(2, 3)
