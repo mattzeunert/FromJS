@@ -111,6 +111,7 @@ export default `(function(functionNames, operationTypes) {
       return arg[1]
     });
     var extraTrackingValues = [];
+    var extraTrackingValueArgNames = []
     var ret;
     if (opName === operationTypes.callExpression) {
       var [__, ___, ...fnArgs] = args;
@@ -202,6 +203,7 @@ export default `(function(functionNames, operationTypes) {
       var objectT = objArgs.object[1]
       var propertyName = objArgs.propName[0]
       ret = object[propertyName];
+      extraTrackingValueArgNames.push("property value")
       extraTrackingValues.push(
         getObjectPropertyTrackingValue(object, propertyName)
       );
@@ -224,8 +226,10 @@ export default `(function(functionNames, operationTypes) {
           obj[propertyKey] = propertyValue;
           trackObjectPropertyAssignment(obj, propertyKey, {
             type: opName,
-            argValues: [],
-            argTrackingValues: [propertyValueT]
+            argNames: ["property value"],
+            argValues: [propertyValue],
+            argTrackingValues: [propertyValueT],
+            resVal: propertyValue
           });
         } else if (propertyType === "ObjectMethod") {
           var propertyKind = property[2];
@@ -265,7 +269,8 @@ export default `(function(functionNames, operationTypes) {
       extraTrackingValues,
       resVal: ret,
       argNames,
-      astArgs
+      astArgs,
+      extraTrackingValueArgNames,
       // place: Error()
       //   .stack.split("\\\\n")
       //   .slice(2, 3)

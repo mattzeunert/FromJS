@@ -124,11 +124,23 @@ function runCodeAndshowResult(code) {
         //   return;
         // }
 
-        return child;
+        return {
+          child,
+          argName: data.argNames[i]
+        };
       });
 
       if (data.extraTrackingValues) {
-        childValues = childValues.concat(data.extraTrackingValues);
+        childValues = childValues.concat(
+          data.extraTrackingValues.map((v, i) => {
+            return {
+              child: v,
+              argName: data.extraTrackingValueArgNames
+                ? data.extraTrackingValueArgNames[i]
+                : "unknown extra tracking value arg name"
+            };
+          })
+        );
       }
     } else {
       childValues = [];
@@ -138,7 +150,7 @@ function runCodeAndshowResult(code) {
     var children = [];
     if (!isDataRootOrigin(data)) {
       children = childValues.map((child, i) =>
-        makeNode(child, data.argNames[i], childValues.length - 1)
+        makeNode(child.child, child.argName, childValues.length - 1)
       );
     }
 
