@@ -102,7 +102,7 @@ function runCodeAndshowResult(code) {
     return str.slice(0, maxLength - 1) + "...";
   }
 
-  function makeNode(data) {
+  function makeNode(data, argName = "") {
     if (
       data &&
       eval("false") &&
@@ -137,7 +137,9 @@ function runCodeAndshowResult(code) {
     // childValues = childValues.filter(c => !!c);
     var children = [];
     if (!isDataRootOrigin(data)) {
-      children = childValues.map(makeNode);
+      children = childValues.map((child, i) =>
+        makeNode(child, data.argNames[i])
+      );
       if (data && data.type === "binaryExpression") {
         children = children.slice(1);
       }
@@ -180,7 +182,7 @@ function runCodeAndshowResult(code) {
 
     resVal = truncate(resVal + "", 20);
 
-    return {
+    var node = {
       innerHTML: `<span class="value ${valueClass}">${resVal}</span>`,
 
       children: [
@@ -193,6 +195,15 @@ function runCodeAndshowResult(code) {
         }
       ]
     };
+
+    if (argName) {
+      node = {
+        innerHTML: argName,
+        children: [node]
+      };
+    }
+
+    return node;
   }
 
   nodeStructure = makeNode(data);

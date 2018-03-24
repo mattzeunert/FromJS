@@ -94,10 +94,14 @@ export default `(function(functionNames, operationTypes) {
     var value, trackingValue;
     
     var objArgs = args[0]
+    var argNames = []
     if (args && args[0] && args[0].isUsingObjectSyntax) {
       // todo: remove this condition, should always use obj syntax
-      delete args[0].isUsingObjectSyntax
-      args = Object.values(args[0])
+      delete objArgs.isUsingObjectSyntax
+      args = Object.values(objArgs)
+      argNames = Object.keys(objArgs)
+    } else {
+      argNames = Array.from(new Array(args.length)).map(a => "unknown arg name")
     }
     
     if (opName === operationTypes.arrayExpression) {
@@ -264,7 +268,8 @@ export default `(function(functionNames, operationTypes) {
       argValues,
       argTrackingValues,
       extraTrackingValues,
-      resVal: ret
+      resVal: ret,
+      argNames
       // place: Error()
       //   .stack.split("\\\\n")
       //   .slice(2, 3)
