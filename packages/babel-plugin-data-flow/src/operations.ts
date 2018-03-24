@@ -1,27 +1,18 @@
 import * as OperationTypes from "./OperationTypes";
 import { createOperation, ignoredArrayExpression } from "./babelPluginHelpers";
 
+function createNode(args, astArgs = null) {}
+
 const operations = {
-  memberExpression: {
-    createNode({ object, propName }) {
-      return createOperation(OperationTypes.memberExpression, {
-        object,
-        propName
-      });
-    }
-  },
-  binaryExpression: {
-    createNode({ left, right }, { operator }) {
-      return createOperation(
-        OperationTypes.binaryExpression,
-        {
-          left,
-          right
-        },
-        { operator }
-      );
-    }
-  }
+  memberExpression: {},
+  binaryExpression: {}
 };
+
+Object.keys(operations).forEach(opName => {
+  const operation = operations[opName];
+  operation.createNode = function(args, astArgs) {
+    return createOperation(OperationTypes[opName], args, astArgs);
+  };
+});
 
 export default operations;

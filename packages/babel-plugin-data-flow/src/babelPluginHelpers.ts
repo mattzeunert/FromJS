@@ -73,7 +73,7 @@ export function ignoredObjectExpression(props) {
   return ignoreNode(t.objectExpression(properties));
 }
 
-export function createOperation(opType, opArgs, astArgs = {}) {
+export function createOperation(opType, opArgs, astArgs = null) {
   const argsAreArray = opArgs.length !== undefined;
 
   if (argsAreArray) {
@@ -87,7 +87,7 @@ export function createOperation(opType, opArgs, astArgs = {}) {
     var call = ignoredCallExpression(FunctionNames.doOperation, [
       ignoredStringLiteral(opType),
       ignoredObjectExpression(opArgs),
-      ignoredObjectExpression(astArgs)
+      ...(astArgs !== null ? [ignoredObjectExpression(astArgs)] : [])
     ]);
   }
 
