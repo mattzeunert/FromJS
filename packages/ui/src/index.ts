@@ -107,7 +107,7 @@ function runCodeAndshowResult(code) {
       data &&
       eval("false") &&
       (data.type === "identifier" ||
-        // data.type === "functionReturnValue" ||
+        // data.type === "callExpression" ||
         data.type === "assignmentExpression") // tood: don't ignore assignmentexpr, contains info like += operator
     ) {
       // skip it because it's not very interesting

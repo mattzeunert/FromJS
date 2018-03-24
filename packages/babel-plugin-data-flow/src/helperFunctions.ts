@@ -12,7 +12,7 @@ export default `(function(functionNames, operationTypes) {
     args
   ) {
     return global[functionNames.doOperation](
-      operationTypes.functionReturnValue,
+      operationTypes.callExpression,
       fn,
       object,
       ...args
@@ -124,7 +124,7 @@ export default `(function(functionNames, operationTypes) {
     });
     var extraTrackingValues = [];
     var ret;
-    if (opName === operationTypes.functionReturnValue) {
+    if (opName === operationTypes.callExpression) {
       var [__, ___, ...fnArgs] = args;
       var [fn, object] = argValues;
       argTrackingInfo = fnArgs.map(arg => ({

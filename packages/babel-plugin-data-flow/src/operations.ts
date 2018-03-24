@@ -4,8 +4,8 @@ import { createOperation, ignoredArrayExpression } from "./babelPluginHelpers";
 function createNode(args, astArgs = null) {}
 
 const operations = {
-  memberExpression: {},
-  binaryExpression: {}
+  memberExpression: { createNode: null },
+  binaryExpression: { createNode: null }
 };
 
 Object.keys(operations).forEach(opName => {
