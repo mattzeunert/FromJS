@@ -39,7 +39,24 @@ function showResult() {
   });
 
   code = res.code;
-  compiledCodeTextarea.value = code.split("/* HELPER_FUNCTIONS_END */ ")[1];
+  fetch("http://localhost:4555", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ code })
+  })
+    .then(res => res.json())
+    .then(r => {
+      runCodeAndshowResult(r.code);
+      compiledCodeTextarea.value = r.code.split(
+        "/* HELPER_FUNCTIONS_END */ "
+      )[1];
+    });
+}
+
+function runCodeAndshowResult(code) {
   eval(code);
   console.log(window["inspectedValue"]);
 
