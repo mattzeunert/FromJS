@@ -145,8 +145,7 @@ function runCodeAndshowResult(code) {
     } else {
       childValues = [];
     }
-
-    // childValues = childValues.filter(c => !!c);
+    childValues = childValues.filter(c => !!c.child);
     var children = [];
     if (!isDataRootOrigin(data)) {
       children = childValues.map((child, i) =>

@@ -154,6 +154,7 @@ export default `(function(functionNames, operationTypes) {
           type: "memexpAsLeftAssExp",
           argValues: [obj, propName],
           argTrackingValues: [objT, propNameT],
+          argNames: ["object", "property Name"]
         }
 
         if (operator === "=") {
@@ -168,7 +169,8 @@ export default `(function(functionNames, operationTypes) {
         trackObjectPropertyAssignment(obj, propName, {
           type: opName,
           argValues: [currentValue, argument],
-          argTrackingValues: [currentValueT, argumentT]
+          argTrackingValues: [currentValueT, argumentT],
+          argNames: ["currentValue", "argument"]
         });
         
       } else if (assignmentType === "Identifier") {
