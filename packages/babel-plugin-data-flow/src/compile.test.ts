@@ -122,7 +122,7 @@ describe("Can handle while loops correctly", () => {
       while (item = list.pop()) {
         counter++
         if (counter > 1) {
-          throw Error("no")
+          throw Error("counter value too high")
         }
       }
       return counter

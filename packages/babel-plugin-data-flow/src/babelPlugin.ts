@@ -149,15 +149,6 @@ export default function plugin(babel) {
   }
 
   const visitors = {
-    Program: {
-      // Run on exit so injected code isn't processed by other babel plugins
-      exit: function(path) {
-        var initCodeAstNodes = babylon.parse(helperCode).program.body.reverse();
-        initCodeAstNodes.forEach(node => {
-          path.node.body.unshift(node);
-        });
-      }
-    },
     FunctionDeclaration(path) {
       path.node.params.forEach((param, i) => {
         var d = t.variableDeclaration("var", [
@@ -174,10 +165,6 @@ export default function plugin(babel) {
     },
 
     ArrayExpression(path) {
-      if (path.node.ignore) {
-        return;
-      }
-
       path.replaceWith(
         createOperation(OperationTypes.arrayExpression, [
           ignoredArrayExpression(
@@ -204,9 +191,6 @@ export default function plugin(babel) {
     },
 
     VariableDeclaration(path) {
-      if (path.node.ignore) {
-        return;
-      }
       if (path.parent.type === "ForInStatement") {
         return;
       }
@@ -231,9 +215,6 @@ export default function plugin(babel) {
       path.node.declarations = newDeclarations;
     },
     AssignmentExpression(path) {
-      if (path.node.ignore) {
-        return;
-      }
       path.node.ignore = true;
 
       let operationArguments = [
@@ -320,10 +301,6 @@ export default function plugin(babel) {
       }
     },
     ObjectExpression(path) {
-      if (path.node.ignore) {
-        return;
-      }
-
       path.node.properties.forEach(function(prop) {
         if (prop.key.type === "Identifier") {
           var keyLoc = prop.key.loc;
@@ -373,33 +350,7 @@ export default function plugin(babel) {
 
       path.replaceWith(call);
     },
-    MemberExpression(path) {
-      if (isInLeftPartOfAssignmentExpression(path)) {
-        return;
-      }
-
-      // todo: dedupe this code
-      var property;
-      if (path.node.computed === true) {
-        property = path.node.property;
-      } else {
-        if (path.node.property.type === "Identifier") {
-          property = babel.types.stringLiteral(path.node.property.name);
-          property.loc = path.node.property.loc;
-        }
-      }
-
-      const op = operations.memberExpression.createNode({
-        object: [path.node.object, getLastOperationTrackingResultCall],
-        propName: [property, getLastOperationTrackingResultCall]
-      });
-
-      path.replaceWith(op);
-    },
     ReturnStatement(path) {
-      if (path.ignore) {
-        return;
-      }
       path.node.ignore = true;
 
       var opCall = ignoredCallExpression(FunctionNames.doOperation, [
@@ -413,9 +364,6 @@ export default function plugin(babel) {
       path.node.argument = opCall;
     },
     Identifier(path) {
-      if (path.node.ignore) {
-        return;
-      }
       if (
         path.parent.type === "FunctionDeclaration" ||
         path.parent.type === "CallExpression" ||
@@ -461,10 +409,6 @@ export default function plugin(babel) {
       }
     },
     CallExpression(path) {
-      if (path.node.ignore) {
-        return;
-      }
-
       const { callee } = path.node;
 
       var isMemberExpressionCall = callee.type === "MemberExpression";
@@ -515,9 +459,6 @@ export default function plugin(babel) {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
-      if (path.node.ignore) {
-        return;
-      }
       var op = operations.stringLiteral.createNode({
         value: [ignoredStringLiteral(path.node.value), t.nullLiteral()]
       });
@@ -527,14 +468,57 @@ export default function plugin(babel) {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
-      if (path.node.ignore) {
-        return;
-      }
       var op = operations.numericLiteral.createNode({
         value: [ignoredNumericLiteral(path.node.value), t.nullLiteral()]
       });
       path.replaceWith(op);
     }
+  };
+
+  Object.keys(visitors).forEach(key => {
+    var originalVisitor = visitors[key];
+    visitors[key] = function(path) {
+      if (path.node.ignore) {
+        return;
+      }
+      return originalVisitor.apply(this, arguments);
+    };
+  });
+
+  visitors["Program"] = {
+    // Run on exit so injected code isn't processed by other babel plugins
+    exit: function(path) {
+      var initCodeAstNodes = babylon.parse(helperCode).program.body.reverse();
+      initCodeAstNodes.forEach(node => {
+        path.node.body.unshift(node);
+      });
+    }
+  };
+
+  visitors["MemberExpression"] = path => {
+    // this fn does not have if (path.node.ignore){return} and if
+    // i add it it breaks tests, not sure why
+    if (isInLeftPartOfAssignmentExpression(path)) {
+      return;
+    }
+
+    // todo: dedupe this code
+    var property;
+    if (path.node.computed === true) {
+      property = path.node.property;
+    } else {
+      if (path.node.property.type === "Identifier") {
+        property = babel.types.stringLiteral(path.node.property.name);
+        property.loc = path.node.property.loc;
+      }
+    }
+
+    const op = operations.memberExpression.createNode({
+      object: [path.node.object, getLastOperationTrackingResultCall],
+      propName: [property, getLastOperationTrackingResultCall]
+    });
+
+    path.replaceWith(op);
   };
 
   return {
