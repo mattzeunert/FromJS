@@ -122,31 +122,20 @@ export default function() {
           },
           extraArgTrackingValues: values => {
             extraTrackingValues = values;
+          },
+          argTrackingInfo(info) {
+            argTrackingInfo = info;
           }
         };
-        var fns = {
-          getObjectPropertyTrackingValue
-        };
-        ret = operationsExec[opName](objArgs, astArgs, setters, fns);
+        ret = operationsExec[opName](objArgs, astArgs, {
+          setters,
+          operationTypes,
+          getObjectPropertyTrackingValue,
+          getLastOpTrackingResult() {
+            return lastOpTrackingResult;
+          }
+        });
       } else if (opName === operationTypes.callExpression) {
-        var [__, ___, ...fnArgs] = args;
-        var [fn, object] = argValues;
-        argTrackingInfo = fnArgs.map(arg => ({
-          type: operationTypes.functionArgument,
-          argValues: [ret],
-          argTrackingValues: [arg[1]],
-          fnToString: fn.toString(),
-          resVal: [arg[0]]
-        }));
-        var fnArgValues = fnArgs.map(arg => arg[0]);
-
-        ret = fn.apply(object, fnArgValues);
-
-        argTrackingInfo = null;
-
-        extraTrackingValues = {
-          returnValue: [ret, lastOpTrackingResult] // pick up value from returnStatement
-        };
       } else if (opName === "stringLiteral") {
         ret = argValues[0];
       } else if (opName === "identifier") {

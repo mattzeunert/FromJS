@@ -30,7 +30,7 @@ test("Can handle object literals", done => {
     var stringKey = {"a": "a"}
     var numberKey = {1: "a"}
     return {a: "a"}
-  `).then(({ normal, tracking }) => {
+  `).then(({ normal, tracking, code }) => {
     expect(normal.a).toBe("a");
     done();
   });
