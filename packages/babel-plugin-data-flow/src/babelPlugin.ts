@@ -16,10 +16,11 @@ import {
 
 import helperCodeLoaded from "./helperFunctions";
 import helperFunctions from "./helperFunctions";
-let helperCode = helperCodeLoaded.replace(
-  "__FUNCTION_NAMES__",
-  JSON.stringify(FunctionNames)
-);
+let helperCode = helperCodeLoaded.toString();
+helperCode = helperCode.slice("function default_1() {".length, -1);
+helperCode = helperCode
+  .toString()
+  .replace("__FUNCTION_NAMES__", JSON.stringify(FunctionNames));
 helperCode = helperCode.replace(
   "__OPERATION_TYPES__",
   JSON.stringify(OperationTypes)
