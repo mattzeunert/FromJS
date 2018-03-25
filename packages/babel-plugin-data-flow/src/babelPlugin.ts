@@ -15,7 +15,6 @@ import {
 } from "./babelPluginHelpers";
 
 import helperCodeLoaded from "./helperFunctions";
-import helperFunctions from "./helperFunctions";
 let helperCode = helperCodeLoaded.toString();
 helperCode = helperCode.slice("function default_1() {".length, -1);
 helperCode = helperCode
@@ -25,6 +24,18 @@ helperCode = helperCode.replace(
   "__OPERATION_TYPES__",
   JSON.stringify(OperationTypes)
 );
+
+var opsExecString = `{`;
+Object.keys(operations).forEach(opName => {
+  if (!operations[opName].exec) {
+    console.log("no exec for operation", opName);
+    return;
+  }
+  opsExecString += `${opName}: ${operations[opName].exec.toString()},`;
+});
+opsExecString += `}`;
+
+helperCode = helperCode.replace("__OPERATIONS_EXEC__", opsExecString);
 helperCode += "/* HELPER_FUNCTIONS_END */ ";
 
 // I got some babel-generator "cannot read property 'type' of undefined" errors

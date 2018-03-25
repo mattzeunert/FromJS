@@ -36,9 +36,14 @@ export default function traverse(trackingValue, charIndex, steps = []) {
       }
       break;
     case OperationTypes.memberExpression:
+      nextStep = {
+        trackingValue: trackingValue.extraArgs.propertyValue[1],
+        charIndex: charIndex
+      };
+      break;
     case OperationTypes.callExpression:
       nextStep = {
-        trackingValue: trackingValue.extraTrackingValues[0],
+        trackingValue: trackingValue.extraArgs.returnValue[1],
         charIndex: charIndex
       };
       break;

@@ -1,6 +1,6 @@
-declare var __FUNCTION_NAMES__, __OPERATION_TYPES__;
+declare var __FUNCTION_NAMES__, __OPERATION_TYPES__, __OPERATIONS_EXEC__;
 export default function() {
-  (function(functionNames, operationTypes) {
+  (function(functionNames, operationTypes, operationsExec) {
     var global = Function("return this")();
     if (global.__didInitializeDataFlowTracking) {
       return;
@@ -112,10 +112,23 @@ export default function() {
         }
         return arg[1];
       });
-      var extraTrackingValues = [];
-      var extraTrackingValueArgNames = [];
+      var extraTrackingValues = {};
       var ret;
-      if (opName === operationTypes.callExpression) {
+      if (operationsExec[opName]) {
+        var setters = {
+          lastMemberExpressionResult: arr => {
+            lastMemberExpressionObjectValue = arr[0];
+            lastMemberExpressionObjectTrackingValue = arr[1];
+          },
+          extraArgTrackingValues: values => {
+            extraTrackingValues = values;
+          }
+        };
+        var fns = {
+          getObjectPropertyTrackingValue
+        };
+        ret = operationsExec[opName](objArgs, astArgs, setters, fns);
+      } else if (opName === operationTypes.callExpression) {
         var [__, ___, ...fnArgs] = args;
         var [fn, object] = argValues;
         argTrackingInfo = fnArgs.map(arg => ({
@@ -131,9 +144,9 @@ export default function() {
 
         argTrackingInfo = null;
 
-        extraTrackingValues.push(
-          lastOpTrackingResult // pick up value from returnStatement
-        );
+        extraTrackingValues = {
+          returnValue: [ret, lastOpTrackingResult] // pick up value from returnStatement
+        };
       } else if (opName === "stringLiteral") {
         ret = argValues[0];
       } else if (opName === "identifier") {
@@ -190,37 +203,6 @@ export default function() {
         } else {
           throw Error("unknown: " + assignmentType);
         }
-      } else if (opName === operationTypes.binaryExpression) {
-        var { left, right } = objArgs;
-        left = left[0];
-        right = right[0];
-
-        var { operator } = astArgs;
-        if (operator === "+") {
-          ret = left + right;
-        } else if (operator === "-") {
-          ret = left - right;
-        } else if (operator === "*") {
-          ret = left * right;
-        } else if (operator === "/") {
-          ret = left / right;
-        } else {
-          throw Error("unknown bin exp operator: " + operator);
-        }
-      } else if (opName === "memberExpression") {
-        // var [object, property] = argValues;
-        // var [objectT, propertyT] = argTrackingValues
-        var object = objArgs.object[0];
-        var objectT = objArgs.object[1];
-        var propertyName = objArgs.propName[0];
-        ret = object[propertyName];
-        extraTrackingValueArgNames.push("property value");
-        extraTrackingValues.push(
-          getObjectPropertyTrackingValue(object, propertyName)
-        );
-
-        lastMemberExpressionObjectValue = object;
-        lastMemberExpressionObjectTrackingValue = objectT;
       } else if (opName === "numericLiteral") {
         ret = argValues[0];
       } else if (opName === operationTypes.objectExpression) {
@@ -277,11 +259,10 @@ export default function() {
         type: opName,
         argValues,
         argTrackingValues,
-        extraTrackingValues,
+        extraArgs: extraTrackingValues,
         resVal: ret,
         argNames,
-        astArgs,
-        extraTrackingValueArgNames
+        astArgs
         // place: Error()
         //   .stack.split("\\\\n")
         //   .slice(2, 3)
@@ -305,5 +286,5 @@ export default function() {
       lastOpTrackingResult = null;
       return ret;
     };
-  })(__FUNCTION_NAMES__, __OPERATION_TYPES__);
+  })(__FUNCTION_NAMES__, __OPERATION_TYPES__, __OPERATIONS_EXEC__);
 }

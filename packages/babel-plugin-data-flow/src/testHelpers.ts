@@ -11,7 +11,7 @@ export function instrumentAndRun(code) {
       if (result.tracking) {
         // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
         result.tracking = result.tracking.argTrackingValues[0];
-        result.tracking = result.tracking.extraTrackingValues[0];
+        result.tracking = result.tracking.extraArgs.returnValue[1];
         var p = result.tracking;
         result.tracking = result.tracking.argTrackingValues[0];
       }
