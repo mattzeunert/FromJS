@@ -360,4 +360,36 @@ it("Trakcs array expressions", done => {
   });
 });
 
-// test return [a,b]
+describe("Supports ++ and -- operators", () => {
+  it("Doesn't break the ++ operator when used on an identifier", done => {
+    instrumentAndRun(`
+    var a = 5
+    a++
+    return a
+  `).then(({ normal, tracking, code }) => {
+      expect(normal).toBe(6);
+      done();
+    });
+  });
+  it("Doesn't break the -- operator when used on an identifier", done => {
+    instrumentAndRun(`
+    var a = 5
+    a--
+    return a
+  `).then(({ normal, tracking, code }) => {
+      expect(normal).toBe(4);
+      done();
+    });
+  });
+  it("Doesn't break the ++ operator when used on a member expression", done => {
+    instrumentAndRun(`
+    var obj = {a: 5}
+    obj.a++
+    var x= obj.a
+    return x
+  `).then(({ normal, tracking, code }) => {
+      expect(normal).toBe(6);
+      done();
+    });
+  });
+});

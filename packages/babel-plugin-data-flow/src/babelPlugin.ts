@@ -505,6 +505,9 @@ export default function plugin(babel) {
     if (isInLeftPartOfAssignmentExpression(path)) {
       return;
     }
+    if (path.parent.type === "UpdateExpression") {
+      return;
+    }
 
     // todo: dedupe this code
     var property;
