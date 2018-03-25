@@ -455,15 +455,6 @@ export default function plugin(babel) {
       // todo: would it be better for perf if I just updated the existing call expression instead?
       path.replaceWith(call);
     },
-    StringLiteral(path) {
-      if (path.parent.type === "ObjectProperty") {
-        return;
-      }
-      var op = operations.stringLiteral.createNode({
-        value: [ignoredStringLiteral(path.node.value), t.nullLiteral()]
-      });
-      path.replaceWith(op);
-    },
     NumericLiteral(path) {
       if (path.parent.type === "ObjectProperty") {
         return;
@@ -474,6 +465,19 @@ export default function plugin(babel) {
       path.replaceWith(op);
     }
   };
+
+  Object.keys(operations).forEach(key => {
+    var operation = operations[key];
+    key = key[0].toUpperCase() + key.slice(1);
+    if (operation.visitor) {
+      visitors[key] = path => {
+        var ret = operation.visitor.call(operation, path);
+        if (ret) {
+          path.replaceWith(ret);
+        }
+      };
+    }
+  });
 
   Object.keys(visitors).forEach(key => {
     var originalVisitor = visitors[key];

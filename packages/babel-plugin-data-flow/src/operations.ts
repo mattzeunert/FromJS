@@ -1,11 +1,17 @@
 import * as OperationTypes from "./OperationTypes";
-import { createOperation, ignoredArrayExpression } from "./babelPluginHelpers";
+import * as t from "@babel/types";
+import {
+  createOperation,
+  ignoredArrayExpression,
+  ignoredStringLiteral
+} from "./babelPluginHelpers";
 
 function createNode(args, astArgs = null) {}
 
 interface Operations {
   [key: string]: {
     createNode?: any;
+    visitor?: any;
     exec: any;
   };
 }
@@ -85,6 +91,14 @@ const operations: Operations = {
     }
   },
   stringLiteral: {
+    visitor(path) {
+      if (path.parent.type === "ObjectProperty") {
+        return;
+      }
+      return this.createNode({
+        value: [ignoredStringLiteral(path.node.value), t.nullLiteral()]
+      });
+    },
     exec: (args, astArgs, ctx) => {
       return args.value[0];
     }
