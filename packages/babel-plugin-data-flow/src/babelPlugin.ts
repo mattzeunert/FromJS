@@ -510,50 +510,32 @@ export default function plugin(babel) {
 
       // todo: would it be better for perf if I just updated the existing call expression instead?
       path.replaceWith(call);
-    }
-  };
-
-  const simpleHooks = {
-    StringLiteral: {
-      skipIf: path => path.parent.type === "ObjectProperty",
-      args: path => {
-        return [ignoredArrayExpression([path.node, t.nullLiteral()])];
-      }
     },
-    NumericLiteral: {
-      skipIf: path => path.parent.type === "ObjectProperty",
-      args: path => {
-        return [ignoredArrayExpression([path.node, t.nullLiteral()])];
+    StringLiteral(path) {
+      if (path.parent.type === "ObjectProperty") {
+        return;
       }
-    }
-  };
-
-  function camelCase(str) {
-    return str[0].toLowerCase() + str.slice(1);
-  }
-
-  Object.keys(simpleHooks).forEach(nodeName => {
-    var hook = simpleHooks[nodeName];
-
-    visitors[nodeName] = function(path) {
       if (path.node.ignore) {
         return;
       }
-      if (hook.skipIf) {
-        if (hook.skipIf(path)) {
-          return;
-        }
+      var op = operations.stringLiteral.createNode({
+        value: [ignoredStringLiteral(path.node.value), t.nullLiteral()]
+      });
+      path.replaceWith(op);
+    },
+    NumericLiteral(path) {
+      if (path.parent.type === "ObjectProperty") {
+        return;
       }
-      path.node.ignore = true;
-
-      const operation = createOperation(
-        camelCase(path.node.type),
-        hook.args(path)
-      );
-
-      path.replaceWith(operation);
-    };
-  });
+      if (path.node.ignore) {
+        return;
+      }
+      var op = operations.numericLiteral.createNode({
+        value: [ignoredNumericLiteral(path.node.value), t.nullLiteral()]
+      });
+      path.replaceWith(op);
+    }
+  };
 
   return {
     name: "babel-plugin-data-flow",

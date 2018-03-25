@@ -83,6 +83,16 @@ const operations: Operations = {
 
       return ret;
     }
+  },
+  stringLiteral: {
+    exec: (args, astArgs, ctx) => {
+      return args.value[0];
+    }
+  },
+  numericLiteral: {
+    exec: (args, astArgs, ctx) => {
+      return args.value[0];
+    }
   }
 };
 

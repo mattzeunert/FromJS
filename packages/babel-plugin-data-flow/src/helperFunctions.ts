@@ -135,9 +135,6 @@ export default function() {
             return lastOpTrackingResult;
           }
         });
-      } else if (opName === operationTypes.callExpression) {
-      } else if (opName === "stringLiteral") {
-        ret = argValues[0];
       } else if (opName === "identifier") {
         ret = argValues[0];
       } else if (opName === "returnStatement") {
