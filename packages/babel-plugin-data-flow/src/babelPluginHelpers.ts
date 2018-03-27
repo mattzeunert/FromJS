@@ -52,24 +52,17 @@ export function ignoredNumericLiteral(number) {
 }
 
 export function ignoredObjectExpression(props) {
-  const properties = [
-    ignoreNode(
+  const properties = Object.keys(props).map(propKey => {
+    return ignoreNode(
       t.objectProperty(
-        ignoredStringLiteral("isUsingObjectSyntax"),
-        ignoreNode(t.booleanLiteral(true))
+        ignoredStringLiteral(propKey),
+        props[propKey].length !== undefined
+          ? ignoredArrayExpression(props[propKey])
+          : props[propKey]
       )
-    ),
-    ...Object.keys(props).map(propKey => {
-      return ignoreNode(
-        t.objectProperty(
-          ignoredStringLiteral(propKey),
-          props[propKey].length !== undefined
-            ? ignoredArrayExpression(props[propKey])
-            : props[propKey]
-        )
-      );
-    })
-  ];
+    );
+  });
+
   return ignoreNode(t.objectExpression(properties));
 }
 

@@ -26,7 +26,7 @@ interface Operations {
     createNode?: any;
     visitor?: any;
     exec: any;
-    arrayArguments: string[];
+    arrayArguments?: string[];
   };
 }
 

@@ -92,23 +92,16 @@ export default function() {
       var objArgs;
       var astArgs;
       var argNames = [];
-      if (args && args[0] && args[0].isUsingObjectSyntax) {
-        // todo: remove this condition, should always use obj syntax
-        objArgs = args[0];
-        astArgs = args[1];
-        delete objArgs.isUsingObjectSyntax;
 
-        args;
-        if (operationArrayArguments[opName]) {
-          operationArrayArguments[opName].forEach(arrayArgName => {});
-        }
-        args = Object.values(objArgs);
-        argNames = Object.keys(objArgs);
-      } else {
-        argNames = Array.from(new Array(args.length)).map(
-          a => "unknown arg name"
-        );
+      objArgs = args[0];
+      astArgs = args[1];
+
+      args;
+      if (operationArrayArguments[opName]) {
+        operationArrayArguments[opName].forEach(arrayArgName => {});
       }
+      args = Object.values(objArgs);
+      argNames = Object.keys(objArgs);
 
       var argValues = args.map(arg => arg[0]);
       var argTrackingValues = args.map(arg => {
