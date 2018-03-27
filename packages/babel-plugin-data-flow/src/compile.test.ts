@@ -4,10 +4,8 @@ import { instrumentAndRun } from "./testHelpers";
 test("adds 1 + 2 to equal 3", done => {
   instrumentAndRun("return 1 + 2").then(({ normal, tracking }) => {
     expect(normal).toBe(3);
-    expect(tracking.type).toBe(OperationTypes.binaryExpression);
-    expect(tracking.argTrackingValues[1].type).toBe(
-      OperationTypes.numericLiteral
-    );
+    expect(tracking.operation).toBe(OperationTypes.binaryExpression);
+    expect(tracking.args.left[1].operation).toBe(OperationTypes.numericLiteral);
 
     done();
   });
@@ -19,19 +17,8 @@ test("Can handle variable declarations with init value", done => {
     return b
   `).then(({ normal, tracking }) => {
     expect(normal).toBe(2);
-    expect(tracking.argTrackingValues[0].type).toBe("numericLiteral");
+    expect(tracking.args.value[1].operation).toBe("numericLiteral");
 
-    done();
-  });
-});
-
-test("Can handle object literals", done => {
-  instrumentAndRun(`
-    var stringKey = {"a": "a"}
-    var numberKey = {1: "a"}
-    return {a: "a"}
-  `).then(({ normal, tracking, code }) => {
-    expect(normal.a).toBe("a");
     done();
   });
 });
@@ -78,6 +65,7 @@ describe("Can handle variables that aren't declared explicitly", () => {
     instrumentAndRun(`
       global.__abcdef = "a"
       __abcdef = "b"
+      return 0
     `).then(({ normal, tracking }) => {
       done();
     });
@@ -86,6 +74,7 @@ describe("Can handle variables that aren't declared explicitly", () => {
     instrumentAndRun(`
       var fnGlobal = function(){}
       fnGlobal(global)
+      return 0
     `).then(({ normal, tracking }) => {
       done();
     });
@@ -174,6 +163,7 @@ test("Can handle for loops that contain assignments in the condition", done => {
         throw Error("fail")
       }
     }
+    return 0
   `).then(({ normal, tracking }) => {
     // expect(normal).toBe("ok");
     done();
@@ -199,6 +189,7 @@ test("Does not call getters twice when making calls", done => {
     if (getterInvocationCount > 1) {
       throw Error("getter called too often")
     }
+    return 0
   `).then(({ normal, tracking }) => {
     done();
   });
@@ -216,6 +207,17 @@ test("Returns the assigned value from assignments", done => {
 });
 
 describe("Object literals", () => {
+  test("Can handle object literals", done => {
+    instrumentAndRun(`
+      var stringKey = {"a": "a"}
+      var numberKey = {1: "a"}
+      return {a: "a"}
+    `).then(({ normal, tracking, code }) => {
+      expect(normal.a).toBe("a");
+      done();
+    });
+  });
+
   test("Tracks object literal values", done => {
     instrumentAndRun(`
       var obj = {
@@ -286,9 +288,8 @@ test("Tracks where a function's context came from", done => {
     return a.slice(0)
   `).then(({ normal, tracking, code }) => {
     // function context is string "a"
-    expect(tracking.argTrackingValues[1].argTrackingValues[0].type).toBe(
-      "stringLiteral"
-    );
+    var identifier = tracking.args.context[1];
+    expect(identifier.args.value[1].operation).toBe("stringLiteral");
 
     done();
   });
@@ -301,7 +302,9 @@ describe("Tracks values across assignments", () => {
     a = "b"
     return a
   `).then(({ normal, tracking, code }) => {
-      expect(tracking.argTrackingValues[0].argValues[3]).toBe("b");
+      var strLit = tracking.args.value[1].args.argument[1];
+      expect(strLit.operation).toBe("stringLiteral");
+      expect(strLit.result).toBe("b");
 
       done();
     });
@@ -314,9 +317,9 @@ describe("Tracks values across assignments", () => {
     return a
   `).then(({ normal, tracking, code }) => {
       expect(normal).toBe("b");
-      expect(tracking.argTrackingValues[0].argTrackingValues[4].resVal).toBe(
-        "b"
-      );
+      expect(
+        tracking.args.value[1].args.newValue[1].args.value[1].operation
+      ).toBe("stringLiteral");
 
       done();
     });
@@ -329,8 +332,7 @@ it("Can track `-` binary expressions", done => {
     return a
   `).then(({ normal, tracking, code }) => {
     expect(normal).toBe(2);
-    expect(tracking.argTrackingValues[0].type).toBe("binaryExpression");
-    // expect(tracking.argTrackingValues[0].argValues[0]).toBe("b");
+    expect(tracking.args.value[1].operation).toBe("binaryExpression");
 
     done();
   });
@@ -343,11 +345,15 @@ it("Can track `/=` binary expressions", done => {
     return a
   `).then(({ normal, tracking, code }) => {
     expect(normal).toBe(5);
-    var assignmentExpression = tracking.argTrackingValues[0];
-    expect(assignmentExpression.type).toBe(OperationTypes.assignmentExpression);
-    expect(assignmentExpression.argValues[0]).toBe("/=");
-    expect(assignmentExpression.argTrackingValues[2].resVal).toBe(10);
-    expect(assignmentExpression.argTrackingValues[4].argValues[0]).toBe(2);
+    var assignmentExpression = tracking.args.value[1];
+
+    expect(assignmentExpression.operation).toBe(
+      OperationTypes.assignmentExpression
+    );
+
+    expect(assignmentExpression.args.operator[0]).toBe("/=");
+    expect(assignmentExpression.args.currentValue[0]).toBe(10);
+    expect(assignmentExpression.args.argument[0]).toBe(2);
 
     done();
   });
@@ -365,8 +371,6 @@ describe("AssignmentExpression", () => {
       a().val += "b"
       return [counter, obj.val]    
     `).then(({ normal, tracking, code }) => {
-      const memberExpression = tracking.argTrackingValues[1]; // obj.val
-
       expect(normal[0]).toBe(1);
       expect(normal[1]).toBe("ab");
 
@@ -381,8 +385,9 @@ it("Trakcs array expressions", done => {
     return a
   `).then(({ normal, tracking, code }) => {
     expect(normal).toEqual([1, 2, 3]);
-    var arrayExpression = tracking.argTrackingValues[0];
-    expect(arrayExpression.objArgs.elements[0][1].type).toBe("numericLiteral");
+    expect(tracking.args.value[1].args.elements[0][1].operation).toBe(
+      "numericLiteral"
+    );
 
     done();
   });

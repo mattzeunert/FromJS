@@ -8,13 +8,11 @@ export default function traverse(trackingValue, charIndex, steps = []) {
   });
   // console.log("Traversing", { trackingValue, charIndex });
   let nextStep = null;
-  switch (trackingValue.type) {
+  switch (trackingValue.operation) {
     case OperationTypes.binaryExpression:
       const { operator } = trackingValue.astArgs;
-      const left = trackingValue.argValues[0];
-      const leftTracking = trackingValue.argTrackingValues[0];
-      const right = trackingValue.argValues[1];
-      const rightTracking = trackingValue.argTrackingValues[1];
+      const [left, leftTracking] = trackingValue.args.left;
+      const [right, rightTracking] = trackingValue.args.right;
       if (operator == "+") {
         if (typeof left === "string" && typeof right === "string") {
           if (charIndex < left.length) {
@@ -49,26 +47,31 @@ export default function traverse(trackingValue, charIndex, steps = []) {
       break;
     case OperationTypes.functionArgument:
       nextStep = {
-        trackingValue: trackingValue.argTrackingValues[0],
+        trackingValue: trackingValue.args.value[1],
         charIndex: charIndex
       };
       break;
     case OperationTypes.objectExpression:
       nextStep = {
-        trackingValue: trackingValue.argTrackingValues[0],
+        trackingValue: trackingValue.args.propertyValue[1],
         charIndex: charIndex
       };
       break;
     case OperationTypes.assignmentExpression:
       nextStep = {
-        trackingValue: trackingValue.argTrackingValues[1],
+        trackingValue: trackingValue.args.argument[1],
         charIndex: charIndex
       };
       break;
     case OperationTypes.identifier:
+      nextStep = {
+        trackingValue: trackingValue.args.value[1],
+        charIndex: charIndex
+      };
+      break;
     case OperationTypes.returnStatement:
       nextStep = {
-        trackingValue: trackingValue.argTrackingValues[0],
+        trackingValue: trackingValue.args.returnValue[1],
         charIndex: charIndex
       };
       break;

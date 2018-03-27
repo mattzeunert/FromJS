@@ -124,12 +124,16 @@ const operations: Operations = {
         }
         arg = args[argKey];
         fnArgValues.push(arg[0]);
-        fnArgs.push({
-          type: ctx.operationTypes.functionArgument,
-          argValues: [ret],
-          argTrackingValues: [arg[1]],
-          resVal: [arg[0]]
-        });
+        fnArgs.push(
+          new ctx.OperationLog({
+            operation: ctx.operationTypes.functionArgument,
+            args: {
+              value: arg
+            },
+            astArgs: {},
+            result: arg[0]
+          })
+        );
         i++;
       }
 
@@ -212,13 +216,16 @@ const operations: Operations = {
 
           obj[propertyKey] = propertyValue;
 
-          ctx.trackObjectPropertyAssignment(obj, propertyKey, {
-            type: "objectExpression",
-            argNames: ["property value"],
-            argValues: [propertyValue],
-            argTrackingValues: [propertyValueT],
-            resVal: propertyValue
-          });
+          ctx.trackObjectPropertyAssignment(
+            obj,
+            propertyKey,
+            new ctx.OperationLog({
+              operation: "objectExpression",
+              args: { propertyValue: [propertyValue, propertyValueT] },
+              result: propertyValue,
+              astArgs: {}
+            })
+          );
         } else if (propertyType === "ObjectMethod") {
           var propertyKind = property[2][0];
           var fn = property[3][0];
@@ -352,7 +359,6 @@ const operations: Operations = {
     visitor(path) {
       if (
         path.parent.type === "FunctionDeclaration" ||
-        path.parent.type === "CallExpression" ||
         path.parent.type === "MemberExpression" ||
         path.parent.type === "ObjectProperty" ||
         path.parent.type === "CatchClause" ||
@@ -398,12 +404,15 @@ const operations: Operations = {
         var propNameT = args.propertyName[1];
 
         var currentValue = obj[propName];
-        var currentValueT = {
-          type: "memexpAsLeftAssExp",
-          argValues: [obj, propName],
-          argTrackingValues: [objT, propNameT],
-          argNames: ["object", "property Name"]
-        };
+        var currentValueT = new ctx.OperationLog({
+          operation: "memexpAsLeftAssExp",
+          args: {
+            object: [obj, objT],
+            propertyName: [propName, propNameT]
+          },
+          astArgs: {},
+          result: currentValue
+        });
 
         var argument = args.argument[0];
         if (operator === "=") {
@@ -414,14 +423,20 @@ const operations: Operations = {
           throw Error("unknown op " + operator);
         }
 
-        ctx.trackObjectPropertyAssignment(obj, propName, {
-          type: "assignmentExpression",
-          argValues: [currentValue, argument],
-          argTrackingValues: [currentValueT, args.argument[1]],
-          argNames: ["currentValue", "argument"]
-        });
+        ctx.trackObjectPropertyAssignment(
+          obj,
+          propName,
+          new ctx.OperationLog({
+            operation: "assignmentExpression",
+            args: {
+              currentValue: [currentValue, currentValueT],
+              argument: args.argument
+            },
+            argTrackingValues: [currentValueT, args.argument[1]],
+            argNames: ["currentValue", "argument"]
+          })
+        );
       } else if (assignmentType === "Identifier") {
-        // console.log({resultValue})
         ret = args.newValue[0];
       } else {
         throw Error("unknown: " + assignmentType);
@@ -478,9 +493,6 @@ const operations: Operations = {
           )
         );
         trackingAssignment.ignore = true;
-
-        path.node.left.ignore = true;
-        path.node.ignore = true;
 
         operationArguments["currentValue"] = ignoredArrayExpression([
           path.node.left,

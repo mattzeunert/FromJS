@@ -2,6 +2,7 @@ declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
   __OPERATIONS_EXEC__,
   __OPERATION_ARRAY_ARGUMENTS__;
+
 export default function() {
   (function(
     functionNames,
@@ -9,6 +10,14 @@ export default function() {
     operationsExec,
     operationArrayArguments
   ) {
+    function OperationLog({ operation, result, args, astArgs, extraArgs }) {
+      this.operation = operation;
+      this.result = result;
+      this.args = args;
+      this.astArgs = astArgs;
+      this.extraArgs = extraArgs;
+    }
+
     var global = Function("return this")();
     if (global.__didInitializeDataFlowTracking) {
       return;
@@ -28,7 +37,6 @@ export default function() {
     };
 
     global.getTrackingAndNormalValue = function(value) {
-      // console.log("getTrackingAndNormalValue", value)
       return {
         normal: value,
         tracking: argTrackingInfo[0]
@@ -75,6 +83,7 @@ export default function() {
     global["__setMemoValue"] = function(key, value, trackingValue) {
       // console.log("setmemovalue", value)
       memoValues[key] = { value, trackingValue };
+      lastOpTrackingResult = trackingValue;
       return value;
     };
     global["__getMemoValue"] = function(key) {
@@ -86,7 +95,7 @@ export default function() {
 
     var lastOpValueResult = null;
     var lastOpTrackingResult = null;
-    global[functionNames.doOperation] = function op(opName, ...args) {
+    global[functionNames.doOperation] = function op(opName: string, ...args) {
       var value, trackingValue;
 
       var objArgs;
@@ -100,18 +109,17 @@ export default function() {
       if (operationArrayArguments[opName]) {
         operationArrayArguments[opName].forEach(arrayArgName => {});
       }
-      args = Object.values(objArgs);
-      argNames = Object.keys(objArgs);
 
       var argValues = args.map(arg => arg[0]);
       var argTrackingValues = args.map(arg => {
         if (arg[1] === null) {
-          return {
-            type: "Unknown type",
-            resVal: arg[0],
-            argTrackingValues: [],
-            argValues: []
-          };
+          return new OperationLog({
+            operation: "Unknown operation",
+            result: arg[0],
+            args: {},
+            astArgs: {},
+            extraArgs: {}
+          });
         }
         return arg[1];
       });
@@ -135,6 +143,7 @@ export default function() {
           operationTypes,
           getObjectPropertyTrackingValue,
           trackObjectPropertyAssignment,
+          OperationLog,
           getLastOpTrackingResult() {
             return lastOpTrackingResult;
           }
@@ -144,19 +153,27 @@ export default function() {
         throw Error("oh no");
       }
 
-      trackingValue = {
-        type: opName,
-        argValues,
-        objArgs,
-        argTrackingValues,
-        extraArgs: extraTrackingValues,
-        resVal: ret,
-        argNames,
-        astArgs
-        // place: Error()
-        //   .stack.split("\\\\n")
-        //   .slice(2, 3)
-      };
+      trackingValue = new OperationLog({
+        operation: opName,
+        args: objArgs,
+        astArgs: astArgs,
+        result: ret,
+        extraArgs: extraTrackingValues
+      });
+
+      // trackingValue = {
+      //   type: opName,
+      //   argValues,
+      //   objArgs,
+      //   argTrackingValues,
+      //   extraArgs: extraTrackingValues,
+      //   resVal: ret,
+      //   argNames,
+      //   astArgs
+      //   // place: Error()
+      //   //   .stack.split("\\\\n")
+      //   //   .slice(2, 3)
+      // };
 
       lastOpValueResult = ret;
       lastOpTrackingResult = trackingValue;

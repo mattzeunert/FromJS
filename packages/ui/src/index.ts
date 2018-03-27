@@ -62,6 +62,7 @@ function runCodeAndshowResult(code) {
 
   document.querySelector("#basic-example").innerHTML = "";
 
+  debugger;
   var data =
     window["inspectedValue"].tracking.argTrackingValues[0].argTrackingValues[0];
 
