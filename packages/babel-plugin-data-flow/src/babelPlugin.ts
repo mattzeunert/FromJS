@@ -456,15 +456,6 @@ export default function plugin(babel) {
 
       // todo: would it be better for perf if I just updated the existing call expression instead?
       path.replaceWith(call);
-    },
-    NumericLiteral(path) {
-      if (path.parent.type === "ObjectProperty") {
-        return;
-      }
-      var op = operations.numericLiteral.createNode({
-        value: [ignoredNumericLiteral(path.node.value), t.nullLiteral()]
-      });
-      path.replaceWith(op);
     }
   };
 

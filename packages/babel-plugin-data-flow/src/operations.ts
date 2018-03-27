@@ -4,7 +4,8 @@ import {
   createOperation,
   ignoredArrayExpression,
   ignoredStringLiteral,
-  getLastOperationTrackingResultCall
+  getLastOperationTrackingResultCall,
+  ignoredNumericLiteral
 } from "./babelPluginHelpers";
 
 function createNode(args, astArgs = null) {}
@@ -111,6 +112,14 @@ const operations: Operations = {
     }
   },
   numericLiteral: {
+    visitor(path) {
+      if (path.parent.type === "ObjectProperty") {
+        return;
+      }
+      return this.createNode({
+        value: [ignoredNumericLiteral(path.node.value), t.nullLiteral()]
+      });
+    },
     exec: (args, astArgs, ctx) => {
       return args.value[0];
     }
