@@ -1,4 +1,7 @@
-declare var __FUNCTION_NAMES__, __OPERATION_TYPES__, __OPERATIONS_EXEC__;
+declare var __FUNCTION_NAMES__,
+  __OPERATION_TYPES__,
+  __OPERATIONS_EXEC__,
+  __OPERATION_ARRAY_ARGUMENTS__;
 export default function() {
   (function(
     functionNames,

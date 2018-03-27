@@ -6,7 +6,7 @@ export function instrumentAndRun(code) {
     compile(code).then(result => {
       var code = result.code;
       var result = eval(result.code);
-      result.code = code.split("getTrackingAndNormalValue")[2]; // only the interesting code
+      result.code = code.split("* HELPER_FUNCTIONS_END */")[1]; // only the interesting code
 
       if (result.tracking) {
         // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue

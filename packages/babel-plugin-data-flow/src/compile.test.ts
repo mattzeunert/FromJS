@@ -139,12 +139,12 @@ describe("Can handle while loops correctly", () => {
       while ((item = list.shift()) !== null) {
         counter++
         if (counter > 1) {
-          throw Error("no")
+          throw Error("counter value too high")
         }
       }
 
       return counter
-    `).then(({ normal, tracking }) => {
+    `).then(({ normal, tracking, code }) => {
       expect(normal).toBe(1);
       done();
     });

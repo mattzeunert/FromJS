@@ -42,6 +42,32 @@ const operations: Operations = {
       ctx.setters.lastMemberExpressionResult([object, objectT]);
 
       return ret;
+    },
+    visitor(path) {
+      if (isInLeftPartOfAssignmentExpression(path)) {
+        return;
+      }
+      if (path.parent.type === "UpdateExpression") {
+        return;
+      }
+
+      // todo: dedupe this code
+      var property;
+      if (path.node.computed === true) {
+        property = path.node.property;
+      } else {
+        if (path.node.property.type === "Identifier") {
+          property = t.stringLiteral(path.node.property.name);
+          property.loc = path.node.property.loc;
+        }
+      }
+
+      const op = this.createNode({
+        object: [path.node.object, getLastOperationTrackingResultCall],
+        propName: [property, getLastOperationTrackingResultCall]
+      });
+
+      return op;
     }
   },
   binaryExpression: {
@@ -149,7 +175,7 @@ const operations: Operations = {
 
       var call = operations.callExpression.createNode({
         function: [
-          ignoreNode(path.node.callee),
+          path.node.callee,
           isMemberExpressionCall
             ? getLastOperationTrackingResultCall
             : getLastOperationTrackingResultCall

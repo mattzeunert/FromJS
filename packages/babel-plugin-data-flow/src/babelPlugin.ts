@@ -273,35 +273,6 @@ export default function plugin(babel) {
     }
   };
 
-  visitors["MemberExpression"] = path => {
-    // this fn does not have if (path.node.ignore){return} and if
-    // i add it it breaks tests, not sure why
-    if (isInLeftPartOfAssignmentExpression(path)) {
-      return;
-    }
-    if (path.parent.type === "UpdateExpression") {
-      return;
-    }
-
-    // todo: dedupe this code
-    var property;
-    if (path.node.computed === true) {
-      property = path.node.property;
-    } else {
-      if (path.node.property.type === "Identifier") {
-        property = babel.types.stringLiteral(path.node.property.name);
-        property.loc = path.node.property.loc;
-      }
-    }
-
-    const op = operations.memberExpression.createNode({
-      object: [path.node.object, getLastOperationTrackingResultCall],
-      propName: [property, getLastOperationTrackingResultCall]
-    });
-
-    path.replaceWith(op);
-  };
-
   return {
     name: "babel-plugin-data-flow",
     visitor: visitors
