@@ -354,7 +354,7 @@ it("Trakcs array expressions", done => {
   `).then(({ normal, tracking, code }) => {
     expect(normal).toEqual([1, 2, 3]);
     var arrayExpression = tracking.argTrackingValues[0];
-    expect(arrayExpression.argTrackingValues[0].type).toBe("numericLiteral");
+    expect(arrayExpression.objArgs.elements[0][1].type).toBe("numericLiteral");
 
     done();
   });

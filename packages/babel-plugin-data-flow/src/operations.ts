@@ -3,7 +3,8 @@ import * as t from "@babel/types";
 import {
   createOperation,
   ignoredArrayExpression,
-  ignoredStringLiteral
+  ignoredStringLiteral,
+  getLastOperationTrackingResultCall
 } from "./babelPluginHelpers";
 
 function createNode(args, astArgs = null) {}
@@ -13,6 +14,7 @@ interface Operations {
     createNode?: any;
     visitor?: any;
     exec: any;
+    arrayArguments: string[];
   };
 }
 
@@ -112,6 +114,22 @@ const operations: Operations = {
     exec: (args, astArgs, ctx) => {
       return args.value[0];
     }
+  },
+  arrayExpression: {
+    arrayArguments: ["elements"],
+    exec: (args, astArgs, ctx) => {
+      function getArrayArgumentValue(arrayArg) {
+        return arrayArg.map(e => e[0]);
+      }
+      return getArrayArgumentValue(args.elements);
+    },
+    visitor(path) {
+      return this.createNode({
+        elements: path.node.elements.map(el =>
+          ignoredArrayExpression([el, getLastOperationTrackingResultCall])
+        )
+      });
+    }
   }
 };
 
@@ -120,6 +138,9 @@ Object.keys(operations).forEach(opName => {
   operation.createNode = function(args, astArgs) {
     return createOperation(OperationTypes[opName], args, astArgs);
   };
+  if (!operation.arrayArguments) {
+    operation.arrayArguments = [];
+  }
 });
 
 export default operations;

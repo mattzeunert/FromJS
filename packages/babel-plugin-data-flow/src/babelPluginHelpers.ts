@@ -93,3 +93,8 @@ export function createOperation(opType, opArgs, astArgs = null) {
 
   return call;
 }
+
+export const getLastOperationTrackingResultCall = ignoredCallExpression(
+  FunctionNames.getLastOperationTrackingResult,
+  []
+);

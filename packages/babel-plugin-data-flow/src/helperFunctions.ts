@@ -1,6 +1,11 @@
 declare var __FUNCTION_NAMES__, __OPERATION_TYPES__, __OPERATIONS_EXEC__;
 export default function() {
-  (function(functionNames, operationTypes, operationsExec) {
+  (function(
+    functionNames,
+    operationTypes,
+    operationsExec,
+    operationArrayArguments
+  ) {
     var global = Function("return this")();
     if (global.__didInitializeDataFlowTracking) {
       return;
@@ -89,6 +94,11 @@ export default function() {
         objArgs = args[0];
         astArgs = args[1];
         delete objArgs.isUsingObjectSyntax;
+
+        args;
+        if (operationArrayArguments[opName]) {
+          operationArrayArguments[opName].forEach(arrayArgName => {});
+        }
         args = Object.values(objArgs);
         argNames = Object.keys(objArgs);
       } else {
@@ -97,9 +107,6 @@ export default function() {
         );
       }
 
-      if (opName === operationTypes.arrayExpression) {
-        args = args[0];
-      }
       var argValues = args.map(arg => arg[0]);
       var argTrackingValues = args.map(arg => {
         if (arg[1] === null) {
@@ -140,8 +147,6 @@ export default function() {
       } else if (opName === "returnStatement") {
         // console.log("returnstatement", argValues[0])
         ret = argValues[0];
-      } else if (opName === operationTypes.arrayExpression) {
-        ret = argValues;
       } else if (opName === operationTypes.assignmentExpression) {
         const assignmentType = argValues[1];
         if (assignmentType === "MemberExpression") {
@@ -244,6 +249,7 @@ export default function() {
       trackingValue = {
         type: opName,
         argValues,
+        objArgs,
         argTrackingValues,
         extraArgs: extraTrackingValues,
         resVal: ret,
@@ -272,5 +278,10 @@ export default function() {
       lastOpTrackingResult = null;
       return ret;
     };
-  })(__FUNCTION_NAMES__, __OPERATION_TYPES__, __OPERATIONS_EXEC__);
+  })(
+    __FUNCTION_NAMES__,
+    __OPERATION_TYPES__,
+    __OPERATIONS_EXEC__,
+    __OPERATION_ARRAY_ARGUMENTS__
+  );
 }

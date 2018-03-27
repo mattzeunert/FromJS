@@ -11,7 +11,8 @@ import {
   ignoredIdentifier,
   ignoredCallExpression,
   ignoredNumericLiteral,
-  createOperation
+  createOperation,
+  getLastOperationTrackingResultCall
 } from "./babelPluginHelpers";
 
 import helperCodeLoaded from "./helperFunctions";
@@ -36,6 +37,24 @@ Object.keys(operations).forEach(opName => {
 opsExecString += `}`;
 
 helperCode = helperCode.replace("__OPERATIONS_EXEC__", opsExecString);
+
+var opsArrayArgumentsString = `{`;
+Object.keys(operations).forEach(opName => {
+  if (!operations[opName].exec) {
+    console.log("no exec for operation", opName);
+    return;
+  }
+  opsArrayArgumentsString += `${opName}: [${operations[
+    opName
+  ].arrayArguments.map(a => `"${a}"`)}],`;
+});
+opsArrayArgumentsString += `}`;
+
+helperCode = helperCode.replace(
+  "__OPERATION_ARRAY_ARGUMENTS__",
+  opsArrayArgumentsString
+);
+
 helperCode += "/* HELPER_FUNCTIONS_END */ ";
 
 // I got some babel-generator "cannot read property 'type' of undefined" errors
@@ -45,11 +64,6 @@ helperCode = "eval(`" + helperCode + "`)";
 
 export default function plugin(babel) {
   const { types: t } = babel;
-
-  var getLastOperationTrackingResultCall = ignoredCallExpression(
-    FunctionNames.getLastOperationTrackingResult,
-    []
-  );
 
   var getLastOpValue = ignoredCallExpression(
     FunctionNames.getLastOperationValueResult,
@@ -164,18 +178,6 @@ export default function plugin(babel) {
       });
     },
 
-    ArrayExpression(path) {
-      path.replaceWith(
-        createOperation(OperationTypes.arrayExpression, [
-          ignoredArrayExpression(
-            path.node.elements.map(el =>
-              ignoredArrayExpression([el, getLastOperationTrackingResultCall])
-            )
-          ),
-          getLastOperationTrackingResultCall
-        ])
-      );
-    },
     BinaryExpression(path) {
       if (["+", "-", "/", "*"].includes(path.node.operator)) {
         path.replaceWith(
