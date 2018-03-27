@@ -12,7 +12,11 @@ import {
   ignoredCallExpression,
   ignoredNumericLiteral,
   createOperation,
-  getLastOperationTrackingResultCall
+  getLastOperationTrackingResultCall,
+  runIfIdentifierExists,
+  isInNodeType,
+  isInIdOfVariableDeclarator,
+  isInLeftPartOfAssignmentExpression
 } from "./babelPluginHelpers";
 
 import helperCodeLoaded from "./helperFunctions";
@@ -86,39 +90,10 @@ export default function plugin(babel) {
     return isInNodeType("AssignmentExpression", path);
   }
 
-  function isInLeftPartOfAssignmentExpression(path) {
-    return isInNodeType("AssignmentExpression", path, function(path, prevPath) {
-      return path.node.left === prevPath.node;
-    });
-  }
-
-  function isInIdOfVariableDeclarator(path) {
-    return isInNodeType("VariableDeclarator", path, function(path, prevPath) {
-      return path.node.id === prevPath.node;
-    });
-  }
-
   function isInCallExpressionCallee(path) {
     return isInNodeType("CallExpression", path, function(path, prevPath) {
       return path.node.callee === prevPath.node;
     });
-  }
-
-  function isInNodeType(type, path, extraCondition = null, prevPath = null) {
-    if (prevPath === null) {
-      isInNodeType(type, path.parentPath, extraCondition, path);
-    }
-    if (path.node.type === "Program") {
-      return false;
-    }
-    if (path.node.type === type) {
-      if (!extraCondition || extraCondition(path, prevPath)) {
-        return true;
-      }
-    }
-    if (path.parentPath) {
-      return isInNodeType(type, path.parentPath, extraCondition, path);
-    }
   }
 
   function createSetMemoValue(key, value, trackingValue) {
@@ -135,31 +110,6 @@ export default function plugin(babel) {
     return ignoredCallExpression("__getMemoTrackingValue", [
       ignoredStringLiteral(key)
     ]);
-  }
-
-  function runIfIdentifierExists(identifierName, thenNode) {
-    const iN = ignoreNode;
-    return iN(
-      t.logicalExpression(
-        "&&",
-        iN(
-          t.binaryExpression(
-            "!==",
-            iN(t.UnaryExpression("typeof", ignoredIdentifier(identifierName))),
-            ignoredStringLiteral("undefined")
-          )
-        ),
-        thenNode
-      )
-    );
-  }
-
-  function trackingIdentifierIfExists(identifierName) {
-    var trackingIdentifierName = identifierName + "_t";
-    return runIfIdentifierExists(
-      trackingIdentifierName,
-      ignoredIdentifier(trackingIdentifierName)
-    );
   }
 
   const visitors = {
@@ -351,51 +301,6 @@ export default function plugin(babel) {
       );
 
       path.replaceWith(call);
-    },
-    Identifier(path) {
-      if (
-        path.parent.type === "FunctionDeclaration" ||
-        path.parent.type === "CallExpression" ||
-        path.parent.type === "MemberExpression" ||
-        path.parent.type === "ObjectProperty" ||
-        path.parent.type === "CatchClause" ||
-        path.parent.type === "ForInStatement" ||
-        path.parent.type === "IfStatement" ||
-        path.parent.type === "ForStatement" ||
-        path.parent.type === "FunctionExpression" ||
-        path.parent.type === "UpdateExpression" ||
-        (path.parent.type === "UnaryExpression" &&
-          path.parent.operator === "typeof")
-      ) {
-        return;
-      }
-      if (
-        isInLeftPartOfAssignmentExpression(path) ||
-        isInIdOfVariableDeclarator(path)
-      ) {
-        return;
-      }
-      if (path.node.name === "globalFn") {
-        return;
-      }
-
-      path.node.ignore = true;
-
-      var call = ignoredCallExpression(FunctionNames.doOperation, [
-        ignoredStringLiteral("identifier"),
-        ignoredArrayExpression([
-          path.node,
-          trackingIdentifierIfExists(path.node.name)
-        ])
-      ]);
-
-      try {
-        path.replaceWith(call);
-      } catch (err) {
-        console.log(err);
-        console.log(path.parent.type);
-        throw Error("end");
-      }
     },
     CallExpression(path) {
       const { callee } = path.node;

@@ -142,11 +142,6 @@ export default function() {
             return lastOpTrackingResult;
           }
         });
-      } else if (opName === "identifier") {
-        ret = argValues[0];
-      } else if (opName === "returnStatement") {
-        // console.log("returnstatement", argValues[0])
-        ret = argValues[0];
       } else if (opName === operationTypes.assignmentExpression) {
         const assignmentType = argValues[1];
         if (assignmentType === "MemberExpression") {

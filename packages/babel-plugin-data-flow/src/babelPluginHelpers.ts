@@ -98,3 +98,62 @@ export const getLastOperationTrackingResultCall = ignoredCallExpression(
   FunctionNames.getLastOperationTrackingResult,
   []
 );
+
+export function isInLeftPartOfAssignmentExpression(path) {
+  return isInNodeType("AssignmentExpression", path, function(path, prevPath) {
+    return path.node.left === prevPath.node;
+  });
+}
+
+export function isInIdOfVariableDeclarator(path) {
+  return isInNodeType("VariableDeclarator", path, function(path, prevPath) {
+    return path.node.id === prevPath.node;
+  });
+}
+
+export function trackingIdentifierIfExists(identifierName) {
+  var trackingIdentifierName = identifierName + "_t";
+  return runIfIdentifierExists(
+    trackingIdentifierName,
+    ignoredIdentifier(trackingIdentifierName)
+  );
+}
+
+export function isInNodeType(
+  type,
+  path,
+  extraCondition = null,
+  prevPath = null
+) {
+  if (prevPath === null) {
+    isInNodeType(type, path.parentPath, extraCondition, path);
+  }
+  if (path.node.type === "Program") {
+    return false;
+  }
+  if (path.node.type === type) {
+    if (!extraCondition || extraCondition(path, prevPath)) {
+      return true;
+    }
+  }
+  if (path.parentPath) {
+    return isInNodeType(type, path.parentPath, extraCondition, path);
+  }
+}
+
+export function runIfIdentifierExists(identifierName, thenNode) {
+  const iN = ignoreNode;
+  return iN(
+    t.logicalExpression(
+      "&&",
+      iN(
+        t.binaryExpression(
+          "!==",
+          iN(t.unaryExpression("typeof", ignoredIdentifier(identifierName))),
+          ignoredStringLiteral("undefined")
+        )
+      ),
+      thenNode
+    )
+  );
+}

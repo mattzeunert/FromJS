@@ -5,7 +5,10 @@ import {
   ignoredArrayExpression,
   ignoredStringLiteral,
   getLastOperationTrackingResultCall,
-  ignoredNumericLiteral
+  ignoredNumericLiteral,
+  isInIdOfVariableDeclarator,
+  isInLeftPartOfAssignmentExpression,
+  trackingIdentifierIfExists
 } from "./babelPluginHelpers";
 
 function createNode(args, astArgs = null) {}
@@ -149,6 +152,47 @@ const operations: Operations = {
         returnValue: ignoredArrayExpression([
           path.node.argument,
           getLastOperationTrackingResultCall
+        ])
+      });
+    }
+  },
+  identifier: {
+    exec: (args, astArgs, ctx) => {
+      return args.value[0];
+    },
+    visitor(path) {
+      if (
+        path.parent.type === "FunctionDeclaration" ||
+        path.parent.type === "CallExpression" ||
+        path.parent.type === "MemberExpression" ||
+        path.parent.type === "ObjectProperty" ||
+        path.parent.type === "CatchClause" ||
+        path.parent.type === "ForInStatement" ||
+        path.parent.type === "IfStatement" ||
+        path.parent.type === "ForStatement" ||
+        path.parent.type === "FunctionExpression" ||
+        path.parent.type === "UpdateExpression" ||
+        (path.parent.type === "UnaryExpression" &&
+          path.parent.operator === "typeof")
+      ) {
+        return;
+      }
+      if (
+        isInLeftPartOfAssignmentExpression(path) ||
+        isInIdOfVariableDeclarator(path)
+      ) {
+        return;
+      }
+      if (path.node.name === "globalFn") {
+        return;
+      }
+
+      path.node.ignore = true;
+
+      return this.createNode({
+        value: ignoredArrayExpression([
+          path.node,
+          trackingIdentifierIfExists(path.node.name)
         ])
       });
     }
