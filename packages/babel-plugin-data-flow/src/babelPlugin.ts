@@ -287,53 +287,6 @@ export default function plugin(babel) {
       );
 
       path.replaceWith(call);
-    },
-    CallExpression(path) {
-      const { callee } = path.node;
-
-      var isMemberExpressionCall = callee.type === "MemberExpression";
-
-      var args = [];
-      path.node.arguments.forEach(arg => {
-        args.push(
-          ignoredArrayExpression([arg, getLastOperationTrackingResultCall])
-        );
-      });
-
-      let executionContext;
-      let executionContextTrackingValue;
-      if (isMemberExpressionCall) {
-        executionContext = ignoredCallExpression(
-          "getLastMemberExpressionObjectValue",
-          []
-        );
-        executionContextTrackingValue = ignoredCallExpression(
-          "getLastMemberExpressionObjectTrackingValue",
-          []
-        );
-      } else {
-        executionContext = t.identifier("undefined");
-        executionContextTrackingValue = t.nullLiteral();
-      }
-
-      var fnArgs = {};
-      args.forEach((arg, i) => {
-        fnArgs["arg" + i] = arg;
-      });
-
-      var call = operations.callExpression.createNode({
-        function: [
-          ignoreNode(path.node.callee),
-          isMemberExpressionCall
-            ? getLastOperationTrackingResultCall
-            : getLastOperationTrackingResultCall
-        ],
-        context: [executionContext, executionContextTrackingValue],
-        ...fnArgs
-      });
-
-      // todo: would it be better for perf if I just updated the existing call expression instead?
-      path.replaceWith(call);
     }
   };
 
