@@ -65,7 +65,12 @@ const operations: Operations = {
       var arg;
       var fnArgs = [];
       var fnArgValues = [];
-      while ((arg = args["arg" + i])) {
+      while (true) {
+        var argKey = "arg" + i;
+        if (!(argKey in args)) {
+          break;
+        }
+        arg = args[argKey];
         fnArgValues.push(arg[0]);
         fnArgs.push({
           type: ctx.operationTypes.functionArgument,
