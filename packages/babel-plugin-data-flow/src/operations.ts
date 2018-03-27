@@ -139,6 +139,19 @@ const operations: Operations = {
         )
       });
     }
+  },
+  returnStatement: {
+    exec: (args, astArgs, ctx) => {
+      return args.returnValue[0];
+    },
+    visitor(path) {
+      path.node.argument = this.createNode({
+        returnValue: ignoredArrayExpression([
+          path.node.argument,
+          getLastOperationTrackingResultCall
+        ])
+      });
+    }
   }
 };
 

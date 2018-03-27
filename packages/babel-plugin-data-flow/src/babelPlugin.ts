@@ -352,19 +352,6 @@ export default function plugin(babel) {
 
       path.replaceWith(call);
     },
-    ReturnStatement(path) {
-      path.node.ignore = true;
-
-      var opCall = ignoredCallExpression(FunctionNames.doOperation, [
-        ignoredStringLiteral(OperationTypes.returnStatement),
-        ignoredArrayExpression([
-          path.node.argument,
-          getLastOperationTrackingResultCall
-        ])
-      ]);
-
-      path.node.argument = opCall;
-    },
     Identifier(path) {
       if (
         path.parent.type === "FunctionDeclaration" ||
