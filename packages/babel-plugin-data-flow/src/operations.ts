@@ -43,6 +43,18 @@ const operations: Operations = {
     }
   },
   binaryExpression: {
+    visitor(path) {
+      if (!["+", "-", "/", "*"].includes(path.node.operator)) {
+        return;
+      }
+      return this.createNode(
+        {
+          left: [path.node.left, getLastOperationTrackingResultCall],
+          right: [path.node.right, getLastOperationTrackingResultCall]
+        },
+        { operator: ignoredStringLiteral(path.node.operator) }
+      );
+    },
     exec: (args, astArgs, ctx) => {
       var { left, right } = args;
       var ret;

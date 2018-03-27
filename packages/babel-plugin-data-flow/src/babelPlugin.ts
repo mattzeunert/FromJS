@@ -128,20 +128,6 @@ export default function plugin(babel) {
       });
     },
 
-    BinaryExpression(path) {
-      if (["+", "-", "/", "*"].includes(path.node.operator)) {
-        path.replaceWith(
-          operations.binaryExpression.createNode(
-            {
-              left: [path.node.left, getLastOperationTrackingResultCall],
-              right: [path.node.right, getLastOperationTrackingResultCall]
-            },
-            { operator: ignoredStringLiteral(path.node.operator) }
-          )
-        );
-      }
-    },
-
     VariableDeclaration(path) {
       if (path.parent.type === "ForInStatement") {
         return;
