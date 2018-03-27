@@ -138,6 +138,7 @@ export default function() {
           setters,
           operationTypes,
           getObjectPropertyTrackingValue,
+          trackObjectPropertyAssignment,
           getLastOpTrackingResult() {
             return lastOpTrackingResult;
           }
@@ -191,51 +192,6 @@ export default function() {
         }
       } else if (opName === "numericLiteral") {
         ret = argValues[0];
-      } else if (opName === operationTypes.objectExpression) {
-        var obj = {};
-        var methodProperties = {};
-        for (var i = 0; i < args.length; i++) {
-          var property = args[i];
-          var propertyV = property.map(x => x[0]);
-          var propertyT = property.map(x => x[1]);
-          var [propertyType, propertyKey, propertyValue] = propertyV;
-          var [propertyTypeT, propertyKeyT, propertyValueT] = propertyT;
-          if (propertyType === "ObjectProperty") {
-            var [object, property] = argValues;
-            obj[propertyKey] = propertyValue;
-            trackObjectPropertyAssignment(obj, propertyKey, {
-              type: opName,
-              argNames: ["property value"],
-              argValues: [propertyValue],
-              argTrackingValues: [propertyValueT],
-              resVal: propertyValue
-            });
-          } else if (propertyType === "ObjectMethod") {
-            var propertyKind = property[2];
-            var fn = property[3];
-            if (!methodProperties[propertyKey]) {
-              methodProperties[propertyKey] = {
-                enumerable: true,
-                configurable: true
-              };
-            }
-            methodProperties[propertyKey][propertyKind] = fn;
-          }
-        }
-        Object.defineProperties(obj, methodProperties);
-
-        lastOpTrackingResult = {
-          type: opName,
-          argValues: [],
-          argTrackingValues: [],
-          extraTrackingValues: [],
-          resVal: obj
-          // place: Error()
-          //   .stack.split("\\\\n")
-          //   .slice(2, 3)
-        };
-
-        return obj;
       } else {
         console.log("unhandled op", opName, args);
         throw Error("oh no");

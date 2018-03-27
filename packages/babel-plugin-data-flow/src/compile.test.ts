@@ -215,17 +215,45 @@ test("Returns the assigned value from assignments", done => {
   });
 });
 
-test("Tracks object literal values", done => {
-  instrumentAndRun(`
-    var obj = {
-      a: 5,
-      b: 6
-    }
-    return obj.a
-  `).then(({ normal, tracking }) => {
-    expect(normal).toBe(5);
+describe("Object literals", () => {
+  test("Tracks object literal values", done => {
+    instrumentAndRun(`
+      var obj = {
+        a: 5,
+        b: 6
+      }
+      return obj.a
+    `).then(({ normal, tracking }) => {
+      expect(normal).toBe(5);
 
-    done();
+      done();
+    });
+  });
+
+  test("Doesn't break object literals with object methods", done => {
+    instrumentAndRun(`
+      var obj = {
+        fn() { return 3}
+      }
+      return obj.fn()
+    `).then(({ normal, tracking }) => {
+      expect(normal).toBe(3);
+
+      done();
+    });
+  });
+
+  test("Doesn't break object literals with object methods", done => {
+    instrumentAndRun(`
+      var obj = {
+        get sth() { return 4}
+      }
+      return obj.sth
+    `).then(({ normal, tracking }) => {
+      expect(normal).toBe(4);
+
+      done();
+    });
   });
 });
 

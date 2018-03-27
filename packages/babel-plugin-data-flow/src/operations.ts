@@ -163,6 +163,101 @@ const operations: Operations = {
       return call;
     }
   },
+  objectExpression: {
+    exec: (args, astArgs, ctx) => {
+      var obj = {};
+      var methodProperties = {};
+
+      for (var i = 0; i < args.properties.length; i++) {
+        var property = args.properties[i];
+
+        var propertyType = property[0][0];
+        var propertyKey = property[1][0];
+
+        if (propertyType === "ObjectProperty") {
+          var propertyValue = property[2][0];
+          var propertyValueT = property[2][1];
+
+          obj[propertyKey] = propertyValue;
+
+          ctx.trackObjectPropertyAssignment(obj, propertyKey, {
+            type: "objectExpression",
+            argNames: ["property value"],
+            argValues: [propertyValue],
+            argTrackingValues: [propertyValueT],
+            resVal: propertyValue
+          });
+        } else if (propertyType === "ObjectMethod") {
+          var propertyKind = property[2][0];
+          var fn = property[3][0];
+          if (!methodProperties[propertyKey]) {
+            methodProperties[propertyKey] = {
+              enumerable: true,
+              configurable: true
+            };
+          }
+          if (propertyKind === "method") {
+            obj[propertyKey] = fn;
+          } else {
+            methodProperties[propertyKey][propertyKind] = fn;
+          }
+        }
+      }
+      Object.defineProperties(obj, methodProperties);
+
+      return obj;
+    },
+    visitor(path) {
+      path.node.properties.forEach(function(prop) {
+        if (prop.key.type === "Identifier") {
+          var keyLoc = prop.key.loc;
+          prop.key = t.stringLiteral(prop.key.name);
+          prop.key.loc = keyLoc;
+          // move start a bit to left to compensate for there not
+          // being quotes in the original "string", since
+          // it's just an identifier
+          if (prop.key.loc.start.column > 0) {
+            prop.key.loc.start.column--;
+          }
+        }
+      });
+
+      var properties = path.node.properties.map(function(prop) {
+        var type = t.stringLiteral(prop.type);
+        type.ignore = true;
+        if (prop.type === "ObjectMethod") {
+          // getters/setters or something like this: obj = {fn(){}}
+          var kind = ignoredStringLiteral(prop.kind);
+          kind.ignore = true;
+          var propArray = ignoredArrayExpression([
+            ignoredArrayExpression([type]),
+            ignoredArrayExpression([prop.key]),
+            ignoredArrayExpression([kind]),
+            ignoredArrayExpression([
+              t.functionExpression(null, prop.params, prop.body)
+            ])
+          ]);
+          return propArray;
+        } else {
+          var propArray = ignoredArrayExpression([
+            ignoredArrayExpression([type]),
+            ignoredArrayExpression([prop.key]),
+            ignoredArrayExpression([
+              prop.value,
+              getLastOperationTrackingResultCall
+            ])
+          ]);
+          return propArray;
+        }
+      });
+
+      var call = this.createNode({
+        properties
+      });
+
+      return call;
+    }
+  },
   stringLiteral: {
     visitor(path) {
       if (path.parent.type === "ObjectProperty") {

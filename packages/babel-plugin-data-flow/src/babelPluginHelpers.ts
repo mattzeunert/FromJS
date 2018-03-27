@@ -63,7 +63,7 @@ export function ignoredObjectExpression(props) {
       return ignoreNode(
         t.objectProperty(
           ignoredStringLiteral(propKey),
-          props[propKey].length > 0
+          props[propKey].length !== undefined
             ? ignoredArrayExpression(props[propKey])
             : props[propKey]
         )

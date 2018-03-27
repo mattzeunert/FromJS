@@ -237,56 +237,6 @@ export default function plugin(babel) {
       } else {
         path.replaceWith(operation);
       }
-    },
-    ObjectExpression(path) {
-      path.node.properties.forEach(function(prop) {
-        if (prop.key.type === "Identifier") {
-          var keyLoc = prop.key.loc;
-          prop.key = babel.types.stringLiteral(prop.key.name);
-          prop.key.loc = keyLoc;
-          // move start a bit to left to compensate for there not
-          // being quotes in the original "string", since
-          // it's just an identifier
-          if (prop.key.loc.start.column > 0) {
-            prop.key.loc.start.column--;
-          }
-        }
-      });
-
-      var call = createOperation(
-        OperationTypes.objectExpression,
-        path.node.properties.map(function(prop) {
-          var type = t.stringLiteral(prop.type);
-          type.ignore = true;
-          if (prop.type === "ObjectMethod") {
-            // getter/setter
-            var kind = ignoredStringLiteral(prop.kind);
-            kind.ignore = true;
-            var propArray = ignoredArrayExpression([
-              ignoredArrayExpression([type]),
-              ignoredArrayExpression([prop.key]),
-              ignoredArrayExpression(kind),
-              ignoredArrayExpression([
-                babel.types.functionExpression(null, prop.params, prop.body)
-              ])
-            ]);
-            return propArray;
-          } else {
-            var propArray = ignoredArrayExpression([
-              ignoredArrayExpression([type]),
-              ignoredArrayExpression([prop.key]),
-              ignoredArrayExpression([
-                prop.value,
-                getLastOperationTrackingResultCall
-              ])
-            ]);
-            return propArray;
-          }
-          // console.log("continue with type", prop.type);
-        })
-      );
-
-      path.replaceWith(call);
     }
   };
 
