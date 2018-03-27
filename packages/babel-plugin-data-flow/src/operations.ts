@@ -10,7 +10,13 @@ import {
   isInLeftPartOfAssignmentExpression,
   trackingIdentifierIfExists,
   ignoredCallExpression,
-  ignoreNode
+  ignoreNode,
+  runIfIdentifierExists,
+  createSetMemoValue,
+  createGetMemoValue,
+  createGetMemoTrackingValue,
+  getLastOpValue,
+  ignoredIdentifier
 } from "./babelPluginHelpers";
 
 function createNode(args, astArgs = null) {}
@@ -378,6 +384,129 @@ const operations: Operations = {
           trackingIdentifierIfExists(path.node.name)
         ])
       });
+    }
+  },
+  assignmentExpression: {
+    exec: (args, astArgs, ctx) => {
+      var ret;
+      const assignmentType = args.type[0];
+      const operator = args.operator[0];
+      if (assignmentType === "MemberExpression") {
+        var obj = args.object[0];
+        var propName = args.propertyName[0];
+        var objT = args.object[1];
+        var propNameT = args.propertyName[1];
+
+        var currentValue = obj[propName];
+        var currentValueT = {
+          type: "memexpAsLeftAssExp",
+          argValues: [obj, propName],
+          argTrackingValues: [objT, propNameT],
+          argNames: ["object", "property Name"]
+        };
+
+        var argument = args.argument[0];
+        if (operator === "=") {
+          ret = obj[propName] = argument;
+        } else if (operator === "+=") {
+          ret = obj[propName] = obj[propName] + argument;
+        } else {
+          throw Error("unknown op " + operator);
+        }
+
+        ctx.trackObjectPropertyAssignment(obj, propName, {
+          type: "assignmentExpression",
+          argValues: [currentValue, argument],
+          argTrackingValues: [currentValueT, args.argument[1]],
+          argNames: ["currentValue", "argument"]
+        });
+      } else if (assignmentType === "Identifier") {
+        // console.log({resultValue})
+        ret = args.newValue[0];
+      } else {
+        throw Error("unknown: " + assignmentType);
+      }
+      return ret;
+    },
+    visitor(path) {
+      path.node.ignore = true;
+
+      let operationArguments = {
+        operator: ignoredArrayExpression([
+          ignoredStringLiteral(path.node.operator),
+          t.nullLiteral()
+        ]),
+        type: ignoredArrayExpression([
+          ignoredStringLiteral(path.node.left.type),
+          t.nullLiteral()
+        ])
+      };
+
+      let trackingAssignment = null;
+
+      if (path.node.left.type === "MemberExpression") {
+        var property;
+        if (path.node.left.computed === true) {
+          property = path.node.left.property;
+        } else {
+          property = t.stringLiteral(path.node.left.property.name);
+          property.loc = path.node.left.property.loc;
+        }
+
+        operationArguments["object"] = [path.node.left.object, t.nullLiteral()];
+        operationArguments["propertyName"] = [property, t.nullLiteral()];
+        operationArguments["argument"] = [
+          path.node.right,
+          getLastOperationTrackingResultCall
+        ];
+      } else if (path.node.left.type === "Identifier") {
+        var right = createSetMemoValue(
+          "lastAssignmentExpressionArgument",
+          path.node.right,
+          getLastOperationTrackingResultCall
+        );
+        path.node.right = right;
+
+        trackingAssignment = runIfIdentifierExists(
+          path.node.left.name + "_t",
+          ignoreNode(
+            t.assignmentExpression(
+              "=",
+              ignoredIdentifier(path.node.left.name + "_t"),
+              getLastOperationTrackingResultCall
+            )
+          )
+        );
+        trackingAssignment.ignore = true;
+
+        path.node.left.ignore = true;
+        path.node.ignore = true;
+
+        operationArguments["currentValue"] = ignoredArrayExpression([
+          path.node.left,
+          getLastOperationTrackingResultCall
+        ]);
+        (operationArguments["newValue"] = ignoredArrayExpression([
+          path.node,
+          getLastOperationTrackingResultCall
+        ])),
+          (operationArguments["argument"] = ignoredArrayExpression([
+            createGetMemoValue("lastAssignmentExpressionArgument"),
+            createGetMemoTrackingValue("lastAssignmentExpressionArgument")
+          ]));
+      } else {
+        throw Error("unhandled assignmentexpression node.left type");
+      }
+
+      const operation = this.createNode(operationArguments);
+
+      if (trackingAssignment) {
+        path.replaceWith(
+          t.sequenceExpression([operation, trackingAssignment, getLastOpValue])
+        );
+      } else {
+        path.replaceWith(operation);
+      }
     }
   }
 };

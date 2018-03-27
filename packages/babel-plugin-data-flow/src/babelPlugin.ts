@@ -69,11 +69,6 @@ helperCode = "eval(`" + helperCode + "`)";
 export default function plugin(babel) {
   const { types: t } = babel;
 
-  var getLastOpValue = ignoredCallExpression(
-    FunctionNames.getLastOperationValueResult,
-    []
-  );
-
   function isInWhileStatement(path) {
     return isInNodeType("WhileStatement", path);
   }
@@ -94,22 +89,6 @@ export default function plugin(babel) {
     return isInNodeType("CallExpression", path, function(path, prevPath) {
       return path.node.callee === prevPath.node;
     });
-  }
-
-  function createSetMemoValue(key, value, trackingValue) {
-    return ignoredCallExpression("__setMemoValue", [
-      ignoredStringLiteral(key),
-      value,
-      trackingValue
-    ]);
-  }
-  function createGetMemoValue(key) {
-    return ignoredCallExpression("__getMemoValue", [ignoredStringLiteral(key)]);
-  }
-  function createGetMemoTrackingValue(key) {
-    return ignoredCallExpression("__getMemoTrackingValue", [
-      ignoredStringLiteral(key)
-    ]);
   }
 
   const visitors = {
@@ -151,92 +130,6 @@ export default function plugin(babel) {
         );
       });
       path.node.declarations = newDeclarations;
-    },
-    AssignmentExpression(path) {
-      path.node.ignore = true;
-
-      let operationArguments = [
-        ignoredArrayExpression([
-          ignoredStringLiteral(path.node.operator),
-          t.nullLiteral()
-        ]),
-        ignoredArrayExpression([
-          ignoredStringLiteral(path.node.left.type),
-          t.nullLiteral()
-        ])
-      ];
-
-      let trackingAssignment = null;
-
-      if (path.node.left.type === "MemberExpression") {
-        var property;
-        if (path.node.left.computed === true) {
-          property = path.node.left.property;
-        } else {
-          property = babel.types.stringLiteral(path.node.left.property.name);
-          property.loc = path.node.left.property.loc;
-        }
-
-        operationArguments = operationArguments.concat([
-          ignoredArrayExpression([path.node.left.object, t.nullLiteral()]),
-          ignoredArrayExpression([property, t.nullLiteral()]),
-          ignoredArrayExpression([
-            path.node.right,
-            getLastOperationTrackingResultCall
-          ])
-        ]);
-      } else if (path.node.left.type === "Identifier") {
-        var right = createSetMemoValue(
-          "lastAssignmentExpressionArgument",
-          path.node.right,
-          getLastOperationTrackingResultCall
-        );
-        path.node.right = right;
-
-        trackingAssignment = runIfIdentifierExists(
-          path.node.left.name + "_t",
-          ignoreNode(
-            t.assignmentExpression(
-              "=",
-              ignoredIdentifier(path.node.left.name + "_t"),
-              getLastOperationTrackingResultCall
-            )
-          )
-        );
-        trackingAssignment.ignore = true;
-
-        path.node.left.ignore = true;
-        path.node.ignore = true;
-        operationArguments = operationArguments.concat([
-          ignoredArrayExpression([
-            path.node.left,
-            getLastOperationTrackingResultCall
-          ]),
-          ignoredArrayExpression([
-            path.node,
-            getLastOperationTrackingResultCall
-          ]),
-          ignoredArrayExpression([
-            createGetMemoValue("lastAssignmentExpressionArgument"),
-            createGetMemoTrackingValue("lastAssignmentExpressionArgument")
-          ])
-        ]);
-      } else {
-        throw Error("unhandled assignmentexpression node.left type");
-      }
-
-      const operation = createOperation(
-        "assignmentExpression",
-        operationArguments
-      );
-
-      if (trackingAssignment) {
-        path.replaceWith(
-          t.sequenceExpression([operation, trackingAssignment, getLastOpValue])
-        );
-      } else {
-        path.replaceWith(operation);
-      }
     }
   };
 

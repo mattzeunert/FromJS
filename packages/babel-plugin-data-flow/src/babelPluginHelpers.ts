@@ -157,3 +157,26 @@ export function runIfIdentifierExists(identifierName, thenNode) {
     )
   );
 }
+
+export function createSetMemoValue(key, value, trackingValue) {
+  return ignoredCallExpression("__setMemoValue", [
+    ignoredStringLiteral(key),
+    value,
+    trackingValue
+  ]);
+}
+
+export function createGetMemoValue(key) {
+  return ignoredCallExpression("__getMemoValue", [ignoredStringLiteral(key)]);
+}
+
+export function createGetMemoTrackingValue(key) {
+  return ignoredCallExpression("__getMemoTrackingValue", [
+    ignoredStringLiteral(key)
+  ]);
+}
+
+export const getLastOpValue = ignoredCallExpression(
+  FunctionNames.getLastOperationValueResult,
+  []
+);

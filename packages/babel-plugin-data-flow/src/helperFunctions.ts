@@ -146,55 +146,6 @@ export default function() {
             return lastOpTrackingResult;
           }
         });
-      } else if (opName === operationTypes.assignmentExpression) {
-        const assignmentType = argValues[1];
-        if (assignmentType === "MemberExpression") {
-          let [operator, aType, obj, propName, argument] = argValues;
-          let [
-            operatorT,
-            aTypeT,
-            objT,
-            propNameT,
-            argumentT
-          ] = argTrackingValues;
-
-          var currentValue = obj[propName];
-          var currentValueT = {
-            type: "memexpAsLeftAssExp",
-            argValues: [obj, propName],
-            argTrackingValues: [objT, propNameT],
-            argNames: ["object", "property Name"]
-          };
-
-          if (operator === "=") {
-            ret = obj[propName] = argument;
-          } else if (operator === "+=") {
-            ret = obj[propName] = obj[propName] + argument;
-          } else {
-            throw Error("unknown op " + operator);
-          }
-
-          trackObjectPropertyAssignment(obj, propName, {
-            type: opName,
-            argValues: [currentValue, argument],
-            argTrackingValues: [currentValueT, argumentT],
-            argNames: ["currentValue", "argument"]
-          });
-        } else if (assignmentType === "Identifier") {
-          const [
-            operator,
-            aType,
-            currentValue,
-            resultValue,
-            argument
-          ] = argValues;
-          // console.log({resultValue})
-          ret = resultValue;
-        } else {
-          throw Error("unknown: " + assignmentType);
-        }
-      } else if (opName === "numericLiteral") {
-        ret = argValues[0];
       } else {
         console.log("unhandled op", opName, args);
         throw Error("oh no");
