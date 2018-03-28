@@ -10,7 +10,7 @@ var editor = window["CodeMirror"].fromTextArea(
     lineNumbers: true
   }
 );
-editor.on("change", function(cMirror) {
+editor.on("change", function (cMirror) {
   // get value right from instance
   codeTextarea.value = cMirror.getValue();
   try {
@@ -62,9 +62,8 @@ function runCodeAndshowResult(code) {
 
   document.querySelector("#basic-example").innerHTML = "";
 
-  debugger;
-  var data =
-    window["inspectedValue"].tracking.argTrackingValues[0].argTrackingValues[0];
+  var data = window["inspectedValue"].tracking.args.value[1].args.value[1]
+
 
   if (window["inspectedValue"].normal === undefined) {
     throw Error("value is undefiend");
@@ -107,41 +106,31 @@ function runCodeAndshowResult(code) {
     if (
       data &&
       eval("false") &&
-      (data.type === "identifier" ||
+      (data.operator === "identifier" ||
         // data.type === "callExpression" ||
-        data.type === "assignmentExpression") // tood: don't ignore assignmentexpr, contains info like += operator
+        data.operator === "assignmentExpression") // tood: don't ignore assignmentexpr, contains info like += operator
     ) {
       // skip it because it's not very interesting
       console.log("skipping", data);
-      return makeNode(data.argTrackingValues[0]);
+      return makeNode(Object.values(data.args)[0][1]);
     }
 
     var childValues;
     if (data) {
-      childValues = data.argTrackingValues.map((child, i) => {
-        console.log(child);
+      function getArgsArray(args) {
+        return Object.keys(args).map(key => {
+          return {
+            child: args[key][1],
+            argName: key,
+          }
+        })
+      }
+      childValues = getArgsArray(data.args)
 
-        // if (child === null || child === undefined) {
-        //   return;
-        // }
-
-        return {
-          child,
-          argName: data.argNames[i]
-        };
-      });
-
-      if (data.extraTrackingValues) {
+      if (data.extraArgs) {
         childValues = childValues.concat(
-          data.extraTrackingValues.map((v, i) => {
-            return {
-              child: v,
-              argName: data.extraTrackingValueArgNames
-                ? data.extraTrackingValueArgNames[i]
-                : "unknown extra tracking value arg name"
-            };
-          })
-        );
+          getArgsArray(data.extraArgs)
+        )
       }
     } else {
       childValues = [];
@@ -156,7 +145,7 @@ function runCodeAndshowResult(code) {
 
     var type;
     if (data) {
-      type = data.type;
+      type = data.operation;
       if (type === "binaryExpression") {
         type =
           "<span style='color: green;font-weight: bold;'>" +
@@ -171,15 +160,11 @@ function runCodeAndshowResult(code) {
 
     var resVal;
     if (data) {
-      resVal =
-        data.type === "functionArgument" ? data.argValues[0] + "" : data.resVal;
+      resVal = data.result
     } else {
-      resVal = "todo..";
+      resVal = "todo.(no data)";
     }
 
-    var extra = data
-      ? data.type === "functionArgument" ? data.fnToString.slice(0, 20) : "-"
-      : "";
 
     var valueClass = "value--other";
     if (typeof resVal == "string") {
@@ -198,7 +183,6 @@ function runCodeAndshowResult(code) {
         {
           innerHTML: `<div class="operation">
             ${type}
-            <!--<div>${extra}</div>-->
           </div>`,
           children
         }
@@ -208,7 +192,7 @@ function runCodeAndshowResult(code) {
     if (
       argName &&
       siblingCount >
-        0 /* if only one child in total don't bother explaining it */
+      0 /* if only one child in total don't bother explaining it */
     ) {
       node = {
         innerHTML: `<div style="font-weight: normal">${argName}</div>`,
