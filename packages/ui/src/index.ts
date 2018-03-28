@@ -1,4 +1,5 @@
 import babelPlugin from "../../babel-plugin-data-flow";
+import operations from "../../babel-plugin-data-flow/src/operations"
 
 // import Babel from "@babel/standalone";
 // document.write("hi");
@@ -118,13 +119,32 @@ function runCodeAndshowResult(code) {
     var childValues;
     if (data) {
       function getArgsArray(args) {
-        return Object.keys(args).map(key => {
-          return {
-            child: args[key][1],
-            argName: key,
+        var arrayArguments = []
+        var operation = operations[data.operation]
+        if (operation && operation.arrayArguments) {
+          arrayArguments = operation.arrayArguments
+        }
+
+        var ret = []
+        Object.keys(args).forEach(key => {
+          if (arrayArguments.includes(key)) {
+            args[key].forEach((a, i) => {
+              ret.push({ child: a[1], argName: "element" + i })
+            })
+          }
+          else {
+            ret.push({
+              child: args[key][1],
+              argName: key,
+            })
           }
         })
+
+        return ret
       }
+
+
+
       childValues = getArgsArray(data.args)
 
       if (data.extraArgs) {
