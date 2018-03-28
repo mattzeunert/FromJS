@@ -118,48 +118,18 @@ function runCodeAndshowResult(code) {
 
     var childValues;
     if (data) {
-      function getArgsArray(args) {
-        var arrayArguments = []
-        var operation = operations[data.operation]
-        if (operation && operation.arrayArguments) {
-          arrayArguments = operation.arrayArguments
-        }
-
-        var ret = []
-        Object.keys(args).forEach(key => {
-          if (arrayArguments.includes(key)) {
-            args[key].forEach((a, i) => {
-              ret.push({ child: a[1], argName: "element" + i })
-            })
-          }
-          else {
-            ret.push({
-              child: args[key][1],
-              argName: key,
-            })
-          }
-        })
-
-        return ret
-      }
+      var operation = operations[data.operation]
+      childValues = operation.getArgumentsArray(data)
 
 
-
-      childValues = getArgsArray(data.args)
-
-      if (data.extraArgs) {
-        childValues = childValues.concat(
-          getArgsArray(data.extraArgs)
-        )
-      }
     } else {
       childValues = [];
     }
-    childValues = childValues.filter(c => !!c.child);
+    childValues = childValues.filter(c => !!c.arg);
     var children = [];
     if (!isDataRootOrigin(data)) {
       children = childValues.map((child, i) =>
-        makeNode(child.child, child.argName, childValues.length - 1)
+        makeNode(child.arg, child.argName, childValues.length - 1)
       );
     }
 

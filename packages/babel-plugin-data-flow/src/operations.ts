@@ -19,14 +19,15 @@ import {
   ignoredIdentifier
 } from "./babelPluginHelpers";
 
-function createNode(args, astArgs = null) {}
+function createNode(args, astArgs = null) { }
 
 interface Operations {
   [key: string]: {
     createNode?: any;
     visitor?: any;
-    exec: any;
+    exec?: any;
     arrayArguments?: string[];
+    getArgumentsArray?: any
   };
 }
 
@@ -247,7 +248,7 @@ const operations: Operations = {
       return obj;
     },
     visitor(path) {
-      path.node.properties.forEach(function(prop) {
+      path.node.properties.forEach(function (prop) {
         if (prop.key.type === "Identifier") {
           var keyLoc = prop.key.loc;
           prop.key = t.stringLiteral(prop.key.name);
@@ -261,7 +262,7 @@ const operations: Operations = {
         }
       });
 
-      var properties = path.node.properties.map(function(prop) {
+      var properties = path.node.properties.map(function (prop) {
         var type = t.stringLiteral(prop.type);
         type.ignore = true;
         if (prop.type === "ObjectMethod") {
@@ -392,6 +393,7 @@ const operations: Operations = {
       });
     }
   },
+  memexpAsLeftAssExp: {},
   assignmentExpression: {
     exec: (args, astArgs, ctx) => {
       var ret;
@@ -525,11 +527,46 @@ const operations: Operations = {
 
 Object.keys(operations).forEach(opName => {
   const operation = operations[opName];
-  operation.createNode = function(args, astArgs) {
+  operation.createNode = function (args, astArgs) {
     return createOperation(OperationTypes[opName], args, astArgs);
   };
   if (!operation.arrayArguments) {
     operation.arrayArguments = [];
+  }
+  operation.getArgumentsArray = function (operationLog) {
+    var operation = this
+    function getArgsArray(args) {
+      var arrayArguments = []
+
+      if (operation.arrayArguments) {
+        arrayArguments = operation.arrayArguments
+      }
+
+      var ret = []
+      Object.keys(args).forEach(key => {
+        if (arrayArguments.includes(key)) {
+          args[key].forEach((a, i) => {
+            ret.push({ arg: a[1], argName: "element" + i })
+          })
+        }
+        else {
+          ret.push({
+            arg: args[key][1],
+            argName: key,
+          })
+        }
+      })
+
+      return ret
+    }
+
+    var arr = getArgsArray(operationLog.args)
+    if (operationLog.extraArgs) {
+      arr = arr.concat(
+        getArgsArray(operationLog.extraArgs)
+      )
+    }
+    return arr
   }
 });
 
