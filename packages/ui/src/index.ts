@@ -58,6 +58,41 @@ function showResult() {
     });
 }
 
+// TODO: don't copy/paste this
+function eachArgument(args, arrayArguments, fn) {
+  Object.keys(args).forEach(key => {
+    if (arrayArguments.includes(key)) {
+      args[key].forEach((a, i) => {
+        fn(a, "element" + i, newValue => args[key][i] = newValue)
+      })
+    }
+    else {
+      fn(args[key], key, newValue => args[key] = newValue)
+    }
+  })
+}
+
+function showSteps(data) {
+  var steps = traverse(data, 0).reverse()
+  var html = ``
+
+  steps.forEach(step => {
+    console.log(step)
+    var tv = step.trackingValue
+    var args = ""
+    eachArgument(tv.args, ["elements"], (arg, argName) => {
+      args += argName + ":" + (arg[1] && arg[1].result.str) + ","
+    })
+    html += `<div>
+      ${tv.operation} (char: ${step.charIndex})
+      ${args}  
+    </div>`
+  })
+
+  document.querySelector("#steps").innerHTML = html
+
+}
+
 function runCodeAndshowResult(code) {
   eval(code);
   console.log(window["inspectedValue"]);
@@ -65,7 +100,7 @@ function runCodeAndshowResult(code) {
   document.querySelector("#basic-example").innerHTML = "";
 
   var data = window["inspectedValue"].tracking.args.value[1].args.value[1]
-  console.log(traverse(data, 0))
+  showSteps(data)
 
   if (window["inspectedValue"].normal === undefined) {
     throw Error("value is undefiend");
