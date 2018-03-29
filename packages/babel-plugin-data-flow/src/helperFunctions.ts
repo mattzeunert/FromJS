@@ -33,9 +33,14 @@ export default function () {
     }
 
     function serializeValue(value) {
+      var knownValue = null
+      if (value === String.prototype.slice) {
+        knownValue = "String.prototype.slice"
+      }
       return {
         type: typeof value,
-        str: (value + "").slice(0, 40)
+        str: (value + "").slice(0, 40),
+        knownValue
       }
     }
     OperationLog.prototype.serialize = function () {

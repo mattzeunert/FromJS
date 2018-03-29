@@ -40,10 +40,23 @@ export default function traverse(trackingValue, charIndex, steps = []) {
       };
       break;
     case OperationTypes.callExpression:
-      nextStep = {
-        trackingValue: trackingValue.extraArgs.returnValue[1],
-        charIndex: charIndex
-      };
+
+      var knownFunction = trackingValue.args.function[1].result.knownValue
+      if (knownFunction) {
+        switch (knownFunction) {
+          case "String.prototype.slice":
+            nextStep = {
+              trackingValue: trackingValue.args.context[1],
+              charIndex: charIndex + parseFloat(trackingValue.args.arg0[1].result.str)
+            }
+            break;
+        }
+      } else {
+        nextStep = {
+          trackingValue: trackingValue.extraArgs.returnValue[1],
+          charIndex: charIndex
+        };
+      }
       break;
     case OperationTypes.functionArgument:
       nextStep = {
@@ -76,7 +89,7 @@ export default function traverse(trackingValue, charIndex, steps = []) {
       };
       break;
   }
-  if (nextStep) {
+  if (nextStep && nextStep.trackingValue) {
     traverse(nextStep.trackingValue, nextStep.charIndex, steps);
   }
   // console.log(steps);

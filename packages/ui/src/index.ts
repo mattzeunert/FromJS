@@ -1,5 +1,6 @@
 import babelPlugin from "../../babel-plugin-data-flow";
 import operations from "../../babel-plugin-data-flow/src/operations"
+import traverse from '../../babel-plugin-data-flow/src/traverse'
 
 // import Babel from "@babel/standalone";
 // document.write("hi");
@@ -64,7 +65,7 @@ function runCodeAndshowResult(code) {
   document.querySelector("#basic-example").innerHTML = "";
 
   var data = window["inspectedValue"].tracking.args.value[1].args.value[1]
-
+  console.log(traverse(data, 0))
 
   if (window["inspectedValue"].normal === undefined) {
     throw Error("value is undefiend");
