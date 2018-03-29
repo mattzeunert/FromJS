@@ -429,6 +429,7 @@ const operations: Operations = {
           obj,
           propName,
           new ctx.OperationLog({
+            result: args.argument[0],
             operation: "assignmentExpression",
             args: {
               currentValue: [currentValue, currentValueT],
@@ -542,19 +543,22 @@ Object.keys(operations).forEach(opName => {
         arrayArguments = operation.arrayArguments
       }
 
+      function eachArgument(args, arrayArguments, fn) {
+        Object.keys(args).forEach(key => {
+          if (arrayArguments.includes(key)) {
+            args[key].forEach((a, i) => {
+              fn(a, "element" + i, newValue => args[key][i] = newValue)
+            })
+          }
+          else {
+            fn(args[key], key, newValue => args[key] = newValue)
+          }
+        })
+      }
+
       var ret = []
-      Object.keys(args).forEach(key => {
-        if (arrayArguments.includes(key)) {
-          args[key].forEach((a, i) => {
-            ret.push({ arg: a[1], argName: "element" + i })
-          })
-        }
-        else {
-          ret.push({
-            arg: args[key][1],
-            argName: key,
-          })
-        }
+      eachArgument(args, arrayArguments, (arg, argName, updateValue) => {
+        ret.push({ arg: arg[1], argName })
       })
 
       return ret
