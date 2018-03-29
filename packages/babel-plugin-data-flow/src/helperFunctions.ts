@@ -3,8 +3,8 @@ declare var __FUNCTION_NAMES__,
   __OPERATIONS_EXEC__,
   __OPERATION_ARRAY_ARGUMENTS__;
 
-export default function() {
-  (function(
+export default function () {
+  (function (
     functionNames,
     operationTypes,
     operationsExec,
@@ -16,6 +16,56 @@ export default function() {
       this.args = args;
       this.astArgs = astArgs;
       this.extraArgs = extraArgs;
+    }
+
+    // TODO: don't copy/paste this
+    function eachArgument(args, arrayArguments, fn) {
+      Object.keys(args).forEach(key => {
+        if (arrayArguments.includes(key)) {
+          args[key].forEach((a, i) => {
+            fn(a, "element" + i, newValue => args[key][i] = newValue)
+          })
+        }
+        else {
+          fn(args[key], key, newValue => args[key] = newValue)
+        }
+      })
+    }
+
+    function serializeValue(value) {
+      return {
+        type: typeof value,
+        str: (value + "").slice(0, 40)
+      }
+    }
+    OperationLog.prototype.serialize = function () {
+      if (this.serialized) {
+        return
+      }
+
+      const serializeArgsObject = (args) => {
+        if (!args) { return {} }
+        var arrayArguments = []
+        if (this.operation === "arrayExpression") {
+          arrayArguments = ["elements"]
+        }
+        eachArgument(args, arrayArguments, (arg, argName, update) => {
+          var trackingValue = arg[1] && arg[1]
+
+          if (trackingValue && trackingValue.serialize) {
+            trackingValue.serialize()
+          }
+          var serializedTrackingValue = trackingValue
+
+          update([null, serializedTrackingValue])
+        })
+      }
+      this.operation = this.operation
+      this.result = serializeValue(this.result)
+      serializeArgsObject(this.args)
+      serializeArgsObject(this.astArgs)
+      serializeArgsObject(this.extraArgs)
+      this.serialized = true
     }
 
     var global = Function("return this")();
@@ -36,14 +86,15 @@ export default function() {
       return argTrackingInfo[index];
     };
 
-    global.getTrackingAndNormalValue = function(value) {
+    global.getTrackingAndNormalValue = function (value) {
       return {
         normal: value,
         tracking: argTrackingInfo[0]
       };
     };
 
-    global.inspect = function(value) {
+    global.inspect = function (value) {
+      argTrackingInfo[0].serialize()
       global.inspectedValue = {
         normal: value,
         tracking: argTrackingInfo[0]
@@ -71,25 +122,25 @@ export default function() {
 
     var lastMemberExpressionObjectValue = null;
     var lastMemberExpressionObjectTrackingValue = null;
-    global["getLastMemberExpressionObjectValue"] = function() {
+    global["getLastMemberExpressionObjectValue"] = function () {
       return lastMemberExpressionObjectValue;
     };
 
-    global["getLastMemberExpressionObjectTrackingValue"] = function() {
+    global["getLastMemberExpressionObjectTrackingValue"] = function () {
       return lastMemberExpressionObjectTrackingValue;
     };
 
     const memoValues = {};
-    global["__setMemoValue"] = function(key, value, trackingValue) {
+    global["__setMemoValue"] = function (key, value, trackingValue) {
       // console.log("setmemovalue", value)
       memoValues[key] = { value, trackingValue };
       lastOpTrackingResult = trackingValue;
       return value;
     };
-    global["__getMemoValue"] = function(key) {
+    global["__getMemoValue"] = function (key) {
       return memoValues[key].value;
     };
-    global["__getMemoTrackingValue"] = function(key, value, trackingValue) {
+    global["__getMemoTrackingValue"] = function (key, value, trackingValue) {
       return memoValues[key].trackingValue;
     };
 
@@ -107,7 +158,7 @@ export default function() {
 
       args;
       if (operationArrayArguments[opName]) {
-        operationArrayArguments[opName].forEach(arrayArgName => {});
+        operationArrayArguments[opName].forEach(arrayArgName => { });
       }
 
       var argValues = args.map(arg => arg[0]);
@@ -198,5 +249,5 @@ export default function() {
     __OPERATION_TYPES__,
     __OPERATIONS_EXEC__,
     __OPERATION_ARRAY_ARGUMENTS__
-  );
+    );
 }

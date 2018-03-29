@@ -152,22 +152,25 @@ function runCodeAndshowResult(code) {
     if (data) {
       resVal = data.result
     } else {
-      resVal = "todo.(no data)";
+      resVal = {
+        type: "string",
+        str: "todo.(no data)"
+      }
     }
 
-
     var valueClass = "value--other";
-    if (typeof resVal == "string") {
+    var str = truncate(resVal.str, 20);
+    if (resVal.type === "string") {
       valueClass = "value--string";
-      resVal = `"${resVal}"`;
-    } else if (typeof resVal == "number") {
+      str = `"${str}"`;
+    } else if (resVal.type == "number") {
       valueClass = "value--number";
     }
 
-    resVal = truncate(resVal + "", 20);
+
 
     var node = {
-      innerHTML: `<span class="value ${valueClass}">${resVal}</span>`,
+      innerHTML: `<span class="value ${valueClass}">${str}</span>`,
 
       children: [
         {
