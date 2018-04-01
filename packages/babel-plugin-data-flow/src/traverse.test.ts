@@ -15,9 +15,9 @@ test("Can track concatenation of 'a' and 'b'", done => {
     var t1LastStep = t1[t1.length - 1];
     var t2LastStep = t2[t2.length - 1];
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
-    expect(t1LastStep.operationLog.result).toBe("a");
+    expect(t1LastStep.operationLog.result.str).toBe("a");
     expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
-    expect(t2LastStep.operationLog.result).toBe("b");
+    expect(t2LastStep.operationLog.result.str).toBe("b");
 
     done();
   });
@@ -36,9 +36,9 @@ test("Can track concatenation of 'a' and 'b' in an add function", done => {
       var t1LastStep = t1[t1.length - 1];
       var t2LastStep = t2[t2.length - 1];
       expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
-      expect(t1LastStep.operationLog.args.value[0]).toBe("a");
+      expect(t1LastStep.operationLog.result.str).toBe("a");
       expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
-      expect(t2LastStep.operationLog.args.value[0]).toBe("b");
+      expect(t2LastStep.operationLog.result.str).toBe("b");
 
       expect(getStepTypeList(t1)).toEqual([
         "callExpression", // add()
@@ -96,7 +96,6 @@ test("Can traverse String.prototype.slice", done => {
       return str
     `).then(({ normal, tracking, code }) => {
       expect(normal).toBe("cd")
-      tracking.serialize()
       var t = traverse(tracking, 0);
       var lastStep = t[t.length - 1];
 

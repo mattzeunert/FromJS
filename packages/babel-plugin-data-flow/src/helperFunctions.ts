@@ -11,11 +11,25 @@ export default function () {
     operationArrayArguments
   ) {
     function OperationLog({ operation, result, args, astArgs, extraArgs }) {
+      var arrayArguments = []
+      if (operation === "arrayExpression") {
+        arrayArguments = ["elements"]
+      }
+
       this.operation = operation;
-      this.result = result;
-      this.args = args;
+      this.result = serializeValue(result);
+      // only store argument operation log because ol.result === a[0]
+      eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
+        updateArg(arg[1])
+      })
+      if (typeof extraArgs === "object") {
+        eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
+          updateArg(arg[1])
+        })
+      }
+      this.args = args
       this.astArgs = astArgs;
-      this.extraArgs = extraArgs;
+      this.extraArgs = extraArgs
     }
 
     // TODO: don't copy/paste this
@@ -33,44 +47,32 @@ export default function () {
     }
 
     function serializeValue(value) {
+      // todo: consider accessing properties that are getters could have negative impact...
       var knownValue = null
       if (value === String.prototype.slice) {
         knownValue = "String.prototype.slice"
       }
+      var length
+      // todo: more performant way than doing try catch
+      try {
+        length = value.length
+      } catch (err) {
+        length = null
+      }
+
+      var type = typeof value
+
+      var primitive
+      if (["string", "null", "number"].includes(type)) {
+        primitive = value
+      }
       return {
-        type: typeof value,
+        length,
+        type,
         str: (value + "").slice(0, 40),
+        primitive,
         knownValue
       }
-    }
-    OperationLog.prototype.serialize = function () {
-      if (this.serialized) {
-        return
-      }
-
-      const serializeArgsObject = (args) => {
-        if (!args) { return {} }
-        var arrayArguments = []
-        if (this.operation === "arrayExpression") {
-          arrayArguments = ["elements"]
-        }
-        eachArgument(args, arrayArguments, (arg, argName, update) => {
-          var trackingValue = arg[1] && arg[1]
-
-          if (trackingValue && trackingValue.serialize) {
-            trackingValue.serialize()
-          }
-          var serializedTrackingValue = trackingValue
-
-          update([null, serializedTrackingValue])
-        })
-      }
-      this.operation = this.operation
-      this.result = serializeValue(this.result)
-      serializeArgsObject(this.args)
-      serializeArgsObject(this.astArgs)
-      serializeArgsObject(this.extraArgs)
-      this.serialized = true
     }
 
     var global = Function("return this")();

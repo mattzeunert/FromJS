@@ -6,7 +6,7 @@ export default function traverse(operationLog, charIndex, steps = []) {
     operationLog: operationLog,
     charIndex
   });
-  // console.log("Traversing", { operationLog, charIndex });
+  // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
   let nextStep = null;
 
   const operation = operations[operationLog.operation]
@@ -16,57 +16,57 @@ export default function traverse(operationLog, charIndex, steps = []) {
     switch (operationLog.operation) {
       case OperationTypes.memberExpression:
         nextStep = {
-          operationLog: operationLog.extraArgs.propertyValue[1],
+          operationLog: operationLog.extraArgs.propertyValue,
           charIndex: charIndex
         };
 
         break;
       case OperationTypes.callExpression:
 
-        var knownFunction = operationLog.args.function[1].result.knownValue
+        var knownFunction = operationLog.args.function.result.knownValue
         if (knownFunction) {
           switch (knownFunction) {
             case "String.prototype.slice":
               nextStep = {
-                operationLog: operationLog.args.context[1],
-                charIndex: charIndex + parseFloat(operationLog.args.arg0[1].result.str)
+                operationLog: operationLog.args.context,
+                charIndex: charIndex + operationLog.args.arg0.result.primitive
               }
               break;
           }
         } else {
           nextStep = {
-            operationLog: operationLog.extraArgs.returnValue[1],
+            operationLog: operationLog.extraArgs.returnValue,
             charIndex: charIndex
           };
         }
         break;
       case OperationTypes.functionArgument:
         nextStep = {
-          operationLog: operationLog.args.value[1],
+          operationLog: operationLog.args.value,
           charIndex: charIndex
         };
         break;
       case OperationTypes.objectExpression:
         nextStep = {
-          operationLog: operationLog.args.propertyValue[1],
+          operationLog: operationLog.args.propertyValue,
           charIndex: charIndex
         };
         break;
       case OperationTypes.assignmentExpression:
         nextStep = {
-          operationLog: operationLog.args.argument[1],
+          operationLog: operationLog.args.argument,
           charIndex: charIndex
         };
         break;
       case OperationTypes.identifier:
         nextStep = {
-          operationLog: operationLog.args.value[1],
+          operationLog: operationLog.args.value,
           charIndex: charIndex
         };
         break;
       case OperationTypes.returnStatement:
         nextStep = {
-          operationLog: operationLog.args.returnValue[1],
+          operationLog: operationLog.args.returnValue,
           charIndex: charIndex
         };
         break;

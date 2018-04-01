@@ -94,19 +94,18 @@ const operations: Operations = {
     },
     traverse(operationLog, charIndex) {
       const { operator } = operationLog.astArgs;
-      const [left, leftTracking] = operationLog.args.left;
-      const [right, rightTracking] = operationLog.args.right;
+      const { left, right } = operationLog.args
       if (operator == "+") {
-        if (typeof left === "string" && typeof right === "string") {
-          if (charIndex < left.length) {
+        if (typeof left.result.type === "string" && typeof right.result.type === "string") {
+          if (charIndex < left.result.length) {
             return {
-              operationLog: leftTracking,
+              operationLog: left,
               charIndex: charIndex
             };
           } else {
             return {
-              operationLog: rightTracking,
-              charIndex: charIndex - left.length
+              operationLog: right,
+              charIndex: charIndex - left.result.length
             };
           }
         } else {
@@ -426,7 +425,7 @@ const operations: Operations = {
     exec: (args, astArgs, ctx) => {
       var ret;
       const assignmentType = args.type[0];
-      const operator = args.operator[0];
+      const operator = astArgs.operator
       if (assignmentType === "MemberExpression") {
         var obj = args.object[0];
         var propName = args.propertyName[0];
@@ -478,10 +477,6 @@ const operations: Operations = {
       path.node.ignore = true;
 
       let operationArguments = {
-        operator: ignoredArrayExpression([
-          ignoredStringLiteral(path.node.operator),
-          t.nullLiteral()
-        ]),
         type: ignoredArrayExpression([
           ignoredStringLiteral(path.node.left.type),
           t.nullLiteral()
@@ -541,7 +536,9 @@ const operations: Operations = {
         throw Error("unhandled assignmentexpression node.left type");
       }
 
-      const operation = this.createNode(operationArguments);
+      const operation = this.createNode(operationArguments, {
+        operator: ignoredStringLiteral(path.node.operator)
+      });
 
       if (trackingAssignment) {
         path.replaceWith(
