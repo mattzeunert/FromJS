@@ -18,7 +18,11 @@ import {
   getLastOpValue,
   ignoredIdentifier
 } from "./babelPluginHelpers";
-import { traverse } from "@babel/types";
+
+interface TraversalStep {
+  charIndex: number,
+  operationLog: any
+}
 
 function createNode(args, astArgs = null) { }
 
@@ -29,7 +33,7 @@ interface Operations {
     exec?: any;
     arrayArguments?: string[];
     getArgumentsArray?: any,
-    traverse: any
+    traverse: (operationLog: any, charIndex: number) => TraversalStep
   };
 }
 
@@ -51,6 +55,12 @@ const operations: Operations = {
       ctx.setters.lastMemberExpressionResult([object, objectT]);
 
       return ret;
+    },
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.extraArgs.propertyValue,
+        charIndex: charIndex
+      };
     },
     visitor(path) {
       if (isInLeftPartOfAssignmentExpression(path)) {
@@ -178,6 +188,23 @@ const operations: Operations = {
 
       return ret;
     },
+    traverse(operationLog, charIndex) {
+      var knownFunction = operationLog.args.function.result.knownValue
+      if (knownFunction) {
+        switch (knownFunction) {
+          case "String.prototype.slice":
+            return {
+              operationLog: operationLog.args.context,
+              charIndex: charIndex + operationLog.args.arg0.result.primitive
+            }
+        }
+      } else {
+        return {
+          operationLog: operationLog.extraArgs.returnValue,
+          charIndex: charIndex
+        };
+      }
+    },
     visitor(path) {
       const { callee } = path.node;
 
@@ -273,6 +300,12 @@ const operations: Operations = {
       Object.defineProperties(obj, methodProperties);
 
       return obj;
+    },
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.propertyValue,
+        charIndex: charIndex
+      };
     },
     visitor(path) {
       path.node.properties.forEach(function (prop) {
@@ -371,6 +404,12 @@ const operations: Operations = {
     exec: (args, astArgs, ctx) => {
       return args.returnValue[0];
     },
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.returnValue,
+        charIndex: charIndex
+      };
+    },
     visitor(path) {
       path.node.argument = this.createNode({
         returnValue: ignoredArrayExpression([
@@ -383,6 +422,12 @@ const operations: Operations = {
   identifier: {
     exec: (args, astArgs, ctx) => {
       return args.value[0];
+    },
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.value,
+        charIndex: charIndex
+      };
     },
     visitor(path) {
       if (
@@ -472,6 +517,12 @@ const operations: Operations = {
         throw Error("unknown: " + assignmentType);
       }
       return ret;
+    },
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.argument,
+        charIndex: charIndex
+      };
     },
     visitor(path) {
       path.node.ignore = true;
