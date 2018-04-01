@@ -18,6 +18,7 @@ import {
   getLastOpValue,
   ignoredIdentifier
 } from "./babelPluginHelpers";
+import { traverse } from "@babel/types";
 
 function createNode(args, astArgs = null) { }
 
@@ -27,7 +28,8 @@ interface Operations {
     visitor?: any;
     exec?: any;
     arrayArguments?: string[];
-    getArgumentsArray?: any
+    getArgumentsArray?: any,
+    traverse: any
   };
 }
 
@@ -89,6 +91,32 @@ const operations: Operations = {
         },
         { operator: ignoredStringLiteral(path.node.operator) }
       );
+    },
+    traverse(operationLog, charIndex) {
+      const { operator } = operationLog.astArgs;
+      const [left, leftTracking] = operationLog.args.left;
+      const [right, rightTracking] = operationLog.args.right;
+      if (operator == "+") {
+        if (typeof left === "string" && typeof right === "string") {
+          if (charIndex < left.length) {
+            return {
+              operationLog: leftTracking,
+              charIndex: charIndex
+            };
+          } else {
+            return {
+              operationLog: rightTracking,
+              charIndex: charIndex - left.length
+            };
+          }
+        } else {
+          console.log("todo");
+        }
+      } else {
+        console.log("todo binexp operator");
+      }
+      throw "aaa"
+
     },
     exec: (args, astArgs, ctx) => {
       var { left, right } = args;
