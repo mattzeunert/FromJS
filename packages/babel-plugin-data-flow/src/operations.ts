@@ -33,7 +33,7 @@ interface Operations {
     exec?: any;
     arrayArguments?: string[];
     getArgumentsArray?: any,
-    traverse: (operationLog: any, charIndex: number) => TraversalStep
+    traverse?: (operationLog: any, charIndex: number) => TraversalStep
   };
 }
 
@@ -634,7 +634,7 @@ Object.keys(operations).forEach(opName => {
 
       var ret = []
       eachArgument(args, arrayArguments, (arg, argName, updateValue) => {
-        ret.push({ arg: arg[1], argName })
+        ret.push({ arg: arg, argName })
       })
 
       return ret

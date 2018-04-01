@@ -101,7 +101,6 @@ export default function () {
     };
 
     global.inspect = function (value) {
-      argTrackingInfo[0].serialize()
       global.inspectedValue = {
         normal: value,
         tracking: argTrackingInfo[0]

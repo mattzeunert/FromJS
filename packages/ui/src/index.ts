@@ -78,10 +78,10 @@ function showSteps(data) {
 
   steps.forEach(step => {
     console.log(step)
-    var tv = step.trackingValue
+    var tv = step.operationLog
     var args = ""
     eachArgument(tv.args, ["elements"], (arg, argName) => {
-      args += argName + ":" + (arg[1] && arg[1].result.str) + ","
+      args += argName + ":" + (arg && arg.result.str) + ","
     })
     html += `<div>
       ${tv.operation} (char: ${step.charIndex})
@@ -99,7 +99,7 @@ function runCodeAndshowResult(code) {
 
   document.querySelector("#basic-example").innerHTML = "";
 
-  var data = window["inspectedValue"].tracking.args.value[1].args.value[1]
+  var data = window["inspectedValue"].tracking.args.value.args.value
   showSteps(data)
 
   if (window["inspectedValue"].normal === undefined) {
@@ -149,7 +149,7 @@ function runCodeAndshowResult(code) {
     ) {
       // skip it because it's not very interesting
       console.log("skipping", data);
-      return makeNode(Object.values(data.args)[0][1]);
+      return makeNode(Object.values(data.args)[0]);
     }
 
     var childValues;
