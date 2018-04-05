@@ -56,12 +56,26 @@ export default function () {
         arrayArguments = ["elements"]
       }
 
+
+
+
       this.operation = operation;
       this.result = serializeValue(result);
-      // only store argument operation log because ol.result === a[0]
-      eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
-        updateArg(arg[1])
-      })
+      if (operation === "objectExpression" && args.properties) {
+        // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
+        args.properties = args.properties.map(prop => {
+          return {
+            key: prop.key[1],
+            type: prop.type[1],
+            value: prop.value[1]
+          }
+        })
+      } else {
+        // only store argument operation log because ol.result === a[0]
+        eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
+          updateArg(arg[1])
+        })
+      }
       if (typeof extraArgs === "object") {
         eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
           updateArg(arg[1])
@@ -113,10 +127,17 @@ export default function () {
       if (["string", "null", "number"].includes(type)) {
         primitive = value
       }
+      let str
+      try {
+        str = (value + "").slice(0, 40)
+      } catch (err) {
+        str = "(Error while serializing)"
+      }
+
       return {
         length,
         type,
-        str: (value + "").slice(0, 40),
+        str,
         primitive,
         knownValue
       }
