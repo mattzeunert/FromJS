@@ -22,7 +22,33 @@ export default function () {
       }
     })()
 
-    const storeLog = __storeLog
+    let logQueue = []
+    setInterval(function () {
+      if (logQueue.length === 0) {
+        return
+      }
+      fetch("http://localhost:4556", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ logs: logQueue })
+      })
+        .then(res => res.json())
+        .then(r => {
+          console.log("stored logs")
+        });
+
+      console.log("saving n logs", logQueue.length)
+      logQueue = []
+
+    }, 1000)
+    function remotelyStoreLog(log) {
+      logQueue.push(log)
+    }
+
+    const storeLog = typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog
 
     function OperationLog({ operation, result, args, astArgs, extraArgs }) {
       var arrayArguments = []

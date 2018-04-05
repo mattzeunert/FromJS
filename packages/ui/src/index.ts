@@ -6,8 +6,26 @@ import ServerInterface from '../../babel-plugin-data-flow/src/ServerInterface'
 // import Babel from "@babel/standalone";
 // document.write("hi");
 
-const serverInterface = new ServerInterface()
-window["__storeLog"] = serverInterface.storeLog.bind(serverInterface)
+class ServerInterface2 {
+  loadLog(logId, fn) {
+    document.title = logId
+    fetch("http://localhost:4556/loadLog", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ id: logId })
+    })
+      .then(res => res.json())
+      .then(r => {
+        fn(r)
+      });
+  }
+}
+
+const serverInterface = new ServerInterface2()
+// window["__storeLog"] = serverInterface.storeLog.bind(serverInterface)
 
 var editor = window["CodeMirror"].fromTextArea(
   document.getElementById("code"),
