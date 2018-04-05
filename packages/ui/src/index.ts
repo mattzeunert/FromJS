@@ -1,9 +1,13 @@
 import babelPlugin from "../../babel-plugin-data-flow";
 import operations from "../../babel-plugin-data-flow/src/operations"
 import traverse from '../../babel-plugin-data-flow/src/traverse'
+import ServerInterface from '../../babel-plugin-data-flow/src/ServerInterface'
 
 // import Babel from "@babel/standalone";
 // document.write("hi");
+
+const serverInterface = new ServerInterface()
+window["__storeLog"] = serverInterface.storeLog.bind(serverInterface)
 
 var editor = window["CodeMirror"].fromTextArea(
   document.getElementById("code"),
@@ -99,7 +103,13 @@ function runCodeAndshowResult(code) {
 
   document.querySelector("#basic-example").innerHTML = "";
 
-  var data = window["inspectedValue"].tracking.args.value.args.value
+  serverInterface.loadLog(window["inspectedValue"].tracking, function (log) {
+    var data = log.args.value.args.value
+    showResultR(data)
+  })
+}
+
+function showResultR(data) {
   showSteps(data)
 
   if (window["inspectedValue"].normal === undefined) {
