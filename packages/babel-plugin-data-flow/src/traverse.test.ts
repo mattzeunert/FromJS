@@ -80,7 +80,7 @@ test("Can track values through object literals", done => {
 
       expect(getStepTypeList(t)).toEqual([
         "memberExpression",
-        "objectExpression",
+        "objectProperty",
         "stringLiteral"
       ]);
 

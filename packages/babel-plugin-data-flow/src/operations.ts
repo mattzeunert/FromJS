@@ -16,7 +16,8 @@ import {
   createGetMemoValue,
   createGetMemoTrackingValue,
   getLastOpValue,
-  ignoredIdentifier
+  ignoredIdentifier,
+  ignoredObjectExpression
 } from "./babelPluginHelpers";
 
 interface TraversalStep {
@@ -163,7 +164,7 @@ const operations: Operations = {
         arg = args[argKey];
         fnArgValues.push(arg[0]);
         fnArgs.push(
-          new ctx.OperationLog({
+          ctx.createOperationLog({
             operation: ctx.operationTypes.functionArgument,
             args: {
               value: arg
@@ -254,6 +255,14 @@ const operations: Operations = {
       return call;
     }
   },
+  objectProperty: {
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.propertyValue,
+        charIndex: charIndex
+      };
+    },
+  },
   objectExpression: {
     exec: (args, astArgs, ctx) => {
       var obj = {};
@@ -262,28 +271,28 @@ const operations: Operations = {
       for (var i = 0; i < args.properties.length; i++) {
         var property = args.properties[i];
 
-        var propertyType = property[0][0];
-        var propertyKey = property[1][0];
+        var propertyType = property.type[0]
+        var propertyKey = property.key[0]
 
         if (propertyType === "ObjectProperty") {
-          var propertyValue = property[2][0];
-          var propertyValueT = property[2][1];
+          var propertyValue = property.value[0];
+          var propertyValueT = property.value[1];
 
           obj[propertyKey] = propertyValue;
 
           ctx.trackObjectPropertyAssignment(
             obj,
             propertyKey,
-            new ctx.OperationLog({
-              operation: "objectExpression",
+            ctx.createOperationLog({
+              operation: "objectProperty",
               args: { propertyValue: [propertyValue, propertyValueT] },
               result: propertyValue,
               astArgs: {}
             })
           );
         } else if (propertyType === "ObjectMethod") {
-          var propertyKind = property[2][0];
-          var fn = property[3][0];
+          var propertyKind = property.kind[0];
+          var fn = property.value[0];
           if (!methodProperties[propertyKey]) {
             methodProperties[propertyKey] = {
               enumerable: true,
@@ -329,25 +338,21 @@ const operations: Operations = {
           // getters/setters or something like this: obj = {fn(){}}
           var kind = ignoredStringLiteral(prop.kind);
           kind.ignore = true;
-          var propArray = ignoredArrayExpression([
-            ignoredArrayExpression([type]),
-            ignoredArrayExpression([prop.key]),
-            ignoredArrayExpression([kind]),
-            ignoredArrayExpression([
-              t.functionExpression(null, prop.params, prop.body)
-            ])
-          ]);
-          return propArray;
+          return ignoredObjectExpression({
+            type: [type],
+            key: [prop.key],
+            kind: [kind],
+            value: [t.functionExpression(null, prop.params, prop.body)]
+          })
         } else {
-          var propArray = ignoredArrayExpression([
-            ignoredArrayExpression([type]),
-            ignoredArrayExpression([prop.key]),
-            ignoredArrayExpression([
+          return ignoredObjectExpression({
+            type: [type],
+            key: [prop.key],
+            value: [
               prop.value,
               getLastOperationTrackingResultCall
-            ])
-          ]);
-          return propArray;
+            ]
+          })
         }
       });
 
@@ -478,7 +483,7 @@ const operations: Operations = {
         var propNameT = args.propertyName[1];
 
         var currentValue = obj[propName];
-        var currentValueT = new ctx.OperationLog({
+        var currentValueT = ctx.createOperationLog({
           operation: "memexpAsLeftAssExp",
           args: {
             object: [obj, objT],
@@ -500,7 +505,7 @@ const operations: Operations = {
         ctx.trackObjectPropertyAssignment(
           obj,
           propName,
-          new ctx.OperationLog({
+          ctx.createOperationLog({
             result: args.argument[0],
             operation: "assignmentExpression",
             args: {
@@ -602,6 +607,45 @@ const operations: Operations = {
   }
 };
 
+function eachArgumentInObject(args, operationName, fn) {
+  const operation = operations[operationName]
+  const isObjectExpression = operationName === OperationTypes.objectExpression
+
+  let arrayArguments = []
+  if (operation && operation.arrayArguments) {
+    arrayArguments = operation.arrayArguments
+  }
+
+  if (isObjectExpression) {
+    // debugger
+    // todo: this is an objexpression property not an obj expression itself, should be clarified
+    fn(args.value, "value", newValue => {
+      // debugger;
+      args.value = newValue
+    });
+    fn(args.key, "key", newValue => args.key = newValue);
+  } else {
+    Object.keys(args).forEach(key => {
+      if (arrayArguments.includes(key)) {
+        args[key].forEach((a, i) => {
+          fn(a, "element" + i, newValue => args[key][i] = newValue)
+        })
+      }
+      else {
+        fn(args[key], key, newValue => args[key] = newValue)
+      }
+    })
+  }
+}
+
+export function eachArgument(operationLog, fn) {
+  eachArgumentInObject(operationLog.args, operationLog.operation, fn)
+
+  if (operationLog.extraArgs) {
+    eachArgumentInObject(operationLog.extraArgs, operationLog.operation, fn)
+  }
+}
+
 Object.keys(operations).forEach(opName => {
   const operation = operations[opName];
   operation.createNode = function (args, astArgs) {
@@ -611,42 +655,13 @@ Object.keys(operations).forEach(opName => {
     operation.arrayArguments = [];
   }
   operation.getArgumentsArray = function (operationLog) {
-    var operation = this
-    function getArgsArray(args) {
-      var arrayArguments = []
 
-      if (operation.arrayArguments) {
-        arrayArguments = operation.arrayArguments
-      }
+    var ret = []
+    eachArgument(operationLog, (arg, argName, updateValue) => {
+      ret.push({ arg: arg, argName })
+    })
 
-      function eachArgument(args, arrayArguments, fn) {
-        Object.keys(args).forEach(key => {
-          if (arrayArguments.includes(key)) {
-            args[key].forEach((a, i) => {
-              fn(a, "element" + i, newValue => args[key][i] = newValue)
-            })
-          }
-          else {
-            fn(args[key], key, newValue => args[key] = newValue)
-          }
-        })
-      }
-
-      var ret = []
-      eachArgument(args, arrayArguments, (arg, argName, updateValue) => {
-        ret.push({ arg: arg, argName })
-      })
-
-      return ret
-    }
-
-    var arr = getArgsArray(operationLog.args)
-    if (operationLog.extraArgs) {
-      arr = arr.concat(
-        getArgsArray(operationLog.extraArgs)
-      )
-    }
-    return arr
+    return ret
   }
 });
 

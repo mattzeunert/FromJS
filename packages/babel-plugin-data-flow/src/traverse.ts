@@ -9,6 +9,10 @@ export default function traverse(operationLog, charIndex, steps = []) {
   // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
   let nextStep = null;
 
+  if (typeof operationLog === "number") {
+    throw Error("trying to traverse unloaded (numeric) operation log")
+  }
+
   const operation = operations[operationLog.operation]
   if (operation && operation.traverse) {
     nextStep = operation.traverse(operationLog, charIndex)

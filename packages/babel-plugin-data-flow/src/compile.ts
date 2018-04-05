@@ -9,7 +9,7 @@ export default function transform(code) {
       {
         plugins: [plugin]
       },
-      function(err, result) {
+      function (err, result) {
         if (err) {
           reject(err);
         } else {

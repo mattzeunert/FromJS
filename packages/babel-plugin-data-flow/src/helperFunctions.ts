@@ -1,7 +1,8 @@
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
   __OPERATIONS_EXEC__,
-  __OPERATION_ARRAY_ARGUMENTS__;
+  __OPERATION_ARRAY_ARGUMENTS__,
+  __storeLog;
 
 export default function () {
   (function (
@@ -10,6 +11,19 @@ export default function () {
     operationsExec,
     operationArrayArguments
   ) {
+    // todo: would be better if the server provided this value
+    const getOperationIndex = (function () {
+      var operationIndexBase = Math.round(Math.random() * 1000 * 1000 * 1000)
+      var operationIndex = 0
+      return function getOperationIndex() {
+        var index = operationIndex
+        operationIndex++
+        return operationIndexBase + operationIndex
+      }
+    })()
+
+    const storeLog = __storeLog
+
     function OperationLog({ operation, result, args, astArgs, extraArgs }) {
       var arrayArguments = []
       if (operation === "arrayExpression") {
@@ -30,6 +44,13 @@ export default function () {
       this.args = args
       this.astArgs = astArgs;
       this.extraArgs = extraArgs
+      this.index = getOperationIndex()
+    }
+
+    function createOperationLog(args) {
+      var log = new OperationLog(args);
+      storeLog(log)
+      return log.index
     }
 
     // TODO: don't copy/paste this
@@ -170,7 +191,7 @@ export default function () {
       var argValues = args.map(arg => arg[0]);
       var argTrackingValues = args.map(arg => {
         if (arg[1] === null) {
-          return new OperationLog({
+          return createOperationLog({
             operation: "Unknown operation",
             result: arg[0],
             args: {},
@@ -200,7 +221,7 @@ export default function () {
           operationTypes,
           getObjectPropertyTrackingValue,
           trackObjectPropertyAssignment,
-          OperationLog,
+          createOperationLog,
           getLastOpTrackingResult() {
             return lastOpTrackingResult;
           }
@@ -210,13 +231,17 @@ export default function () {
         throw Error("oh no");
       }
 
-      trackingValue = new OperationLog({
+      if (opName === operationTypes.objectExpression) {
+        args = []
+      }
+
+      trackingValue = createOperationLog({
         operation: opName,
         args: objArgs,
         astArgs: astArgs,
         result: ret,
         extraArgs: extraTrackingValues
-      });
+      })
 
       // trackingValue = {
       //   type: opName,
