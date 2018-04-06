@@ -4,28 +4,28 @@ declare var __FUNCTION_NAMES__,
   __OPERATION_ARRAY_ARGUMENTS__,
   __storeLog;
 
-export default function () {
-  (function (
+export default function() {
+  (function(
     functionNames,
     operationTypes,
     operationsExec,
     operationArrayArguments
   ) {
     // todo: would be better if the server provided this value
-    const getOperationIndex = (function () {
-      var operationIndexBase = Math.round(Math.random() * 1000 * 1000 * 1000)
-      var operationIndex = 0
+    const getOperationIndex = (function() {
+      var operationIndexBase = Math.round(Math.random() * 1000 * 1000 * 1000);
+      var operationIndex = 0;
       return function getOperationIndex() {
-        var index = operationIndex
-        operationIndex++
-        return operationIndexBase + operationIndex
-      }
-    })()
+        var index = operationIndex;
+        operationIndex++;
+        return operationIndexBase + operationIndex;
+      };
+    })();
 
-    let logQueue = []
-    setInterval(function () {
+    let logQueue = [];
+    setInterval(function() {
       if (logQueue.length === 0) {
-        return
+        return;
       }
       fetch("http://localhost:4556", {
         method: "POST",
@@ -37,27 +37,24 @@ export default function () {
       })
         .then(res => res.json())
         .then(r => {
-          console.log("stored logs")
+          console.log("stored logs");
         });
 
-      console.log("saving n logs", logQueue.length)
-      logQueue = []
-
-    }, 1000)
+      console.log("saving n logs", logQueue.length);
+      logQueue = [];
+    }, 200);
     function remotelyStoreLog(log) {
-      logQueue.push(log)
+      logQueue.push(log);
     }
 
-    const storeLog = typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog
+    const storeLog =
+      typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog;
 
     function OperationLog({ operation, result, args, astArgs, extraArgs }) {
-      var arrayArguments = []
+      var arrayArguments = [];
       if (operation === "arrayExpression") {
-        arrayArguments = ["elements"]
+        arrayArguments = ["elements"];
       }
-
-
-
 
       this.operation = operation;
       this.result = serializeValue(result);
@@ -68,29 +65,29 @@ export default function () {
             key: prop.key[1],
             type: prop.type[1],
             value: prop.value[1]
-          }
-        })
+          };
+        });
       } else {
         // only store argument operation log because ol.result === a[0]
         eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
-          updateArg(arg[1])
-        })
+          updateArg(arg[1]);
+        });
       }
       if (typeof extraArgs === "object") {
         eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
-          updateArg(arg[1])
-        })
+          updateArg(arg[1]);
+        });
       }
-      this.args = args
+      this.args = args;
       this.astArgs = astArgs;
-      this.extraArgs = extraArgs
-      this.index = getOperationIndex()
+      this.extraArgs = extraArgs;
+      this.index = getOperationIndex();
     }
 
     function createOperationLog(args) {
       var log = new OperationLog(args);
-      storeLog(log)
-      return log.index
+      storeLog(log);
+      return log.index;
     }
 
     // TODO: don't copy/paste this
@@ -98,40 +95,39 @@ export default function () {
       Object.keys(args).forEach(key => {
         if (arrayArguments.includes(key)) {
           args[key].forEach((a, i) => {
-            fn(a, "element" + i, newValue => args[key][i] = newValue)
-          })
+            fn(a, "element" + i, newValue => (args[key][i] = newValue));
+          });
+        } else {
+          fn(args[key], key, newValue => (args[key] = newValue));
         }
-        else {
-          fn(args[key], key, newValue => args[key] = newValue)
-        }
-      })
+      });
     }
 
     function serializeValue(value) {
       // todo: consider accessing properties that are getters could have negative impact...
-      var knownValue = null
+      var knownValue = null;
       if (value === String.prototype.slice) {
-        knownValue = "String.prototype.slice"
+        knownValue = "String.prototype.slice";
       }
-      var length
+      var length;
       // todo: more performant way than doing try catch
       try {
-        length = value.length
+        length = value.length;
       } catch (err) {
-        length = null
+        length = null;
       }
 
-      var type = typeof value
+      var type = typeof value;
 
-      var primitive
+      var primitive;
       if (["string", "null", "number"].includes(type)) {
-        primitive = value
+        primitive = value;
       }
-      let str
+      let str;
       try {
-        str = (value + "").slice(0, 40)
+        str = (value + "").slice(0, 200);
       } catch (err) {
-        str = "(Error while serializing)"
+        str = "(Error while serializing)";
       }
 
       return {
@@ -140,7 +136,7 @@ export default function () {
         str,
         primitive,
         knownValue
-      }
+      };
     }
 
     var global = Function("return this")();
@@ -161,14 +157,14 @@ export default function () {
       return argTrackingInfo[index];
     };
 
-    global.getTrackingAndNormalValue = function (value) {
+    global.getTrackingAndNormalValue = function(value) {
       return {
         normal: value,
         tracking: argTrackingInfo[0]
       };
     };
 
-    global.inspect = function (value) {
+    global.inspect = function(value) {
       global.inspectedValue = {
         normal: value,
         tracking: argTrackingInfo[0]
@@ -196,25 +192,25 @@ export default function () {
 
     var lastMemberExpressionObjectValue = null;
     var lastMemberExpressionObjectTrackingValue = null;
-    global["getLastMemberExpressionObjectValue"] = function () {
+    global["getLastMemberExpressionObjectValue"] = function() {
       return lastMemberExpressionObjectValue;
     };
 
-    global["getLastMemberExpressionObjectTrackingValue"] = function () {
+    global["getLastMemberExpressionObjectTrackingValue"] = function() {
       return lastMemberExpressionObjectTrackingValue;
     };
 
     const memoValues = {};
-    global["__setMemoValue"] = function (key, value, trackingValue) {
+    global["__setMemoValue"] = function(key, value, trackingValue) {
       // console.log("setmemovalue", value)
       memoValues[key] = { value, trackingValue };
       lastOpTrackingResult = trackingValue;
       return value;
     };
-    global["__getMemoValue"] = function (key) {
+    global["__getMemoValue"] = function(key) {
       return memoValues[key].value;
     };
-    global["__getMemoTrackingValue"] = function (key, value, trackingValue) {
+    global["__getMemoTrackingValue"] = function(key, value, trackingValue) {
       return memoValues[key].trackingValue;
     };
 
@@ -232,7 +228,7 @@ export default function () {
 
       args;
       if (operationArrayArguments[opName]) {
-        operationArrayArguments[opName].forEach(arrayArgName => { });
+        operationArrayArguments[opName].forEach(arrayArgName => {});
       }
 
       var argValues = args.map(arg => arg[0]);
@@ -279,7 +275,7 @@ export default function () {
       }
 
       if (opName === operationTypes.objectExpression) {
-        args = []
+        args = [];
       }
 
       trackingValue = createOperationLog({
@@ -288,7 +284,7 @@ export default function () {
         astArgs: astArgs,
         result: ret,
         extraArgs: extraTrackingValues
-      })
+      });
 
       // trackingValue = {
       //   type: opName,
@@ -327,5 +323,5 @@ export default function () {
     __OPERATION_TYPES__,
     __OPERATIONS_EXEC__,
     __OPERATION_ARRAY_ARGUMENTS__
-    );
+  );
 }

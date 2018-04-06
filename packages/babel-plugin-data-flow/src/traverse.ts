@@ -1,5 +1,5 @@
 import * as OperationTypes from "./OperationTypes";
-import operations from "./operations"
+import operations from "./operations";
 
 export default function traverse(operationLog, charIndex, steps = []) {
   steps.push({
@@ -10,12 +10,13 @@ export default function traverse(operationLog, charIndex, steps = []) {
   let nextStep = null;
 
   if (typeof operationLog === "number") {
-    throw Error("trying to traverse unloaded (numeric) operation log")
+    throw Error("trying to traverse unloaded (numeric) operation log");
   }
 
-  const operation = operations[operationLog.operation]
+  const operation = operations[operationLog.operation];
+  debugger;
   if (operation && operation.traverse) {
-    nextStep = operation.traverse(operationLog, charIndex)
+    nextStep = operation.traverse(operationLog, charIndex);
   } else {
     switch (operationLog.operation) {
       case OperationTypes.functionArgument:
@@ -26,7 +27,6 @@ export default function traverse(operationLog, charIndex, steps = []) {
         break;
     }
   }
-
 
   if (nextStep && nextStep.operationLog) {
     traverse(nextStep.operationLog, nextStep.charIndex, steps);
