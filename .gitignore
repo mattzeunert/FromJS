@@ -12,5 +12,5 @@ _site
 .DS_Store
 packages/proxy-instrumenter/ca
 packages/babel-plugin-data-flow/test.js
-
+packages/babel-plugin-data-flow/dist/helperFunctions.js
 packages/ui/dist

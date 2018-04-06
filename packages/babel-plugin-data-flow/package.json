@@ -10,10 +10,13 @@
   },
   "dependencies": {
     "@babel/core": "^7.0.0-beta.40",
+    "awesome-typescript-loader": "^4.0.1",
     "babylon": "^6.18.0",
     "jest": "^22.4.2",
     "prettier": "^1.11.1",
-    "typescript": "^2.7.2"
+    "ts-loader": "^4.1.0",
+    "typescript": "^2.7.2",
+    "webpack": "^4.5.0"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -27,5 +30,8 @@
     "testMatch": [
       "**/*.test.(ts|tsx|js)"
     ]
+  },
+  "devDependencies": {
+    "webpack-cli": "^2.0.14"
   }
 }

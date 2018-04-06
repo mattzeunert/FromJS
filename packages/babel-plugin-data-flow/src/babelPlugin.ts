@@ -19,10 +19,8 @@ import {
   isInLeftPartOfAssignmentExpression
 } from "./babelPluginHelpers";
 
-import helperCodeLoaded from "./helperFunctions";
-let helperCode = helperCodeLoaded.toString();
-helperCode = helperCode.slice("function default_1() {".length, -1);
-helperCode = helperCode
+import * as helperCodeLoaded from "../dist/helperFunctions.js";
+var helperCode = helperCodeLoaded
   .toString()
   .replace("__FUNCTION_NAMES__", JSON.stringify(FunctionNames));
 helperCode = helperCode.replace(
