@@ -279,6 +279,10 @@ function showTree(logIndex) {
         return makeNode(data.args.value);
       }
 
+      if (data && data.operation === "functionArgument") {
+        return makeNode(data.args.value);
+      }
+
       var childValues;
       if (data) {
         var operation = operations[data.operation];
@@ -318,9 +322,10 @@ function showTree(logIndex) {
       if (data) {
         resVal = data.result;
       } else {
+        debugger;
         resVal = {
           type: "string",
-          str: "todo.(no data)"
+          str: "todo (no data)"
         };
       }
 
