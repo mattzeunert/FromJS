@@ -41,7 +41,7 @@
     }
 
     #compiled-code {
-      /* display: none; */
+      display: none;
       width: 100vw;
       height: 200px;
       font-size: 12px;
@@ -69,10 +69,16 @@
 
     .operation {}
 
+    .CodeMirror {
+      height: 200px !important;
+    }
+
     .node {
       border-color: #999;
       padding: 3px;
     }
+
+
 
     path {
       stroke: #999;
@@ -84,13 +90,9 @@
 <body>
 
   <textarea id="code">
-    
-    
-    var obj = {}
-obj.val = "abc".slice(2)
-var x = obj.val
-inspect(x)
-       
+var str = "ab" + "cd"//.slice(1)
+inspect(str)
+      
   </textarea>
 
   <textarea id="compiled-code"></textarea>
