@@ -10,8 +10,8 @@ function getStepTypeList(traversalResult) {
 test("Can track concatenation of 'a' and 'b'", done => {
   instrumentAndRun("return 'a' + 'b'").then(({ normal, tracking }) => {
     expect(normal).toBe("ab");
-    var t1 = traverse(tracking, 0);
-    var t2 = traverse(tracking, 1);
+    var t1 = traverse({operationLog: tracking, charIndex: 0});
+    var t2 = traverse({operationLog: tracking, charIndex: 1});
     var t1LastStep = t1[t1.length - 1];
     var t2LastStep = t2[t2.length - 1];
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
@@ -31,8 +31,8 @@ test("Can track concatenation of 'a' and 'b' in an add function", done => {
     return add('a', 'b')
   `).then(({ normal, tracking, code }) => {
       expect(normal).toBe("ab");
-      var t1 = traverse(tracking, 0);
-      var t2 = traverse(tracking, 1);
+      var t1 = traverse({operationLog: tracking, charIndex: 0});
+      var t2 = traverse({operationLog: tracking, charIndex: 1});
       var t1LastStep = t1[t1.length - 1];
       var t2LastStep = t2[t2.length - 1];
       expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
@@ -59,7 +59,7 @@ test("Can track values through object assignments", done => {
     obj.a = "x"
     return obj.a
   `).then(({ normal, tracking, code }) => {
-      var t = traverse(tracking, 0);
+      var t = traverse({operationLog: tracking, charIndex: 0});
 
       expect(getStepTypeList(t)).toEqual([
         "memberExpression",
@@ -76,7 +76,7 @@ test("Can track values through object literals", done => {
     var obj = {a: "x"}
     return obj.a
   `).then(({ normal, tracking, code }) => {
-      var t = traverse(tracking, 0);
+      var t = traverse({operationLog: tracking, charIndex: 0});
 
       expect(getStepTypeList(t)).toEqual([
         "memberExpression",
@@ -96,7 +96,7 @@ test("Can traverse String.prototype.slice", done => {
       return str
     `).then(({ normal, tracking, code }) => {
       expect(normal).toBe("cd")
-      var t = traverse(tracking, 0);
+      var t = traverse({operationLog: tracking, charIndex: 0});
       var lastStep = t[t.length - 1];
 
       expect(lastStep.charIndex).toBe(2)
