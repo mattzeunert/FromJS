@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="./Treant.css">
+  <style>
+    .chart {
+      /* height: 1500px; */
+      height: 800px;
+      margin: 5px;
+      width: 99vw;
+    }
+
+    .node-name {
+      font-weight: bold;
+    }
+
+    .nodeExample1 {
+      padding: 2px;
+      -webkit-border-radius: 3px;
+      -moz-border-radius: 3px;
+      border-radius: 3px;
+      background-color: #ffffff;
+      border: 1px solid #000;
+      width: 200px;
+      font-family: Tahoma;
+      font-size: 14px;
+    }
+
+
+    #code,
+    #compiled-code {
+      float: left;
+      width: 500px;
+      height: 100px;
+      font-size: 14px;
+      font-family: Courier New;
+    }
+
+    #compiled-code {
+      display: none;
+      width: 100vw;
+      height: 200px;
+      font-size: 12px;
+    }
+
+    .chart {
+      font-weight: bold;
+    }
+
+    .value {
+      font-family: Courier New;
+    }
+
+    .value--string {
+      color: #a00;
+    }
+
+    .value--number {
+      color: #00a;
+    }
+
+    .value--other {
+      color: #0a0;
+    }
+
+    .operation {}
+
+    .CodeMirror {
+      height: 200px !important;
+    }
+
+    .node {
+      border-color: #999;
+      padding: 3px;
+    }
+
+    .highlight-step {
+      border: 2px solid #f627c9;
+    }
+
+
+    path {
+      stroke: #999;
+    }
+
+    #chars {
+      font-size: 20px;
+      font-family: Courier New;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <textarea id="code">
+var str = "ab" + "cd" + "ef"
+inspect(str)
+      
+  </textarea>
+
+  <textarea id="compiled-code"></textarea>
+  <!-- <div id="steps" style="border: 1px solid #eee; padding: 10px;"></div> -->
+  <div id="normal-value"></div>
+  <br style="clear:both">
+
+  <link rel="stylesheet" href="codemirror/codemirror.css"></link>
+  <script src="codemirror/codemirror.js"></script>
+  <script src="codemirror/javascript.js"></script>
+
+  <div class="chart" id="basic-example"></div>
+  <script src="./raphael.js"></script>
+  <script src="./Treant.js"></script>
+
+  <script charset="utf-8" src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.js">
+  </script>
+  <script charset="utf-8" src="dist/bundle.js"></script>
+  <script>
+
+  </script>
+</body>
+
+</html>

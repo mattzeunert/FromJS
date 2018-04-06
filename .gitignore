@@ -1,4 +1,4 @@
-/node_modules
+node_modules
 /dist
 /chrome-extension/dist
 /code-preprocessing-test/dist
@@ -10,3 +10,7 @@
 .sass-cache
 _site
 .DS_Store
+packages/proxy-instrumenter/ca
+packages/babel-plugin-data-flow/test.js
+packages/babel-plugin-data-flow/dist/helperFunctions.js
+packages/ui/dist

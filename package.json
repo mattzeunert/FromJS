@@ -45,6 +45,7 @@
     "stacktrace-js": "1.2.0",
     "starts-with": "1.0.2",
     "string-contains": "0.1.0",
+    "typescript": "^2.7.2",
     "underscore": "1.8.3",
     "webpack": "1.13.1"
   },
@@ -65,6 +66,7 @@
     "karma-chrome-launcher": "1.0.1",
     "karma-jasmine": "1.0.2",
     "karma-webpack": "1.7.0",
+    "lerna": "^2.4.0",
     "mkdirp": "0.5.1",
     "nodemon": "1.9.2",
     "protractor": "4.0.4",
