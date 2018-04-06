@@ -78,10 +78,18 @@
       padding: 3px;
     }
 
+    .highlight-step {
+      border: 2px solid #f627c9;
+    }
 
 
     path {
       stroke: #999;
+    }
+
+    #chars {
+      font-size: 20px;
+      font-family: Courier New;
     }
   </style>
 
@@ -90,13 +98,14 @@
 <body>
 
   <textarea id="code">
-var str = "ab" + "cd"//.slice(1)
+var str = "ab" + "cd" + "ef"
 inspect(str)
       
   </textarea>
 
   <textarea id="compiled-code"></textarea>
-  <div id="steps" style="border: 1px solid #eee; padding: 10px;"></div>
+  <!-- <div id="steps" style="border: 1px solid #eee; padding: 10px;"></div> -->
+  <div id="normal-value"></div>
   <br style="clear:both">
 
   <link rel="stylesheet" href="codemirror/codemirror.css"></link>

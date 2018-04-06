@@ -136,7 +136,7 @@ function loadSteps({ logId, charIndex }) {
     }).then(res => res.json());
   } else {
     return new Promise(resolve => {
-      serverInterface.loadLog(logId, log => {
+      loadLog(logId, log => {
         var steps = traverse({ operationLog: log, charIndex });
         resolve({ steps });
       });
@@ -148,6 +148,24 @@ window["showSteps"] = showSteps;
 function showSteps(logId, charIndex) {
   loadSteps({ logId, charIndex }).then(r => {
     var steps = r.steps;
+
+    function highlightInTree() {
+      document.querySelectorAll("[data-index]").forEach(el => {
+        if (el && el.parentElement) {
+          el.parentElement.classList.remove("highlight-step");
+        }
+      });
+      steps.forEach(step => {
+        var el = document.querySelector(
+          "[data-index='" + step.operationLog.index + "']"
+        );
+        if (el && el.parentElement) {
+          el.parentElement.classList.add("highlight-step");
+        }
+      });
+    }
+    highlightInTree();
+
     var html = ``;
 
     steps.forEach(step => {
@@ -168,30 +186,49 @@ function showSteps(logId, charIndex) {
           </div>`;
     });
 
-    document.querySelector("#steps").innerHTML = html;
+    // document.querySelector("#steps").innerHTML = html;
   });
 }
 
 function runCodeAndshowResult(code) {
   eval(code);
-  console.log(window["inspectedValue"]);
+
+  var inspectedValue = window["inspectedValue"];
+  showNormalValue(inspectedValue);
 
   document.querySelector("#basic-example").innerHTML = "";
 
-  serverInterface.loadLog(window["inspectedValue"].tracking, function(log) {
-    var data = log.args.value.args.value;
-    showResultR(data);
+  showTree(inspectedValue.tracking);
+  showSteps(inspectedValue.tracking, 0);
+}
+
+function loadLog(logIndex, fn) {
+  serverInterface.loadLog(logIndex, log => {
+    fn(log.args.value);
   });
 }
 
-function showResultR(data) {
-  showSteps(data.index, 0);
-
-  showTree(data.index);
+function showNormalValue(inspectedValue) {
+  var html = "<b>Result value:</b><br><div id='chars'>";
+  var value = inspectedValue.normal;
+  for (var i = 0; i < value.length; i++) {
+    html += `<span onMouseEnter="updateChar(${i});showSteps(${
+      inspectedValue.tracking
+    }, ${i})">${value[i]}</span>`;
+  }
+  html += "</div>";
+  document.querySelector("#normal-value").innerHTML = html;
 }
+window["updateChar"] = function(charIndex) {
+  var charEls = document.querySelector("#chars").children;
+
+  Array.from(charEls).forEach(el => el.setAttribute("style", ""));
+
+  charEls[charIndex].setAttribute("style", "color:  #f627c9;");
+};
 
 function showTree(logIndex) {
-  serverInterface.loadLog(logIndex, log => {
+  loadLog(logIndex, log => {
     var data = log;
 
     if (window["inspectedValue"].normal === undefined) {
@@ -301,7 +338,7 @@ function showTree(logIndex) {
 
         children: [
           {
-            innerHTML: `<div class="operation">
+            innerHTML: `<div class="operation" data-index="${data.index}">
               ${type}
             </div>`,
             children
