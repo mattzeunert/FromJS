@@ -1,7 +1,12 @@
 import * as OperationTypes from "./OperationTypes";
 import operations from "./operations";
+import OperationLog from "./helperFunctions/OperationLog";
 
-export default function traverse(operationLog, charIndex, steps = []) {
+export default function traverse(
+  operationLog: OperationLog,
+  charIndex,
+  steps = []
+) {
   steps.push({
     operationLog: operationLog,
     charIndex

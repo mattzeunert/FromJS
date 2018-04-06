@@ -55,6 +55,7 @@ app.post("/traverse", (req, res) => {
     console.log("traverse", req.body);
     internalServerInterfce.loadLog(req.body.logId, function(log) {
       var ret = traverse(log, req.body.charIndex);
+
       res.end(JSON.stringify({ steps: ret }));
     });
   }, 500);

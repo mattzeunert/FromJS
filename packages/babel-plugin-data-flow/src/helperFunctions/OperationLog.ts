@@ -22,7 +22,7 @@ function eachArgument(args, arrayArguments, fn) {
   });
 }
 
-function serializeValue(value) {
+function serializeValue(value): SerializedValue {
   // todo: consider accessing properties that are getters could have negative impact...
   var knownValue = null;
   if (value === String.prototype.slice) {
@@ -49,7 +49,7 @@ function serializeValue(value) {
     str = "(Error while serializing)";
   }
 
-  return {
+  return <SerializedValue>{
     length,
     type,
     str,
@@ -57,42 +57,54 @@ function serializeValue(value) {
     knownValue
   };
 }
-export default function OperationLog({
-  operation,
-  result,
-  args,
-  astArgs,
-  extraArgs
-}) {
-  var arrayArguments = [];
-  if (operation === "arrayExpression") {
-    arrayArguments = ["elements"];
-  }
 
-  this.operation = operation;
-  this.result = serializeValue(result);
-  if (operation === "objectExpression" && args.properties) {
-    // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
-    args.properties = args.properties.map(prop => {
-      return {
-        key: prop.key[1],
-        type: prop.type[1],
-        value: prop.value[1]
-      };
-    });
-  } else {
-    // only store argument operation log because ol.result === a[0]
-    eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
-      updateArg(arg[1]);
-    });
+export interface SerializedValue {
+  length: any;
+  type: string;
+  str: string;
+  primitive: number | null | string;
+  knownValue: string | null;
+}
+
+export default class OperationLog {
+  operation: string;
+  result: SerializedValue;
+  args: any;
+  extraArgs: any;
+  index: number;
+  astArgs: any;
+
+  constructor({ operation, result, args, astArgs, extraArgs }) {
+    var arrayArguments = [];
+    if (operation === "arrayExpression") {
+      arrayArguments = ["elements"];
+    }
+
+    this.operation = operation;
+    this.result = serializeValue(result);
+    if (operation === "objectExpression" && args.properties) {
+      // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
+      args.properties = args.properties.map(prop => {
+        return {
+          key: prop.key[1],
+          type: prop.type[1],
+          value: prop.value[1]
+        };
+      });
+    } else {
+      // only store argument operation log because ol.result === a[0]
+      eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
+        updateArg(arg[1]);
+      });
+    }
+    if (typeof extraArgs === "object") {
+      eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
+        updateArg(arg[1]);
+      });
+    }
+    this.args = args;
+    this.astArgs = astArgs;
+    this.extraArgs = extraArgs;
+    this.index = getOperationIndex();
   }
-  if (typeof extraArgs === "object") {
-    eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
-      updateArg(arg[1]);
-    });
-  }
-  this.args = args;
-  this.astArgs = astArgs;
-  this.extraArgs = extraArgs;
-  this.index = getOperationIndex();
 }
