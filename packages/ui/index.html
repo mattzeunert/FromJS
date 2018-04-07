@@ -9,7 +9,7 @@
   <style>
     .chart {
       /* height: 1500px; */
-      height: 800px;
+      height: 600px;
       margin: 5px;
       width: 99vw;
     }
@@ -25,9 +25,9 @@
       border-radius: 3px;
       background-color: #ffffff;
       border: 1px solid #000;
-      width: 200px;
+      width: 150px;
       font-family: Tahoma;
-      font-size: 14px;
+      font-size: 13px;
     }
 
 
@@ -70,7 +70,7 @@
     .operation {}
 
     .CodeMirror {
-      height: 200px !important;
+      height: 150px !important;
     }
 
     .node {
@@ -96,16 +96,22 @@
 </head>
 
 <body>
-
-  <textarea id="code">
+  <div class="container">
+    <div>
+      <div style="float:left; width: 70%">
+        <textarea id="code">
 var str = "ab" + "cd" + "ef"
 inspect(str)
-      
-  </textarea>
+                
+            </textarea>
+      </div>
+      <div style="float:left; width: 30%">
+        <div id="normal-value"></div>
+      </div>
+    </div <textarea id="compiled-code"></textarea>
+    <!-- <div id="steps" style="border: 1px solid #eee; padding: 10px;"></div> -->
 
-  <textarea id="compiled-code"></textarea>
-  <!-- <div id="steps" style="border: 1px solid #eee; padding: 10px;"></div> -->
-  <div id="normal-value"></div>
+  </div>
   <br style="clear:both">
 
   <link rel="stylesheet" href="codemirror/codemirror.css"></link>
