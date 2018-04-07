@@ -165,7 +165,7 @@ export default function plugin(babel) {
   };
 
   return {
-    name: "babel-plugin-data-flow",
+    name: "fromjs-babel-plugin",
     visitor: visitors
   };
 }

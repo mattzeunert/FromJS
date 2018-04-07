@@ -5,7 +5,7 @@ interface LogsObject {
   [key: string]: OperationLog;
 }
 
-export default class ServerInterface {
+export default class InMemoryLogServer {
   _storedLogs: LogsObject = {};
   storeLog(log) {
     this._storedLogs[log.index] = log;

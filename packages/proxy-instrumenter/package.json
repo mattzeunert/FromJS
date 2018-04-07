@@ -4,11 +4,11 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "@fromjs/core": "^1.0.0",
     "http-mitm-proxy": "^0.6.1",
     "request": "^2.83.0",
     "threads": "^0.10.1",
     "ts-node": "^5.0.1",
-    "wait-until": "^0.0.2",
-    "babel-plugin-data-flow": "^1.0.0"
+    "wait-until": "^0.0.2"
   }
 }

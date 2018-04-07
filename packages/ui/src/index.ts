@@ -1,13 +1,15 @@
-import babelPlugin from "../../babel-plugin-data-flow";
-import operations from "../../babel-plugin-data-flow/src/operations";
-import ServerInterface from "../../babel-plugin-data-flow/src/ServerInterface";
-import traverse from "../../babel-plugin-data-flow/src/traverse";
+import {
+  InMemoryLogServer,
+  traverse,
+  operations,
+  babelPlugin
+} from "@fromjs/core";
 
 // import Babel from "@babel/standalone";
 // document.write("hi");
 
-const DEBUG = false;
-const USE_SERVER = false;
+const DEBUG = true;
+const USE_SERVER = true;
 
 class ServerInterface2 {
   loadLog(logId, fn) {
@@ -38,7 +40,7 @@ let serverInterface;
 if (USE_SERVER) {
   serverInterface = new ServerInterface2();
 } else {
-  serverInterface = new ServerInterface();
+  serverInterface = new InMemoryLogServer();
 }
 
 if (!USE_SERVER) {
