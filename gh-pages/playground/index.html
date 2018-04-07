@@ -1,12 +1,14 @@
---- layout: default title: Playground ---
+---
+layout: default
+title: Playground
+---
 <style>
-    #result {
-        padding: 10px;
-    }
-
-    #info {
-        line-height: 1.3em;
-    }
+#result {
+    padding: 10px;
+}
+#info {
+    line-height: 1.3em;
+}
 </style>
 
 <div class="container">
@@ -19,8 +21,8 @@
         </p>
 
         <p id="info" style="display: none">
-            The code below updates the content of the "#result" div.
-            <br> You can then inspect the assigned innerHTML value in the sidebar on the right.
+            The code below updates the content of the "#result" div.<br>
+            You can then inspect the assigned innerHTML value in the sidebar on the right.
         </p>
 
         <div id="result-container"></div>
@@ -32,8 +34,8 @@ document.getElementById("result").innerHTML = html;
 </textarea>
 
         <script>
-            window.isPlayground = true;
-            window.fromJSInternalsRoot = "/playground/fromjs/"
+        window.isPlayground = true;
+        window.fromJSInternalsRoot = "/playground/fromjs/"
         </script>
 
         <link rel="stylesheet" href="codemirror/codemirror.css"></link>
@@ -52,42 +54,41 @@ document.getElementById("result").innerHTML = html;
 
 <script>
 
-    function runCode(code) {
-        window.fromJSEnableTracing();
-        eval(`
+function runCode(code){
+    window.fromJSEnableTracing();
+    eval(`
         var resultEl = document.createElement("div")
         resultEl.setAttribute("id", "result")
         document.getElementById("result-container").innerHTML = ""
         document.getElementById("result-container").appendChild(resultEl)
     `)
-        eval(code)
-        window.fromJSDisableTracing();
-        window.playgroundShowSidebar();
-    }
+    eval(code)
+    window.fromJSDisableTracing();
+    window.playgroundShowSidebar();
+}
 
-    function onClickRunButton() {
-        var code = editor.getValue()
-        runCode(code)
-    }
+function onClickRunButton(){
+    var code = editor.getValue()
+    runCode(code)
+}
 
-    if (window.isDesktopChrome) {
-        if (location.hash === "#how-fromjs-works") {
-            document.getElementById("code").value = `var greeting = "Hello"
+if (window.isDesktopChrome) {
+    if (location.hash === "#how-fromjs-works") {
+        document.getElementById("code").value = `var greeting = "Hello"
 greeting += " World!"
 document.getElementById("result").innerHTML = greeting`
-        }
-
-        var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-            mode: "javascript",
-            lineNumbers: true,
-            onChange: showResult
-        });
-
-        // wit a little for resolveFrameWorker to be ready
-        setTimeout(function () {
-            onClickRunButton();
-            document.getElementById("please-wait").remove();
-            document.getElementById("info").setAttribute("style", "")
-        }, 500)
     }
+
+    var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+      mode: "javascript",
+      lineNumbers: true
+    });
+
+    // wit a little for resolveFrameWorker to be ready
+    setTimeout(function(){
+        onClickRunButton();
+        document.getElementById("please-wait").remove();
+        document.getElementById("info").setAttribute("style", "")
+    }, 500)
+}
 </script>

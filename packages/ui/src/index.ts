@@ -191,7 +191,12 @@ function showSteps(logId, charIndex) {
 }
 
 function runCodeAndshowResult(code) {
-  eval(code);
+  try {
+    eval(code);
+  } catch (err) {
+    chart.setAttribute("style", "opacity: 0.3");
+    return;
+  }
 
   var inspectedValue = window["inspectedValue"];
   showNormalValue(inspectedValue);
@@ -209,7 +214,8 @@ function loadLog(logIndex, fn) {
 }
 
 function showNormalValue(inspectedValue) {
-  var html = "<b>Result value:</b><br><div id='chars'>";
+  var html =
+    "<b>Inspected value:</b><br><div style='margin-top: 5px' id='chars'>";
   var value = inspectedValue.normal;
   for (var i = 0; i < value.length; i++) {
     html += `<span onMouseEnter="updateChar(${i});showSteps(${
@@ -217,6 +223,8 @@ function showNormalValue(inspectedValue) {
     }, ${i})">${value[i]}</span>`;
   }
   html += "</div>";
+  html +=
+    "<div style='font-size: 12px; color: #555;margin-top: 10px'>(Hover over each character to see where it originated. Traversing the tree through built-in function calls is tricky, right now only String.prototype.slice is supported.)</div>";
   document.querySelector("#normal-value").innerHTML = html;
 }
 window["updateChar"] = function(charIndex) {
@@ -364,7 +372,6 @@ function showTree(logIndex) {
 
       return node;
     }
-
     nodeStructure = makeNode(data);
 
     var chart_config = {
@@ -376,7 +383,8 @@ function showTree(logIndex) {
         },
         node: {
           HTMLclass: "nodeExample1"
-        }
+        },
+        levelSeparation: 20
       },
       nodeStructure: nodeStructure
     };
