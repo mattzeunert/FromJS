@@ -146,6 +146,7 @@ function loadSteps({ logId, charIndex }) {
 
 window["showSteps"] = showSteps;
 function showSteps(logId, charIndex) {
+  window["updateChar"](charIndex);
   loadSteps({ logId, charIndex }).then(r => {
     var steps = r.steps;
 
@@ -218,9 +219,9 @@ function showNormalValue(inspectedValue) {
     "<b>Inspected value:</b><br><div style='margin-top: 5px' id='chars'>";
   var value = inspectedValue.normal;
   for (var i = 0; i < value.length; i++) {
-    html += `<span onMouseEnter="updateChar(${i});showSteps(${
-      inspectedValue.tracking
-    }, ${i})">${value[i]}</span>`;
+    html += `<span onMouseEnter="showSteps(${inspectedValue.tracking}, ${i})">${
+      value[i]
+    }</span>`;
   }
   html += "</div>";
   html +=
