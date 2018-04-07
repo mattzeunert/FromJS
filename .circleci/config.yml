@@ -28,7 +28,13 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
-      - run: npm install;cd packages/babel-plugin-data-flow; yarn install; yarn test
+      - run: yarn install;
+      
+      - run: ./node_modules/.bin/lerna bootstrap
+
+      - run: cd packages/core;./node_modules/.bin/webpack;cd ../..
+
+      - run: yarn test
 
       # - save_cache:
       #     paths:

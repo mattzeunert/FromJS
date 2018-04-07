@@ -3,11 +3,6 @@
   "version": "1.0.0",
   "main": "index.ts",
   "license": "MIT",
-  "scripts": {
-    "test": "jest",
-    "test-watch": "jest --watch",
-    "test-debug": "node --inspect ./node_modules/.bin/jest --runInBand --watch"
-  },
   "dependencies": {
     "@babel/core": "^7.0.0-beta.40",
     "awesome-typescript-loader": "^4.0.1",
@@ -17,13 +12,6 @@
     "ts-loader": "^4.1.0",
     "typescript": "^2.7.2",
     "webpack": "^4.5.0"
-  },
-  "jest": {
-    "moduleFileExtensions": ["ts", "tsx", "js"],
-    "transform": {
-      "^.+\\.(ts|tsx)$": "../../preprocessor.js"
-    },
-    "testMatch": ["**/*.test.(ts|tsx|js)"]
   },
   "devDependencies": {
     "webpack-cli": "^2.0.14"

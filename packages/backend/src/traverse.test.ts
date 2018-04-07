@@ -1,6 +1,5 @@
-import compile from "./compile";
-import * as OperationTypes from "./OperationTypes";
-import { instrumentAndRun } from "./testHelpers";
+import { testHelpers } from "@fromjs/core"
+const instrumentAndRun = testHelpers.instrumentAndRun
 import traverse from "./traverse";
 
 function getStepTypeList(traversalResult) {

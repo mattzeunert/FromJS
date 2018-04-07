@@ -1,6 +1,13 @@
 import babelPlugin from "./src/babelPlugin";
 import InMemoryLogServer from "./src/InMemoryLogServer";
 import operations from "./src/operations";
-import traverse from "./src/traverse";
+import * as testHelpers from "./src/testHelpers";
+import OperationLog from "./src/helperFunctions/OperationLog";
 
-export { babelPlugin, InMemoryLogServer, operations, traverse };
+export {
+  babelPlugin,
+  InMemoryLogServer,
+  operations,
+  testHelpers,
+  OperationLog
+};

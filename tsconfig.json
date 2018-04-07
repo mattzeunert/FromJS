@@ -1,8 +1,11 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "jsx": "react",
+    "outDir": "./dist/",
+    "sourceMap": true,
     "noImplicitAny": false,
-    "target": "es2017"
-  }
+    "module": "commonjs",
+    "target": "es2017",
+    "jsx": "react"
+  },
+  "include": ["./packages/core/src/helperFunctions/*.ts"]
 }

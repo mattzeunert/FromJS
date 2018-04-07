@@ -1,0 +1,44 @@
+Arguments: 
+  /usr/local/bin/node /usr/local/bin/yarn add jest
+
+PATH: 
+  /Users/mattzeunert/.rvm/gems/ruby-2.2.1/bin:/Users/mattzeunert/.rvm/gems/ruby-2.2.1@global/bin:/Users/mattzeunert/.rvm/rubies/ruby-2.2.1/bin:/Users/mattzeunert/google-cloud-sdk/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/Applications/Postgres.app/Contents/Versions/9.3/bin:/opt/X11/bin:/Users/mattzeunert/.rvm/bin
+
+Yarn version: 
+  1.2.1
+
+Node version: 
+  9.3.0
+
+Platform: 
+  darwin x64
+
+npm manifest: 
+  {
+    "name": "string-trace",
+    "version": "1.0.0",
+    "main": "index.js",
+    "repository": "https://github.com/mattzeunert/fromjs.git",
+    "author": "<matt@mostlystatic.com>",
+    "license": "MIT",
+    "scripts": {
+      "test": "jest",
+      "test-watch": "jest --watch",
+      "test-debug": "node --inspect ./node_modules/.bin/jest --runInBand --watch"
+    },
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
+
+Trace: 
+  SyntaxError: /Users/mattzeunert/projects/string-trace/package.json: Unexpected token } in JSON at position 346
+      at JSON.parse (<anonymous>)
+      at /usr/local/lib/node_modules/yarn/lib/cli.js:770:59
+      at Generator.next (<anonymous>)
+      at step (/usr/local/lib/node_modules/yarn/lib/cli.js:92:30)
+      at /usr/local/lib/node_modules/yarn/lib/cli.js:103:13
+      at <anonymous>
