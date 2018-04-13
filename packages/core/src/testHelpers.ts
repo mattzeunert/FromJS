@@ -6,7 +6,7 @@ const serverInterface = new InMemoryLogServer();
 export function instrumentAndRun(code) {
   return new Promise(resolve => {
     code = `getTrackingAndNormalValue((function(){ ${code} })())`;
-    compile(code).then(result => {
+    compile(code).then((result: any) => {
       var code = result.code;
 
       const __storeLog = serverInterface.storeLog.bind(serverInterface);

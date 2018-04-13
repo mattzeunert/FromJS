@@ -14,3 +14,6 @@ _site
 packages/proxy-instrumenter/ca
 packages/core/dist/helperFunctions.js
 packages/ui/dist
+
+packages/core/dist
+packages/core/helperFunctions.ts

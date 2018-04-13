@@ -34,6 +34,8 @@ jobs:
 
       - run: cd packages/core;./node_modules/.bin/webpack;cd ../..
 
+      - run: npm run compile-core; cd ../..
+
       - run: yarn test
 
       # - save_cache:

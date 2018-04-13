@@ -19,8 +19,8 @@ AfterEmitPlugin.prototype.apply = function(compiler) {
 module.exports = {
   entry: "./src/helperFunctions/helperFunctions.ts",
   output: {
-    filename: "helperFunctions.js",
-    path: __dirname + "/dist"
+    filename: "helperFunctions.ts",
+    path: __dirname
   },
 
   optimization: {
@@ -37,9 +37,9 @@ module.exports = {
     new AfterEmitPlugin(function() {
       setTimeout(function() {
         const fs = require("fs");
-        var code = fs.readFileSync("./dist/helperFunctions.js").toString();
-        code = `module.exports = \`${code}\``;
-        fs.writeFileSync("./dist/helperFunctions.js", code);
+        var code = fs.readFileSync("./helperFunctions.ts").toString();
+        code = `export default \`${code}\``;
+        fs.writeFileSync("./helperFunctions.ts", code);
         console.log("updated");
       }, 1000);
     })

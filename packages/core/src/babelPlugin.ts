@@ -19,7 +19,7 @@ import {
   isInLeftPartOfAssignmentExpression
 } from "./babelPluginHelpers";
 
-import * as helperCodeLoaded from "../dist/helperFunctions.js";
+import helperCodeLoaded from "../helperFunctions";
 var helperCode = helperCodeLoaded
   .toString()
   .replace("__FUNCTION_NAMES__", JSON.stringify(FunctionNames));
