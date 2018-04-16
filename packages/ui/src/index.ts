@@ -172,7 +172,7 @@ function showSteps(logId, charIndex) {
     var html = ``;
 
     steps.forEach(step => {
-      console.log(step);
+      console.log(step, step.operationLog.stack);
       var tv = step.operationLog;
       var args = "";
       // eachArgument(tv.args, ["elements"], (arg, argName) => {
@@ -195,7 +195,7 @@ function showSteps(logId, charIndex) {
 
 function runCodeAndshowResult(code) {
   try {
-    eval(code);
+    eval(code + "//# sourceURL=/eval.js");
   } catch (err) {
     chart.setAttribute("style", "opacity: 0.3");
     return;

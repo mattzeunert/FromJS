@@ -61,7 +61,7 @@ helperCode += "/* HELPER_FUNCTIONS_END */ ";
 
 // I got some babel-generator "cannot read property 'type' of undefined" errors
 // when prepending the code itself, so just prepend a single eval call expression
-helperCode = "eval(`" + helperCode + "`)";
+helperCode = "eval(`" + helperCode + "\n//# sourceURL=/helperFns.js`)";
 // console.log(helperCode);
 
 export default function plugin(babel) {
