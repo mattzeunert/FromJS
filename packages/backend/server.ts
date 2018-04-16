@@ -1,5 +1,5 @@
-import ServerInterface from "../ServerInterface";
-import traverse from "../traverse";
+import { InMemoryLogServer as ServerInterface } from "@fromjs/core";
+import traverse from "./src/traverse";
 
 const express = require("express");
 const bodyParser = require("body-parser");

@@ -41,6 +41,7 @@ declare var __FUNCTION_NAMES__,
     typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog;
 
   function createOperationLog(args) {
+    args.stack = Error().stack;
     var log = new OperationLog(args);
     storeLog(log);
     return log.index;

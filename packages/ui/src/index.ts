@@ -1,10 +1,10 @@
-import {
-  InMemoryLogServer,
-  traverse,
-  operations,
-  babelPlugin
-} from "@fromjs/core";
-
+// import { InMemoryLogServer, operations, babelPlugin } from "@fromjs/core";
+// importing @fromjs/core only works in a node environment because it loads babel
+// so import files directly here
+import InMemoryLogServer from "../../core/src/InMemoryLogServer";
+import operations from "../../core/src/operations";
+import babelPlugin from "../../core/src/babelPlugin";
+const traverse = x => null;
 // import Babel from "@babel/standalone";
 // document.write("hi");
 
@@ -36,7 +36,7 @@ if (DEBUG) {
 }
 
 let serverInterface;
-
+serverInterface = new InMemoryLogServer();
 if (USE_SERVER) {
   serverInterface = new ServerInterface2();
 } else {
