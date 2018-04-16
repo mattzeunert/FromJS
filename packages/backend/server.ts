@@ -1,5 +1,6 @@
 import { InMemoryLogServer as ServerInterface } from "@fromjs/core";
 import traverse from "./src/traverse";
+import StackFrameResolver from "./src/StackFrameResolver";
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -59,7 +60,13 @@ app.post("/traverse", (req, res) => {
         charIndex: req.body.charIndex
       });
 
-      steps.forEach(step => console.log(step.operationLog.stackFrames[0]));
+      const resolver = new StackFrameResolver();
+      steps.forEach(step => {
+        console.log(step.operationLog);
+        const frameString = step.operationLog.stackFrames[0];
+        console.log(frameString);
+        resolver.resolveFrame(frameString).then(res => console.log(res));
+      });
 
       res.end(JSON.stringify({ steps }));
     });

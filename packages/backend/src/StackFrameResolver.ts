@@ -1,7 +1,7 @@
 var StackTraceGPS = require("stacktrace-gps");
 var ErrorStackParser = require("error-stack-parser");
 var request = require("request");
-var { prettifyAndMapFrameObject } = require("./prettify");
+// var { prettifyAndMapFrameObject } = require("./prettify");
 
 function ajax(url) {
   return new Promise(function(resolve, reject) {
@@ -108,17 +108,17 @@ class StackFrameResolver {
               finish(newFrame);
             });
           } else {
-            this._fetchCode(newFrame).then(code => {
-              var { mappedFrameObject, formatted } = prettifyAndMapFrameObject(
-                code,
-                newFrame
-              );
-              mappedFrameObject.code = getSourceCodeObject(
-                mappedFrameObject,
-                formatted
-              );
-              finish(mappedFrameObject);
-            });
+            // this._fetchCode(newFrame).then(code => {
+            //   var { mappedFrameObject, formatted } = prettifyAndMapFrameObject(
+            //     code,
+            //     newFrame
+            //   );
+            //   mappedFrameObject.code = getSourceCodeObject(
+            //     mappedFrameObject,
+            //     formatted
+            //   );
+            //   finish(mappedFrameObject);
+            // });
           }
         },
         function() {
@@ -138,4 +138,4 @@ class StackFrameResolver {
   }
 }
 
-module.exports = StackFrameResolver;
+export default StackFrameResolver;
