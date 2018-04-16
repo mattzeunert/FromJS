@@ -197,6 +197,7 @@ function runCodeAndshowResult(code) {
   try {
     eval(code + "//# sourceURL=/eval.js");
   } catch (err) {
+    console.error(err);
     chart.setAttribute("style", "opacity: 0.3");
     return;
   }

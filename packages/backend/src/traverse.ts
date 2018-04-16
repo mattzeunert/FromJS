@@ -10,6 +10,7 @@ export default function traverse(
   steps: TraversalStep[] = []
 ) {
   steps.push(step);
+
   // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
   let nextStep: TraversalStep = null;
 

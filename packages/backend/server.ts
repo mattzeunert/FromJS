@@ -4,7 +4,7 @@ import traverse from "./src/traverse";
 const express = require("express");
 const bodyParser = require("body-parser");
 
-const internalServerInterfce = new ServerInterface();
+const internalServerInterface = new ServerInterface();
 
 const app = express();
 
@@ -18,7 +18,7 @@ app.post("/", (req, res) => {
   );
 
   req.body.logs.forEach(function(log) {
-    internalServerInterfce.storeLog(log);
+    internalServerInterface.storeLog(log);
   });
 
   console.log("stored logs", req.body.logs.length);
@@ -35,9 +35,9 @@ app.post("/loadLog", (req, res) => {
 
   // crude way to first wait for any new logs to be sent through...
   setTimeout(function() {
-    console.log(Object.keys(internalServerInterfce._storedLogs));
+    console.log(Object.keys(internalServerInterface._storedLogs));
     console.log(req.body);
-    internalServerInterfce.loadLog(req.body.id, function(log) {
+    internalServerInterface.loadLog(req.body.id, function(log) {
       res.end(JSON.stringify(log));
     });
   }, 500);
@@ -53,10 +53,15 @@ app.post("/traverse", (req, res) => {
   // crude way to first wait for any new logs to be sent through...
   setTimeout(function() {
     console.log("traverse", req.body);
-    internalServerInterfce.loadLog(req.body.logId, function(log) {
-      var ret = traverse({ operationLog: log, charIndex: req.body.charIndex });
+    internalServerInterface.loadLog(req.body.logId, function(log) {
+      var steps = traverse({
+        operationLog: log,
+        charIndex: req.body.charIndex
+      });
 
-      res.end(JSON.stringify({ steps: ret }));
+      steps.forEach(step => console.log(step.operationLog.stackFrames[0]));
+
+      res.end(JSON.stringify({ steps }));
     });
   }, 500);
 });

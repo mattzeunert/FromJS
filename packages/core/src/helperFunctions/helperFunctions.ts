@@ -41,7 +41,10 @@ declare var __FUNCTION_NAMES__,
     typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog;
 
   function createOperationLog(args) {
-    args.stack = Error().stack;
+    args.stackFrames = Error().stack.split(String.fromCharCode(10));
+    args.stackFrames = args.stackFrames.filter(
+      line => line !== "Error" && !line.includes("/helperFns.js")
+    );
     var log = new OperationLog(args);
     storeLog(log);
     return log.index;
