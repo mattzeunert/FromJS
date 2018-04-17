@@ -19,13 +19,15 @@ import {
   ignoredIdentifier,
   ignoredObjectExpression
 } from "./babelPluginHelpers";
+import OperationLog from "./helperFunctions/OperationLog";
+import { getLastOperationValueResult } from "./FunctionNames";
 
 interface TraversalStep {
-  charIndex: number,
-  operationLog: any
+  charIndex: number;
+  operationLog: any;
 }
 
-function createNode(args, astArgs = null) { }
+function createNode(args, astArgs = null) {}
 
 interface Operations {
   [key: string]: {
@@ -33,8 +35,8 @@ interface Operations {
     visitor?: any;
     exec?: any;
     arrayArguments?: string[];
-    getArgumentsArray?: any,
-    traverse?: (operationLog: any, charIndex: number) => TraversalStep
+    getArgumentsArray?: any;
+    traverse?: (operationLog: any, charIndex: number) => TraversalStep;
   };
 }
 
@@ -105,9 +107,12 @@ const operations: Operations = {
     },
     traverse(operationLog, charIndex) {
       const { operator } = operationLog.astArgs;
-      const { left, right } = operationLog.args
+      const { left, right } = operationLog.args;
       if (operator == "+") {
-        if (typeof left.result.type === "string" && typeof right.result.type === "string") {
+        if (
+          typeof left.result.type === "string" &&
+          typeof right.result.type === "string"
+        ) {
           if (charIndex < left.result.length) {
             return {
               operationLog: left,
@@ -125,8 +130,7 @@ const operations: Operations = {
       } else {
         console.log("todo binexp operator");
       }
-      throw "aaa"
-
+      throw "aaa";
     },
     exec: (args, astArgs, ctx) => {
       var { left, right } = args;
@@ -148,6 +152,51 @@ const operations: Operations = {
       }
 
       return ret;
+    }
+  },
+  conditionalExpression: {
+    exec: (args, astArgs, ctx) => {
+      return args.result[0];
+    },
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.result,
+        charIndex
+      };
+    },
+    visitor(path) {
+      var saveTestValue = createSetMemoValue(
+        "lastConditionalExpressionTest",
+        path.node.test,
+        getLastOperationTrackingResultCall
+      );
+      var saveConsequentValue = createSetMemoValue(
+        "lastConditionalExpressionResult",
+        path.node.consequent,
+        getLastOperationTrackingResultCall
+      );
+      var saveAlernativeValue = createSetMemoValue(
+        "lastConditionalExpressionResult",
+        path.node.alternate,
+        getLastOperationTrackingResultCall
+      );
+      var operation = this.createNode({
+        test: [
+          createGetMemoValue("lastConditionalExpressionTest"),
+          createGetMemoTrackingValue("lastConditionalExpressionTest")
+        ],
+        result: [
+          ignoreNode(
+            t.conditionalExpression(
+              createGetMemoValue("lastConditionalExpressionTest"),
+              saveConsequentValue,
+              saveAlernativeValue
+            )
+          ),
+          createGetMemoTrackingValue("lastConditionalExpressionResult")
+        ]
+      });
+      path.replaceWith(t.sequenceExpression([saveTestValue, operation]));
     }
   },
   callExpression: {
@@ -190,14 +239,14 @@ const operations: Operations = {
       return ret;
     },
     traverse(operationLog, charIndex) {
-      var knownFunction = operationLog.args.function.result.knownValue
+      var knownFunction = operationLog.args.function.result.knownValue;
       if (knownFunction) {
         switch (knownFunction) {
           case "String.prototype.slice":
             return {
               operationLog: operationLog.args.context,
               charIndex: charIndex + operationLog.args.arg0.result.primitive
-            }
+            };
         }
       } else {
         return {
@@ -261,7 +310,7 @@ const operations: Operations = {
         operationLog: operationLog.args.propertyValue,
         charIndex: charIndex
       };
-    },
+    }
   },
   objectExpression: {
     exec: (args, astArgs, ctx) => {
@@ -271,8 +320,8 @@ const operations: Operations = {
       for (var i = 0; i < args.properties.length; i++) {
         var property = args.properties[i];
 
-        var propertyType = property.type[0]
-        var propertyKey = property.key[0]
+        var propertyType = property.type[0];
+        var propertyKey = property.key[0];
 
         if (propertyType === "ObjectProperty") {
           var propertyValue = property.value[0];
@@ -317,7 +366,7 @@ const operations: Operations = {
       };
     },
     visitor(path) {
-      path.node.properties.forEach(function (prop) {
+      path.node.properties.forEach(function(prop) {
         if (prop.key.type === "Identifier") {
           var keyLoc = prop.key.loc;
           prop.key = t.stringLiteral(prop.key.name);
@@ -331,7 +380,7 @@ const operations: Operations = {
         }
       });
 
-      var properties = path.node.properties.map(function (prop) {
+      var properties = path.node.properties.map(function(prop) {
         var type = t.stringLiteral(prop.type);
         type.ignore = true;
         if (prop.type === "ObjectMethod") {
@@ -343,16 +392,13 @@ const operations: Operations = {
             key: [prop.key],
             kind: [kind],
             value: [t.functionExpression(null, prop.params, prop.body)]
-          })
+          });
         } else {
           return ignoredObjectExpression({
             type: [type],
             key: [prop.key],
-            value: [
-              prop.value,
-              getLastOperationTrackingResultCall
-            ]
-          })
+            value: [prop.value, getLastOperationTrackingResultCall]
+          });
         }
       });
 
@@ -475,7 +521,7 @@ const operations: Operations = {
     exec: (args, astArgs, ctx) => {
       var ret;
       const assignmentType = args.type[0];
-      const operator = astArgs.operator
+      const operator = astArgs.operator;
       if (assignmentType === "MemberExpression") {
         var obj = args.object[0];
         var propName = args.propertyName[0];
@@ -608,12 +654,12 @@ const operations: Operations = {
 };
 
 function eachArgumentInObject(args, operationName, fn) {
-  const operation = operations[operationName]
-  const isObjectExpression = operationName === OperationTypes.objectExpression
+  const operation = operations[operationName];
+  const isObjectExpression = operationName === OperationTypes.objectExpression;
 
-  let arrayArguments = []
+  let arrayArguments = [];
   if (operation && operation.arrayArguments) {
-    arrayArguments = operation.arrayArguments
+    arrayArguments = operation.arrayArguments;
   }
 
   if (isObjectExpression) {
@@ -621,48 +667,46 @@ function eachArgumentInObject(args, operationName, fn) {
     // todo: this is an objexpression property not an obj expression itself, should be clarified
     fn(args.value, "value", newValue => {
       // debugger;
-      args.value = newValue
+      args.value = newValue;
     });
-    fn(args.key, "key", newValue => args.key = newValue);
+    fn(args.key, "key", newValue => (args.key = newValue));
   } else {
     Object.keys(args).forEach(key => {
       if (arrayArguments.includes(key)) {
         args[key].forEach((a, i) => {
-          fn(a, "element" + i, newValue => args[key][i] = newValue)
-        })
+          fn(a, "element" + i, newValue => (args[key][i] = newValue));
+        });
+      } else {
+        fn(args[key], key, newValue => (args[key] = newValue));
       }
-      else {
-        fn(args[key], key, newValue => args[key] = newValue)
-      }
-    })
+    });
   }
 }
 
 export function eachArgument(operationLog, fn) {
-  eachArgumentInObject(operationLog.args, operationLog.operation, fn)
+  eachArgumentInObject(operationLog.args, operationLog.operation, fn);
 
   if (operationLog.extraArgs) {
-    eachArgumentInObject(operationLog.extraArgs, operationLog.operation, fn)
+    eachArgumentInObject(operationLog.extraArgs, operationLog.operation, fn);
   }
 }
 
 Object.keys(operations).forEach(opName => {
   const operation = operations[opName];
-  operation.createNode = function (args, astArgs) {
+  operation.createNode = function(args, astArgs) {
     return createOperation(OperationTypes[opName], args, astArgs);
   };
   if (!operation.arrayArguments) {
     operation.arrayArguments = [];
   }
-  operation.getArgumentsArray = function (operationLog) {
-
-    var ret = []
+  operation.getArgumentsArray = function(operationLog) {
+    var ret = [];
     eachArgument(operationLog, (arg, argName, updateValue) => {
-      ret.push({ arg: arg, argName })
-    })
+      ret.push({ arg: arg, argName });
+    });
 
-    return ret
-  }
+    return ret;
+  };
 });
 
 export default operations;
