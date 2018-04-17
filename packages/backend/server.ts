@@ -1,11 +1,15 @@
 import { InMemoryLogServer as ServerInterface } from "@fromjs/core";
 import traverse from "./src/traverse";
 import StackFrameResolver from "./src/StackFrameResolver";
+import * as fs from "fs";
 
 const express = require("express");
 const bodyParser = require("body-parser");
 
 const internalServerInterface = new ServerInterface();
+internalServerInterface._storedLogs = JSON.parse(
+  fs.readFileSync("logs.json").toString()
+);
 
 const app = express();
 
@@ -22,6 +26,10 @@ app.post("/", (req, res) => {
     internalServerInterface.storeLog(log);
   });
 
+  fs.writeFileSync(
+    "logs.json",
+    JSON.stringify(internalServerInterface._storedLogs)
+  );
   console.log("stored logs", req.body.logs.length);
 
   res.end(JSON.stringify({ ok: true }));
