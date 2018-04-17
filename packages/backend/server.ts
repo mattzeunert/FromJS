@@ -60,20 +60,28 @@ app.post("/traverse", (req, res) => {
         charIndex: req.body.charIndex
       });
 
-      const resolver = new StackFrameResolver();
-      steps.forEach(step => {
-        console.log(step.operationLog);
-        const frameString = step.operationLog.stackFrames[0];
-        console.log(frameString);
-        resolver.resolveFrame(frameString).then(res => console.log(res));
-      });
-
       res.end(JSON.stringify({ steps }));
     });
   }, 500);
 });
 
-["/loadLog", "/", "/traverse"].forEach(path => {
+const resolver = new StackFrameResolver();
+
+app.post("/resolveStackFrame", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+  );
+
+  const frameString = req.body.stackFrameString;
+  resolver.resolveFrame(frameString).then(rr => {
+    console.log("fff", rr);
+    res.end(JSON.stringify(rr));
+  });
+});
+
+["/loadLog", "/", "/traverse", "/resolveStackFrame"].forEach(path => {
   // todo: don't allow requests from any site
   app.options(path, (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");

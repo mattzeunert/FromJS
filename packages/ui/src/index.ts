@@ -171,8 +171,26 @@ function showSteps(logId, charIndex) {
 
     var html = ``;
 
-    steps.forEach(step => {
+    steps.forEach((step, i) => {
       console.log(step, step.operationLog.stack);
+
+      fetch("http://localhost:4556/resolveStackFrame", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          stackFrameString: step.operationLog.stackFrames[0]
+        })
+      })
+        .then(res => res.json())
+        .then(r => {
+          console.log("done resolve stack frame", r);
+          document.querySelector("#step-code-" + i).innerHTML =
+            r.code.line.text;
+        });
+
       var tv = step.operationLog;
       var args = "";
       // eachArgument(tv.args, ["elements"], (arg, argName) => {
@@ -186,10 +204,11 @@ function showSteps(logId, charIndex) {
       html += `<div>
             ${tv.operation} (char: ${step.charIndex})
             ${tv.result.str.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
+            <code id="step-code-${i}"></code>
           </div>`;
     });
 
-    // document.querySelector("#steps").innerHTML = html;
+    document.querySelector("#steps").innerHTML = html;
   });
 }
 
