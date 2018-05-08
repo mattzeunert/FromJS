@@ -40,7 +40,12 @@ function requestProcessCode(body, url, analysisDirectory) {
 }
 
 var processCodeCache = {};
+function setProcessCodeCache(body, url, result) {
+  var cacheKey = body + url;
+  processCodeCache[cacheKey] = result;
+}
 function processCode(body, url, analysisDirectory) {
+  eval("debugger")
   var cacheKey = body + url;
   if (processCodeCache[cacheKey]) {
     log("cache hit", url);
@@ -51,7 +56,7 @@ function processCode(body, url, analysisDirectory) {
   ) {
     var { code, map } = response;
     var result = { code, map };
-    processCodeCache[cacheKey] = result;
+    setProcessCodeCache(body, url, result)
     return Promise.resolve(result);
   });
 }
@@ -190,6 +195,7 @@ class FesProxy {
           }
         };
 
+        console.log("checking url cache for", url)
         if (this.urlCache[url]) {
           log("Url cache hit!");
           Object.keys(this.urlCache[url].headers).forEach(name => {
@@ -305,19 +311,22 @@ class FesProxy {
     });
   }
 
-  registerEvalScript(path, code, babelResult) {
-    this.urlCache[path] = {
-      headers: {},
-      body: babelResult.code
-    }
-    this.urlCache[path + ".map"] = {
-      headers: {},
-      body: babelResult.map
-    }
-    this.urlCache[path + "?dontprocess"] = {
+  registerEvalScript(url, code, babelResult) {
+    // Original code here because it will still be processed later on!
+    this.urlCache[url] = {
       headers: {},
       body: code
     }
+
+    this.urlCache[url + "?dontprocess"] = {
+      headers: {},
+      body: code
+    }
+
+    const babelResultCode = babelResult.code + "\n//#sourceMappingURL=" + url + ".map"
+    babelResult = JSON.parse(JSON.stringify(babelResult))
+    babelResult.code = babelResultCode
+    setProcessCodeCache(babelResultCode, url, babelResult)
   }
 
   finishRequest(finishedUrl) {

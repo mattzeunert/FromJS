@@ -6,14 +6,14 @@ declare var __FUNCTION_NAMES__,
   __OPERATION_ARRAY_ARGUMENTS__,
   __storeLog;
 
-(function(
+(function (
   functionNames,
   operationTypes,
   operationsExec,
   operationArrayArguments
 ) {
   let logQueue = [];
-  setInterval(function() {
+  setInterval(function () {
     if (logQueue.length === 0) {
       return;
     }
@@ -68,14 +68,14 @@ declare var __FUNCTION_NAMES__,
     return argTrackingInfo[index];
   };
 
-  global.getTrackingAndNormalValue = function(value) {
+  global.getTrackingAndNormalValue = function (value) {
     return {
       normal: value,
       tracking: argTrackingInfo[0]
     };
   };
 
-  global.inspect = function(value) {
+  global.inspect = function (value) {
     global.inspectedValue = {
       normal: value,
       tracking: argTrackingInfo[0]
@@ -103,25 +103,25 @@ declare var __FUNCTION_NAMES__,
 
   var lastMemberExpressionObjectValue = null;
   var lastMemberExpressionObjectTrackingValue = null;
-  global["getLastMemberExpressionObjectValue"] = function() {
+  global["getLastMemberExpressionObjectValue"] = function () {
     return lastMemberExpressionObjectValue;
   };
 
-  global["getLastMemberExpressionObjectTrackingValue"] = function() {
+  global["getLastMemberExpressionObjectTrackingValue"] = function () {
     return lastMemberExpressionObjectTrackingValue;
   };
 
   const memoValues = {};
-  global["__setMemoValue"] = function(key, value, trackingValue) {
+  global["__setMemoValue"] = function (key, value, trackingValue) {
     // console.log("setmemovalue", value)
     memoValues[key] = { value, trackingValue };
     lastOpTrackingResult = trackingValue;
     return value;
   };
-  global["__getMemoValue"] = function(key) {
+  global["__getMemoValue"] = function (key) {
     return memoValues[key].value;
   };
-  global["__getMemoTrackingValue"] = function(key, value, trackingValue) {
+  global["__getMemoTrackingValue"] = function (key, value, trackingValue) {
     return memoValues[key].trackingValue;
   };
 
@@ -139,7 +139,7 @@ declare var __FUNCTION_NAMES__,
 
     args;
     if (operationArrayArguments[opName]) {
-      operationArrayArguments[opName].forEach(arrayArgName => {});
+      operationArrayArguments[opName].forEach(arrayArgName => { });
     }
 
     var argValues = args.map(arg => arg[0]);
@@ -155,6 +155,7 @@ declare var __FUNCTION_NAMES__,
       }
       return arg[1];
     });
+
     var extraTrackingValues = {};
     var ret;
     if (operationsExec[opName]) {

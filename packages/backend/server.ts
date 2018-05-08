@@ -141,15 +141,22 @@ app.post("/instrument", (req, res) => {
 
   const url = "http://localhost:11111/eval" + Math.floor(Math.random() * 10000000000) + ".js"
 
-  const code = req.body.code + "\n//# sourceURL=" + url
+  const code = req.body.code
 
   var babelResult = Babel.transform(code, {
-    plugins: [babelPlugin]
+    plugins: [babelPlugin],
+    sourceMaps: true
   });
 
-  proxy.registerEvalScript(url, code, babelResult)
+  const evalScriptCode = code
+  // debugger
+  proxy.registerEvalScript(url, evalScriptCode, babelResult)
 
-  res.end(JSON.stringify({ instrumentedCode: babelResult.code }));
+
+  console.log(babelResult.code.split("* HELPER_FUNCTIONS_END */")[1])
+
+  const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url
+  res.end(JSON.stringify({ instrumentedCode }));
 });
 
 app.options("/instrument", (req, res) => {

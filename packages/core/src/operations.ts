@@ -27,7 +27,7 @@ interface TraversalStep {
   operationLog: any;
 }
 
-function createNode(args, astArgs = null) {}
+function createNode(args, astArgs = null) { }
 
 interface Operations {
   [key: string]: {
@@ -366,7 +366,7 @@ const operations: Operations = {
       };
     },
     visitor(path) {
-      path.node.properties.forEach(function(prop) {
+      path.node.properties.forEach(function (prop) {
         if (prop.key.type === "Identifier") {
           var keyLoc = prop.key.loc;
           prop.key = t.stringLiteral(prop.key.name);
@@ -380,7 +380,7 @@ const operations: Operations = {
         }
       });
 
-      var properties = path.node.properties.map(function(prop) {
+      var properties = path.node.properties.map(function (prop) {
         var type = t.stringLiteral(prop.type);
         type.ignore = true;
         if (prop.type === "ObjectMethod") {
@@ -419,6 +419,7 @@ const operations: Operations = {
       });
     },
     exec: (args, astArgs, ctx) => {
+      eval("debugger")
       return args.value[0];
     }
   },
@@ -693,13 +694,13 @@ export function eachArgument(operationLog, fn) {
 
 Object.keys(operations).forEach(opName => {
   const operation = operations[opName];
-  operation.createNode = function(args, astArgs) {
+  operation.createNode = function (args, astArgs) {
     return createOperation(OperationTypes[opName], args, astArgs);
   };
   if (!operation.arrayArguments) {
     operation.arrayArguments = [];
   }
-  operation.getArgumentsArray = function(operationLog) {
+  operation.getArgumentsArray = function (operationLog) {
     var ret = [];
     eachArgument(operationLog, (arg, argName, updateValue) => {
       ret.push({ arg: arg, argName });
