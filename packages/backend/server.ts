@@ -3,6 +3,7 @@ import traverse from "./src/traverse";
 import StackFrameResolver from "./src/StackFrameResolver";
 import * as fs from "fs";
 import * as prettier from 'prettier'
+import Proxy from '@fromjs/proxy-instrumenter'
 
 
 const express = require("express");
@@ -129,3 +130,9 @@ app.options("/prettify", (req, res) => {
 
 
 app.listen(4556, () => console.log("server listening on port 4556!"));
+
+
+
+
+
+var proxy = new Proxy();

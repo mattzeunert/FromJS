@@ -1,11 +1,12 @@
 {
-  "name": "ui",
+  "name": "@fromjs/ui",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
     "@babel/standalone": "^7.0.0-beta.42",
     "@fromjs/core": "^1.0.0",
+    "@fromjs/proxy-instrumenter": "^1.0.0",
     "awesome-typescript-loader": "^4.0.1",
     "source-map-loader": "^0.2.3",
     "ts-loader": "^4.1.0",

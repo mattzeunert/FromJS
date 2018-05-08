@@ -4,14 +4,14 @@ var request = require("request");
 // var { prettifyAndMapFrameObject } = require("./prettify");
 
 function ajax(url) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     var r = request.defaults({ proxy: "http://127.0.0.1:8081" });
     r(
       {
         url,
         rejectUnauthorized: false // fix UNABLE_TO_VERIFY_LEAF_SIGNATURE when loading trello board
       },
-      function(err, res, body) {
+      function (err, res, body) {
         if (err) {
           console.error("request source maping error", err, url);
         } else {
@@ -121,7 +121,7 @@ class StackFrameResolver {
             // });
           }
         },
-        function() {
+        function () {
           console.log("Pinpoint failed!", arguments);
           finish(frameObject);
         }

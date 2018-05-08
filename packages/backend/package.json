@@ -1,10 +1,14 @@
 {
-  "name": "server",
+  "name": "@fromjs/backend",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "start": "nodemon --ignore \"logs.json\"  -r ts-node/register server.ts"
+  },
   "dependencies": {
     "@fromjs/core": "^1.0.0",
+    "@fromjs/proxy-instrumenter": "^1.0.0",
     "body-parser": "^1.18.2",
     "error-stack-parser": "^2.0.1",
     "express": "^4.16.3",

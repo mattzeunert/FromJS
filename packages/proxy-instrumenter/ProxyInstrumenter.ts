@@ -25,15 +25,15 @@ function requestProcessCode(body, url, analysisDirectory) {
     // compile({ body, url, analysisDirectory }, resolve);
 
     // Normal code running in separate process
-    var compilerProcess = spawn("./instrumenterWorker.js");
+    var compilerProcess = spawn(__dirname + "/instrumenterWorker.js");
     var path = require("path");
     compilerProcess
       .send({ body, url })
-      .on("message", function(response) {
+      .on("message", function (response) {
         resolve(response);
         compilerProcess.kill();
       })
-      .on("error", function(error) {
+      .on("error", function (error) {
         log("worker error", error);
       });
   });
@@ -46,7 +46,7 @@ function processCode(body, url, analysisDirectory) {
     log("cache hit", url);
     return Promise.resolve(processCodeCache[cacheKey]);
   }
-  return requestProcessCode(body, url, analysisDirectory).then(function(
+  return requestProcessCode(body, url, analysisDirectory).then(function (
     response
   ) {
     var { code, map } = response;
@@ -65,7 +65,7 @@ function processCode(body, url, analysisDirectory) {
 there's always an in memory cache for the same url, but enable cache persists
 the in memory cache
 */
-module.exports = function(analysisDirectory, enableCache) {
+export default function (analysisDirectory, enableCache) {
   //   var responseCache = {};
   //   if (enableCache) {
   //     console.log("Proxy cache enabled");
@@ -196,7 +196,7 @@ class FesProxy {
             var value = this.urlCache[url].headers[name];
             ctx.proxyToClientResponse.setHeader(name, value);
           });
-          finishJSRequest(this.urlCache[url].body, function() {});
+          finishJSRequest(this.urlCache[url].body, function () { });
           return;
         }
 
@@ -205,11 +205,11 @@ class FesProxy {
         ctx.use(Proxy.gunzip);
 
         var chunks = [];
-        ctx.onResponseData(function(ctx, chunk, callback) {
+        ctx.onResponseData(function (ctx, chunk, callback) {
           chunks.push(chunk);
           var chunkSizeInKb =
             Math.round(chunk.toString().length / 1024 * 10) / 10;
-          setTimeout(function() {
+          setTimeout(function () {
             // log("got chunk", url, chunkSizeInKb + "kb");
           });
 
@@ -258,7 +258,7 @@ class FesProxy {
         });
         return;
       } else {
-        ctx.onResponseEnd(function(ctx, callback) {
+        ctx.onResponseEnd(function (ctx, callback) {
           return callback();
         });
       }
@@ -291,15 +291,15 @@ class FesProxy {
         .times(100)
         .condition(cb => {
           this.proxiedFetchUrl("http://example.com/verifyProxyWorks").then(
-            function(body) {
+            function (body) {
               cb(body === "Confirmed proxy works!");
             },
-            function(err) {
+            function (err) {
               cb(false);
             }
           );
         })
-        .done(function() {
+        .done(function () {
           resolve();
         });
     });
@@ -315,7 +315,7 @@ class FesProxy {
       if (this.urlCache[url]) {
         resolve(this.urlCache[url].body);
       } else {
-        r({ url, rejectUnauthorized: false }, function(error, response, body) {
+        r({ url, rejectUnauthorized: false }, function (error, response, body) {
           if (error) {
             reject(error);
           } else {
@@ -330,7 +330,7 @@ class FesProxy {
     console.time("Get sourceMap" + url);
     return new Promise(resolve => {
       this.proxiedFetchUrl(jsUrl).then(body => {
-        this.processCode(body, jsUrl).then(function(result) {
+        this.processCode(body, jsUrl).then(function (result) {
           console.timeEnd("Get sourceMap" + url);
           resolve(result.map);
         });
