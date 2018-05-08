@@ -8,6 +8,7 @@
     "body-parser": "^1.18.2",
     "error-stack-parser": "^2.0.1",
     "express": "^4.16.3",
+    "prettier": "^1.12.1",
     "request": "^2.85.0",
     "stacktrace-gps": "^3.0.2",
     "ts-node": "^5.0.1"

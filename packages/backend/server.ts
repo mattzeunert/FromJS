@@ -2,6 +2,8 @@ import { InMemoryLogServer as ServerInterface } from "@fromjs/core";
 import traverse from "./src/traverse";
 import StackFrameResolver from "./src/StackFrameResolver";
 import * as fs from "fs";
+import * as prettier from 'prettier'
+
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -22,7 +24,7 @@ app.post("/", (req, res) => {
     "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
   );
 
-  req.body.logs.forEach(function(log) {
+  req.body.logs.forEach(function (log) {
     internalServerInterface.storeLog(log);
   });
 
@@ -43,10 +45,10 @@ app.post("/loadLog", (req, res) => {
   );
 
   // crude way to first wait for any new logs to be sent through...
-  setTimeout(function() {
-    console.log(Object.keys(internalServerInterface._storedLogs));
+  setTimeout(function () {
+    // console.log(Object.keys(internalServerInterface._storedLogs));
     console.log(req.body);
-    internalServerInterface.loadLog(req.body.id, function(log) {
+    internalServerInterface.loadLog(req.body.id, function (log) {
       res.end(JSON.stringify(log));
     });
   }, 500);
@@ -60,9 +62,9 @@ app.post("/traverse", (req, res) => {
   );
 
   // crude way to first wait for any new logs to be sent through...
-  setTimeout(function() {
+  setTimeout(function () {
     console.log("traverse", req.body);
-    internalServerInterface.loadLog(req.body.logId, function(log) {
+    internalServerInterface.loadLog(req.body.logId, function (log) {
       var steps = traverse({
         operationLog: log,
         charIndex: req.body.charIndex
@@ -101,5 +103,29 @@ app.post("/resolveStackFrame", (req, res) => {
     res.end();
   });
 });
+
+
+
+
+app.post("/prettify", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+  );
+
+  res.end(JSON.stringify({ code: prettier.format(req.body.code) }));
+});
+
+app.options("/prettify", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+  );
+  // console.log(req.body);
+  res.end();
+});
+
 
 app.listen(4556, () => console.log("server listening on port 4556!"));

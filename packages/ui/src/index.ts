@@ -54,7 +54,7 @@ var editor = window["CodeMirror"].fromTextArea(
     lineNumbers: true
   }
 );
-editor.on("change", function(cMirror) {
+editor.on("change", function (cMirror) {
   // get value right from instance
   codeTextarea.value = cMirror.getValue();
   try {
@@ -76,8 +76,6 @@ const chart = <HTMLElement>document.querySelector(".chart");
 
 update();
 
-function prettify(code) {}
-
 function update() {
   var code = editor.getValue();
   var res = window["Babel"].transform(code, {
@@ -89,9 +87,7 @@ function update() {
   let codePromise;
 
   if (DEBUG) {
-    prettify(code);
-
-    codePromise = fetch("http://localhost:4555", {
+    codePromise = fetch("http://localhost:4556/prettify", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -243,14 +239,14 @@ function showNormalValue(inspectedValue) {
   for (var i = 0; i < value.length; i++) {
     html += `<span onMouseEnter="showSteps(${inspectedValue.tracking}, ${i})">${
       value[i]
-    }</span>`;
+      }</span>`;
   }
   html += "</div>";
   html +=
     "<div style='font-size: 12px; color: #555;margin-top: 10px'>(Hover over each character to see where it originated. Traversing the tree through built-in function calls is tricky, right now only String.prototype.slice is supported.)</div>";
   document.querySelector("#normal-value").innerHTML = html;
 }
-window["updateChar"] = function(charIndex) {
+window["updateChar"] = function (charIndex) {
   var charEls = document.querySelector("#chars").children;
 
   Array.from(charEls).forEach(el => el.setAttribute("style", ""));
@@ -385,7 +381,7 @@ function showTree(logIndex) {
       if (
         argName &&
         siblingCount >
-          0 /* if only one child in total don't bother explaining it */
+        0 /* if only one child in total don't bother explaining it */
       ) {
         node = {
           innerHTML: `<div style="font-weight: normal">${argName}</div>`,
