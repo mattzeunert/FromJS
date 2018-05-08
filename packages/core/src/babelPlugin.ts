@@ -19,7 +19,7 @@ import {
   isInLeftPartOfAssignmentExpression
 } from "./babelPluginHelpers";
 
-import * as helperCodeLoaded from "../dist/helperFunctions.js";
+import helperCodeLoaded from "../helperFunctions";
 var helperCode = helperCodeLoaded
   .toString()
   .replace("__FUNCTION_NAMES__", JSON.stringify(FunctionNames));
@@ -61,7 +61,7 @@ helperCode += "/* HELPER_FUNCTIONS_END */ ";
 
 // I got some babel-generator "cannot read property 'type' of undefined" errors
 // when prepending the code itself, so just prepend a single eval call expression
-helperCode = "eval(`" + helperCode + "`)";
+helperCode = "eval(`" + helperCode + "\n//# sourceURL=/helperFns.js`)";
 // console.log(helperCode);
 
 export default function plugin(babel) {
@@ -165,7 +165,7 @@ export default function plugin(babel) {
   };
 
   return {
-    name: "babel-plugin-data-flow",
+    name: "fromjs-babel-plugin",
     visitor: visitors
   };
 }

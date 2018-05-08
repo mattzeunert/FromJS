@@ -1,10 +1,15 @@
-import ServerInterface from "../ServerInterface";
-import traverse from "../traverse";
+import { InMemoryLogServer as ServerInterface } from "@fromjs/core";
+import traverse from "./src/traverse";
+import StackFrameResolver from "./src/StackFrameResolver";
+import * as fs from "fs";
 
 const express = require("express");
 const bodyParser = require("body-parser");
 
-const internalServerInterfce = new ServerInterface();
+const internalServerInterface = new ServerInterface();
+internalServerInterface._storedLogs = JSON.parse(
+  fs.readFileSync("logs.json").toString()
+);
 
 const app = express();
 
@@ -18,9 +23,13 @@ app.post("/", (req, res) => {
   );
 
   req.body.logs.forEach(function(log) {
-    internalServerInterfce.storeLog(log);
+    internalServerInterface.storeLog(log);
   });
 
+  fs.writeFileSync(
+    "logs.json",
+    JSON.stringify(internalServerInterface._storedLogs)
+  );
   console.log("stored logs", req.body.logs.length);
 
   res.end(JSON.stringify({ ok: true }));
@@ -35,9 +44,9 @@ app.post("/loadLog", (req, res) => {
 
   // crude way to first wait for any new logs to be sent through...
   setTimeout(function() {
-    console.log(Object.keys(internalServerInterfce._storedLogs));
+    console.log(Object.keys(internalServerInterface._storedLogs));
     console.log(req.body);
-    internalServerInterfce.loadLog(req.body.id, function(log) {
+    internalServerInterface.loadLog(req.body.id, function(log) {
       res.end(JSON.stringify(log));
     });
   }, 500);
@@ -53,15 +62,34 @@ app.post("/traverse", (req, res) => {
   // crude way to first wait for any new logs to be sent through...
   setTimeout(function() {
     console.log("traverse", req.body);
-    internalServerInterfce.loadLog(req.body.logId, function(log) {
-      var ret = traverse({ operationLog: log, charIndex: req.body.charIndex });
+    internalServerInterface.loadLog(req.body.logId, function(log) {
+      var steps = traverse({
+        operationLog: log,
+        charIndex: req.body.charIndex
+      });
 
-      res.end(JSON.stringify({ steps: ret }));
+      res.end(JSON.stringify({ steps }));
     });
   }, 500);
 });
 
-["/loadLog", "/", "/traverse"].forEach(path => {
+const resolver = new StackFrameResolver();
+
+app.post("/resolveStackFrame", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+  );
+
+  const frameString = req.body.stackFrameString;
+  resolver.resolveFrame(frameString).then(rr => {
+    console.log("fff", rr);
+    res.end(JSON.stringify(rr));
+  });
+});
+
+["/loadLog", "/", "/traverse", "/resolveStackFrame"].forEach(path => {
   // todo: don't allow requests from any site
   app.options(path, (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");

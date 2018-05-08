@@ -12,6 +12,9 @@ node_modules
 _site
 .DS_Store
 packages/proxy-instrumenter/ca
-packages/babel-plugin-data-flow/test.js
-packages/babel-plugin-data-flow/dist/helperFunctions.js
+packages/core/dist/helperFunctions.js
 packages/ui/dist
+
+packages/core/dist
+packages/core/helperFunctions.ts
+packages/backend/logs.json

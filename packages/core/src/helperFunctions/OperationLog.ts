@@ -73,12 +73,15 @@ export default class OperationLog {
   extraArgs: any;
   index: number;
   astArgs: any;
+  stackFrames: string[];
 
-  constructor({ operation, result, args, astArgs, extraArgs }) {
+  constructor({ operation, result, args, astArgs, extraArgs, stackFrames }) {
     var arrayArguments = [];
     if (operation === "arrayExpression") {
       arrayArguments = ["elements"];
     }
+
+    this.stackFrames = stackFrames;
 
     this.operation = operation;
     this.result = serializeValue(result);

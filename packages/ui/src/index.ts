@@ -1,13 +1,15 @@
-import babelPlugin from "../../babel-plugin-data-flow";
-import operations from "../../babel-plugin-data-flow/src/operations";
-import ServerInterface from "../../babel-plugin-data-flow/src/ServerInterface";
-import traverse from "../../babel-plugin-data-flow/src/traverse";
-
+// import { InMemoryLogServer, operations, babelPlugin } from "@fromjs/core";
+// importing @fromjs/core only works in a node environment because it loads babel
+// so import files directly here
+import InMemoryLogServer from "../../core/src/InMemoryLogServer";
+import operations from "../../core/src/operations";
+import babelPlugin from "../../core/src/babelPlugin";
+const traverse = x => null;
 // import Babel from "@babel/standalone";
 // document.write("hi");
 
-const DEBUG = false;
-const USE_SERVER = false;
+const DEBUG = true;
+const USE_SERVER = true;
 
 class ServerInterface2 {
   loadLog(logId, fn) {
@@ -34,11 +36,11 @@ if (DEBUG) {
 }
 
 let serverInterface;
-
+serverInterface = new InMemoryLogServer();
 if (USE_SERVER) {
   serverInterface = new ServerInterface2();
 } else {
-  serverInterface = new ServerInterface();
+  serverInterface = new InMemoryLogServer();
 }
 
 if (!USE_SERVER) {
@@ -169,8 +171,26 @@ function showSteps(logId, charIndex) {
 
     var html = ``;
 
-    steps.forEach(step => {
-      console.log(step);
+    steps.forEach((step, i) => {
+      console.log(step, step.operationLog.stack);
+
+      fetch("http://localhost:4556/resolveStackFrame", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          stackFrameString: step.operationLog.stackFrames[0]
+        })
+      })
+        .then(res => res.json())
+        .then(r => {
+          console.log("done resolve stack frame", r);
+          document.querySelector("#step-code-" + i).innerHTML =
+            r.code.line.text;
+        });
+
       var tv = step.operationLog;
       var args = "";
       // eachArgument(tv.args, ["elements"], (arg, argName) => {
@@ -184,17 +204,19 @@ function showSteps(logId, charIndex) {
       html += `<div>
             ${tv.operation} (char: ${step.charIndex})
             ${tv.result.str.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
+            <code id="step-code-${i}"></code>
           </div>`;
     });
 
-    // document.querySelector("#steps").innerHTML = html;
+    document.querySelector("#steps").innerHTML = html;
   });
 }
 
 function runCodeAndshowResult(code) {
   try {
-    eval(code);
+    eval(code + "//# sourceURL=/eval.js");
   } catch (err) {
+    console.error(err);
     chart.setAttribute("style", "opacity: 0.3");
     return;
   }

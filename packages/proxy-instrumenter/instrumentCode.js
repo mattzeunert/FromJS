@@ -18,7 +18,7 @@ function removeSourceMapIfAny(code) {
 
 module.exports = function instrumentCode() {
   // var babelPluginPath = path.resolve(analysisDirectory + "/babelPlugin.js");
-  var babelPlugin = require("babel-plugin-data-flow").default;
+  var babelPlugin = require("@fromjs/core").babelPlugin;
 
   var compilationFailures = [];
   // var envInitCode = fs

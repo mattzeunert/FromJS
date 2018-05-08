@@ -1,32 +1,29 @@
 import compile from "./compile";
-import ServerInterface from "./ServerInterface"
+import InMemoryLogServer from "./InMemoryLogServer";
 
-const serverInterface = new ServerInterface()
+const serverInterface = new InMemoryLogServer();
 
 export function instrumentAndRun(code) {
   return new Promise(resolve => {
     code = `getTrackingAndNormalValue((function(){ ${code} })())`;
-    compile(code).then(result => {
+    compile(code).then((result: any) => {
       var code = result.code;
 
-      const __storeLog = serverInterface.storeLog.bind(serverInterface)
+      const __storeLog = serverInterface.storeLog.bind(serverInterface);
 
       var result = eval(result.code);
       result.code = code.split("* HELPER_FUNCTIONS_END */")[1]; // only the interesting code
 
       if (result.tracking) {
-        serverInterface.loadLog(result.tracking, (log) => {
+        serverInterface.loadLog(result.tracking, log => {
           // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
           result.tracking =
             log.args.value.extraArgs.returnValue.args.returnValue;
           resolve(result);
-        })
-
+        });
       } else {
         resolve(result);
       }
-
-
     });
   });
 }

@@ -1,6 +1,4 @@
-import * as OperationTypes from "./OperationTypes";
-import operations from "./operations";
-import OperationLog from "./helperFunctions/OperationLog";
+import { operations, OperationLog } from "@fromjs/core";
 
 export interface TraversalStep {
   charIndex: number;
@@ -12,6 +10,7 @@ export default function traverse(
   steps: TraversalStep[] = []
 ) {
   steps.push(step);
+
   // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
   let nextStep: TraversalStep = null;
 
@@ -26,7 +25,7 @@ export default function traverse(
     nextStep = operation.traverse(operationLog, charIndex);
   } else {
     switch (operationLog.operation) {
-      case OperationTypes.functionArgument:
+      case "functionArgument":
         nextStep = {
           operationLog: operationLog.args.value,
           charIndex: charIndex
