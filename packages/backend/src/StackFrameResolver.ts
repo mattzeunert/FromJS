@@ -94,7 +94,7 @@ class StackFrameResolver {
       var frameObject = ErrorStackParser.parse({ stack: frameString })[0];
 
       const finish = frame => {
-        frame.fileName = frame.fileName.replace("?dontprocess", "");
+        frame.fileName = frame.fileName.replace(".dontprocess", "");
         this._cache[cacheKey] = frame;
         resolve(frame);
       };
@@ -105,6 +105,7 @@ class StackFrameResolver {
           if (!prettify) {
             this.resolveSourceCode(newFrame).then(code => {
               newFrame.code = code;
+              newFrame.__debugOnly_FrameString = frameString
               finish(newFrame);
             });
           } else {
