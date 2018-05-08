@@ -214,7 +214,7 @@ function showSteps(logId, charIndex) {
 
 function runCodeAndshowResult(code) {
   try {
-    eval(code + "//# sourceURL=/eval.js");
+    eval(code);
   } catch (err) {
     console.error(err);
     chart.setAttribute("style", "opacity: 0.3");

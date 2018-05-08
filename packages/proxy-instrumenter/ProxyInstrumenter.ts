@@ -65,7 +65,7 @@ function processCode(body, url, analysisDirectory) {
 there's always an in memory cache for the same url, but enable cache persists
 the in memory cache
 */
-export default function (analysisDirectory, enableCache) {
+export function startProxy(analysisDirectory, enableCache) {
   //   var responseCache = {};
   //   if (enableCache) {
   //     console.log("Proxy cache enabled");
@@ -118,9 +118,9 @@ function checkIsJS(ctx) {
 }
 
 class FesProxy {
+  urlCache = {}
   constructor({ analysisDirectory }) {
     this.proxy = Proxy();
-    this.urlCache = {};
     this.requestsInProgress = [];
     this.analysisDirectory = analysisDirectory;
 
@@ -304,6 +304,22 @@ class FesProxy {
         });
     });
   }
+
+  registerEvalScript(path, code, babelResult) {
+    this.urlCache[path] = {
+      headers: {},
+      body: babelResult.code
+    }
+    this.urlCache[path + ".map"] = {
+      headers: {},
+      body: babelResult.map
+    }
+    this.urlCache[path + "?dontprocess"] = {
+      headers: {},
+      body: code
+    }
+  }
+
   finishRequest(finishedUrl) {
     this.requestsInProgress = this.requestsInProgress.filter(
       url => url !== finishedUrl

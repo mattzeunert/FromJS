@@ -3,7 +3,7 @@ import traverse from "./src/traverse";
 import StackFrameResolver from "./src/StackFrameResolver";
 import * as fs from "fs";
 import * as prettier from 'prettier'
-import Proxy from '@fromjs/proxy-instrumenter'
+import { startProxy } from '@fromjs/proxy-instrumenter'
 import * as Babel from 'babel-core'
 
 const express = require("express");
@@ -139,10 +139,15 @@ app.post("/instrument", (req, res) => {
     "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
   );
 
+  const url = "http://localhost:1/eval" + Math.floor(Math.random() * 10000000000) + ".js"
 
-  var babelResult = Babel.transform(req.body.code, {
+  const code = req.body.code + "\n//# sourceURL=" + url
+
+  var babelResult = Babel.transform(code, {
     plugins: [babelPlugin]
   });
+
+  proxy.registerEvalScript(url, code, babelResult)
 
   res.end(JSON.stringify({ instrumentedCode: babelResult.code }));
 });
@@ -166,4 +171,5 @@ app.listen(4556, () => console.log("server listening on port 4556!"));
 
 
 
-var proxy = new Proxy();
+var proxy
+startProxy().then(p => proxy = p)
