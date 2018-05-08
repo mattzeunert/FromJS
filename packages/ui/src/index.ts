@@ -76,37 +76,41 @@ const chart = <HTMLElement>document.querySelector(".chart");
 
 update();
 
+function callApi(endpoint, data) {
+  return fetch("http://localhost:4556/" + endpoint, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  })
+    .then(r => r.json())
+}
+
+function instrumentCode(code) {
+  return callApi("instrument", { code })
+}
+
 function update() {
   var code = editor.getValue();
-  var res = window["Babel"].transform(code, {
-    plugins: [babelPlugin]
-  });
 
-  code = res.code;
+  instrumentCode(code).then(({ instrumentedCode }) => {
+    let codePromise;
 
-  let codePromise;
-
-  if (DEBUG) {
-    codePromise = fetch("http://localhost:4556/prettify", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ code })
-    })
-      .then(res => res.json())
-      .then(r => {
-        compiledCodeTextarea.value = r.code.split(
-          "/* HELPER_FUNCTIONS_END */ "
-        )[1];
-        return Promise.resolve(r.code);
-      });
-  } else {
-    codePromise = Promise.resolve(code);
-  }
-
-  codePromise.then(code => runCodeAndshowResult(code));
+    if (DEBUG) {
+      codePromise = callApi("prettify", { code: instrumentedCode })
+        .then(r => {
+          compiledCodeTextarea.value = r.code.split(
+            "/* HELPER_FUNCTIONS_END */ "
+          )[1];
+          return Promise.resolve(r.code);
+        });
+    } else {
+      codePromise = Promise.resolve(instrumentedCode);
+    }
+    return codePromise
+  }).then(code => runCodeAndshowResult(code));
 }
 
 // TODO: don't copy/paste this

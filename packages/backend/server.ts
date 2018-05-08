@@ -1,10 +1,10 @@
-import { InMemoryLogServer as ServerInterface } from "@fromjs/core";
+import { babelPlugin, InMemoryLogServer as ServerInterface } from "@fromjs/core";
 import traverse from "./src/traverse";
 import StackFrameResolver from "./src/StackFrameResolver";
 import * as fs from "fs";
 import * as prettier from 'prettier'
 import Proxy from '@fromjs/proxy-instrumenter'
-
+import * as Babel from 'babel-core'
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -127,6 +127,37 @@ app.options("/prettify", (req, res) => {
   // console.log(req.body);
   res.end();
 });
+
+
+
+
+
+app.post("/instrument", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+  );
+
+
+  var babelResult = Babel.transform(req.body.code, {
+    plugins: [babelPlugin]
+  });
+
+  res.end(JSON.stringify({ instrumentedCode: babelResult.code }));
+});
+
+app.options("/instrument", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+  );
+
+
+  res.end()
+});
+
 
 
 app.listen(4556, () => console.log("server listening on port 4556!"));
