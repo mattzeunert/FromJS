@@ -142,20 +142,6 @@ declare var __FUNCTION_NAMES__,
       operationArrayArguments[opName].forEach(arrayArgName => { });
     }
 
-    var argValues = args.map(arg => arg[0]);
-    var argTrackingValues = args.map(arg => {
-      if (arg[1] === null) {
-        return createOperationLog({
-          operation: "Unknown operation",
-          result: arg[0],
-          args: {},
-          astArgs: {},
-          extraArgs: {}
-        });
-      }
-      return arg[1];
-    });
-
     var extraTrackingValues = {};
     var ret;
     if (operationsExec[opName]) {
@@ -197,20 +183,6 @@ declare var __FUNCTION_NAMES__,
       result: ret,
       extraArgs: extraTrackingValues
     });
-
-    // trackingValue = {
-    //   type: opName,
-    //   argValues,
-    //   objArgs,
-    //   argTrackingValues,
-    //   extraArgs: extraTrackingValues,
-    //   resVal: ret,
-    //   argNames,
-    //   astArgs
-    //   // place: Error()
-    //   //   .stack.split("\\\\n")
-    //   //   .slice(2, 3)
-    // };
 
     lastOpValueResult = ret;
     lastOpTrackingResult = trackingValue;

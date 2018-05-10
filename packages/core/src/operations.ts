@@ -415,7 +415,6 @@ const operations: Operations = {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
-      console.log("str lit loc", path.node.loc)
       return this.createNode({
         value: [ignoredStringLiteral(path.node.value), t.nullLiteral()]
       }, {}, path.node.loc);
@@ -697,11 +696,7 @@ export function eachArgument(operationLog, fn) {
 Object.keys(operations).forEach(opName => {
   const operation = operations[opName];
   operation.createNode = function (args, astArgs, loc = null) {
-    const operation = createOperation(OperationTypes[opName], args, astArgs);
-    console.log("updating loc", operation.loc, loc)
-    if (loc) {
-      operation.loc = loc
-    }
+    const operation = createOperation(OperationTypes[opName], args, astArgs, loc);
     return operation
   };
   if (!operation.arrayArguments) {
