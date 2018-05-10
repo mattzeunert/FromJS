@@ -84,6 +84,18 @@ class StackFrameResolver {
     return this._gps.ajax(frameObject.fileName);
   }
 
+  resolveFrameFromLoc(frameString, loc) {
+    var frameObject = ErrorStackParser.parse({ stack: frameString })[0];
+    frameObject.fileName += "?dontprocess"
+    frameObject.lineNumber = loc.start.line
+    frameObject.column = loc.start.column
+    return this.resolveSourceCode(frameObject).then(code => {
+      frameObject.code = code;
+      frameObject.__debugOnly_FrameString = frameString
+      return Promise.resolve(frameObject)
+    });
+  }
+
   _resolveFrame(frameString, prettify) {
     return new Promise(resolve => {
       var cacheKey = frameString + (prettify ? "Pretty" : "Nonpretty");

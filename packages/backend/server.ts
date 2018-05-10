@@ -86,10 +86,19 @@ app.post("/resolveStackFrame", (req, res) => {
   );
 
   const frameString = req.body.stackFrameString;
-  resolver.resolveFrame(frameString).then(rr => {
-    console.log("fff", rr);
-    res.end(JSON.stringify(rr));
-  });
+
+  const operationLog = req.body.operationLog
+
+  // use loc if available because sourcemaps are buggy...
+  if (operationLog.loc) {
+    resolver.resolveFrameFromLoc(frameString, operationLog.loc).then(rr => {
+      res.end(JSON.stringify(rr));
+    });
+  } else {
+    resolver.resolveFrame(frameString).then(rr => {
+      res.end(JSON.stringify(rr));
+    });
+  }
 });
 
 ["/loadLog", "/", "/traverse", "/resolveStackFrame"].forEach(path => {

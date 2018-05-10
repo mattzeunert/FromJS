@@ -181,7 +181,8 @@ function showSteps(logId, charIndex) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          stackFrameString: step.operationLog.stackFrames[0]
+          stackFrameString: step.operationLog.stackFrames[0],
+          operationLog: step.operationLog
         })
       })
         .then(res => res.json())

@@ -1,5 +1,5 @@
 // todo: would be better if the server provided this value
-const getOperationIndex = (function() {
+const getOperationIndex = (function () {
   var operationIndexBase = Math.round(Math.random() * 1000 * 1000 * 1000);
   var operationIndex = 0;
   return function getOperationIndex() {
@@ -74,8 +74,9 @@ export default class OperationLog {
   index: number;
   astArgs: any;
   stackFrames: string[];
+  loc: any;
 
-  constructor({ operation, result, args, astArgs, extraArgs, stackFrames }) {
+  constructor({ operation, result, args, astArgs, extraArgs, stackFrames, loc }) {
     var arrayArguments = [];
     if (operation === "arrayExpression") {
       arrayArguments = ["elements"];
@@ -105,6 +106,7 @@ export default class OperationLog {
         updateArg(arg[1]);
       });
     }
+    this.loc = loc;
     this.args = args;
     this.astArgs = astArgs;
     this.extraArgs = extraArgs;

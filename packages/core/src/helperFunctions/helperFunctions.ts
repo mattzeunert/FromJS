@@ -134,8 +134,10 @@ declare var __FUNCTION_NAMES__,
     var astArgs;
     var argNames = [];
 
+
     objArgs = args[0];
     astArgs = args[1];
+    const loc = args[2]
 
     args;
     if (operationArrayArguments[opName]) {
@@ -181,7 +183,8 @@ declare var __FUNCTION_NAMES__,
       args: objArgs,
       astArgs: astArgs,
       result: ret,
-      extraArgs: extraTrackingValues
+      extraArgs: extraTrackingValues,
+      loc
     });
 
     lastOpValueResult = ret;

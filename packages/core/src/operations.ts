@@ -420,7 +420,6 @@ const operations: Operations = {
       }, {}, path.node.loc);
     },
     exec: (args, astArgs, ctx) => {
-      eval("debugger")
       return args.value[0];
     }
   },
