@@ -17,7 +17,7 @@ export default function transform(code, extraBabelOptions = {}) {
           reject(err);
         } else {
           result.code = prettier.format(result.code);
-          if (!options.sourceMaps) {
+          if (!options["sourceMaps"]) {
             result.map = null;
           }
           resolve(result);
