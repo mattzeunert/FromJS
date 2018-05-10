@@ -84,7 +84,7 @@ export default function plugin(babel) {
   }
 
   function isInCallExpressionCallee(path) {
-    return isInNodeType("CallExpression", path, function(path, prevPath) {
+    return isInNodeType("CallExpression", path, function (path, prevPath) {
       return path.node.callee === prevPath.node;
     });
   }
@@ -111,7 +111,7 @@ export default function plugin(babel) {
       }
       var originalDeclarations = path.node.declarations;
       var newDeclarations = [];
-      originalDeclarations.forEach(function(decl) {
+      originalDeclarations.forEach(function (decl) {
         newDeclarations.push(decl);
         if (!decl.init) {
           decl.init = ignoredIdentifier("undefined");
@@ -146,7 +146,7 @@ export default function plugin(babel) {
 
   Object.keys(visitors).forEach(key => {
     var originalVisitor = visitors[key];
-    visitors[key] = function(path) {
+    visitors[key] = function (path) {
       if (path.node.ignore) {
         return;
       }
@@ -156,7 +156,7 @@ export default function plugin(babel) {
 
   visitors["Program"] = {
     // Run on exit so injected code isn't processed by other babel plugins
-    exit: function(path) {
+    exit: function (path) {
       var initCodeAstNodes = babylon.parse(helperCode).program.body.reverse();
       initCodeAstNodes.forEach(node => {
         path.node.body.unshift(node);
