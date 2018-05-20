@@ -48,6 +48,12 @@ declare var __FUNCTION_NAMES__,
     );
     var log = new OperationLog(args);
     storeLog(log);
+
+    // Normally we just store the numbers, but it's useful for
+    // debugging to be able to view the log object
+    window["__debugAllLogs"] = window["__debugAllLogs"] || {}
+    window["__debugAllLogs"][log.index] = log
+
     return log.index;
   }
 
@@ -64,7 +70,7 @@ declare var __FUNCTION_NAMES__,
   ] = function getArgTrackingInfo(index) {
     if (!argTrackingInfo) {
       console.log("no arg tracking info...");
-      return { info: "none" };
+      return null
     }
     return argTrackingInfo[index];
   };
