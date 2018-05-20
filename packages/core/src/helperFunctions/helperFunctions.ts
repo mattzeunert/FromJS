@@ -147,28 +147,26 @@ declare var __FUNCTION_NAMES__,
     var extraTrackingValues = {};
     var ret;
     if (operationsExec[opName]) {
-      var setters = {
-        lastMemberExpressionResult: arr => {
-          lastMemberExpressionObjectValue = arr[0];
-          lastMemberExpressionObjectTrackingValue = arr[1];
-        },
-        extraArgTrackingValues: values => {
-          extraTrackingValues = values;
-        },
-        argTrackingInfo(info) {
-          argTrackingInfo = info;
-        }
-      };
-      ret = operationsExec[opName](objArgs, astArgs, {
-        setters,
+      const ctx = {
         operationTypes,
         getObjectPropertyTrackingValue,
         trackObjectPropertyAssignment,
         createOperationLog,
         getLastOpTrackingResult() {
           return lastOpTrackingResult;
+        },
+        set extraArgTrackingValues(values) {
+          extraTrackingValues = values;
+        },
+        set lastMemberExpressionResult([normal, tracking]) {
+          lastMemberExpressionObjectValue = normal
+          lastMemberExpressionObjectTrackingValue = tracking
+        },
+        set argTrackingInfo(info) {
+          argTrackingInfo = info
         }
-      });
+      }
+      ret = operationsExec[opName](objArgs, astArgs, ctx)
     } else {
       console.log("unhandled op", opName, args);
       throw Error("oh no");

@@ -48,14 +48,14 @@ const operations: Operations = {
       var objectT = args.object[1];
       var propertyName = args.propName[0];
       ret = object[propertyName];
-      ctx.setters.extraArgTrackingValues({
+      ctx.extraArgTrackingValues = {
         propertyValue: [
           ret,
           ctx.getObjectPropertyTrackingValue(object, propertyName)
         ]
-      });
+      }
 
-      ctx.setters.lastMemberExpressionResult([object, objectT]);
+      ctx.lastMemberExpressionResult = [object, objectT];
 
       return ret;
     },
@@ -226,16 +226,16 @@ const operations: Operations = {
         i++;
       }
 
-      ctx.setters.argTrackingInfo(fnArgs);
+      ctx.argTrackingInfo = fnArgs;
 
       var fn = args.function[0];
       var object = args.context[0];
       var ret = fn.apply(object, fnArgValues);
-      ctx.setters.argTrackingInfo(null);
+      ctx.argTrackingInfo = null
 
-      ctx.setters.extraArgTrackingValues({
+      ctx.extraArgTrackingValues = {
         returnValue: [ret, ctx.getLastOpTrackingResult()] // pick up value from returnStatement
-      });
+      }
 
       return ret;
     },
