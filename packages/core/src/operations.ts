@@ -31,7 +31,7 @@ function createNode(args, astArgs = null) { }
 
 interface Operations {
   [key: string]: {
-    createNode?: any;
+    createNode?: (args?: any, astArgs?: any, loc?: any) => any;
     visitor?: any;
     exec?: any;
     arrayArguments?: string[];
@@ -298,7 +298,7 @@ const operations: Operations = {
         ],
         context: [executionContext, executionContextTrackingValue],
         ...fnArgs
-      });
+      }, {}, path.node.callee.loc);
 
       // todo: would it be better for perf if I updated existing call
       // instead of using replaceWith?
@@ -468,7 +468,7 @@ const operations: Operations = {
           path.node.argument,
           getLastOperationTrackingResultCall
         ])
-      });
+      }, {}, path.node.argument.loc);
     }
   },
   identifier: {
@@ -514,7 +514,7 @@ const operations: Operations = {
           path.node,
           trackingIdentifierIfExists(path.node.name)
         ])
-      });
+      }, {}, path.node.loc);
     }
   },
   memexpAsLeftAssExp: {},
@@ -641,7 +641,7 @@ const operations: Operations = {
 
       const operation = this.createNode(operationArguments, {
         operator: ignoredStringLiteral(path.node.operator)
-      });
+      }, path.node.loc);
 
       if (trackingAssignment) {
         path.replaceWith(

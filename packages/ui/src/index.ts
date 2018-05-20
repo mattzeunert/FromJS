@@ -354,7 +354,7 @@ function showTree(logIndex) {
       if (data) {
         resVal = data.result;
       } else {
-        debugger;
+        // debugger;
         resVal = {
           type: "string",
           str: "todo (no data)"

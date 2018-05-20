@@ -100,8 +100,12 @@
       <div style="float:left; width: 70%">
         <textarea id="code">
 var str = "ab" + "cd" + "ef"
-inspect(str)
-                
+function fn(str) {
+  return str 
+}
+str = fn(str)
+
+inspect(str)    
             </textarea>
       </div>
       <div style="float:left; width: 30%">

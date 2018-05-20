@@ -20,22 +20,26 @@ const spawn = require("threads").spawn;
 
 function requestProcessCode(body, url, analysisDirectory) {
   return new Promise(resolve => {
-    // Use this for running in same process
-    // var compile = require("./processCodeWorker.js");
-    // compile({ body, url, analysisDirectory }, resolve);
+    const RUN_IN_SAME_PROCESS = true
 
-    // Normal code running in separate process
-    var compilerProcess = spawn(__dirname + "/instrumenterWorker.js");
-    var path = require("path");
-    compilerProcess
-      .send({ body, url })
-      .on("message", function (response) {
-        resolve(response);
-        compilerProcess.kill();
-      })
-      .on("error", function (error) {
-        log("worker error", error);
-      });
+    if (RUN_IN_SAME_PROCESS) {
+      console.log("Running compilation in proxy process for debugging")
+      var compile = require("./instrumeterWorker.js");
+      compile({ body, url, analysisDirectory }, resolve);
+
+    } else {
+      var compilerProcess = spawn(__dirname + "/instrumenterWorker.js");
+      var path = require("path");
+      compilerProcess
+        .send({ body, url })
+        .on("message", function (response) {
+          resolve(response);
+          compilerProcess.kill();
+        })
+        .on("error", function (error) {
+          log("worker error", error);
+        });
+    }
   });
 }
 
@@ -45,7 +49,6 @@ function setProcessCodeCache(body, url, result) {
   processCodeCache[cacheKey] = result;
 }
 function processCode(body, url, analysisDirectory) {
-  eval("debugger")
   var cacheKey = body + url;
   if (processCodeCache[cacheKey]) {
     log("cache hit", url);
