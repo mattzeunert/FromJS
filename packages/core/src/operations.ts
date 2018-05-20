@@ -230,11 +230,21 @@ const operations: Operations = {
 
       var fn = args.function[0];
       var object = args.context[0];
+      const lastReturnStatementResultBeforeCall = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
       var ret = fn.apply(object, fnArgValues);
       ctx.argTrackingInfo = null
+      const lastReturnStatementResultAfterCall = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
+
+
+      let retT = null
+      // Don't pretend to have a tracked return value if an uninstrumented function was called
+      // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
+      if (ctx.lastOperationType === "returnStatement" && lastReturnStatementResultAfterCall !== lastReturnStatementResultBeforeCall) {
+        retT = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
+      }
 
       ctx.extraArgTrackingValues = {
-        returnValue: [ret, ctx.getLastOpTrackingResult()] // pick up value from returnStatement
+        returnValue: [ret, retT] // pick up value from returnStatement
       }
 
       return ret;
@@ -468,7 +478,7 @@ const operations: Operations = {
           path.node.argument,
           getLastOperationTrackingResultCall
         ])
-      }, {}, path.node.argument.loc);
+      }, {}, path.node.loc);
     }
   },
   identifier: {

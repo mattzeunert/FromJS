@@ -40,6 +40,7 @@ declare var __FUNCTION_NAMES__,
   const storeLog =
     typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog;
 
+  let lastOperationType = null
   function createOperationLog(args) {
     args.stackFrames = Error().stack.split(String.fromCharCode(10));
     args.stackFrames = args.stackFrames.filter(
@@ -111,6 +112,8 @@ declare var __FUNCTION_NAMES__,
     return lastMemberExpressionObjectTrackingValue;
   };
 
+  var lastReturnStatementResult = null
+
   const memoValues = {};
   global["__setMemoValue"] = function (key, value, trackingValue) {
     // console.log("setmemovalue", value)
@@ -152,11 +155,14 @@ declare var __FUNCTION_NAMES__,
         getObjectPropertyTrackingValue,
         trackObjectPropertyAssignment,
         createOperationLog,
-        getLastOpTrackingResult() {
+        get lastOpTrackingResult() {
           return lastOpTrackingResult;
         },
         set extraArgTrackingValues(values) {
           extraTrackingValues = values;
+        },
+        get lastReturnStatementResult() {
+          return lastReturnStatementResult
         },
         set lastMemberExpressionResult([normal, tracking]) {
           lastMemberExpressionObjectValue = normal
@@ -164,6 +170,9 @@ declare var __FUNCTION_NAMES__,
         },
         set argTrackingInfo(info) {
           argTrackingInfo = info
+        },
+        get lastOperationType() {
+          return lastOperationType
         }
       }
       ret = operationsExec[opName](objArgs, astArgs, ctx)
@@ -187,6 +196,15 @@ declare var __FUNCTION_NAMES__,
 
     lastOpValueResult = ret;
     lastOpTrackingResult = trackingValue;
+
+    if (opName === "returnStatement") {
+      // should ideally be in operations.ts
+      // however: it can't be in exec because there
+      // the trackingvalue doesn't exist yet!
+      lastReturnStatementResult = [ret, trackingValue]
+    }
+
+    lastOperationType = opName
 
     return ret;
   };

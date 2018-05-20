@@ -20,11 +20,11 @@ const spawn = require("threads").spawn;
 
 function requestProcessCode(body, url, analysisDirectory) {
   return new Promise(resolve => {
-    const RUN_IN_SAME_PROCESS = true
+    const RUN_IN_SAME_PROCESS = false
 
     if (RUN_IN_SAME_PROCESS) {
       console.log("Running compilation in proxy process for debugging")
-      var compile = require("./instrumeterWorker.js");
+      var compile = require("./instrumenterWorker.js");
       compile({ body, url, analysisDirectory }, resolve);
 
     } else {
