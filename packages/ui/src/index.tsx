@@ -261,7 +261,10 @@ window["updateChar"] = function (charIndex) {
 
   Array.from(charEls).forEach(el => el.setAttribute("style", ""));
 
-  charEls[charIndex].setAttribute("style", "color:  #f627c9;");
+  try {
+    charEls[charIndex].setAttribute("style", "color:  #f627c9;");
+  } catch (err) { console.log(err) }
+
 };
 
 function showTree(logIndex) {
@@ -481,7 +484,7 @@ class TraversalStep extends React.Component<TraversalStepProps, TraversalStepSta
       code = err.toString()
     }
     return <div style={{ padding: 5 }}>
-      Char: #{step.charIndex} "{char}"<br />
+      Char: #{step.charIndex} "{char}" ({operationLog.operation})<br />
       Str: {operationLog.result.str}<br />
       <code>{code}</code>
 
