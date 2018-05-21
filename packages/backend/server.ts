@@ -10,8 +10,13 @@ const express = require("express");
 const bodyParser = require("body-parser");
 
 const internalServerInterface = new ServerInterface();
+
+let json = fs.readFileSync("logs.json").toString()
+if (json === "") {
+  json = "{}"
+}
 internalServerInterface._storedLogs = JSON.parse(
-  fs.readFileSync("logs.json").toString()
+  json
 );
 
 const app = express();
