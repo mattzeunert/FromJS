@@ -22,14 +22,13 @@ function eachArgument(args, arrayArguments, fn) {
   });
 }
 
-function serializeValue(value): SerializedValue {
+function serializeValue(value, nativeFunctions): SerializedValue {
   // todo: consider accessing properties that are getters could have negative impact...
   var knownValue = null;
-  if (value === String.prototype.slice) {
+  if (value === nativeFunctions.stringPrototypeSlice) {
     knownValue = "String.prototype.slice";
   }
-
-  if (value === String.prototype.replace) {
+  if (value === nativeFunctions.stringPrototypeReplace) {
     knownValue = "String.prototype.replace";
   }
   var length;
@@ -79,8 +78,9 @@ export default class OperationLog {
   astArgs: any;
   stackFrames: string[];
   loc: any;
+  runtimeArgs: any;
 
-  constructor({ operation, result, args, astArgs, extraArgs, stackFrames, loc }) {
+  constructor({ operation, result, args, astArgs, extraArgs, stackFrames, loc, nativeFunctions, runtimeArgs }) {
     var arrayArguments = [];
     if (operation === "arrayExpression") {
       arrayArguments = ["elements"];
@@ -89,7 +89,7 @@ export default class OperationLog {
     this.stackFrames = stackFrames;
 
     this.operation = operation;
-    this.result = serializeValue(result);
+    this.result = serializeValue(result, nativeFunctions);
     if (operation === "objectExpression" && args.properties) {
       // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
       args.properties = args.properties.map(prop => {
@@ -110,6 +110,7 @@ export default class OperationLog {
         updateArg(arg[1]);
       });
     }
+    this.runtimeArgs = runtimeArgs
     this.loc = loc;
     this.args = args;
     this.astArgs = astArgs;

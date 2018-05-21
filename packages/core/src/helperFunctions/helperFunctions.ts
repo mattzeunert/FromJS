@@ -12,6 +12,19 @@ declare var __FUNCTION_NAMES__,
   operationsExec,
   operationArrayArguments
 ) {
+  var global = Function("return this")();
+  if (global.__didInitializeDataFlowTracking) {
+    return;
+  }
+  global.__didInitializeDataFlowTracking = true;
+
+
+
+  const nativeFunctions = {
+    stringPrototypeSlice: String.prototype.slice,
+    stringPrototypeReplace: String.prototype.replace
+  }
+
   let logQueue = [];
   setInterval(function () {
     if (logQueue.length === 0) {
@@ -46,6 +59,7 @@ declare var __FUNCTION_NAMES__,
     args.stackFrames = args.stackFrames.filter(
       line => line !== "Error" && !line.includes("/helperFns.js")
     );
+    args.nativeFunctions = nativeFunctions
     var log = new OperationLog(args);
     storeLog(log);
 
@@ -57,11 +71,6 @@ declare var __FUNCTION_NAMES__,
     return log.index;
   }
 
-  var global = Function("return this")();
-  if (global.__didInitializeDataFlowTracking) {
-    return;
-  }
-  global.__didInitializeDataFlowTracking = true;
 
   var argTrackingInfo = null;
 
@@ -161,6 +170,7 @@ declare var __FUNCTION_NAMES__,
         getObjectPropertyTrackingValue,
         trackObjectPropertyAssignment,
         createOperationLog,
+        nativeFunctions,
         get lastOpTrackingResult() {
           return lastOpTrackingResult;
         },

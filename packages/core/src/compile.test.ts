@@ -426,3 +426,21 @@ describe("Supports ++ and -- operators", () => {
       });
   });
 });
+
+
+it("Collects extra data on replace calls", done => {
+  instrumentAndRun(`
+    var a = "ab".replace("b", "c")
+    return a
+  `).then(({ normal, tracking, code }) => {
+      expect(normal).toBe("ac")
+      const replacement = tracking.args.value.extraArgs.replacement0
+      const replacementValue = replacement.args.value
+      expect(replacementValue.operation).toBe("stringLiteral")
+      expect(replacementValue.result.str).toBe("c")
+      expect(replacement.runtimeArgs.start).toBe(1)
+      expect(replacement.runtimeArgs.end).toBe(2)
+
+      done();
+    });
+});

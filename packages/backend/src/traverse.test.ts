@@ -29,27 +29,27 @@ test("Can track concatenation of 'a' and 'b' in an add function", done => {
     }
     return add('a', 'b')
   `).then(({ normal, tracking, code }) => {
-    expect(normal).toBe("ab");
-    var t1 = traverse({ operationLog: tracking, charIndex: 0 });
-    var t2 = traverse({ operationLog: tracking, charIndex: 1 });
-    var t1LastStep = t1[t1.length - 1];
-    var t2LastStep = t2[t2.length - 1];
-    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
-    expect(t1LastStep.operationLog.result.str).toBe("a");
-    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
-    expect(t2LastStep.operationLog.result.str).toBe("b");
+      expect(normal).toBe("ab");
+      var t1 = traverse({ operationLog: tracking, charIndex: 0 });
+      var t2 = traverse({ operationLog: tracking, charIndex: 1 });
+      var t1LastStep = t1[t1.length - 1];
+      var t2LastStep = t2[t2.length - 1];
+      expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+      expect(t1LastStep.operationLog.result.str).toBe("a");
+      expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+      expect(t2LastStep.operationLog.result.str).toBe("b");
 
-    expect(getStepTypeList(t1)).toEqual([
-      "callExpression", // add()
-      "returnStatement", // return
-      "binaryExpression", // +
-      "identifier", // arg1
-      "functionArgument", // (arg1)
-      "stringLiteral" // "a"
-    ]);
+      expect(getStepTypeList(t1)).toEqual([
+        "callExpression", // add()
+        "returnStatement", // return
+        "binaryExpression", // +
+        "identifier", // arg1
+        "functionArgument", // (arg1)
+        "stringLiteral" // "a"
+      ]);
 
-    done();
-  });
+      done();
+    });
 });
 
 test("Can track values through object assignments", done => {
@@ -58,16 +58,16 @@ test("Can track values through object assignments", done => {
     obj.a = "x"
     return obj.a
   `).then(({ normal, tracking, code }) => {
-    var t = traverse({ operationLog: tracking, charIndex: 0 });
+      var t = traverse({ operationLog: tracking, charIndex: 0 });
 
-    expect(getStepTypeList(t)).toEqual([
-      "memberExpression",
-      "assignmentExpression",
-      "stringLiteral"
-    ]);
+      expect(getStepTypeList(t)).toEqual([
+        "memberExpression",
+        "assignmentExpression",
+        "stringLiteral"
+      ]);
 
-    done();
-  });
+      done();
+    });
 });
 
 test("Can track values through object literals", done => {
@@ -75,16 +75,16 @@ test("Can track values through object literals", done => {
     var obj = {a: "x"}
     return obj.a
   `).then(({ normal, tracking, code }) => {
-    var t = traverse({ operationLog: tracking, charIndex: 0 });
+      var t = traverse({ operationLog: tracking, charIndex: 0 });
 
-    expect(getStepTypeList(t)).toEqual([
-      "memberExpression",
-      "objectProperty",
-      "stringLiteral"
-    ]);
+      expect(getStepTypeList(t)).toEqual([
+        "memberExpression",
+        "objectProperty",
+        "stringLiteral"
+      ]);
 
-    done();
-  });
+      done();
+    });
 });
 
 test("Can traverse String.prototype.slice", done => {
@@ -93,22 +93,22 @@ test("Can traverse String.prototype.slice", done => {
       str = str.slice(2,4)
       return str
     `).then(({ normal, tracking, code }) => {
-    expect(normal).toBe("cd");
-    var t = traverse({ operationLog: tracking, charIndex: 0 });
-    var lastStep = t[t.length - 1];
+      expect(normal).toBe("cd");
+      var t = traverse({ operationLog: tracking, charIndex: 0 });
+      var lastStep = t[t.length - 1];
 
-    expect(lastStep.charIndex).toBe(2);
+      expect(lastStep.charIndex).toBe(2);
 
-    expect(getStepTypeList(t)).toEqual([
-      "identifier",
-      "assignmentExpression",
-      "callExpression",
-      "identifier",
-      "stringLiteral"
-    ]);
+      expect(getStepTypeList(t)).toEqual([
+        "identifier",
+        "assignmentExpression",
+        "callExpression",
+        "identifier",
+        "stringLiteral"
+      ]);
 
-    done();
-  });
+      done();
+    });
 });
 
 test("Can track values through conditional expression", done => {
@@ -116,15 +116,15 @@ test("Can track values through conditional expression", done => {
     var b = false ? "a" : "b"
     return b
   `).then(({ normal, tracking, code }) => {
-    expect(normal).toBe("b");
-    var t = traverse({ operationLog: tracking, charIndex: 0 });
+      expect(normal).toBe("b");
+      var t = traverse({ operationLog: tracking, charIndex: 0 });
 
-    expect(getStepTypeList(t)).toEqual([
-      "identifier",
-      "conditionalExpression",
-      "stringLiteral"
-    ]);
+      expect(getStepTypeList(t)).toEqual([
+        "identifier",
+        "conditionalExpression",
+        "stringLiteral"
+      ]);
 
-    done();
-  });
+      done();
+    });
 });

@@ -10,3 +10,4 @@ export const callExpression = "callExpression";
 export const assignmentExpression = "assignmentExpression";
 export const arrayExpression = "arrayExpression";
 export const conditionalExpression = "conditionalExpression";
+export const stringReplacement = "stringReplacement"

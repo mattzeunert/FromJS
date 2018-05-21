@@ -230,22 +230,62 @@ const operations: Operations = {
 
       var fn = args.function[0];
       var object = args.context[0];
-      const lastReturnStatementResultBeforeCall = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
-      var ret = fn.apply(object, fnArgValues);
-      ctx.argTrackingInfo = null
-      const lastReturnStatementResultAfterCall = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
 
+      const extraTrackingValues: any = {}
 
+      var ret
       let retT = null
-      // Don't pretend to have a tracked return value if an uninstrumented function was called
-      // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
-      if (ctx.lastOperationType === "returnStatement" && lastReturnStatementResultAfterCall !== lastReturnStatementResultBeforeCall) {
-        retT = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
+      if (fn === ctx.nativeFunctions.stringPrototypeReplace) {
+        let index = 0
+        ret = ctx.nativeFunctions.stringPrototypeReplace.call(
+          object,
+          fnArgValues[0],
+          function () {
+            var argumentsArray = Array.prototype.slice.apply(arguments, [])
+            var match = argumentsArray[0];
+            var submatches = argumentsArray.slice(1, argumentsArray.length - 2)
+            var offset = argumentsArray[argumentsArray.length - 2]
+            var string = argumentsArray[argumentsArray.length - 1]
+
+            if (typeof fnArgValues[1] !== "string") {
+              throw Error("non string replacement not implemtned yet")
+            }
+            const replacement = fnArgValues[1]
+
+            extraTrackingValues["replacement" + index] = [null, ctx.createOperationLog({
+              operation: ctx.operationTypes.stringReplacement,
+              args: {
+                value: args.arg1
+              },
+              astArgs: {},
+              result: replacement,
+              runtimeArgs: {
+                start: offset,
+                end: offset + match.length,
+              }
+            })]
+
+            index++
+            return replacement
+          }
+        )
+        retT = null
+      } else {
+        const lastReturnStatementResultBeforeCall = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
+        ret = fn.apply(object, fnArgValues);
+        ctx.argTrackingInfo = null
+        const lastReturnStatementResultAfterCall = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
+        // Don't pretend to have a tracked return value if an uninstrumented function was called
+        // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
+        if (ctx.lastOperationType === "returnStatement" && lastReturnStatementResultAfterCall !== lastReturnStatementResultBeforeCall) {
+          retT = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
+        }
       }
 
-      ctx.extraArgTrackingValues = {
-        returnValue: [ret, retT] // pick up value from returnStatement
-      }
+
+      extraTrackingValues.returnValue = [ret, retT] // pick up value from returnStatement
+
+      ctx.extraArgTrackingValues = extraTrackingValues
 
       return ret;
     },
