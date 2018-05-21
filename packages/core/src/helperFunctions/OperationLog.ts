@@ -28,6 +28,10 @@ function serializeValue(value): SerializedValue {
   if (value === String.prototype.slice) {
     knownValue = "String.prototype.slice";
   }
+
+  if (value === String.prototype.replace) {
+    knownValue = "String.prototype.replace";
+  }
   var length;
   // todo: more performant way than doing try catch
   try {

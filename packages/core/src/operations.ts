@@ -258,6 +258,12 @@ const operations: Operations = {
               operationLog: operationLog.args.context,
               charIndex: charIndex + operationLog.args.arg0.result.primitive
             };
+          case "String.prototype.replace":
+            console.log("doing wrong traversal for string replace function")
+            return {
+              operationLog: operationLog.args.context,
+              charIndex: charIndex
+            }
         }
       } else {
         return {
