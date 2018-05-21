@@ -4,6 +4,9 @@
 import InMemoryLogServer from "../../core/src/InMemoryLogServer";
 import operations from "../../core/src/operations";
 import babelPlugin from "../../core/src/babelPlugin";
+import * as React from "react"
+import * as ReactDom from "react-dom"
+import OperationLog from "../../core/src/helperFunctions/OperationLog";
 const traverse = x => null;
 // import Babel from "@babel/standalone";
 // document.write("hi");
@@ -66,13 +69,13 @@ editor.on("change", function (cMirror) {
   }
 });
 
-const codeTextarea = <HTMLInputElement>document.querySelector("#code");
+const codeTextarea = document.querySelector("#code") as HTMLInputElement
 
-const compiledCodeTextarea = <HTMLInputElement>document.querySelector(
+const compiledCodeTextarea = document.querySelector(
   "#compiled-code"
-);
+) as HTMLInputElement;
 
-const chart = <HTMLElement>document.querySelector(".chart");
+const chart = document.querySelector(".chart") as HTMLElement;
 
 update();
 
@@ -151,6 +154,8 @@ function showSteps(logId, charIndex) {
   window["updateChar"](charIndex);
   loadSteps({ logId, charIndex }).then(r => {
     var steps = r.steps;
+
+    setTraversalSteps(steps)
 
     function highlightInTree() {
       document.querySelectorAll("[data-index]").forEach(el => {
@@ -418,3 +423,91 @@ function showTree(logIndex) {
 }
 
 window["showResult"] = update;
+
+
+
+
+
+
+
+
+
+
+type TraversalStepProps = {
+  step: any
+}
+type TraversalStepState = {
+  stackFrame: any
+}
+
+
+class TraversalStep extends React.Component<TraversalStepProps, TraversalStepState> {
+  constructor(props) {
+    super(props)
+    this.state = {
+      stackFrame: null
+    }
+
+    const { step } = this.props
+    fetch("http://localhost:4556/resolveStackFrame", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        stackFrameString: step.operationLog.stackFrames[0],
+        operationLog: step.operationLog
+      })
+    })
+      .then(res => res.json())
+      .then(r => {
+        this.setState({
+          stackFrame: r
+        })
+        // console.log("done resolve stack frame", r);
+        // document.querySelector("#step-code-" + i).innerHTML =
+        //   r.code.line.text;
+      });
+  }
+  render() {
+    const { step } = this.props
+    const { charIndex, operationLog } = step
+    const char = operationLog.result.str[charIndex]
+    let code
+    try {
+      code = this.state.stackFrame.code.line.text
+    } catch (err) {
+      code = err.toString()
+    }
+    return <div style={{ padding: 5 }}>
+      Char: #{step.charIndex} "{char}"<br />
+      Str: {operationLog.result.str}<br />
+      <code>{code}</code>
+
+    </div>
+  }
+}
+
+let setTraversalSteps
+
+type TraversalStepsState = {
+  steps: any[]
+}
+class TraversalSteps extends React.Component<any, TraversalStepsState>{
+  constructor(props) {
+    super(props)
+    this.state = {
+      steps: []
+    }
+    setTraversalSteps = (steps) => this.setState({ steps: steps })
+  }
+  render() {
+    return <div>
+      {this.state.steps.map(step => <TraversalStep step={step} />)}
+    </div>
+  }
+}
+
+ReactDom.render(<div><TraversalSteps /></div>, document.querySelector("#app"))
+
