@@ -235,7 +235,8 @@ const operations: Operations = {
 
       var ret
       let retT = null
-      if (fn === ctx.nativeFunctions.stringPrototypeReplace) {
+      if (fn === ctx.nativeFunctions.stringPrototypeReplace && typeof fnArgValues[1] === "string") {
+        if (fnArgValues[0] === "{{id}}") { debugger }
         let index = 0
         ret = ctx.nativeFunctions.stringPrototypeReplace.call(
           object,
@@ -247,9 +248,6 @@ const operations: Operations = {
             var offset = argumentsArray[argumentsArray.length - 2]
             var string = argumentsArray[argumentsArray.length - 1]
 
-            if (typeof fnArgValues[1] !== "string") {
-              throw Error("non string replacement not implemtned yet")
-            }
             const replacement = fnArgValues[1]
 
             extraTrackingValues["replacement" + index] = [null, ctx.createOperationLog({
@@ -299,10 +297,114 @@ const operations: Operations = {
               charIndex: charIndex + operationLog.args.arg0.result.primitive
             };
           case "String.prototype.replace":
-            console.log("doing wrong traversal for string replace function")
-            return {
-              operationLog: operationLog.args.context,
-              charIndex: charIndex
+            // I'm not 100% confident about this code, but it works for now
+
+            class ValueMapV2 {
+              parts = []
+              originalString = ""
+
+              constructor(originalString: string) {
+                this.originalString = originalString
+              }
+
+              push(fromIndexInOriginal, toIndexInOriginal, operationLog, resultString, isPartOfSubject = false) {
+                this.parts.push({
+                  fromIndexInOriginal,
+                  toIndexInOriginal,
+                  operationLog,
+                  resultString,
+                  isPartOfSubject
+                })
+              }
+
+              getAtResultIndex(indexInResult) {
+                let resultString = ""
+                let part = null
+                for (var i = 0; i < this.parts.length; i++) {
+                  part = this.parts[i]
+                  resultString += part.resultString
+                  if (resultString.length > indexInResult) {
+                    break;
+                  }
+                }
+
+                const resultIndexBeforePart = resultString.length - part.resultString.length
+                let charIndex = (part.isPartOfSubject ? part.fromIndexInOriginal : 0) + (indexInResult - resultIndexBeforePart)
+
+                if (charIndex > part.operationLog.result.str.length) {
+                  charIndex = part.operationLog.result.str.length - 1
+                }
+
+                let operationLog = part.operationLog
+                if (operationLog.operation === OperationTypes.stringReplacement) {
+                  operationLog = operationLog.args.value
+                }
+                return {
+                  charIndex,
+                  operationLog: operationLog
+                }
+
+              }
+
+              __debugPrint() {
+                let originalString = ""
+                let newString = ""
+                this.parts.forEach(part => {
+                  newString += part.resultString
+                  originalString += this.originalString.slice(part.fromIndexInOriginal, part.toIndexInOriginal)
+                })
+                console.log({ originalString, newString })
+              }
+            }
+
+            let matchingReplacement = null
+            let totalCharCountDeltaBeforeMatch = 0
+
+            const replacements = []
+            eachReplacement(operationLog.extraArgs, replacement => {
+              replacements.push(replacement)
+            })
+
+            const subjectOperationLog = operationLog.args.context
+
+            if (replacements.length === 0) {
+              return {
+                operationLog: subjectOperationLog,
+                charIndex: charIndex
+              }
+            }
+
+            const valueMap = new ValueMapV2(subjectOperationLog.result.str)
+
+            let currentIndexInSubjectString = 0
+            replacements.forEach(replacement => {
+              const { start, end } = replacement.runtimeArgs
+              let from = currentIndexInSubjectString
+              let to = start
+              valueMap.push(from, to, subjectOperationLog, subjectOperationLog.result.str.slice(from, to), true)
+
+
+              valueMap.push(start, end, replacement, replacement.args.value.result.str)
+              currentIndexInSubjectString = end
+            })
+            valueMap.push(
+              currentIndexInSubjectString,
+              subjectOperationLog.result.str.length,
+              subjectOperationLog,
+              subjectOperationLog.result.str.slice(currentIndexInSubjectString),
+              true
+            )
+
+            // valueMap.__debugPrint()
+
+            return valueMap.getAtResultIndex(charIndex)
+
+            function eachReplacement(extraArgs, callback) {
+              var index = 0
+              while (extraArgs["replacement" + index]) {
+                callback(extraArgs["replacement" + index])
+                index++
+              }
             }
         }
       } else {

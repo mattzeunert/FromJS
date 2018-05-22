@@ -128,3 +128,59 @@ test("Can track values through conditional expression", done => {
       done();
     });
 });
+
+describe("Can traverse string replacement calls", () => {
+  test("works for simple replacements using regexes", (done) => {
+    instrumentAndRun(`
+    var ret = "ababab".replace(/b/g, "cc") // => "accaccacc"
+    return ret
+  `).then(({ normal, tracking, code }) => {
+        expect(normal).toBe("accaccacc");
+        var t = traverse({ operationLog: tracking, charIndex: 5 });
+
+        expect(getStepTypeList(t)).toEqual([
+          "identifier",
+          "callExpression",
+          "stringLiteral"
+        ]);
+
+        const lastStep = t[t.length - 1]
+        expect(lastStep.charIndex).toBe(1)
+        expect(lastStep.operationLog.result.str).toBe("cc")
+
+        done();
+      });
+  }
+
+  test("works for simple replacements using strings", (done) => {
+      instrumentAndRun(`
+    var ret = "Hello {{name}}!".replace("{{name}}", "Susan")
+    return ret
+  `).then(({ normal, tracking, code }) => {
+          expect(normal).toBe("Hello Susan!");
+          var t1 = traverse({ operationLog: tracking, charIndex: 2 });
+          const t1LastStep = t1[t1.length - 1]
+          expect(t1LastStep.charIndex).toBe(2)
+
+          var t2 = traverse({ operationLog: tracking, charIndex: 6 });
+          const t2LastStep = t2[t2.length - 1]
+          expect(t2LastStep.charIndex).toBe(0)
+
+          done();
+        });
+    })
+
+    test("works for non-match locations behind a match", (done) => {
+      instrumentAndRun(`
+    var ret = "abc".replace("a", "12345")
+    return ret
+  `).then(({ normal, tracking, code }) => {
+          expect(normal).toBe("12345bc");
+          var t1 = traverse({ operationLog: tracking, charIndex: 6 }); // "c"
+          const t1LastStep = t1[t1.length - 1]
+          expect(t1LastStep.charIndex).toBe(2)
+
+          done();
+        });
+    })
+});

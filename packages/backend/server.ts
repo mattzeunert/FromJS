@@ -70,7 +70,9 @@ app.post("/traverse", (req, res) => {
   // crude way to first wait for any new logs to be sent through...
   setTimeout(function () {
     console.log("traverse", req.body);
+    console.time("loading log for traverse")
     internalServerInterface.loadLog(req.body.logId, function (log) {
+      console.timeEnd("loading log for traverse")
       var steps = traverse({
         operationLog: log,
         charIndex: req.body.charIndex
