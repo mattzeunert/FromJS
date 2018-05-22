@@ -163,3 +163,17 @@ describe("Can traverse string replacement calls", async () => {
       expect(t1LastStep.charIndex).toBe(2)
     })
 });
+
+it("Can traverse JSON.parse", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      var json = '{"a": {"b": 5}}';
+      var obj = JSON.parse(json);
+      return obj.a.b
+    `)
+
+  var t = await traverse({ operationLog: tracking, charIndex: 0 });
+  var lastStep = t[t.length - 1];
+
+  expect(lastStep.operationLog.operation).toBe("stringLiteral")
+  expect(lastStep.charIndex).toBe(12)
+})

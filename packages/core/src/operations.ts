@@ -725,6 +725,18 @@ const operations: Operations = {
     }
   },
   memexpAsLeftAssExp: {},
+  jsonParseResult: {
+    traverse(operationLog, charIndex) {
+      // This traversal method is inaccurate but still useful
+      // Ideally we should probably have a JSON parser
+      const valueReadFromJson = operationLog.result.str
+      return {
+        operationLog: operationLog.args.json,
+        charIndex: operationLog.args.json.result.str.indexOf(valueReadFromJson)
+      };
+
+    }
+  },
   assignmentExpression: {
     exec: (args, astArgs, ctx) => {
       var ret;

@@ -37,13 +37,6 @@ export async function traverse(
             charIndex: charIndex
           };
           break;
-        case "jsonParseResult":
-          // just lossy traversal logic for now
-          debugger
-          nextStep = {
-            operationLog: operationLog.args.json,
-            charIndex: 0
-          };
       }
     }
 
