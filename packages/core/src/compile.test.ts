@@ -444,3 +444,23 @@ it("Collects extra data on replace calls", done => {
       done();
     });
 });
+
+
+describe("JSON.parse", () => {
+  it("Collects extra data on JSON.parse calls", (done) => {
+    instrumentAndRun(`
+    var obj = JSON.parse('{"a": {"b": 5}}')
+    return obj.a.b
+  `).then(({ normal, tracking, code }) => {
+        expect(normal).toBe(5)
+        const memberExpression = tracking
+        const propertyValue = tracking.extraArgs.propertyValue
+        const json = propertyValue.args.json
+        const keyPath = propertyValue.runtimeArgs.keyPath
+        expect(json.result.str).toBe('{"a": {"b": 5}}')
+        expect(keyPath).toBe("a.b")
+
+        done();
+      });
+  })
+});

@@ -12,3 +12,4 @@ export const arrayExpression = "arrayExpression";
 export const conditionalExpression = "conditionalExpression";
 export const stringReplacement = "stringReplacement"
 export const localStorageValue = "localStorageValue"
+export const jsonParseResult = "jsonParseResult"

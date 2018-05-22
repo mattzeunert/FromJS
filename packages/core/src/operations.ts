@@ -284,6 +284,36 @@ const operations: Operations = {
           }
         )
         retT = null
+      } else if (fn === ctx.nativeFunctions.jsonParse) {
+        const parsed = ctx.nativeFunctions.jsonParse.call(this, fnArgValues[0])
+
+        function traverseObject(obj, fn, keyPath = []) {
+          Object.entries(obj).forEach(([key, value]) => {
+            fn([...keyPath, key].join("."), value, key, obj)
+            if (typeof value === "object") {
+              traverseObject(value, fn, [...keyPath, key])
+            }
+          })
+        }
+
+        traverseObject(parsed, (keyPath, value, key, obj) => {
+
+          const trackingValue = ctx.createOperationLog({
+            operation: ctx.operationTypes.jsonParseResult,
+            args: {
+              json: args.arg0
+            },
+            result: value,
+            runtimeArgs: {
+              keyPath: keyPath
+            }
+          })
+          ctx.trackObjectPropertyAssignment(obj, key, trackingValue)
+        })
+
+        retT = null // could set something here, but what really matters is the properties
+
+        ret = parsed
       } else {
         if (fn === ctx.nativeFunctions.stringPrototypeReplace) {
           console.log("unhandled string replace call")

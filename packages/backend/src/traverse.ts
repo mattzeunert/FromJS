@@ -26,8 +26,6 @@ export async function traverse(
 
     // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
 
-
-
     const operation = operations[operationLog.operation];
     if (operation && operation.traverse) {
       nextStep = operation.traverse(operationLog, charIndex);
@@ -39,6 +37,13 @@ export async function traverse(
             charIndex: charIndex
           };
           break;
+        case "jsonParseResult":
+          // just lossy traversal logic for now
+          debugger
+          nextStep = {
+            operationLog: operationLog.args.json,
+            charIndex: 0
+          };
       }
     }
 

@@ -22,7 +22,8 @@ declare var __FUNCTION_NAMES__,
 
   const nativeFunctions = {
     stringPrototypeSlice: String.prototype.slice,
-    stringPrototypeReplace: String.prototype.replace
+    stringPrototypeReplace: String.prototype.replace,
+    jsonParse: JSON.parse
   }
 
   function postToBE(endpoint, data) {
