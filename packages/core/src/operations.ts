@@ -48,10 +48,23 @@ const operations: Operations = {
       var objectT = args.object[1];
       var propertyName = args.propName[0];
       ret = object[propertyName];
+
+      let trackingValue = ctx.getObjectPropertyTrackingValue(object, propertyName)
+      if (object === ctx.global.localStorage) {
+        trackingValue = ctx.createOperationLog({
+          operation: ctx.operationTypes.localStorageValue,
+          args: {
+            propertyName: args.propName
+          },
+          astArgs: {},
+          result: ret
+        })
+      }
+
       ctx.extraArgTrackingValues = {
         propertyValue: [
           ret,
-          ctx.getObjectPropertyTrackingValue(object, propertyName)
+          trackingValue
         ]
       }
 
@@ -828,10 +841,8 @@ function eachArgumentInObject(args, operationName, fn) {
   }
 
   if (isObjectExpression) {
-    // debugger
     // todo: this is an objexpression property not an obj expression itself, should be clarified
     fn(args.value, "value", newValue => {
-      // debugger;
       args.value = newValue;
     });
     fn(args.key, "key", newValue => (args.key = newValue));

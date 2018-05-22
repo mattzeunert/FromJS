@@ -109,6 +109,7 @@ declare var __FUNCTION_NAMES__,
   }
 
   const objTrackingMap = new Map();
+  window["__debugObjTrackingMap"] = objTrackingMap
   function trackObjectPropertyAssignment(obj, propName, trackingValue) {
     // console.log("trackObjectPropertyAssignment", obj, propName, trackingValue)
     var objectPropertyTrackingInfo = objTrackingMap.get(obj);
@@ -181,6 +182,7 @@ declare var __FUNCTION_NAMES__,
         trackObjectPropertyAssignment,
         createOperationLog,
         nativeFunctions,
+        global,
         get lastOpTrackingResult() {
           return lastOpTrackingResult;
         },
