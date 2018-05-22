@@ -72,15 +72,15 @@ app.post("/traverse", (req, res) => {
     console.log("traverse", req.body);
     console.time("loading log for traverse")
 
-    internalServerInterface.loadLog(req.body.logId, async function (log) {
-      console.timeEnd("loading log for traverse")
-      var steps = await traverse({
-        operationLog: log,
-        charIndex: req.body.charIndex
-      }, [], internalServerInterface);
+    // internalServerInterface.loadLog(req.body.logId, async function (log) {
+    console.timeEnd("loading log for traverse")
+    var steps = await traverse({
+      operationLog: req.body.logId,
+      charIndex: req.body.charIndex
+    }, [], internalServerInterface);
 
-      res.end(JSON.stringify({ steps }))
-    });
+    res.end(JSON.stringify({ steps }))
+    // });
 
 
   }, 500);

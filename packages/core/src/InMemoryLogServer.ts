@@ -17,7 +17,8 @@ export default class InMemoryLogServer {
     }
     fn(log);
   }
-  loadLog(log, fn) {
+  loadLog(log, fn, maxDepth = Number.POSITIVE_INFINITY, currentDepth = 0) {
+    // console.count("load")
     let logIndex;
     if (typeof log === "number") {
       logIndex = log;
@@ -25,18 +26,29 @@ export default class InMemoryLogServer {
       logIndex = log.index;
     }
     this.getLog(logIndex, log => {
-      updateEachOperationArgument(
-        log,
-        (log, update) => {
-          if (!log) {
-            update(log);
-          } else {
-            this.loadLog(log, l => update(l));
-          }
-        },
-        () => fn(log)
-      );
+      if (currentDepth < maxDepth) {
+        updateEachOperationArgument(
+          log,
+          (log, update) => {
+            if (!log) {
+              update(log);
+            } else {
+              this.loadLog(log, l => update(l), maxDepth, currentDepth + 1);
+            }
+          },
+          () => fn(log)
+        );
+      } else {
+        fn(log)
+      }
     });
+  }
+  async loadLogAwaitable(log, maxDepth) {
+    return new Promise(resolve => {
+      this.loadLog(log, (log) => {
+        resolve(log)
+      }, maxDepth)
+    })
   }
 }
 

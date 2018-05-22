@@ -5,22 +5,28 @@ export interface TraversalStep {
   operationLog: OperationLog;
 }
 
-export function traverse(
+export async function traverse(
   step: TraversalStep,
   steps: TraversalStep[] = [],
   server
 ) {
-  return new Promise((resolve) => {
-    steps.push(step);
-
-    // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
+  return new Promise(async (resolve) => {
     let nextStep: TraversalStep = null;
 
-    if (typeof step.operationLog === "number") {
-      throw Error("trying to traverse unloaded (numeric) operation log");
-    }
+    let { operationLog, charIndex } = step;
 
-    const { operationLog, charIndex } = step;
+    operationLog = await server.loadLogAwaitable(operationLog, 5)
+
+    steps.push({
+      ...step,
+      operationLog // overwrite numeric operation log with object
+    });
+
+
+
+    // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
+
+
 
     const operation = operations[operationLog.operation];
     if (operation && operation.traverse) {
