@@ -235,8 +235,11 @@ const operations: Operations = {
 
       var ret
       let retT = null
-      if (fn === ctx.nativeFunctions.stringPrototypeReplace && typeof fnArgValues[1] === "string") {
-        if (fnArgValues[0] === "{{id}}") { debugger }
+      if (fn === ctx.nativeFunctions.stringPrototypeReplace
+        &&
+        ["string", "number"].includes(typeof fnArgValues[1])) {
+
+
         let index = 0
         ret = ctx.nativeFunctions.stringPrototypeReplace.call(
           object,
@@ -248,7 +251,7 @@ const operations: Operations = {
             var offset = argumentsArray[argumentsArray.length - 2]
             var string = argumentsArray[argumentsArray.length - 1]
 
-            const replacement = fnArgValues[1]
+            const replacement = fnArgValues[1].toString()
 
             extraTrackingValues["replacement" + index] = [null, ctx.createOperationLog({
               operation: ctx.operationTypes.stringReplacement,
@@ -269,6 +272,9 @@ const operations: Operations = {
         )
         retT = null
       } else {
+        if (fn === ctx.nativeFunctions.stringPrototypeReplace) {
+          console.log("unhandled string replace call")
+        }
         const lastReturnStatementResultBeforeCall = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
         ret = fn.apply(object, fnArgValues);
         ctx.argTrackingInfo = null
