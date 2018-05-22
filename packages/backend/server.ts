@@ -111,7 +111,30 @@ app.post("/resolveStackFrame", (req, res) => {
   }
 });
 
-["/loadLog", "/", "/traverse", "/resolveStackFrame"].forEach(path => {
+let logToInspect = null
+app.get("/inspect", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+  );
+
+  res.end(JSON.stringify({
+    logToInspect
+  }))
+})
+app.post("/inspect", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+  );
+
+  logToInspect = req.body.logId
+  res.end("{}")
+});
+
+["/loadLog", "/", "/traverse", "/resolveStackFrame", "/inspect"].forEach(path => {
   // todo: don't allow requests from any site
   app.options(path, (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");

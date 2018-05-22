@@ -69,6 +69,37 @@ editor.on("change", function (cMirror) {
   }
 });
 
+
+
+
+
+
+let previousLogToInspect
+setInterval(function () {
+  fetch("http://localhost:4556/inspect", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+  })
+    .then(res => res.json())
+    .then(r => {
+      const { logToInspect } = r
+      if (logToInspect !== previousLogToInspect) {
+        previousLogToInspect = logToInspect
+        showSteps(logToInspect, 15)
+      }
+
+    });
+}, 5000)
+
+
+
+
+
+
+
 const codeTextarea = document.querySelector("#code") as HTMLInputElement
 
 const compiledCodeTextarea = document.querySelector(

@@ -25,20 +25,24 @@ declare var __FUNCTION_NAMES__,
     stringPrototypeReplace: String.prototype.replace
   }
 
-  let logQueue = [];
-  setInterval(function () {
-    if (logQueue.length === 0) {
-      return;
-    }
-    fetch("http://localhost:4556", {
+  function postToBE(endpoint, data) {
+    return fetch("http://localhost:4556" + endpoint, {
       method: "POST",
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/json"
       }),
-      body: JSON.stringify({ logs: logQueue })
+      body: JSON.stringify(data)
     })
       .then(res => res.json())
+  }
+
+  let logQueue = [];
+  setInterval(function () {
+    if (logQueue.length === 0) {
+      return;
+    }
+    postToBE("/", { logs: logQueue })
       .then(r => {
         console.log("stored logs");
       });
@@ -97,6 +101,12 @@ declare var __FUNCTION_NAMES__,
       tracking: argTrackingInfo[0]
     };
   };
+
+  global.fromJSInspect = function (value) {
+    postToBE("/inspect", {
+      logId: argTrackingInfo[0]
+    })
+  }
 
   const objTrackingMap = new Map();
   function trackObjectPropertyAssignment(obj, propName, trackingValue) {
