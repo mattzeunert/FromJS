@@ -1,5 +1,5 @@
 import { babelPlugin, InMemoryLogServer as ServerInterface } from "@fromjs/core";
-import traverse from "./src/traverse";
+import { traverse } from "./src/traverse";
 import StackFrameResolver from "./src/StackFrameResolver";
 import * as fs from "fs";
 import * as prettier from 'prettier'
@@ -68,18 +68,21 @@ app.post("/traverse", (req, res) => {
   );
 
   // crude way to first wait for any new logs to be sent through...
-  setTimeout(function () {
+  setTimeout(async function () {
     console.log("traverse", req.body);
     console.time("loading log for traverse")
-    internalServerInterface.loadLog(req.body.logId, function (log) {
+
+    internalServerInterface.loadLog(req.body.logId, async function (log) {
       console.timeEnd("loading log for traverse")
-      var steps = traverse({
+      var steps = await traverse({
         operationLog: log,
         charIndex: req.body.charIndex
-      });
+      }, [], internalServerInterface);
 
-      res.end(JSON.stringify({ steps }));
+      res.end(JSON.stringify({ steps }))
     });
+
+
   }, 500);
 });
 

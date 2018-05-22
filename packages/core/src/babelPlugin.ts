@@ -31,7 +31,7 @@ helperCode = helperCode.replace(
 var opsExecString = `{`;
 Object.keys(operations).forEach(opName => {
   if (!operations[opName].exec) {
-    console.log("no exec for operation", opName);
+    // console.log("no exec for operation", opName);
     return;
   }
   opsExecString += `${opName}: ${operations[opName].exec.toString()},`;
@@ -43,7 +43,7 @@ helperCode = helperCode.replace("__OPERATIONS_EXEC__", opsExecString);
 var opsArrayArgumentsString = `{`;
 Object.keys(operations).forEach(opName => {
   if (!operations[opName].exec) {
-    console.log("no exec for operation", opName);
+    // console.log("no exec for operation", opName);
     return;
   }
   opsArrayArgumentsString += `${opName}: [${operations[
