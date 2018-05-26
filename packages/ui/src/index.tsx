@@ -608,7 +608,7 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
     let fileName, columnNumber, lineNumber
     try {
       code = stackFrame.code.line.text
-      fileName = stackFrame.fileName
+      fileName = stackFrame.fileName.replace("?dontprocess", "")
       lineNumber = stackFrame.lineNumber
       columnNumber = stackFrame.columnNumber
     } catch (err) {
@@ -632,13 +632,16 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
         <span style={{ color: "#dc1045" }}>{char}</span>
         <span>{afterChar}</span>
       </div>
+      <div>
+        <span style={{ fontSize: "10px" }}>{fileName}</span>
+        <button style={{ float: "right" }} onClick={() => this.setState({ showTree: !showTree })}>Show Tree</button>
+      </div>
       <div className="code-container">
         <code>{code}</code>
         <div className="step__operation-type">({operationLog.operation})</div>
       </div>
-      <button onClick={() => this.setState({ showTree: !showTree })}>Show Tree</button>
       {showTree && <OperationLogTreeView operationLog={operationLog} />}
-    </div>
+    </div >
   }
 }
 
