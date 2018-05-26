@@ -597,9 +597,9 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
     }
 
     const str = operationLog.result.str
-    const beforeChar = str.slice(0, charIndex - 1)
-    const char = str.slice(charIndex - 1, charIndex)
-    const afterChar = str.slice(charIndex)
+    const beforeChar = str.slice(0, charIndex)
+    const char = str.slice(charIndex, charIndex + 1)
+    const afterChar = str.slice(charIndex + 1)
 
     return <div style={{ padding: 5 }} className="step">
       {this.props.debugMode && operationLog.operation + " --"}

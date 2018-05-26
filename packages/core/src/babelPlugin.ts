@@ -111,7 +111,7 @@ export default function plugin(babel) {
 
     FunctionExpression(path) {
       handleFunction(path)
-    }
+    },
 
 
     VariableDeclaration(path) {
