@@ -100,7 +100,7 @@ const operations: Operations = {
       const op = this.createNode({
         object: [path.node.object, getLastOperationTrackingResultCall],
         propName: [property, getLastOperationTrackingResultCall]
-      });
+      }, {}, path.node.loc);
 
       return op;
     }
