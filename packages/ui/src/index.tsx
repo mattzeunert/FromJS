@@ -495,12 +495,7 @@ function renderTree(log, containerSelector) {
       ]
     };
 
-    if (argName) {
-      node = {
-        innerHTML: `<div style="font-weight: normal">${argName}</div>`,
-        children: [node]
-      };
-    }
+    node.innerHTML = `<div style="font-weight: normal">${argName}</div>` + node.innerHTML
 
     return node;
   }
