@@ -95,11 +95,11 @@ setInterval(function () {
   })
     .then(res => res.json())
     .then(r => {
-      const { logToInspect } = r
-      if (logToInspect !== previousLogToInspect) {
-        previousLogToInspect = logToInspect
-        showSteps(logToInspect, 15)
-      }
+      // const { logToInspect } = r
+      // if (logToInspect !== previousLogToInspect) {
+      //   previousLogToInspect = logToInspect
+      //   showSteps(logToInspect, 15)
+      // }
 
     });
 }, 5000)
@@ -501,6 +501,7 @@ function renderTree(log, containerSelector) {
               <div class="code-container">
                 <code style="font-size: 11px" id="${treeCodeDivId}">&nbsp;</code>
               </div>
+              <button onclick="showSteps(${data.index}, 0)">Inspect value</button>
               
             </div>`,
           children
@@ -730,7 +731,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<any, Traversal
     }
 
     return <div>
-      {stepsToShow.map(step => <TraversalStep step={step} />)}
+      {stepsToShow.map(step => <TraversalStep key={step.index} step={step} />)}
     </div>
   }
 }
