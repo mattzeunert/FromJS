@@ -464,3 +464,18 @@ describe("JSON.parse", () => {
       });
   })
 });
+
+it("Tracks arguments to NewExpressions", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+  function Obj(num) {
+    this.num = num
+  }
+  var obj = new Obj(2)
+  return obj.num
+`)
+  expect(normal).toBe(2)
+  const memberExpression = tracking
+  const assignedValue = memberExpression.extraArgs.propertyValue.args.argument
+  const fnArgument = assignedValue.args.value
+  expect(fnArgument.args.value.operation).toBe("numericLiteral")
+});

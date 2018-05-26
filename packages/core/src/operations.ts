@@ -254,7 +254,16 @@ const operations: Operations = {
 
       var ret
       let retT = null
-      if (fn === ctx.nativeFunctions.stringPrototypeReplace
+      if (astArgs.isNewExpression) {
+        let thisValue = null // overwritten inside new()
+        ret = new (Function.prototype.bind.apply(args.function[0], [thisValue, ...fnArgValues]))
+        retT = ctx.createOperationLog({
+          operation: ctx.operationTypes.newExpressionResult,
+          args: {},
+          astArgs: {},
+          result: {},
+        })
+      } else if (fn === ctx.nativeFunctions.stringPrototypeReplace
         &&
         ["string", "number"].includes(typeof fnArgValues[1])) {
 
@@ -469,7 +478,7 @@ const operations: Operations = {
         };
       }
     },
-    visitor(path) {
+    visitor(path, isNewExpression = false) {
       const { callee } = path.node;
 
       var isMemberExpressionCall = callee.type === "MemberExpression";
@@ -511,11 +520,18 @@ const operations: Operations = {
         ],
         context: [executionContext, executionContextTrackingValue],
         ...fnArgs
-      }, {}, path.node.callee.loc);
+      }, {
+          isNewExpression: ignoreNode(t.booleanLiteral(isNewExpression))
+        }, path.node.callee.loc);
 
       // todo: would it be better for perf if I updated existing call
       // instead of using replaceWith?
       return call;
+    }
+  },
+  newExpression: {
+    visitor(path) {
+      return operations.callExpression.visitor(path, true)
     }
   },
   objectProperty: {
