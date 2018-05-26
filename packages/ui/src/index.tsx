@@ -8,6 +8,7 @@ import * as React from "react"
 import * as ReactDom from "react-dom"
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
 const traverse = x => null;
+import { escape } from "lodash"
 // import Babel from "@babel/standalone";
 // document.write("hi");
 
@@ -481,7 +482,7 @@ function renderTree(log, containerSelector) {
     }
 
     var valueClass = "value--other";
-    var str = truncate(resVal.str, 40);
+    var str = truncate(resVal.str, 40 * 10000);
     if (resVal.type === "string") {
       valueClass = "value--string";
       str = `"${str}"`;
@@ -492,24 +493,28 @@ function renderTree(log, containerSelector) {
     const treeCodeDivId = "tree-code-div-" + Math.floor(Math.random() * 1000000000000000)
 
     var node = {
-      innerHTML: `<span class="value ${valueClass}">${str}</span>`,
+      innerHTML: `<div>
+        <div
+          style="font-weight: normal; overflow: hidden;text-align: left; border-bottom: 1px solid #ddd;padding-bottom: 2px;margin-bottom: 2px;">
+          ${argName}
+          <span style="font-weight: normal; font-size: 11px; color: #999;">(${type})</span>
+          <button style="cursor: pointer; float: right;    border: none;
+          text-decoration: underline;" onclick="showSteps(${data.index}, 0)">Inspect</button>
+        </div>
+        <div class="operation" data-index="${data.index}">
+          <div class="code-container">
+            <code style="font-size: 11px" id="${treeCodeDivId}">&nbsp;</code>
+          </div>
+          <div>
+            <span class="value ${valueClass}">${escape(str)}</span>
+          </div>  
+        </div>
+        
+      </div>`,
 
-      children: [
-        {
-          innerHTML: `<div class="operation" data-index="${data.index}">
-              ${type}
-              <div class="code-container">
-                <code style="font-size: 11px" id="${treeCodeDivId}">&nbsp;</code>
-              </div>
-              <button onclick="showSteps(${data.index}, 0)">Inspect value</button>
-              
-            </div>`,
-          children
-        }
-      ]
+      children
     };
 
-    node.innerHTML = `<div style="font-weight: normal">${argName}</div>` + node.innerHTML
 
     if (data && !operationLogIsNotLoaded) {
       resolveStackFrame(data).then((stackFrame) => {
@@ -761,4 +766,4 @@ ReactDom.render(<App />, document.querySelector("#app"))
 
 
 
-showSteps(875754605, 101)
+showSteps(522841433, 101)
