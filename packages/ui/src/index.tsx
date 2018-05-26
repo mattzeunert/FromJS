@@ -11,6 +11,8 @@ const traverse = x => null;
 // import Babel from "@babel/standalone";
 // document.write("hi");
 
+
+
 const DEBUG = true;
 const USE_SERVER = true;
 
@@ -162,7 +164,7 @@ const compiledCodeTextarea = document.querySelector(
 
 const chart = document.querySelector(".chart") as HTMLElement;
 
-update();
+// update();
 
 function callApi(endpoint, data) {
   return fetch("http://localhost:4556/" + endpoint, {
@@ -260,6 +262,10 @@ function showSteps(logId, charIndex) {
     highlightInTree();
 
     var html = ``;
+
+    if (Math.random() > 0.000000001) {
+      return
+    }
 
     steps.forEach((step, i) => {
       console.log(step, step.operationLog.stack);
@@ -538,7 +544,7 @@ class TraversalStep extends React.Component<TraversalStepProps, TraversalStepSta
       stackFrame: null
     }
 
-    const { step } = this.props
+    const { step } = props
     fetch("http://localhost:4556/resolveStackFrame", {
       method: "POST",
       headers: {
@@ -563,17 +569,31 @@ class TraversalStep extends React.Component<TraversalStepProps, TraversalStepSta
   render() {
     const { step } = this.props
     const { charIndex, operationLog } = step
-    const char = operationLog.result.str[charIndex]
     let code
     try {
       code = this.state.stackFrame.code.line.text
     } catch (err) {
       code = err.toString()
     }
-    return <div style={{ padding: 5 }}>
-      Char: #{step.charIndex} "{char}" ({operationLog.operation})<br />
-      Str: {operationLog.result.str}<br />
-      <code>{code}</code>
+
+    const str = operationLog.result.str
+    const beforeChar = str.slice(0, charIndex - 1)
+    const char = str.slice(charIndex - 1, charIndex)
+    const afterChar = str.slice(charIndex)
+
+    return <div style={{ padding: 5 }} className="step">
+      <div className="step__string">
+        <span>{beforeChar}</span>
+        <span style={{ color: "#dc1045" }}>{char}</span>
+        <span>{afterChar}</span>
+      </div>
+      <div style={{
+        background: "#fafafa",
+        border: "1px solid #eee",
+        padding: "4px"
+      }}>
+        <code>{code}</code>
+      </div>
 
     </div>
   }
@@ -593,8 +613,36 @@ class TraversalSteps extends React.Component<any, TraversalStepsState>{
     setTraversalSteps = (steps) => this.setState({ steps: steps })
   }
   render() {
+    let stepsToShow = []
+    let steps = this.state.steps
+    if (!steps.length) {
+      return null
+    }
+    stepsToShow.push(steps[0])
+    console.log("this logic is very awful!! won't work for many operations without loc, also doesn't consider filename just line nnumber")
+    for (var i = 1; i < steps.length; i++) {
+      const thisStep = steps[i]
+      let previousStepToShow = stepsToShow[stepsToShow.length - 1]
+      if (!previousStepToShow.operationLog.loc) {
+        stepsToShow.push(thisStep)
+        continue
+      }
+      let previousStepLine = previousStepToShow.operationLog.loc.start.line
+      let previousStepStr = previousStepToShow.operationLog.result.str
+
+      let thisStepStr = thisStep.operationLog.result.str
+      if (!thisStep.operationLog.loc) {
+        stepsToShow.push(thisStep)
+        continue
+      }
+      let thisStepLine = thisStep.operationLog.loc.start.line
+
+      if (previousStepLine !== thisStepLine || previousStepStr !== thisStepStr) {
+        stepsToShow.push(thisStep)
+      }
+    }
     return <div>
-      {this.state.steps.map(step => <TraversalStep step={step} />)}
+      {stepsToShow.map(step => <TraversalStep step={step} />)}
     </div>
   }
 }
