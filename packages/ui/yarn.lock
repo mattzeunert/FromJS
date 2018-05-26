@@ -821,6 +821,16 @@ balanced-match@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
 
+baobab-react@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/baobab-react/-/baobab-react-3.0.0.tgz#83c63e48cae728dafb5a382e45d5baa1af60c194"
+
+baobab@^2.5.2:
+  version "2.5.2"
+  resolved "https://registry.yarnpkg.com/baobab/-/baobab-2.5.2.tgz#8abf503e85edc040e40a3f4ffe3de500531ffad0"
+  dependencies:
+    emmett "^3.1.1"
+
 base64-js@^1.0.2:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.2.3.tgz#fb13668233d9614cf5fb4bce95a9ba4096cdf801"
@@ -1523,6 +1533,10 @@ elliptic@^6.0.0:
     inherits "^2.0.1"
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.0"
+
+emmett@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/emmett/-/emmett-3.1.1.tgz#7173858aabdfece0f40232696d4b13fef232cf04"
 
 emojis-list@^2.0.0:
   version "2.1.0"

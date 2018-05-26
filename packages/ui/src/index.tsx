@@ -11,6 +11,14 @@ const traverse = x => null;
 // import Babel from "@babel/standalone";
 // document.write("hi");
 
+import * as Baobab from "baobab"
+import { branch, root } from "baobab-react/higher-order"
+
+
+var appState = new Baobab({
+  debugMode: false
+});
+window["appState"] = appState
 
 
 const DEBUG = true;
@@ -530,14 +538,15 @@ window["showResult"] = update;
 
 
 type TraversalStepProps = {
-  step: any
+  step: any,
+  debugMode?: boolean
 }
 type TraversalStepState = {
   stackFrame: any
 }
 
 
-class TraversalStep extends React.Component<TraversalStepProps, TraversalStepState> {
+let TraversalStep = class TraversalStep extends React.Component<TraversalStepProps, TraversalStepState> {
   constructor(props) {
     super(props)
     this.state = {
@@ -558,6 +567,7 @@ class TraversalStep extends React.Component<TraversalStepProps, TraversalStepSta
     })
       .then(res => res.json())
       .then(r => {
+        console.log("got stackframe", r)
         this.setState({
           stackFrame: r
         })
@@ -570,10 +580,15 @@ class TraversalStep extends React.Component<TraversalStepProps, TraversalStepSta
     const { step } = this.props
     const { charIndex, operationLog } = step
     let code
+    let fileName, columnNumber, lineNumber
     try {
       code = this.state.stackFrame.code.line.text
+      fileName = this.state.stackFrame.fileName
+      lineNumber = this.state.stackFrame.lineNumber
+      columnNumber = this.state.stackFrame.columnNumber
     } catch (err) {
       code = err.toString()
+      fileName = "(error)"
     }
 
     const str = operationLog.result.str
@@ -582,6 +597,8 @@ class TraversalStep extends React.Component<TraversalStepProps, TraversalStepSta
     const afterChar = str.slice(charIndex)
 
     return <div style={{ padding: 5 }} className="step">
+      {this.props.debugMode && operationLog.operation + " --"}
+      {this.props.debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
       <div className="step__string">
         <span>{beforeChar}</span>
         <span style={{ color: "#dc1045" }}>{char}</span>
@@ -599,12 +616,17 @@ class TraversalStep extends React.Component<TraversalStepProps, TraversalStepSta
   }
 }
 
+TraversalStep = branch({
+  debugMode: ['debugMode']
+}, TraversalStep);
+
+
 let setTraversalSteps
 
 type TraversalStepsState = {
   steps: any[]
 }
-class TraversalSteps extends React.Component<any, TraversalStepsState>{
+let TraversalSteps = class TraversalSteps extends React.Component<any, TraversalStepsState>{
   constructor(props) {
     super(props)
     this.state = {
@@ -613,39 +635,60 @@ class TraversalSteps extends React.Component<any, TraversalStepsState>{
     setTraversalSteps = (steps) => this.setState({ steps: steps })
   }
   render() {
+
     let stepsToShow = []
     let steps = this.state.steps
     if (!steps.length) {
       return null
     }
-    stepsToShow.push(steps[0])
-    console.log("this logic is very awful!! won't work for many operations without loc, also doesn't consider filename just line nnumber")
-    for (var i = 1; i < steps.length; i++) {
-      const thisStep = steps[i]
-      let previousStepToShow = stepsToShow[stepsToShow.length - 1]
-      if (!previousStepToShow.operationLog.loc) {
-        stepsToShow.push(thisStep)
-        continue
-      }
-      let previousStepLine = previousStepToShow.operationLog.loc.start.line
-      let previousStepStr = previousStepToShow.operationLog.result.str
+    if (this.props.debugMode) {
+      stepsToShow = steps
+    } else {
 
-      let thisStepStr = thisStep.operationLog.result.str
-      if (!thisStep.operationLog.loc) {
-        stepsToShow.push(thisStep)
-        continue
-      }
-      let thisStepLine = thisStep.operationLog.loc.start.line
+      stepsToShow.push(steps[0])
+      console.log("this logic is very awful!! won't work for many operations without loc, also doesn't consider filename just line nnumber")
+      for (var i = 1; i < steps.length; i++) {
+        const thisStep = steps[i]
+        let previousStepToShow = stepsToShow[stepsToShow.length - 1]
+        if (!previousStepToShow.operationLog.loc) {
+          stepsToShow.push(thisStep)
+          continue
+        }
+        let previousStepLine = previousStepToShow.operationLog.loc.start.line
+        let previousStepStr = previousStepToShow.operationLog.result.str
 
-      if (previousStepLine !== thisStepLine || previousStepStr !== thisStepStr) {
-        stepsToShow.push(thisStep)
+        let thisStepStr = thisStep.operationLog.result.str
+        if (!thisStep.operationLog.loc) {
+          stepsToShow.push(thisStep)
+          continue
+        }
+        let thisStepLine = thisStep.operationLog.loc.start.line
+
+        if (previousStepLine !== thisStepLine || previousStepStr !== thisStepStr) {
+          stepsToShow.push(thisStep)
+        }
       }
     }
+
     return <div>
       {stepsToShow.map(step => <TraversalStep step={step} />)}
     </div>
   }
 }
 
-ReactDom.render(<div><DomInspector /><TraversalSteps /></div>, document.querySelector("#app"))
+TraversalSteps = branch({
+  debugMode: ['debugMode']
+}, TraversalSteps)
+
+let App = () => {
+  return <div>
+    <button onClick={() => appState.set("debugMode", true)}>Debug</button>
+    <DomInspector />
+    <TraversalSteps />
+  </div>
+}
+
+App = root(appState, App);
+
+ReactDom.render(<App />, document.querySelector("#app"))
 
