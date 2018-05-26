@@ -109,6 +109,19 @@ declare var __FUNCTION_NAMES__,
     })
   }
 
+  global.fromJSInspectOperationLog = function (operationLogId) {
+    postToBE("/inspect", {
+      logId: operationLogId
+    })
+  }
+
+  global.fromJSInspectDOM = function (element) {
+    postToBE("/inspectDOM", {
+      outerHTML: element.outerHTML,
+      domOrigin: element.__elOrigin
+    })
+  }
+
   const objTrackingMap = new Map();
   window["__debugObjTrackingMap"] = objTrackingMap
   function trackObjectPropertyAssignment(obj, propName, trackingValue) {

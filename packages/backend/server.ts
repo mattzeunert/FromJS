@@ -134,7 +134,32 @@ app.post("/inspect", (req, res) => {
   res.end("{}")
 });
 
-["/loadLog", "/", "/traverse", "/resolveStackFrame", "/inspect"].forEach(path => {
+
+let domToInspect = null
+app.get("/inspectDOM", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+  );
+
+  res.end(JSON.stringify({
+    domToInspect
+  }))
+})
+app.post("/inspectDOM", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+  );
+
+  domToInspect = req.body
+  res.end("{}")
+});
+
+
+["/loadLog", "/", "/traverse", "/resolveStackFrame", "/inspect", "/inspectDOM"].forEach(path => {
   // todo: don't allow requests from any site
   app.options(path, (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");

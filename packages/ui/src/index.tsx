@@ -96,6 +96,60 @@ setInterval(function () {
 
 
 
+let previousDomToInspect = null
+setInterval(function () {
+  fetch("http://localhost:4556/inspectDOM", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+  })
+    .then(res => res.json())
+    .then(r => {
+      const { domToInspect } = r
+      if (domToInspect !== previousDomToInspect) {
+        previousDomToInspect = domToInspect
+        inspectDom(domToInspect)
+      }
+
+    });
+}, 5000)
+
+
+let inspectDom
+class DomInspector extends React.Component<null, any> {
+  constructor(props) {
+    super(props)
+    this.state = {
+      domInfo: null
+    }
+    inspectDom = (domInfo) => {
+      console.log("INSPECT DOM", domInfo)
+      this.setState({
+        domInfo
+      })
+    }
+  }
+
+  inspect(charIndex) {
+    alert("todo")
+  }
+
+  render() {
+    if (!this.state.domInfo) {
+      return null
+    }
+    return <div>
+      inspect dom
+      <pre>
+        {JSON.stringify(this.state.domInfo, null, 4)}
+        {this.state.domInfo.outerHTML}
+        <button onClick={() => this.inspect(5)}>inspect char 5</button>
+      </pre>
+    </div>
+  }
+}
 
 
 
@@ -288,11 +342,13 @@ function showNormalValue(inspectedValue) {
   document.querySelector("#normal-value").innerHTML = html;
 }
 window["updateChar"] = function (charIndex) {
-  var charEls = document.querySelector("#chars").children;
-
-  Array.from(charEls).forEach(el => el.setAttribute("style", ""));
 
   try {
+
+    var charEls = document.querySelector("#chars").children;
+
+    Array.from(charEls).forEach(el => el.setAttribute("style", ""));
+
     charEls[charIndex].setAttribute("style", "color:  #f627c9;");
   } catch (err) { console.log(err) }
 
@@ -543,5 +599,5 @@ class TraversalSteps extends React.Component<any, TraversalStepsState>{
   }
 }
 
-ReactDom.render(<div><TraversalSteps /></div>, document.querySelector("#app"))
+ReactDom.render(<div><DomInspector /><TraversalSteps /></div>, document.querySelector("#app"))
 
