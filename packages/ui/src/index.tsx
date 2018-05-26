@@ -147,6 +147,11 @@ class DomInspector extends React.Component<null, any> {
   }
 
   render() {
+    if (Math.random() > 0.0000000001) {
+      return null
+    }
+
+
     if (!this.state.domInfo) {
       return null
     }

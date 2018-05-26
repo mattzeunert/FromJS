@@ -89,21 +89,30 @@ export default function plugin(babel) {
     });
   }
 
+  function handleFunction(path) {
+    path.node.params.forEach((param, i) => {
+      var d = t.variableDeclaration("var", [
+        t.variableDeclarator(
+          ignoredIdentifier(param.name + "_t"),
+          ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [
+            ignoredNumericLiteral(i)
+          ])
+        )
+      ]);
+      d.ignore = true;
+      path.node.body.body.unshift(d);
+    });
+  }
+
   const visitors = {
     FunctionDeclaration(path) {
-      path.node.params.forEach((param, i) => {
-        var d = t.variableDeclaration("var", [
-          t.variableDeclarator(
-            ignoredIdentifier(param.name + "_t"),
-            ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [
-              ignoredNumericLiteral(i)
-            ])
-          )
-        ]);
-        d.ignore = true;
-        path.node.body.body.unshift(d);
-      });
+      handleFunction(path)
     },
+
+    FunctionExpression(path) {
+      handleFunction(path)
+    }
+
 
     VariableDeclaration(path) {
       if (path.parent.type === "ForInStatement") {

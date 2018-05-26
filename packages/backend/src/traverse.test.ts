@@ -177,3 +177,22 @@ it("Can traverse JSON.parse", async () => {
   expect(lastStep.operationLog.operation).toBe("stringLiteral")
   expect(lastStep.charIndex).toBe(12)
 })
+
+it("Can traverse arguments for a function expression (rather than a function declaration)", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    var fn = function(a) {
+      return a
+    }
+    return fn("a")
+  `)
+  expect(normal).toBe("a");
+  var t = await traverse({ operationLog: tracking, charIndex: 0 });
+  const tLastStep = t[t.length - 1]
+  expect(getStepTypeList(t)).toEqual([
+    "callExpression",
+    "returnStatement",
+    "identifier",
+    "functionArgument",
+    "stringLiteral"
+  ]);
+})
