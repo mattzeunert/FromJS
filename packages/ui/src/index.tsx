@@ -481,13 +481,15 @@ function renderTree(log, containerSelector) {
     }
 
     var valueClass = "value--other";
-    var str = truncate(resVal.str, 20);
+    var str = truncate(resVal.str, 40);
     if (resVal.type === "string") {
       valueClass = "value--string";
       str = `"${str}"`;
     } else if (resVal.type == "number") {
       valueClass = "value--number";
     }
+
+    const treeCodeDivId = "tree-code-div-" + Math.floor(Math.random() * 1000000000000000)
 
     var node = {
       innerHTML: `<span class="value ${valueClass}">${str}</span>`,
@@ -496,6 +498,10 @@ function renderTree(log, containerSelector) {
         {
           innerHTML: `<div class="operation" data-index="${data.index}">
               ${type}
+              <div class="code-container">
+                <code style="font-size: 11px" id="${treeCodeDivId}">&nbsp;</code>
+              </div>
+              
             </div>`,
           children
         }
@@ -503,6 +509,14 @@ function renderTree(log, containerSelector) {
     };
 
     node.innerHTML = `<div style="font-weight: normal">${argName}</div>` + node.innerHTML
+
+    if (data && !operationLogIsNotLoaded) {
+      resolveStackFrame(data).then((stackFrame) => {
+        document.querySelector("#" + treeCodeDivId).innerHTML = stackFrame.code.line.text
+      })
+    }
+
+
 
     return node;
   }
@@ -523,13 +537,29 @@ function renderTree(log, containerSelector) {
     nodeStructure: nodeStructure
   };
 
-  new window["Treant"](chart_config);
+  window["yyyyy"] = new window["Treant"](chart_config);
 }
 
 window["showResult"] = update;
 
 
 
+
+
+function resolveStackFrame(operationLog) {
+  return fetch("http://localhost:4556/resolveStackFrame", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      stackFrameString: operationLog.stackFrames[0],
+      operationLog: operationLog
+    })
+  })
+    .then(res => res.json())
+}
 
 
 
@@ -558,18 +588,7 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
     }
 
     const { step } = props
-    fetch("http://localhost:4556/resolveStackFrame", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        stackFrameString: step.operationLog.stackFrames[0],
-        operationLog: step.operationLog
-      })
-    })
-      .then(res => res.json())
+    resolveStackFrame(step.operationLog)
       .then(r => {
         console.log("got stackframe", r)
         this.setState({
@@ -612,11 +631,7 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
         <span style={{ color: "#dc1045" }}>{char}</span>
         <span>{afterChar}</span>
       </div>
-      <div style={{
-        background: "#fafafa",
-        border: "1px solid #eee",
-        padding: "4px"
-      }}>
+      <div className="code-container">
         <code>{code}</code>
         <div className="step__operation-type">({operationLog.operation})</div>
       </div>
