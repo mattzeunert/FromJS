@@ -544,10 +544,11 @@ window["showResult"] = update;
 
 type TraversalStepProps = {
   step: any,
-  debugMode?: boolean
+  debugMode?: boolean,
 }
 type TraversalStepState = {
-  stackFrame: any
+  stackFrame: any,
+  showLogJson: boolean
 }
 
 
@@ -555,7 +556,8 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
   constructor(props) {
     super(props)
     this.state = {
-      stackFrame: null
+      stackFrame: null,
+      showLogJson: false
     }
 
     const { step } = props
@@ -602,8 +604,11 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
     const afterChar = str.slice(charIndex + 1)
 
     return <div style={{ padding: 5 }} className="step">
-      {this.props.debugMode && operationLog.operation + " --"}
       {this.props.debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
+      {this.props.debugMode && <button onClick={() => this.setState({ showLogJson: !this.state.showLogJson })}>toggle show log json</button>}
+      {this.state.showLogJson && <pre>
+        {JSON.stringify(operationLog, null, 4)}
+      </pre>}
       <div className="step__string">
         <span>{beforeChar}</span>
         <span style={{ color: "#dc1045" }}>{char}</span>
@@ -615,6 +620,7 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
         padding: "4px"
       }}>
         <code>{code}</code>
+        <div className="step__operation-type">({operationLog.operation})</div>
       </div>
 
     </div>
