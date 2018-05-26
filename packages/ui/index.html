@@ -6,6 +6,8 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="./Treant.css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+
   <style>
     .chart {
       /* height: 1500px; */
@@ -16,6 +18,7 @@
 
     * {
       box-sizing: border-box;
+      font-family: Roboto;
     }
 
     .node-name {
@@ -111,7 +114,7 @@
 
     .code-container {
       background: #fafafa;
-      border: 1px solid #eee;
+      border: 1px solid #dde;
       padding: 4px;
     }
 
@@ -121,27 +124,61 @@
       width: 100%;
     }
 
+    .code-container * {
+      font-family: monospace;
+    }
+
 
     .step__string {
       background: #fff9f9;
-      border: 1px solid #fee;
+      border: 1px solid #dde;
       padding: 4px;
-      border-bottom: none;
-      font-family: monospace;
       color: #777;
       line-height: 1.3em;
     }
 
-    .step__operation-type {
-      float: right;
-      color: #777;
+    .step__string * {
+      font-family: monospace;
+    }
+
+    .step__header {
+      width: 100%;
       font-family: Arial;
-      font-size: 12px;
+      background: #15054e;
+      color: white;
+      overflow: hidden;
+      padding: 4px;
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
+
+    .step__operation-type {
+      float: left;
+      font-size: 14px;
       margin-top: 2px;
     }
 
+    .step__body {
+      background: #ddd;
+    }
 
-    .step {}
+    .step__body button {
+      float: right;
+      border: none;
+      background: transparent;
+      text-decoration: underline;
+      margin-top: 6px;
+    }
+
+
+    .step .code-container {
+      border-bottom: none;
+    }
+
+    .step {
+      max-width: 800px;
+      margin-bottom: 10px;
+    }
   </style>
 
 </head>

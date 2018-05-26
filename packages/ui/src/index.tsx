@@ -17,7 +17,8 @@ import { branch, root } from "baobab-react/higher-order"
 
 
 var appState = new Baobab({
-  debugMode: false
+  debugMode: false,
+  steps: []
 });
 window["appState"] = appState
 
@@ -256,7 +257,7 @@ function showSteps(logId, charIndex) {
   loadSteps({ logId, charIndex }).then(r => {
     var steps = r.steps;
 
-    setTraversalSteps(steps)
+    appState.set("steps", steps)
 
     function highlightInTree() {
       document.querySelectorAll("[data-index]").forEach(el => {
@@ -580,7 +581,10 @@ function resolveStackFrame(operationLog) {
 }
 
 
-
+function getFileNameFromPath(path) {
+  const parts = path.split("/")
+  return parts[parts.length - 1]
+}
 
 
 
@@ -633,31 +637,49 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
       fileName = "(error)"
     }
 
+    function prepareText(text) {
+      if (text.length < 50) {
+        return text;
+      }
+      return text.slice(0, 15) + "..." + text.slice(-30)
+    }
+
     const str = operationLog.result.str
-    const beforeChar = str.slice(0, charIndex)
+    const beforeChar = prepareText(str.slice(0, charIndex))
     const char = str.slice(charIndex, charIndex + 1)
-    const afterChar = str.slice(charIndex + 1)
+    const afterChar = prepareText(str.slice(charIndex + 1))
+
+    let operationTypeDetail = null
+    if (operationLog.operation === "identifier" && stackFrame) {
+      operationTypeDetail = "(" + code.slice(operationLog.loc.start.column, operationLog.loc.end.column) + ")"
+    }
 
     return <div style={{ padding: 5 }} className="step">
-      {debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
-      {debugMode && <button onClick={() => this.setState({ showLogJson: !showLogJson })}>toggle show log json</button>}
-      {showLogJson && <pre>
-        {JSON.stringify(operationLog, null, 4)}
-      </pre>}
-      <div className="step__string">
-        <span>{beforeChar}</span>
-        <span style={{ color: "#dc1045" }}>{char}</span>
-        <span>{afterChar}</span>
+      <div className="step__header">
+        <div className="step__operation-type">{operationLog.operation} {operationTypeDetail}</div>
+        <span style={{ fontSize: "12px", marginTop: 3, float: "right" }}>{getFileNameFromPath(fileName)}</span>
       </div>
-      <div>
-        <span style={{ fontSize: "10px" }}>{fileName}</span>
-        <button style={{ float: "right" }} onClick={() => this.setState({ showTree: !showTree })}>Show Tree</button>
+      <div className="step__body">
+        {debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
+        {debugMode && <button onClick={() => this.setState({ showLogJson: !showLogJson })}>toggle show log json</button>}
+        {showLogJson && <pre>
+          {JSON.stringify(operationLog, null, 4)}
+        </pre>}
+
+        <div className="code-container">
+          <code>{code}</code>
+        </div>
+        <div className="step__string">
+          <span>{beforeChar}</span>
+          <span style={{ color: "#dc1045" }}>{char}</span>
+          <span>{afterChar}</span>
+        </div>
+        <div>
+
+          {/* <button style={{ float: "right" }} onClick={() => this.setState({ showTree: !showTree })}>Show Tree</button> */}
+        </div>
+        {showTree && <OperationLogTreeView operationLog={operationLog} />}
       </div>
-      <div className="code-container">
-        <code>{code}</code>
-        <div className="step__operation-type">({operationLog.operation})</div>
-      </div>
-      {showTree && <OperationLogTreeView operationLog={operationLog} />}
     </div >
   }
 }
@@ -701,63 +723,65 @@ class OperationLogTreeView extends React.Component<OperationLogTreeViewProps, {}
 
 
 
-let setTraversalSteps
 
-type TraversalStepsState = {
-  steps: any[]
+
+type TraversalStepsProps = {
+  steps?: any[]
 }
-let TraversalSteps = class TraversalSteps extends React.Component<any, TraversalStepsState>{
-  constructor(props) {
-    super(props)
-    this.state = {
-      steps: []
-    }
-    setTraversalSteps = (steps) => this.setState({ steps: steps })
-  }
+let TraversalSteps = class TraversalSteps extends React.Component<TraversalStepsProps, {}> {
   render() {
 
     let stepsToShow = []
-    let steps = this.state.steps
+    let steps = this.props.steps
     if (!steps.length) {
       return null
     }
-    if (this.props.debugMode) {
-      stepsToShow = steps
-    } else {
 
-      stepsToShow.push(steps[0])
-      console.log("this logic is very awful!! won't work for many operations without loc, also doesn't consider filename just line nnumber")
-      for (var i = 1; i < steps.length; i++) {
-        const thisStep = steps[i]
-        let previousStepToShow = stepsToShow[stepsToShow.length - 1]
-        if (!previousStepToShow.operationLog.loc) {
-          stepsToShow.push(thisStep)
-          continue
-        }
-        let previousStepLine = previousStepToShow.operationLog.loc.start.line
-        let previousStepStr = previousStepToShow.operationLog.result.str
+    stepsToShow = steps
+    // if (this.props.debugMode) {
 
-        let thisStepStr = thisStep.operationLog.result.str
-        if (!thisStep.operationLog.loc) {
-          stepsToShow.push(thisStep)
-          continue
-        }
-        let thisStepLine = thisStep.operationLog.loc.start.line
+    // } else {
 
-        if (previousStepLine !== thisStepLine || previousStepStr !== thisStepStr) {
-          stepsToShow.push(thisStep)
-        }
-      }
-    }
+    //   stepsToShow.push(steps[0])
+    //   console.log("this logic is very awful!! won't work for many operations without loc, also doesn't consider filename just line nnumber")
+    //   for (var i = 1; i < steps.length; i++) {
+    //     const thisStep = steps[i]
+    //     let previousStepToShow = stepsToShow[stepsToShow.length - 1]
+    //     if (!previousStepToShow.operationLog.loc) {
+    //       stepsToShow.push(thisStep)
+    //       continue
+    //     }
+    //     let previousStepLine = previousStepToShow.operationLog.loc.start.line
+    //     let previousStepStr = previousStepToShow.operationLog.result.str
+
+    //     let thisStepStr = thisStep.operationLog.result.str
+    //     if (!thisStep.operationLog.loc) {
+    //       stepsToShow.push(thisStep)
+    //       continue
+    //     }
+    //     let thisStepLine = thisStep.operationLog.loc.start.line
+
+    //     if (previousStepLine !== thisStepLine || previousStepStr !== thisStepStr) {
+    //       stepsToShow.push(thisStep)
+    //     }
+    //   }
+    // }
 
     return <div>
-      {stepsToShow.map(step => <TraversalStep key={step.operationLog.index} step={step} />)}
+      <div>Inspected step:</div>
+      <TraversalStep key={steps[0].operationLog.index} step={steps[0]} />
+      <div>First step where selected character was introduced:</div>
+      <TraversalStep key={steps[steps.length - 1].operationLog.index} step={steps[steps.length - 1]} />
+      <hr />
+      <div>Full data flow:</div>
+      {stepsToShow.map(step => <TraversalStep key={step.operationLog.index} step={step} />).reverse()}
     </div>
   }
 }
 
 TraversalSteps = branch({
-  debugMode: ['debugMode']
+  debugMode: ['debugMode'],
+  steps: ["steps"]
 }, TraversalSteps)
 
 let App = () => {
