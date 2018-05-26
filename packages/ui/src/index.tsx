@@ -596,7 +596,8 @@ type TraversalStepProps = {
 type TraversalStepState = {
   stackFrame: any,
   showLogJson: boolean,
-  showTree: boolean
+  showTree: boolean,
+  isExpanded: boolean
 }
 
 
@@ -606,7 +607,8 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
     this.state = {
       stackFrame: null,
       showLogJson: false,
-      showTree: false
+      showTree: false,
+      isExpanded: false
     }
 
     const { step } = props
@@ -624,14 +626,17 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
   render() {
     const { step, debugMode } = this.props
     const { charIndex, operationLog } = step
-    const { showTree, showLogJson, stackFrame } = this.state
+    const { showTree, showLogJson, stackFrame, isExpanded } = this.state
     let code
     let fileName, columnNumber, lineNumber
+    let previousLine, nextLine
     try {
       code = stackFrame.code.line.text
       fileName = stackFrame.fileName.replace("?dontprocess", "")
       lineNumber = stackFrame.lineNumber
       columnNumber = stackFrame.columnNumber
+      previousLine = stackFrame.code.previousLines[stackFrame.code.previousLines.length - 1].text
+      nextLine = stackFrame.code.nextLines[stackFrame.code.nextLines.length - 1].text
     } catch (err) {
       code = err.toString()
       fileName = "(error)"
@@ -658,6 +663,7 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
       <div className="step__header">
         <div className="step__operation-type">{operationLog.operation} {operationTypeDetail}</div>
         <span style={{ fontSize: "12px", marginTop: 3, float: "right" }}>{getFileNameFromPath(fileName)}</span>
+        <button style={{ float: "right" }} onClick={() => this.setState({ isExpanded: !isExpanded })}>{isExpanded ? "-" : "+"}</button>
       </div>
       <div className="step__body">
         {debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
@@ -667,7 +673,9 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
         </pre>}
 
         <div className="code-container">
+          {isExpanded && <code style={{ display: "block" }}>{previousLine}</code>}
           <code>{code}</code>
+          {isExpanded && <code style={{ display: "block" }}>{nextLine}</code>}
         </div>
         <div className="step__string">
           <span>{beforeChar}</span>
@@ -676,7 +684,7 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
         </div>
         <div>
 
-          {/* <button style={{ float: "right" }} onClick={() => this.setState({ showTree: !showTree })}>Show Tree</button> */}
+          {isExpanded && <button style={{ float: "right" }} onClick={() => this.setState({ showTree: !showTree })}>Show Tree</button>}
         </div>
         {showTree && <OperationLogTreeView operationLog={operationLog} />}
       </div>
