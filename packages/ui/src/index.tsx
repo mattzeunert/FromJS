@@ -434,7 +434,7 @@ function renderTree(log, containerSelector) {
     if (data && operationLogIsNotLoaded) {
       return {
         innerHTML: `<div style="font-size: 11px; color: #999; font-weight: normal;">
-        (Not loaded in FE)
+        (Not loaded in FE, inspect parent to see details.)
       </div>`,
 
         HTMLclass: "node--not-loaded",
