@@ -428,7 +428,8 @@ function renderTree(log, containerSelector) {
     }
 
     var childValues;
-    if (data) {
+    const operationLogIsNotLoaded = typeof data === "number"
+    if (data && !operationLogIsNotLoaded) {
       var operation = operations[data.operation];
       childValues = operation.getArgumentsArray(data);
       if (data.operation === "assignmentExpression") {
@@ -463,7 +464,13 @@ function renderTree(log, containerSelector) {
     }
 
     var resVal;
-    if (data) {
+    if (operationLogIsNotLoaded) {
+      resVal = {
+        type: "string",
+        str: "(not loaded in FE)"
+      };
+    }
+    else if (data) {
       resVal = data.result;
     } else {
       // debugger;

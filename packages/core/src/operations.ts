@@ -216,6 +216,9 @@ const operations: Operations = {
       path.replaceWith(t.sequenceExpression([saveTestValue, operation]));
     }
   },
+  stringReplacement: {
+
+  },
   callExpression: {
     exec: (args, astArgs, ctx) => {
       var i = 0;
