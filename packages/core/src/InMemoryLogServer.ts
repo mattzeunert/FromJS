@@ -15,6 +15,10 @@ export default class InMemoryLogServer {
     if (!log) {
       throw Error("log not found, index is: " + index);
     }
+
+    // deep clone log so we can modify it without affecting the original
+    // possibly slow, can fix later
+    log = JSON.parse(JSON.stringify(log))
     fn(log);
   }
   loadLog(log, fn, maxDepth = Number.POSITIVE_INFINITY, currentDepth = 0) {
