@@ -731,7 +731,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<any, Traversal
     }
 
     return <div>
-      {stepsToShow.map(step => <TraversalStep key={step.index} step={step} />)}
+      {stepsToShow.map(step => <TraversalStep key={step.operationLog.index} step={step} />)}
     </div>
   }
 }
