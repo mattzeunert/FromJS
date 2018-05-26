@@ -168,6 +168,9 @@ const operations: Operations = {
       return ret;
     }
   },
+  localStorageValue: {
+
+  },
   conditionalExpression: {
     exec: (args, astArgs, ctx) => {
       return args.result[0];

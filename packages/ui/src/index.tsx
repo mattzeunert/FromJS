@@ -374,161 +374,154 @@ window["updateChar"] = function (charIndex) {
 };
 
 function showTree(logIndex) {
-  loadLog(logIndex, log => {
-    var data = log;
+  if (window["inspectedValue"].normal === undefined) {
+    throw Error("value is undefiend");
+  }
 
-    if (window["inspectedValue"].normal === undefined) {
-      throw Error("value is undefiend");
+  loadLog(logIndex, log => {
+    renderTree(log, "#basic-example")
+  });
+}
+
+function renderTree(log, containerSelector) {
+  console.log("rendertree", log)
+  var data = log;
+
+
+
+  var nodeStructure;
+
+  function isDataRootOrigin(data) {
+    if (!data) {
+      return false;
     }
-    var config = {
-      container: "#basic-example",
+    if (["stringLiteral", "numericLiteral"].includes(data.type)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  function truncate(str, maxLength) {
+    if (!str || !str.slice) {
+      return str;
+    }
+    if (str.length <= maxLength) {
+      return str;
+    }
+    return str.slice(0, maxLength - 1) + "...";
+  }
+
+  function makeNode(data, argName = "", siblingCount = null) {
+    if (
+      data &&
+      data.operation === "identifier"
+      // data.operation === "assignmentExpression") // todo: don't ignore assignmentexpr, contains info like += operator
+    ) {
+      // skip it because it's not very interesting
+      console.log("skipping", data);
+      return makeNode(data.args.value);
+    }
+
+    if (data && data.operation === "functionArgument") {
+      return makeNode(data.args.value);
+    }
+
+    var childValues;
+    if (data) {
+      var operation = operations[data.operation];
+      childValues = operation.getArgumentsArray(data);
+      if (data.operation === "assignmentExpression") {
+        childValues = childValues.filter(c => c.argName !== "newValue");
+        // currentvalue would matter if operation isn't "=" but e.g. "+="...
+        childValues = childValues.filter(c => c.argName !== "currentValue");
+      }
+    } else {
+      childValues = [];
+    }
+    childValues = childValues.filter(c => !!c.arg);
+    var children = [];
+    if (!isDataRootOrigin(data)) {
+      children = childValues.map((child, i) =>
+        makeNode(child.arg, child.argName, childValues.length - 1)
+      );
+    }
+
+    var type;
+    if (data) {
+      type = data.operation;
+      if (type === "binaryExpression") {
+        type =
+          "<span style='color: green;font-weight: bold;'>" +
+          data.astArgs.operator +
+          "</span>" +
+          " " +
+          type;
+      }
+    } else {
+      type = "(" + data + ")";
+    }
+
+    var resVal;
+    if (data) {
+      resVal = data.result;
+    } else {
+      // debugger;
+      resVal = {
+        type: "string",
+        str: "todo (no data)"
+      };
+    }
+
+    var valueClass = "value--other";
+    var str = truncate(resVal.str, 20);
+    if (resVal.type === "string") {
+      valueClass = "value--string";
+      str = `"${str}"`;
+    } else if (resVal.type == "number") {
+      valueClass = "value--number";
+    }
+
+    var node = {
+      innerHTML: `<span class="value ${valueClass}">${str}</span>`,
+
+      children: [
+        {
+          innerHTML: `<div class="operation" data-index="${data.index}">
+              ${type}
+            </div>`,
+          children
+        }
+      ]
+    };
+
+    if (argName) {
+      node = {
+        innerHTML: `<div style="font-weight: normal">${argName}</div>`,
+        children: [node]
+      };
+    }
+
+    return node;
+  }
+  nodeStructure = makeNode(data);
+
+  var chart_config = {
+    chart: {
+      container: containerSelector,
 
       connectors: {
         type: "step"
       },
       node: {
         HTMLclass: "nodeExample1"
-      }
-    };
-
-    var nodeStructure;
-
-    function isDataRootOrigin(data) {
-      if (!data) {
-        return false;
-      }
-      if (["stringLiteral", "numericLiteral"].includes(data.type)) {
-        return true;
-      }
-
-      return false;
-    }
-
-    function truncate(str, maxLength) {
-      if (!str || !str.slice) {
-        return str;
-      }
-      if (str.length <= maxLength) {
-        return str;
-      }
-      return str.slice(0, maxLength - 1) + "...";
-    }
-
-    function makeNode(data, argName = "", siblingCount = null) {
-      if (
-        data &&
-        data.operation === "identifier"
-        // data.operation === "assignmentExpression") // todo: don't ignore assignmentexpr, contains info like += operator
-      ) {
-        // skip it because it's not very interesting
-        console.log("skipping", data);
-        return makeNode(data.args.value);
-      }
-
-      if (data && data.operation === "functionArgument") {
-        return makeNode(data.args.value);
-      }
-
-      var childValues;
-      if (data) {
-        var operation = operations[data.operation];
-        childValues = operation.getArgumentsArray(data);
-        if (data.operation === "assignmentExpression") {
-          childValues = childValues.filter(c => c.argName !== "newValue");
-          // currentvalue would matter if operation isn't "=" but e.g. "+="...
-          childValues = childValues.filter(c => c.argName !== "currentValue");
-        }
-      } else {
-        childValues = [];
-      }
-      childValues = childValues.filter(c => !!c.arg);
-      var children = [];
-      if (!isDataRootOrigin(data)) {
-        children = childValues.map((child, i) =>
-          makeNode(child.arg, child.argName, childValues.length - 1)
-        );
-      }
-
-      var type;
-      if (data) {
-        type = data.operation;
-        if (type === "binaryExpression") {
-          type =
-            "<span style='color: green;font-weight: bold;'>" +
-            data.astArgs.operator +
-            "</span>" +
-            " " +
-            type;
-        }
-      } else {
-        type = "(" + data + ")";
-      }
-
-      var resVal;
-      if (data) {
-        resVal = data.result;
-      } else {
-        // debugger;
-        resVal = {
-          type: "string",
-          str: "todo (no data)"
-        };
-      }
-
-      var valueClass = "value--other";
-      var str = truncate(resVal.str, 20);
-      if (resVal.type === "string") {
-        valueClass = "value--string";
-        str = `"${str}"`;
-      } else if (resVal.type == "number") {
-        valueClass = "value--number";
-      }
-
-      var node = {
-        innerHTML: `<span class="value ${valueClass}">${str}</span>`,
-
-        children: [
-          {
-            innerHTML: `<div class="operation" data-index="${data.index}">
-              ${type}
-            </div>`,
-            children
-          }
-        ]
-      };
-
-      if (
-        argName &&
-        siblingCount >
-        0 /* if only one child in total don't bother explaining it */
-      ) {
-        node = {
-          innerHTML: `<div style="font-weight: normal">${argName}</div>`,
-          children: [node]
-        };
-      }
-
-      return node;
-    }
-    nodeStructure = makeNode(data);
-
-    var chart_config = {
-      chart: {
-        container: "#basic-example",
-
-        connectors: {
-          type: "step"
-        },
-        node: {
-          HTMLclass: "nodeExample1"
-        },
-        levelSeparation: 20
       },
-      nodeStructure: nodeStructure
-    };
+      levelSeparation: 20
+    },
+    nodeStructure: nodeStructure
+  };
 
-    new window["Treant"](chart_config);
-  });
+  new window["Treant"](chart_config);
 }
 
 window["showResult"] = update;
@@ -548,7 +541,8 @@ type TraversalStepProps = {
 }
 type TraversalStepState = {
   stackFrame: any,
-  showLogJson: boolean
+  showLogJson: boolean,
+  showTree: boolean
 }
 
 
@@ -557,7 +551,8 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
     super(props)
     this.state = {
       stackFrame: null,
-      showLogJson: false
+      showLogJson: false,
+      showTree: false
     }
 
     const { step } = props
@@ -584,15 +579,16 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
       });
   }
   render() {
-    const { step } = this.props
+    const { step, debugMode } = this.props
     const { charIndex, operationLog } = step
+    const { showTree, showLogJson, stackFrame } = this.state
     let code
     let fileName, columnNumber, lineNumber
     try {
-      code = this.state.stackFrame.code.line.text
-      fileName = this.state.stackFrame.fileName
-      lineNumber = this.state.stackFrame.lineNumber
-      columnNumber = this.state.stackFrame.columnNumber
+      code = stackFrame.code.line.text
+      fileName = stackFrame.fileName
+      lineNumber = stackFrame.lineNumber
+      columnNumber = stackFrame.columnNumber
     } catch (err) {
       code = err.toString()
       fileName = "(error)"
@@ -604,9 +600,9 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
     const afterChar = str.slice(charIndex + 1)
 
     return <div style={{ padding: 5 }} className="step">
-      {this.props.debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
-      {this.props.debugMode && <button onClick={() => this.setState({ showLogJson: !this.state.showLogJson })}>toggle show log json</button>}
-      {this.state.showLogJson && <pre>
+      {debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
+      {debugMode && <button onClick={() => this.setState({ showLogJson: !showLogJson })}>toggle show log json</button>}
+      {showLogJson && <pre>
         {JSON.stringify(operationLog, null, 4)}
       </pre>}
       <div className="step__string">
@@ -622,7 +618,8 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
         <code>{code}</code>
         <div className="step__operation-type">({operationLog.operation})</div>
       </div>
-
+      <button onClick={() => this.setState({ showTree: !showTree })}>Show Tree</button>
+      {showTree && <OperationLogTreeView operationLog={operationLog} />}
     </div>
   }
 }
@@ -630,6 +627,40 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
 TraversalStep = branch({
   debugMode: ['debugMode']
 }, TraversalStep);
+
+
+
+
+
+
+
+type OperationLogTreeViewProps = {
+  operationLog: any
+}
+
+class OperationLogTreeView extends React.Component<OperationLogTreeViewProps, {}> {
+  id = Math.floor(Math.random() * 100000000000)
+
+  render() {
+    return <div
+      className="chart"
+      style={{ width: "100%", height: 500, border: "1px solid #ddd" }}
+      id={this.getContainerId()}>
+      xxxxxx
+    </div>
+  }
+  getContainerId() {
+    return "operation-log-tree-view-" + this.id
+  }
+  componentDidMount() {
+    renderTree(this.props.operationLog, "#" + this.getContainerId())
+  }
+}
+
+
+
+
+
 
 
 let setTraversalSteps
@@ -703,3 +734,10 @@ App = root(appState, App);
 
 ReactDom.render(<App />, document.querySelector("#app"))
 
+
+
+
+
+
+
+showSteps(875754605, 101)
