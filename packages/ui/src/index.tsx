@@ -421,7 +421,7 @@ function renderTree(log, containerSelector) {
     ) {
       // skip it because it's not very interesting
       console.log("skipping", data);
-      return makeNode(data.args.value);
+      return makeNode(data.args.value, argName);
     }
 
     if (data && data.operation === "functionArgument") {
@@ -430,6 +430,16 @@ function renderTree(log, containerSelector) {
 
     var childValues;
     const operationLogIsNotLoaded = typeof data === "number"
+    if (data && operationLogIsNotLoaded) {
+      return {
+        innerHTML: `<div style="font-size: 11px; color: #999; font-weight: normal;">
+        (Not loaded in FE)
+      </div>`,
+
+        HTMLclass: "node--not-loaded",
+        children: []
+      };
+    }
     if (data && !operationLogIsNotLoaded) {
       var operation = operations[data.operation];
       childValues = operation.getArgumentsArray(data);
@@ -465,13 +475,7 @@ function renderTree(log, containerSelector) {
     }
 
     var resVal;
-    if (operationLogIsNotLoaded) {
-      resVal = {
-        type: "string",
-        str: "(not loaded in FE)"
-      };
-    }
-    else if (data) {
+    if (data) {
       resVal = data.result;
     } else {
       // debugger;
@@ -519,6 +523,8 @@ function renderTree(log, containerSelector) {
     if (data && !operationLogIsNotLoaded) {
       resolveStackFrame(data).then((stackFrame) => {
         document.querySelector("#" + treeCodeDivId).innerHTML = stackFrame.code.line.text
+      }).catch(() => {
+        document.querySelector("#" + treeCodeDivId).innerHTML = "(error)"
       })
     }
 
@@ -564,7 +570,13 @@ function resolveStackFrame(operationLog) {
       operationLog: operationLog
     })
   })
-    .then(res => res.json())
+    .then(res => {
+      if (res.status === 500) {
+        throw "resolve stack error"
+      } else {
+        return res.json()
+      }
+    })
 }
 
 
@@ -603,7 +615,7 @@ let TraversalStep = class TraversalStep extends React.Component<TraversalStepPro
         // console.log("done resolve stack frame", r);
         // document.querySelector("#step-code-" + i).innerHTML =
         //   r.code.line.text;
-      });
+      }).catch(err => "yolo");
   }
   render() {
     const { step, debugMode } = this.props

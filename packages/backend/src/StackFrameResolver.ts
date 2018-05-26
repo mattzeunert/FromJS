@@ -97,7 +97,7 @@ class StackFrameResolver {
   }
 
   _resolveFrame(frameString, prettify) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       var cacheKey = frameString + (prettify ? "Pretty" : "Nonpretty");
       if (this._cache[cacheKey]) {
         return resolve(this._cache[cacheKey]);
@@ -136,7 +136,7 @@ class StackFrameResolver {
         },
         function () {
           console.log("Pinpoint failed!", arguments);
-          finish(frameObject);
+          reject("pinpoint failed")
         }
       );
     });

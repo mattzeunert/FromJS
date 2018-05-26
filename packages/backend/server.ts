@@ -107,6 +107,11 @@ app.post("/resolveStackFrame", (req, res) => {
   } else {
     resolver.resolveFrame(frameString).then(rr => {
       res.end(JSON.stringify(rr));
+    }).catch(err => {
+      res.status(500)
+      res.end(JSON.stringify({
+        err
+      }))
     });
   }
 });
