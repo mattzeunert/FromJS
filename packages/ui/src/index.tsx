@@ -693,7 +693,7 @@ TraversalSteps = branch({
 
 let App = () => {
   return <div>
-    <button onClick={() => appState.set("debugMode", true)}>Debug</button>
+    <button onClick={() => appState.set("debugMode", !appState.get("debugMode"))}>Debug</button>
     <DomInspector />
     <TraversalSteps />
   </div>
