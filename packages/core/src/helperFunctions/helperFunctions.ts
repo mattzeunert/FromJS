@@ -40,7 +40,7 @@ declare var __FUNCTION_NAMES__,
     if (logQueue.length === 0) {
       return;
     }
-    postToBE("/", { logs: logQueue }).then(r => {
+    postToBE("/storeLogs", { logs: logQueue }).then(r => {
       console.log("stored logs");
     });
 

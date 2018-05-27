@@ -1,36 +1,39 @@
-import { babelPlugin, InMemoryLogServer as ServerInterface } from "@fromjs/core";
+import {
+  babelPlugin,
+  InMemoryLogServer as ServerInterface
+} from "@fromjs/core";
 import { traverse } from "./src/traverse";
 import StackFrameResolver from "./src/StackFrameResolver";
 import * as fs from "fs";
-import * as prettier from 'prettier'
-import { startProxy } from '@fromjs/proxy-instrumenter'
-import * as Babel from 'babel-core'
+import * as prettier from "prettier";
+import { startProxy } from "@fromjs/proxy-instrumenter";
+import * as Babel from "babel-core";
 
 const express = require("express");
 const bodyParser = require("body-parser");
 
 const internalServerInterface = new ServerInterface();
 
-let json = fs.readFileSync("logs.json").toString()
+let json = fs.readFileSync("logs.json").toString();
 if (json === "") {
-  json = "{}"
+  json = "{}";
 }
-internalServerInterface._storedLogs = JSON.parse(
-  json
-);
+internalServerInterface._storedLogs = JSON.parse(json);
 
 const app = express();
 
 app.use(bodyParser.json({ limit: "50mb" }));
 
-app.post("/", (req, res) => {
+app.use(express.static("../ui"));
+
+app.post("/storeLogs", (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
   res.set(
     "Access-Control-Allow-Headers",
     "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
   );
 
-  req.body.logs.forEach(function (log) {
+  req.body.logs.forEach(function(log) {
     internalServerInterface.storeLog(log);
   });
 
@@ -44,60 +47,44 @@ app.post("/", (req, res) => {
 });
 
 app.post("/loadLog", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
-  );
-
   // crude way to first wait for any new logs to be sent through...
-  setTimeout(function () {
+  setTimeout(function() {
     // console.log(Object.keys(internalServerInterface._storedLogs));
     console.log(req.body);
-    internalServerInterface.loadLog(req.body.id, function (log) {
+    internalServerInterface.loadLog(req.body.id, function(log) {
       res.end(JSON.stringify(log));
     });
   }, 500);
 });
 
 app.post("/traverse", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
-  );
-
   // crude way to first wait for any new logs to be sent through...
-  setTimeout(async function () {
+  setTimeout(async function() {
     console.log("traverse", req.body);
-    console.time("loading log for traverse")
+    console.time("loading log for traverse");
 
     // internalServerInterface.loadLog(req.body.logId, async function (log) {
-    console.timeEnd("loading log for traverse")
-    var steps = await traverse({
-      operationLog: req.body.logId,
-      charIndex: req.body.charIndex
-    }, [], internalServerInterface);
+    console.timeEnd("loading log for traverse");
+    var steps = await traverse(
+      {
+        operationLog: req.body.logId,
+        charIndex: req.body.charIndex
+      },
+      [],
+      internalServerInterface
+    );
 
-    res.end(JSON.stringify({ steps }))
+    res.end(JSON.stringify({ steps }));
     // });
-
-
   }, 500);
 });
 
 const resolver = new StackFrameResolver();
 
 app.post("/resolveStackFrame", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
-  );
-
   const frameString = req.body.stackFrameString;
 
-  const operationLog = req.body.operationLog
+  const operationLog = req.body.operationLog;
 
   // use loc if available because sourcemaps are buggy...
   if (operationLog.loc) {
@@ -105,18 +92,23 @@ app.post("/resolveStackFrame", (req, res) => {
       res.end(JSON.stringify(rr));
     });
   } else {
-    resolver.resolveFrame(frameString).then(rr => {
-      res.end(JSON.stringify(rr));
-    }).catch(err => {
-      res.status(500)
-      res.end(JSON.stringify({
-        err
-      }))
-    });
+    resolver
+      .resolveFrame(frameString)
+      .then(rr => {
+        res.end(JSON.stringify(rr));
+      })
+      .catch(err => {
+        res.status(500);
+        res.end(
+          JSON.stringify({
+            err
+          })
+        );
+      });
   }
 });
 
-let logToInspect = null
+let logToInspect = null;
 app.get("/inspect", (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
   res.set(
@@ -124,23 +116,18 @@ app.get("/inspect", (req, res) => {
     "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
   );
 
-  res.end(JSON.stringify({
-    logToInspect
-  }))
-})
-app.post("/inspect", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+  res.end(
+    JSON.stringify({
+      logToInspect
+    })
   );
-
-  logToInspect = req.body.logId
-  res.end("{}")
+});
+app.post("/inspect", (req, res) => {
+  logToInspect = req.body.logId;
+  res.end("{}");
 });
 
-
-let domToInspect = null
+let domToInspect = null;
 app.get("/inspectDOM", (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
   res.set(
@@ -148,10 +135,12 @@ app.get("/inspectDOM", (req, res) => {
     "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
   );
 
-  res.end(JSON.stringify({
-    domToInspect
-  }))
-})
+  res.end(
+    JSON.stringify({
+      domToInspect
+    })
+  );
+});
 app.post("/inspectDOM", (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
   res.set(
@@ -159,12 +148,11 @@ app.post("/inspectDOM", (req, res) => {
     "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
   );
 
-  domToInspect = req.body
-  res.end("{}")
+  domToInspect = req.body;
+  res.end("{}");
 });
 
-
-["/loadLog", "/", "/traverse", "/resolveStackFrame", "/inspect", "/inspectDOM"].forEach(path => {
+["/storeLogs", "/inspect", "/inspectDOM"].forEach(path => {
   // todo: don't allow requests from any site
   app.options(path, (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
@@ -176,9 +164,6 @@ app.post("/inspectDOM", (req, res) => {
     res.end();
   });
 });
-
-
-
 
 app.post("/prettify", (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
@@ -200,55 +185,30 @@ app.options("/prettify", (req, res) => {
   res.end();
 });
 
-
-
-
-
 app.post("/instrument", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
-  );
+  const url =
+    "http://localhost:11111/eval" +
+    Math.floor(Math.random() * 10000000000) +
+    ".js";
 
-  const url = "http://localhost:11111/eval" + Math.floor(Math.random() * 10000000000) + ".js"
-
-  const code = req.body.code
+  const code = req.body.code;
 
   var babelResult = Babel.transform(code, {
     plugins: [babelPlugin],
     sourceMaps: true
   });
 
-  const evalScriptCode = code
+  const evalScriptCode = code;
   // debugger
-  proxy.registerEvalScript(url, evalScriptCode, babelResult)
+  proxy.registerEvalScript(url, evalScriptCode, babelResult);
 
+  console.log(babelResult.code.split("* HELPER_FUNCTIONS_END */")[1]);
 
-  console.log(babelResult.code.split("* HELPER_FUNCTIONS_END */")[1])
-
-  const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url
+  const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url;
   res.end(JSON.stringify({ instrumentedCode }));
 });
 
-app.options("/instrument", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
-  );
-
-
-  res.end()
-});
-
-
-
 app.listen(4556, () => console.log("server listening on port 4556!"));
 
-
-
-
-
-var proxy
-startProxy().then(p => proxy = p)
+var proxy;
+startProxy().then(p => (proxy = p));
