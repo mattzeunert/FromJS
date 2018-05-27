@@ -202,5 +202,6 @@ var proxy;
 startProxy({
   babelPluginOptions: {
     accessToken
-  }
+  },
+  instrumenterFilePath: __dirname + "/instrumentCode.js"
 }).then(p => (proxy = p));

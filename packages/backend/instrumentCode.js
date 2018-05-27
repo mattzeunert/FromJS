@@ -1,3 +1,7 @@
+// plain JS worker thread
+
+Error.stackTraceLimit = Infinity;
+
 var babel = require("babel-core");
 var path = require("path");
 var fs = require("fs");
@@ -16,7 +20,7 @@ function removeSourceMapIfAny(code) {
   return code;
 }
 
-module.exports = function instrumentCode() {
+function instrumentCode() {
   // var babelPluginPath = path.resolve(analysisDirectory + "/babelPlugin.js");
   var babelPlugin = require("@fromjs/core").babelPlugin;
 
@@ -61,4 +65,29 @@ module.exports = function instrumentCode() {
       }
     });
   };
+}
+
+module.exports = function instrument(args, done) {
+  if (!args) {
+    // some weird issue
+    done();
+  }
+
+  // var { body, url } = args;
+  const body = args.body;
+  const url = args.url;
+  const babelPluginOptions = args.babelPluginOptions;
+  var process = require("process");
+
+  process.title = "FromJS - Compilation worker(" + url + ")";
+
+  instrumentCode()(body, url, babelPluginOptions).then(
+    function(result) {
+      console.log("[COMPILER] Done process for", url);
+      done(result);
+    },
+    function(err) {
+      throw Error(err);
+    }
+  );
 };

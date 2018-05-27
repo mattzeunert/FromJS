@@ -18,51 +18,6 @@ Error.stackTraceLimit = Infinity;
 
 const spawn = require("threads").spawn;
 
-function requestProcessCode(body, url, babelPluginOptions) {
-  return new Promise(resolve => {
-    const RUN_IN_SAME_PROCESS = false;
-
-    if (RUN_IN_SAME_PROCESS) {
-      console.log("Running compilation in proxy process for debugging");
-      var compile = require("./instrumenterWorker.js");
-      compile({ body, url, babelPluginOptions }, resolve);
-    } else {
-      var compilerProcess = spawn(__dirname + "/instrumenterWorker.js");
-      var path = require("path");
-      compilerProcess
-        .send({ body, url, babelPluginOptions })
-        .on("message", function(response) {
-          resolve(response);
-          compilerProcess.kill();
-        })
-        .on("error", function(error) {
-          log("worker error", error);
-        });
-    }
-  });
-}
-
-var processCodeCache = {};
-function setProcessCodeCache(body, url, result) {
-  var cacheKey = body + url;
-  processCodeCache[cacheKey] = result;
-}
-function processCode(body, url, babelPluginOptions) {
-  var cacheKey = body + url;
-  if (processCodeCache[cacheKey]) {
-    log("cache hit", url);
-    return Promise.resolve(processCodeCache[cacheKey]);
-  }
-  return requestProcessCode(body, url, babelPluginOptions).then(function(
-    response
-  ) {
-    var { code, map } = response;
-    var result = { code, map };
-    setProcessCodeCache(body, url, result);
-    return Promise.resolve(result);
-  });
-}
-
 // todo: multiple requests to same url will be cleared in one go for requestsInProgress right now
 
 // var sourceMaps = {};
@@ -129,7 +84,9 @@ function checkIsJS(ctx) {
 class FesProxy {
   urlCache = {};
   babelPluginOptions = {};
-  constructor({ babelPluginOptions }) {
+  instrumenterFilePath = "";
+  constructor({ babelPluginOptions, instrumenterFilePath }) {
+    this.instrumenterFilePath = instrumenterFilePath;
     this.proxy = Proxy();
     this.requestsInProgress = [];
     this.analysisDirectory = ""; // unused i think
@@ -333,7 +290,7 @@ class FesProxy {
       babelResult.code + "\n//#sourceMappingURL=" + url + ".map";
     babelResult = JSON.parse(JSON.stringify(babelResult));
     babelResult.code = babelResultCode;
-    setProcessCodeCache(babelResultCode, url, babelResult);
+    this.setProcessCodeCache(babelResultCode, url, babelResult);
   }
 
   finishRequest(finishedUrl) {
@@ -369,9 +326,54 @@ class FesProxy {
       });
     });
   }
-  processCode(body, url) {
-    return processCode(body, url, this.babelPluginOptions);
+
+  requestProcessCode(body, url, babelPluginOptions) {
+    console.log("requestproxceecode", url);
+    return new Promise(resolve => {
+      const RUN_IN_SAME_PROCESS = false;
+
+      if (RUN_IN_SAME_PROCESS) {
+        console.log("Running compilation in proxy process for debugging");
+        var compile = require(this.instrumenterFilePath);
+        compile({ body, url, babelPluginOptions }, resolve);
+      } else {
+        var compilerProcess = spawn(this.instrumenterFilePath);
+        var path = require("path");
+        compilerProcess
+          .send({ body, url, babelPluginOptions })
+          .on("message", function(response) {
+            resolve(response);
+            compilerProcess.kill();
+          })
+          .on("error", function(error) {
+            log("worker error", error);
+          });
+      }
+    });
   }
+
+  processCodeCache = {};
+  setProcessCodeCache(body, url, result) {
+    var cacheKey = body + url;
+    this.processCodeCache[cacheKey] = result;
+  }
+
+  processCode(body, url) {
+    var cacheKey = body + url;
+    if (this.processCodeCache[cacheKey]) {
+      log("cache hit", url);
+      return Promise.resolve(this.processCodeCache[cacheKey]);
+    }
+    return this.requestProcessCode(body, url, this.babelPluginOptions).then(
+      response => {
+        var { code, map } = response;
+        var result = { code, map };
+        this.setProcessCodeCache(body, url, result);
+        return Promise.resolve(result);
+      }
+    );
+  }
+
   hasPendingRequests() {
     return this.requestsInProgress.length > 0;
   }
