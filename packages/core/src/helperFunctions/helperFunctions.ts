@@ -12,6 +12,8 @@ declare var __FUNCTION_NAMES__,
   operationsExec,
   operationArrayArguments
 ) {
+  const accessToken = "ACCESS_TOKEN_PLACEHOLDER";
+
   var global = Function("return this")();
   if (global.__didInitializeDataFlowTracking) {
     return;
@@ -29,7 +31,8 @@ declare var __FUNCTION_NAMES__,
       method: "POST",
       headers: new Headers({
         Accept: "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        Authorization: accessToken
       }),
       body: JSON.stringify(data)
     }).then(res => res.json());

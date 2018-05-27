@@ -18,25 +18,24 @@ Error.stackTraceLimit = Infinity;
 
 const spawn = require("threads").spawn;
 
-function requestProcessCode(body, url, analysisDirectory) {
+function requestProcessCode(body, url, babelPluginOptions) {
   return new Promise(resolve => {
-    const RUN_IN_SAME_PROCESS = false
+    const RUN_IN_SAME_PROCESS = false;
 
     if (RUN_IN_SAME_PROCESS) {
-      console.log("Running compilation in proxy process for debugging")
+      console.log("Running compilation in proxy process for debugging");
       var compile = require("./instrumenterWorker.js");
-      compile({ body, url, analysisDirectory }, resolve);
-
+      compile({ body, url, babelPluginOptions }, resolve);
     } else {
       var compilerProcess = spawn(__dirname + "/instrumenterWorker.js");
       var path = require("path");
       compilerProcess
-        .send({ body, url })
-        .on("message", function (response) {
+        .send({ body, url, babelPluginOptions })
+        .on("message", function(response) {
           resolve(response);
           compilerProcess.kill();
         })
-        .on("error", function (error) {
+        .on("error", function(error) {
           log("worker error", error);
         });
     }
@@ -48,18 +47,18 @@ function setProcessCodeCache(body, url, result) {
   var cacheKey = body + url;
   processCodeCache[cacheKey] = result;
 }
-function processCode(body, url, analysisDirectory) {
+function processCode(body, url, babelPluginOptions) {
   var cacheKey = body + url;
   if (processCodeCache[cacheKey]) {
     log("cache hit", url);
     return Promise.resolve(processCodeCache[cacheKey]);
   }
-  return requestProcessCode(body, url, analysisDirectory).then(function (
+  return requestProcessCode(body, url, babelPluginOptions).then(function(
     response
   ) {
     var { code, map } = response;
     var result = { code, map };
-    setProcessCodeCache(body, url, result)
+    setProcessCodeCache(body, url, result);
     return Promise.resolve(result);
   });
 }
@@ -73,7 +72,9 @@ function processCode(body, url, analysisDirectory) {
 there's always an in memory cache for the same url, but enable cache persists
 the in memory cache
 */
-export function startProxy(analysisDirectory, enableCache) {
+export function startProxy(options) {
+  const analysisDirectory = "",
+    enableCache = false; // old fn arguments, don't think they're still needed
   //   var responseCache = {};
   //   if (enableCache) {
   //     console.log("Proxy cache enabled");
@@ -101,12 +102,12 @@ export function startProxy(analysisDirectory, enableCache) {
   ////// //
 
   return new Promise(resolve => {
-    var fesProxy = new FesProxy({ analysisDirectory });
+    var fesProxy = new FesProxy(options);
     fesProxy.start().then(() => {
       resolve(fesProxy);
     });
   });
-};
+}
 
 function getUrl(ctx) {
   let protocol = ctx.isSSL ? "https" : "http";
@@ -126,11 +127,13 @@ function checkIsJS(ctx) {
 }
 
 class FesProxy {
-  urlCache = {}
-  constructor({ analysisDirectory }) {
+  urlCache = {};
+  babelPluginOptions = {};
+  constructor({ babelPluginOptions }) {
     this.proxy = Proxy();
     this.requestsInProgress = [];
-    this.analysisDirectory = analysisDirectory;
+    this.analysisDirectory = ""; // unused i think
+    this.babelPluginOptions = babelPluginOptions;
 
     this.proxy.onError((ctx, err, errorKind) => {
       var url = "n/a";
@@ -198,14 +201,14 @@ class FesProxy {
           }
         };
 
-        console.log("checking url cache for", url)
+        console.log("checking url cache for", url);
         if (this.urlCache[url]) {
           log("Url cache hit!");
           Object.keys(this.urlCache[url].headers).forEach(name => {
             var value = this.urlCache[url].headers[name];
             ctx.proxyToClientResponse.setHeader(name, value);
           });
-          finishJSRequest(this.urlCache[url].body, function () { });
+          finishJSRequest(this.urlCache[url].body, function() {});
           return;
         }
 
@@ -214,11 +217,11 @@ class FesProxy {
         ctx.use(Proxy.gunzip);
 
         var chunks = [];
-        ctx.onResponseData(function (ctx, chunk, callback) {
+        ctx.onResponseData(function(ctx, chunk, callback) {
           chunks.push(chunk);
           var chunkSizeInKb =
             Math.round(chunk.toString().length / 1024 * 10) / 10;
-          setTimeout(function () {
+          setTimeout(function() {
             // log("got chunk", url, chunkSizeInKb + "kb");
           });
 
@@ -267,7 +270,7 @@ class FesProxy {
         });
         return;
       } else {
-        ctx.onResponseEnd(function (ctx, callback) {
+        ctx.onResponseEnd(function(ctx, callback) {
           return callback();
         });
       }
@@ -300,15 +303,15 @@ class FesProxy {
         .times(100)
         .condition(cb => {
           this.proxiedFetchUrl("http://example.com/verifyProxyWorks").then(
-            function (body) {
+            function(body) {
               cb(body === "Confirmed proxy works!");
             },
-            function (err) {
+            function(err) {
               cb(false);
             }
           );
         })
-        .done(function () {
+        .done(function() {
           resolve();
         });
     });
@@ -319,17 +322,18 @@ class FesProxy {
     this.urlCache[url] = {
       headers: {},
       body: code
-    }
+    };
 
     this.urlCache[url + "?dontprocess"] = {
       headers: {},
       body: code
-    }
+    };
 
-    const babelResultCode = babelResult.code + "\n//#sourceMappingURL=" + url + ".map"
-    babelResult = JSON.parse(JSON.stringify(babelResult))
-    babelResult.code = babelResultCode
-    setProcessCodeCache(babelResultCode, url, babelResult)
+    const babelResultCode =
+      babelResult.code + "\n//#sourceMappingURL=" + url + ".map";
+    babelResult = JSON.parse(JSON.stringify(babelResult));
+    babelResult.code = babelResultCode;
+    setProcessCodeCache(babelResultCode, url, babelResult);
   }
 
   finishRequest(finishedUrl) {
@@ -343,7 +347,7 @@ class FesProxy {
       if (this.urlCache[url]) {
         resolve(this.urlCache[url].body);
       } else {
-        r({ url, rejectUnauthorized: false }, function (error, response, body) {
+        r({ url, rejectUnauthorized: false }, function(error, response, body) {
           if (error) {
             reject(error);
           } else {
@@ -358,7 +362,7 @@ class FesProxy {
     console.time("Get sourceMap" + url);
     return new Promise(resolve => {
       this.proxiedFetchUrl(jsUrl).then(body => {
-        this.processCode(body, jsUrl).then(function (result) {
+        this.processCode(body, jsUrl).then(function(result) {
           console.timeEnd("Get sourceMap" + url);
           resolve(result.map);
         });
@@ -366,7 +370,7 @@ class FesProxy {
     });
   }
   processCode(body, url) {
-    return processCode(body, url, this.analysisDirectory);
+    return processCode(body, url, this.babelPluginOptions);
   }
   hasPendingRequests() {
     return this.requestsInProgress.length > 0;

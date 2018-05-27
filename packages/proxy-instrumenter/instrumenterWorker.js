@@ -11,17 +11,18 @@ module.exports = function instrument(args, done) {
   // var { body, url } = args;
   const body = args.body;
   const url = args.url;
+  const babelPluginOptions = args.babelPluginOptions;
   var path = require("path");
   var process = require("process");
 
   process.title = "FromJS - Compilation worker(" + url + ")";
 
-  instrumentCode()(body, url).then(
-    function (result) {
+  instrumentCode()(body, url, babelPluginOptions).then(
+    function(result) {
       console.log("[COMPILER] Done process for", url);
       done(result);
     },
-    function (err) {
+    function(err) {
       throw Error(err);
     }
   );

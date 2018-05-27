@@ -25,7 +25,12 @@ module.exports = function instrumentCode() {
   //   .readFileSync(analysisDirectory + "/init.js", "utf-8")
   //   .toString();
 
-  return function processCode(code, url) {
+  return function processCode(code, url, babelPluginOptions) {
+    // not an elegant solution, but it works
+    // might be better anyway to do a string replace because then the helper code
+    // won't change and the parse result can be cached in babel plugin
+    // maybe move the helpercode logic out of babel altogether...
+    babelPlugin.babelPluginOptions = babelPluginOptions;
     return new Promise((resolve, reject) => {
       // Include as part of the file rather than injecting into page
       // because there might be other environemnts being created

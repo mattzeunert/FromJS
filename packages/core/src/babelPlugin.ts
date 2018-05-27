@@ -67,7 +67,7 @@ helperCode =
   "\n//# sourceURL=/helperFns.js`)";
 helperCode += "// aaaaa"; // this seems to help with debugging/evaling the code... not sure why...just take it out if the tests dont break
 
-export default function plugin(babel) {
+function plugin(babel) {
   const { types: t } = babel;
 
   function isInWhileStatement(path) {
@@ -168,7 +168,14 @@ export default function plugin(babel) {
   visitors["Program"] = {
     // Run on exit so injected code isn't processed by other babel plugins
     exit: function(path) {
-      var initCodeAstNodes = babylon.parse(helperCode).program.body.reverse();
+      const accessToken = plugin["babelPluginOptions"].accessToken;
+      let usableHelperCode = helperCode.replace(
+        "ACCESS_TOKEN_PLACEHOLDER",
+        accessToken
+      );
+      var initCodeAstNodes = babylon
+        .parse(usableHelperCode)
+        .program.body.reverse();
       initCodeAstNodes.forEach(node => {
         path.node.body.unshift(node);
       });
@@ -180,3 +187,5 @@ export default function plugin(babel) {
     visitor: visitors
   };
 }
+
+export default plugin;
