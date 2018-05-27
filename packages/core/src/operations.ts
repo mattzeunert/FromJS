@@ -27,7 +27,7 @@ interface TraversalStep {
   operationLog: any;
 }
 
-function createNode(args, astArgs = null) { }
+function createNode(args, astArgs = null) {}
 
 interface Operations {
   [key: string]: {
@@ -49,7 +49,10 @@ const operations: Operations = {
       var propertyName = args.propName[0];
       ret = object[propertyName];
 
-      let trackingValue = ctx.getObjectPropertyTrackingValue(object, propertyName)
+      let trackingValue = ctx.getObjectPropertyTrackingValue(
+        object,
+        propertyName
+      );
       if (object === ctx.global.localStorage) {
         trackingValue = ctx.createOperationLog({
           operation: ctx.operationTypes.localStorageValue,
@@ -58,15 +61,12 @@ const operations: Operations = {
           },
           astArgs: {},
           result: ret
-        })
+        });
       }
 
       ctx.extraArgTrackingValues = {
-        propertyValue: [
-          ret,
-          trackingValue
-        ]
-      }
+        propertyValue: [ret, trackingValue]
+      };
 
       ctx.lastMemberExpressionResult = [object, objectT];
 
@@ -97,10 +97,14 @@ const operations: Operations = {
         }
       }
 
-      const op = this.createNode({
-        object: [path.node.object, getLastOperationTrackingResultCall],
-        propName: [property, getLastOperationTrackingResultCall]
-      }, {}, path.node.loc);
+      const op = this.createNode(
+        {
+          object: [path.node.object, getLastOperationTrackingResultCall],
+          propName: [property, getLastOperationTrackingResultCall]
+        },
+        {},
+        path.node.loc
+      );
 
       return op;
     }
@@ -168,9 +172,7 @@ const operations: Operations = {
       return ret;
     }
   },
-  localStorageValue: {
-
-  },
+  localStorageValue: {},
   conditionalExpression: {
     exec: (args, astArgs, ctx) => {
       return args.result[0];
@@ -216,9 +218,7 @@ const operations: Operations = {
       path.replaceWith(t.sequenceExpression([saveTestValue, operation]));
     }
   },
-  stringReplacement: {
-
-  },
+  stringReplacement: {},
   callExpression: {
     exec: (args, astArgs, ctx) => {
       var i = 0;
@@ -250,69 +250,73 @@ const operations: Operations = {
       var fn = args.function[0];
       var object = args.context[0];
 
-      const extraTrackingValues: any = {}
+      const extraTrackingValues: any = {};
 
-      var ret
-      let retT = null
+      var ret;
+      let retT = null;
       if (astArgs.isNewExpression) {
-        let thisValue = null // overwritten inside new()
-        ret = new (Function.prototype.bind.apply(args.function[0], [thisValue, ...fnArgValues]))
+        let thisValue = null; // overwritten inside new()
+        ret = new (Function.prototype.bind.apply(args.function[0], [
+          thisValue,
+          ...fnArgValues
+        ]))();
         retT = ctx.createOperationLog({
           operation: ctx.operationTypes.newExpressionResult,
           args: {},
           astArgs: {},
-          result: {},
-        })
-      } else if (fn === ctx.nativeFunctions.stringPrototypeReplace
-        &&
-        ["string", "number"].includes(typeof fnArgValues[1])) {
-
-
-        let index = 0
+          result: {}
+        });
+      } else if (
+        fn === ctx.nativeFunctions.stringPrototypeReplace &&
+        ["string", "number"].includes(typeof fnArgValues[1])
+      ) {
+        let index = 0;
         ret = ctx.nativeFunctions.stringPrototypeReplace.call(
           object,
           fnArgValues[0],
-          function () {
-            var argumentsArray = Array.prototype.slice.apply(arguments, [])
+          function() {
+            var argumentsArray = Array.prototype.slice.apply(arguments, []);
             var match = argumentsArray[0];
-            var submatches = argumentsArray.slice(1, argumentsArray.length - 2)
-            var offset = argumentsArray[argumentsArray.length - 2]
-            var string = argumentsArray[argumentsArray.length - 1]
+            var submatches = argumentsArray.slice(1, argumentsArray.length - 2);
+            var offset = argumentsArray[argumentsArray.length - 2];
+            var string = argumentsArray[argumentsArray.length - 1];
 
-            const replacement = fnArgValues[1].toString()
+            const replacement = fnArgValues[1].toString();
 
-            extraTrackingValues["replacement" + index] = [null, ctx.createOperationLog({
-              operation: ctx.operationTypes.stringReplacement,
-              args: {
-                value: args.arg1
-              },
-              astArgs: {},
-              result: replacement,
-              runtimeArgs: {
-                start: offset,
-                end: offset + match.length,
-              }
-            })]
+            extraTrackingValues["replacement" + index] = [
+              null,
+              ctx.createOperationLog({
+                operation: ctx.operationTypes.stringReplacement,
+                args: {
+                  value: args.arg1
+                },
+                astArgs: {},
+                result: replacement,
+                runtimeArgs: {
+                  start: offset,
+                  end: offset + match.length
+                }
+              })
+            ];
 
-            index++
-            return replacement
+            index++;
+            return replacement;
           }
-        )
-        retT = null
+        );
+        retT = null;
       } else if (fn === ctx.nativeFunctions.jsonParse) {
-        const parsed = ctx.nativeFunctions.jsonParse.call(this, fnArgValues[0])
+        const parsed = ctx.nativeFunctions.jsonParse.call(this, fnArgValues[0]);
 
         function traverseObject(obj, fn, keyPath = []) {
           Object.entries(obj).forEach(([key, value]) => {
-            fn([...keyPath, key].join("."), value, key, obj)
+            fn([...keyPath, key].join("."), value, key, obj);
             if (typeof value === "object") {
-              traverseObject(value, fn, [...keyPath, key])
+              traverseObject(value, fn, [...keyPath, key]);
             }
-          })
+          });
         }
 
         traverseObject(parsed, (keyPath, value, key, obj) => {
-
           const trackingValue = ctx.createOperationLog({
             operation: ctx.operationTypes.jsonParseResult,
             args: {
@@ -322,32 +326,38 @@ const operations: Operations = {
             runtimeArgs: {
               keyPath: keyPath
             }
-          })
-          ctx.trackObjectPropertyAssignment(obj, key, trackingValue)
-        })
+          });
+          ctx.trackObjectPropertyAssignment(obj, key, trackingValue);
+        });
 
-        retT = null // could set something here, but what really matters is the properties
+        retT = null; // could set something here, but what really matters is the properties
 
-        ret = parsed
+        ret = parsed;
       } else {
         if (fn === ctx.nativeFunctions.stringPrototypeReplace) {
-          console.log("unhandled string replace call")
+          console.log("unhandled string replace call");
         }
-        const lastReturnStatementResultBeforeCall = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
+        const lastReturnStatementResultBeforeCall =
+          ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
         ret = fn.apply(object, fnArgValues);
-        ctx.argTrackingInfo = null
-        const lastReturnStatementResultAfterCall = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
+        ctx.argTrackingInfo = null;
+        const lastReturnStatementResultAfterCall =
+          ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
         // Don't pretend to have a tracked return value if an uninstrumented function was called
         // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
-        if (ctx.lastOperationType === "returnStatement" && lastReturnStatementResultAfterCall !== lastReturnStatementResultBeforeCall) {
-          retT = ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1]
+        if (
+          ctx.lastOperationType === "returnStatement" &&
+          lastReturnStatementResultAfterCall !==
+            lastReturnStatementResultBeforeCall
+        ) {
+          retT =
+            ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
         }
       }
 
+      extraTrackingValues.returnValue = [ret, retT]; // pick up value from returnStatement
 
-      extraTrackingValues.returnValue = [ret, retT] // pick up value from returnStatement
-
-      ctx.extraArgTrackingValues = extraTrackingValues
+      ctx.extraArgTrackingValues = extraTrackingValues;
 
       return ret;
     },
@@ -364,110 +374,133 @@ const operations: Operations = {
             // I'm not 100% confident about this code, but it works for now
 
             class ValueMapV2 {
-              parts = []
-              originalString = ""
+              parts = [];
+              originalString = "";
 
               constructor(originalString: string) {
-                this.originalString = originalString
+                this.originalString = originalString;
               }
 
-              push(fromIndexInOriginal, toIndexInOriginal, operationLog, resultString, isPartOfSubject = false) {
+              push(
+                fromIndexInOriginal,
+                toIndexInOriginal,
+                operationLog,
+                resultString,
+                isPartOfSubject = false
+              ) {
                 this.parts.push({
                   fromIndexInOriginal,
                   toIndexInOriginal,
                   operationLog,
                   resultString,
                   isPartOfSubject
-                })
+                });
               }
 
               getAtResultIndex(indexInResult) {
-                let resultString = ""
-                let part = null
+                let resultString = "";
+                let part = null;
                 for (var i = 0; i < this.parts.length; i++) {
-                  part = this.parts[i]
-                  resultString += part.resultString
+                  part = this.parts[i];
+                  resultString += part.resultString;
                   if (resultString.length > indexInResult) {
                     break;
                   }
                 }
 
-                const resultIndexBeforePart = resultString.length - part.resultString.length
-                let charIndex = (part.isPartOfSubject ? part.fromIndexInOriginal : 0) + (indexInResult - resultIndexBeforePart)
+                const resultIndexBeforePart =
+                  resultString.length - part.resultString.length;
+                let charIndex =
+                  (part.isPartOfSubject ? part.fromIndexInOriginal : 0) +
+                  (indexInResult - resultIndexBeforePart);
 
                 if (charIndex > part.operationLog.result.str.length) {
-                  charIndex = part.operationLog.result.str.length - 1
+                  charIndex = part.operationLog.result.str.length - 1;
                 }
 
-                let operationLog = part.operationLog
-                if (operationLog.operation === OperationTypes.stringReplacement) {
-                  operationLog = operationLog.args.value
+                let operationLog = part.operationLog;
+                if (
+                  operationLog.operation === OperationTypes.stringReplacement
+                ) {
+                  operationLog = operationLog.args.value;
                 }
                 return {
                   charIndex,
                   operationLog: operationLog
-                }
-
+                };
               }
 
               __debugPrint() {
-                let originalString = ""
-                let newString = ""
+                let originalString = "";
+                let newString = "";
                 this.parts.forEach(part => {
-                  newString += part.resultString
-                  originalString += this.originalString.slice(part.fromIndexInOriginal, part.toIndexInOriginal)
-                })
-                console.log({ originalString, newString })
+                  newString += part.resultString;
+                  originalString += this.originalString.slice(
+                    part.fromIndexInOriginal,
+                    part.toIndexInOriginal
+                  );
+                });
+                console.log({ originalString, newString });
               }
             }
 
-            let matchingReplacement = null
-            let totalCharCountDeltaBeforeMatch = 0
+            let matchingReplacement = null;
+            let totalCharCountDeltaBeforeMatch = 0;
 
-            const replacements = []
+            const replacements = [];
             eachReplacement(operationLog.extraArgs, replacement => {
-              replacements.push(replacement)
-            })
+              replacements.push(replacement);
+            });
 
-            const subjectOperationLog = operationLog.args.context
+            const subjectOperationLog = operationLog.args.context;
 
             if (replacements.length === 0) {
               return {
                 operationLog: subjectOperationLog,
                 charIndex: charIndex
-              }
+              };
             }
 
-            const valueMap = new ValueMapV2(subjectOperationLog.result.str)
+            const valueMap = new ValueMapV2(subjectOperationLog.result.str);
 
-            let currentIndexInSubjectString = 0
+            let currentIndexInSubjectString = 0;
             replacements.forEach(replacement => {
-              const { start, end } = replacement.runtimeArgs
-              let from = currentIndexInSubjectString
-              let to = start
-              valueMap.push(from, to, subjectOperationLog, subjectOperationLog.result.str.slice(from, to), true)
+              const { start, end } = replacement.runtimeArgs;
+              let from = currentIndexInSubjectString;
+              let to = start;
+              valueMap.push(
+                from,
+                to,
+                subjectOperationLog,
+                subjectOperationLog.result.str.slice(from, to),
+                true
+              );
 
-
-              valueMap.push(start, end, replacement, replacement.args.value.result.str)
-              currentIndexInSubjectString = end
-            })
+              valueMap.push(
+                start,
+                end,
+                replacement,
+                replacement.args.value.result.str
+              );
+              currentIndexInSubjectString = end;
+            });
             valueMap.push(
               currentIndexInSubjectString,
               subjectOperationLog.result.str.length,
               subjectOperationLog,
               subjectOperationLog.result.str.slice(currentIndexInSubjectString),
               true
-            )
+            );
 
             // valueMap.__debugPrint()
 
-            return valueMap.getAtResultIndex(charIndex)
+            return valueMap.getAtResultIndex(charIndex);
 
             function eachReplacement(extraArgs, callback) {
-              var index = 0
+              var index = 0;
               while (extraArgs["replacement" + index]) {
-                callback(extraArgs["replacement" + index])
-                index++
+                callback(extraArgs["replacement" + index]);
+                index++;
               }
             }
         }
@@ -511,18 +544,22 @@ const operations: Operations = {
         fnArgs["arg" + i] = arg;
       });
 
-      var call = operations.callExpression.createNode({
-        function: [
-          path.node.callee,
-          isMemberExpressionCall
-            ? getLastOperationTrackingResultCall
-            : getLastOperationTrackingResultCall
-        ],
-        context: [executionContext, executionContextTrackingValue],
-        ...fnArgs
-      }, {
+      var call = operations.callExpression.createNode(
+        {
+          function: [
+            path.node.callee,
+            isMemberExpressionCall
+              ? getLastOperationTrackingResultCall
+              : getLastOperationTrackingResultCall
+          ],
+          context: [executionContext, executionContextTrackingValue],
+          ...fnArgs
+        },
+        {
           isNewExpression: ignoreNode(t.booleanLiteral(isNewExpression))
-        }, path.node.callee.loc);
+        },
+        path.node.callee.loc
+      );
 
       // todo: would it be better for perf if I updated existing call
       // instead of using replaceWith?
@@ -531,7 +568,7 @@ const operations: Operations = {
   },
   newExpression: {
     visitor(path) {
-      return operations.callExpression.visitor(path, true)
+      return operations.callExpression.visitor(path, true);
     }
   },
   objectProperty: {
@@ -596,7 +633,7 @@ const operations: Operations = {
       };
     },
     visitor(path) {
-      path.node.properties.forEach(function (prop) {
+      path.node.properties.forEach(function(prop) {
         if (prop.key.type === "Identifier") {
           var keyLoc = prop.key.loc;
           prop.key = t.stringLiteral(prop.key.name);
@@ -610,7 +647,7 @@ const operations: Operations = {
         }
       });
 
-      var properties = path.node.properties.map(function (prop) {
+      var properties = path.node.properties.map(function(prop) {
         var type = t.stringLiteral(prop.type);
         type.ignore = true;
         if (prop.type === "ObjectMethod") {
@@ -644,9 +681,13 @@ const operations: Operations = {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
-      return this.createNode({
-        value: [ignoredStringLiteral(path.node.value), t.nullLiteral()]
-      }, {}, path.node.loc);
+      return this.createNode(
+        {
+          value: [ignoredStringLiteral(path.node.value), t.nullLiteral()]
+        },
+        {},
+        path.node.loc
+      );
     },
     exec: (args, astArgs, ctx) => {
       return args.value[0];
@@ -692,12 +733,16 @@ const operations: Operations = {
       };
     },
     visitor(path) {
-      path.node.argument = this.createNode({
-        returnValue: ignoredArrayExpression([
-          path.node.argument,
-          getLastOperationTrackingResultCall
-        ])
-      }, {}, path.node.loc);
+      path.node.argument = this.createNode(
+        {
+          returnValue: ignoredArrayExpression([
+            path.node.argument,
+            getLastOperationTrackingResultCall
+          ])
+        },
+        {},
+        path.node.loc
+      );
     }
   },
   identifier: {
@@ -738,12 +783,16 @@ const operations: Operations = {
 
       path.node.ignore = true;
 
-      return this.createNode({
-        value: ignoredArrayExpression([
-          path.node,
-          trackingIdentifierIfExists(path.node.name)
-        ])
-      }, {}, path.node.loc);
+      return this.createNode(
+        {
+          value: ignoredArrayExpression([
+            path.node,
+            trackingIdentifierIfExists(path.node.name)
+          ])
+        },
+        {},
+        path.node.loc
+      );
     }
   },
   memexpAsLeftAssExp: {},
@@ -751,12 +800,11 @@ const operations: Operations = {
     traverse(operationLog, charIndex) {
       // This traversal method is inaccurate but still useful
       // Ideally we should probably have a JSON parser
-      const valueReadFromJson = operationLog.result.str
+      const valueReadFromJson = operationLog.result.str;
       return {
         operationLog: operationLog.args.json,
         charIndex: operationLog.args.json.result.str.indexOf(valueReadFromJson)
       };
-
     }
   },
   assignmentExpression: {
@@ -806,46 +854,44 @@ const operations: Operations = {
         );
 
         if (obj instanceof HTMLElement && propName === "innerHTML") {
-
           function tagTypeHasClosingTag(tagName) {
-            return document.createElement(tagName).outerHTML.indexOf("></") !== -1
+            return (
+              document.createElement(tagName).outerHTML.indexOf("></") !== -1
+            );
           }
 
-
-
-          var htmlEntityRegex = /^\&[#a-zA-Z0-9]+\;/
-          var whitespaceRegex = /^[\s]+/
-          var tagEndRegex = /^(\s+)\/?>/
-          var twoQuoteSignsRegex = /^['"]{2}/
+          var htmlEntityRegex = /^\&[#a-zA-Z0-9]+\;/;
+          var whitespaceRegex = /^[\s]+/;
+          var tagEndRegex = /^(\s+)\/?>/;
+          var twoQuoteSignsRegex = /^['"]{2}/;
 
           const config = {
             validateHtmlMapping: true
-          }
+          };
 
           var div = document.createElement("div");
           function normalizeHtml(str, tagName) {
             if (tagName !== "SCRIPT" && tagName !== "NOSCRIPT") {
               // convert stuff like & to &amp;
-              div.innerHTML = str
-              str = div.innerHTML
+              div.innerHTML = str;
+              str = div.innerHTML;
             }
             if (tagName === "NOSCRIPT") {
-              str = str.replace(/\&/g, "&amp;")
-              str = str.replace(/</g, "&lt;")
-              str = str.replace(/>/g, "&gt;")
+              str = str.replace(/\&/g, "&amp;");
+              str = str.replace(/</g, "&lt;");
+              str = str.replace(/>/g, "&gt;");
             }
             return str;
           }
 
-          var attrDiv = document.createElement("div")
+          var attrDiv = document.createElement("div");
           function normalizeHtmlAttribute(str) {
-            attrDiv.setAttribute("sth", str)
+            attrDiv.setAttribute("sth", str);
             var outerHTML = attrDiv.outerHTML;
-            var start = "<div sth='"
-            var end = "'></div>"
-            return outerHTML.slice(start.length, -end.length)
+            var start = "<div sth='";
+            var end = "'></div>";
+            return outerHTML.slice(start.length, -end.length);
           }
-
 
           function addElOrigin(el, what, trackingValue) {
             const {
@@ -858,29 +904,29 @@ const operations: Operations = {
               error,
               child,
               children
-            } = trackingValue
+            } = trackingValue;
 
             if (!el.__elOrigin) {
-              el.__elOrigin = {}
+              el.__elOrigin = {};
             }
 
             if (what === "replaceContents") {
-              el.__elOrigin.contents = children
+              el.__elOrigin.contents = children;
             } else if (what === "appendChild") {
               if (!el.__elOrigin.contents) {
-                el.__elOrigin.contents = []
+                el.__elOrigin.contents = [];
               }
-              el.__elOrigin.contents.push(child)
+              el.__elOrigin.contents.push(child);
             } else if (what === "prependChild") {
               if (!el.__elOrigin.contents) {
-                el.__elOrigin.contents = []
+                el.__elOrigin.contents = [];
               }
 
-              el.__elOrigin.contents.push(child)
+              el.__elOrigin.contents.push(child);
             } else if (what === "prependChildren") {
-              children.forEach((child) => {
-                addElOrigin(el, "prependChild", { child })
-              })
+              children.forEach(child => {
+                addElOrigin(el, "prependChild", { child });
+              });
             } else {
               el.__elOrigin[what] = {
                 action,
@@ -892,7 +938,7 @@ const operations: Operations = {
             }
           }
 
-          mapInnerHTMLAssignment(obj, args.argument, "assignInnerHTML", 0)
+          mapInnerHTMLAssignment(obj, args.argument, "assignInnerHTML", 0);
 
           // tries to describe the relationship between an assigned innerHTML value
           // and the value you get back when reading el.innerHTML.
@@ -900,15 +946,22 @@ const operations: Operations = {
           // "<input type='checkbox' checked=''>"
           // essentially this function serializes the elements content and compares it to the
           // assigned value
-          function mapInnerHTMLAssignment(el, assignedInnerHTML, actionName, initialExtraCharsValue, contentEndIndex = assignedInnerHTML[0].length, nodesToIgnore = []) {
-            var serializedHtml = el.innerHTML
-            var forDebuggingProcessedHtml = ""
+          function mapInnerHTMLAssignment(
+            el,
+            assignedInnerHTML,
+            actionName,
+            initialExtraCharsValue,
+            contentEndIndex = assignedInnerHTML[0].length,
+            nodesToIgnore = []
+          ) {
+            var serializedHtml = el.innerHTML;
+            var forDebuggingProcessedHtml = "";
             var charOffsetInSerializedHtml = 0;
             var charsAddedInSerializedHtml = 0;
             if (initialExtraCharsValue !== undefined) {
-              charsAddedInSerializedHtml = initialExtraCharsValue
+              charsAddedInSerializedHtml = initialExtraCharsValue;
             }
-            var assignedString = assignedInnerHTML[0]
+            var assignedString = assignedInnerHTML[0];
             // if (contentEndIndex === 0) {
             //   contentEndIndex = assignedString.length
             // }
@@ -916,12 +969,11 @@ const operations: Operations = {
             //   nodesToIgnore = [];
             // }
 
-            var error = Error() // used to get stack trace, rather than capturing a new one every time
-            processNewInnerHtml(el)
-
+            var error = Error(); // used to get stack trace, rather than capturing a new one every time
+            processNewInnerHtml(el);
 
             function getCharOffsetInAssignedHTML() {
-              return charOffsetInSerializedHtml - charsAddedInSerializedHtml
+              return charOffsetInSerializedHtml - charsAddedInSerializedHtml;
             }
 
             function validateMapping(mostRecentOrigin) {
@@ -954,7 +1006,11 @@ const operations: Operations = {
 
             // get offsets by looking at how the assigned value compares to the serialized value
             // e.g. accounts for differeces between assigned "&" and serialized "&amp;"
-            function getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml, tagName) {
+            function getCharMappingOffsets(
+              textAfterAssignment,
+              charOffsetAdjustmentInAssignedHtml,
+              tagName
+            ) {
               if (charOffsetAdjustmentInAssignedHtml === undefined) {
                 charOffsetAdjustmentInAssignedHtml = 0;
               }
@@ -962,87 +1018,114 @@ const operations: Operations = {
               var extraCharsAddedHere = 0;
 
               for (var i = 0; i < textAfterAssignment.length; i++) {
-                offsets.push(-extraCharsAddedHere)
+                offsets.push(-extraCharsAddedHere);
                 var char = textAfterAssignment[i];
 
-                var htmlEntityMatchAfterAssignment = textAfterAssignment.substr(i, 30).match(htmlEntityRegex)
+                var htmlEntityMatchAfterAssignment = textAfterAssignment
+                  .substr(i, 30)
+                  .match(htmlEntityRegex);
 
-                var posInAssignedString = charOffsetInSerializedHtml + i - charsAddedInSerializedHtml + charOffsetAdjustmentInAssignedHtml - extraCharsAddedHere;
+                var posInAssignedString =
+                  charOffsetInSerializedHtml +
+                  i -
+                  charsAddedInSerializedHtml +
+                  charOffsetAdjustmentInAssignedHtml -
+                  extraCharsAddedHere;
                 if (posInAssignedString >= contentEndIndex) {
                   // http://stackoverflow.com/questions/38892536/why-do-browsers-append-extra-line-breaks-at-the-end-of-the-body-tag
                   break; // just don't bother for now
                 }
 
-                var textIncludingAndFollowingChar = assignedString.substr(posInAssignedString, 30); // assuming that no html entity is longer than 30 chars
+                var textIncludingAndFollowingChar = assignedString.substr(
+                  posInAssignedString,
+                  30
+                ); // assuming that no html entity is longer than 30 chars
                 if (char === "\n" && textIncludingAndFollowingChar[0] == "\r") {
                   extraCharsAddedHere--;
                 }
 
-                var htmlEntityMatch = textIncludingAndFollowingChar.match(htmlEntityRegex)
+                var htmlEntityMatch = textIncludingAndFollowingChar.match(
+                  htmlEntityRegex
+                );
 
-                if (tagName === "NOSCRIPT" && htmlEntityMatchAfterAssignment !== null && htmlEntityMatch !== null) {
+                if (
+                  tagName === "NOSCRIPT" &&
+                  htmlEntityMatchAfterAssignment !== null &&
+                  htmlEntityMatch !== null
+                ) {
                   // NOSCRIPT assignments: "&amp;" => "&amp;amp;", "&gt;" => "&amp;gt;"
                   // so we manually advance over the "&amp;"
                   for (var n = 0; n < "amp;".length; n++) {
                     i++;
                     extraCharsAddedHere++;
-                    offsets.push(-extraCharsAddedHere)
+                    offsets.push(-extraCharsAddedHere);
                   }
-                  offsets.push(-extraCharsAddedHere)
+                  offsets.push(-extraCharsAddedHere);
                 }
 
-                if (htmlEntityMatchAfterAssignment !== null && htmlEntityMatch === null) {
+                if (
+                  htmlEntityMatchAfterAssignment !== null &&
+                  htmlEntityMatch === null
+                ) {
                   // assigned a character, but now it shows up as an entity (e.g. & ==> &amp;)
-                  var entity = htmlEntityMatchAfterAssignment[0]
+                  var entity = htmlEntityMatchAfterAssignment[0];
                   for (var n = 0; n < entity.length - 1; n++) {
-                    i++
+                    i++;
                     extraCharsAddedHere++;
-                    offsets.push(-extraCharsAddedHere)
+                    offsets.push(-extraCharsAddedHere);
                   }
                 }
 
-                if (htmlEntityMatchAfterAssignment === null && htmlEntityMatch !== null) {
+                if (
+                  htmlEntityMatchAfterAssignment === null &&
+                  htmlEntityMatch !== null
+                ) {
                   // assigned an html entity but now getting character back (e.g. &raquo; => »)
-                  var entity = htmlEntityMatch[0]
+                  var entity = htmlEntityMatch[0];
                   extraCharsAddedHere -= entity.length - 1;
                 }
               }
 
               if (offsets.length === 0) {
-                offsets = undefined
+                offsets = undefined;
               }
               return {
                 offsets: offsets,
                 extraCharsAddedHere: extraCharsAddedHere
-              }
+              };
             }
 
-
             function processNewInnerHtml(el) {
-              var children = Array.prototype.slice.apply(el.childNodes, [])
+              var children = Array.prototype.slice.apply(el.childNodes, []);
               addElOrigin(el, "replaceContents", {
                 action: actionName,
                 children: children
               });
 
               var childNodesToProcess = [].slice.call(el.childNodes);
-              childNodesToProcess = childNodesToProcess.filter(function (childNode) {
-                var shouldIgnore = nodesToIgnore.indexOf(childNode) !== -1
-                return !shouldIgnore
-              })
+              childNodesToProcess = childNodesToProcess.filter(function(
+                childNode
+              ) {
+                var shouldIgnore = nodesToIgnore.indexOf(childNode) !== -1;
+                return !shouldIgnore;
+              });
 
-              childNodesToProcess.forEach(function (child) {
-                var isTextNode = child.nodeType === 3
-                var isCommentNode = child.nodeType === 8
-                var isElementNode = child.nodeType === 1
-                var isIframe = child
+              childNodesToProcess.forEach(function(child) {
+                var isTextNode = child.nodeType === 3;
+                var isCommentNode = child.nodeType === 8;
+                var isElementNode = child.nodeType === 1;
+                var isIframe = child;
 
                 if (isTextNode) {
-                  var text = child.textContent
-                  text = normalizeHtml(text, child.parentNode.tagName)
-                  var res = getCharMappingOffsets(text, 0, child.parentNode.tagName)
-                  var offsets = res.offsets
-                  var extraCharsAddedHere = res.extraCharsAddedHere
+                  var text = child.textContent;
+                  text = normalizeHtml(text, child.parentNode.tagName);
+                  var res = getCharMappingOffsets(
+                    text,
+                    0,
+                    child.parentNode.tagName
+                  );
+                  var offsets = res.offsets;
+                  var extraCharsAddedHere = res.extraCharsAddedHere;
 
                   addElOrigin(child, "textValue", {
                     action: actionName,
@@ -1052,11 +1135,11 @@ const operations: Operations = {
                     extraCharsAdded: charsAddedInSerializedHtml,
                     offsetAtCharIndex: offsets,
                     error: error
-                  })
+                  });
 
-                  charsAddedInSerializedHtml += extraCharsAddedHere
-                  charOffsetInSerializedHtml += text.length
-                  forDebuggingProcessedHtml += text
+                  charsAddedInSerializedHtml += extraCharsAddedHere;
+                  charOffsetInSerializedHtml += text.length;
+                  forDebuggingProcessedHtml += text;
 
                   // validateMapping(child.__elOrigin.textValue)
                 } else if (isCommentNode) {
@@ -1065,9 +1148,9 @@ const operations: Operations = {
                     inputValues: [assignedInnerHTML],
                     inputValuesCharacterIndex: [charOffsetInSerializedHtml],
                     value: serializedHtml
-                  })
+                  });
 
-                  charOffsetInSerializedHtml += "<!--".length
+                  charOffsetInSerializedHtml += "<!--".length;
                   forDebuggingProcessedHtml += "<!--";
 
                   addElOrigin(child, "textValue", {
@@ -1076,8 +1159,8 @@ const operations: Operations = {
                     inputValuesCharacterIndex: [charOffsetInSerializedHtml],
                     action: actionName,
                     error: error
-                  })
-                  charOffsetInSerializedHtml += child.textContent.length
+                  });
+                  charOffsetInSerializedHtml += child.textContent.length;
                   forDebuggingProcessedHtml += child.textContent;
 
                   addElOrigin(child, "commentEnd", {
@@ -1085,8 +1168,8 @@ const operations: Operations = {
                     inputValues: [assignedInnerHTML],
                     inputValuesCharacterIndex: [charOffsetInSerializedHtml],
                     value: serializedHtml
-                  })
-                  charOffsetInSerializedHtml += "-->".length
+                  });
+                  charOffsetInSerializedHtml += "-->".length;
                   forDebuggingProcessedHtml += "-->";
                 } else if (isElementNode) {
                   addElOrigin(child, "openingTagStart", {
@@ -1096,87 +1179,120 @@ const operations: Operations = {
                     value: serializedHtml,
                     extraCharsAdded: charsAddedInSerializedHtml,
                     error: error
-                  })
-                  var openingTagStart = "<" + child.tagName
-                  charOffsetInSerializedHtml += openingTagStart.length
-                  forDebuggingProcessedHtml += openingTagStart
+                  });
+                  var openingTagStart = "<" + child.tagName;
+                  charOffsetInSerializedHtml += openingTagStart.length;
+                  forDebuggingProcessedHtml += openingTagStart;
 
                   // validateMapping(child.__elOrigin.openingTagStart)
 
                   for (var i = 0; i < child.attributes.length; i++) {
                     let extraCharsAddedHere = 0;
-                    var attr = child.attributes[i]
+                    var attr = child.attributes[i];
 
-                    var charOffsetInSerializedHtmlBefore = charOffsetInSerializedHtml
+                    var charOffsetInSerializedHtmlBefore = charOffsetInSerializedHtml;
 
                     var whitespaceBeforeAttributeInSerializedHtml = " "; // always the same
-                    var assignedValueFromAttrStartOnwards = assignedString.substr(getCharOffsetInAssignedHTML(), 100)
-                    var whitespaceMatches = assignedValueFromAttrStartOnwards.match(whitespaceRegex)
+                    var assignedValueFromAttrStartOnwards = assignedString.substr(
+                      getCharOffsetInAssignedHTML(),
+                      100
+                    );
+                    var whitespaceMatches = assignedValueFromAttrStartOnwards.match(
+                      whitespaceRegex
+                    );
 
                     var whitespaceBeforeAttributeInAssignedHtml;
                     if (whitespaceMatches !== null) {
-                      whitespaceBeforeAttributeInAssignedHtml = whitespaceMatches[0]
+                      whitespaceBeforeAttributeInAssignedHtml =
+                        whitespaceMatches[0];
                     } else {
                       // something broke, but better to show a broken result than nothing at all
                       if (config.validateHtmlMapping) {
-                        console.warn("no whitespace found at start of", assignedValueFromAttrStartOnwards)
+                        console.warn(
+                          "no whitespace found at start of",
+                          assignedValueFromAttrStartOnwards
+                        );
                       }
                       whitespaceBeforeAttributeInAssignedHtml = "";
                     }
 
-                    var attrStr = attr.name
-                    var textAfterAssignment: any = normalizeHtmlAttribute(attr.textContent)
-                    attrStr += "='" + textAfterAssignment + "'"
+                    var attrStr = attr.name;
+                    var textAfterAssignment: any = normalizeHtmlAttribute(
+                      attr.textContent
+                    );
+                    attrStr += "='" + textAfterAssignment + "'";
 
-                    var offsetAtCharIndex = []
+                    var offsetAtCharIndex = [];
 
-                    var extraWhitespaceBeforeAttributeInAssignedHtml = whitespaceBeforeAttributeInAssignedHtml.length - whitespaceBeforeAttributeInSerializedHtml.length
-                    extraCharsAddedHere -= extraWhitespaceBeforeAttributeInAssignedHtml
+                    var extraWhitespaceBeforeAttributeInAssignedHtml =
+                      whitespaceBeforeAttributeInAssignedHtml.length -
+                      whitespaceBeforeAttributeInSerializedHtml.length;
+                    extraCharsAddedHere -= extraWhitespaceBeforeAttributeInAssignedHtml;
 
                     offsetAtCharIndex.push(-extraCharsAddedHere); // char index for " " before attr
 
-                    var offsetInAssigned = getCharOffsetInAssignedHTML() + whitespaceBeforeAttributeInAssignedHtml.length
+                    var offsetInAssigned =
+                      getCharOffsetInAssignedHTML() +
+                      whitespaceBeforeAttributeInAssignedHtml.length;
 
                     // add mapping for attribute name
                     for (var charIndex in attr.name) {
-                      offsetAtCharIndex.push(-extraCharsAddedHere)
+                      offsetAtCharIndex.push(-extraCharsAddedHere);
                     }
                     offsetInAssigned += attr.name.length;
 
-                    var nextCharacters = assignedString.substr(offsetInAssigned, 50);
-                    var equalsSignIsNextNonWhitespaceCharacter = /^[\s]*=/.test(nextCharacters)
+                    var nextCharacters = assignedString.substr(
+                      offsetInAssigned,
+                      50
+                    );
+                    var equalsSignIsNextNonWhitespaceCharacter = /^[\s]*=/.test(
+                      nextCharacters
+                    );
 
                     if (!equalsSignIsNextNonWhitespaceCharacter) {
                       if (attr.textContent !== "") {
-                        console.warn("empty text content")
+                        console.warn("empty text content");
                         // debugger
                       }
                       // value of attribute is omitted in original html
-                      const eqQuoteQuote: any = '=""'
+                      const eqQuoteQuote: any = '=""';
                       for (var charIndex in eqQuoteQuote) {
                         extraCharsAddedHere++;
-                        offsetAtCharIndex.push(-extraCharsAddedHere)
+                        offsetAtCharIndex.push(-extraCharsAddedHere);
                       }
                     } else {
-                      var whitespaceBeforeEqualsSign = nextCharacters.match(/^([\s]*)=/)[1]
+                      var whitespaceBeforeEqualsSign = nextCharacters.match(
+                        /^([\s]*)=/
+                      )[1];
                       extraCharsAddedHere -= whitespaceBeforeEqualsSign.length;
                       offsetInAssigned += whitespaceBeforeEqualsSign.length;
 
                       // map `=` character
-                      offsetAtCharIndex.push(-extraCharsAddedHere)
-                      offsetInAssigned += "=".length
+                      offsetAtCharIndex.push(-extraCharsAddedHere);
+                      offsetInAssigned += "=".length;
 
-                      var nextCharacters = assignedString.substr(offsetInAssigned, 50)
-                      var whitespaceBeforeNonWhiteSpace = nextCharacters.match(/^([\s]*)[\S]/)[1]
-                      extraCharsAddedHere -= whitespaceBeforeNonWhiteSpace.length
-                      offsetInAssigned += whitespaceBeforeNonWhiteSpace.length
+                      var nextCharacters = assignedString.substr(
+                        offsetInAssigned,
+                        50
+                      );
+                      var whitespaceBeforeNonWhiteSpace = nextCharacters.match(
+                        /^([\s]*)[\S]/
+                      )[1];
+                      extraCharsAddedHere -=
+                        whitespaceBeforeNonWhiteSpace.length;
+                      offsetInAssigned += whitespaceBeforeNonWhiteSpace.length;
 
                       // map `"` character
-                      offsetAtCharIndex.push(-extraCharsAddedHere)
-                      offsetInAssigned += '"'.length
+                      offsetAtCharIndex.push(-extraCharsAddedHere);
+                      offsetInAssigned += '"'.length;
 
-                      var charOffsetAdjustmentInAssignedHtml = offsetInAssigned - getCharOffsetInAssignedHTML()
-                      var res = getCharMappingOffsets(textAfterAssignment, charOffsetAdjustmentInAssignedHtml, child.tagName)
+                      var charOffsetAdjustmentInAssignedHtml =
+                        offsetInAssigned - getCharOffsetInAssignedHTML();
+                      var res = getCharMappingOffsets(
+                        textAfterAssignment,
+                        charOffsetAdjustmentInAssignedHtml,
+                        child.tagName
+                      );
 
                       if (res.offsets === undefined) {
                         // Pretty sure this can only happen if there is a bug further up, but for now
@@ -1184,55 +1300,67 @@ const operations: Operations = {
                         // specifically this was happening on StackOverflow, probably because we don't
                         // support tables yet (turn <table> into <table><tbody>),
                         // but once that is supported this might just fix itself
-                        console.warn("No offsets for attribute mapping")
+                        console.warn("No offsets for attribute mapping");
                         for (var i = 0; i < textAfterAssignment.length; i++) {
-                          offsetAtCharIndex.push(-extraCharsAddedHere)
+                          offsetAtCharIndex.push(-extraCharsAddedHere);
                         }
-                      }
-                      else {
-                        res.offsets.forEach(function (offset, i) {
-                          offsetAtCharIndex.push(offset - extraCharsAddedHere)
-                        })
-                        extraCharsAddedHere += res.extraCharsAddedHere
+                      } else {
+                        res.offsets.forEach(function(offset, i) {
+                          offsetAtCharIndex.push(offset - extraCharsAddedHere);
+                        });
+                        extraCharsAddedHere += res.extraCharsAddedHere;
                       }
 
-                      var lastOffset = offsetAtCharIndex[offsetAtCharIndex.length - 1]
-                      offsetAtCharIndex.push(lastOffset) // map the "'" after the attribute value
+                      var lastOffset =
+                        offsetAtCharIndex[offsetAtCharIndex.length - 1];
+                      offsetAtCharIndex.push(lastOffset); // map the "'" after the attribute value
                     }
 
                     addElOrigin(child, "attribute_" + attr.name, {
                       action: actionName,
                       inputValues: [assignedInnerHTML],
                       value: serializedHtml,
-                      inputValuesCharacterIndex: [charOffsetInSerializedHtmlBefore],
+                      inputValuesCharacterIndex: [
+                        charOffsetInSerializedHtmlBefore
+                      ],
                       extraCharsAdded: charsAddedInSerializedHtml,
                       offsetAtCharIndex: offsetAtCharIndex,
                       error: error
-                    })
+                    });
 
-                    charsAddedInSerializedHtml += extraCharsAddedHere
+                    charsAddedInSerializedHtml += extraCharsAddedHere;
 
-                    charOffsetInSerializedHtml += whitespaceBeforeAttributeInSerializedHtml.length + attrStr.length
-                    forDebuggingProcessedHtml += whitespaceBeforeAttributeInSerializedHtml + attrStr
+                    charOffsetInSerializedHtml +=
+                      whitespaceBeforeAttributeInSerializedHtml.length +
+                      attrStr.length;
+                    forDebuggingProcessedHtml +=
+                      whitespaceBeforeAttributeInSerializedHtml + attrStr;
 
                     var attrPropName = "attribute_" + attr.name;
                     // validateMapping(child.__elOrigin[attrPropName])
                   }
 
-                  var openingTagEnd = ">"
+                  var openingTagEnd = ">";
 
-                  var assignedStringFromCurrentOffset = assignedString.substr(getCharOffsetInAssignedHTML(), 200)
+                  var assignedStringFromCurrentOffset = assignedString.substr(
+                    getCharOffsetInAssignedHTML(),
+                    200
+                  );
                   if (assignedStringFromCurrentOffset === "") {
-                    debugger
+                    debugger;
                   }
-                  var matches = assignedStringFromCurrentOffset.match(tagEndRegex);
+                  var matches = assignedStringFromCurrentOffset.match(
+                    tagEndRegex
+                  );
                   var whitespaceBeforeClosingAngleBracketInAssignedHTML = "";
                   if (matches !== null) {
                     // something like <div > (with extra space)
                     // this char will not show up in the re-serialized innerHTML
-                    whitespaceBeforeClosingAngleBracketInAssignedHTML = matches[1]
+                    whitespaceBeforeClosingAngleBracketInAssignedHTML =
+                      matches[1];
                   }
-                  charsAddedInSerializedHtml -= whitespaceBeforeClosingAngleBracketInAssignedHTML.length;
+                  charsAddedInSerializedHtml -=
+                    whitespaceBeforeClosingAngleBracketInAssignedHTML.length;
 
                   if (!tagTypeHasClosingTag(child.tagName)) {
                     if (assignedString[getCharOffsetInAssignedHTML()] === "/") {
@@ -1240,9 +1368,18 @@ const operations: Operations = {
                       // this char will not show up in the re-serialized innerHTML
                       charsAddedInSerializedHtml -= 1;
                     } else {
-                      var explicitClosingTag = "</" + child.tagName.toLowerCase() + ">"
-                      var explicitClosingTagAndOpeningTagEnd = ">" + explicitClosingTag
-                      if (assignedString.substr(getCharOffsetInAssignedHTML(), explicitClosingTagAndOpeningTagEnd.length).toLowerCase() === explicitClosingTagAndOpeningTagEnd) {
+                      var explicitClosingTag =
+                        "</" + child.tagName.toLowerCase() + ">";
+                      var explicitClosingTagAndOpeningTagEnd =
+                        ">" + explicitClosingTag;
+                      if (
+                        assignedString
+                          .substr(
+                            getCharOffsetInAssignedHTML(),
+                            explicitClosingTagAndOpeningTagEnd.length
+                          )
+                          .toLowerCase() === explicitClosingTagAndOpeningTagEnd
+                      ) {
                         // something like <div></div>
                         // this char will not show up in the re-serialized innerHTML
                         charsAddedInSerializedHtml -= explicitClosingTag.length;
@@ -1256,18 +1393,17 @@ const operations: Operations = {
                     value: serializedHtml,
                     extraCharsAdded: charsAddedInSerializedHtml,
                     error: error
-                  })
-                  charOffsetInSerializedHtml += openingTagEnd.length
-                  forDebuggingProcessedHtml += openingTagEnd
+                  });
+                  charOffsetInSerializedHtml += openingTagEnd.length;
+                  forDebuggingProcessedHtml += openingTagEnd;
 
                   // validateMapping(child.__elOrigin.openingTagEnd)
 
-
                   if (child.tagName === "IFRAME") {
                     forDebuggingProcessedHtml += child.outerHTML;
-                    charOffsetInSerializedHtml += child.outerHTML.length
+                    charOffsetInSerializedHtml += child.outerHTML.length;
                   } else {
-                    processNewInnerHtml(child)
+                    processNewInnerHtml(child);
                   }
 
                   if (tagTypeHasClosingTag(child.tagName)) {
@@ -1278,22 +1414,18 @@ const operations: Operations = {
                       value: serializedHtml,
                       extraCharsAdded: charsAddedInSerializedHtml,
                       error: error
-                    })
-                    var closingTag = "</" + child.tagName + ">"
-                    charOffsetInSerializedHtml += closingTag.length
-                    forDebuggingProcessedHtml += closingTag
+                    });
+                    var closingTag = "</" + child.tagName + ">";
+                    charOffsetInSerializedHtml += closingTag.length;
+                    forDebuggingProcessedHtml += closingTag;
                   }
-
                 } else {
-                  throw "not handled"
+                  throw "not handled";
                 }
                 // console.log("processed", forDebuggingProcessedHtml, assignedInnerHTML.toString().toLowerCase().replace(/\"/g, "'") === forDebuggingProcessedHtml.toLowerCase())
-
-              })
+              });
             }
-
           }
-
         }
       } else if (assignmentType === "Identifier") {
         ret = args.newValue[0];
@@ -1371,9 +1503,13 @@ const operations: Operations = {
         throw Error("unhandled assignmentexpression node.left type");
       }
 
-      const operation = this.createNode(operationArguments, {
-        operator: ignoredStringLiteral(path.node.operator)
-      }, path.node.loc);
+      const operation = this.createNode(
+        operationArguments,
+        {
+          operator: ignoredStringLiteral(path.node.operator)
+        },
+        path.node.loc
+      );
 
       if (trackingAssignment) {
         path.replaceWith(
@@ -1424,14 +1560,19 @@ export function eachArgument(operationLog, fn) {
 
 Object.keys(operations).forEach(opName => {
   const operation = operations[opName];
-  operation.createNode = function (args, astArgs, loc = null) {
-    const operation = createOperation(OperationTypes[opName], args, astArgs, loc);
-    return operation
+  operation.createNode = function(args, astArgs, loc = null) {
+    const operation = createOperation(
+      OperationTypes[opName],
+      args,
+      astArgs,
+      loc
+    );
+    return operation;
   };
   if (!operation.arrayArguments) {
     operation.arrayArguments = [];
   }
-  operation.getArgumentsArray = function (operationLog) {
+  operation.getArgumentsArray = function(operationLog) {
     var ret = [];
     eachArgument(operationLog, (arg, argName, updateValue) => {
       ret.push({ arg: arg, argName });

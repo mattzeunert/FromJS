@@ -4,24 +4,22 @@
 import InMemoryLogServer from "../../core/src/InMemoryLogServer";
 import operations from "../../core/src/operations";
 import babelPlugin from "../../core/src/babelPlugin";
-import * as React from "react"
-import * as ReactDom from "react-dom"
+import * as React from "react";
+import * as ReactDom from "react-dom";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
 const traverse = x => null;
-import { escape } from "lodash"
+import { escape } from "lodash";
 // import Babel from "@babel/standalone";
 // document.write("hi");
 
-import * as Baobab from "baobab"
-import { branch, root } from "baobab-react/higher-order"
-
+import * as Baobab from "baobab";
+import { branch, root } from "baobab-react/higher-order";
 
 var appState = new Baobab({
   debugMode: false,
   steps: []
 });
-window["appState"] = appState
-
+window["appState"] = appState;
 
 const DEBUG = true;
 const USE_SERVER = true;
@@ -69,7 +67,7 @@ var editor = window["CodeMirror"].fromTextArea(
     lineNumbers: true
   }
 );
-editor.on("change", function (cMirror) {
+editor.on("change", function(cMirror) {
   // get value right from instance
   codeTextarea.value = cMirror.getValue();
   try {
@@ -81,19 +79,14 @@ editor.on("change", function (cMirror) {
   }
 });
 
-
-
-
-
-
-let previousLogToInspect
-setInterval(function () {
+let previousLogToInspect;
+setInterval(function() {
   fetch("http://localhost:4556/inspect", {
     method: "GET",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json"
-    },
+    }
   })
     .then(res => res.json())
     .then(r => {
@@ -102,76 +95,69 @@ setInterval(function () {
       //   previousLogToInspect = logToInspect
       //   showSteps(logToInspect, 15)
       // }
-
     });
-}, 5000)
+}, 5000);
 
-
-
-let previousDomToInspect = null
-setInterval(function () {
+let previousDomToInspect = null;
+setInterval(function() {
   fetch("http://localhost:4556/inspectDOM", {
     method: "GET",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json"
-    },
+    }
   })
     .then(res => res.json())
     .then(r => {
-      const { domToInspect } = r
+      const { domToInspect } = r;
       if (domToInspect !== previousDomToInspect) {
-        previousDomToInspect = domToInspect
-        inspectDom(domToInspect)
+        previousDomToInspect = domToInspect;
+        inspectDom(domToInspect);
       }
-
     });
-}, 5000)
+}, 5000);
 
-
-let inspectDom
+let inspectDom;
 class DomInspector extends React.Component<null, any> {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
       domInfo: null
-    }
-    inspectDom = (domInfo) => {
-      console.log("INSPECT DOM", domInfo)
+    };
+    inspectDom = domInfo => {
+      console.log("INSPECT DOM", domInfo);
       this.setState({
         domInfo
-      })
-    }
+      });
+    };
   }
 
   inspect(charIndex) {
-    alert("todo")
+    alert("todo");
   }
 
   render() {
     if (Math.random() > 0.0000000001) {
-      return null
+      return null;
     }
-
 
     if (!this.state.domInfo) {
-      return null
+      return null;
     }
-    return <div>
-      inspect dom
-      <pre>
-        {JSON.stringify(this.state.domInfo, null, 4)}
-        {this.state.domInfo.outerHTML}
-        <button onClick={() => this.inspect(5)}>inspect char 5</button>
-      </pre>
-    </div>
+    return (
+      <div>
+        inspect dom
+        <pre>
+          {JSON.stringify(this.state.domInfo, null, 4)}
+          {this.state.domInfo.outerHTML}
+          <button onClick={() => this.inspect(5)}>inspect char 5</button>
+        </pre>
+      </div>
+    );
   }
 }
 
-
-
-
-const codeTextarea = document.querySelector("#code") as HTMLInputElement
+const codeTextarea = document.querySelector("#code") as HTMLInputElement;
 
 const compiledCodeTextarea = document.querySelector(
   "#compiled-code"
@@ -189,33 +175,35 @@ function callApi(endpoint, data) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(data)
-  })
-    .then(r => r.json())
+  }).then(r => r.json());
 }
 
 function instrumentCode(code) {
-  return callApi("instrument", { code })
+  return callApi("instrument", { code });
 }
 
 function update() {
   var code = editor.getValue();
 
-  instrumentCode(code).then(({ instrumentedCode }) => {
-    let codePromise;
+  instrumentCode(code)
+    .then(({ instrumentedCode }) => {
+      let codePromise;
 
-    if (DEBUG) {
-      codePromise = callApi("prettify", { code: instrumentedCode })
-        .then(r => {
-          compiledCodeTextarea.value = r.code.split(
-            "/* HELPER_FUNCTIONS_END */ "
-          )[1];
-          return Promise.resolve(r.code);
-        });
-    } else {
-      codePromise = Promise.resolve(instrumentedCode);
-    }
-    return codePromise
-  }).then(code => runCodeAndshowResult(code));
+      if (DEBUG) {
+        codePromise = callApi("prettify", { code: instrumentedCode }).then(
+          r => {
+            compiledCodeTextarea.value = r.code.split(
+              "/* HELPER_FUNCTIONS_END */ "
+            )[1];
+            return Promise.resolve(r.code);
+          }
+        );
+      } else {
+        codePromise = Promise.resolve(instrumentedCode);
+      }
+      return codePromise;
+    })
+    .then(code => runCodeAndshowResult(code));
 }
 
 // TODO: don't copy/paste this
@@ -257,7 +245,7 @@ function showSteps(logId, charIndex) {
   loadSteps({ logId, charIndex }).then(r => {
     var steps = r.steps;
 
-    appState.set("steps", steps)
+    appState.set("steps", steps);
 
     function highlightInTree() {
       document.querySelectorAll("[data-index]").forEach(el => {
@@ -279,7 +267,7 @@ function showSteps(logId, charIndex) {
     var html = ``;
 
     if (Math.random() > 0.000000001) {
-      return
+      return;
     }
 
     steps.forEach((step, i) => {
@@ -355,24 +343,23 @@ function showNormalValue(inspectedValue) {
   for (var i = 0; i < value.length; i++) {
     html += `<span onMouseEnter="showSteps(${inspectedValue.tracking}, ${i})">${
       value[i]
-      }</span>`;
+    }</span>`;
   }
   html += "</div>";
   html +=
     "<div style='font-size: 12px; color: #555;margin-top: 10px'>(Hover over each character to see where it originated. Traversing the tree through built-in function calls is tricky, right now only String.prototype.slice is supported.)</div>";
   document.querySelector("#normal-value").innerHTML = html;
 }
-window["updateChar"] = function (charIndex) {
-
+window["updateChar"] = function(charIndex) {
   try {
-
     var charEls = document.querySelector("#chars").children;
 
     Array.from(charEls).forEach(el => el.setAttribute("style", ""));
 
     charEls[charIndex].setAttribute("style", "color:  #f627c9;");
-  } catch (err) { console.log(err) }
-
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 function showTree(logIndex) {
@@ -381,15 +368,13 @@ function showTree(logIndex) {
   }
 
   loadLog(logIndex, log => {
-    renderTree(log, "#basic-example")
+    renderTree(log, "#basic-example");
   });
 }
 
 function renderTree(log, containerSelector) {
-  console.log("rendertree", log)
+  console.log("rendertree", log);
   var data = log;
-
-
 
   var nodeStructure;
 
@@ -430,7 +415,7 @@ function renderTree(log, containerSelector) {
     }
 
     var childValues;
-    const operationLogIsNotLoaded = typeof data === "number"
+    const operationLogIsNotLoaded = typeof data === "number";
     if (data && operationLogIsNotLoaded) {
       return {
         innerHTML: `<div style="font-size: 11px; color: #999; font-weight: normal;">
@@ -495,7 +480,8 @@ function renderTree(log, containerSelector) {
       valueClass = "value--number";
     }
 
-    const treeCodeDivId = "tree-code-div-" + Math.floor(Math.random() * 1000000000000000)
+    const treeCodeDivId =
+      "tree-code-div-" + Math.floor(Math.random() * 1000000000000000);
 
     var node = {
       innerHTML: `<div>
@@ -504,7 +490,9 @@ function renderTree(log, containerSelector) {
           ${argName}
           <span style="font-weight: normal; font-size: 11px; color: #999;">(${type})</span>
           <button style="cursor: pointer; float: right;    border: none;
-          text-decoration: underline;" onclick="showSteps(${data.index}, 0)">Inspect</button>
+          text-decoration: underline;" onclick="showSteps(${
+            data.index
+          }, 0)">Inspect</button>
         </div>
         <div class="operation" data-index="${data.index}">
           <div class="code-container">
@@ -520,16 +508,16 @@ function renderTree(log, containerSelector) {
       children
     };
 
-
     if (data && !operationLogIsNotLoaded) {
-      resolveStackFrame(data).then((stackFrame) => {
-        document.querySelector("#" + treeCodeDivId).innerHTML = stackFrame.code.line.text
-      }).catch(() => {
-        document.querySelector("#" + treeCodeDivId).innerHTML = "(error)"
-      })
+      resolveStackFrame(data)
+        .then(stackFrame => {
+          document.querySelector("#" + treeCodeDivId).innerHTML =
+            stackFrame.code.line.text;
+        })
+        .catch(() => {
+          document.querySelector("#" + treeCodeDivId).innerHTML = "(error)";
+        });
     }
-
-
 
     return node;
   }
@@ -555,10 +543,6 @@ function renderTree(log, containerSelector) {
 
 window["showResult"] = update;
 
-
-
-
-
 function resolveStackFrame(operationLog) {
   return fetch("http://localhost:4556/resolveStackFrame", {
     method: "POST",
@@ -570,182 +554,206 @@ function resolveStackFrame(operationLog) {
       stackFrameString: operationLog.stackFrames[0],
       operationLog: operationLog
     })
-  })
-    .then(res => {
-      if (res.status === 500) {
-        throw "resolve stack error"
-      } else {
-        return res.json()
-      }
-    })
+  }).then(res => {
+    if (res.status === 500) {
+      throw "resolve stack error";
+    } else {
+      return res.json();
+    }
+  });
 }
-
 
 function getFileNameFromPath(path) {
-  const parts = path.split("/")
-  return parts[parts.length - 1]
+  const parts = path.split("/");
+  return parts[parts.length - 1];
 }
-
-
-
 
 type TraversalStepProps = {
-  step: any,
-  debugMode?: boolean,
-}
+  step: any;
+  debugMode?: boolean;
+};
 type TraversalStepState = {
-  stackFrame: any,
-  showLogJson: boolean,
-  showTree: boolean,
-  isExpanded: boolean
-}
+  stackFrame: any;
+  showLogJson: boolean;
+  showTree: boolean;
+  isExpanded: boolean;
+};
 
-
-let TraversalStep = class TraversalStep extends React.Component<TraversalStepProps, TraversalStepState> {
+let TraversalStep = class TraversalStep extends React.Component<
+  TraversalStepProps,
+  TraversalStepState
+> {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
       stackFrame: null,
       showLogJson: false,
       showTree: false,
       isExpanded: false
-    }
+    };
 
-    const { step } = props
+    const { step } = props;
     resolveStackFrame(step.operationLog)
       .then(r => {
-        console.log("got stackframe", r)
+        console.log("got stackframe", r);
         this.setState({
           stackFrame: r
-        })
+        });
         // console.log("done resolve stack frame", r);
         // document.querySelector("#step-code-" + i).innerHTML =
         //   r.code.line.text;
-      }).catch(err => "yolo");
+      })
+      .catch(err => "yolo");
   }
   render() {
-    const { step, debugMode } = this.props
-    const { charIndex, operationLog } = step
-    const { showTree, showLogJson, stackFrame, isExpanded } = this.state
-    let code
-    let fileName, columnNumber, lineNumber
-    let previousLine, nextLine
+    const { step, debugMode } = this.props;
+    const { charIndex, operationLog } = step;
+    const { showTree, showLogJson, stackFrame, isExpanded } = this.state;
+    let code;
+    let fileName, columnNumber, lineNumber;
+    let previousLine, nextLine;
     try {
-      code = stackFrame.code.line.text
-      fileName = stackFrame.fileName.replace("?dontprocess", "")
-      lineNumber = stackFrame.lineNumber
-      columnNumber = stackFrame.columnNumber
-      previousLine = stackFrame.code.previousLines[stackFrame.code.previousLines.length - 1].text
-      nextLine = stackFrame.code.nextLines[stackFrame.code.nextLines.length - 1].text
+      code = stackFrame.code.line.text;
+      fileName = stackFrame.fileName.replace("?dontprocess", "");
+      lineNumber = stackFrame.lineNumber;
+      columnNumber = stackFrame.columnNumber;
+      previousLine =
+        stackFrame.code.previousLines[stackFrame.code.previousLines.length - 1]
+          .text;
+      nextLine =
+        stackFrame.code.nextLines[stackFrame.code.nextLines.length - 1].text;
     } catch (err) {
-      code = err.toString()
-      fileName = "(error)"
+      code = err.toString();
+      fileName = "(error)";
     }
 
     function prepareText(text) {
       if (text.length < 50) {
         return text;
       }
-      return text.slice(0, 15) + "..." + text.slice(-30)
+      return text.slice(0, 15) + "..." + text.slice(-30);
     }
 
-    const str = operationLog.result.str
-    const beforeChar = prepareText(str.slice(0, charIndex))
-    const char = str.slice(charIndex, charIndex + 1)
-    const afterChar = prepareText(str.slice(charIndex + 1))
+    const str = operationLog.result.str;
+    const beforeChar = prepareText(str.slice(0, charIndex));
+    const char = str.slice(charIndex, charIndex + 1);
+    const afterChar = prepareText(str.slice(charIndex + 1));
 
-    let operationTypeDetail = null
+    let operationTypeDetail = null;
     if (operationLog.operation === "identifier" && stackFrame) {
-      operationTypeDetail = "(" + code.slice(operationLog.loc.start.column, operationLog.loc.end.column) + ")"
+      operationTypeDetail =
+        "(" +
+        code.slice(operationLog.loc.start.column, operationLog.loc.end.column) +
+        ")";
     }
 
-    return <div style={{ padding: 5 }} className="step">
-      <div className="step__header">
-        <div className="step__operation-type">{operationLog.operation} {operationTypeDetail}</div>
-        <span style={{ fontSize: "12px", marginTop: 3, float: "right" }}>{getFileNameFromPath(fileName)}</span>
-        <button style={{ float: "right" }} onClick={() => this.setState({ isExpanded: !isExpanded })}>{isExpanded ? "-" : "+"}</button>
-      </div>
-      <div className="step__body">
-        {debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
-        {debugMode && <button onClick={() => this.setState({ showLogJson: !showLogJson })}>toggle show log json</button>}
-        {showLogJson && <pre>
-          {JSON.stringify(operationLog, null, 4)}
-        </pre>}
+    return (
+      <div style={{ padding: 5 }} className="step">
+        <div className="step__header">
+          <div className="step__operation-type">
+            {operationLog.operation} {operationTypeDetail}
+          </div>
+          <span style={{ fontSize: "12px", marginTop: 3, float: "right" }}>
+            {getFileNameFromPath(fileName)}
+          </span>
+          <button
+            style={{ float: "right" }}
+            onClick={() => this.setState({ isExpanded: !isExpanded })}
+          >
+            {isExpanded ? "-" : "+"}
+          </button>
+        </div>
+        <div className="step__body">
+          {debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
+          {debugMode && (
+            <button
+              onClick={() => this.setState({ showLogJson: !showLogJson })}
+            >
+              toggle show log json
+            </button>
+          )}
+          {showLogJson && <pre>{JSON.stringify(operationLog, null, 4)}</pre>}
 
-        <div className="code-container">
-          {isExpanded && <code style={{ display: "block" }}>{previousLine}</code>}
-          <code>{code}</code>
-          {isExpanded && <code style={{ display: "block" }}>{nextLine}</code>}
+          <div className="code-container">
+            {isExpanded && (
+              <code style={{ display: "block" }}>{previousLine}</code>
+            )}
+            <code>{code}</code>
+            {isExpanded && <code style={{ display: "block" }}>{nextLine}</code>}
+          </div>
+          <div className="step__string">
+            <span>{beforeChar}</span>
+            <span style={{ color: "#dc1045" }}>{char}</span>
+            <span>{afterChar}</span>
+          </div>
+          <div>
+            {isExpanded && (
+              <button
+                style={{ float: "right" }}
+                onClick={() => this.setState({ showTree: !showTree })}
+              >
+                Show Tree
+              </button>
+            )}
+          </div>
+          {showTree && <OperationLogTreeView operationLog={operationLog} />}
         </div>
-        <div className="step__string">
-          <span>{beforeChar}</span>
-          <span style={{ color: "#dc1045" }}>{char}</span>
-          <span>{afterChar}</span>
-        </div>
-        <div>
-
-          {isExpanded && <button style={{ float: "right" }} onClick={() => this.setState({ showTree: !showTree })}>Show Tree</button>}
-        </div>
-        {showTree && <OperationLogTreeView operationLog={operationLog} />}
       </div>
-    </div >
+    );
   }
-}
+};
 
-TraversalStep = branch({
-  debugMode: ['debugMode']
-}, TraversalStep);
-
-
-
-
-
-
+TraversalStep = branch(
+  {
+    debugMode: ["debugMode"]
+  },
+  TraversalStep
+);
 
 type OperationLogTreeViewProps = {
-  operationLog: any
-}
+  operationLog: any;
+};
 
-class OperationLogTreeView extends React.Component<OperationLogTreeViewProps, {}> {
-  id = Math.floor(Math.random() * 100000000000)
+class OperationLogTreeView extends React.Component<
+  OperationLogTreeViewProps,
+  {}
+> {
+  id = Math.floor(Math.random() * 100000000000);
 
   render() {
-    return <div
-      className="chart"
-      style={{ width: "100%", height: 500, border: "1px solid #ddd" }}
-      id={this.getContainerId()}>
-      xxxxxx
-    </div>
+    return (
+      <div
+        className="chart"
+        style={{ width: "100%", height: 500, border: "1px solid #ddd" }}
+        id={this.getContainerId()}
+      >
+        xxxxxx
+      </div>
+    );
   }
   getContainerId() {
-    return "operation-log-tree-view-" + this.id
+    return "operation-log-tree-view-" + this.id;
   }
   componentDidMount() {
-    renderTree(this.props.operationLog, "#" + this.getContainerId())
+    renderTree(this.props.operationLog, "#" + this.getContainerId());
   }
 }
 
-
-
-
-
-
-
-
-
 type TraversalStepsProps = {
-  steps?: any[]
-}
-let TraversalSteps = class TraversalSteps extends React.Component<TraversalStepsProps, {}> {
+  steps?: any[];
+};
+let TraversalSteps = class TraversalSteps extends React.Component<
+  TraversalStepsProps,
+  {}
+> {
   render() {
-
-    let stepsToShow = []
-    let steps = this.props.steps
+    let stepsToShow = [];
+    let steps = this.props.steps;
     if (!steps.length) {
-      return null
+      return null;
     }
 
-    stepsToShow = steps
+    stepsToShow = steps;
     // if (this.props.debugMode) {
 
     // } else {
@@ -775,39 +783,51 @@ let TraversalSteps = class TraversalSteps extends React.Component<TraversalSteps
     //   }
     // }
 
-    return <div>
-      <div>Inspected step:</div>
-      <TraversalStep key={steps[0].operationLog.index} step={steps[0]} />
-      <div>First step where selected character was introduced:</div>
-      <TraversalStep key={steps[steps.length - 1].operationLog.index} step={steps[steps.length - 1]} />
-      <hr />
-      <div>Full data flow:</div>
-      {stepsToShow.map(step => <TraversalStep key={step.operationLog.index} step={step} />).reverse()}
-    </div>
+    return (
+      <div>
+        <div>Inspected step:</div>
+        <TraversalStep key={steps[0].operationLog.index} step={steps[0]} />
+        <div>First step where selected character was introduced:</div>
+        <TraversalStep
+          key={steps[steps.length - 1].operationLog.index}
+          step={steps[steps.length - 1]}
+        />
+        <hr />
+        <div>Full data flow:</div>
+        {stepsToShow
+          .map(step => (
+            <TraversalStep key={step.operationLog.index} step={step} />
+          ))
+          .reverse()}
+      </div>
+    );
   }
-}
+};
 
-TraversalSteps = branch({
-  debugMode: ['debugMode'],
-  steps: ["steps"]
-}, TraversalSteps)
+TraversalSteps = branch(
+  {
+    debugMode: ["debugMode"],
+    steps: ["steps"]
+  },
+  TraversalSteps
+);
 
 let App = () => {
-  return <div>
-    <button onClick={() => appState.set("debugMode", !appState.get("debugMode"))}>Debug</button>
-    <DomInspector />
-    <TraversalSteps />
-  </div>
-}
+  return (
+    <div>
+      <button
+        onClick={() => appState.set("debugMode", !appState.get("debugMode"))}
+      >
+        Debug
+      </button>
+      <DomInspector />
+      <TraversalSteps />
+    </div>
+  );
+};
 
 App = root(appState, App);
 
-ReactDom.render(<App />, document.querySelector("#app"))
+ReactDom.render(<App />, document.querySelector("#app"));
 
-
-
-
-
-
-
-showSteps(522841433, 101)
+showSteps(522841433, 101);

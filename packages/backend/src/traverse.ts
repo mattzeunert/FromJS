@@ -10,19 +10,17 @@ export async function traverse(
   steps: TraversalStep[] = [],
   server
 ) {
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     let nextStep: TraversalStep = null;
 
     let { operationLog, charIndex } = step;
 
-    operationLog = await server.loadLogAwaitable(operationLog, 5)
+    operationLog = await server.loadLogAwaitable(operationLog, 5);
 
     steps.push({
       ...step,
       operationLog // overwrite numeric operation log with object
     });
-
-
 
     // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
 
@@ -42,10 +40,10 @@ export async function traverse(
 
     if (nextStep && nextStep.operationLog) {
       traverse(nextStep, steps, server).then(() => {
-        resolve(steps)
-      })
+        resolve(steps);
+      });
     } else {
-      resolve(steps)
+      resolve(steps);
     }
-  })
+  });
 }

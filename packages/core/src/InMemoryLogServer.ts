@@ -1,6 +1,5 @@
 import operations, { eachArgument } from "./operations";
 import OperationLog from "./helperFunctions/OperationLog";
-
 interface LogsObject {
   [key: string]: OperationLog;
 }

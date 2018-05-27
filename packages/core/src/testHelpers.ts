@@ -15,13 +15,17 @@ export function instrumentAndRun(code) {
       result.code = code.split("* HELPER_FUNCTIONS_END */")[1]; // only the interesting code
 
       if (result.tracking) {
-        server.loadLog(result.tracking, log => {
-          // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
-          result.tracking =
-            log.args.value.extraArgs.returnValue.args.returnValue;
-          // console.log(result.tracking)
-          resolve(result);
-        }, 7);
+        server.loadLog(
+          result.tracking,
+          log => {
+            // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
+            result.tracking =
+              log.args.value.extraArgs.returnValue.args.returnValue;
+            // console.log(result.tracking)
+            resolve(result);
+          },
+          7
+        );
       } else {
         resolve(result);
       }
@@ -29,4 +33,4 @@ export function instrumentAndRun(code) {
   });
 }
 
-export { server }
+export { server };

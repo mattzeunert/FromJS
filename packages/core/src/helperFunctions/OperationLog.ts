@@ -1,5 +1,5 @@
 // todo: would be better if the server provided this value
-const getOperationIndex = (function () {
+const getOperationIndex = (function() {
   var operationIndexBase = Math.round(Math.random() * 1000 * 1000 * 1000);
   var operationIndex = 0;
   return function getOperationIndex() {
@@ -80,7 +80,17 @@ export default class OperationLog {
   loc: any;
   runtimeArgs: any;
 
-  constructor({ operation, result, args, astArgs, extraArgs, stackFrames, loc, nativeFunctions, runtimeArgs }) {
+  constructor({
+    operation,
+    result,
+    args,
+    astArgs,
+    extraArgs,
+    stackFrames,
+    loc,
+    nativeFunctions,
+    runtimeArgs
+  }) {
     var arrayArguments = [];
     if (operation === "arrayExpression") {
       arrayArguments = ["elements"];
@@ -103,8 +113,10 @@ export default class OperationLog {
       // only store argument operation log because ol.result === a[0]
       eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
         if (arg[1] === "undefined") {
-          debugger
-          throw Error("no arg operationlog found, did you only pass in an operationlog")
+          debugger;
+          throw Error(
+            "no arg operationlog found, did you only pass in an operationlog"
+          );
         }
         updateArg(arg[1]);
       });
@@ -112,13 +124,15 @@ export default class OperationLog {
     if (typeof extraArgs === "object") {
       eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
         if (arg[1] === "undefined") {
-          debugger
-          throw Error("no arg operationlog found, did you only pass in an operationlog")
+          debugger;
+          throw Error(
+            "no arg operationlog found, did you only pass in an operationlog"
+          );
         }
         updateArg(arg[1]);
       });
     }
-    this.runtimeArgs = runtimeArgs
+    this.runtimeArgs = runtimeArgs;
     this.loc = loc;
     this.args = args;
     this.astArgs = astArgs;

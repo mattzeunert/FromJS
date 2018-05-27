@@ -7,5 +7,8 @@
     "target": "es2017",
     "jsx": "react"
   },
-  "include": ["./packages/core/src/helperFunctions/*.ts"]
+  "include": [
+    "./packages/core/src/helperFunctions/*.ts",
+    "*.tsx"
+  ]
 }

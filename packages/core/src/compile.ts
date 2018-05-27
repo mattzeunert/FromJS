@@ -7,22 +7,18 @@ export default function transform(code, extraBabelOptions = {}) {
     const options = {
       plugins: [plugin],
       ...extraBabelOptions
-    }
+    };
 
-    babel.transform(
-      code,
-      options,
-      function (err, result) {
-        if (err) {
-          reject(err);
-        } else {
-          result.code = prettier.format(result.code);
-          if (!options["sourceMaps"]) {
-            result.map = null;
-          }
-          resolve(result);
+    babel.transform(code, options, function(err, result) {
+      if (err) {
+        reject(err);
+      } else {
+        result.code = prettier.format(result.code);
+        if (!options["sourceMaps"]) {
+          result.map = null;
         }
+        resolve(result);
       }
-    );
+    });
   });
 }
