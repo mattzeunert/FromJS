@@ -168,11 +168,18 @@ function plugin(babel) {
   visitors["Program"] = {
     // Run on exit so injected code isn't processed by other babel plugins
     exit: function(path) {
-      const accessToken = plugin["babelPluginOptions"].accessToken;
-      let usableHelperCode = helperCode.replace(
-        "ACCESS_TOKEN_PLACEHOLDER",
-        accessToken
-      );
+      const babelPluginOptions = plugin["babelPluginOptions"];
+      let usableHelperCode;
+      if (babelPluginOptions) {
+        const accessToken = babelPluginOptions.accessToken;
+        usableHelperCode = helperCode.replace(
+          "ACCESS_TOKEN_PLACEHOLDER",
+          accessToken
+        );
+      } else {
+        usableHelperCode = helperCode;
+      }
+
       var initCodeAstNodes = babylon
         .parse(usableHelperCode)
         .program.body.reverse();
