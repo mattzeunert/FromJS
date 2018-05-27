@@ -2,35 +2,33 @@
 
 [Create a new issue](https://github.com/mattzeunert/FromJS/issues) if you find a bug or have a question/feature request.
 
-If you want to contribute code, either work on an existing issue or create a new issue first. If you need any help ask in the issue or email me at matt@mostlystatic.com.
+## Contributing code
+
+I'm working on FromJS 2 right now and the code isn't always very clean. Open an issue or email me if you're interested in contributing anyway.
 
 ## Build FromJS
 
-Run `npm install` to install dependencies.
+Use `lerna bootstrap` to install dependencies.
 
-Then, in two separate terminal windows, run `npm run webpack` and `npm run server`. Then you can inspect any HTML page relative to the project root directly, e.g. [http://localhost:7500/demos/backbone-todomvc/index.html](http://localhost:7500/demos/backbone-todomvc/index.html).
+I usually run all of these commands:
 
-### Unit / Integration Tests
+- `yarn run test-watch` for unit/integration tests
+- `yarn run compile-core-watch` to build the core package (so it can be used easily e.g. by the `threads` module)
+- In packages/ui `yarn run webpack-watch` for building the inspector UI
+- In packages/backend `yarn run start` or `yarn run start-debug` to run the backend server and proxy
+- In packages/core `yarn run webpack-watch` to build the helperFunctions (compiled result is used by Babel plugin)
 
-`npm run test`
-
-### E2E Tests
-
-```
-npm run webdriver-manager-update
-npm run e2e-test
-```
-
-The E2E tests require a few background processes. It can be useful to keep them running during development and then:
+To connect to the proxy:
 
 ```
-npm run e2e-test-background-processes
-```
+const puppeteer = require("puppeteer");
 
-Then run the tests in a new terminal tab:
-
-```
-npm run protractor
+(async () => {
+  const browser = await puppeteer.launch({
+    args: ["--proxy-server=127.0.0.1:8081"],
+    headless: false
+  });
+})();
 ```
 
 ## Updating the website
