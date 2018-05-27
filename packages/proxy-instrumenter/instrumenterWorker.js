@@ -3,14 +3,11 @@ var instrumentCode = require("./instrumentCode");
 Error.stackTraceLimit = Infinity;
 
 module.exports = function instrument(args, done) {
-  console.log("---");
-  console.log("args", args);
   if (!args) {
     // some weird issue
     done();
   }
 
-  console.log(typeof args, Object.keys(args), "a", args, "b", args.body);
   // var { body, url } = args;
   const body = args.body;
   const url = args.url;
@@ -20,11 +17,11 @@ module.exports = function instrument(args, done) {
   process.title = "FromJS - Compilation worker(" + url + ")";
 
   instrumentCode()(body, url).then(
-    function(result) {
+    function (result) {
       console.log("[COMPILER] Done process for", url);
       done(result);
     },
-    function(err) {
+    function (err) {
       throw Error(err);
     }
   );

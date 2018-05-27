@@ -66,7 +66,21 @@ export function ignoredObjectExpression(props) {
   return ignoreNode(t.objectExpression(properties));
 }
 
-export function createOperation(opType, opArgs, astArgs = null) {
+function getLocObjectASTNode(loc) {
+
+  function getASTNode(location) {
+    return ignoredObjectExpression({
+      line: ignoredNumericLiteral(location.line),
+      column: ignoredNumericLiteral(location.column)
+    })
+  }
+  return ignoredObjectExpression({
+    start: getASTNode(loc.start),
+    end: getASTNode(loc.end)
+  })
+}
+
+export function createOperation(opType, opArgs, astArgs = null, loc = null) {
   const argsAreArray = opArgs.length !== undefined;
 
   if (argsAreArray) {
@@ -80,10 +94,14 @@ export function createOperation(opType, opArgs, astArgs = null) {
     var call = ignoredCallExpression(FunctionNames.doOperation, [
       ignoredStringLiteral(opType),
       ignoredObjectExpression(opArgs),
-      ...(astArgs !== null ? [ignoredObjectExpression(astArgs)] : [])
+      astArgs !== null ? ignoredObjectExpression(astArgs) : t.nullLiteral(),
+      loc ? getLocObjectASTNode(loc) : t.nullLiteral()
     ]);
   }
 
+  if (loc) {
+    call.loc = loc
+  }
   return call;
 }
 
@@ -93,13 +111,13 @@ export const getLastOperationTrackingResultCall = ignoredCallExpression(
 );
 
 export function isInLeftPartOfAssignmentExpression(path) {
-  return isInNodeType("AssignmentExpression", path, function(path, prevPath) {
+  return isInNodeType("AssignmentExpression", path, function (path, prevPath) {
     return path.node.left === prevPath.node;
   });
 }
 
 export function isInIdOfVariableDeclarator(path) {
-  return isInNodeType("VariableDeclarator", path, function(path, prevPath) {
+  return isInNodeType("VariableDeclarator", path, function (path, prevPath) {
     return path.node.id === prevPath.node;
   });
 }

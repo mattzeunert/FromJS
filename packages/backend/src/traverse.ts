@@ -5,38 +5,47 @@ export interface TraversalStep {
   operationLog: OperationLog;
 }
 
-export default function traverse(
+export async function traverse(
   step: TraversalStep,
-  steps: TraversalStep[] = []
+  steps: TraversalStep[] = [],
+  server
 ) {
-  steps.push(step);
+  return new Promise(async (resolve) => {
+    let nextStep: TraversalStep = null;
 
-  // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
-  let nextStep: TraversalStep = null;
+    let { operationLog, charIndex } = step;
 
-  if (typeof step.operationLog === "number") {
-    throw Error("trying to traverse unloaded (numeric) operation log");
-  }
+    operationLog = await server.loadLogAwaitable(operationLog, 5)
 
-  const { operationLog, charIndex } = step;
+    steps.push({
+      ...step,
+      operationLog // overwrite numeric operation log with object
+    });
 
-  const operation = operations[operationLog.operation];
-  if (operation && operation.traverse) {
-    nextStep = operation.traverse(operationLog, charIndex);
-  } else {
-    switch (operationLog.operation) {
-      case "functionArgument":
-        nextStep = {
-          operationLog: operationLog.args.value,
-          charIndex: charIndex
-        };
-        break;
+
+
+    // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
+
+    const operation = operations[operationLog.operation];
+    if (operation && operation.traverse) {
+      nextStep = operation.traverse(operationLog, charIndex);
+    } else {
+      switch (operationLog.operation) {
+        case "functionArgument":
+          nextStep = {
+            operationLog: operationLog.args.value,
+            charIndex: charIndex
+          };
+          break;
+      }
     }
-  }
 
-  if (nextStep && nextStep.operationLog) {
-    traverse(nextStep, steps);
-  }
-  // console.log(steps);
-  return steps;
+    if (nextStep && nextStep.operationLog) {
+      traverse(nextStep, steps, server).then(() => {
+        resolve(steps)
+      })
+    } else {
+      resolve(steps)
+    }
+  })
 }

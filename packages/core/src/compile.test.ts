@@ -426,3 +426,56 @@ describe("Supports ++ and -- operators", () => {
       });
   });
 });
+
+
+it("Collects extra data on replace calls", done => {
+  instrumentAndRun(`
+    var a = "ab".replace("b", "c")
+    return a
+  `).then(({ normal, tracking, code }) => {
+      expect(normal).toBe("ac")
+      const replacement = tracking.args.value.extraArgs.replacement0
+      const replacementValue = replacement.args.value
+      expect(replacementValue.operation).toBe("stringLiteral")
+      expect(replacementValue.result.str).toBe("c")
+      expect(replacement.runtimeArgs.start).toBe(1)
+      expect(replacement.runtimeArgs.end).toBe(2)
+
+      done();
+    });
+});
+
+
+describe("JSON.parse", () => {
+  it("Collects extra data on JSON.parse calls", (done) => {
+    instrumentAndRun(`
+    var obj = JSON.parse('{"a": {"b": 5}}')
+    return obj.a.b
+  `).then(({ normal, tracking, code }) => {
+        expect(normal).toBe(5)
+        const memberExpression = tracking
+        const propertyValue = tracking.extraArgs.propertyValue
+        const json = propertyValue.args.json
+        const keyPath = propertyValue.runtimeArgs.keyPath
+        expect(json.result.str).toBe('{"a": {"b": 5}}')
+        expect(keyPath).toBe("a.b")
+
+        done();
+      });
+  })
+});
+
+it("Tracks arguments to NewExpressions", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+  function Obj(num) {
+    this.num = num
+  }
+  var obj = new Obj(2)
+  return obj.num
+`)
+  expect(normal).toBe(2)
+  const memberExpression = tracking
+  const assignedValue = memberExpression.extraArgs.propertyValue.args.argument
+  const fnArgument = assignedValue.args.value
+  expect(fnArgument.args.value.operation).toBe("numericLiteral")
+});

@@ -6,26 +6,44 @@ declare var __FUNCTION_NAMES__,
   __OPERATION_ARRAY_ARGUMENTS__,
   __storeLog;
 
-(function(
+(function (
   functionNames,
   operationTypes,
   operationsExec,
   operationArrayArguments
 ) {
-  let logQueue = [];
-  setInterval(function() {
-    if (logQueue.length === 0) {
-      return;
-    }
-    fetch("http://localhost:4556", {
+  var global = Function("return this")();
+  if (global.__didInitializeDataFlowTracking) {
+    return;
+  }
+  global.__didInitializeDataFlowTracking = true;
+
+
+
+  const nativeFunctions = {
+    stringPrototypeSlice: String.prototype.slice,
+    stringPrototypeReplace: String.prototype.replace,
+    jsonParse: JSON.parse
+  }
+
+  function postToBE(endpoint, data) {
+    return fetch("http://localhost:4556" + endpoint, {
       method: "POST",
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/json"
       }),
-      body: JSON.stringify({ logs: logQueue })
+      body: JSON.stringify(data)
     })
       .then(res => res.json())
+  }
+
+  let logQueue = [];
+  setInterval(function () {
+    if (logQueue.length === 0) {
+      return;
+    }
+    postToBE("/", { logs: logQueue })
       .then(r => {
         console.log("stored logs");
       });
@@ -40,21 +58,24 @@ declare var __FUNCTION_NAMES__,
   const storeLog =
     typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog;
 
+  let lastOperationType = null
   function createOperationLog(args) {
     args.stackFrames = Error().stack.split(String.fromCharCode(10));
     args.stackFrames = args.stackFrames.filter(
       line => line !== "Error" && !line.includes("/helperFns.js")
     );
+    args.nativeFunctions = nativeFunctions
     var log = new OperationLog(args);
     storeLog(log);
+
+    // Normally we just store the numbers, but it's useful for
+    // debugging to be able to view the log object
+    window["__debugAllLogs"] = window["__debugAllLogs"] || {}
+    window["__debugAllLogs"][log.index] = log
+
     return log.index;
   }
 
-  var global = Function("return this")();
-  if (global.__didInitializeDataFlowTracking) {
-    return;
-  }
-  global.__didInitializeDataFlowTracking = true;
 
   var argTrackingInfo = null;
 
@@ -63,26 +84,46 @@ declare var __FUNCTION_NAMES__,
   ] = function getArgTrackingInfo(index) {
     if (!argTrackingInfo) {
       console.log("no arg tracking info...");
-      return { info: "none" };
+      return null
     }
     return argTrackingInfo[index];
   };
 
-  global.getTrackingAndNormalValue = function(value) {
+  global.getTrackingAndNormalValue = function (value) {
     return {
       normal: value,
       tracking: argTrackingInfo[0]
     };
   };
 
-  global.inspect = function(value) {
+  global.inspect = function (value) {
     global.inspectedValue = {
       normal: value,
       tracking: argTrackingInfo[0]
     };
   };
 
+  global.fromJSInspect = function (value) {
+    postToBE("/inspect", {
+      logId: argTrackingInfo[0]
+    })
+  }
+
+  global.fromJSInspectOperationLog = function (operationLogId) {
+    postToBE("/inspect", {
+      logId: operationLogId
+    })
+  }
+
+  global.fromJSInspectDOM = function (element) {
+    postToBE("/inspectDOM", {
+      outerHTML: element.outerHTML,
+      domOrigin: element.__elOrigin
+    })
+  }
+
   const objTrackingMap = new Map();
+  window["__debugObjTrackingMap"] = objTrackingMap
   function trackObjectPropertyAssignment(obj, propName, trackingValue) {
     // console.log("trackObjectPropertyAssignment", obj, propName, trackingValue)
     var objectPropertyTrackingInfo = objTrackingMap.get(obj);
@@ -103,25 +144,27 @@ declare var __FUNCTION_NAMES__,
 
   var lastMemberExpressionObjectValue = null;
   var lastMemberExpressionObjectTrackingValue = null;
-  global["getLastMemberExpressionObjectValue"] = function() {
+  global["getLastMemberExpressionObjectValue"] = function () {
     return lastMemberExpressionObjectValue;
   };
 
-  global["getLastMemberExpressionObjectTrackingValue"] = function() {
+  global["getLastMemberExpressionObjectTrackingValue"] = function () {
     return lastMemberExpressionObjectTrackingValue;
   };
 
+  var lastReturnStatementResult = null
+
   const memoValues = {};
-  global["__setMemoValue"] = function(key, value, trackingValue) {
+  global["__setMemoValue"] = function (key, value, trackingValue) {
     // console.log("setmemovalue", value)
     memoValues[key] = { value, trackingValue };
     lastOpTrackingResult = trackingValue;
     return value;
   };
-  global["__getMemoValue"] = function(key) {
+  global["__getMemoValue"] = function (key) {
     return memoValues[key].value;
   };
-  global["__getMemoTrackingValue"] = function(key, value, trackingValue) {
+  global["__getMemoTrackingValue"] = function (key, value, trackingValue) {
     return memoValues[key].trackingValue;
   };
 
@@ -134,52 +177,47 @@ declare var __FUNCTION_NAMES__,
     var astArgs;
     var argNames = [];
 
+
     objArgs = args[0];
     astArgs = args[1];
+    const loc = args[2]
 
     args;
     if (operationArrayArguments[opName]) {
-      operationArrayArguments[opName].forEach(arrayArgName => {});
+      operationArrayArguments[opName].forEach(arrayArgName => { });
     }
 
-    var argValues = args.map(arg => arg[0]);
-    var argTrackingValues = args.map(arg => {
-      if (arg[1] === null) {
-        return createOperationLog({
-          operation: "Unknown operation",
-          result: arg[0],
-          args: {},
-          astArgs: {},
-          extraArgs: {}
-        });
-      }
-      return arg[1];
-    });
     var extraTrackingValues = {};
     var ret;
     if (operationsExec[opName]) {
-      var setters = {
-        lastMemberExpressionResult: arr => {
-          lastMemberExpressionObjectValue = arr[0];
-          lastMemberExpressionObjectTrackingValue = arr[1];
-        },
-        extraArgTrackingValues: values => {
-          extraTrackingValues = values;
-        },
-        argTrackingInfo(info) {
-          argTrackingInfo = info;
-        }
-      };
-      ret = operationsExec[opName](objArgs, astArgs, {
-        setters,
+      const ctx = {
         operationTypes,
         getObjectPropertyTrackingValue,
         trackObjectPropertyAssignment,
         createOperationLog,
-        getLastOpTrackingResult() {
+        nativeFunctions,
+        global,
+        get lastOpTrackingResult() {
           return lastOpTrackingResult;
+        },
+        set extraArgTrackingValues(values) {
+          extraTrackingValues = values;
+        },
+        get lastReturnStatementResult() {
+          return lastReturnStatementResult
+        },
+        set lastMemberExpressionResult([normal, tracking]) {
+          lastMemberExpressionObjectValue = normal
+          lastMemberExpressionObjectTrackingValue = tracking
+        },
+        set argTrackingInfo(info) {
+          argTrackingInfo = info
+        },
+        get lastOperationType() {
+          return lastOperationType
         }
-      });
+      }
+      ret = operationsExec[opName](objArgs, astArgs, ctx)
     } else {
       console.log("unhandled op", opName, args);
       throw Error("oh no");
@@ -194,25 +232,21 @@ declare var __FUNCTION_NAMES__,
       args: objArgs,
       astArgs: astArgs,
       result: ret,
-      extraArgs: extraTrackingValues
+      extraArgs: extraTrackingValues,
+      loc
     });
-
-    // trackingValue = {
-    //   type: opName,
-    //   argValues,
-    //   objArgs,
-    //   argTrackingValues,
-    //   extraArgs: extraTrackingValues,
-    //   resVal: ret,
-    //   argNames,
-    //   astArgs
-    //   // place: Error()
-    //   //   .stack.split("\\\\n")
-    //   //   .slice(2, 3)
-    // };
 
     lastOpValueResult = ret;
     lastOpTrackingResult = trackingValue;
+
+    if (opName === "returnStatement") {
+      // should ideally be in operations.ts
+      // however: it can't be in exec because there
+      // the trackingvalue doesn't exist yet!
+      lastReturnStatementResult = [ret, trackingValue]
+    }
+
+    lastOperationType = opName
 
     return ret;
   };

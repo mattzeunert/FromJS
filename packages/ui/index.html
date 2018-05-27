@@ -6,12 +6,19 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="./Treant.css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+
   <style>
     .chart {
       /* height: 1500px; */
       height: 600px;
       margin: 5px;
       width: 99vw;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Roboto;
     }
 
     .node-name {
@@ -30,10 +37,13 @@
       font-size: 13px;
     }
 
+    .node.node--not-loaded {
+      width: 100px;
+    }
+
 
     #code,
     #compiled-code {
-      float: left;
       width: 500px;
       height: 100px;
       font-size: 14px;
@@ -53,10 +63,18 @@
 
     .value {
       font-family: Courier New;
+      font-size: 11px;
     }
 
     .value--string {
       color: #a00;
+
+      white-space: nowrap;
+      overflow-x: scroll;
+      display: inline-block;
+      width: 100%;
+      vertical-align: bottom;
+
     }
 
     .value--number {
@@ -75,7 +93,8 @@
 
     .node {
       border-color: #999;
-      padding: 3px;
+      padding: 4px;
+      width: 280px;
     }
 
     .highlight-step {
@@ -91,18 +110,92 @@
       font-size: 20px;
       font-family: Courier New;
     }
+
+
+    .code-container {
+      background: #fafafa;
+      border: 1px solid #dde;
+      padding: 4px;
+    }
+
+    .node .code-container {
+      white-space: nowrap;
+      overflow-x: scroll;
+      width: 100%;
+    }
+
+    .code-container * {
+      font-family: monospace;
+    }
+
+
+    .step__string {
+      background: #fff9f9;
+      border: 1px solid #dde;
+      padding: 4px;
+      color: #777;
+      line-height: 1.3em;
+    }
+
+    .step__string * {
+      font-family: monospace;
+    }
+
+    .step__header {
+      width: 100%;
+      font-family: Arial;
+      background: #15054e;
+      color: white;
+      overflow: hidden;
+      padding: 4px;
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
+
+    .step__operation-type {
+      float: left;
+      font-size: 14px;
+      margin-top: 2px;
+    }
+
+    .step__body {
+      background: #ddd;
+    }
+
+    .step__body button {
+      float: right;
+      border: none;
+      background: transparent;
+      text-decoration: underline;
+      margin-top: 6px;
+    }
+
+
+    .step .code-container {
+      border-bottom: none;
+    }
+
+    .step {
+      max-width: 800px;
+      margin-bottom: 10px;
+    }
   </style>
 
 </head>
 
 <body>
+  <div id="app">app container</div>
   <div class="container">
     <div>
       <div style="float:left; width: 70%">
         <textarea id="code">
 var str = "ab" + "cd" + "ef"
-inspect(str)
-                
+function fn(str) {
+  return str 
+}
+str = fn(str)
+
+inspect(str)    
             </textarea>
       </div>
       <div style="float:left; width: 30%">

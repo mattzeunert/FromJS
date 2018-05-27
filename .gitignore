@@ -18,3 +18,4 @@ packages/ui/dist
 packages/core/dist
 packages/core/helperFunctions.ts
 packages/backend/logs.json
+packages/backend/ca

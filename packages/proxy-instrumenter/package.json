@@ -1,7 +1,7 @@
 {
-  "name": "proxy-instrumenter",
+  "name": "@fromjs/proxy-instrumenter",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "ProxyInstrumenter.ts",
   "license": "MIT",
   "dependencies": {
     "@fromjs/core": "^1.0.0",

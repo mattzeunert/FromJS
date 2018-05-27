@@ -31,7 +31,7 @@ helperCode = helperCode.replace(
 var opsExecString = `{`;
 Object.keys(operations).forEach(opName => {
   if (!operations[opName].exec) {
-    console.log("no exec for operation", opName);
+    // console.log("no exec for operation", opName);
     return;
   }
   opsExecString += `${opName}: ${operations[opName].exec.toString()},`;
@@ -43,7 +43,7 @@ helperCode = helperCode.replace("__OPERATIONS_EXEC__", opsExecString);
 var opsArrayArgumentsString = `{`;
 Object.keys(operations).forEach(opName => {
   if (!operations[opName].exec) {
-    console.log("no exec for operation", opName);
+    // console.log("no exec for operation", opName);
     return;
   }
   opsArrayArgumentsString += `${opName}: [${operations[
@@ -61,8 +61,8 @@ helperCode += "/* HELPER_FUNCTIONS_END */ ";
 
 // I got some babel-generator "cannot read property 'type' of undefined" errors
 // when prepending the code itself, so just prepend a single eval call expression
-helperCode = "eval(`" + helperCode + "\n//# sourceURL=/helperFns.js`)";
-// console.log(helperCode);
+helperCode = "eval(`" + helperCode.replace(/\\/g, "\\\\").replace(/`/g, "\\`") + "\n//# sourceURL=/helperFns.js`)";
+helperCode += "// aaaaa" // this seems to help with debugging/evaling the code... not sure why...just take it out if the tests dont break
 
 export default function plugin(babel) {
   const { types: t } = babel;
@@ -84,26 +84,35 @@ export default function plugin(babel) {
   }
 
   function isInCallExpressionCallee(path) {
-    return isInNodeType("CallExpression", path, function(path, prevPath) {
+    return isInNodeType("CallExpression", path, function (path, prevPath) {
       return path.node.callee === prevPath.node;
+    });
+  }
+
+  function handleFunction(path) {
+    path.node.params.forEach((param, i) => {
+      var d = t.variableDeclaration("var", [
+        t.variableDeclarator(
+          ignoredIdentifier(param.name + "_t"),
+          ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [
+            ignoredNumericLiteral(i)
+          ])
+        )
+      ]);
+      d.ignore = true;
+      path.node.body.body.unshift(d);
     });
   }
 
   const visitors = {
     FunctionDeclaration(path) {
-      path.node.params.forEach((param, i) => {
-        var d = t.variableDeclaration("var", [
-          t.variableDeclarator(
-            ignoredIdentifier(param.name + "_t"),
-            ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [
-              ignoredNumericLiteral(i)
-            ])
-          )
-        ]);
-        d.ignore = true;
-        path.node.body.body.unshift(d);
-      });
+      handleFunction(path)
     },
+
+    FunctionExpression(path) {
+      handleFunction(path)
+    },
+
 
     VariableDeclaration(path) {
       if (path.parent.type === "ForInStatement") {
@@ -111,7 +120,7 @@ export default function plugin(babel) {
       }
       var originalDeclarations = path.node.declarations;
       var newDeclarations = [];
-      originalDeclarations.forEach(function(decl) {
+      originalDeclarations.forEach(function (decl) {
         newDeclarations.push(decl);
         if (!decl.init) {
           decl.init = ignoredIdentifier("undefined");
@@ -146,7 +155,7 @@ export default function plugin(babel) {
 
   Object.keys(visitors).forEach(key => {
     var originalVisitor = visitors[key];
-    visitors[key] = function(path) {
+    visitors[key] = function (path) {
       if (path.node.ignore) {
         return;
       }
@@ -156,7 +165,7 @@ export default function plugin(babel) {
 
   visitors["Program"] = {
     // Run on exit so injected code isn't processed by other babel plugins
-    exit: function(path) {
+    exit: function (path) {
       var initCodeAstNodes = babylon.parse(helperCode).program.body.reverse();
       initCodeAstNodes.forEach(node => {
         path.node.body.unshift(node);
