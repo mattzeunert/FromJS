@@ -32,7 +32,6 @@ const app = express();
 app.use(bodyParser.json({ limit: "50mb" }));
 
 let uiDirPath = path.resolve(__dirname + "/../node_modules/@fromjs/ui");
-console.log({ uiDirPath });
 
 app.get("/", (req, res) => {
   let html = fs.readFileSync(uiDirPath + "/index.html").toString();

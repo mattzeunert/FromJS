@@ -14,6 +14,8 @@
       "cd packages/proxy-instrumenter;tsc --watch",
     "compile-backend": "cd packages/backend;tsc",
     "compile-backend-watch": "cd packages/backend;tsc --watch",
+    "compile-cli": "cd packages/cli;tsc",
+    "compile-cli-watch": "cd packages/cli;tsc --watch",
     "test": "jest",
     "test-watch": "jest --watch",
     "test-debug": "node --inspect ./node_modules/.bin/jest --runInBand --watch"

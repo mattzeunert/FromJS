@@ -1,0 +1,11 @@
+{
+  "name": "@fromjs/cli",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.15.1",
+    "puppeteer": "^1.4.0",
+    "@fromjs/backend": "^1.0.0"
+  }
+}
