@@ -11,11 +11,13 @@ let proxyPort = bePort + 1;
 const backend = new Backend({
   bePort,
   proxyPort,
-  onReady: function() {
+  onReady: async function() {
     opn("http://localhost:" + bePort);
-    puppeteer.launch({
+    const browser = await puppeteer.launch({
       args: ["--proxy-server=127.0.0.1:" + proxyPort],
       headless: false
     });
+    const page = await browser.newPage();
+    await page.goto("http://localhost:" + bePort + "/start");
   }
 });

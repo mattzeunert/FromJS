@@ -39,19 +39,23 @@ export default class Backend {
 
     app.use(bodyParser.json({ limit: "50mb" }));
 
-    let uiDirPath = path.resolve(__dirname + "/../node_modules/@fromjs/ui");
+    let uiDir = path.resolve(__dirname + "/../node_modules/@fromjs/ui");
+    let startPageDir = path.resolve(__dirname + "/../start-page");
+
+    console.log({ startPageDir });
 
     app.get("/", (req, res) => {
-      let html = fs.readFileSync(uiDirPath + "/index.html").toString();
+      let html = fs.readFileSync(uiDir + "/index.html").toString();
       html = html.replace("BACKEND_PORT_PLACEHOLDER", bePort.toString());
       res.send(html);
     });
 
-    app.use(express.static(uiDirPath));
+    app.use(express.static(uiDir));
+    app.use("/start", express.static(startPageDir));
 
     function verifyToken(req) {
       if (req.headers.authorization !== accessToken) {
-        throw Error("Token invalid:" + accessToken);
+        throw Error("Token invalid:" + req.headers.authorization);
       }
     }
 

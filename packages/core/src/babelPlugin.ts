@@ -149,14 +149,15 @@ function plugin(babel) {
       const babelPluginOptions = plugin["babelPluginOptions"];
       let usableHelperCode;
       if (babelPluginOptions) {
-        const accessToken = babelPluginOptions.accessToken;
-        usableHelperCode = helperCode.replace(
+        const { accessToken, backendPort } = babelPluginOptions;
+        usableHelperCode = helperCode;
+        usableHelperCode = usableHelperCode.replace(
           "ACCESS_TOKEN_PLACEHOLDER",
           accessToken
         );
-        usableHelperCode = helperCode.replace(
+        usableHelperCode = usableHelperCode.replace(
           "BACKEND_PORT_PLACEHOLDER",
-          accessToken
+          backendPort
         );
       } else {
         usableHelperCode = helperCode;
