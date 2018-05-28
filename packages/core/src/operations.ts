@@ -36,7 +36,10 @@ interface Operations {
     exec?: any;
     arrayArguments?: string[];
     getArgumentsArray?: any;
-    traverse?: (operationLog: any, charIndex: number) => TraversalStep;
+    traverse?: (
+      operationLog: any,
+      charIndex: number
+    ) => TraversalStep | undefined;
   };
 }
 
@@ -97,7 +100,7 @@ const operations: Operations = {
         }
       }
 
-      const op = this.createNode(
+      const op = this.createNode!(
         {
           object: [path.node.object, getLastOperationTrackingResultCall],
           propName: [property, getLastOperationTrackingResultCall]
@@ -114,7 +117,7 @@ const operations: Operations = {
       if (!["+", "-", "/", "*"].includes(path.node.operator)) {
         return;
       }
-      return this.createNode(
+      return this.createNode!(
         {
           left: [path.node.left, getLastOperationTrackingResultCall],
           right: [path.node.right, getLastOperationTrackingResultCall]
@@ -199,7 +202,7 @@ const operations: Operations = {
         path.node.alternate,
         getLastOperationTrackingResultCall
       );
-      var operation = this.createNode({
+      var operation = this.createNode!({
         test: [
           createGetMemoValue("lastConditionalExpressionTest"),
           createGetMemoTrackingValue("lastConditionalExpressionTest")
@@ -223,8 +226,8 @@ const operations: Operations = {
     exec: (args, astArgs, ctx) => {
       var i = 0;
       var arg;
-      var fnArgs = [];
-      var fnArgValues = [];
+      var fnArgs: any[] = [];
+      var fnArgValues: any[] = [];
       while (true) {
         var argKey = "arg" + i;
         if (!(argKey in args)) {
@@ -305,9 +308,9 @@ const operations: Operations = {
         );
         retT = null;
       } else if (fn === ctx.nativeFunctions.jsonParse) {
-        const parsed = ctx.nativeFunctions.jsonParse.call(this, fnArgValues[0]);
+        const parsed = ctx.nativeFunctions.jsonParse.call(JSON, fnArgValues[0]);
 
-        function traverseObject(obj, fn, keyPath = []) {
+        function traverseObject(obj, fn, keyPath: any[] = []) {
           Object.entries(obj).forEach(([key, value]) => {
             fn([...keyPath, key].join("."), value, key, obj);
             if (typeof value === "object") {
@@ -374,7 +377,7 @@ const operations: Operations = {
             // I'm not 100% confident about this code, but it works for now
 
             class ValueMapV2 {
-              parts = [];
+              parts: any[] = [];
               originalString = "";
 
               constructor(originalString: string) {
@@ -399,7 +402,7 @@ const operations: Operations = {
 
               getAtResultIndex(indexInResult) {
                 let resultString = "";
-                let part = null;
+                let part: any | null = null;
                 for (var i = 0; i < this.parts.length; i++) {
                   part = this.parts[i];
                   resultString += part.resultString;
@@ -447,7 +450,7 @@ const operations: Operations = {
             let matchingReplacement = null;
             let totalCharCountDeltaBeforeMatch = 0;
 
-            const replacements = [];
+            const replacements: any[] = [];
             eachReplacement(operationLog.extraArgs, replacement => {
               replacements.push(replacement);
             });
@@ -516,7 +519,7 @@ const operations: Operations = {
 
       var isMemberExpressionCall = callee.type === "MemberExpression";
 
-      var args = [];
+      var args: any[] = [];
       path.node.arguments.forEach(arg => {
         args.push(
           ignoredArrayExpression([arg, getLastOperationTrackingResultCall])
@@ -544,7 +547,7 @@ const operations: Operations = {
         fnArgs["arg" + i] = arg;
       });
 
-      var call = operations.callExpression.createNode(
+      var call = operations.callExpression.createNode!(
         {
           function: [
             path.node.callee,
@@ -669,7 +672,7 @@ const operations: Operations = {
         }
       });
 
-      var call = this.createNode({
+      var call = this.createNode!({
         properties
       });
 
@@ -681,7 +684,7 @@ const operations: Operations = {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
-      return this.createNode(
+      return this.createNode!(
         {
           value: [ignoredStringLiteral(path.node.value), t.nullLiteral()]
         },
@@ -698,7 +701,7 @@ const operations: Operations = {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
-      return this.createNode({
+      return this.createNode!({
         value: [ignoredNumericLiteral(path.node.value), t.nullLiteral()]
       });
     },
@@ -715,7 +718,7 @@ const operations: Operations = {
       return getArrayArgumentValue(args.elements);
     },
     visitor(path) {
-      return this.createNode({
+      return this.createNode!({
         elements: path.node.elements.map(el =>
           ignoredArrayExpression([el, getLastOperationTrackingResultCall])
         )
@@ -733,7 +736,7 @@ const operations: Operations = {
       };
     },
     visitor(path) {
-      path.node.argument = this.createNode(
+      path.node.argument = this.createNode!(
         {
           returnValue: ignoredArrayExpression([
             path.node.argument,
@@ -783,7 +786,7 @@ const operations: Operations = {
 
       path.node.ignore = true;
 
-      return this.createNode(
+      return this.createNode!(
         {
           value: ignoredArrayExpression([
             path.node,
@@ -952,7 +955,7 @@ const operations: Operations = {
             actionName,
             initialExtraCharsValue,
             contentEndIndex = assignedInnerHTML[0].length,
-            nodesToIgnore = []
+            nodesToIgnore: any[] = []
           ) {
             var serializedHtml = el.innerHTML;
             var forDebuggingProcessedHtml = "";
@@ -1014,7 +1017,7 @@ const operations: Operations = {
               if (charOffsetAdjustmentInAssignedHtml === undefined) {
                 charOffsetAdjustmentInAssignedHtml = 0;
               }
-              var offsets = [];
+              var offsets: any[] | undefined = [];
               var extraCharsAddedHere = 0;
 
               for (var i = 0; i < textAfterAssignment.length; i++) {
@@ -1222,7 +1225,7 @@ const operations: Operations = {
                     );
                     attrStr += "='" + textAfterAssignment + "'";
 
-                    var offsetAtCharIndex = [];
+                    var offsetAtCharIndex: number[] = [];
 
                     var extraWhitespaceBeforeAttributeInAssignedHtml =
                       whitespaceBeforeAttributeInAssignedHtml.length -
@@ -1450,7 +1453,7 @@ const operations: Operations = {
         ])
       };
 
-      let trackingAssignment = null;
+      let trackingAssignment: any = null;
 
       if (path.node.left.type === "MemberExpression") {
         var property;
@@ -1485,7 +1488,7 @@ const operations: Operations = {
             )
           )
         );
-        trackingAssignment.ignore = true;
+        trackingAssignment!.ignore = true;
 
         operationArguments["currentValue"] = ignoredArrayExpression([
           path.node.left,
@@ -1503,7 +1506,7 @@ const operations: Operations = {
         throw Error("unhandled assignmentexpression node.left type");
       }
 
-      const operation = this.createNode(
+      const operation = this.createNode!(
         operationArguments,
         {
           operator: ignoredStringLiteral(path.node.operator)
@@ -1526,7 +1529,7 @@ function eachArgumentInObject(args, operationName, fn) {
   const operation = operations[operationName];
   const isObjectExpression = operationName === OperationTypes.objectExpression;
 
-  let arrayArguments = [];
+  let arrayArguments: any[] = [];
   if (operation && operation.arrayArguments) {
     arrayArguments = operation.arrayArguments;
   }
@@ -1573,7 +1576,7 @@ Object.keys(operations).forEach(opName => {
     operation.arrayArguments = [];
   }
   operation.getArgumentsArray = function(operationLog) {
-    var ret = [];
+    var ret: any[] = [];
     eachArgument(operationLog, (arg, argName, updateValue) => {
       ret.push({ arg: arg, argName });
     });

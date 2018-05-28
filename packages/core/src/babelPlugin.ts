@@ -48,7 +48,7 @@ Object.keys(operations).forEach(opName => {
   }
   opsArrayArgumentsString += `${opName}: [${operations[
     opName
-  ].arrayArguments.map(a => `"${a}"`)}],`;
+  ].arrayArguments!.map(a => `"${a}"`)}],`;
 });
 opsArrayArgumentsString += `}`;
 
@@ -69,28 +69,6 @@ helperCode += "// aaaaa"; // this seems to help with debugging/evaling the code.
 
 function plugin(babel) {
   const { types: t } = babel;
-
-  function isInWhileStatement(path) {
-    return isInNodeType("WhileStatement", path);
-  }
-
-  function isInIfStatement(path) {
-    return isInNodeType("IfStatement", path);
-  }
-
-  function isInForStatement(path) {
-    return isInNodeType("ForStatement", path);
-  }
-
-  function isInAssignmentExpression(path) {
-    return isInNodeType("AssignmentExpression", path);
-  }
-
-  function isInCallExpressionCallee(path) {
-    return isInNodeType("CallExpression", path, function(path, prevPath) {
-      return path.node.callee === prevPath.node;
-    });
-  }
 
   function handleFunction(path) {
     path.node.params.forEach((param, i) => {
@@ -121,7 +99,7 @@ function plugin(babel) {
         return;
       }
       var originalDeclarations = path.node.declarations;
-      var newDeclarations = [];
+      var newDeclarations: any[] = [];
       originalDeclarations.forEach(function(decl) {
         newDeclarations.push(decl);
         if (!decl.init) {

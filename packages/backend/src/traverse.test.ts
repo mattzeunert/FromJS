@@ -3,7 +3,7 @@ const { instrumentAndRun, server } = testHelpers;
 import { traverse as _traverse } from "./traverse";
 
 const traverse = function(firstStep) {
-  return _traverse.call(this, firstStep, [], server);
+  return _traverse.call(null, firstStep, [], server);
 };
 
 function getStepTypeList(traversalResult) {

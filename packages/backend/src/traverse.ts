@@ -11,7 +11,7 @@ export async function traverse(
   server
 ) {
   return new Promise(async resolve => {
-    let nextStep: TraversalStep = null;
+    let nextStep: TraversalStep | null | undefined = null;
 
     let { operationLog, charIndex } = step;
 

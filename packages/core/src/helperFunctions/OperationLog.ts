@@ -24,7 +24,7 @@ function eachArgument(args, arrayArguments, fn) {
 
 function serializeValue(value, nativeFunctions): SerializedValue {
   // todo: consider accessing properties that are getters could have negative impact...
-  var knownValue = null;
+  var knownValue: null | string = null;
   if (value === nativeFunctions.stringPrototypeSlice) {
     knownValue = "String.prototype.slice";
   }
@@ -91,7 +91,7 @@ export default class OperationLog {
     nativeFunctions,
     runtimeArgs
   }) {
-    var arrayArguments = [];
+    var arrayArguments: any[] = [];
     if (operation === "arrayExpression") {
       arrayArguments = ["elements"];
     }

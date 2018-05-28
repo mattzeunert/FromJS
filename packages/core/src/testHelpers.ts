@@ -3,15 +3,22 @@ import InMemoryLogServer from "./InMemoryLogServer";
 
 const server = new InMemoryLogServer();
 
+interface InstrumentAndRunResult {
+  code: string;
+  tracking?: any;
+  normal?: any;
+}
+
 export function instrumentAndRun(code) {
-  return new Promise(resolve => {
+  return new Promise<InstrumentAndRunResult>(resolve => {
     code = `getTrackingAndNormalValue((function(){ ${code} })())`;
-    compile(code).then((result: any) => {
-      var code = result.code;
+
+    compile(code).then((compileResult: any) => {
+      var code = compileResult.code;
 
       const __storeLog = server.storeLog.bind(server);
 
-      var result = eval(result.code);
+      var result: InstrumentAndRunResult = eval(code);
       result.code = code.split("* HELPER_FUNCTIONS_END */")[1]; // only the interesting code
 
       if (result.tracking) {

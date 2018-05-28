@@ -17,7 +17,7 @@ export default class InMemoryLogServer {
 
     // deep clone log so we can modify it without affecting the original
     // possibly slow, can fix later
-    log = JSON.parse(JSON.stringify(log))
+    log = JSON.parse(JSON.stringify(log));
     fn(log);
   }
   loadLog(log, fn, maxDepth = Number.POSITIVE_INFINITY, currentDepth = 0) {
@@ -42,21 +42,25 @@ export default class InMemoryLogServer {
           () => fn(log)
         );
       } else {
-        fn(log)
+        fn(log);
       }
     });
   }
   async loadLogAwaitable(log, maxDepth) {
     return new Promise(resolve => {
-      this.loadLog(log, (log) => {
-        resolve(log)
-      }, maxDepth)
-    })
+      this.loadLog(
+        log,
+        log => {
+          resolve(log);
+        },
+        maxDepth
+      );
+    });
   }
 }
 
 function updateEachOperationArgument(log, updateFn, callback) {
-  const promises = [];
+  const promises: Promise<any>[] = [];
   eachArgument(log, (arg, argName, updateArg) => {
     promises.push(
       new Promise(resolve => {

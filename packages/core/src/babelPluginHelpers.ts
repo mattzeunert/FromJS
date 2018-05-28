@@ -67,17 +67,16 @@ export function ignoredObjectExpression(props) {
 }
 
 function getLocObjectASTNode(loc) {
-
   function getASTNode(location) {
     return ignoredObjectExpression({
       line: ignoredNumericLiteral(location.line),
       column: ignoredNumericLiteral(location.column)
-    })
+    });
   }
   return ignoredObjectExpression({
     start: getASTNode(loc.start),
     end: getASTNode(loc.end)
-  })
+  });
 }
 
 export function createOperation(opType, opArgs, astArgs = null, loc = null) {
@@ -100,7 +99,7 @@ export function createOperation(opType, opArgs, astArgs = null, loc = null) {
   }
 
   if (loc) {
-    call.loc = loc
+    call.loc = loc;
   }
   return call;
 }
@@ -111,13 +110,13 @@ export const getLastOperationTrackingResultCall = ignoredCallExpression(
 );
 
 export function isInLeftPartOfAssignmentExpression(path) {
-  return isInNodeType("AssignmentExpression", path, function (path, prevPath) {
+  return isInNodeType("AssignmentExpression", path, function(path, prevPath) {
     return path.node.left === prevPath.node;
   });
 }
 
 export function isInIdOfVariableDeclarator(path) {
-  return isInNodeType("VariableDeclarator", path, function (path, prevPath) {
+  return isInNodeType("VariableDeclarator", path, function(path, prevPath) {
     return path.node.id === prevPath.node;
   });
 }
@@ -133,9 +132,9 @@ export function trackingIdentifierIfExists(identifierName) {
 export function isInNodeType(
   type,
   path,
-  extraCondition = null,
-  prevPath = null
-) {
+  extraCondition: any = null,
+  prevPath: any = null
+): boolean {
   if (prevPath === null) {
     isInNodeType(type, path.parentPath, extraCondition, path);
   }
@@ -143,13 +142,14 @@ export function isInNodeType(
     return false;
   }
   if (path.node.type === type) {
-    if (!extraCondition || extraCondition(path, prevPath)) {
+    if (!extraCondition || extraCondition!(path, prevPath)) {
       return true;
     }
   }
   if (path.parentPath) {
     return isInNodeType(type, path.parentPath, extraCondition, path);
   }
+  throw Error("unreachable");
 }
 
 export function runIfIdentifierExists(identifierName, thenNode) {

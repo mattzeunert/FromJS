@@ -4,14 +4,14 @@ var request = require("request");
 // var { prettifyAndMapFrameObject } = require("./prettify");
 
 function ajax(url) {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function(resolve, reject) {
     var r = request.defaults({ proxy: "http://127.0.0.1:8081" });
     r(
       {
         url,
         rejectUnauthorized: false // fix UNABLE_TO_VERIFY_LEAF_SIGNATURE when loading trello board
       },
-      function (err, res, body) {
+      function(err, res, body) {
         if (err) {
           console.error("request source maping error", err, url);
         } else {
@@ -69,10 +69,8 @@ function getSourceCodeObject(frameObject, code) {
 }
 
 class StackFrameResolver {
-  constructor() {
-    this._cache = {};
-    this._gps = new StackTraceGPS({ ajax });
-  }
+  _cache = {};
+  _gps = new StackTraceGPS({ ajax });
 
   resolveSourceCode(frameObject) {
     return this._fetchCode(frameObject).then(code => {
@@ -86,13 +84,13 @@ class StackFrameResolver {
 
   resolveFrameFromLoc(frameString, loc) {
     var frameObject = ErrorStackParser.parse({ stack: frameString })[0];
-    frameObject.fileName += "?dontprocess"
-    frameObject.lineNumber = loc.start.line
-    frameObject.column = loc.start.column
+    frameObject.fileName += "?dontprocess";
+    frameObject.lineNumber = loc.start.line;
+    frameObject.column = loc.start.column;
     return this.resolveSourceCode(frameObject).then(code => {
       frameObject.code = code;
-      frameObject.__debugOnly_FrameString = frameString
-      return Promise.resolve(frameObject)
+      frameObject.__debugOnly_FrameString = frameString;
+      return Promise.resolve(frameObject);
     });
   }
 
@@ -117,7 +115,7 @@ class StackFrameResolver {
           if (!prettify) {
             this.resolveSourceCode(newFrame).then(code => {
               newFrame.code = code;
-              newFrame.__debugOnly_FrameString = frameString
+              newFrame.__debugOnly_FrameString = frameString;
               finish(newFrame);
             });
           } else {
@@ -134,9 +132,9 @@ class StackFrameResolver {
             // });
           }
         },
-        function () {
+        function() {
           console.log("Pinpoint failed!", arguments);
-          reject("pinpoint failed")
+          reject("pinpoint failed");
         }
       );
     });
