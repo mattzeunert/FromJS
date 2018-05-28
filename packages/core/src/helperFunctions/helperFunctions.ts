@@ -27,7 +27,7 @@ declare var __FUNCTION_NAMES__,
   };
 
   function postToBE(endpoint, data) {
-    return fetch("http://localhost:4556" + endpoint, {
+    return fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
       method: "POST",
       headers: new Headers({
         Accept: "application/json",

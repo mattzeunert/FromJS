@@ -15,6 +15,8 @@ import { escape } from "lodash";
 import * as Baobab from "baobab";
 import { branch, root } from "baobab-react/higher-order";
 
+let backendRoot = "http://localhost:" + window["backendPort"];
+
 var appState = new Baobab({
   debugMode: false,
   steps: []
@@ -27,7 +29,7 @@ const USE_SERVER = true;
 class ServerInterface2 {
   loadLog(logId, fn) {
     document.title = logId;
-    fetch("http://localhost:4556/loadLog", {
+    fetch(backendRoot + "/loadLog", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -81,7 +83,7 @@ editor.on("change", function(cMirror) {
 
 let previousLogToInspect;
 setInterval(function() {
-  fetch("http://localhost:4556/inspect", {
+  fetch(backendRoot + "/inspect", {
     method: "GET",
     headers: {
       Accept: "application/json",
@@ -100,7 +102,7 @@ setInterval(function() {
 
 let previousDomToInspect = null;
 setInterval(function() {
-  fetch("http://localhost:4556/inspectDOM", {
+  fetch(backendRoot + "/inspectDOM", {
     method: "GET",
     headers: {
       Accept: "application/json",
@@ -168,7 +170,7 @@ const chart = document.querySelector(".chart") as HTMLElement;
 // update();
 
 function callApi(endpoint, data) {
-  return fetch("http://localhost:4556/" + endpoint, {
+  return fetch(backendRoot + "/" + endpoint, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -221,7 +223,7 @@ function eachArgument(args, arrayArguments, fn) {
 
 function loadSteps({ logId, charIndex }) {
   if (USE_SERVER) {
-    return fetch("http://localhost:4556/traverse", {
+    return fetch(backendRoot + "/traverse", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -273,7 +275,7 @@ function showSteps(logId, charIndex) {
     steps.forEach((step, i) => {
       console.log(step, step.operationLog.stack);
 
-      fetch("http://localhost:4556/resolveStackFrame", {
+      fetch(backendRoot + "/resolveStackFrame", {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -544,7 +546,7 @@ function renderTree(log, containerSelector) {
 window["showResult"] = update;
 
 function resolveStackFrame(operationLog) {
-  return fetch("http://localhost:4556/resolveStackFrame", {
+  return fetch(backendRoot + "/resolveStackFrame", {
     method: "POST",
     headers: {
       Accept: "application/json",

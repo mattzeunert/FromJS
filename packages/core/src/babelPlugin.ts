@@ -154,6 +154,10 @@ function plugin(babel) {
           "ACCESS_TOKEN_PLACEHOLDER",
           accessToken
         );
+        usableHelperCode = helperCode.replace(
+          "BACKEND_PORT_PLACEHOLDER",
+          accessToken
+        );
       } else {
         usableHelperCode = helperCode;
       }
