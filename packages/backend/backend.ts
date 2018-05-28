@@ -47,8 +47,8 @@ export default class Backend {
       }
     };
 
-    setupUI(options, app, wss);
-    setupBackend(options, app, wss);
+    setupUI(options, app, wss, proxy);
+    setupBackend(options, app, wss, proxy);
 
     // let domToInspect = null;
     // app.get("/inspectDOM", (req, res) => {
@@ -97,7 +97,7 @@ export default class Backend {
   }
 }
 
-function setupUI(options, app, wss) {
+function setupUI(options, app, wss, proxy) {
   let uiDir = path.resolve(__dirname + "/../node_modules/@fromjs/ui");
   let startPageDir = path.resolve(__dirname + "/../start-page");
 
@@ -133,7 +133,7 @@ function setupUI(options, app, wss) {
   });
 }
 
-function setupBackend(options, app, wss) {
+function setupBackend(options, app, wss, proxy) {
   const internalServerInterface = new ServerInterface();
   let json;
   try {
