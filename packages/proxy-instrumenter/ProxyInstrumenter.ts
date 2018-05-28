@@ -20,43 +20,9 @@ import { spawn } from "threads";
 
 // todo: multiple requests to same url will be cleared in one go for requestsInProgress right now
 
-// var sourceMaps = {};
-// var jsRequests = [];
-
-/* note re enablecache:
-there's always an in memory cache for the same url, but enable cache persists
-the in memory cache
-*/
 export function startProxy(options) {
-  const enableCache = false; // old fn arguments, don't think they're still needed
-  //   var responseCache = {};
-  //   if (enableCache) {
-  //     console.log("Proxy cache enabled");
-  //     console.time("Reading cache");
-  //     try {
-  //       console.time("Load response cache");
-  //       responseCache = JSON.parse(fs.readFileSync("./cache.json"));
-  //       console.timeEnd("Load response cache");
-  //       console.log(Object.keys(responseCache));
-
-  //       // also have separte sm cache, because the sm won't be in
-  //       // response cache if it has never been requested
-  //       sourceMaps = JSON.parse(fs.readFileSync("./sourceMapCache.json"));
-  //     } catch (err) {
-  //       console.log("Couldn't load existing cache");
-  //     }
-
-  //     console.timeEnd("Reading cache");
-  //   }
-
-  ////// //
-  ////// //
-
-  ////// //
-  ////// //
-
   return new Promise(resolve => {
-    var fesProxy = new FesProxy(options);
+    var fesProxy = new ProxyInstrumenter(options);
     fesProxy.start().then(() => {
       resolve(fesProxy);
     });
@@ -80,7 +46,7 @@ function checkIsJS(ctx) {
     .endsWith(".js");
 }
 
-class FesProxy {
+class ProxyInstrumenter {
   urlCache = {};
   babelPluginOptions = {};
   instrumenterFilePath = "";
@@ -330,7 +296,6 @@ class FesProxy {
   }
 
   requestProcessCode(body, url, babelPluginOptions) {
-    console.log("requestproxceecode", url);
     return new Promise(resolve => {
       const RUN_IN_SAME_PROCESS = false;
 
@@ -363,7 +328,6 @@ class FesProxy {
   processCode(body, url) {
     var cacheKey = body + url;
     if (this.processCodeCache[cacheKey]) {
-      log("cache hit", url);
       return Promise.resolve(this.processCodeCache[cacheKey]);
     }
     return this.requestProcessCode(body, url, this.babelPluginOptions).then(
