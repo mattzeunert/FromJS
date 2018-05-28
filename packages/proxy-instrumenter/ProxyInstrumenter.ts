@@ -87,7 +87,8 @@ class FesProxy {
   proxy: any = null;
   requestsInProgress: any[] = [];
 
-  constructor({ babelPluginOptions, instrumenterFilePath }) {
+  constructor({ babelPluginOptions, instrumenterFilePath, port }) {
+    this.port = port;
     this.instrumenterFilePath = instrumenterFilePath;
     this.proxy = Proxy();
     this.babelPluginOptions = babelPluginOptions;
@@ -250,7 +251,7 @@ class FesProxy {
   }
 
   start() {
-    var port = 8081;
+    var port = this.port;
     this.proxy.listen({ port: port, sslCaDir: "./ca" });
     log("Listening on " + port);
     // Was having issues in CI, so make sure to wait for proxy to be ready
