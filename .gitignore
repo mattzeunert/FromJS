@@ -20,3 +20,6 @@ packages/core/dist
 packages/core/helperFunctions.ts
 packages/backend/logs.json
 packages/backend/ca
+ca/keys
+ca/certs
+logs.json

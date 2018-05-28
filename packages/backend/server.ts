@@ -15,8 +15,11 @@ const bodyParser = require("body-parser");
 
 const internalServerInterface = new ServerInterface();
 
-let json = fs.readFileSync("logs.json").toString();
-if (json === "") {
+let json;
+try {
+  json = fs.readFileSync("logs.json").toString();
+} catch (err) {}
+if (!json) {
   json = "{}";
 }
 internalServerInterface._storedLogs = JSON.parse(json);

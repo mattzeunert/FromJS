@@ -1,4 +1,4 @@
-// plain JS worker thread
+// worker thread
 
 Error.stackTraceLimit = Infinity;
 
