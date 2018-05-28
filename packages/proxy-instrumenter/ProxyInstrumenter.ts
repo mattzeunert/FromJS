@@ -126,7 +126,6 @@ class ProxyInstrumenter {
           }
         };
 
-        console.log("checking url cache for", url);
         if (this.urlCache[url]) {
           log("Url cache hit!");
           Object.keys(this.urlCache[url].headers).forEach(name => {

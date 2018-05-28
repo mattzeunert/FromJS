@@ -110,24 +110,24 @@ setInterval(function() {
     });
 }, 5000);
 
-let previousDomToInspect = null;
-setInterval(function() {
-  fetch(backendRoot + "/inspectDOM", {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    }
-  })
-    .then(res => res.json())
-    .then(r => {
-      const { domToInspect } = r;
-      if (domToInspect !== previousDomToInspect) {
-        previousDomToInspect = domToInspect;
-        inspectDom(domToInspect);
-      }
-    });
-}, 5000);
+// let previousDomToInspect = null;
+// setInterval(function() {
+//   fetch(backendRoot + "/inspectDOM", {
+//     method: "GET",
+//     headers: {
+//       Accept: "application/json",
+//       "Content-Type": "application/json"
+//     }
+//   })
+//     .then(res => res.json())
+//     .then(r => {
+//       const { domToInspect } = r;
+//       if (domToInspect !== previousDomToInspect) {
+//         previousDomToInspect = domToInspect;
+//         inspectDom(domToInspect);
+//       }
+//     });
+// }, 5000);
 
 let inspectDom;
 class DomInspector extends React.Component<null, any> {
