@@ -1,7 +1,7 @@
-var request = require("request");
-var waitUntil = require("wait-until");
-var fs = require("fs");
-var Proxy = require("http-mitm-proxy");
+import * as request from "request";
+import * as waitUntil from "wait-until";
+import * as fs from "fs";
+import * as Proxy from "http-mitm-proxy";
 
 function logWithPrefix(prefix) {
   return function log(...args) {
@@ -14,9 +14,9 @@ const log = logWithPrefix("[PROXY]");
 
 ////////////////////////
 
-Error.stackTraceLimit = Infinity;
+Error["stackTraceLimit"] = Infinity;
 
-const spawn = require("threads").spawn;
+import { spawn } from "threads";
 
 // todo: multiple requests to same url will be cleared in one go for requestsInProgress right now
 
@@ -28,8 +28,7 @@ there's always an in memory cache for the same url, but enable cache persists
 the in memory cache
 */
 export function startProxy(options) {
-  const analysisDirectory = "",
-    enableCache = false; // old fn arguments, don't think they're still needed
+  const enableCache = false; // old fn arguments, don't think they're still needed
   //   var responseCache = {};
   //   if (enableCache) {
   //     console.log("Proxy cache enabled");
@@ -85,11 +84,12 @@ class FesProxy {
   urlCache = {};
   babelPluginOptions = {};
   instrumenterFilePath = "";
+  proxy: any = null;
+  requestsInProgress: any[] = [];
+
   constructor({ babelPluginOptions, instrumenterFilePath }) {
     this.instrumenterFilePath = instrumenterFilePath;
     this.proxy = Proxy();
-    this.requestsInProgress = [];
-    this.analysisDirectory = ""; // unused i think
     this.babelPluginOptions = babelPluginOptions;
 
     this.proxy.onError((ctx, err, errorKind) => {
@@ -173,7 +173,7 @@ class FesProxy {
 
         ctx.use(Proxy.gunzip);
 
-        var chunks = [];
+        var chunks: any[] = [];
         ctx.onResponseData(function(ctx, chunk, callback) {
           chunks.push(chunk);
           var chunkSizeInKb =
@@ -366,7 +366,7 @@ class FesProxy {
     }
     return this.requestProcessCode(body, url, this.babelPluginOptions).then(
       response => {
-        var { code, map } = response;
+        var { code, map } = <any>response;
         var result = { code, map };
         this.setProcessCodeCache(body, url, result);
         return Promise.resolve(result);
