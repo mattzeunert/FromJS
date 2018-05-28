@@ -6,8 +6,9 @@
   "author": "<matt@mostlystatic.com>",
   "license": "MIT",
   "scripts": {
-    "compile-core": "cd packages/core;tsc -p ./  --project tsconfig2.json",
-    "compile-core-watch": "cd packages/core;tsc --watch -p ./  --project tsconfig2.json",
+    "compile-core": "cd packages/core;tsc --project tsconfig2.json",
+    "compile-core-watch":
+      "cd packages/core;tsc --watch --project tsconfig2.json",
     "test": "jest",
     "test-watch": "jest --watch",
     "test-debug": "node --inspect ./node_modules/.bin/jest --runInBand --watch"
@@ -19,17 +20,11 @@
     "typescript": "^2.8.1"
   },
   "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
+    "moduleFileExtensions": ["ts", "tsx", "js"],
     "transform": {
       "^.+\\.(ts|tsx)$": "./preprocessor.js"
     },
-    "testMatch": [
-      "**/*.test.(ts|tsx|js)"
-    ]
+    "testMatch": ["**/*.test.(ts|tsx|js)"]
   },
   "devDependencies": {
     "error-stack-parser": "^2.0.1",
