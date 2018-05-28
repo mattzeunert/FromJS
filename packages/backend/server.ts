@@ -145,7 +145,7 @@ export default class Backend {
       }, 500);
     });
 
-    const resolver = new StackFrameResolver();
+    const resolver = new StackFrameResolver({ proxyPort });
 
     app.post("/resolveStackFrame", (req, res) => {
       const frameString = req.body.stackFrameString;

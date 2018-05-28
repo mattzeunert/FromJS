@@ -3,25 +3,6 @@ var ErrorStackParser = require("error-stack-parser");
 var request = require("request");
 // var { prettifyAndMapFrameObject } = require("./prettify");
 
-function ajax(url) {
-  return new Promise(function(resolve, reject) {
-    var r = request.defaults({ proxy: "http://127.0.0.1:8081" });
-    r(
-      {
-        url,
-        rejectUnauthorized: false // fix UNABLE_TO_VERIFY_LEAF_SIGNATURE when loading trello board
-      },
-      function(err, res, body) {
-        if (err) {
-          console.error("request source maping error", err, url);
-        } else {
-          resolve(body);
-        }
-      }
-    );
-  });
-}
-
 function getSourceCodeObject(frameObject, code) {
   function makeLine(fullLine, focusColumn) {
     try {
@@ -70,7 +51,35 @@ function getSourceCodeObject(frameObject, code) {
 
 class StackFrameResolver {
   _cache = {};
-  _gps = new StackTraceGPS({ ajax });
+  _gps: any = null;
+  _proxyPort: number | null = null;
+
+  constructor({ proxyPort }) {
+    console.log("creating stackframeresolver", proxyPort);
+    this._proxyPort = proxyPort;
+    this._gps = new StackTraceGPS({ ajax: this._ajax.bind(this) });
+  }
+
+  _ajax(url) {
+    return new Promise((resolve, reject) => {
+      var r = request.defaults({
+        proxy: "http://127.0.0.1:" + this._proxyPort
+      });
+      r(
+        {
+          url,
+          rejectUnauthorized: false // fix UNABLE_TO_VERIFY_LEAF_SIGNATURE when loading trello board
+        },
+        function(err, res, body) {
+          if (err) {
+            console.error("request source maping error", err, url);
+          } else {
+            resolve(body);
+          }
+        }
+      );
+    });
+  }
 
   resolveSourceCode(frameObject) {
     return this._fetchCode(frameObject).then(code => {

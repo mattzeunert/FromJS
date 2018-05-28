@@ -624,18 +624,21 @@ let TraversalStep = class TraversalStep extends React.Component<
     let code;
     let fileName, columnNumber, lineNumber;
     let previousLine, nextLine;
+
     try {
+      const { previousLines, nextLines } = stackFrame.code;
       code = stackFrame.code.line.text;
       fileName = stackFrame.fileName.replace("?dontprocess", "");
       lineNumber = stackFrame.lineNumber;
       columnNumber = stackFrame.columnNumber;
-      previousLine =
-        stackFrame.code.previousLines[stackFrame.code.previousLines.length - 1]
-          .text;
-      nextLine =
-        stackFrame.code.nextLines[stackFrame.code.nextLines.length - 1].text;
+      if (previousLines.length > 0) {
+        previousLine = previousLines[previousLines.length - 1].text;
+      }
+      if (nextLines.lenght > 0) {
+        nextLine = nextLines[nextLines.length - 1].text;
+      }
     } catch (err) {
-      code = err.toString();
+      code = "Loading or error...";
       fileName = "(error)";
     }
 
