@@ -9,6 +9,7 @@ import * as prettier from "prettier";
 import { startProxy } from "@fromjs/proxy-instrumenter";
 import * as Babel from "babel-core";
 import * as crypto from "crypto";
+import * as path from "path";
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -28,7 +29,9 @@ const app = express();
 
 app.use(bodyParser.json({ limit: "50mb" }));
 
-app.use(express.static("../ui"));
+let uiDirPath = path.resolve(__dirname + "/../node_modules/@fromjs/ui");
+console.log({ uiDirPath });
+app.use(express.static(uiDirPath));
 
 function verifyToken(req) {
   if (req.headers.authorization !== accessToken) {
