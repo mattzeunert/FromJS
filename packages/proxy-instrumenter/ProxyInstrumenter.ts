@@ -301,7 +301,7 @@ class FesProxy {
     );
   }
   proxiedFetchUrl(url) {
-    var r = request.defaults({ proxy: "http://127.0.0.1:8081" });
+    var r = request.defaults({ proxy: "http://127.0.0.1:" + this.port });
     return new Promise((resolve, reject) => {
       if (this.urlCache[url]) {
         resolve(this.urlCache[url].body);
