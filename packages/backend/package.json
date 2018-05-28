@@ -1,14 +1,9 @@
 {
   "name": "@fromjs/backend",
   "version": "1.0.0",
-  "main": "./dist/server.js",
-  "types": "./dist/server.d.ts",
+  "main": "./dist/backend.js",
+  "types": "./dist/backend.d.ts",
   "license": "MIT",
-  "scripts": {
-    "start": "nodemon --ignore \"logs.json\"  -r ts-node/register server.ts",
-    "start-debug":
-      "nodemon --inspect  --ignore \"logs.json\"  -r ts-node/register server.ts"
-  },
   "dependencies": {
     "@types/jest": "^22.2.3",
     "@types/node": "^10.1.3",
