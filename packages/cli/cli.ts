@@ -1,5 +1,5 @@
 import * as commander from "commander";
-import "@fromjs/backend"; // starts BE on module load
+import Backend from "@fromjs/backend";
 import * as puppeteer from "puppeteer";
 
 commander.version(require("../package.json").version).parse(process.argv);
@@ -7,7 +7,14 @@ commander.version(require("../package.json").version).parse(process.argv);
 let bePort = 7000;
 let proxyPort = bePort + 1;
 
-puppeteer.launch({
-  args: ["--proxy-server=127.0.0.1:" + proxyPort],
-  headless: false
+const backend = new Backend({
+  bePort,
+  proxyPort,
+  onReady: function() {
+    console.log("ready");
+    puppeteer.launch({
+      args: ["--proxy-server=127.0.0.1:" + proxyPort],
+      headless: false
+    });
+  }
 });
