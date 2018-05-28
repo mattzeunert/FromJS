@@ -86,6 +86,7 @@ class FesProxy {
   instrumenterFilePath = "";
   proxy: any = null;
   requestsInProgress: any[] = [];
+  port: null;
 
   constructor({ babelPluginOptions, instrumenterFilePath, port }) {
     this.port = port;

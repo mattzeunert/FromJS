@@ -36,7 +36,7 @@ console.log({ uiDirPath });
 
 app.get("/", (req, res) => {
   let html = fs.readFileSync(uiDirPath + "/index.html").toString();
-  html = html.replace("BACKEND_PORT_PLACEHOLDER", port);
+  html = html.replace("BACKEND_PORT_PLACEHOLDER", port.toString());
   res.send(html);
 });
 
