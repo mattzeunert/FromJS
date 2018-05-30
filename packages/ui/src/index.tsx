@@ -26,7 +26,11 @@ window["appState"] = appState;
 
 appState.select("inspectionTarget").on("update", ({ target }) => {
   const inspectionTarget = target.get();
-  showSteps(inspectionTarget.logId, inspectionTarget.charIndex);
+  if (!inspectionTarget || inspectionTarget.logId === null) {
+    console.log("no inspection target!!");
+  } else {
+    showSteps(inspectionTarget.logId, inspectionTarget.charIndex);
+  }
 });
 
 const DEBUG = true;
@@ -56,7 +60,10 @@ exampleSocket.onmessage = function(event) {
   console.log("websocket onmessage", event.data);
   const message = JSON.parse(event.data);
   if (message.type === "inspectOperationLog") {
-    showSteps(message.operationLogId, 0);
+    appState.set("inspectionTarget", {
+      logId: message.operationLogId,
+      charIndex: 0
+    });
   }
 };
 
@@ -786,6 +793,45 @@ let TraversalSteps = class TraversalSteps extends React.Component<
     }
 
     stepsToShow = steps;
+
+    const interestingSteps = [];
+    let previousStep = steps[0];
+    // debugger;
+    for (var i = 1; i < steps.length - 1; i++) {
+      const step = steps[i];
+      const previousStepCriteria = getStepInterestingnessCriteria(previousStep);
+      const stepCriteria = getStepInterestingnessCriteria(step);
+
+      console.log(step);
+      if (step.operationLog.operation === "jsonParseResult") {
+        // debugger;
+      }
+      if (
+        previousStepCriteria.charsAfter !== stepCriteria.charsAfter ||
+        previousStepCriteria.charsBefore !== stepCriteria.charsBefore
+      ) {
+        interestingSteps.push(step);
+      }
+      previousStep = step;
+    }
+
+    function getStepInterestingnessCriteria(step) {
+      let str = step.operationLog.result.str;
+
+      let charIndexTwoCharsBefore = step.charIndex - 2;
+      if (charIndexTwoCharsBefore < 0) {
+        charIndexTwoCharsBefore = 0;
+      }
+      let charIndexTwoCharsAfter = step.charIndex + 2;
+      if (charIndexTwoCharsAfter > str.length - 1) {
+        charIndexTwoCharsAfter = str.length - 1;
+      }
+      return {
+        charsBefore: str.slice(charIndexTwoCharsBefore, step.charIndex),
+        charsAfter: str.slice(step.charIndex, charIndexTwoCharsAfter)
+      };
+    }
+
     // if (this.props.debugMode) {
 
     // } else {
@@ -824,6 +870,15 @@ let TraversalSteps = class TraversalSteps extends React.Component<
           key={steps[steps.length - 1].operationLog.index}
           step={steps[steps.length - 1]}
         />
+        <hr />
+        <hr />
+        <div>Relevant code:</div>
+        {interestingSteps
+          .map(step => (
+            <TraversalStep key={step.operationLog.index} step={step} />
+          ))
+          .reverse()}
+        <hr />
         <hr />
         <div>Full data flow:</div>
         {stepsToShow
