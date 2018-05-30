@@ -19,9 +19,15 @@ let backendRoot = "http://localhost:" + window["backendPort"];
 
 var appState = new Baobab({
   debugMode: false,
-  steps: []
+  steps: [],
+  inspectionTarget: null
 });
 window["appState"] = appState;
+
+appState.select("inspectionTarget").on("update", ({ target }) => {
+  const inspectionTarget = target.get();
+  showSteps(inspectionTarget.logId, inspectionTarget.charIndex);
+});
 
 const DEBUG = true;
 const USE_SERVER = true;
@@ -91,24 +97,21 @@ editor.on("change", function(cMirror) {
   }
 });
 
-let previousLogToInspect;
-setInterval(function() {
-  fetch(backendRoot + "/inspect", {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    }
-  })
-    .then(res => res.json())
-    .then(r => {
-      // const { logToInspect } = r
-      // if (logToInspect !== previousLogToInspect) {
-      //   previousLogToInspect = logToInspect
-      //   showSteps(logToInspect, 15)
-      // }
+fetch(backendRoot + "/inspect", {
+  method: "GET",
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json"
+  }
+})
+  .then(res => res.json())
+  .then(r => {
+    const { logToInspect } = r;
+    appState.set("inspectionTarget", {
+      logId: logToInspect,
+      charIndex: 0
     });
-}, 5000);
+  });
 
 // let previousDomToInspect = null;
 // setInterval(function() {
@@ -256,6 +259,7 @@ function showSteps(logId, charIndex) {
   window["updateChar"](charIndex);
   loadSteps({ logId, charIndex }).then(r => {
     var steps = r.steps;
+    console.log({ steps });
 
     appState.set("steps", steps);
 
@@ -580,6 +584,10 @@ function getFileNameFromPath(path) {
   return parts[parts.length - 1];
 }
 
+function onInspectionTargetChanged() {
+  console.log("onInspectionTargetChanged", arguments);
+}
+
 type TraversalStepProps = {
   step: any;
   debugMode?: boolean;
@@ -607,7 +615,7 @@ let TraversalStep = class TraversalStep extends React.Component<
     const { step } = props;
     resolveStackFrame(step.operationLog)
       .then(r => {
-        console.log("got stackframe", r);
+        // console.log("got stackframe", r);
         this.setState({
           stackFrame: r
         });
@@ -650,9 +658,9 @@ let TraversalStep = class TraversalStep extends React.Component<
     }
 
     const str = operationLog.result.str;
-    const beforeChar = prepareText(str.slice(0, charIndex));
-    const char = str.slice(charIndex, charIndex + 1);
-    const afterChar = prepareText(str.slice(charIndex + 1));
+    // const beforeChar = prepareText(str.slice(0, charIndex));
+    // const char = str.slice(charIndex, charIndex + 1);
+    // const afterChar = prepareText(str.slice(charIndex + 1));
 
     let operationTypeDetail = null;
     if (operationLog.operation === "identifier" && stackFrame) {
@@ -696,10 +704,19 @@ let TraversalStep = class TraversalStep extends React.Component<
             <code>{code}</code>
             {isExpanded && <code style={{ display: "block" }}>{nextLine}</code>}
           </div>
-          <div className="step__string">
+          {/* <div className="step__string">
             <span>{beforeChar}</span>
             <span style={{ color: "#dc1045" }}>{char}</span>
             <span>{afterChar}</span>
+          </div> */}
+          <div>
+            <TextEl
+              text={str}
+              highlightedCharacterIndex={charIndex}
+              onCharacterClick={charIndex =>
+                appState.set(["inspectionTarget", "charIndex"], charIndex)
+              }
+            />
           </div>
           <div>
             {isExpanded && (
@@ -827,6 +844,322 @@ TraversalSteps = branch(
   TraversalSteps
 );
 
+class TextEl extends React.Component<any, any> {
+  constructor(props) {
+    super(props);
+    this.state = {
+      truncateText: true
+    };
+  }
+  shouldComponentUpdate(nextProps, nextState) {
+    // console.time("TextEl shouldUpdate")
+    var shouldUpdate =
+      JSON.stringify(nextProps) !== JSON.stringify(this.props) ||
+      JSON.stringify(nextState) !== JSON.stringify(this.state);
+    // console.timeEnd("TextEl shouldUpdate")
+    return shouldUpdate;
+  }
+  render() {
+    var self = this;
+
+    function splitLines(str) {
+      var lineStrings = str.split("\n");
+      var lines = [];
+      var charOffset = 0;
+      lineStrings.forEach(function(lineString, i) {
+        var isLastLine = i + 1 === lineStrings.length;
+        var text = lineString + (isLastLine ? "" : "\n");
+        var charOffsetStart = charOffset;
+        var charOffsetEnd = charOffset + text.length;
+        lines.push({
+          text: text,
+          lineNumber: i,
+          charOffsetStart: charOffsetStart,
+          charOffsetEnd: charOffsetEnd,
+          containsCharIndex: function(index) {
+            return index >= charOffsetStart && index < charOffsetEnd;
+          },
+          splitAtCharIndex: function(index) {
+            var lineBeforeIndex = text.substr(
+              0,
+              highlightedCharIndex - charOffsetStart
+            );
+            var lineAtIndex = text.substr(
+              highlightedCharIndex - charOffsetStart,
+              1
+            );
+            var lineAfterIndex = text.substr(
+              highlightedCharIndex + 1 - charOffsetStart
+            );
+            return [
+              {
+                text: lineBeforeIndex,
+                charOffsetStart: charOffsetStart
+              },
+              {
+                text: lineAtIndex,
+                charOffsetStart: charOffsetStart + lineBeforeIndex.length
+              },
+              {
+                text: lineAfterIndex,
+                charOffsetStart:
+                  charOffsetStart + lineBeforeIndex.length + lineAtIndex.length
+              }
+            ];
+          }
+        });
+        charOffset = charOffsetEnd;
+      });
+
+      if (charOffset !== str.length) {
+        throw "looks like sth went wrong?";
+      }
+      return lines;
+    }
+
+    function processChar(char) {
+      if (char === "\n") {
+        char = "\u21B5"; // downwards arrow with corner leftwards
+      }
+      if (char === " ") {
+        char = "\xa0";
+      }
+      if (char === "\t") {
+        char = "\xa0\xa0";
+      }
+      return char;
+    }
+    function charIsWhitespace(char) {
+      return char === "\t" || char === " ";
+    }
+    function getValueSpan(
+      char,
+      extraClasses,
+      key,
+      onClick,
+      onMouseEnter,
+      onMouseLeave
+    ) {
+      var className = extraClasses;
+      if (charIsWhitespace(char)) {
+        className += " fromjs-value__whitespace-character";
+      }
+
+      var processedChar = processChar(char);
+
+      return (
+        <span
+          className={className}
+          onClick={onClick}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          key={key}
+        >
+          {processedChar}
+        </span>
+      );
+    }
+    function getValueSpans(val, indexOffset) {
+      var els = [];
+      for (let index = 0; index < val.length; index++) {
+        var char = val[index];
+
+        els.push(
+          getValueSpan(
+            char,
+            "",
+            index + indexOffset,
+            () => {
+              self.props.onCharacterClick(index + indexOffset);
+            },
+            () => {
+              if (!self.props.onCharacterHover) {
+                return;
+              }
+              self.props.onCharacterHover(index + indexOffset);
+            },
+            () => {
+              if (!self.props.onCharacterHover) {
+                return;
+              }
+              self.props.onCharacterHover(null);
+            }
+          )
+        );
+      }
+      return els;
+    }
+
+    var val = this.props.text;
+
+    var self = this;
+    var highlightedCharIndex = this.props.highlightedCharacterIndex;
+
+    if (highlightedCharIndex === undefined || highlightedCharIndex === null) {
+      return <div className="fromjs-value">{getValueSpans(val, 0)}</div>;
+    } else {
+      var lines = splitLines(val);
+
+      var valBeforeColumn = val.substr(0, highlightedCharIndex);
+      var valAtColumn = val.substr(highlightedCharIndex, 1);
+      var valAfterColumn = val.substr(highlightedCharIndex + 1);
+
+      var highlightedCharLineIndex = valBeforeColumn.split("\n").length;
+
+      var showFromLineIndex = highlightedCharLineIndex - 2;
+      if (showFromLineIndex < 0) {
+        showFromLineIndex = 0;
+      }
+      var showToLineIndex = showFromLineIndex + 3;
+
+      if (!this.state.truncateText) {
+        showFromLineIndex = 0;
+        showToLineIndex = lines.length;
+      }
+
+      var linesToShow = lines.slice(showFromLineIndex, showToLineIndex);
+
+      function getLineComponent(line, beforeSpan, afterSpan) {
+        var valueSpans = [];
+        if (line.containsCharIndex(highlightedCharIndex)) {
+          var chunks = line.splitAtCharIndex(highlightedCharIndex);
+
+          var textBeforeHighlight = chunks[0].text;
+          if (textBeforeHighlight.length > 50 && self.state.truncateText) {
+            var textA = textBeforeHighlight.slice(0, 40);
+            var textB = textBeforeHighlight.slice(
+              textBeforeHighlight.length - 10
+            );
+            valueSpans = [
+              getValueSpans(textA, chunks[0].charOffsetStart),
+              getEllipsisSpan("ellipsis-line-before-highlight"),
+              getValueSpans(
+                textB,
+                chunks[0].charOffsetStart +
+                  textBeforeHighlight.length -
+                  textB.length
+              )
+            ];
+          } else {
+            valueSpans = valueSpans.concat(
+              getValueSpans(chunks[0].text, chunks[0].charOffsetStart)
+            );
+          }
+
+          valueSpans = valueSpans.concat(
+            getValueSpan(
+              chunks[1].text,
+              "fromjs-highlighted-character",
+              "highlighted-char-key",
+              function() {},
+              function() {},
+              function() {}
+            )
+          );
+
+          var restofLineValueSpans;
+          var textAfterHighlight = chunks[2].text;
+          if (textAfterHighlight.length > 60 && self.state.truncateText) {
+            restofLineValueSpans = [
+              getValueSpans(
+                chunks[2].text.slice(0, 60),
+                chunks[2].charOffsetStart
+              ),
+              getEllipsisSpan("ellipsis-line-after-highlight")
+            ];
+          } else {
+            restofLineValueSpans = getValueSpans(
+              chunks[2].text,
+              chunks[2].charOffsetStart
+            );
+          }
+          valueSpans = valueSpans.concat(restofLineValueSpans);
+        } else {
+          valueSpans = getValueSpans(line.text, line.charOffsetStart);
+        }
+        return (
+          <div key={"Line" + line.lineNumber}>
+            {beforeSpan}
+            {valueSpans}
+            {afterSpan}
+          </div>
+        );
+      }
+
+      function getEllipsisSpan(key) {
+        return (
+          <span onClick={() => self.disableTruncateText()} key={key}>
+            ...
+          </span>
+        );
+      }
+
+      var ret = (
+        <HorizontalScrollContainer>
+          <div className="fromjs-value">
+            <div
+              className="fromjs-value__content"
+              ref={el => {
+                this.scrollToHighlightedChar(el, highlightedCharLineIndex);
+              }}
+            >
+              {linesToShow.map((line, i) => {
+                var beforeSpan = null;
+                if (i === 0 && line.charOffsetStart > 0) {
+                  beforeSpan = getEllipsisSpan("beforeEllipsis");
+                }
+                var afterSpan = null;
+                if (
+                  i === linesToShow.length - 1 &&
+                  line.charOffsetEnd < val.length
+                ) {
+                  afterSpan = getEllipsisSpan("afterEllipsis");
+                }
+                return getLineComponent(line, beforeSpan, afterSpan);
+              })}
+            </div>
+          </div>
+        </HorizontalScrollContainer>
+      );
+      return ret;
+    }
+  }
+  scrollToHighlightedChar(el, highlightedCharLineIndex) {
+    if (!el) {
+      return;
+    }
+    if (this.state.truncateText) {
+      return;
+    }
+    var lineHeight = 18;
+    var lineAtTop = highlightedCharLineIndex - 4;
+    if (lineAtTop < 0) {
+      lineAtTop = 0;
+    }
+
+    el.scrollTop = lineAtTop * lineHeight;
+  }
+  disableTruncateText() {
+    if (this.props.text.length > 20000) {
+      alert(
+        "Refusing to expand text longer than 20,000 characters. It will just crash your browser."
+      );
+      return;
+    }
+    this.setState({ truncateText: false });
+  }
+}
+
+class HorizontalScrollContainer extends React.Component<any, any> {
+  render() {
+    return (
+      <div className="fromjs-horizontal-scroll-container">
+        <div>{this.props.children}</div>
+      </div>
+    );
+  }
+}
+
 let App = () => {
   return (
     <div>
@@ -845,4 +1178,4 @@ App = root(appState, App);
 
 ReactDom.render(<App />, document.querySelector("#app"));
 
-showSteps(522841433, 101);
+// showSteps(522841433, 101);

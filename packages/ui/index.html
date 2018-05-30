@@ -179,6 +179,61 @@
       max-width: 800px;
       margin-bottom: 10px;
     }
+
+
+
+    .fromjs-value {
+      padding: 10px;
+    }
+
+    .fromjs-value span:hover {
+      color: red;
+      border-bottom: 2px solid red;
+    }
+
+    .fromjs-value span {
+      cursor: pointer;
+    }
+
+    body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
+      background: #ff1a1a;
+    }
+
+    .fromjs-value__whitespace-character.fromjs-highlighted-character {
+      background: #9ad0ff;
+    }
+
+    .fromjs-highlighted-character {
+      color: #0088ff;
+      font-weight: bold;
+      border-bottom: 2px solid #0088ff;
+    }
+
+
+
+    .fromjs-value__content {
+      max-height: 112px;
+      overflow: auto;
+    }
+
+    .fromjs-value__whitespace-character.fromjs-highlighted-character {
+      background: #9ad0ff;
+    }
+
+    .fromjs-value__content {
+      max-height: 112px;
+      overflow: auto;
+    }
+
+    .fromjs-horizontal-scroll-container {
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .fromjs-horizontal-scroll-container>div {
+      display: inline-block;
+      min-width: 100%;
+    }
   </style>
 
 </head>
