@@ -41,7 +41,8 @@ it("Intercepts and rewrite requests", async () => {
   const server: any = await startServer();
   const proxy: any = await startProxy({
     port: proxyPort,
-    instrumenterFilePath: __dirname + "/testInstrumenter.js"
+    instrumenterFilePath: __dirname + "/testInstrumenter.js",
+    silent: true
   });
   const response = await makeRequest("/test.js");
   server.close();
@@ -49,7 +50,7 @@ it("Intercepts and rewrite requests", async () => {
   expect(response).toBe("Hello World!");
 });
 
-it("And skip rewritting some URLs", async () => {
+it("Can skip rewritting some URLs", async () => {
   const server: any = await startServer();
   const proxy: any = await startProxy({
     port: proxyPort,
@@ -59,10 +60,23 @@ it("And skip rewritting some URLs", async () => {
         return false;
       }
       return true;
-    }
+    },
+    silent: true
   });
   const response = await makeRequest("/dontRewrite/test.js");
   server.close();
   proxy.close();
   expect(response).toBe("Hi World!");
+});
+
+it("Can handle eval'd scripts", async () => {
+  const proxy: any = await startProxy({
+    port: proxyPort,
+    instrumenterFilePath: __dirname + "/testInstrumenter.js",
+    silent: true
+  });
+  const result = await proxy.registerEvalScript(`var a = "Hi"`);
+  expect(result.instrumentedCode).toContain("Hello");
+
+  proxy.close();
 });

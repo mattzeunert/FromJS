@@ -54,18 +54,21 @@ class ProxyInstrumenter {
   requestsInProgress: any[] = [];
   port: null;
   shouldInstrument: any;
+  silent = false;
 
   constructor({
     babelPluginOptions,
     instrumenterFilePath,
     port,
-    shouldInstrument
+    shouldInstrument,
+    silent
   }) {
     this.port = port;
     this.instrumenterFilePath = instrumenterFilePath;
     this.proxy = Proxy();
     this.babelPluginOptions = babelPluginOptions;
     this.shouldInstrument = shouldInstrument;
+    this.silent = silent;
 
     this.proxy.onError((ctx, err, errorKind) => {
       var url = "n/a";
@@ -81,7 +84,9 @@ class ProxyInstrumenter {
       let protocol = ctx.isSSL ? "https" : "http";
       var url = getUrl(ctx);
 
-      console.log("Request: " + url);
+      if (!this.silent) {
+        log("Request: " + url);
+      }
       if (url === "http://example.com/verifyProxyWorks") {
         ctx.proxyToClientResponse.end("Confirmed proxy works!");
         return;
@@ -176,16 +181,18 @@ class ProxyInstrumenter {
           var body = buffer.toString();
           var msElapsed = new Date().valueOf() - jsFetchStartTime.valueOf();
           var speed = Math.round(buffer.byteLength / msElapsed / 1000 * 1000);
-          log(
-            "JS ResponseEnd",
-            url,
-            "Time:",
-            msElapsed + "ms",
-            "Size: ",
-            buffer.byteLength / 1024 + "kb",
-            " Speed",
-            speed + "kb/s"
-          );
+          if (!this.silent) {
+            log(
+              "JS ResponseEnd",
+              url,
+              "Time:",
+              msElapsed + "ms",
+              "Size: ",
+              buffer.byteLength / 1024 + "kb",
+              " Speed",
+              speed + "kb/s"
+            );
+          }
 
           var contentTypeHeader =
             ctx.serverToProxyResponse.headers["content-type"];
@@ -237,7 +244,9 @@ class ProxyInstrumenter {
   start() {
     var port = this.port;
     this.proxy.listen({ port: port, sslCaDir: "./ca" });
-    log("Listening on " + port);
+    if (!this.silent) {
+      log("Listening on " + port);
+    }
     // Was having issues in CI, so make sure to wait for proxy to be ready
     return new Promise(resolve => {
       waitUntil()
@@ -259,8 +268,13 @@ class ProxyInstrumenter {
     });
   }
 
-  registerEvalScript(url, code) {
-    // // Original code here because it will still be processed later on!
+  registerEvalScript(code) {
+    const url =
+      "http://localhost:11111/eval" +
+      Math.floor(Math.random() * 10000000000) +
+      ".js";
+
+    // Original code here because it will still be processed later on!
     this.urlCache[url] = {
       headers: {},
       body: code
@@ -271,18 +285,13 @@ class ProxyInstrumenter {
       body: code
     };
 
-    return this.processCode(code, url);
-
-    // this.urlCache[url + "?dontprocess"] = {
-    //   headers: {},
-    //   body: code
-    // };
-
-    // const babelResultCode =
-    //   babelResult.code + "\n//#sourceMappingURL=" + url + ".map";
-    // babelResult = JSON.parse(JSON.stringify(babelResult));
-    // babelResult.code = babelResultCode;
-    // this.setProcessCodeCache(babelResultCode, url, babelResult);
+    return this.processCode(code, url).then(babelResult => {
+      const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url;
+      return Promise.resolve({
+        ...babelResult,
+        instrumentedCode
+      });
+    });
   }
 
   finishRequest(finishedUrl) {

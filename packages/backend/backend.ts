@@ -249,20 +249,14 @@ function setupBackend(options, app, wss, getProxy) {
   });
 
   app.post("/instrument", (req, res) => {
-    const url =
-      "http://localhost:11111/eval" +
-      Math.floor(Math.random() * 10000000000) +
-      ".js";
-
     const code = req.body.code;
 
     getProxy()
-      .registerEvalScript(url, code)
+      .registerEvalScript(code)
       .then(babelResult => {
-        console.log(babelResult.code.split("* HELPER_FUNCTIONS_END */")[1]);
-
-        const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url;
-        res.end(JSON.stringify({ instrumentedCode }));
+        res.end(
+          JSON.stringify({ instrumentedCode: babelResult.instrumentedCode })
+        );
       });
   });
 }
