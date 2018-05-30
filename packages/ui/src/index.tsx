@@ -652,7 +652,7 @@ let TraversalStep = class TraversalStep extends React.Component<
       if (previousLines.length > 0) {
         previousLine = previousLines[previousLines.length - 1].text;
       }
-      if (nextLines.lenght > 0) {
+      if (nextLines.length > 0) {
         nextLine = nextLines[nextLines.length - 1].text;
       }
     } catch (err) {
@@ -673,7 +673,7 @@ let TraversalStep = class TraversalStep extends React.Component<
     // const afterChar = prepareText(str.slice(charIndex + 1));
 
     let operationTypeDetail = null;
-    if (operationLog.operation === "identifier" && stackFrame) {
+    if (operationLog.operation === "identifier" && stackFrame && code) {
       operationTypeDetail =
         "(" +
         code.slice(operationLog.loc.start.column, operationLog.loc.end.column) +

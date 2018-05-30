@@ -256,19 +256,14 @@ function setupBackend(options, app, wss, getProxy) {
 
     const code = req.body.code;
 
-    var babelResult = Babel.transform(code, {
-      plugins: [babelPlugin],
-      sourceMaps: true
-    });
+    getProxy()
+      .registerEvalScript(url, code)
+      .then(babelResult => {
+        console.log(babelResult.code.split("* HELPER_FUNCTIONS_END */")[1]);
 
-    const evalScriptCode = code;
-    // debugger
-    getProxy().registerEvalScript(url, evalScriptCode, babelResult);
-
-    console.log(babelResult.code.split("* HELPER_FUNCTIONS_END */")[1]);
-
-    const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url;
-    res.end(JSON.stringify({ instrumentedCode }));
+        const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url;
+        res.end(JSON.stringify({ instrumentedCode }));
+      });
   });
 }
 

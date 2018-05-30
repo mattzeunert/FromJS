@@ -81,7 +81,7 @@ class ProxyInstrumenter {
       let protocol = ctx.isSSL ? "https" : "http";
       var url = getUrl(ctx);
 
-      log("Request: " + url);
+      console.log("Request: " + url);
       if (url === "http://example.com/verifyProxyWorks") {
         ctx.proxyToClientResponse.end("Confirmed proxy works!");
         return;
@@ -259,8 +259,8 @@ class ProxyInstrumenter {
     });
   }
 
-  registerEvalScript(url, code, babelResult) {
-    // Original code here because it will still be processed later on!
+  registerEvalScript(url, code) {
+    // // Original code here because it will still be processed later on!
     this.urlCache[url] = {
       headers: {},
       body: code
@@ -271,11 +271,18 @@ class ProxyInstrumenter {
       body: code
     };
 
-    const babelResultCode =
-      babelResult.code + "\n//#sourceMappingURL=" + url + ".map";
-    babelResult = JSON.parse(JSON.stringify(babelResult));
-    babelResult.code = babelResultCode;
-    this.setProcessCodeCache(babelResultCode, url, babelResult);
+    return this.processCode(code, url);
+
+    // this.urlCache[url + "?dontprocess"] = {
+    //   headers: {},
+    //   body: code
+    // };
+
+    // const babelResultCode =
+    //   babelResult.code + "\n//#sourceMappingURL=" + url + ".map";
+    // babelResult = JSON.parse(JSON.stringify(babelResult));
+    // babelResult.code = babelResultCode;
+    // this.setProcessCodeCache(babelResultCode, url, babelResult);
   }
 
   finishRequest(finishedUrl) {
