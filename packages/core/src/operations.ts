@@ -328,7 +328,8 @@ const operations: Operations = {
             result: value,
             runtimeArgs: {
               keyPath: keyPath
-            }
+            },
+            loc: ctx.loc
           });
           ctx.trackObjectPropertyAssignment(obj, key, trackingValue);
         });
