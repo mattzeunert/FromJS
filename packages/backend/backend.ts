@@ -47,8 +47,12 @@ export default class Backend {
       }
     };
 
-    setupUI(options, app, wss, proxy);
-    setupBackend(options, app, wss, proxy);
+    function getProxy() {
+      return proxy;
+    }
+
+    setupUI(options, app, wss, getProxy);
+    setupBackend(options, app, wss, getProxy);
 
     // let domToInspect = null;
     // app.get("/inspectDOM", (req, res) => {
@@ -97,7 +101,7 @@ export default class Backend {
   }
 }
 
-function setupUI(options, app, wss, proxy) {
+function setupUI(options, app, wss, getProxy) {
   let uiDir = path.resolve(__dirname + "/../node_modules/@fromjs/ui");
   let startPageDir = path.resolve(__dirname + "/../start-page");
 
@@ -133,7 +137,7 @@ function setupUI(options, app, wss, proxy) {
   });
 }
 
-function setupBackend(options, app, wss, proxy) {
+function setupBackend(options, app, wss, getProxy) {
   const internalServerInterface = new ServerInterface();
   let json;
   try {
@@ -229,7 +233,11 @@ function setupBackend(options, app, wss, proxy) {
   });
 
   app.post("/prettify", (req, res) => {
-    res.end(JSON.stringify({ code: prettier.format(req.body.code) }));
+    res.end(
+      JSON.stringify({
+        code: prettier.format(req.body.code, { parser: "babylon" })
+      })
+    );
   });
 
   app.post("/instrument", (req, res) => {
@@ -247,7 +255,7 @@ function setupBackend(options, app, wss, proxy) {
 
     const evalScriptCode = code;
     // debugger
-    proxy.registerEvalScript(url, evalScriptCode, babelResult);
+    getProxy().registerEvalScript(url, evalScriptCode, babelResult);
 
     console.log(babelResult.code.split("* HELPER_FUNCTIONS_END */")[1]);
 

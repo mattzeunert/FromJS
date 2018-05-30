@@ -350,7 +350,10 @@ function runCodeAndshowResult(code) {
   document.querySelector("#basic-example").innerHTML = "";
 
   showTree(inspectedValue.tracking);
-  showSteps(inspectedValue.tracking, 0);
+  appState.set("inspectionTarget", {
+    logId: inspectedValue.tracking,
+    charIndex: 0
+  });
 }
 
 function loadLog(logIndex, fn) {
