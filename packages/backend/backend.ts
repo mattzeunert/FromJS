@@ -43,7 +43,12 @@ export default class Backend {
     const accessToken = crypto.randomBytes(32).toString("hex");
     app.verifyToken = function verifyToken(req) {
       if (req.headers.authorization !== accessToken) {
-        throw Error("Token invalid:" + req.headers.authorization);
+        throw Error(
+          "Token invalid: " +
+            req.headers.authorization +
+            " should be " +
+            accessToken
+        );
       }
     };
 
@@ -91,7 +96,10 @@ export default class Backend {
         backendPort: bePort
       },
       port: proxyPort,
-      instrumenterFilePath: __dirname + "/instrumentCode.js"
+      instrumenterFilePath: __dirname + "/instrumentCode.js",
+      shouldInstrument: ({ port, path }) => {
+        return port !== bePort || path.startsWith("/start");
+      }
     }).then(p => {
       proxy = p;
       if (options.onReady) {

@@ -53,12 +53,19 @@ class ProxyInstrumenter {
   proxy: any = null;
   requestsInProgress: any[] = [];
   port: null;
+  shouldInstrument: any;
 
-  constructor({ babelPluginOptions, instrumenterFilePath, port }) {
+  constructor({
+    babelPluginOptions,
+    instrumenterFilePath,
+    port,
+    shouldInstrument
+  }) {
     this.port = port;
     this.instrumenterFilePath = instrumenterFilePath;
     this.proxy = Proxy();
     this.babelPluginOptions = babelPluginOptions;
+    this.shouldInstrument = shouldInstrument;
 
     this.proxy.onError((ctx, err, errorKind) => {
       var url = "n/a";
@@ -101,7 +108,18 @@ class ProxyInstrumenter {
       var isMap =
         url.split("?")[0].endsWith(".map") && !url.includes(".css.map");
 
-      if (checkIsJS(ctx)) {
+      let shouldInstrument = true;
+      if (this.shouldInstrument) {
+        shouldInstrument = this.shouldInstrument({
+          url: getUrl(ctx),
+          path: ctx.clientToProxyRequest.url,
+          port:
+            parseFloat(ctx.clientToProxyRequest.headers.host.split(":")[1]) ||
+            80
+        });
+      }
+
+      if (checkIsJS(ctx) && shouldInstrument) {
         var jsFetchStartTime = new Date();
 
         const finishJSRequest = (body, callback) => {
@@ -187,7 +205,7 @@ class ProxyInstrumenter {
           return;
         });
       }
-      if (isMap) {
+      if (isMap && shouldInstrument) {
         this.getSourceMap(url).then(sourceMap => {
           ctx.proxyToClientResponse.end(JSON.stringify(sourceMap));
           this.finishRequest(url);

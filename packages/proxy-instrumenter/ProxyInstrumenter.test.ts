@@ -24,10 +24,10 @@ function startServer() {
   });
 }
 
-function makeRequest() {
+function makeRequest(path) {
   const r = request.defaults({ proxy: "http://127.0.0.1:" + proxyPort });
   return new Promise(resolve => {
-    r({ url: "http://localhost:" + port + "/test.js" }, function(
+    r({ url: "http://localhost:" + port + path }, function(
       error,
       response,
       body
@@ -37,14 +37,32 @@ function makeRequest() {
   });
 }
 
-it("Tests proxy", async () => {
+it("Intercepts and rewrite requests", async () => {
   const server: any = await startServer();
   const proxy: any = await startProxy({
     port: proxyPort,
     instrumenterFilePath: __dirname + "/testInstrumenter.js"
   });
-  const response = await makeRequest();
+  const response = await makeRequest("/test.js");
   server.close();
   proxy.close();
   expect(response).toBe("Hello World!");
+});
+
+it("And skip rewritting some URLs", async () => {
+  const server: any = await startServer();
+  const proxy: any = await startProxy({
+    port: proxyPort,
+    instrumenterFilePath: __dirname + "/testInstrumenter.js",
+    shouldInstrument: function({ path }) {
+      if (path.indexOf("/dontRewrite") === 0) {
+        return false;
+      }
+      return true;
+    }
+  });
+  const response = await makeRequest("/dontRewrite/test.js");
+  server.close();
+  proxy.close();
+  expect(response).toBe("Hi World!");
 });

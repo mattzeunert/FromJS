@@ -7,5 +7,5 @@
     "strict": true,
     "noImplicitAny": false
   },
-  "exclude": ["**/*.test.ts"]
+  "exclude": ["**/*.test.ts", "dist"]
 }

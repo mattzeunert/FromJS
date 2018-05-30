@@ -32,5 +32,5 @@ async function openBrowser() {
     headless: false
   });
   const page = await browser.newPage();
-  await page.goto("http://localhost:" + bePort + "/start");
+  await page.goto("http://localhost:" + bePort);
 }

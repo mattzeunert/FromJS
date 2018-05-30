@@ -19,7 +19,9 @@
     "test": "jest",
     "test-watch": "jest --watch",
     "test-debug": "node --inspect ./node_modules/.bin/jest --runInBand --watch",
-    "cli": "nodemon packages/cli/dist/cli.js -- --shouldOpenBrowser no"
+    "cli": "nodemon packages/cli/dist/cli.js -- --shouldOpenBrowser no",
+    "cli-debug":
+      "nodemon --inspect packages/cli/dist/cli.js -- --shouldOpenBrowser no"
   },
   "dependencies": {
     "jest": "^22.4.3",
