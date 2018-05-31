@@ -19,5 +19,11 @@
     "ts-loader": "^4.1.0",
     "webpack": "^4.1.1",
     "webpack-cli": "^2.0.12"
+  },
+  "devDependencies": {
+    "node-sass": "^4.9.0",
+    "sass-loader": "^7.0.1",
+    "style-loader": "^0.21.0",
+    "css-loader": "^0.28.11"
   }
 }

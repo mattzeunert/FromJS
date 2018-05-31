@@ -12,6 +12,9 @@ import { escape } from "lodash";
 // import Babel from "@babel/standalone";
 // document.write("hi");
 
+import "./main.scss";
+import "./textEl.scss";
+
 import * as Baobab from "baobab";
 import { branch, root } from "baobab-react/higher-order";
 
