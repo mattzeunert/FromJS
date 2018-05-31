@@ -5,10 +5,8 @@
     "noImplicitAny": false,
     "module": "commonjs",
     "target": "es2017",
-    "jsx": "react"
+    "jsx": "react",
+    "noImplicitUseStrict": true
   },
-  "include": [
-    "./packages/core/src/helperFunctions/*.ts",
-    "*.tsx"
-  ]
+  "include": ["./packages/core/src/helperFunctions/*.ts", "*.tsx"]
 }

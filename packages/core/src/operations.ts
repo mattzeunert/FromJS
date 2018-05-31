@@ -1492,10 +1492,17 @@ const operations: Operations = {
             )
           )
         );
-        trackingAssignment!.ignore = true;
+
+        const identifierAssignedTo = path.node.left;
+        // we have to check if it exists because outside strict mode
+        // you can assign to undeclared global variables
+        const identifierValue = runIfIdentifierExists(
+          identifierAssignedTo.name,
+          identifierAssignedTo
+        );
 
         operationArguments["currentValue"] = ignoredArrayExpression([
-          path.node.left,
+          identifierValue,
           getLastOperationTrackingResultCall
         ]);
         (operationArguments["newValue"] = ignoredArrayExpression([

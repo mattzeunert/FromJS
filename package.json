@@ -18,7 +18,8 @@
     "compile-cli-watch": "cd packages/cli;tsc --watch",
     "test": "jest",
     "test-watch": "jest --watch",
-    "test-debug": "node --inspect ./node_modules/.bin/jest --runInBand --watch",
+    "test-debug":
+      "node --inspect=36654 ./node_modules/.bin/jest --runInBand --watch",
     "cli":
       "nodemon --ignore logs.json packages/cli/dist/cli.js -- --shouldOpenBrowser no",
     "cli-debug":

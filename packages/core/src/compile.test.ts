@@ -502,3 +502,13 @@ it("Doesn't break when encountering a labeled statement", async () => {
 `);
   expect(normal).toBe("0234");
 });
+
+// Ideally we should detect if the uninstrumented code had "use strict"
+// and only add "use strict" if it was there before
+it("Doesn't break on assignment to undeclared global variables", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    a = 10
+    return a
+  `);
+  expect(normal).toBe(10);
+});
