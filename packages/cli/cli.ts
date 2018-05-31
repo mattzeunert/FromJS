@@ -5,10 +5,11 @@ import * as process from "process";
 
 commander
   .option("--shouldOpenBrowser <shouldOpen>", "yes|no|only", "yes")
+  .option("--port <port>", "Server port", 7000)
   .version(require("../package.json").version)
   .parse(process.argv);
 
-let bePort = 7000;
+let bePort = parseFloat(commander.port);
 let proxyPort = bePort + 1;
 
 if (commander.shouldOpenBrowser === "only") {
