@@ -13,7 +13,8 @@ export default function transform(code, extraBabelOptions = {}) {
       if (err) {
         reject(err);
       } else {
-        result.code = prettier.format(result.code, { parser: "babylon" });
+        // prettify code is helpful for debugging, but it's slow
+        // result.code = prettier.format(result.code, { parser: "babylon" });
         if (!options["sourceMaps"]) {
           result.map = null;
         }

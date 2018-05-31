@@ -476,3 +476,29 @@ it("Tracks arguments to NewExpressions", async () => {
   const fnArgument = assignedValue.args.value;
   expect(fnArgument.args.value.operation).toBe("numericLiteral");
 });
+
+it("Doesn't break when encountering a labeled statement", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+  // taken from mdn
+  var str = "";
+
+  block: {
+    loop1:
+    for (var i = 0; i < 5; i++) {
+      if (i === 1) {
+        continue loop1;
+      }
+      str = str + i;
+      if (i > 3) {
+        break block
+      }
+    }
+    str += "x"
+  }
+
+  done:
+
+  return str
+`);
+  expect(normal).toBe("0234");
+});

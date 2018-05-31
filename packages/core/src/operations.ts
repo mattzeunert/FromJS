@@ -770,6 +770,9 @@ const operations: Operations = {
         path.parent.type === "ForStatement" ||
         path.parent.type === "FunctionExpression" ||
         path.parent.type === "UpdateExpression" ||
+        path.parent.type === "LabeledStatement" ||
+        path.parent.type === "ContinueStatement" ||
+        path.parent.type === "BreakStatement" ||
         (path.parent.type === "UnaryExpression" &&
           path.parent.operator === "typeof")
       ) {
