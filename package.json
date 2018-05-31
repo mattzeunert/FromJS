@@ -6,9 +6,9 @@
   "author": "<matt@mostlystatic.com>",
   "license": "MIT",
   "scripts": {
-    "compile-core": "cd packages/core;tsc --project tsconfig2.json",
+    "compile-core": "cd packages/core;tsc --project tsconfig-core-main.json",
     "compile-core-watch":
-      "cd packages/core;tsc --watch --project tsconfig2.json",
+      "cd packages/core;tsc --watch --project tsconfig-core-main.json",
     "compile-proxy-instrumenter": "cd packages/proxy-instrumenter;tsc",
     "compile-proxy-instrumenter-watch":
       "cd packages/proxy-instrumenter;tsc --watch",
