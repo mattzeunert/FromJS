@@ -131,6 +131,8 @@ function setupUI(options, app, wss, getProxy) {
     );
   });
   app.post("/inspect", (req, res) => {
+    allowCrossOrigin(res);
+
     app.verifyToken(req);
     logToInspect = req.body.logId;
     res.end("{}");
@@ -270,10 +272,14 @@ function broadcast(wss, data) {
 }
 
 function allowCrossOriginRequests(req, res) {
+  allowCrossOrigin(res);
+  res.end();
+}
+
+function allowCrossOrigin(res) {
   res.set("Access-Control-Allow-Origin", "*");
   res.set(
     "Access-Control-Allow-Headers",
     "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
   );
-  res.end();
 }

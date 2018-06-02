@@ -273,6 +273,11 @@ const operations: Operations = {
         fn === ctx.nativeFunctions.stringPrototypeReplace &&
         ["string", "number"].includes(typeof fnArgValues[1])
       ) {
+        function countGroupsInRegExp(re) {
+          // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
+          return new RegExp(re.toString() + "|").exec("").length;
+        }
+
         let index = 0;
         ret = ctx.nativeFunctions.stringPrototypeReplace.call(
           object,
@@ -284,7 +289,47 @@ const operations: Operations = {
             var offset = argumentsArray[argumentsArray.length - 2];
             var string = argumentsArray[argumentsArray.length - 1];
 
-            const replacement = fnArgValues[1].toString();
+            var newArgsArray = [match, ...submatches, offset, string];
+            let replacement;
+            let replacementParameter = fnArgValues[1];
+            if (["string", "number"].includes(typeof replacementParameter)) {
+              let replacementValue = replacementParameter.toString();
+              replacementValue = replacementValue.replace(
+                new RegExp(
+                  // I'm using fromCharCode because the string escaping for helperCode
+                  // doesn't work properly... if it's fixed we can just uses backtick directly
+                  "\\$([0-9]{1,2}|[$" +
+                  String.fromCharCode(96) /* backtick */ +
+                    "&'])",
+                  "g"
+                ),
+                function(dollarMatch, dollarSubmatch) {
+                  var submatchIndex = parseFloat(dollarSubmatch);
+                  if (!isNaN(submatchIndex)) {
+                    var submatch = submatches[submatchIndex - 1]; // $n is one-based, array is zero-based
+                    if (submatch === undefined) {
+                      var maxSubmatchIndex = countGroupsInRegExp(args[0]);
+                      var submatchIsDefinedInRegExp =
+                        submatchIndex < maxSubmatchIndex;
+
+                      if (submatchIsDefinedInRegExp) {
+                        submatch = "";
+                      } else {
+                        submatch = "$" + dollarSubmatch;
+                      }
+                    }
+                    return submatch;
+                  } else if (dollarSubmatch === "&") {
+                    return match;
+                  } else {
+                    throw "not handled!!";
+                  }
+                }
+              );
+              replacement = replacementValue;
+            } else {
+              throw Error("unhandled replacement param type");
+            }
 
             extraTrackingValues["replacement" + index] = [
               null,

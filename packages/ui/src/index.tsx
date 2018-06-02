@@ -879,19 +879,19 @@ let TraversalSteps = class TraversalSteps extends React.Component<
         <hr />
         <hr />
         <div>Relevant code:</div>
-        {interestingSteps
-          .map(step => (
-            <TraversalStep key={step.operationLog.index} step={step} />
-          ))
-          .reverse()}
+        {interestingSteps.map(step => (
+          <TraversalStep key={step.operationLog.index} step={step} />
+        ))
+        /* .reverse() */
+        }
         <hr />
         <hr />
         <div>Full data flow:</div>
-        {stepsToShow
-          .map(step => (
-            <TraversalStep key={step.operationLog.index} step={step} />
-          ))
-          .reverse()}
+        {stepsToShow.map(step => (
+          <TraversalStep key={step.operationLog.index} step={step} />
+        ))
+        /* .reverse() */
+        }
       </div>
     );
   }
