@@ -283,7 +283,7 @@ const operations: Operations = {
       ) {
         function countGroupsInRegExp(re) {
           // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
-          return new RegExp(re.toString() + "|").exec("").length;
+          return new RegExp(re.toString() + "|").exec("")!.length;
         }
 
         let index = 0;
