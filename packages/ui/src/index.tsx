@@ -677,10 +677,20 @@ let TraversalStep = class TraversalStep extends React.Component<
 
     let operationTypeDetail = null;
     if (operationLog.operation === "identifier" && stackFrame && code) {
-      operationTypeDetail =
-        "(" +
-        code.slice(operationLog.loc.start.column, operationLog.loc.end.column) +
-        ")";
+      if (!operationLog.loc) {
+        console.log(
+          "operation doesn't have loc might need to add in visitor",
+          operationLog
+        );
+      } else {
+        operationTypeDetail =
+          "(" +
+          code.slice(
+            operationLog.loc.start.column,
+            operationLog.loc.end.column
+          ) +
+          ")";
+      }
     }
 
     return (
