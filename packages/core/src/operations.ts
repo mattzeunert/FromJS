@@ -29,6 +29,24 @@ interface TraversalStep {
 
 function createNode(args, astArgs = null) {}
 
+function traverseStringConcat(
+  left: OperationLog,
+  right: OperationLog,
+  charIndex: number
+) {
+  if (charIndex < left.result.length) {
+    return {
+      operationLog: left,
+      charIndex: charIndex
+    };
+  } else {
+    return {
+      operationLog: right,
+      charIndex: charIndex - left.result.length
+    };
+  }
+}
+
 interface Operations {
   [key: string]: {
     createNode?: (args?: any, astArgs?: any, loc?: any) => any;
@@ -134,17 +152,7 @@ const operations: Operations = {
           typeof left.result.type === "string" &&
           typeof right.result.type === "string"
         ) {
-          if (charIndex < left.result.length) {
-            return {
-              operationLog: left,
-              charIndex: charIndex
-            };
-          } else {
-            return {
-              operationLog: right,
-              charIndex: charIndex - left.result.length
-            };
-          }
+          return traverseStringConcat(left, right, charIndex);
         } else {
           console.log("todo");
         }
@@ -900,6 +908,9 @@ const operations: Operations = {
               currentValue: [currentValue, currentValueT],
               argument: args.argument
             },
+            astArgs: {
+              operator: "="
+            },
             argTrackingValues: [currentValueT, args.argument[1]],
             argNames: ["currentValue", "argument"]
           })
@@ -1487,10 +1498,21 @@ const operations: Operations = {
       return ret;
     },
     traverse(operationLog, charIndex) {
-      return {
-        operationLog: operationLog.args.argument,
-        charIndex: charIndex
-      };
+      const { operator } = operationLog.astArgs;
+      if (operator === "=") {
+        return {
+          operationLog: operationLog.args.argument,
+          charIndex: charIndex
+        };
+      } else if (operator === "+=") {
+        return traverseStringConcat(
+          operationLog.args.currentValue,
+          operationLog.args.argument,
+          charIndex
+        );
+      } else {
+        return;
+      }
     },
     visitor(path) {
       path.node.ignore = true;

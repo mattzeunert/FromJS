@@ -102,6 +102,19 @@ test("Can traverse String.prototype.slice", async () => {
   ]);
 });
 
+test("Traversing += assignment expressions", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    var a = "a"
+    a += "b"
+    return a
+  `);
+  expect(normal).toBe("ab");
+  var t = await traverse({ operationLog: tracking, charIndex: 0 });
+  var lastStep = t[t.length - 1];
+
+  expect(lastStep.operationLog.result.str).toBe("a");
+});
+
 test("Can track values through conditional expression", async () => {
   const { normal, tracking, code } = await instrumentAndRun(`
     var b = false ? "a" : "b"
