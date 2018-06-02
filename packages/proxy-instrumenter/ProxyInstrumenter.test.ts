@@ -3,7 +3,7 @@ import { startProxy } from "./ProxyInstrumenter";
 import * as http from "http";
 import * as request from "request";
 
-const port = 18943;
+const port = 14888;
 const proxyPort = port + 1;
 
 function startServer() {
@@ -24,10 +24,10 @@ function startServer() {
   });
 }
 
-function makeRequest(path) {
+function makeRequest(path, headers = {}) {
   const r = request.defaults({ proxy: "http://127.0.0.1:" + proxyPort });
   return new Promise(resolve => {
-    r({ url: "http://localhost:" + port + path }, function(
+    r({ url: "http://localhost:" + port + path, headers }, function(
       error,
       response,
       body
@@ -37,46 +37,49 @@ function makeRequest(path) {
   });
 }
 
-it("Intercepts and rewrite requests", async () => {
-  const server: any = await startServer();
-  const proxy: any = await startProxy({
-    port: proxyPort,
-    instrumenterFilePath: __dirname + "/testInstrumenter.js",
-    silent: true
-  });
-  const response = await makeRequest("/test.js");
-  server.close();
-  proxy.close();
-  expect(response).toBe("Hello World!");
-});
-
-it("Can skip rewritting some URLs", async () => {
-  const server: any = await startServer();
-  const proxy: any = await startProxy({
-    port: proxyPort,
-    instrumenterFilePath: __dirname + "/testInstrumenter.js",
-    shouldInstrument: function({ path }) {
-      if (path.indexOf("/dontRewrite") === 0) {
-        return false;
+describe("ProxyInstrumenter", () => {
+  let server, proxy;
+  beforeAll(async () => {
+    server = await startServer();
+    proxy = await startProxy({
+      port: proxyPort,
+      instrumenterFilePath: __dirname + "/testInstrumenter.js",
+      silent: true,
+      rewriteHtml: html => {
+        return html + "EXTRA_HTML";
+      },
+      shouldInstrument: function({ path }) {
+        if (path.indexOf("/dontRewrite") === 0) {
+          return false;
+        }
+        return true;
       }
-      return true;
-    },
-    silent: true
+    });
   });
-  const response = await makeRequest("/dontRewrite/test.js");
-  server.close();
-  proxy.close();
-  expect(response).toBe("Hi World!");
-});
-
-it("Can handle eval'd scripts", async () => {
-  const proxy: any = await startProxy({
-    port: proxyPort,
-    instrumenterFilePath: __dirname + "/testInstrumenter.js",
-    silent: true
+  afterAll(() => {
+    server.close();
+    proxy.close();
   });
-  const result = await proxy.registerEvalScript(`var a = "Hi"`);
-  expect(result.instrumentedCode).toContain("Hello");
 
-  proxy.close();
+  it("Intercepts and rewrite requests", async () => {
+    const response = await makeRequest("/test.js");
+    expect(response).toBe("Hello World!");
+  });
+
+  it("Can skip rewritting some URLs", async () => {
+    const response = await makeRequest("/dontRewrite/test.js");
+    expect(response).toBe("Hi World!");
+  });
+
+  it("Can handle eval'd scripts", async () => {
+    const result = await proxy.registerEvalScript(`var a = "Hi"`);
+    expect(result.instrumentedCode).toContain("Hello");
+  });
+
+  it("Can rewrite HTML", async () => {
+    const response = await makeRequest("/html", {
+      accept: "text/html"
+    });
+    expect(response).toContain("EXTRA_HTML");
+  });
 });

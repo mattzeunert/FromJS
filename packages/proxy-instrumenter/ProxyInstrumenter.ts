@@ -55,19 +55,22 @@ class ProxyInstrumenter {
   port: null;
   shouldInstrument: any;
   silent = false;
+  rewriteHtml: any;
 
   constructor({
     babelPluginOptions,
     instrumenterFilePath,
     port,
     shouldInstrument,
-    silent
+    silent,
+    rewriteHtml
   }) {
     this.port = port;
     this.instrumenterFilePath = instrumenterFilePath;
     this.proxy = Proxy();
     this.babelPluginOptions = babelPluginOptions;
     this.shouldInstrument = shouldInstrument;
+    this.rewriteHtml = rewriteHtml;
     this.silent = silent;
 
     this.proxy.onError((ctx, err, errorKind) => {
@@ -112,6 +115,9 @@ class ProxyInstrumenter {
 
       var isMap =
         url.split("?")[0].endsWith(".map") && !url.includes(".css.map");
+      var isHtml =
+        ctx.clientToProxyRequest.headers.accept &&
+        ctx.clientToProxyRequest.headers.accept.includes("text/html");
 
       let shouldInstrument = true;
       if (this.shouldInstrument) {
@@ -124,9 +130,16 @@ class ProxyInstrumenter {
         });
       }
 
-      if (checkIsJS(ctx) && shouldInstrument) {
-        var jsFetchStartTime = new Date();
-
+      if (isHtml && this.rewriteHtml) {
+        // todo: refactor so that waitForResponseEnd is instead
+        // interceptrequest and you just have to return the new response body
+        this.waitForResponseEnd(ctx).then(({ body, ctx, callback }) => {
+          const newHtml = this.rewriteHtml(body);
+          this.finishRequest(url);
+          ctx.proxyToClientResponse.end(new Buffer(newHtml));
+          callback();
+        });
+      } else if (checkIsJS(ctx) && shouldInstrument) {
         const finishJSRequest = (body, callback) => {
           if (!isDontProcess) {
             this.processCode(body, url).then(
@@ -163,37 +176,7 @@ class ProxyInstrumenter {
 
         ctx.use(Proxy.gunzip);
 
-        var chunks: any[] = [];
-        ctx.onResponseData(function(ctx, chunk, callback) {
-          chunks.push(chunk);
-          var chunkSizeInKb =
-            Math.round(chunk.toString().length / 1024 * 10) / 10;
-          setTimeout(function() {
-            // log("got chunk", url, chunkSizeInKb + "kb");
-          });
-
-          return callback(null, null); // don't write chunks to client response
-        });
-
-        ctx.onResponseEnd((ctx, callback) => {
-          var buffer = Buffer.concat(chunks);
-
-          var body = buffer.toString();
-          var msElapsed = new Date().valueOf() - jsFetchStartTime.valueOf();
-          var speed = Math.round(buffer.byteLength / msElapsed / 1000 * 1000);
-          if (!this.silent) {
-            log(
-              "JS ResponseEnd",
-              url,
-              "Time:",
-              msElapsed + "ms",
-              "Size: ",
-              buffer.byteLength / 1024 + "kb",
-              " Speed",
-              speed + "kb/s"
-            );
-          }
-
+        this.waitForResponseEnd(ctx).then(({ body, ctx, callback }) => {
           var contentTypeHeader =
             ctx.serverToProxyResponse.headers["content-type"];
           if (contentTypeHeader && contentTypeHeader.includes("text/html")) {
@@ -211,8 +194,7 @@ class ProxyInstrumenter {
 
           return;
         });
-      }
-      if (isMap && shouldInstrument) {
+      } else if (isMap && shouldInstrument) {
         this.getSourceMap(url).then(sourceMap => {
           ctx.proxyToClientResponse.end(JSON.stringify(sourceMap));
           this.finishRequest(url);
@@ -265,6 +247,45 @@ class ProxyInstrumenter {
         .done(function() {
           resolve();
         });
+    });
+  }
+
+  waitForResponseEnd(ctx) {
+    var jsFetchStartTime = new Date();
+    return new Promise<any>(resolve => {
+      var chunks: any[] = [];
+      ctx.onResponseData(function(ctx, chunk, callback) {
+        chunks.push(chunk);
+        var chunkSizeInKb =
+          Math.round(chunk.toString().length / 1024 * 10) / 10;
+        setTimeout(function() {
+          // log("got chunk", url, chunkSizeInKb + "kb");
+        });
+
+        return callback(null, null); // don't write chunks to client response
+      });
+
+      ctx.onResponseEnd((ctx, callback) => {
+        var buffer = Buffer.concat(chunks);
+
+        var body = buffer.toString();
+        var msElapsed = new Date().valueOf() - jsFetchStartTime.valueOf();
+        var speed = Math.round(buffer.byteLength / msElapsed / 1000 * 1000);
+        if (!this.silent) {
+          log(
+            "JS ResponseEnd",
+            getUrl(ctx),
+            "Time:",
+            msElapsed + "ms",
+            "Size: ",
+            buffer.byteLength / 1024 + "kb",
+            " Speed",
+            speed + "kb/s"
+          );
+        }
+
+        resolve({ body, ctx, callback });
+      });
     });
   }
 
