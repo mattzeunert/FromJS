@@ -16,7 +16,8 @@ import {
   runIfIdentifierExists,
   isInNodeType,
   isInIdOfVariableDeclarator,
-  isInLeftPartOfAssignmentExpression
+  isInLeftPartOfAssignmentExpression,
+  getTrackingVarName
 } from "./babelPluginHelpers";
 
 import helperCodeLoaded from "../helperFunctions";
@@ -74,7 +75,7 @@ function plugin(babel) {
     path.node.params.forEach((param, i) => {
       var d = t.variableDeclaration("var", [
         t.variableDeclarator(
-          ignoredIdentifier(param.name + "_t"),
+          ignoredIdentifier(getTrackingVarName(param.name)),
           ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [
             ignoredNumericLiteral(i)
           ])
@@ -108,7 +109,7 @@ function plugin(babel) {
 
         newDeclarations.push(
           t.variableDeclarator(
-            ignoredIdentifier(decl.id.name + "_t"),
+            ignoredIdentifier(getTrackingVarName(decl.id.name)),
             ignoredCallExpression(
               FunctionNames.getLastOperationTrackingResult,
               []

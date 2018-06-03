@@ -1567,11 +1567,11 @@ const operations: Operations = {
         path.node.right = right;
 
         trackingAssignment = runIfIdentifierExists(
-          path.node.left.name + "_t",
+          getTrackingVarName(path.node.left.name),
           ignoreNode(
             t.assignmentExpression(
               "=",
-              ignoredIdentifier(path.node.left.name + "_t"),
+              ignoredIdentifier(getTrackingVarName(path.node.left.name)),
               getLastOperationTrackingResultCall
             )
           )

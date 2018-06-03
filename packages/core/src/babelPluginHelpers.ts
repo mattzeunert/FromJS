@@ -136,8 +136,12 @@ export function isInIdOfVariableDeclarator(path) {
   });
 }
 
+export function getTrackingVarName(identifierName) {
+  return identifierName + "___tv";
+}
+
 export function trackingIdentifierIfExists(identifierName) {
-  var trackingIdentifierName = identifierName + "_t";
+  var trackingIdentifierName = getTrackingVarName(identifierName);
   return runIfIdentifierExists(
     trackingIdentifierName,
     ignoredIdentifier(trackingIdentifierName)
