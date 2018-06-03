@@ -18,7 +18,8 @@ import {
   getLastOpValue,
   ignoredIdentifier,
   ignoredObjectExpression,
-  createGetMemoArray
+  createGetMemoArray,
+  getTrackingVarName
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import { getLastOperationValueResult } from "./FunctionNames";
@@ -264,14 +265,37 @@ const operations: Operations = {
 
       const extraTrackingValues: any = {};
 
+      const hasInstrumentationFunction =
+        typeof ctx.global["__fromJSEval"] === "function";
+
       var ret;
       let retT = null;
       if (astArgs.isNewExpression) {
-        let thisValue = null; // overwritten inside new()
-        ret = new (Function.prototype.bind.apply(args.function[0], [
-          thisValue,
-          ...fnArgValues
-        ]))();
+        const isNewFunctionCall = args.function[0] === Function;
+        if (isNewFunctionCall && hasInstrumentationFunction) {
+          let code = fnArgValues[fnArgValues.length - 1];
+          let generatedFnArguments = fnArgValues.slice(0, -1);
+
+          code =
+            "(function(" +
+            generatedFnArguments.join(",") +
+            ") { " +
+            code +
+            " })";
+          console.log("eval", code);
+          ret = ctx.global["__fromJSEval"](code);
+          ctx.registerEvalScript(ret.evalScript);
+          ret = ret.returnValue;
+        } else {
+          if (isNewFunctionCall) {
+            console.log("can't instrument new Function() code");
+          }
+          let thisValue = null; // overwritten inside new()
+          ret = new (Function.prototype.bind.apply(args.function[0], [
+            thisValue,
+            ...fnArgValues
+          ]))();
+        }
         retT = ctx.createOperationLog({
           operation: ctx.operationTypes.newExpressionResult,
           args: {},
@@ -396,8 +420,6 @@ const operations: Operations = {
           console.log("unhandled string replace call");
         }
         const fnIsEval = fn === eval;
-        const hasInstrumentationFunction =
-          typeof ctx.global["__fromJSEval"] === "function";
         if (fnIsEval) {
           if (hasInstrumentationFunction) {
             fn = ctx.global["__fromJSEval"];

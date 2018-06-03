@@ -1,5 +1,6 @@
 import * as OperationTypes from "./OperationTypes";
 import { instrumentAndRun } from "./testHelpers";
+import { syncCompile } from "./compile";
 
 test("adds 1 + 2 to equal 3", done => {
   instrumentAndRun("return 1 + 2").then(({ normal, tracking }) => {
@@ -539,7 +540,26 @@ it("Doesn't break on assignment to undeclared global variables", async () => {
   expect(normal).toBe(10);
 });
 
+it("Doesn't break when using non-strict mode features like with", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    const obj = {a:1}
+    let num
+    with (obj) {
+      num = a
+    }
+    return num
+  `);
+  expect(normal).toBe(1);
+});
+
 describe("eval/new Function", () => {
+  function __fromJSEval(code) {
+    let compiledCode = syncCompile(code).code;
+    return {
+      returnValue: eval(compiledCode),
+      evalScript: []
+    };
+  }
   afterEach(() => delete global.__fromJSEval);
   it("Doesn't break when no compilation function __fromJSEval is available", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
@@ -548,19 +568,7 @@ describe("eval/new Function", () => {
     expect(normal).toBe(5);
   });
   it("Compiles eval'd code if __fromJSEval is available", async () => {
-    global.__fromJSEval = function() {
-      return {
-        returnValue: __op(
-          "numericLiteral",
-          {
-            value: [5, null]
-          },
-          null,
-          null
-        ),
-        evalScript: []
-      };
-    };
+    global.__fromJSEval = __fromJSEval;
     const { normal, tracking, code } = await instrumentAndRun(`
       return eval("5")
     `);
@@ -569,5 +577,16 @@ describe("eval/new Function", () => {
     expect(callExpression.extraArgs.returnValue.operation).toBe(
       "numericLiteral"
     );
+  });
+  it("Compiles new Function() code if __fromJSEval is available", async () => {
+    global.__fromJSEval = __fromJSEval;
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const sum = new Function("a", "b", "return a + b");
+      return sum(1,2)
+    `);
+    expect(normal).toBe(3);
+    const callExpression = tracking;
+    const returnValue = callExpression.extraArgs.returnValue;
+    expect(returnValue.args.returnValue.operation).toBe("binaryExpression");
   });
 });

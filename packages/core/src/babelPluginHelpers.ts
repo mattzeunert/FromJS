@@ -1,5 +1,6 @@
 import * as FunctionNames from "./FunctionNames";
 import * as t from "@babel/types";
+import { identifier } from "./OperationTypes";
 
 declare module "@babel/types" {
   // Should just be interface Node, but somehow it only works if
