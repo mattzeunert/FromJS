@@ -590,3 +590,48 @@ describe("eval/new Function", () => {
     expect(returnValue.args.returnValue.operation).toBe("binaryExpression");
   });
 });
+
+describe("with statement", () => {
+  it("Keeps tracking data through with statements", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const obj = { a : 5}
+        let ret
+        with (obj) {
+          ret = a
+        }
+        return ret
+      `);
+
+    expect(normal).toBe(5);
+    const assignmentExpression = tracking.args.value;
+    const objectProperty =
+      assignmentExpression.args.argument.extraArgs.propertyValue;
+    expect(objectProperty.args.propertyValue.operation).toBe("numericLiteral");
+  });
+  it("Doesn't break identifiers in memberexpressions", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const obj = { arr: [1,2] }
+        let ret = ""
+        with (obj) {
+          arr.forEach(function (num){
+            ret += num
+          })
+        }
+        return ret
+      `);
+    expect(normal).toBe("12");
+  });
+  it.only("Doesn't break expressions as with object argument", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const obj = { arr: [1,2] }
+        let ret = ""
+        with (null || obj) {
+          arr.forEach(function (num){
+            ret += num
+          })
+        }
+        return ret
+      `);
+    expect(normal).toBe("12");
+  });
+});

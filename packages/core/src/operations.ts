@@ -852,31 +852,7 @@ const operations: Operations = {
       };
     },
     visitor(path) {
-      if (
-        path.parent.type === "FunctionDeclaration" ||
-        path.parent.type === "MemberExpression" ||
-        path.parent.type === "ObjectProperty" ||
-        path.parent.type === "CatchClause" ||
-        path.parent.type === "ForInStatement" ||
-        path.parent.type === "IfStatement" ||
-        path.parent.type === "ForStatement" ||
-        path.parent.type === "FunctionExpression" ||
-        path.parent.type === "UpdateExpression" ||
-        path.parent.type === "LabeledStatement" ||
-        path.parent.type === "ContinueStatement" ||
-        path.parent.type === "BreakStatement" ||
-        (path.parent.type === "UnaryExpression" &&
-          path.parent.operator === "typeof")
-      ) {
-        return;
-      }
-      if (
-        isInLeftPartOfAssignmentExpression(path) ||
-        isInIdOfVariableDeclarator(path)
-      ) {
-        return;
-      }
-      if (path.node.name === "globalFn") {
+      if (shouldSkipIdentifier(path)) {
         return;
       }
 
@@ -1702,3 +1678,37 @@ Object.keys(operations).forEach(opName => {
 });
 
 export default operations;
+
+export function shouldSkipIdentifier(path) {
+  if (
+    [
+      "FunctionDeclaration",
+      "MemberExpression",
+      "ObjectProperty",
+      "CatchClause",
+      "ForInStatement",
+      "IfStatement",
+      "ForStatement",
+      "FunctionExpression",
+      "UpdateExpression",
+      "LabeledStatement",
+      "ContinueStatement",
+      "BreakStatement"
+    ].includes(path.parent.type)
+  ) {
+    return true;
+  }
+  if (
+    path.parent.type === "UnaryExpression" &&
+    path.parent.operator === "typeof"
+  ) {
+    return true;
+  }
+  if (
+    isInLeftPartOfAssignmentExpression(path) ||
+    isInIdOfVariableDeclarator(path)
+  ) {
+    return true;
+  }
+  return false;
+}

@@ -32,11 +32,12 @@ function serializeValue(value, nativeFunctions): SerializedValue {
     knownValue = "String.prototype.replace";
   }
   var length;
-  // todo: more performant way than doing try catch
-  try {
+
+  if (
+    typeof value === "string" ||
+    (typeof value === "object" && value !== null && "length" in value)
+  ) {
     length = value.length;
-  } catch (err) {
-    length = null;
   }
 
   var type = typeof value;

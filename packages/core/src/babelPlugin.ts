@@ -3,7 +3,7 @@ import * as babel from "@babel/core";
 import * as OperationTypes from "./OperationTypes";
 // import * as fs from "fs";
 import * as babylon from "babylon";
-import operations from "./operations";
+import operations, { shouldSkipIdentifier } from "./operations";
 import {
   ignoreNode,
   ignoredArrayExpression,
@@ -118,6 +118,61 @@ function plugin(babel) {
         );
       });
       path.node.declarations = newDeclarations;
+    },
+
+    WithStatement(path) {
+      function i(node) {
+        if (node.name === null) {
+          debugger;
+        }
+        node.ignoreInWithStatementVisitor = true;
+        return node;
+      }
+
+      // not an ideal way to track things and might not work for nested
+      // with statements, but with statement use should be rare.
+      // Underscore uses them for templates though.
+      let obj = path.node.object;
+      path.get("object").traverse({
+        Identifier(path) {
+          path.replaceWith(i(path.node));
+        }
+      });
+      path.traverse({
+        Identifier(path) {
+          if (path.node.ignoreInWithStatementVisitor) {
+            return;
+          }
+          if (shouldSkipIdentifier(path)) {
+            return;
+          }
+          if (
+            ["WithStatement", "FunctionExpression"].includes(path.parent.type)
+          ) {
+            return;
+          }
+          if (path.parent.type === "MemberExpression") {
+            if ((path.parent.property = path.node)) {
+              console.log("ignoreing");
+              return;
+            }
+          }
+          path.node.ignoreInWithStatementVisitor = true;
+
+          const identifierName = path.node.name;
+          path.replaceWith(
+            ignoreNode(
+              t.conditionalExpression(
+                ignoreNode(
+                  t.binaryExpression("in", t.stringLiteral(identifierName), obj)
+                ),
+                t.memberExpression(obj, t.stringLiteral(identifierName), true),
+                i(t.identifier(identifierName))
+              )
+            )
+          );
+        }
+      });
     }
   };
 
