@@ -17,7 +17,8 @@ import {
   createGetMemoTrackingValue,
   getLastOpValue,
   ignoredIdentifier,
-  ignoredObjectExpression
+  ignoredObjectExpression,
+  createGetMemoArray
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import { getLastOperationValueResult } from "./FunctionNames";
@@ -1592,10 +1593,9 @@ const operations: Operations = {
           path.node,
           getLastOperationTrackingResultCall
         ])),
-          (operationArguments["argument"] = ignoredArrayExpression([
-            createGetMemoValue("lastAssignmentExpressionArgument"),
-            createGetMemoTrackingValue("lastAssignmentExpressionArgument")
-          ]));
+          (operationArguments["argument"] = createGetMemoArray(
+            "lastAssignmentExpressionArgument"
+          ));
       } else {
         throw Error("unhandled assignmentexpression node.left type");
       }

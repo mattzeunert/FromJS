@@ -177,6 +177,10 @@ export function createSetMemoValue(key, value, trackingValue) {
   ]);
 }
 
+export function createGetMemoArray(key) {
+  return ignoredCallExpression("__getMemoArray", [ignoredStringLiteral(key)]);
+}
+
 export function createGetMemoValue(key) {
   return ignoredCallExpression("__getMemoValue", [ignoredStringLiteral(key)]);
 }

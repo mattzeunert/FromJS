@@ -22,3 +22,6 @@ packages/backend/logs.json
 packages/backend/ca
 ca
 logs.json
+
+packages/core/helperFunctions.js
+packages/core/compileInBrowser.js

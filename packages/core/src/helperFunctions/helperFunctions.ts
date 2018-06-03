@@ -173,6 +173,10 @@ declare var __FUNCTION_NAMES__,
     lastOpTrackingResult = trackingValue;
     return value;
   };
+  global["__getMemoArray"] = function(key) {
+    const memo = memoValues[key];
+    return [memo.value, memo.trackingValue];
+  };
   global["__getMemoValue"] = function(key) {
     return memoValues[key].value;
   };
