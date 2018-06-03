@@ -124,7 +124,12 @@ export default class OperationLog {
     } else {
       // only store argument operation log because ol.result === a[0]
       eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
-        if (arg[1] === "undefined") {
+        if (
+          typeof arg[1] !== "number" &&
+          arg[1] !== null &&
+          arg[1] !== undefined &&
+          arg[1] !== false
+        ) {
           debugger;
           throw Error(
             "no arg operationlog found, did you only pass in an operationlog"
@@ -135,7 +140,12 @@ export default class OperationLog {
     }
     if (typeof extraArgs === "object") {
       eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
-        if (arg[1] === "undefined") {
+        if (
+          typeof arg[1] !== "number" &&
+          arg[1] !== null &&
+          arg[1] !== undefined &&
+          arg[1] !== false
+        ) {
           debugger;
           throw Error(
             "no arg operationlog found, did you only pass in an operationlog"

@@ -41,6 +41,7 @@ declare var __FUNCTION_NAMES__,
   }
 
   let logQueue = [];
+  window["__debugFromJSLogQueue"] = () => logQueue;
   let evalScriptQueue = [];
   setInterval(function() {
     if (logQueue.length === 0 && evalScriptQueue.length == 0) {
@@ -143,14 +144,20 @@ declare var __FUNCTION_NAMES__,
       objectPropertyTrackingInfo = {};
       objTrackingMap.set(obj, objectPropertyTrackingInfo);
     }
-    objectPropertyTrackingInfo[propName] = trackingValue;
+    if (typeof trackingValue !== "number" && !!trackingValue) {
+      debugger;
+    }
+    // "_" prefix because to avoid conflict with normal object methods,
+    // e.g. there used to be problems when getting tracking value for "constructor" prop
+    objectPropertyTrackingInfo["_" + propName] = trackingValue;
   }
   function getObjectPropertyTrackingValue(obj, propName) {
     var objectPropertyTrackingInfo = objTrackingMap.get(obj);
     if (!objectPropertyTrackingInfo) {
       return null;
     }
-    return objectPropertyTrackingInfo[propName];
+    const trackingValue = objectPropertyTrackingInfo["_" + propName];
+    return trackingValue;
   }
   window["getObjectPropertyTrackingValue"] = getObjectPropertyTrackingValue;
 
@@ -170,7 +177,8 @@ declare var __FUNCTION_NAMES__,
   global["__setMemoValue"] = function(key, value, trackingValue) {
     // console.log("setmemovalue", value)
     memoValues[key] = { value, trackingValue };
-    lastOpTrackingResult = trackingValue;
+    setLastOpTrackingResult(trackingValue);
+    validateTrackingValue(trackingValue);
     return value;
   };
   global["__getMemoArray"] = function(key) {
@@ -183,6 +191,18 @@ declare var __FUNCTION_NAMES__,
   global["__getMemoTrackingValue"] = function(key, value, trackingValue) {
     return memoValues[key].trackingValue;
   };
+
+  function validateTrackingValue(trackingValue) {
+    if (!!trackingValue && typeof trackingValue !== "number") {
+      debugger;
+      throw Error("eee");
+    }
+  }
+
+  function setLastOpTrackingResult(trackingValue) {
+    validateTrackingValue(trackingValue);
+    lastOpTrackingResult = trackingValue;
+  }
 
   var lastOpValueResult = null;
   var lastOpTrackingResult = null;
@@ -216,6 +236,7 @@ declare var __FUNCTION_NAMES__,
         loc,
         registerEvalScript(evalScript) {
           // store code etc for eval'd code
+          console.log("registering eval script", evalScript);
           evalScriptQueue.push(evalScript);
         },
         get lastOpTrackingResult() {
@@ -235,6 +256,9 @@ declare var __FUNCTION_NAMES__,
           lastMemberExpressionObjectTrackingValue = tracking;
         },
         set argTrackingInfo(info) {
+          if (info) {
+            info.forEach(trackingValue => validateTrackingValue(trackingValue));
+          }
           argTrackingInfo = info;
         },
         get lastOperationType() {
@@ -261,8 +285,9 @@ declare var __FUNCTION_NAMES__,
     });
 
     lastOpValueResult = ret;
+
     lastOpTrackingResultWithoutResetting = trackingValue;
-    lastOpTrackingResult = trackingValue;
+    setLastOpTrackingResult(trackingValue);
 
     if (opName === "returnStatement") {
       // should ideally be in operations.ts
@@ -282,6 +307,7 @@ declare var __FUNCTION_NAMES__,
     return ret;
   };
   global[functionNames.getLastOperationTrackingResult] = function getLastOp() {
+    validateTrackingValue(lastOpTrackingResult);
     var ret = lastOpTrackingResult;
     lastOpTrackingResult = null;
     return ret;
