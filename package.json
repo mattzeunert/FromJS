@@ -21,9 +21,9 @@
     "test-debug":
       "node --inspect=36654 ./node_modules/.bin/jest --runInBand --watch",
     "cli":
-      "nodemon --ignore logs.json packages/cli/dist/cli.js -- --shouldOpenBrowser no",
+      "nodemon --max_old_space_size=8000 --ignore logs.json packages/cli/dist/cli.js -- --shouldOpenBrowser no",
     "cli-debug":
-      "nodemon --inspect --ignore logs.json  packages/cli/dist/cli.js -- --shouldOpenBrowser no"
+      "nodemon --max_old_space_size=8000 --inspect --ignore logs.json  packages/cli/dist/cli.js -- --shouldOpenBrowser no"
   },
   "dependencies": {
     "jest": "^22.4.3",
