@@ -17,9 +17,12 @@ AfterEmitPlugin.prototype.apply = function(compiler) {
 };
 
 module.exports = {
-  entry: "./src/helperFunctions/helperFunctions.ts",
+  entry: {
+    helperFunctions: "./src/helperFunctions/helperFunctions.ts",
+    compileInBrowser: "./src/compileInBrowser.ts"
+  },
   output: {
-    filename: "helperFunctions.ts",
+    filename: "[name].js",
     path: __dirname
   },
 
@@ -37,10 +40,17 @@ module.exports = {
     new AfterEmitPlugin(function() {
       setTimeout(function() {
         const fs = require("fs");
-        var code = fs.readFileSync("./helperFunctions.ts").toString();
+        var code = fs.readFileSync("./helperFunctions.js").toString();
         code = `export default \`${code}\``;
-        fs.writeFileSync("./helperFunctions.ts", code);
-        console.log("updated");
+        const currentTsFile = fs
+          .readFileSync("./helperFunctions.ts")
+          .toString();
+
+        // prevent infinite webpack builds (overwriting helperfunctins triggers rebuild as compileInBrowser depends on it)
+        if (currentTsFile !== code) {
+          fs.writeFileSync("./helperFunctions.ts", code);
+          console.log("updated");
+        }
       }, 1000);
     })
   ],

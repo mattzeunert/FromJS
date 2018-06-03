@@ -53,9 +53,23 @@ describe("ProxyInstrumenter", () => {
           return false;
         }
         return true;
+      },
+      handleEvalScript: function(code, compile, callback) {
+        const url = "http://example.com/eval.js";
+        return compile(code, url, babelResult => {
+          const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url;
+          const map = JSON.stringify(babelResult.map);
+          callback({
+            map,
+            instrumentedCode,
+            code,
+            url
+          });
+        });
       }
     });
   });
+
   afterAll(() => {
     server.close();
     proxy.close();
@@ -72,7 +86,7 @@ describe("ProxyInstrumenter", () => {
   });
 
   it("Can handle eval'd scripts", async () => {
-    const result = await proxy.registerEvalScript(`var a = "Hi"`);
+    const result = await proxy.instrumentForEval(`var a = "Hi"`);
     expect(result.instrumentedCode).toContain("Hello");
   });
 

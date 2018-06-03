@@ -48,6 +48,18 @@ function serializeValue(value, nativeFunctions): SerializedValue {
   let str;
   try {
     str = (value + "").slice(0, 200);
+    if (str === "[object Object]") {
+      const keys = Object.keys(value);
+      if (keys.length > 10) {
+        keys.push("...");
+      }
+      str +=
+        "{" +
+        Object.keys(value)
+          .slice(0, 10)
+          .join(", ") +
+        "}";
+    }
   } catch (err) {
     str = "(Error while serializing)";
   }

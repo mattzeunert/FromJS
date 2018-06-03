@@ -1,6 +1,7 @@
 import {
   babelPlugin,
-  InMemoryLogServer as ServerInterface
+  InMemoryLogServer as ServerInterface,
+  handleEvalScript
 } from "@fromjs/core";
 import { traverse } from "./src/traverse";
 import StackFrameResolver from "./src/StackFrameResolver";
@@ -95,10 +96,19 @@ export default class Backend {
         accessToken,
         backendPort: bePort
       },
+      handleEvalScript,
       port: proxyPort,
       instrumenterFilePath: __dirname + "/instrumentCode.js",
       shouldInstrument: ({ port, path }) => {
+        console.log("shoul", path, bePort);
         return port !== bePort || path.startsWith("/start");
+      },
+      rewriteHtml: html => {
+        return (
+          `<script src="http://localhost:${bePort}/jsFiles/babel-standalone.js"></script>
+          <script src="http://localhost:${bePort}/jsFiles/compileInBrowser.js"></script>
+          ` + html
+        );
       }
     }).then(p => {
       proxy = p;
@@ -158,6 +168,23 @@ function setupBackend(options, app, wss, getProxy) {
   }
   internalServerInterface._storedLogs = JSON.parse(json);
 
+  app.get("/jsFiles/compileInBrowser.js", (req, res) => {
+    const code = fs
+      .readFileSync(
+        __dirname + "/../node_modules/@fromjs/core/compileInBrowser.js"
+      )
+      .toString();
+    res.end(code);
+  });
+  app.get("/jsFiles/babel-standalone.js", (req, res) => {
+    const code = fs
+      .readFileSync(
+        __dirname + "/../node_modules/@fromjs/core/babel-standalone.js"
+      )
+      .toString();
+    res.end(code);
+  });
+
   app.post("/storeLogs", (req, res) => {
     app.verifyToken(req);
 
@@ -169,6 +196,10 @@ function setupBackend(options, app, wss, getProxy) {
 
     req.body.logs.forEach(function(log) {
       internalServerInterface.storeLog(log);
+    });
+
+    req.body.evalScripts.forEach(function(evalScript) {
+      getProxy().registerEvalScript(evalScript);
     });
 
     fs.writeFileSync(
@@ -254,7 +285,7 @@ function setupBackend(options, app, wss, getProxy) {
     const code = req.body.code;
 
     getProxy()
-      .registerEvalScript(code)
+      .instrumentForEval(code)
       .then(babelResult => {
         res.end(
           JSON.stringify({ instrumentedCode: babelResult.instrumentedCode })

@@ -56,6 +56,7 @@ class ProxyInstrumenter {
   shouldInstrument: any;
   silent = false;
   rewriteHtml: any;
+  handleEvalScript: any;
 
   constructor({
     babelPluginOptions,
@@ -63,7 +64,8 @@ class ProxyInstrumenter {
     port,
     shouldInstrument,
     silent,
-    rewriteHtml
+    rewriteHtml,
+    handleEvalScript
   }) {
     this.port = port;
     this.instrumenterFilePath = instrumenterFilePath;
@@ -72,6 +74,7 @@ class ProxyInstrumenter {
     this.shouldInstrument = shouldInstrument;
     this.rewriteHtml = rewriteHtml;
     this.silent = silent;
+    this.handleEvalScript = handleEvalScript;
 
     this.proxy.onError((ctx, err, errorKind) => {
       var url = "n/a";
@@ -289,30 +292,51 @@ class ProxyInstrumenter {
     });
   }
 
-  registerEvalScript(code) {
-    const url =
-      "http://localhost:11111/eval" +
-      Math.floor(Math.random() * 10000000000) +
-      ".js";
-
-    // Original code here because it will still be processed later on!
-    this.urlCache[url] = {
-      headers: {},
-      body: code
+  instrumentForEval(code) {
+    const compile = (code, url, done) => {
+      this.processCode(code, url).then(done);
     };
 
+    return new Promise(resolve => {
+      this.handleEvalScript(
+        code,
+        compile,
+        ({ url, instrumentedCode, code, map }) => {
+          this.urlCache[url] = {
+            headers: {},
+            body: instrumentedCode
+          };
+
+          this.urlCache[url + "?dontprocess"] = {
+            headers: {},
+            body: code
+          };
+
+          this.urlCache[url + ".map"] = {
+            headers: {},
+            body: map
+          };
+          resolve({
+            instrumentedCode
+          });
+        }
+      );
+    });
+  }
+
+  registerEvalScript({ url, code, instrumentedCode, map }) {
+    this.urlCache[url] = {
+      headers: {},
+      body: instrumentedCode
+    };
     this.urlCache[url + "?dontprocess"] = {
       headers: {},
       body: code
     };
-
-    return this.processCode(code, url).then(babelResult => {
-      const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url;
-      return Promise.resolve({
-        ...babelResult,
-        instrumentedCode
-      });
-    });
+    this.urlCache[url + ".map"] = {
+      headers: {},
+      body: JSON.stringify(map)
+    };
   }
 
   finishRequest(finishedUrl) {

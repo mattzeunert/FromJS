@@ -394,6 +394,16 @@ const operations: Operations = {
         if (fn === ctx.nativeFunctions.stringPrototypeReplace) {
           console.log("unhandled string replace call");
         }
+        const fnIsEval = fn === eval;
+        const hasInstrumentationFunction =
+          typeof ctx.global["__fromJSEval"] === "function";
+        if (fnIsEval) {
+          if (hasInstrumentationFunction) {
+            fn = ctx.global["__fromJSEval"];
+          } else {
+            console.log("Calling eval but can't instrument code");
+          }
+        }
         const lastReturnStatementResultBeforeCall =
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
         ret = fn.apply(object, fnArgValues);
@@ -402,13 +412,19 @@ const operations: Operations = {
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
         // Don't pretend to have a tracked return value if an uninstrumented function was called
         // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
-        if (
-          ctx.lastOperationType === "returnStatement" &&
-          lastReturnStatementResultAfterCall !==
-            lastReturnStatementResultBeforeCall
-        ) {
-          retT =
-            ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+        if (fnIsEval && hasInstrumentationFunction) {
+          ctx.registerEvalScript(ret.evalScript);
+          ret = ret.returnValue;
+          retT = ctx.lastOpTrackingResultWithoutResetting;
+        } else {
+          if (
+            ctx.lastOperationType === "returnStatement" &&
+            lastReturnStatementResultAfterCall !==
+              lastReturnStatementResultBeforeCall
+          ) {
+            retT =
+              ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+          }
         }
       }
 
@@ -1410,7 +1426,7 @@ const operations: Operations = {
                     200
                   );
                   if (assignedStringFromCurrentOffset === "") {
-                    debugger;
+                    // debugger;
                   }
                   var matches = assignedStringFromCurrentOffset.match(
                     tagEndRegex

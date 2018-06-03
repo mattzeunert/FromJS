@@ -41,16 +41,21 @@ declare var __FUNCTION_NAMES__,
   }
 
   let logQueue = [];
+  let evalScriptQueue = [];
   setInterval(function() {
-    if (logQueue.length === 0) {
+    if (logQueue.length === 0 && evalScriptQueue.length == 0) {
       return;
     }
-    postToBE("/storeLogs", { logs: logQueue }).then(r => {
+    postToBE("/storeLogs", {
+      logs: logQueue,
+      evalScripts: evalScriptQueue
+    }).then(r => {
       console.log("stored logs");
     });
 
     console.log("saving n logs", logQueue.length);
     logQueue = [];
+    evalScriptQueue = [];
   }, 200);
   function remotelyStoreLog(log) {
     logQueue.push(log);
@@ -177,6 +182,7 @@ declare var __FUNCTION_NAMES__,
 
   var lastOpValueResult = null;
   var lastOpTrackingResult = null;
+  let lastOpTrackingResultWithoutResetting = null;
   global[functionNames.doOperation] = function ___op(opName: string, ...args) {
     var value, trackingValue;
 
@@ -204,8 +210,15 @@ declare var __FUNCTION_NAMES__,
         nativeFunctions,
         global,
         loc,
+        registerEvalScript(evalScript) {
+          // store code etc for eval'd code
+          evalScriptQueue.push(evalScript);
+        },
         get lastOpTrackingResult() {
           return lastOpTrackingResult;
+        },
+        get lastOpTrackingResultWithoutResetting() {
+          return lastOpTrackingResultWithoutResetting;
         },
         set extraArgTrackingValues(values) {
           extraTrackingValues = values;
@@ -244,6 +257,7 @@ declare var __FUNCTION_NAMES__,
     });
 
     lastOpValueResult = ret;
+    lastOpTrackingResultWithoutResetting = trackingValue;
     lastOpTrackingResult = trackingValue;
 
     if (opName === "returnStatement") {

@@ -538,3 +538,36 @@ it("Doesn't break on assignment to undeclared global variables", async () => {
   `);
   expect(normal).toBe(10);
 });
+
+describe("eval/new Function", () => {
+  afterEach(() => delete global.__fromJSEval);
+  it("Doesn't break when no compilation function __fromJSEval is available", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return eval("5")
+    `);
+    expect(normal).toBe(5);
+  });
+  it("Compiles eval'd code if __fromJSEval is available", async () => {
+    global.__fromJSEval = function() {
+      return {
+        returnValue: __op(
+          "numericLiteral",
+          {
+            value: [5, null]
+          },
+          null,
+          null
+        ),
+        evalScript: []
+      };
+    };
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return eval("5")
+    `);
+    expect(normal).toBe(5);
+    const callExpression = tracking;
+    expect(callExpression.extraArgs.returnValue.operation).toBe(
+      "numericLiteral"
+    );
+  });
+});
