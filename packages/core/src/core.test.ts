@@ -1,6 +1,6 @@
 import * as OperationTypes from "./OperationTypes";
 import { instrumentAndRun } from "./testHelpers";
-import { syncCompile } from "./compile";
+import { compileSync } from "./compile";
 
 test("adds 1 + 2 to equal 3", done => {
   instrumentAndRun("return 1 + 2").then(({ normal, tracking }) => {
@@ -554,7 +554,7 @@ it("Doesn't break when using non-strict mode features like with", async () => {
 
 describe("eval/new Function", () => {
   function __fromJSEval(code) {
-    let compiledCode = syncCompile(code).code;
+    let compiledCode = compileSync(code).code;
     return {
       returnValue: eval(compiledCode),
       evalScript: []

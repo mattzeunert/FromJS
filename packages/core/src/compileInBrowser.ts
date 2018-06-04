@@ -4,7 +4,9 @@ import getBabelOptions from "./getBabelOptions";
 
 window["__fromJSEval"] = function(code) {
   function compile(code, url, done) {
-    done(window["Babel"].transform(code, getBabelOptions(babelPlugin, {})));
+    done(
+      window["Babel"].transform(code, getBabelOptions(babelPlugin, {}, url))
+    );
   }
 
   let returnValue;
