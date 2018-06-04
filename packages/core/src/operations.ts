@@ -439,6 +439,18 @@ const operations: Operations = {
           ctx.registerEvalScript(ret.evalScript);
           ret = ret.returnValue;
           retT = ctx.lastOpTrackingResultWithoutResetting;
+        } else if (
+          ctx.global.localStorage &&
+          fn === ctx.global.localStorage.getItem
+        ) {
+          retT = ctx.createOperationLog({
+            operation: ctx.operationTypes.localStorageValue,
+            args: {
+              propertyName: fnArgs[0]
+            },
+            astArgs: {},
+            result: ret
+          });
         } else {
           if (
             ctx.lastOperationType === "returnStatement" &&
