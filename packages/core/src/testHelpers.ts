@@ -1,11 +1,12 @@
 import compile from "./compile";
 import InMemoryLogServer from "./InMemoryLogServer";
+import OperationLog from "./helperFunctions/OperationLog";
 
 const server = new InMemoryLogServer();
 
 interface InstrumentAndRunResult {
   code: string;
-  tracking?: any;
+  tracking?: OperationLog;
   normal?: any;
 }
 

@@ -621,7 +621,7 @@ describe("with statement", () => {
       `);
     expect(normal).toBe("12");
   });
-  it.only("Doesn't break expressions as with object argument", async () => {
+  it("Doesn't break expressions as with object argument", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         const obj = { arr: [1,2] }
         let ret = ""
@@ -633,5 +633,37 @@ describe("with statement", () => {
         return ret
       `);
     expect(normal).toBe("12");
+  });
+});
+
+describe("localStorage", () => {
+  beforeEach(() => {
+    global.localStorage = {
+      prop: "hi",
+      getItem() {
+        return "hi";
+      }
+    };
+  });
+  afterEach(() => {
+    delete global.localStorage;
+  });
+  it("Tracks a localStorage value accessed using localStorage.prop", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return localStorage.prop
+      `);
+    expect(normal).toBe("hi");
+    expect(tracking.extraArgs.propertyValue.operation).toBe(
+      OperationTypes.localStorageValue
+    );
+  });
+  it("Tracks a localStorage value accessed using localStorage.getItem('prop')", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return localStorage.getItem("prop")
+      `);
+    expect(normal).toBe("hi");
+    expect(tracking.extraArgs.returnValue.operation).toBe(
+      OperationTypes.localStorageValue
+    );
   });
 });

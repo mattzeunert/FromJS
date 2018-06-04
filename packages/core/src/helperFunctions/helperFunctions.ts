@@ -236,7 +236,6 @@ declare var __FUNCTION_NAMES__,
         loc,
         registerEvalScript(evalScript) {
           // store code etc for eval'd code
-          console.log("registering eval script", evalScript);
           evalScriptQueue.push(evalScript);
         },
         get lastOpTrackingResult() {
