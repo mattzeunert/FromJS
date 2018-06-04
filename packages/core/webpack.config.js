@@ -42,9 +42,11 @@ module.exports = {
         const fs = require("fs");
         var code = fs.readFileSync("./helperFunctions.js").toString();
         code = `export default \`${code}\``;
-        const currentTsFile = fs
-          .readFileSync("./helperFunctions.ts")
-          .toString();
+
+        let currentTsFile;
+        try {
+          currentTsFile = fs.readFileSync("./helperFunctions.ts").toString();
+        } catch (err) {}
 
         // prevent infinite webpack builds (overwriting helperfunctins triggers rebuild as compileInBrowser depends on it)
         if (currentTsFile !== code) {
