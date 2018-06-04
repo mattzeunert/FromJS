@@ -4,7 +4,6 @@ export default function getBabelOptions(plugin, extraBabelOptions = {}, url) {
     ...extraBabelOptions,
     sourceMaps: true,
     sourceFileName: url + "?dontprocess",
-    sourceMapTarget: url + ".map",
     parserOpts: {
       strictMode: false
     },
