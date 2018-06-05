@@ -177,18 +177,38 @@ describe("Can traverse string replacement calls", () => {
   });
 });
 
-it("Can traverse JSON.parse", async () => {
-  const { normal, tracking, code } = await instrumentAndRun(`
-      var json = '{"a": {"b": 5}}';
-      var obj = JSON.parse(json);
-      return obj.a.b
-    `);
+describe.only("JSON.parse", () => {
+  it("Can traverse JSON.parse", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = '{"a": {"b": 5}}';
+        var obj = JSON.parse(json);
+        return obj.a.b
+      `);
 
-  var t = await traverse({ operationLog: tracking, charIndex: 0 });
-  var lastStep = t[t.length - 1];
+    var t = await traverse({ operationLog: tracking, charIndex: 0 });
+    var lastStep = t[t.length - 1];
 
-  expect(lastStep.operationLog.operation).toBe("stringLiteral");
-  expect(lastStep.charIndex).toBe(12);
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(12);
+  });
+
+  it("Returns the correct character index for longer strings", async () => {
+    const text = `{"a": {"b": "Hello"}}`;
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = '${text}';
+        var obj = JSON.parse(json);
+        return obj.a.b
+      `);
+
+    var t = await traverse({
+      operationLog: tracking,
+      charIndex: "Hello".indexOf("l")
+    });
+    var lastStep = t[t.length - 1];
+
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(text.indexOf("l"));
+  });
 });
 
 it("Can traverse arguments for a function expression (rather than a function declaration)", async () => {

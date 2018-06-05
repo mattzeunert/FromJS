@@ -888,9 +888,10 @@ const operations: Operations = {
       // This traversal method is inaccurate but still useful
       // Ideally we should probably have a JSON parser
       const valueReadFromJson = operationLog.result.str;
+      charIndex += operationLog.args.json.result.str.indexOf(valueReadFromJson);
       return {
         operationLog: operationLog.args.json,
-        charIndex: operationLog.args.json.result.str.indexOf(valueReadFromJson)
+        charIndex
       };
     }
   },

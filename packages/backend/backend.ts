@@ -182,10 +182,10 @@ function setupBackend(options, app, wss, getProxy) {
       getProxy().registerEvalScript(evalScript);
     });
 
-    // fs.writeFileSync(
-    //   "logs.json",
-    //   JSON.stringify(internalServerInterface._storedLogs)
-    // );
+    fs.writeFileSync(
+      "logs.json",
+      JSON.stringify(internalServerInterface._storedLogs)
+    );
     console.log("stored logs", req.body.logs.length);
 
     res.end(JSON.stringify({ ok: true }));

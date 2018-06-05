@@ -36,7 +36,7 @@
     "transform": {
       "^.+\\.(ts|tsx)$": "./preprocessor.js"
     },
-    "testMatch": ["**/*.test.(ts|tsx|js)"]
+    "testMatch": ["**/*.test.(ts|tsx)"]
   },
   "devDependencies": {
     "error-stack-parser": "^2.0.1",
