@@ -1,8 +1,8 @@
 import { startProxy } from "@fromjs/proxy-instrumenter";
 import { handleEvalScript } from "@fromjs/core";
-import * as process from "process";
-import { BackendOptions } from "./BackendOptions";
+declare var process: any;
 
+import { BackendOptions } from "./BackendOptions";
 process.title = "FromJS - Proxy";
 process.on("message", function() {
   console.log("proxy got messsage", arguments);

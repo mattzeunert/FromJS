@@ -1,6 +1,6 @@
 import { BackendOptions } from "./BackendOptions";
 
-interface CreateProxyWrapperArgs {
+export interface CreateProxyWrapperArgs {
   accessToken: string;
   options: BackendOptions;
 }
