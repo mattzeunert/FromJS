@@ -251,6 +251,7 @@ const operations: Operations = {
             args: {
               value: arg
             },
+            loc: ctx.loc,
             astArgs: {},
             result: arg[0]
           })
