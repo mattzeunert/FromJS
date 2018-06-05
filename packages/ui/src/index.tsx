@@ -512,6 +512,8 @@ function renderTree(log, containerSelector) {
     const treeCodeDivId =
       "tree-code-div-" + Math.floor(Math.random() * 1000000000000000);
 
+    const index = data ? data.index : "n/a";
+
     var node = {
       innerHTML: `<div>
         <div
@@ -519,11 +521,9 @@ function renderTree(log, containerSelector) {
           ${argName}
           <span style="font-weight: normal; font-size: 11px; color: #999;">(${type})</span>
           <button style="cursor: pointer; float: right;    border: none;
-          text-decoration: underline;" onclick="showSteps(${
-            data.index
-          }, 0)">Inspect</button>
+          text-decoration: underline;" onclick="showSteps(${index}, 0)">Inspect</button>
         </div>
-        <div class="operation" data-index="${data.index}">
+        <div class="operation" data-index="${index}">
           <div class="code-container">
             <code style="font-size: 11px" id="${treeCodeDivId}">&nbsp;</code>
           </div>
@@ -656,7 +656,7 @@ let TraversalStep = class TraversalStep extends React.Component<
         previousLine = previousLines[previousLines.length - 1].text;
       }
       if (nextLines.length > 0) {
-        nextLine = nextLines[nextLines.length - 1].text;
+        nextLine = nextLines[0].text;
       }
     } catch (err) {
       code = "Loading or error...";
@@ -933,4 +933,7 @@ App = root(appState, App);
 
 ReactDom.render(<App />, document.querySelector("#app"));
 
-// showSteps(522841433, 101);
+setTimeout(
+  () => appState.set("inspectionTarget", { logId: 268295310, charIndex: 0 }),
+  500
+);
