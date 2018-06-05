@@ -34,11 +34,7 @@ jobs:
 
       - run: cd packages/core;npm run webpack-build;cd ../..
 
-      - run: npm run compile-core; cd ../..
-
-      - run: npm run compile-proxy-instrumenter; cd ../..
-
-      - run: npm run compile-backend; cd ../..
+      - run: npm run compile-all
 
       - run: yarn test
 
