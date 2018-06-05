@@ -177,7 +177,7 @@ describe("Can traverse string replacement calls", () => {
   });
 });
 
-describe.only("JSON.parse", () => {
+describe("JSON.parse", () => {
   it("Can traverse JSON.parse", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         var json = '{"a": {"b": 5}}';
