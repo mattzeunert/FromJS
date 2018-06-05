@@ -1,13 +1,11 @@
 import {
   babelPlugin,
-  InMemoryLogServer as ServerInterface,
-  handleEvalScript
+  InMemoryLogServer as ServerInterface
 } from "@fromjs/core";
 import { traverse } from "./src/traverse";
 import StackFrameResolver from "./src/StackFrameResolver";
 import * as fs from "fs";
 import * as prettier from "prettier";
-import { startProxy } from "@fromjs/proxy-instrumenter";
 import * as Babel from "babel-core";
 import * as crypto from "crypto";
 import * as path from "path";
@@ -15,12 +13,8 @@ import * as express from "express";
 import * as bodyParser from "body-parser";
 import * as WebSocket from "ws";
 import * as http from "http";
-
-export interface BackendOptions {
-  bePort: number;
-  proxyPort: number;
-  onReady: () => void;
-}
+import { createProxy } from "./backend.createProxy";
+import { BackendOptions } from "./BackendOptions";
 
 export default class Backend {
   constructor(options: BackendOptions) {
@@ -54,11 +48,24 @@ export default class Backend {
     };
 
     function getProxy() {
-      return proxy;
+      console.log("getproxy", proxyInterface);
+      return proxyInterface;
     }
 
     setupUI(options, app, wss, getProxy);
     setupBackend(options, app, wss, getProxy);
+
+    let proxyInterface;
+    createProxy({
+      accessToken,
+      options
+    }).then(pInterface => {
+      proxyInterface = pInterface;
+      "justtotest" && getProxy();
+      if (options.onReady) {
+        options.onReady();
+      }
+    });
 
     // let domToInspect = null;
     // app.get("/inspectDOM", (req, res) => {
@@ -89,33 +96,6 @@ export default class Backend {
     server.listen(bePort, () =>
       console.log("Backend server listening on port " + bePort)
     );
-
-    var proxy;
-    startProxy({
-      babelPluginOptions: {
-        accessToken,
-        backendPort: bePort
-      },
-      handleEvalScript,
-      port: proxyPort,
-      instrumenterFilePath: __dirname + "/instrumentCode.js",
-      shouldInstrument: ({ port, path }) => {
-        console.log("shoul", path, bePort);
-        return port !== bePort || path.startsWith("/start");
-      },
-      rewriteHtml: html => {
-        return (
-          `<script src="http://localhost:${bePort}/jsFiles/babel-standalone.js"></script>
-          <script src="http://localhost:${bePort}/jsFiles/compileInBrowser.js"></script>
-          ` + html
-        );
-      }
-    }).then(p => {
-      proxy = p;
-      if (options.onReady) {
-        options.onReady();
-      }
-    });
   }
 }
 
@@ -202,10 +182,10 @@ function setupBackend(options, app, wss, getProxy) {
       getProxy().registerEvalScript(evalScript);
     });
 
-    fs.writeFileSync(
-      "logs.json",
-      JSON.stringify(internalServerInterface._storedLogs)
-    );
+    // fs.writeFileSync(
+    //   "logs.json",
+    //   JSON.stringify(internalServerInterface._storedLogs)
+    // );
     console.log("stored logs", req.body.logs.length);
 
     res.end(JSON.stringify({ ok: true }));

@@ -43,7 +43,7 @@ declare var __FUNCTION_NAMES__,
   let logQueue = [];
   window["__debugFromJSLogQueue"] = () => logQueue;
   let evalScriptQueue = [];
-  setInterval(function() {
+  function sendLogsToServer() {
     if (logQueue.length === 0 && evalScriptQueue.length == 0) {
       return;
     }
@@ -57,7 +57,8 @@ declare var __FUNCTION_NAMES__,
     console.log("saving n logs", logQueue.length);
     logQueue = [];
     evalScriptQueue = [];
-  }, 200);
+  }
+  setInterval(sendLogsToServer, 200);
   function remotelyStoreLog(log) {
     logQueue.push(log);
   }
@@ -296,6 +297,11 @@ declare var __FUNCTION_NAMES__,
     }
 
     lastOperationType = opName;
+
+    if (logQueue.length > 10000) {
+      // avoid running out of memory
+      sendLogsToServer();
+    }
 
     return ret;
   };

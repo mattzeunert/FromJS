@@ -3,6 +3,8 @@ import Backend from "@fromjs/backend";
 import * as puppeteer from "puppeteer";
 import * as process from "process";
 
+process["titl" + "e"] = "FromJS - CLI";
+
 commander
   .option("--shouldOpenBrowser <shouldOpen>", "yes|no|only", "yes")
   .option("--port <port>", "Server port", 7000)
@@ -13,6 +15,7 @@ let bePort = parseFloat(commander.port);
 let proxyPort = bePort + 1;
 
 if (commander.shouldOpenBrowser === "only") {
+  process["titl" + "e"] = "FromJS - CLI (browser only)";
   console.log("Only opening browser with proxy port set to", proxyPort);
   openBrowser();
 } else {
