@@ -18,8 +18,6 @@ Error["stackTraceLimit"] = Infinity;
 
 import { spawn } from "threads";
 
-// todo: multiple requests to same url will be cleared in one go for requestsInProgress right now
-
 export function startProxy(options) {
   return new Promise(resolve => {
     var fesProxy = new ProxyInstrumenter(options);
@@ -86,144 +84,123 @@ class ProxyInstrumenter {
       console.error("[PROXY]" + errorKind + " on " + url + ":", err);
     });
 
-    this.proxy.onRequest((ctx, callback) => {
-      let protocol = ctx.isSSL ? "https" : "http";
-      var url = getUrl(ctx);
-
-      if (!this.silent) {
-        log("Request: " + url);
-      }
-      if (url === "http://example.com/verifyProxyWorks") {
-        ctx.proxyToClientResponse.end("Confirmed proxy works!");
-        return;
-      }
-      if (
-        url.includes("google") ||
-        url.includes("launchdarkly") ||
-        url.includes("appspot")
-      ) {
-        // make it easier to debug stuff in China, otherwise getting pending requests forever
-        log("sending empty response for google etc");
-        ctx.proxyToClientResponse.statusCode = 500;
-        ctx.proxyToClientResponse.end("");
-        return;
-      }
-
-      this.requestsInProgress.push(url);
-
-      if (ctx.clientToProxyRequest.url.indexOf())
-        var isDontProcess = ctx.clientToProxyRequest.url.includes(
-          "?dontprocess"
-        );
-
-      var isMap =
-        url.split("?")[0].endsWith(".map") && !url.includes(".css.map");
-      var isHtml =
-        ctx.clientToProxyRequest.headers.accept &&
-        ctx.clientToProxyRequest.headers.accept.includes("text/html");
-
-      let shouldInstrument = true;
-      if (this.shouldInstrument) {
-        shouldInstrument = this.shouldInstrument({
-          url: getUrl(ctx),
-          path: ctx.clientToProxyRequest.url,
-          port:
-            parseFloat(ctx.clientToProxyRequest.headers.host.split(":")[1]) ||
-            80
-        });
-      }
-
-      if (isHtml && this.rewriteHtml) {
-        // todo: refactor so that waitForResponseEnd is instead
-        // interceptrequest and you just have to return the new response body
-        this.waitForResponseEnd(ctx).then(({ body, ctx, callback }) => {
-          const newHtml = this.rewriteHtml(body);
-          this.finishRequest(url);
-          ctx.proxyToClientResponse.end(new Buffer(newHtml));
-          callback();
-        });
-      } else if (checkIsJS(ctx) && shouldInstrument) {
-        const finishJSRequest = (body, callback) => {
-          if (!isDontProcess) {
-            this.processCode(body, url).then(
-              result => {
-                this.finishRequest(url);
-                ctx.proxyToClientResponse.end(new Buffer(result.code));
-                callback();
-              },
-              err => {
-                log("process code error", err);
-                this.finishRequest(url);
-                ctx.proxyToClientResponse.end(new Buffer(body));
-                callback();
-              }
-            );
-          } else {
-            ctx.proxyToClientResponse.end(new Buffer(body));
-            this.finishRequest(url);
-            return;
-          }
-        };
-
-        if (this.urlCache[url]) {
-          log("Url cache hit!");
-          Object.keys(this.urlCache[url].headers).forEach(name => {
-            var value = this.urlCache[url].headers[name];
-            ctx.proxyToClientResponse.setHeader(name, value);
-          });
-          finishJSRequest(this.urlCache[url].body, function() {});
-          return;
-        }
-
-        var mapUrl = url.replace(".js", ".js.map");
-
-        ctx.use(Proxy.gunzip);
-
-        this.waitForResponseEnd(ctx).then(({ body, ctx, callback }) => {
-          var contentTypeHeader =
-            ctx.serverToProxyResponse.headers["content-type"];
-          if (contentTypeHeader && contentTypeHeader.includes("text/html")) {
-            log("file name looked like js but is text/html", url);
-            ctx.proxyToClientResponse.write(new Buffer(body));
-            return callback();
-          }
-
-          this.urlCache[url] = {
-            body,
-            headers: ctx.serverToProxyResponse.headers
-          };
-
-          finishJSRequest(body, callback);
-
-          return;
-        });
-      } else if (isMap && shouldInstrument) {
-        this.getSourceMap(url).then(sourceMap => {
-          ctx.proxyToClientResponse.end(JSON.stringify(sourceMap));
-          this.finishRequest(url);
-        });
-        return;
-      } else {
-        ctx.onResponseEnd(function(ctx, callback) {
-          return callback();
-        });
-      }
-      return callback();
-    });
+    this.proxy.onRequest(this.onRequest.bind(this));
 
     this.proxy.onResponseEnd((ctx, callback) => {
-      if (checkIsJS(ctx)) {
-        return callback();
-      }
-      this.finishRequest(getUrl(ctx));
       log(
         "resp end",
         getUrl(ctx),
         "#req still in progress:",
         this.requestsInProgress.length
       );
-      return callback();
+      callback();
     });
+  }
+
+  onRequest(ctx, callback) {
+    const requestInfo = {
+      protocol: ctx.isSSL ? "https" : "http",
+      url: getUrl(ctx),
+      path: ctx.clientToProxyRequest.url,
+      port:
+        parseFloat(ctx.clientToProxyRequest.headers.host.split(":")[1]) || 80
+    };
+    var url = requestInfo.url;
+    ctx.requestId = url + "_" + Math.random();
+
+    if (!this.silent) {
+      log("Request: " + url);
+    }
+
+    if (url === "http://example.com/verifyProxyWorks") {
+      ctx.proxyToClientResponse.end("Confirmed proxy works!");
+      return;
+    }
+
+    if (this.urlCache[url]) {
+      log("Url cache hit!");
+      Object.keys(this.urlCache[url].headers).forEach(name => {
+        var value = this.urlCache[url].headers[name];
+        ctx.proxyToClientResponse.setHeader(name, value);
+      });
+      this.finishRequest(url);
+      ctx.proxyToClientResponse.end(new Buffer(this.urlCache[url].body));
+      return;
+    }
+
+    this.requestsInProgress.push(ctx.requestId);
+
+    var isDontProcess = ctx.clientToProxyRequest.url.includes("?dontprocess");
+    var isMap = url.split("?")[0].endsWith(".map") && !url.includes(".css.map");
+    var isHtml =
+      !checkIsJS(ctx) &&
+      ctx.clientToProxyRequest.headers.accept &&
+      ctx.clientToProxyRequest.headers.accept.includes("text/html");
+
+    let shouldInstrument = true;
+    if (this.shouldInstrument) {
+      shouldInstrument = this.shouldInstrument(requestInfo);
+    }
+
+    if (isHtml && this.rewriteHtml && shouldInstrument) {
+      this.waitForResponseEnd(ctx).then(({ body, ctx, sendResponse }) => {
+        sendResponse(this.rewriteHtml(body));
+      });
+      callback();
+    } else if (checkIsJS(ctx) && shouldInstrument) {
+      const maybeProcessJs = (body, done) => {
+        if (!isDontProcess) {
+          this.processCode(body, url).then(
+            result => {
+              done(result.code);
+            },
+            err => {
+              log("process code error", err);
+              this.finishRequest(ctx.requestId);
+              done(body);
+            }
+          );
+        } else {
+          done(body);
+        }
+      };
+
+      var mapUrl = url.replace(".js", ".js.map");
+
+      ctx.use(Proxy.gunzip);
+
+      this.waitForResponseEnd(ctx).then(({ body, ctx, sendResponse }) => {
+        var contentTypeHeader =
+          ctx.serverToProxyResponse.headers["content-type"];
+
+        if (contentTypeHeader && contentTypeHeader.includes("text/html")) {
+          log("file name looked like js but is text/html", url);
+          sendResponse(this.rewriteHtml(body));
+          return;
+        }
+
+        this.urlCache[url] = {
+          body,
+          headers: ctx.serverToProxyResponse.headers
+        };
+
+        maybeProcessJs(body, responseCode => {
+          sendResponse(responseCode);
+        });
+      });
+      callback();
+    } else if (isMap && shouldInstrument) {
+      this.getSourceMap(url).then(sourceMap => {
+        ctx.proxyToClientResponse.end(JSON.stringify(sourceMap));
+        this.finishRequest(ctx.requestId);
+      });
+    } else {
+      ctx.onResponseEnd((ctx, callback) => {
+        this.finishRequest(ctx.requestId);
+        return callback();
+      });
+      callback();
+    }
   }
 
   start() {
@@ -259,11 +236,6 @@ class ProxyInstrumenter {
       var chunks: any[] = [];
       ctx.onResponseData(function(ctx, chunk, callback) {
         chunks.push(chunk);
-        var chunkSizeInKb =
-          Math.round(chunk.toString().length / 1024 * 10) / 10;
-        setTimeout(function() {
-          // log("got chunk", url, chunkSizeInKb + "kb");
-        });
 
         return callback(null, null); // don't write chunks to client response
       });
@@ -287,7 +259,15 @@ class ProxyInstrumenter {
           );
         }
 
-        resolve({ body, ctx, callback });
+        if (body.length === 0) {
+          // debugger;
+        }
+        const sendResponse = responseBody => {
+          this.finishRequest(ctx.requestId);
+          ctx.proxyToClientResponse.end(new Buffer(responseBody));
+          callback();
+        };
+        resolve({ body, ctx, sendResponse });
       });
     });
   }
@@ -339,11 +319,12 @@ class ProxyInstrumenter {
     };
   }
 
-  finishRequest(finishedUrl) {
+  finishRequest(finishedRequestId) {
     this.requestsInProgress = this.requestsInProgress.filter(
-      url => url !== finishedUrl
+      id => id !== finishedRequestId
     );
   }
+
   proxiedFetchUrl(url) {
     var r = request.defaults({ proxy: "http://127.0.0.1:" + this.port });
     return new Promise((resolve, reject) => {
@@ -360,6 +341,7 @@ class ProxyInstrumenter {
       }
     });
   }
+
   getSourceMap(url) {
     var jsUrl = url.replace(".js.map", ".js");
     console.time("Get sourceMap" + url);
