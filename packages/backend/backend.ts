@@ -1,7 +1,4 @@
-import {
-  babelPlugin,
-  InMemoryLogServer as ServerInterface
-} from "@fromjs/core";
+import { babelPlugin, LevelDBLogServer } from "@fromjs/core";
 import { traverse } from "./src/traverse";
 import StackFrameResolver from "./src/StackFrameResolver";
 import * as fs from "fs";
@@ -138,15 +135,7 @@ function setupUI(options, app, wss, getProxy) {
 }
 
 function setupBackend(options, app, wss, getProxy) {
-  const internalServerInterface = new ServerInterface();
-  let json;
-  try {
-    json = fs.readFileSync("logs.json").toString();
-  } catch (err) {}
-  if (!json) {
-    json = "{}";
-  }
-  internalServerInterface._storedLogs = JSON.parse(json);
+  const logServer = new LevelDBLogServer();
 
   app.get("/jsFiles/compileInBrowser.js", (req, res) => {
     const code = fs
@@ -175,18 +164,15 @@ function setupBackend(options, app, wss, getProxy) {
     );
 
     req.body.logs.forEach(function(log) {
-      internalServerInterface.storeLog(log);
+      logServer.storeLog(log);
     });
 
     req.body.evalScripts.forEach(function(evalScript) {
       getProxy().registerEvalScript(evalScript);
     });
 
-    fs.writeFileSync(
-      "logs.json",
-      JSON.stringify(internalServerInterface._storedLogs)
-    );
-    console.log("stored logs", req.body.logs.length);
+    // fs.writeFileSync("logs.json", JSON.stringify(logServer._storedLogs));
+    // console.log("stored logs", req.body.logs.length);
 
     res.end(JSON.stringify({ ok: true }));
   });
@@ -196,7 +182,7 @@ function setupBackend(options, app, wss, getProxy) {
     setTimeout(function() {
       // console.log(Object.keys(internalServerInterface._storedLogs));
       console.log(req.body);
-      internalServerInterface.loadLog(req.body.id, function(log) {
+      logServer.loadLog(req.body.id, function(err, log) {
         res.end(JSON.stringify(log));
       });
     }, 500);
@@ -216,7 +202,7 @@ function setupBackend(options, app, wss, getProxy) {
           charIndex: req.body.charIndex
         },
         [],
-        internalServerInterface
+        logServer
       );
 
       res.end(JSON.stringify({ steps }));

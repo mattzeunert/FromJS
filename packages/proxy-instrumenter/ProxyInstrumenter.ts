@@ -257,7 +257,7 @@ class ProxyInstrumenter {
         }
 
         if (body.length === 0) {
-          // debugger;
+          console.log("EMPTY RESPONSE", getUrl(ctx));
         }
         const sendResponse = responseBody => {
           this.finishRequest(ctx.requestId);

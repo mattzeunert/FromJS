@@ -1,5 +1,6 @@
 import babelPlugin from "./src/babelPlugin";
-import InMemoryLogServer from "./src/InMemoryLogServer";
+import InMemoryLogServer from "./src/LogServer/InMemoryLogServer";
+import LevelDBLogServer from "./src/LogServer/LevelDBLogServer";
 import operations from "./src/operations";
 import * as testHelpers from "./src/testHelpers";
 import OperationLog from "./src/helperFunctions/OperationLog";
@@ -9,6 +10,7 @@ import { compileSync } from "./src/compile";
 export {
   babelPlugin,
   InMemoryLogServer,
+  LevelDBLogServer,
   operations,
   testHelpers,
   OperationLog,

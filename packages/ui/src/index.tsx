@@ -1,7 +1,7 @@
 // import { InMemoryLogServer, operations, babelPlugin } from "@fromjs/core";
 // importing @fromjs/core only works in a node environment because it loads babel
 // so import files directly here
-import InMemoryLogServer from "../../core/src/InMemoryLogServer";
+// import InMemoryLogServer from "../../core/src/InMemoryLogServer";
 import operations from "../../core/src/operations";
 import babelPlugin from "../../core/src/babelPlugin";
 import * as React from "react";
@@ -39,23 +39,23 @@ appState.select("inspectionTarget").on("update", ({ target }) => {
 const DEBUG = true;
 const USE_SERVER = true;
 
-class ServerInterface2 {
-  loadLog(logId, fn) {
-    document.title = logId;
-    fetch(backendRoot + "/loadLog", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ id: logId })
-    })
-      .then(res => res.json())
-      .then(r => {
-        fn(r);
-      });
-  }
-}
+// class ServerInterface2 {
+//   loadLog(logId, fn) {
+//     document.title = logId;
+//     fetch(backendRoot + "/loadLog", {
+//       method: "POST",
+//       headers: {
+//         Accept: "application/json",
+//         "Content-Type": "application/json"
+//       },
+//       body: JSON.stringify({ id: logId })
+//     })
+//       .then(res => res.json())
+//       .then(r => {
+//         fn(r);
+//       });
+//   }
+// }
 
 var exampleSocket = new WebSocket("ws://127.0.0.1:" + window["backendPort"]);
 
@@ -76,17 +76,17 @@ if (DEBUG) {
     .setAttribute("style", "display: block");
 }
 
-let serverInterface;
-serverInterface = new InMemoryLogServer();
-if (USE_SERVER) {
-  serverInterface = new ServerInterface2();
-} else {
-  serverInterface = new InMemoryLogServer();
-}
+// let serverInterface;
+// serverInterface = new InMemoryLogServer();
+// if (USE_SERVER) {
+//   serverInterface = new ServerInterface2();
+// } else {
+//   serverInterface = new InMemoryLogServer();
+// }
 
-if (!USE_SERVER) {
-  window["__storeLog"] = serverInterface.storeLog.bind(serverInterface);
-}
+// if (!USE_SERVER) {
+//   window["__storeLog"] = serverInterface.storeLog.bind(serverInterface);
+// }
 
 var editor = window["CodeMirror"].fromTextArea(
   document.getElementById("code"),
@@ -255,12 +255,12 @@ function loadSteps({ logId, charIndex }) {
       body: JSON.stringify({ logId: logId, charIndex })
     }).then(res => res.json());
   } else {
-    return new Promise(resolve => {
-      loadLog(logId, log => {
-        var steps = traverse({ operationLog: log, charIndex });
-        resolve({ steps });
-      });
-    });
+    // return new Promise(resolve => {
+    //   loadLog(logId, log => {
+    //     var steps = traverse({ operationLog: log, charIndex });
+    //     resolve({ steps });
+    //   });
+    // });
   }
 }
 
@@ -359,11 +359,11 @@ function runCodeAndshowResult(code) {
   });
 }
 
-function loadLog(logIndex, fn) {
-  serverInterface.loadLog(logIndex, log => {
-    fn(log.args.value);
-  });
-}
+// function loadLog(logIndex, fn) {
+//   serverInterface.loadLog(logIndex, log => {
+//     fn(log.args.value);
+//   });
+// }
 
 function showNormalValue(inspectedValue) {
   var html =
@@ -396,9 +396,9 @@ function showTree(logIndex) {
     throw Error("value is undefiend");
   }
 
-  loadLog(logIndex, log => {
-    renderTree(log, "#basic-example");
-  });
+  // loadLog(logIndex, log => {
+  //   renderTree(log, "#basic-example");
+  // });
 }
 
 function renderTree(log, containerSelector) {

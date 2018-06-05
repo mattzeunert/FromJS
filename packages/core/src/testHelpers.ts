@@ -1,5 +1,5 @@
 import compile from "./compile";
-import InMemoryLogServer from "./InMemoryLogServer";
+import InMemoryLogServer from "./LogServer/InMemoryLogServer";
 import OperationLog from "./helperFunctions/OperationLog";
 
 const server = new InMemoryLogServer();
@@ -25,7 +25,7 @@ export function instrumentAndRun(code) {
       if (result.tracking) {
         server.loadLog(
           result.tracking,
-          log => {
+          (err, log) => {
             // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
             result.tracking =
               log.args.value.extraArgs.returnValue.args.returnValue;

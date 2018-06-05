@@ -1,25 +1,7 @@
-import operations, { eachArgument } from "./operations";
-import OperationLog from "./helperFunctions/OperationLog";
-interface LogsObject {
-  [key: string]: OperationLog;
-}
+import operations, { eachArgument } from "../operations";
 
-export default class InMemoryLogServer {
-  _storedLogs: LogsObject = {};
-  storeLog(log) {
-    this._storedLogs[log.index] = log;
-  }
-  getLog(index, fn) {
-    var log = this._storedLogs[index];
-    if (!log) {
-      throw Error("log not found, index is: " + index);
-    }
-
-    // deep clone log so we can modify it without affecting the original
-    // possibly slow, can fix later
-    log = JSON.parse(JSON.stringify(log));
-    fn(log);
-  }
+export class LogServer {
+  getLog(logIndex: number, cb: any) {}
   loadLog(log, fn, maxDepth = Number.POSITIVE_INFINITY, currentDepth = 0) {
     // console.count("load")
     let logIndex;
@@ -28,7 +10,14 @@ export default class InMemoryLogServer {
     } else {
       logIndex = log.index;
     }
-    this.getLog(logIndex, log => {
+    this.getLog(logIndex, (err, log) => {
+      if (log === undefined) {
+        debugger;
+      }
+      if (err) {
+        fn(err, null);
+        return;
+      }
       if (currentDepth < maxDepth) {
         updateEachOperationArgument(
           log,
@@ -36,21 +25,36 @@ export default class InMemoryLogServer {
             if (!log) {
               update(log);
             } else {
-              this.loadLog(log, l => update(l), maxDepth, currentDepth + 1);
+              this.loadLog(
+                log,
+                (err, l) => {
+                  if (err) {
+                    fn(err);
+                    return;
+                  }
+                  update(l);
+                },
+                maxDepth,
+                currentDepth + 1
+              );
             }
           },
-          () => fn(log)
+          () => fn(null, log)
         );
       } else {
-        fn(log);
+        fn(null, log);
       }
     });
   }
   async loadLogAwaitable(log, maxDepth) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       this.loadLog(
         log,
-        log => {
+        (err, log) => {
+          if (err) {
+            reject(err);
+            return;
+          }
           resolve(log);
         },
         maxDepth
