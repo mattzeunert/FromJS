@@ -18,7 +18,6 @@ export default class LevelDBLogServer extends LogServer {
     index: number | string,
     fn: (err: any, log: OperationLog | null) => void
   ) {
-    console.log({ index });
     this.db.get(index.toString(), function(err, value) {
       if (err) {
         console.log("leveldb get err", err);

@@ -256,15 +256,17 @@ class ProxyInstrumenter {
           );
         }
 
-        if (body.length === 0) {
-          console.log("EMPTY RESPONSE", getUrl(ctx));
-        }
         const sendResponse = responseBody => {
           this.finishRequest(ctx.requestId);
-          this.urlCache[getUrl(ctx)] = {
-            body: responseBody,
-            headers: ctx.serverToProxyResponse.headers
-          };
+          if (body.length === 0) {
+            console.log("EMPTY RESPONSE", getUrl(ctx));
+          } else {
+            this.urlCache[getUrl(ctx)] = {
+              body: responseBody,
+              headers: ctx.serverToProxyResponse.headers
+            };
+          }
+
           ctx.proxyToClientResponse.end(new Buffer(responseBody));
           callback();
         };
