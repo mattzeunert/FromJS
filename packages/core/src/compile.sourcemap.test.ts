@@ -43,7 +43,7 @@ describe("Finds the original location of string literals", () => {
       return Promise.resolve(response);
     }
     const gps = new StackTraceGPS({ ajax });
-    const stackFrame = ErrorStackParser.parse({
+    const stackFrame = ErrorStackParser.parse(<any>{
       stack: `at code.js:${line}:${col}`
     })[0];
 

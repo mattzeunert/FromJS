@@ -113,7 +113,7 @@ fetch(backendRoot + "/inspect", {
     Accept: "application/json",
     "Content-Type": "application/json"
   }
-})
+} as any)
   .then(res => res.json())
   .then(r => {
     const { logToInspect } = r;
@@ -198,7 +198,7 @@ function callApi(endpoint, data) {
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json"
-    },
+    } as any,
     body: JSON.stringify(data)
   }).then(r => r.json());
 }
@@ -251,7 +251,7 @@ function loadSteps({ logId, charIndex }) {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json"
-      },
+      } as any,
       body: JSON.stringify({ logId: logId, charIndex })
     }).then(res => res.json());
   } else {
@@ -304,7 +304,7 @@ function showSteps(logId, charIndex) {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json"
-        },
+        } as any,
         body: JSON.stringify({
           stackFrameString: step.operationLog.stackFrames[0],
           operationLog: step.operationLog
@@ -578,7 +578,7 @@ function resolveStackFrame(operationLog) {
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json"
-    },
+    } as any,
     body: JSON.stringify({
       stackFrameString: operationLog.stackFrames[0],
       operationLog: operationLog
