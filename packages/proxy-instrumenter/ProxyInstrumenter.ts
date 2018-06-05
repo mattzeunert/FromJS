@@ -179,10 +179,7 @@ class ProxyInstrumenter {
           return;
         }
 
-        this.urlCache[url] = {
-          body,
-          headers: ctx.serverToProxyResponse.headers
-        };
+        console.log("maybe process", url);
 
         maybeProcessJs(body, responseCode => {
           sendResponse(responseCode);
@@ -264,6 +261,10 @@ class ProxyInstrumenter {
         }
         const sendResponse = responseBody => {
           this.finishRequest(ctx.requestId);
+          this.urlCache[getUrl(ctx)] = {
+            body: responseBody,
+            headers: ctx.serverToProxyResponse.headers
+          };
           ctx.proxyToClientResponse.end(new Buffer(responseBody));
           callback();
         };
