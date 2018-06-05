@@ -24,6 +24,7 @@
       "nodemon --max_old_space_size=8000 --ignore logs.json packages/cli/dist/cli.js -- --shouldOpenBrowser no",
     "cli-debug":
       "nodemon --max_old_space_size=8000 --inspect --ignore logs.json  packages/cli/dist/cli.js -- --shouldOpenBrowser no",
+    "cli-browser": "`node packages/cli/dist/cli.js --shouldOpenBrowser only`",
     "compile-all": "npm run compile-core & npm run compile-proxy-instrumenter & npm run compile-backend & npm run compile-cli",
     "compile-all-watch": "npm run compile-core-watch & npm run compile-proxy-instrumenter-watch & npm run compile-backend-watch & npm run compile-cli-watch"
   },
