@@ -21,7 +21,7 @@ export default class Backend {
     var { bePort, proxyPort } = options;
 
     const app = express();
-    app.use(bodyParser.json({ limit: "50mb" }));
+    app.use(bodyParser.json({ limit: "250mb" }));
     const server = http.createServer(app);
     const wss = new WebSocket.Server({ server });
 

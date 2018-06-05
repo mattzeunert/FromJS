@@ -85,8 +85,8 @@ declare var __FUNCTION_NAMES__,
 
     // Normally we just store the numbers, but it's useful for
     // debugging to be able to view the log object
-    window["__debugAllLogs"] = window["__debugAllLogs"] || {};
-    window["__debugAllLogs"][log.index] = log;
+    // window["__debugAllLogs"] = window["__debugAllLogs"] || {};
+    // window["__debugAllLogs"][log.index] = log;
 
     return log.index;
   }
