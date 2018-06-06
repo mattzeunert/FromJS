@@ -1,0 +1,42 @@
+.fromjs-stack__code {
+  line-height: 18px;
+  word-wrap: nowrap;
+  white-space: nowrap;
+  background: red !important;
+}
+.fromjs-stack__code.fromjs-stack__code--truncated {
+  cursor: pointer;
+}
+.fromjs-stack__line-number {
+  position: relative;
+}
+.fromjs-stack__code .fromjs-stack__line-number-arrow {
+  display: none;
+  position: absolute;
+  top: 0;
+  font-family: Arial;
+}
+.fromjs-stack__code:hover
+  .fromjs-stack__line-number--has-arrow
+  .fromjs-stack__line-number-text {
+  visibility: hidden;
+}
+.fromjs-stack__code:hover .fromjs-stack__line-number-arrow {
+  display: block;
+}
+
+.fromjs-stack__code-column {
+  border-right: 2px solid #0088ff;
+  padding-left: 1px;
+  margin-right: 2px;
+}
+.fromjs-stack__line-number {
+  border-right: 1px solid #ddd;
+  padding-right: 5px;
+  padding-left: 5px;
+  margin-right: 5px;
+  text-align: right;
+  min-width: 30px;
+  display: inline-block;
+  background: #fafafa;
+}

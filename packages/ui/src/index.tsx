@@ -10,6 +10,7 @@ import OperationLog from "../../core/src/helperFunctions/OperationLog";
 const traverse = x => null;
 import { escape } from "lodash";
 import { TextEl } from "./TextEl";
+import Code from "./Code";
 // import Babel from "@babel/standalone";
 // document.write("hi");
 
@@ -694,12 +695,14 @@ let TraversalStep = class TraversalStep extends React.Component<
     }
 
     return (
-      <div style={{ padding: 5 }} className="step">
+      <div className="step">
         <div className="step__header">
           <div className="step__operation-type">
-            {operationLog.operation} {operationTypeDetail}
+            {operationLog.operation[0].toUpperCase() +
+              operationLog.operation.slice(1)}{" "}
+            {operationTypeDetail}
           </div>
-          <span style={{ fontSize: "12px", marginTop: 3, float: "right" }}>
+          <span style={{ fontSize: "12px", marginTop: 3, float: "left" }}>
             {getFileNameFromPath(fileName)}
           </span>
           <button
@@ -720,19 +723,26 @@ let TraversalStep = class TraversalStep extends React.Component<
           )}
           {showLogJson && <pre>{JSON.stringify(operationLog, null, 4)}</pre>}
 
-          <div className="code-container">
+          {/* <div className="code-container">
             {isExpanded && (
               <code style={{ display: "block" }}>{previousLine}</code>
             )}
             <code>{code}</code>
             {isExpanded && <code style={{ display: "block" }}>{nextLine}</code>}
-          </div>
+          </div> */}
           {/* <div className="step__string">
             <span>{beforeChar}</span>
             <span style={{ color: "#dc1045" }}>{char}</span>
             <span>{afterChar}</span>
           </div> */}
-          <div>
+
+          {this.state.stackFrame && (
+            <Code
+              resolvedStackFrame={this.state.stackFrame}
+              traversalStep={step}
+            />
+          )}
+          <div style={{ borderTop: "1px dotted rgb(221, 221, 221)" }}>
             <TextEl
               text={str}
               highlightedCharacterIndex={charIndex}
@@ -934,6 +944,6 @@ App = root(appState, App);
 ReactDom.render(<App />, document.querySelector("#app"));
 
 setTimeout(
-  () => appState.set("inspectionTarget", { logId: 268295310, charIndex: 0 }),
+  () => appState.set("inspectionTarget", { logId: 751226425, charIndex: 0 }),
   500
 );

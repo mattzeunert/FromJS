@@ -3,6 +3,21 @@ var ErrorStackParser = require("error-stack-parser");
 var request = require("request");
 // var { prettifyAndMapFrameObject } = require("./prettify");
 
+interface ResolvedStackFrameCodeLine {
+  text: string;
+}
+
+export interface ResolvedStackFrame {
+  code: {
+    previousLines: ResolvedStackFrameCodeLine[];
+    line: ResolvedStackFrameCodeLine;
+    nextLines: ResolvedStackFrameCodeLine[];
+  };
+  columnNumber: number;
+  lineNumber: number;
+  fileName: string;
+}
+
 function getSourceCodeObject(frameObject, code) {
   function makeLine(fullLine, focusColumn) {
     try {
@@ -38,13 +53,21 @@ function getSourceCodeObject(frameObject, code) {
     );
   }
 
+  const NUMBER_OF_LINES_TO_LOAD = 7;
+
   return {
     line: makeLine(lines[frameObject.lineNumber - 1], frameObject.columnNumber),
     previousLines: lines
-      .slice(frameObject.lineNumber - 1 - 3, frameObject.lineNumber - 1)
+      .slice(
+        frameObject.lineNumber - 1 - NUMBER_OF_LINES_TO_LOAD,
+        frameObject.lineNumber - 1
+      )
       .map(l => makeLine(l, 0)),
     nextLines: lines
-      .slice(frameObject.lineNumber, frameObject.lineNumber + 1 + 3)
+      .slice(
+        frameObject.lineNumber,
+        frameObject.lineNumber + 1 + NUMBER_OF_LINES_TO_LOAD
+      )
       .map(l => makeLine(l, 0))
   };
 }
@@ -95,7 +118,7 @@ class StackFrameResolver {
     var frameObject = ErrorStackParser.parse({ stack: frameString })[0];
     frameObject.fileName += "?dontprocess";
     frameObject.lineNumber = loc.start.line;
-    frameObject.column = loc.start.column;
+    frameObject.columnNumber = loc.start.column;
     return this.resolveSourceCode(frameObject).then(code => {
       frameObject.code = code;
       frameObject.__debugOnly_FrameString = frameString;
@@ -104,7 +127,7 @@ class StackFrameResolver {
   }
 
   _resolveFrame(frameString, prettify) {
-    return new Promise((resolve, reject) => {
+    return new Promise<ResolvedStackFrame>((resolve, reject) => {
       var cacheKey = frameString + (prettify ? "Pretty" : "Nonpretty");
       if (this._cache[cacheKey]) {
         return resolve(this._cache[cacheKey]);
@@ -112,7 +135,7 @@ class StackFrameResolver {
 
       var frameObject = ErrorStackParser.parse({ stack: frameString })[0];
 
-      const finish = frame => {
+      const finish = (frame: ResolvedStackFrame) => {
         frame.fileName = frame.fileName.replace(".dontprocess", "");
         this._cache[cacheKey] = frame;
         resolve(frame);

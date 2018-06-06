@@ -7,7 +7,8 @@
 
 * {
   box-sizing: border-box;
-  font-family: Roboto, sans-serif;
+  font-family: Arial, sans-serif;
+  -webkit-font-smoothing: antialias;
 }
 
 .node-name {
@@ -99,7 +100,6 @@ path {
 }
 
 .code-container {
-  background: #fafafa;
   border: 1px solid #dde;
   padding: 4px;
 }
@@ -129,22 +129,19 @@ path {
 .step__header {
   width: 100%;
   font-family: Arial;
-  background: #15054e;
-  color: white;
+  background: aliceblue;
   overflow: hidden;
-  padding: 4px;
-  padding-top: 6px;
-  padding-bottom: 6px;
+  padding: 5px;
 }
 
 .step__operation-type {
   float: left;
   font-size: 14px;
-  margin-top: 2px;
+  font-weight: bold;
+  margin-right: 5px;
 }
 
 .step__body {
-  background: #ddd;
 }
 
 .step__body button {
@@ -162,4 +159,5 @@ path {
 .step {
   max-width: 800px;
   margin-bottom: 10px;
+  border: 1px solid rgb(221, 221, 221);
 }

@@ -1,6 +1,8 @@
 import { babelPlugin, LevelDBLogServer } from "@fromjs/core";
 import { traverse } from "./src/traverse";
-import StackFrameResolver from "./src/StackFrameResolver";
+import StackFrameResolver, {
+  ResolvedStackFrame
+} from "./src/StackFrameResolver";
 import * as fs from "fs";
 import * as prettier from "prettier";
 import * as Babel from "babel-core";

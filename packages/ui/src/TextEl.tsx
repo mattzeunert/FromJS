@@ -1,6 +1,6 @@
 import * as React from "react";
 import "./textEl.scss";
-
+import HorizontalScrollContainer from "./HorizontalScrollContainer";
 export class TextEl extends React.Component<any, any> {
   constructor(props) {
     super(props);
@@ -304,15 +304,5 @@ export class TextEl extends React.Component<any, any> {
       return;
     }
     this.setState({ truncateText: false });
-  }
-}
-
-class HorizontalScrollContainer extends React.Component<any, any> {
-  render() {
-    return (
-      <div className="fromjs-horizontal-scroll-container">
-        <div>{this.props.children}</div>
-      </div>
-    );
   }
 }
