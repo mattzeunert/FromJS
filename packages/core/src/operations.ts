@@ -83,7 +83,8 @@ const operations: Operations = {
             propertyName: args.propName
           },
           astArgs: {},
-          result: ret
+          result: ret,
+          loc: ctx.loc
         });
       }
 
@@ -450,7 +451,8 @@ const operations: Operations = {
               propertyName: fnArgs[0]
             },
             astArgs: {},
-            result: ret
+            result: ret,
+            loc: ctx.loc
           });
         } else {
           if (
