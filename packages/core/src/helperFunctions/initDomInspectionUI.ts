@@ -88,7 +88,7 @@ export default function initDomInspectionUI() {
       });
       toggleInspectDomButton.setAttribute(
         "style",
-        "position: fixed;bottom: 0;right:0;padding: 10px;background: black; color: white;font-family: Arial;"
+        "position: fixed;bottom: 0;right:0;padding: 10px;background: black; color: white;font-family: Arial;cursor:pointer;"
       );
       global["document"]["body"].appendChild(toggleInspectDomButton);
     }

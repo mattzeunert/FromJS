@@ -11,22 +11,19 @@ const traverse = x => null;
 import { escape } from "lodash";
 import { TextEl } from "./TextEl";
 import Code from "./Code";
+import TraversalSteps from "./TraversalSteps";
+import appState from "./appState";
 // import Babel from "@babel/standalone";
 // document.write("hi");
+import { callApi } from "./api";
 
 import "./main.scss";
 
 import * as Baobab from "baobab";
 import { branch, root } from "baobab-react/higher-order";
+import DomInspector from "./DomInspector";
 
 let backendRoot = "http://localhost:" + window["backendPort"];
-
-var appState = new Baobab({
-  debugMode: false,
-  steps: [],
-  inspectionTarget: null
-});
-window["appState"] = appState;
 
 appState.select("inspectionTarget").on("update", ({ target }) => {
   const inspectionTarget = target.get();
@@ -38,25 +35,6 @@ appState.select("inspectionTarget").on("update", ({ target }) => {
 });
 
 const DEBUG = true;
-const USE_SERVER = true;
-
-// class ServerInterface2 {
-//   loadLog(logId, fn) {
-//     document.title = logId;
-//     fetch(backendRoot + "/loadLog", {
-//       method: "POST",
-//       headers: {
-//         Accept: "application/json",
-//         "Content-Type": "application/json"
-//       },
-//       body: JSON.stringify({ id: logId })
-//     })
-//       .then(res => res.json())
-//       .then(r => {
-//         fn(r);
-//       });
-//   }
-// }
 
 var exampleSocket = new WebSocket("ws://127.0.0.1:" + window["backendPort"]);
 
@@ -81,18 +59,6 @@ if (DEBUG) {
     .querySelector("#compiled-code")
     .setAttribute("style", "display: block");
 }
-
-// let serverInterface;
-// serverInterface = new InMemoryLogServer();
-// if (USE_SERVER) {
-//   serverInterface = new ServerInterface2();
-// } else {
-//   serverInterface = new InMemoryLogServer();
-// }
-
-// if (!USE_SERVER) {
-//   window["__storeLog"] = serverInterface.storeLog.bind(serverInterface);
-// }
 
 var editor = window["CodeMirror"].fromTextArea(
   document.getElementById("code"),
@@ -149,45 +115,6 @@ fetch(backendRoot + "/inspectDOM", {
     }
   });
 
-let inspectDom;
-let DomInspector = class DomInspector extends React.Component<any, any> {
-  render() {
-    // if (Math.random() > 0.0000000001) {
-    //   return null;
-    // }
-
-    if (!this.props.domToInspect) {
-      return null;
-    }
-    return (
-      <div>
-        inspect dom
-        <TextEl
-          onCharacterClick={charIndex => {
-            callApi("inspectDomChar", {
-              charIndex
-            }).then(({ logId, charIndex }) => {
-              appState.set("inspectionTarget", { logId, charIndex });
-            });
-          }}
-          text={this.props.domToInspect.outerHTML}
-        />
-        {/* <pre>
-          {JSON.stringify(this.state.domInfo, null, 4)}
-          {this.state.domInfo.outerHTML}
-          <button onClick={() => this.inspect(5)}>inspect char 5</button>
-        </pre> */}
-      </div>
-    );
-  }
-};
-DomInspector = branch(
-  {
-    domToInspect: ["domToInspect"]
-  },
-  DomInspector
-);
-
 const codeTextarea = document.querySelector("#code") as HTMLInputElement;
 
 const compiledCodeTextarea = document.querySelector(
@@ -197,17 +124,6 @@ const compiledCodeTextarea = document.querySelector(
 const chart = document.querySelector(".chart") as HTMLElement;
 
 // update();
-
-function callApi(endpoint, data) {
-  return fetch(backendRoot + "/" + endpoint, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    } as any,
-    body: JSON.stringify(data)
-  }).then(r => r.json());
-}
 
 function instrumentCode(code) {
   return callApi("instrument", { code });
@@ -251,23 +167,14 @@ function eachArgument(args, arrayArguments, fn) {
 }
 
 function loadSteps({ logId, charIndex }) {
-  if (USE_SERVER) {
-    return fetch(backendRoot + "/traverse", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      } as any,
-      body: JSON.stringify({ logId: logId, charIndex })
-    }).then(res => res.json());
-  } else {
-    // return new Promise(resolve => {
-    //   loadLog(logId, log => {
-    //     var steps = traverse({ operationLog: log, charIndex });
-    //     resolve({ steps });
-    //   });
-    // });
-  }
+  return fetch(backendRoot + "/traverse", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    } as any,
+    body: JSON.stringify({ logId: logId, charIndex })
+  }).then(res => res.json());
 }
 
 window["showSteps"] = showSteps;
@@ -407,528 +314,11 @@ function showTree(logIndex) {
   // });
 }
 
-function renderTree(log, containerSelector) {
-  console.log("rendertree", log);
-  var data = log;
-
-  var nodeStructure;
-
-  function isDataRootOrigin(data) {
-    if (!data) {
-      return false;
-    }
-    if (["stringLiteral", "numericLiteral"].includes(data.type)) {
-      return true;
-    }
-
-    return false;
-  }
-
-  function truncate(str, maxLength) {
-    if (!str || !str.slice) {
-      return str;
-    }
-    if (str.length <= maxLength) {
-      return str;
-    }
-    return str.slice(0, maxLength - 1) + "...";
-  }
-
-  function makeNode(data, argName = "", siblingCount = null) {
-    if (
-      data &&
-      data.operation === "identifier"
-      // data.operation === "assignmentExpression") // todo: don't ignore assignmentexpr, contains info like += operator
-    ) {
-      // skip it because it's not very interesting
-      console.log("skipping", data);
-      return makeNode(data.args.value, argName);
-    }
-
-    if (data && data.operation === "functionArgument") {
-      return makeNode(data.args.value);
-    }
-
-    var childValues;
-    const operationLogIsNotLoaded = typeof data === "number";
-    if (data && operationLogIsNotLoaded) {
-      return {
-        innerHTML: `<div style="font-size: 11px; color: #999; font-weight: normal;">
-        (Not loaded in FE, inspect parent to see details.)
-      </div>`,
-
-        HTMLclass: "node--not-loaded",
-        children: []
-      };
-    }
-    if (data && !operationLogIsNotLoaded) {
-      var operation = operations[data.operation];
-      childValues = operation.getArgumentsArray(data);
-      if (data.operation === "assignmentExpression") {
-        childValues = childValues.filter(c => c.argName !== "newValue");
-        // currentvalue would matter if operation isn't "=" but e.g. "+="...
-        childValues = childValues.filter(c => c.argName !== "currentValue");
-      }
-    } else {
-      childValues = [];
-    }
-    childValues = childValues.filter(c => !!c.arg);
-    var children = [];
-    if (!isDataRootOrigin(data)) {
-      children = childValues.map((child, i) =>
-        makeNode(child.arg, child.argName, childValues.length - 1)
-      );
-    }
-
-    var type;
-    if (data) {
-      type = data.operation;
-      if (type === "binaryExpression") {
-        type =
-          "<span style='color: green;font-weight: bold;'>" +
-          data.astArgs.operator +
-          "</span>" +
-          " " +
-          type;
-      }
-    } else {
-      type = "(" + data + ")";
-    }
-
-    var resVal;
-    if (data) {
-      resVal = data.result;
-    } else {
-      // debugger;
-      resVal = {
-        type: "string",
-        str: "todo (no data)"
-      };
-    }
-
-    var valueClass = "value--other";
-    var str = truncate(resVal.str, 40 * 10000);
-    if (resVal.type === "string") {
-      valueClass = "value--string";
-      str = `"${str}"`;
-    } else if (resVal.type == "number") {
-      valueClass = "value--number";
-    }
-
-    const treeCodeDivId =
-      "tree-code-div-" + Math.floor(Math.random() * 1000000000000000);
-
-    const index = data ? data.index : "n/a";
-
-    var node = {
-      innerHTML: `<div>
-        <div
-          style="font-weight: normal; overflow: hidden;text-align: left; border-bottom: 1px solid #ddd;padding-bottom: 2px;margin-bottom: 2px;">
-          ${argName}
-          <span style="font-weight: normal; font-size: 11px; color: #999;">(${type})</span>
-          <button style="cursor: pointer; float: right;    border: none;
-          text-decoration: underline;" onclick="showSteps(${index}, 0)">Inspect</button>
-        </div>
-        <div class="operation" data-index="${index}">
-          <div class="code-container">
-            <code style="font-size: 11px" id="${treeCodeDivId}">&nbsp;</code>
-          </div>
-          <div>
-            <span class="value ${valueClass}">${escape(str)}</span>
-          </div>  
-        </div>
-        
-      </div>`,
-
-      children
-    };
-
-    if (data && !operationLogIsNotLoaded) {
-      resolveStackFrame(data)
-        .then(stackFrame => {
-          document.querySelector("#" + treeCodeDivId).innerHTML =
-            stackFrame.code.line.text;
-        })
-        .catch(() => {
-          document.querySelector("#" + treeCodeDivId).innerHTML = "(error)";
-        });
-    }
-
-    return node;
-  }
-  nodeStructure = makeNode(data);
-
-  var chart_config = {
-    chart: {
-      container: containerSelector,
-
-      connectors: {
-        type: "step"
-      },
-      node: {
-        HTMLclass: "nodeExample1"
-      },
-      levelSeparation: 20
-    },
-    nodeStructure: nodeStructure
-  };
-
-  window["yyyyy"] = new window["Treant"](chart_config);
-}
-
 window["showResult"] = update;
-
-function resolveStackFrame(operationLog) {
-  return fetch(backendRoot + "/resolveStackFrame", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    } as any,
-    body: JSON.stringify({
-      stackFrameString: operationLog.stackFrames[0],
-      operationLog: operationLog
-    })
-  }).then(res => {
-    if (res.status === 500) {
-      throw "resolve stack error";
-    } else {
-      return res.json();
-    }
-  });
-}
-
-function getFileNameFromPath(path) {
-  const parts = path.split("/");
-  return parts[parts.length - 1];
-}
 
 function onInspectionTargetChanged() {
   console.log("onInspectionTargetChanged", arguments);
 }
-
-type TraversalStepProps = {
-  step: any;
-  debugMode?: boolean;
-};
-type TraversalStepState = {
-  stackFrame: any;
-  showLogJson: boolean;
-  showTree: boolean;
-  isExpanded: boolean;
-};
-
-let TraversalStep = class TraversalStep extends React.Component<
-  TraversalStepProps,
-  TraversalStepState
-> {
-  constructor(props) {
-    super(props);
-    this.state = {
-      stackFrame: null,
-      showLogJson: false,
-      showTree: false,
-      isExpanded: false
-    };
-
-    const { step } = props;
-    resolveStackFrame(step.operationLog)
-      .then(r => {
-        // console.log("got stackframe", r);
-        this.setState({
-          stackFrame: r
-        });
-        // console.log("done resolve stack frame", r);
-        // document.querySelector("#step-code-" + i).innerHTML =
-        //   r.code.line.text;
-      })
-      .catch(err => "yolo");
-  }
-  render() {
-    const { step, debugMode } = this.props;
-    const { charIndex, operationLog } = step;
-    const { showTree, showLogJson, stackFrame, isExpanded } = this.state;
-    let code;
-    let fileName, columnNumber, lineNumber;
-    let previousLine, nextLine;
-
-    try {
-      const { previousLines, nextLines } = stackFrame.code;
-      code = stackFrame.code.line.text;
-      fileName = stackFrame.fileName.replace("?dontprocess", "");
-      lineNumber = stackFrame.lineNumber;
-      columnNumber = stackFrame.columnNumber;
-      if (previousLines.length > 0) {
-        previousLine = previousLines[previousLines.length - 1].text;
-      }
-      if (nextLines.length > 0) {
-        nextLine = nextLines[0].text;
-      }
-    } catch (err) {
-      code = "Loading or error...";
-      fileName = "(error)";
-    }
-
-    function prepareText(text) {
-      if (text.length < 50) {
-        return text;
-      }
-      return text.slice(0, 15) + "..." + text.slice(-30);
-    }
-
-    const str = operationLog.result.str;
-    // const beforeChar = prepareText(str.slice(0, charIndex));
-    // const char = str.slice(charIndex, charIndex + 1);
-    // const afterChar = prepareText(str.slice(charIndex + 1));
-
-    let operationTypeDetail = null;
-    if (operationLog.operation === "identifier" && stackFrame && code) {
-      if (!operationLog.loc) {
-        console.log(
-          "operation doesn't have loc might need to add in visitor",
-          operationLog
-        );
-      } else {
-        operationTypeDetail =
-          "(" +
-          code.slice(
-            operationLog.loc.start.column,
-            operationLog.loc.end.column
-          ) +
-          ")";
-      }
-    }
-
-    return (
-      <div className="step">
-        <div className="step__header">
-          <div className="step__operation-type">
-            {operationLog.operation[0].toUpperCase() +
-              operationLog.operation.slice(1)}{" "}
-            {operationTypeDetail}
-          </div>
-          <span style={{ fontSize: "12px", marginTop: 3, float: "left" }}>
-            {getFileNameFromPath(fileName)}
-          </span>
-          <button
-            style={{ float: "right" }}
-            onClick={() => this.setState({ isExpanded: !isExpanded })}
-          >
-            {isExpanded ? "-" : "+"}
-          </button>
-        </div>
-        <div className="step__body">
-          {debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
-          {debugMode && (
-            <button
-              onClick={() => this.setState({ showLogJson: !showLogJson })}
-            >
-              toggle show log json
-            </button>
-          )}
-          {showLogJson && <pre>{JSON.stringify(operationLog, null, 4)}</pre>}
-
-          {/* <div className="code-container">
-            {isExpanded && (
-              <code style={{ display: "block" }}>{previousLine}</code>
-            )}
-            <code>{code}</code>
-            {isExpanded && <code style={{ display: "block" }}>{nextLine}</code>}
-          </div> */}
-          {/* <div className="step__string">
-            <span>{beforeChar}</span>
-            <span style={{ color: "#dc1045" }}>{char}</span>
-            <span>{afterChar}</span>
-          </div> */}
-
-          {this.state.stackFrame && (
-            <Code
-              resolvedStackFrame={this.state.stackFrame}
-              traversalStep={step}
-            />
-          )}
-          <div style={{ borderTop: "1px dotted rgb(221, 221, 221)" }}>
-            <TextEl
-              text={str}
-              highlightedCharacterIndex={charIndex}
-              onCharacterClick={charIndex =>
-                appState.set(["inspectionTarget", "charIndex"], charIndex)
-              }
-            />
-          </div>
-          <div>
-            {isExpanded && (
-              <button
-                style={{ float: "right" }}
-                onClick={() => this.setState({ showTree: !showTree })}
-              >
-                Show Tree
-              </button>
-            )}
-          </div>
-          {showTree && <OperationLogTreeView operationLog={operationLog} />}
-        </div>
-      </div>
-    );
-  }
-};
-
-TraversalStep = branch(
-  {
-    debugMode: ["debugMode"]
-  },
-  TraversalStep
-);
-
-type OperationLogTreeViewProps = {
-  operationLog: any;
-};
-
-class OperationLogTreeView extends React.Component<
-  OperationLogTreeViewProps,
-  {}
-> {
-  id = Math.floor(Math.random() * 100000000000);
-
-  render() {
-    return (
-      <div
-        className="chart"
-        style={{ width: "100%", height: 500, border: "1px solid #ddd" }}
-        id={this.getContainerId()}
-      >
-        xxxxxx
-      </div>
-    );
-  }
-  getContainerId() {
-    return "operation-log-tree-view-" + this.id;
-  }
-  componentDidMount() {
-    renderTree(this.props.operationLog, "#" + this.getContainerId());
-  }
-}
-
-type TraversalStepsProps = {
-  steps?: any[];
-};
-let TraversalSteps = class TraversalSteps extends React.Component<
-  TraversalStepsProps,
-  {}
-> {
-  render() {
-    let stepsToShow = [];
-    let steps = this.props.steps;
-    if (!steps.length) {
-      return null;
-    }
-
-    stepsToShow = steps;
-
-    const interestingSteps = [];
-    let previousStep = steps[0];
-    // debugger;
-    for (var i = 1; i < steps.length - 1; i++) {
-      const step = steps[i];
-      const previousStepCriteria = getStepInterestingnessCriteria(previousStep);
-      const stepCriteria = getStepInterestingnessCriteria(step);
-
-      console.log(step);
-      if (step.operationLog.operation === "jsonParseResult") {
-        // debugger;
-      }
-      if (
-        previousStepCriteria.charsAfter !== stepCriteria.charsAfter ||
-        previousStepCriteria.charsBefore !== stepCriteria.charsBefore
-      ) {
-        interestingSteps.push(step);
-      }
-      previousStep = step;
-    }
-
-    function getStepInterestingnessCriteria(step) {
-      let str = step.operationLog.result.str;
-
-      let charIndexTwoCharsBefore = step.charIndex - 2;
-      if (charIndexTwoCharsBefore < 0) {
-        charIndexTwoCharsBefore = 0;
-      }
-      let charIndexTwoCharsAfter = step.charIndex + 2;
-      if (charIndexTwoCharsAfter > str.length - 1) {
-        charIndexTwoCharsAfter = str.length - 1;
-      }
-      return {
-        charsBefore: str.slice(charIndexTwoCharsBefore, step.charIndex),
-        charsAfter: str.slice(step.charIndex, charIndexTwoCharsAfter)
-      };
-    }
-
-    // if (this.props.debugMode) {
-
-    // } else {
-
-    //   stepsToShow.push(steps[0])
-    //   console.log("this logic is very awful!! won't work for many operations without loc, also doesn't consider filename just line nnumber")
-    //   for (var i = 1; i < steps.length; i++) {
-    //     const thisStep = steps[i]
-    //     let previousStepToShow = stepsToShow[stepsToShow.length - 1]
-    //     if (!previousStepToShow.operationLog.loc) {
-    //       stepsToShow.push(thisStep)
-    //       continue
-    //     }
-    //     let previousStepLine = previousStepToShow.operationLog.loc.start.line
-    //     let previousStepStr = previousStepToShow.operationLog.result.str
-
-    //     let thisStepStr = thisStep.operationLog.result.str
-    //     if (!thisStep.operationLog.loc) {
-    //       stepsToShow.push(thisStep)
-    //       continue
-    //     }
-    //     let thisStepLine = thisStep.operationLog.loc.start.line
-
-    //     if (previousStepLine !== thisStepLine || previousStepStr !== thisStepStr) {
-    //       stepsToShow.push(thisStep)
-    //     }
-    //   }
-    // }
-
-    return (
-      <div>
-        <div>Inspected step:</div>
-        <TraversalStep key={steps[0].operationLog.index} step={steps[0]} />
-        <div>First step where selected character was introduced:</div>
-        <TraversalStep
-          key={steps[steps.length - 1].operationLog.index}
-          step={steps[steps.length - 1]}
-        />
-        <hr />
-        <hr />
-        <div>Relevant code:</div>
-        {interestingSteps.map(step => (
-          <TraversalStep key={step.operationLog.index} step={step} />
-        ))
-        /* .reverse() */
-        }
-        <hr />
-        <hr />
-        <div>Full data flow:</div>
-        {stepsToShow.map(step => (
-          <TraversalStep key={step.operationLog.index} step={step} />
-        ))
-        /* .reverse() */
-        }
-      </div>
-    );
-  }
-};
-
-TraversalSteps = branch(
-  {
-    debugMode: ["debugMode"],
-    steps: ["steps"]
-  },
-  TraversalSteps
-);
 
 let App = () => {
   return (
