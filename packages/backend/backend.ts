@@ -66,26 +66,26 @@ export default class Backend {
       }
     });
 
-    // let domToInspect = null;
-    // app.get("/inspectDOM", (req, res) => {
-    //   res.end(
-    //     JSON.stringify({
-    //       domToInspect
-    //     })
-    //   );
-    // });
-    // app.post("/inspectDOM", (req, res) => {
-    //   app.verifyToken(req);
+    let domToInspect = null;
+    app.get("/inspectDOM", (req, res) => {
+      res.end(
+        JSON.stringify({
+          domToInspect
+        })
+      );
+    });
+    app.post("/inspectDOM", (req, res) => {
+      app.verifyToken(req);
 
-    //   res.set("Access-Control-Allow-Origin", "*");
-    //   res.set(
-    //     "Access-Control-Allow-Headers",
-    //     "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
-    //   );
+      res.set("Access-Control-Allow-Origin", "*");
+      res.set(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+      );
 
-    //   domToInspect = req.body;
-    //   res.end("{}");
-    // });
+      domToInspect = req.body;
+      res.end("{}");
+    });
 
     ["/storeLogs", "/inspect", "/inspectDOM"].forEach(path => {
       // todo: don't allow requests from any site

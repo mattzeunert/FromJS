@@ -1,4 +1,6 @@
 import OperationLog from "./OperationLog";
+import getElementOperationLogMapping from "./getHtmlNodeOperationLogMapping";
+import getHtmlNodeOperationLogMapping from "./getHtmlNodeOperationLogMapping";
 
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
@@ -21,6 +23,8 @@ declare var __FUNCTION_NAMES__,
     return;
   }
   global.__didInitializeDataFlowTracking = true;
+
+  global.getElementOperationLogMapping = getElementOperationLogMapping;
 
   const nativeFunctions = {
     stringPrototypeSlice: String.prototype.slice,
@@ -110,6 +114,7 @@ declare var __FUNCTION_NAMES__,
     };
   };
 
+  // don't think this is needed, only used in demo with live code ediotr i think
   global.inspect = function(value) {
     global.inspectedValue = {
       normal: value,
@@ -117,22 +122,17 @@ declare var __FUNCTION_NAMES__,
     };
   };
 
-  global.fromJSInspect = function(value) {
+  global.fromJSInspect = function(value: any) {
+    let logId;
+    if (!argTrackingInfo && typeof value === "number") {
+      logId = value;
+    } else if (value instanceof Node) {
+      postToBE("/inspectDOM", getHtmlNodeOperationLogMapping(value));
+    } else {
+      logId = argTrackingInfo[0];
+    }
     postToBE("/inspect", {
-      logId: argTrackingInfo[0]
-    });
-  };
-
-  global.fromJSInspectOperationLog = function(operationLogId) {
-    postToBE("/inspect", {
-      logId: operationLogId
-    });
-  };
-
-  global.fromJSInspectDOM = function(element) {
-    postToBE("/inspectDOM", {
-      outerHTML: element.outerHTML,
-      domOrigin: element.__elOrigin
+      logId
     });
   };
 

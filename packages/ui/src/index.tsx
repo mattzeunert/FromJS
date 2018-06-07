@@ -4,6 +4,7 @@
 // import InMemoryLogServer from "../../core/src/InMemoryLogServer";
 import operations from "../../core/src/operations";
 import babelPlugin from "../../core/src/babelPlugin";
+import HtmlToOperationLogMapping from "../../core/src/helperFunctions/HtmlToOperationLogMapping";
 import * as React from "react";
 import * as ReactDom from "react-dom";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
@@ -124,64 +125,85 @@ fetch(backendRoot + "/inspect", {
     });
   });
 
-// let previousDomToInspect = null;
-// setInterval(function() {
-//   fetch(backendRoot + "/inspectDOM", {
-//     method: "GET",
-//     headers: {
-//       Accept: "application/json",
-//       "Content-Type": "application/json"
-//     }
-//   })
-//     .then(res => res.json())
-//     .then(r => {
-//       const { domToInspect } = r;
-//       if (domToInspect !== previousDomToInspect) {
-//         previousDomToInspect = domToInspect;
-//         inspectDom(domToInspect);
-//       }
-//     });
-// }, 5000);
+let previousDomToInspect = null;
+setInterval(function() {
+  fetch(backendRoot + "/inspectDOM", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    }
+  })
+    .then(res => res.json())
+    .then(r => {
+      const { domToInspect } = r;
+      if (domToInspect !== previousDomToInspect) {
+        previousDomToInspect = domToInspect;
+        if (domToInspect !== null) {
+          appState.set("domToInspect", {
+            parts: domToInspect.parts,
+            // todo: make curser out of outerhtml
+            outerHTML: domToInspect.parts.map(p => p[0]).join("")
+          });
+        }
+      }
+    });
+}, 2000);
 
 let inspectDom;
-class DomInspector extends React.Component<null, any> {
-  constructor(props) {
-    super(props);
-    this.state = {
-      domInfo: null
-    };
-    inspectDom = domInfo => {
-      console.log("INSPECT DOM", domInfo);
-      this.setState({
-        domInfo
-      });
-    };
-  }
-
-  inspect(charIndex) {
-    alert("todo");
-  }
-
+let DomInspector = class DomInspector extends React.Component<any, any> {
   render() {
-    if (Math.random() > 0.0000000001) {
-      return null;
-    }
+    // if (Math.random() > 0.0000000001) {
+    //   return null;
+    // }
 
-    if (!this.state.domInfo) {
+    if (!this.props.domToInspect) {
       return null;
     }
     return (
       <div>
         inspect dom
-        <pre>
+        <TextEl
+          onCharacterClick={charIndex => {
+            const mapping = new HtmlToOperationLogMapping(
+              this.props.domToInspect.parts
+            );
+            const mappingResult: any = mapping.getOriginAtCharacterIndex(
+              charIndex
+            );
+
+            if (
+              mappingResult.origin.inputValuesCharacterIndex &&
+              mappingResult.origin.inputValuesCharacterIndex.length > 1
+            ) {
+              debugger; // probably should do mapping for each char
+            }
+            appState.set("inspectionTarget", {
+              logId: mappingResult.origin.trackingValue,
+              charIndex:
+                mappingResult.charIndex +
+                mappingResult.origin.inputValuesCharacterIndex[0] -
+                mappingResult.origin.extraCharsAdded
+            });
+            console.log("mmmm", mappingResult);
+          }}
+          text={this.props.domToInspect.outerHTML}
+        />
+        {/* <pre>
           {JSON.stringify(this.state.domInfo, null, 4)}
           {this.state.domInfo.outerHTML}
           <button onClick={() => this.inspect(5)}>inspect char 5</button>
-        </pre>
+        </pre> */}
       </div>
     );
   }
-}
+};
+DomInspector = branch(
+  {
+    domToInspect: ["domToInspect"]
+  },
+  DomInspector
+);
 
 const codeTextarea = document.querySelector("#code") as HTMLInputElement;
 
@@ -944,6 +966,6 @@ App = root(appState, App);
 ReactDom.render(<App />, document.querySelector("#app"));
 
 setTimeout(
-  () => appState.set("inspectionTarget", { logId: 751226425, charIndex: 0 }),
+  () => appState.set("inspectionTarget", { logId: 705162159, charIndex: 0 }),
   500
 );

@@ -6,6 +6,7 @@ import * as testHelpers from "./src/testHelpers";
 import OperationLog from "./src/helperFunctions/OperationLog";
 import handleEvalScript from "./src/handleEvalScript";
 import { compileSync } from "./src/compile";
+import HtmlToOperationLogMapping from "./src/helperFunctions/HtmlToOperationLogMapping";
 
 export {
   babelPlugin,
@@ -15,5 +16,6 @@ export {
   testHelpers,
   OperationLog,
   handleEvalScript,
-  compileSync
+  compileSync,
+  HtmlToOperationLogMapping
 };

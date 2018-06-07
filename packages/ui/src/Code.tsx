@@ -176,7 +176,7 @@ export default class Code extends React.Component<CodeProps, CodeState> {
     var highlightedString = processFrameString(
       frame.code.line.text.substr(highlightIndexInLine, 1)
     );
-    if (frame.code.line.length == highlightIndexInLine) {
+    if (frame.code.line.text.length == highlightIndexInLine) {
       // after last proper char in line, display new line
       highlightedString = "\u21B5";
     }
