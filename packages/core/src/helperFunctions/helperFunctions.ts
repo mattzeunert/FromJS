@@ -122,6 +122,45 @@ declare var __FUNCTION_NAMES__,
     };
   };
 
+  global.fromJSStartDomInspectionUI = function() {
+    let selectedElement = null;
+
+    const selectedElementMarker = document.createElement("div");
+    selectedElementMarker.style.border = "2px solid blue";
+    document.body.appendChild(selectedElementMarker);
+
+    document.body.addEventListener(
+      "click",
+      function(e) {
+        const el = e.target;
+        console.log({ el });
+        global["fromJSInspect"](el);
+        selectedElement = el;
+        addHighlight(el);
+        e.preventDefault();
+        e.stopPropagation();
+
+        function addHighlight(element) {
+          const rect = element.getBoundingClientRect();
+          selectedElementMarker.setAttribute(
+            "style",
+            "position: absolute; z-index: 10000000; pointer-events: none;border: 2px solid blue;" +
+              "left: " +
+              rect.left +
+              "px;top: " +
+              rect.top +
+              "px;height: " +
+              rect.height +
+              "px;width: " +
+              rect.width +
+              "px;"
+          );
+        }
+      },
+      true
+    );
+  };
+
   global.fromJSInspect = function(value: any) {
     let logId;
     if (!argTrackingInfo && typeof value === "number") {

@@ -5,7 +5,7 @@ function tagTypeHasClosingTag(tagName) {
 }
 
 function getNodeHtmlParts(node: Node) {
-  const origin = node["__elOrigin"];
+  const origin = node["__elOrigin"] || {};
   let parts = [];
   if (node.nodeType === Node.ELEMENT_NODE) {
     var el = node as HTMLElement;
