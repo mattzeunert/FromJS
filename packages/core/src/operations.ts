@@ -213,22 +213,26 @@ const operations: Operations = {
         path.node.alternate,
         getLastOperationTrackingResultCall
       );
-      var operation = this.createNode!({
-        test: [
-          createGetMemoValue("lastConditionalExpressionTest"),
-          createGetMemoTrackingValue("lastConditionalExpressionTest")
-        ],
-        result: [
-          ignoreNode(
-            t.conditionalExpression(
-              createGetMemoValue("lastConditionalExpressionTest"),
-              saveConsequentValue,
-              saveAlernativeValue
-            )
-          ),
-          createGetMemoTrackingValue("lastConditionalExpressionResult")
-        ]
-      });
+      var operation = this.createNode!(
+        {
+          test: [
+            createGetMemoValue("lastConditionalExpressionTest"),
+            createGetMemoTrackingValue("lastConditionalExpressionTest")
+          ],
+          result: [
+            ignoreNode(
+              t.conditionalExpression(
+                createGetMemoValue("lastConditionalExpressionTest"),
+                saveConsequentValue,
+                saveAlernativeValue
+              )
+            ),
+            createGetMemoTrackingValue("lastConditionalExpressionResult")
+          ]
+        },
+        {},
+        path.node.loc
+      );
       path.replaceWith(t.sequenceExpression([saveTestValue, operation]));
     }
   },
