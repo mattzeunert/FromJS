@@ -6,45 +6,72 @@ export default function initDomInspectionUI() {
   const toggleInspectDomButton = document.createElement("div");
   let selectedElement = null;
   const selectedElementMarker = document.createElement("div");
-  selectedElementMarker.style.border = "2px solid blue";
+  let previewedElement = null;
+  const previewedElementMarker = document.createElement("div");
 
-  function onBodyClick(e) {
+  function onSelectionEvent(e) {
     const el = e.target;
     if (el === toggleInspectDomButton) {
       return;
     }
-    console.log({ el });
-    global["fromJSInspect"](el);
-    selectedElement = el;
-    addHighlight(el);
+
+    if (e.type == "click") {
+      global["fromJSInspect"](el);
+      selectedElement = el;
+      addHighlight(el, "selected");
+    } else if (e.type === "mouseenter") {
+      previewedElement = el;
+      if (previewedElement !== selectedElement) {
+        addHighlight(el, "previewed");
+      }
+    } else if (e.type === "mouseleave") {
+      previewedElement = null;
+    }
+
     e.preventDefault();
     e.stopPropagation();
+  }
 
-    function addHighlight(element) {
-      const rect = element.getBoundingClientRect();
-      selectedElementMarker.setAttribute(
-        "style",
-        "position: absolute; z-index: 10000000; pointer-events: none;border: 2px solid blue;" +
-          "left: " +
-          rect.left +
-          "px;top: " +
-          rect.top +
-          "px;height: " +
-          rect.height +
-          "px;width: " +
-          rect.width +
-          "px;"
-      );
-    }
+  function addHighlight(element, highlightReason: "selected" | "previewed") {
+    const rect = element.getBoundingClientRect();
+    let marker =
+      highlightReason === "selected"
+        ? selectedElementMarker
+        : previewedElementMarker;
+    const color = highlightReason === "selected" ? "blue" : "green";
+    const zIndex = highlightReason === "selected" ? 10000001 : 10000000;
+    marker.setAttribute(
+      "style",
+      "position: absolute; z-index: " +
+        zIndex +
+        "; pointer-events: none;border: 2px solid " +
+        color +
+        ";" +
+        "left: " +
+        rect.left +
+        "px;top: " +
+        rect.top +
+        "px;height: " +
+        rect.height +
+        "px;width: " +
+        rect.width +
+        "px;"
+    );
   }
 
   function toggleDomInspector() {
     if (showDomInspector) {
       selectedElementMarker.remove();
-      document.body.removeEventListener("click", onBodyClick, true);
+      previewedElementMarker.remove();
+      document.body.removeEventListener("click", onSelectionEvent, true);
+      document.body.removeEventListener("mouseenter", onSelectionEvent, true);
+      document.body.removeEventListener("mouseleave", onSelectionEvent, true);
     } else {
       document.body.appendChild(selectedElementMarker);
-      document.body.addEventListener("click", onBodyClick, true);
+      document.body.appendChild(previewedElementMarker);
+      document.body.addEventListener("click", onSelectionEvent, true);
+      document.body.addEventListener("mouseenter", onSelectionEvent, true);
+      document.body.addEventListener("mouseleave", onSelectionEvent, true);
     }
     showDomInspector = !showDomInspector;
   }
