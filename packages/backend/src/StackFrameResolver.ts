@@ -3,7 +3,7 @@ var ErrorStackParser = require("error-stack-parser");
 var request = require("request");
 // var { prettifyAndMapFrameObject } = require("./prettify");
 
-interface ResolvedStackFrameCodeLine {
+export interface ResolvedStackFrameCodeLine {
   text: string;
 }
 
