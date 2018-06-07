@@ -4,7 +4,6 @@
 // import InMemoryLogServer from "../../core/src/InMemoryLogServer";
 import operations from "../../core/src/operations";
 import babelPlugin from "../../core/src/babelPlugin";
-import HtmlToOperationLogMapping from "../../core/src/helperFunctions/HtmlToOperationLogMapping";
 import * as React from "react";
 import * as ReactDom from "react-dom";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
@@ -165,27 +164,11 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
         inspect dom
         <TextEl
           onCharacterClick={charIndex => {
-            const mapping = new HtmlToOperationLogMapping(
-              this.props.domToInspect.parts
-            );
-            const mappingResult: any = mapping.getOriginAtCharacterIndex(
+            callApi("inspectDomChar", {
               charIndex
-            );
-
-            if (
-              mappingResult.origin.inputValuesCharacterIndex &&
-              mappingResult.origin.inputValuesCharacterIndex.length > 1
-            ) {
-              debugger; // probably should do mapping for each char
-            }
-            appState.set("inspectionTarget", {
-              logId: mappingResult.origin.trackingValue,
-              charIndex:
-                mappingResult.charIndex +
-                mappingResult.origin.inputValuesCharacterIndex[0] -
-                mappingResult.origin.extraCharsAdded
+            }).then(({ logId, charIndex }) => {
+              appState.set("inspectionTarget", { logId, charIndex });
             });
-            console.log("mmmm", mappingResult);
           }}
           text={this.props.domToInspect.outerHTML}
         />

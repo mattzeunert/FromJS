@@ -14,6 +14,7 @@ import * as WebSocket from "ws";
 import * as http from "http";
 import { createProxy } from "./backend.createProxy";
 import { BackendOptions } from "./BackendOptions";
+import { HtmlToOperationLogMapping } from "@fromjs/core";
 
 export default class Backend {
   constructor(options: BackendOptions) {
@@ -66,41 +67,6 @@ export default class Backend {
       }
     });
 
-    function getDomToInspectMessage() {
-      if (!domToInspect) {
-        return {};
-      }
-      return {
-        html: (<any>domToInspect).parts.map(p => p[0]).join("")
-      };
-    }
-
-    let domToInspect = null;
-    app.get("/inspectDOM", (req, res) => {
-      res.end(JSON.stringify(getDomToInspectMessage()));
-    });
-    app.post("/inspectDOM", (req, res) => {
-      app.verifyToken(req);
-
-      res.set("Access-Control-Allow-Origin", "*");
-      res.set(
-        "Access-Control-Allow-Headers",
-        "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
-      );
-
-      domToInspect = req.body;
-
-      broadcast(
-        wss,
-        JSON.stringify({
-          type: "inspectDOM",
-          ...getDomToInspectMessage()
-        })
-      );
-
-      res.end("{}");
-    });
-
     ["/storeLogs", "/inspect", "/inspectDOM"].forEach(path => {
       // todo: don't allow requests from any site
       app.options(path, allowCrossOriginRequests);
@@ -125,11 +91,69 @@ function setupUI(options, app, wss, getProxy) {
   app.use(express.static(uiDir));
   app.use("/start", express.static(startPageDir));
 
+  function getDomToInspectMessage() {
+    if (!domToInspect) {
+      return {};
+    }
+    return {
+      html: (<any>domToInspect).parts.map(p => p[0]).join("")
+    };
+  }
+
+  let domToInspect = null;
+  app.get("/inspectDOM", (req, res) => {
+    res.end(JSON.stringify(getDomToInspectMessage()));
+  });
+  app.post("/inspectDOM", (req, res) => {
+    app.verifyToken(req);
+
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+    );
+
+    domToInspect = req.body;
+
+    broadcast(
+      wss,
+      JSON.stringify({
+        type: "inspectDOM",
+        ...getDomToInspectMessage()
+      })
+    );
+
+    res.end("{}");
+  });
+
   let logToInspect = null;
   app.get("/inspect", (req, res) => {
     res.end(
       JSON.stringify({
         logToInspect
+      })
+    );
+  });
+  app.post("/inspectDomChar", (req, res) => {
+    const mapping = new HtmlToOperationLogMapping((<any>domToInspect).parts);
+    const mappingResult: any = mapping.getOriginAtCharacterIndex(
+      req.body.charIndex
+    );
+
+    if (
+      mappingResult.origin.inputValuesCharacterIndex &&
+      mappingResult.origin.inputValuesCharacterIndex.length > 1
+    ) {
+      debugger; // probably should do mapping for each char
+    }
+
+    res.end(
+      JSON.stringify({
+        logId: mappingResult.origin.trackingValue,
+        charIndex:
+          mappingResult.charIndex +
+          mappingResult.origin.inputValuesCharacterIndex[0] -
+          mappingResult.origin.extraCharsAdded
       })
     );
   });
