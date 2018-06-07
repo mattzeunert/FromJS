@@ -69,6 +69,11 @@ exampleSocket.onmessage = function(event) {
       logId: message.operationLogId,
       charIndex: 0
     });
+  } else if (message.type === "inspectDOM") {
+    console.log("inspectdom", event);
+    appState.set("domToInspect", {
+      outerHTML: message.html
+    });
   }
 };
 
@@ -126,29 +131,24 @@ fetch(backendRoot + "/inspect", {
   });
 
 let previousDomToInspect = null;
-setInterval(function() {
-  fetch(backendRoot + "/inspectDOM", {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
+
+fetch(backendRoot + "/inspectDOM", {
+  method: "GET",
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json"
+  }
+})
+  .then(res => res.json())
+  .then(r => {
+    const { html } = r;
+
+    if (html) {
+      appState.set("domToInspect", {
+        outerHTML: html
+      });
     }
-  })
-    .then(res => res.json())
-    .then(r => {
-      const { domToInspect } = r;
-      if (domToInspect !== previousDomToInspect) {
-        previousDomToInspect = domToInspect;
-        if (domToInspect !== null) {
-          appState.set("domToInspect", {
-            parts: domToInspect.parts,
-            // todo: make curser out of outerhtml
-            outerHTML: domToInspect.parts.map(p => p[0]).join("")
-          });
-        }
-      }
-    });
-}, 2000);
+  });
 
 let inspectDom;
 let DomInspector = class DomInspector extends React.Component<any, any> {

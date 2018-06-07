@@ -66,13 +66,18 @@ export default class Backend {
       }
     });
 
+    function getDomToInspectMessage() {
+      if (!domToInspect) {
+        return {};
+      }
+      return {
+        html: (<any>domToInspect).parts.map(p => p[0]).join("")
+      };
+    }
+
     let domToInspect = null;
     app.get("/inspectDOM", (req, res) => {
-      res.end(
-        JSON.stringify({
-          domToInspect
-        })
-      );
+      res.end(JSON.stringify(getDomToInspectMessage()));
     });
     app.post("/inspectDOM", (req, res) => {
       app.verifyToken(req);
@@ -84,6 +89,15 @@ export default class Backend {
       );
 
       domToInspect = req.body;
+
+      broadcast(
+        wss,
+        JSON.stringify({
+          type: "inspectDOM",
+          ...getDomToInspectMessage()
+        })
+      );
+
       res.end("{}");
     });
 
