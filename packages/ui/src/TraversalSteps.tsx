@@ -4,12 +4,17 @@ import TraversalStep from "./TraversalStep";
 
 type TraversalStepsProps = {
   steps?: any[];
+  inspectionTarget?: any;
 };
 let TraversalSteps = class TraversalSteps extends React.Component<
   TraversalStepsProps,
   {}
 > {
   render() {
+    console.log(this.props, "ppp");
+    if (!this.props.inspectionTarget || !this.props.inspectionTarget.logId) {
+      return <div>no inspection target (maybe no data was captured)</div>;
+    }
     let stepsToShow = [];
     let steps = this.props.steps;
     if (!steps.length) {
@@ -88,7 +93,8 @@ let TraversalSteps = class TraversalSteps extends React.Component<
 TraversalSteps = branch(
   {
     debugMode: ["debugMode"],
-    steps: ["steps"]
+    steps: ["steps"],
+    inspectionTarget: ["inspectionTarget"]
   },
   TraversalSteps
 );

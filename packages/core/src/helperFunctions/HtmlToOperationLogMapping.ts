@@ -27,4 +27,7 @@ export default class HtmlToOperationLogMapping {
       origin: matchingPart[1]
     };
   }
+  getHtml() {
+    return this.parts.map(p => p[0]).join("");
+  }
 }

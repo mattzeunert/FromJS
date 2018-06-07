@@ -95,8 +95,22 @@ function setupUI(options, app, wss, getProxy) {
     if (!domToInspect) {
       return {};
     }
+
+    const mapping = new HtmlToOperationLogMapping((<any>domToInspect).parts);
+
+    const html = mapping.getHtml();
+    let goodDefaultCharIndex = 0;
+    const charIndexWhereTextFollows = html.search(/>[^<]/) + 1;
+    if (
+      charIndexWhereTextFollows !== -1 &&
+      mapping.getOriginAtCharacterIndex(charIndexWhereTextFollows)
+    ) {
+      goodDefaultCharIndex = charIndexWhereTextFollows;
+    }
+
     return {
-      html: (<any>domToInspect).parts.map(p => p[0]).join("")
+      html: (<any>domToInspect).parts.map(p => p[0]).join(""),
+      charIndex: goodDefaultCharIndex
     };
   }
 
@@ -139,6 +153,15 @@ function setupUI(options, app, wss, getProxy) {
     const mappingResult: any = mapping.getOriginAtCharacterIndex(
       req.body.charIndex
     );
+
+    if (!mappingResult.origin) {
+      res.end(
+        JSON.stringify({
+          logId: null
+        })
+      );
+      return;
+    }
 
     if (
       mappingResult.origin.inputValuesCharacterIndex &&

@@ -1,7 +1,8 @@
 import * as React from "react";
 import { branch, root } from "baobab-react/higher-order";
 import appState from "./appState";
-import { callApi } from "./api";
+import { callApi, inspectDomChar } from "./api";
+import { selectInspectedDomCharIndex } from "./actions";
 import { TextEl } from "./TextEl";
 
 let inspectDom;
@@ -18,12 +19,9 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
       <div>
         inspect dom
         <TextEl
+          highlightedCharacterIndex={this.props.domToInspect.charIndex}
           onCharacterClick={charIndex => {
-            callApi("inspectDomChar", {
-              charIndex
-            }).then(({ logId, charIndex }) => {
-              appState.set("inspectionTarget", { logId, charIndex });
-            });
+            selectInspectedDomCharIndex(charIndex);
           }}
           text={this.props.domToInspect.outerHTML}
         />

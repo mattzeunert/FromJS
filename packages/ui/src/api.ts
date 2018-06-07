@@ -1,4 +1,5 @@
 import appState from "./appState";
+import { selectInspectedDomCharIndex } from "./actions";
 
 let backendPort = window["backendPort"];
 let backendRoot = "http://localhost:" + backendPort;
@@ -19,6 +20,12 @@ export function resolveStackFrame(operationLog) {
     } else {
       return res.json();
     }
+  });
+}
+
+export function inspectDomChar(charIndex) {
+  return callApi("inspectDomChar", {
+    charIndex
   });
 }
 
@@ -56,11 +63,17 @@ exampleSocket.onmessage = function(event) {
     });
   } else if (message.type === "inspectDOM") {
     console.log("inspectdom", event);
-    appState.set("domToInspect", {
-      outerHTML: message.html
-    });
+    handleDomToInspectMessage(message);
   }
 };
+
+function handleDomToInspectMessage(message) {
+  appState.set("domToInspect", {
+    outerHTML: message.html,
+    charIndex: message.charIndex
+  });
+  selectInspectedDomCharIndex(message.charIndex);
+}
 
 fetch(backendRoot + "/inspect", {
   method: "GET",
@@ -87,11 +100,9 @@ fetch(backendRoot + "/inspectDOM", {
 })
   .then(res => res.json())
   .then(r => {
-    const { html } = r;
-
-    if (html) {
-      appState.set("domToInspect", {
-        outerHTML: html
-      });
+    const { message } = r;
+    if (!message || !message.html) {
+      return;
     }
+    handleDomToInspectMessage(message);
   });
