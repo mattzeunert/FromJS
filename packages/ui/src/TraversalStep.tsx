@@ -93,14 +93,19 @@ let TraversalStep = class TraversalStep extends React.Component<
           operationLog
         );
       } else {
-        operationTypeDetail =
-          "(" +
-          code.slice(
-            operationLog.loc.start.column,
-            operationLog.loc.end.column
-          ) +
-          ")";
+        operationTypeDetail = code.slice(
+          operationLog.loc.start.column,
+          operationLog.loc.end.column
+        );
       }
+    } else if (operationLog.operation === "callExpression") {
+      const knownValue = operationLog.args.function.result.knownValue;
+      if (knownValue) {
+        operationTypeDetail = knownValue;
+      }
+    }
+    if (operationTypeDetail) {
+      operationTypeDetail = "(" + operationTypeDetail + ")";
     }
 
     return (
