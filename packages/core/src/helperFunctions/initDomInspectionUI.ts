@@ -2,6 +2,7 @@ export default function initDomInspectionUI() {
   if (typeof document === "undefined") {
     return;
   }
+  var global = Function("return this")();
   let showDomInspector = false;
   const toggleInspectDomButton = document.createElement("div");
   let selectedElement = null;
