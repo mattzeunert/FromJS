@@ -182,8 +182,8 @@ export class TextEl extends React.Component<any, any> {
           var chunks = line.splitAtCharIndex(highlightedCharIndex);
 
           var textBeforeHighlight = chunks[0].text;
-          if (textBeforeHighlight.length > 50 && self.state.truncateText) {
-            var textA = textBeforeHighlight.slice(0, 40);
+          if (textBeforeHighlight.length > 100 && self.state.truncateText) {
+            var textA = textBeforeHighlight.slice(0, 60);
             var textB = textBeforeHighlight.slice(
               textBeforeHighlight.length - 10
             );
@@ -216,10 +216,10 @@ export class TextEl extends React.Component<any, any> {
 
           var restofLineValueSpans;
           var textAfterHighlight = chunks[2].text;
-          if (textAfterHighlight.length > 60 && self.state.truncateText) {
+          if (textAfterHighlight.length > 100 && self.state.truncateText) {
             restofLineValueSpans = [
               getValueSpans(
-                chunks[2].text.slice(0, 60),
+                chunks[2].text.slice(0, 80),
                 chunks[2].charOffsetStart
               ),
               getEllipsisSpan("ellipsis-line-after-highlight")
