@@ -37,7 +37,11 @@ function serializeValue(value, nativeFunctions): SerializedValue {
     typeof value === "string" ||
     (typeof value === "object" && value !== null && "length" in value)
   ) {
-    length = value.length;
+    // need try catch because you e.g. NodeList has length but you can't acces it
+    // because it's illegal invocation
+    try {
+      length = value.length;
+    } catch (err) {}
   }
 
   var type = typeof value;

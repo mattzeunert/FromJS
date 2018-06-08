@@ -289,7 +289,6 @@ const operations: Operations = {
             ") { " +
             code +
             " })";
-          console.log("eval", code);
           ret = ctx.global["__fromJSEval"](code);
           ctx.registerEvalScript(ret.evalScript);
           ret = ret.returnValue;
