@@ -2,7 +2,7 @@ import appState from "./appState";
 import { inspectDomChar } from "./api";
 
 export function selectAndTraverse(logId, charIndex) {
-  appState.set("inspectionTarget", { logId: 705162159, charIndex: 0 });
+  appState.set("inspectionTarget", { logId, charIndex });
 }
 
 export function selectInspectedDomCharIndex(charIndex) {
