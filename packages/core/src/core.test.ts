@@ -667,3 +667,51 @@ describe("localStorage", () => {
     );
   });
 });
+
+describe("call/apply/bind", () => {
+  it("Doesn't break call", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        function fn(b) {
+          return this + b
+        }
+        return fn.call("a", "b")
+      `);
+
+    expect(normal).toBe("ab");
+
+    const callExpression = tracking;
+    const returnStatement = callExpression.extraArgs.returnValue;
+    const binaryExpression = returnStatement.args.returnValue;
+    const { left, right } = binaryExpression.args;
+
+    expect(right.args.value.result.str).toBe("b");
+  });
+
+  it("Doesn't break apply", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    function fn(b) {
+      return this + b
+    }
+    return fn.apply("a", ["b"])
+  `);
+
+    expect(normal).toBe("ab");
+
+    const binaryExpression = tracking.extraArgs.returnValue.args.returnValue;
+    expect(binaryExpression.args.right.args.value.args.value.result.str).toBe(
+      "b"
+    );
+  });
+
+  it("Doesn't break apply", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    function fn(b) {
+      return this + b
+    }
+    fn = fn.bind("a")
+    return fn("b")
+  `);
+
+    expect(normal).toBe("ab");
+  });
+});

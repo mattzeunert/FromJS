@@ -244,6 +244,10 @@ const operations: Operations = {
       var arg;
       var fnArgs: any[] = [];
       var fnArgValues: any[] = [];
+
+      let context = args.context;
+      var fn = args.function[0];
+
       while (true) {
         var argKey = "arg" + i;
         if (!(argKey in args)) {
@@ -265,10 +269,14 @@ const operations: Operations = {
         i++;
       }
 
-      ctx.argTrackingInfo = fnArgs;
+      var object = context[0];
 
-      var fn = args.function[0];
-      var object = args.context[0];
+      let argTrackingInfo = fnArgs;
+      if (fn === Function.prototype.call || fn === Function.prototype.apply) {
+        argTrackingInfo = fnArgs.slice(1);
+      }
+
+      ctx.argTrackingInfo = argTrackingInfo;
 
       const extraTrackingValues: any = {};
 

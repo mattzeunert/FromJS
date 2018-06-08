@@ -32,7 +32,7 @@ export function instrumentAndRun(code) {
             // console.log(result.tracking)
             resolve(result);
           },
-          7
+          10
         );
       } else {
         resolve(result);
