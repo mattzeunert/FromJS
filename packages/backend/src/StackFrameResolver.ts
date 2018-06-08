@@ -40,7 +40,7 @@ function getSourceCodeObject(frameObject, code) {
       };
     } catch (err) {
       return {
-        error: err.toString()
+        text: err.toString()
       };
     }
   }
