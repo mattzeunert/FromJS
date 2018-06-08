@@ -229,3 +229,28 @@ it("Can traverse arguments for a function expression (rather than a function dec
     "stringLiteral"
   ]);
 });
+
+describe("String.prototype.trim", () => {
+  it("Adjusts char index based on amount of whitespace removed", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const str = String.fromCharCode(10) + "     ab cd"
+      return str.trim()
+    `);
+    expect(normal).toBe("ab cd");
+    var t = await traverse({ operationLog: tracking, charIndex: 3 }); // char "c"
+
+    const tLastStep = t[t.length - 1];
+    expect(tLastStep.charIndex).toBe(8);
+  });
+  it("Doesn't break if there's no whitespace at the start", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const str = "abc"
+      return str.trim()
+    `);
+    expect(normal).toBe("abc");
+    var t = await traverse({ operationLog: tracking, charIndex: 2 }); // char "c"
+
+    const tLastStep = t[t.length - 1];
+    expect(tLastStep.charIndex).toBe(2);
+  });
+});

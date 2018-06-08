@@ -31,6 +31,9 @@ function serializeValue(value, nativeFunctions): SerializedValue {
   if (value === nativeFunctions.stringPrototypeReplace) {
     knownValue = "String.prototype.replace";
   }
+  if (value === nativeFunctions.stringPrototypeTrim) {
+    knownValue = "String.prototype.trim";
+  }
   var length;
 
   if (

@@ -495,6 +495,13 @@ const operations: Operations = {
               operationLog: operationLog.args.context,
               charIndex: charIndex + operationLog.args.arg0.result.primitive
             };
+          case "String.prototype.trim":
+            let str = operationLog.args.context.result.primitive;
+            let whitespaceAtStart = str.match(/^\s*/)[0].length;
+            return {
+              operationLog: operationLog.args.context,
+              charIndex: charIndex + whitespaceAtStart
+            };
           case "String.prototype.replace":
             // I'm not 100% confident about this code, but it works for now
 

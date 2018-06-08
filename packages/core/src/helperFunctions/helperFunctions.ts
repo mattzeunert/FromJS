@@ -30,6 +30,7 @@ declare var __FUNCTION_NAMES__,
   const nativeFunctions = {
     stringPrototypeSlice: String.prototype.slice,
     stringPrototypeReplace: String.prototype.replace,
+    stringPrototypeTrim: String.prototype.trim,
     jsonParse: JSON.parse
   };
 
