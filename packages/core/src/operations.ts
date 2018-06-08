@@ -118,6 +118,7 @@ const operations: Operations = {
         if (path.node.property.type === "Identifier") {
           property = t.stringLiteral(path.node.property.name);
           property.loc = path.node.property.loc;
+          property.debugNote = "memexp";
         }
       }
 
@@ -650,8 +651,8 @@ const operations: Operations = {
           []
         );
       } else {
-        executionContext = t.identifier("undefined");
-        executionContextTrackingValue = t.nullLiteral();
+        executionContext = ignoredIdentifier("undefined");
+        executionContextTrackingValue = ignoreNode(t.nullLiteral());
       }
 
       var fnArgs = {};
@@ -750,21 +751,17 @@ const operations: Operations = {
     visitor(path) {
       path.node.properties.forEach(function(prop) {
         if (prop.key.type === "Identifier") {
-          var keyLoc = prop.key.loc;
+          const loc = prop.key.loc;
           prop.key = t.stringLiteral(prop.key.name);
-          prop.key.loc = keyLoc;
-          // move start a bit to left to compensate for there not
-          // being quotes in the original "string", since
-          // it's just an identifier
-          if (prop.key.loc.start.column > 0) {
-            prop.key.loc.start.column--;
+          prop.key.loc = loc;
+          if (!loc) {
+            debugger;
           }
         }
       });
 
       var properties = path.node.properties.map(function(prop) {
-        var type = t.stringLiteral(prop.type);
-        type.ignore = true;
+        var type = ignoredStringLiteral(prop.type);
         if (prop.type === "ObjectMethod") {
           // getters/setters or something like this: obj = {fn(){}}
           var kind = ignoredStringLiteral(prop.kind);
@@ -784,9 +781,13 @@ const operations: Operations = {
         }
       });
 
-      var call = this.createNode!({
-        properties
-      });
+      var call = this.createNode!(
+        {
+          properties
+        },
+        null,
+        path.node.loc
+      );
 
       return call;
     }
@@ -813,9 +814,13 @@ const operations: Operations = {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
-      return this.createNode!({
-        value: [ignoredNumericLiteral(path.node.value), t.nullLiteral()]
-      });
+      return this.createNode!(
+        {
+          value: [ignoredNumericLiteral(path.node.value), t.nullLiteral()]
+        },
+        null,
+        path.node.loc
+      );
     },
     exec: (args, astArgs, ctx) => {
       return args.value[0];
@@ -830,11 +835,15 @@ const operations: Operations = {
       return getArrayArgumentValue(args.elements);
     },
     visitor(path) {
-      return this.createNode!({
-        elements: path.node.elements.map(el =>
-          ignoredArrayExpression([el, getLastOperationTrackingResultCall])
-        )
-      });
+      return this.createNode!(
+        {
+          elements: path.node.elements.map(el =>
+            ignoredArrayExpression([el, getLastOperationTrackingResultCall])
+          )
+        },
+        null,
+        path.node.loc
+      );
     }
   },
   returnStatement: {
@@ -1567,6 +1576,7 @@ const operations: Operations = {
           property = path.node.left.property;
         } else {
           property = t.stringLiteral(path.node.left.property.name);
+          property.note = "assexp";
           property.loc = path.node.left.property.loc;
         }
 

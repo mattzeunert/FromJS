@@ -71,6 +71,13 @@ helperCode += "// aaaaa"; // this seems to help with debugging/evaling the code.
 function plugin(babel) {
   const { types: t } = babel;
 
+  // const str = t.stringLiteral;
+  // t.stringLiteral = function() {
+  //   const node = str.apply(this, arguments);
+  //   node.stack = Error().stack;
+  //   return node;
+  // };
+
   function handleFunction(path) {
     path.node.params.forEach((param, i) => {
       var d = t.variableDeclaration("var", [
@@ -183,6 +190,9 @@ function plugin(babel) {
       visitors[key] = path => {
         var ret = operation.visitor.call(operation, path);
         if (ret) {
+          if (!ret.loc) {
+            // debugger;
+          }
           path.replaceWith(ret);
         }
       };

@@ -22,6 +22,7 @@ declare module "@babel/types" {
 
 export function ignoreNode(node) {
   node.ignore = true;
+  // node.__debugIgnore = Error().stack
   return node;
 }
 
@@ -30,27 +31,19 @@ export function ignoredArrayExpression(items) {
 }
 
 export function ignoredStringLiteral(str) {
-  var l = t.stringLiteral(str);
-  l.ignore = true;
-  return l;
+  return ignoreNode(t.stringLiteral(str));
 }
 
 export function ignoredIdentifier(name) {
-  var id = t.identifier(name);
-  id.ignore = true;
-  return id;
+  return ignoreNode(t.identifier(name));
 }
 
 export function ignoredCallExpression(identifier, args) {
-  var call = t.callExpression(ignoredIdentifier(identifier), args);
-  call.ignore = true;
-  return call;
+  return ignoreNode(t.callExpression(ignoredIdentifier(identifier), args));
 }
 
 export function ignoredNumericLiteral(number) {
-  var n = t.numericLiteral(number);
-  n.ignore = true;
-  return n;
+  return ignoreNode(t.numericLiteral(number));
 }
 
 export function ignoredObjectExpression(props) {
@@ -98,8 +91,14 @@ function getLocObjectASTNode(loc) {
   // });
 }
 
+let noLocCount = 0;
 export function createOperation(opType, opArgs, astArgs = null, loc = null) {
   const argsAreArray = opArgs.length !== undefined;
+
+  if (!loc) {
+    noLocCount++;
+    console.log("no loc for", opType, noLocCount);
+  }
 
   if (argsAreArray) {
     // todo: remove this branch in the future, should always use obj

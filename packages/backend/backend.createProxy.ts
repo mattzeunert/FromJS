@@ -12,6 +12,7 @@ export function createProxy(params: CreateProxyWrapperArgs) {
 
     // If debugging parent process allow debuggign child process as well
     if (process.execArgv.join(",").includes("--inspect")) {
+      console.log("starting proxy with --inspect");
       process.execArgv.push("--inspect=" + 9223);
     }
 

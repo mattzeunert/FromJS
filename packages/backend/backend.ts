@@ -293,7 +293,10 @@ function setupBackend(options, app, wss, getProxy) {
       res.status(500);
       res.end(
         JSON.stringify({
-          err: Error("not supporting non locs anymore, don't use sourcemap")
+          err:
+            "not supporting non locs anymore, don't use sourcemap (" +
+            operationLog.operation +
+            ")"
         })
       );
       // resolver

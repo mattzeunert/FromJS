@@ -109,6 +109,10 @@ export default class OperationLog {
       arrayArguments = ["elements"];
     }
 
+    if (!loc) {
+      console.log("no loc for operation", operation);
+    }
+
     this.stackFrames = stackFrames;
 
     this.operation = operation;
