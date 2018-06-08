@@ -97,6 +97,26 @@ declare var __FUNCTION_NAMES__,
     return log.index;
   }
 
+  window["__debugLookupLog"] = function(logId, currentDepth = 0) {
+    try {
+      var log = JSON.parse(JSON.stringify(window["__debugAllLogs"][logId]));
+      if (currentDepth < 3) {
+        const newArgs = {};
+        Object.keys(log.args).forEach(key => {
+          newArgs[key] = window["__debugLookupLog"](
+            log.args[key],
+            currentDepth + 1
+          );
+        });
+        log.args = newArgs;
+      }
+
+      return log;
+    } catch (err) {
+      return logId;
+    }
+  };
+
   var argTrackingInfo = null;
 
   global[
