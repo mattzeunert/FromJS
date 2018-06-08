@@ -285,7 +285,6 @@ function setupBackend(options, app, wss, getProxy) {
 
     // use loc if available because sourcemaps are buggy...
     if (operationLog.loc) {
-      debugger;
       resolver.resolveFrameFromLoc(operationLog.loc).then(rr => {
         res.end(JSON.stringify(rr));
       });
