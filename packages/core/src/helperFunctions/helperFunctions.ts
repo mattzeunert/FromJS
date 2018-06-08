@@ -73,17 +73,18 @@ declare var __FUNCTION_NAMES__,
 
   let lastOperationType = null;
   function createOperationLog(args) {
-    args.stackFrames = Error().stack.split(String.fromCharCode(10));
-    // Sometimes the json traversal results in Array.forEach<anonymous>
-    // (even though devtools knows we're in helperFunctions), so remove
-    // everything before the most recent operation started
-    args.stackFrames = args.stackFrames.slice(
-      args.stackFrames.findIndex(frameString => frameString.includes("___op")) +
-        1
-    );
-    args.stackFrames = args.stackFrames.filter(
-      line => line !== "Error" && !line.includes("/helperFns.js")
-    );
+    args.stackFrames = []; // don't use Error().stack, use loc instead
+    // args.stackFrames = Error().stack.split(String.fromCharCode(10));
+    // // Sometimes the json traversal results in Array.forEach<anonymous>
+    // // (even though devtools knows we're in helperFunctions), so remove
+    // // everything before the most recent operation started
+    // args.stackFrames = args.stackFrames.slice(
+    //   args.stackFrames.findIndex(frameString => frameString.includes("___op")) +
+    //     1
+    // );
+    // args.stackFrames = args.stackFrames.filter(
+    //   line => line !== "Error" && !line.includes("/helperFns.js")
+    // );
     args.nativeFunctions = nativeFunctions;
     var log = new OperationLog(args);
     storeLog(log);

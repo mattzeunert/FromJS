@@ -39,7 +39,7 @@ App = root(appState, App);
 
 ReactDom.render(<App />, document.querySelector("#app"));
 
-setTimeout(() => actions.selectAndTraverse(705162159, 0), 500);
+// setTimeout(() => actions.selectAndTraverse(705162159, 0), 500);
 
 // const codeTextarea = document.querySelector("#code") as HTMLInputElement;
 

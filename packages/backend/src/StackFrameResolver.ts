@@ -114,14 +114,14 @@ class StackFrameResolver {
     return this._gps.ajax(frameObject.fileName);
   }
 
-  resolveFrameFromLoc(frameString, loc) {
-    var frameObject = ErrorStackParser.parse({ stack: frameString })[0];
-    frameObject.fileName += "?dontprocess";
+  resolveFrameFromLoc(loc) {
+    const frameObject: any = {};
+    frameObject.fileName = loc.url + "?dontprocess";
     frameObject.lineNumber = loc.start.line;
     frameObject.columnNumber = loc.start.column;
     return this.resolveSourceCode(frameObject).then(code => {
       frameObject.code = code;
-      frameObject.__debugOnly_FrameString = frameString;
+      // frameObject.__debugOnly_FrameString = frameString;
       return Promise.resolve(frameObject);
     });
   }

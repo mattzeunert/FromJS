@@ -1,6 +1,7 @@
 import * as FunctionNames from "./FunctionNames";
 import * as t from "@babel/types";
 import { identifier } from "./OperationTypes";
+import { getCurrentBabelFilePath } from "./getBabelOptions";
 
 declare module "@babel/types" {
   // Should just be interface Node, but somehow it only works if
@@ -68,6 +69,8 @@ export function ignoredObjectExpression(props) {
 }
 
 function getLocObjectASTNode(loc) {
+  loc.url = getCurrentBabelFilePath();
+
   // Using JSON.parse instead of creating object directly because
   // it speeds up overall Babel compile time by a third, and reduces file size
   // by 30%
