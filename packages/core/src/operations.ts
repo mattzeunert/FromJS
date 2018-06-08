@@ -307,7 +307,8 @@ const operations: Operations = {
           operation: ctx.operationTypes.newExpressionResult,
           args: {},
           astArgs: {},
-          result: {}
+          result: {},
+          loc: ctx.loc
         });
       } else if (
         fn === ctx.nativeFunctions.stringPrototypeReplace &&
@@ -380,6 +381,7 @@ const operations: Operations = {
                 },
                 astArgs: {},
                 result: replacement,
+                loc: ctx.loc,
                 runtimeArgs: {
                   start: offset,
                   end: offset + match.length
@@ -719,7 +721,8 @@ const operations: Operations = {
               operation: "objectProperty",
               args: { propertyValue: [propertyValue, propertyValueT] },
               result: propertyValue,
-              astArgs: {}
+              astArgs: {},
+              loc: ctx.loc
             })
           );
         } else if (propertyType === "ObjectMethod") {

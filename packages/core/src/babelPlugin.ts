@@ -17,7 +17,8 @@ import {
   isInNodeType,
   isInIdOfVariableDeclarator,
   isInLeftPartOfAssignmentExpression,
-  getTrackingVarName
+  getTrackingVarName,
+  addLoc
 } from "./babelPluginHelpers";
 
 import helperCodeLoaded from "../helperFunctions";
@@ -72,17 +73,20 @@ function plugin(babel) {
   const { types: t } = babel;
 
   // const str = t.stringLiteral;
-  // t.stringLiteral = function() {
-  //   const node = str.apply(this, arguments);
-  //   node.stack = Error().stack;
-  //   return node;
-  // };
+  // if (!t["x"]) {
+  //   t["x"] = true;
+  //   t.stringLiteral = function() {
+  //     const node = str.apply(this, arguments);
+  //     node.stack = Error().stack;
+  //     return node;
+  //   };
+  // }
 
   function handleFunction(path) {
     path.node.params.forEach((param, i) => {
       var d = t.variableDeclaration("var", [
         t.variableDeclarator(
-          ignoredIdentifier(getTrackingVarName(param.name)),
+          addLoc(ignoredIdentifier(getTrackingVarName(param.name)), param.loc),
           ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [
             ignoredNumericLiteral(i)
           ])
@@ -111,12 +115,15 @@ function plugin(babel) {
       originalDeclarations.forEach(function(decl) {
         newDeclarations.push(decl);
         if (!decl.init) {
-          decl.init = ignoredIdentifier("undefined");
+          decl.init = addLoc(ignoredIdentifier("undefined"), decl.loc);
         }
 
         newDeclarations.push(
           t.variableDeclarator(
-            ignoredIdentifier(getTrackingVarName(decl.id.name)),
+            addLoc(
+              ignoredIdentifier(getTrackingVarName(decl.id.name)),
+              decl.id.loc
+            ),
             ignoredCallExpression(
               FunctionNames.getLastOperationTrackingResult,
               []
@@ -171,10 +178,21 @@ function plugin(babel) {
             ignoreNode(
               t.conditionalExpression(
                 ignoreNode(
-                  t.binaryExpression("in", t.stringLiteral(identifierName), obj)
+                  t.binaryExpression(
+                    "in",
+                    addLoc(t.stringLiteral(identifierName), path.node.loc),
+                    obj
+                  )
                 ),
-                t.memberExpression(obj, t.stringLiteral(identifierName), true),
-                i(t.identifier(identifierName))
+                addLoc(
+                  t.memberExpression(
+                    obj,
+                    addLoc(t.stringLiteral(identifierName), path.node.loc),
+                    true
+                  ),
+                  path.node.loc
+                ),
+                i(addLoc(t.identifier(identifierName), path.node.loc))
               )
             )
           );

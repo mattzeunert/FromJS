@@ -20,6 +20,14 @@ declare module "@babel/types" {
   }
 }
 
+export function addLoc(node, loc) {
+  node.loc = loc;
+  if (!loc) {
+    debugger;
+  }
+  return node;
+}
+
 export function ignoreNode(node) {
   node.ignore = true;
   // node.__debugIgnore = Error().stack
