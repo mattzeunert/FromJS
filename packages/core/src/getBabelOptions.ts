@@ -13,7 +13,7 @@ export default function getBabelOptions(plugin, extraBabelOptions = {}, url) {
   const options = {
     plugins: [plugin],
     ...extraBabelOptions,
-    sourceMaps: true,
+    sourceMaps: false,
     sourceFileName: url + "?dontprocess",
     parserOpts: {
       strictMode: false

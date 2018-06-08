@@ -11,9 +11,7 @@ export default function handleEvalScript(code, compile, done) {
 
   return compile(code, url, function(babelResult) {
     const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url;
-    const map = JSON.stringify(babelResult.map);
     done({
-      map,
       instrumentedCode,
       code,
       url
