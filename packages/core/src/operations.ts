@@ -930,7 +930,8 @@ const operations: Operations = {
             propertyName: [propName, propNameT]
           },
           astArgs: {},
-          result: currentValue
+          result: currentValue,
+          loc: ctx.loc
         });
 
         var argument = args.argument[0];
@@ -955,6 +956,7 @@ const operations: Operations = {
             astArgs: {
               operator: "="
             },
+            loc: ctx.loc,
             argTrackingValues: [currentValueT, args.argument[1]],
             argNames: ["currentValue", "argument"]
           })
