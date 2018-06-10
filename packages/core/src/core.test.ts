@@ -691,16 +691,17 @@ describe("call/apply/bind", () => {
     const { normal, tracking, code } = await instrumentAndRun(`
     function fn(b) {
       return this + b
-    }
+  }
     return fn.apply("a", ["b"])
   `);
 
     expect(normal).toBe("ab");
 
     const binaryExpression = tracking.extraArgs.returnValue.args.returnValue;
-    expect(binaryExpression.args.right.args.value.args.value.result.str).toBe(
-      "b"
-    );
+
+    const bArg = binaryExpression.args.right.args.value.args.value;
+    expect(bArg.operation).not.toBe("arrayExpression"); // apply passes in array but it's not an argument
+    expect(bArg.operation).toBe("stringLiteral");
   });
 
   it("Doesn't break apply", async () => {

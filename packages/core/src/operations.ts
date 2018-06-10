@@ -240,6 +240,17 @@ const operations: Operations = {
   stringReplacement: {},
   callExpression: {
     exec: (args, astArgs, ctx) => {
+      function makeFunctionArgument([value, trackingValue]) {
+        return ctx.createOperationLog({
+          operation: ctx.operationTypes.functionArgument,
+          args: {
+            value: [value, trackingValue]
+          },
+          loc: ctx.loc,
+          astArgs: {},
+          result: value
+        });
+      }
       var i = 0;
       var arg;
       var fnArgs: any[] = [];
@@ -255,25 +266,22 @@ const operations: Operations = {
         }
         arg = args[argKey];
         fnArgValues.push(arg[0]);
-        fnArgs.push(
-          ctx.createOperationLog({
-            operation: ctx.operationTypes.functionArgument,
-            args: {
-              value: arg
-            },
-            loc: ctx.loc,
-            astArgs: {},
-            result: arg[0]
-          })
-        );
+        fnArgs.push(makeFunctionArgument(arg));
         i++;
       }
 
       var object = context[0];
 
       let argTrackingInfo = fnArgs;
-      if (fn === Function.prototype.call || fn === Function.prototype.apply) {
+      if (fn === Function.prototype.call) {
         argTrackingInfo = fnArgs.slice(1);
+      } else if (fn === Function.prototype.apply) {
+        argTrackingInfo = fnArgValues[1].map((v, i) => {
+          return makeFunctionArgument([
+            fnArgValues[1][i],
+            ctx.getObjectPropertyTrackingValue(fnArgValues[1], i)
+          ]);
+        });
       }
 
       ctx.argTrackingInfo = argTrackingInfo;
