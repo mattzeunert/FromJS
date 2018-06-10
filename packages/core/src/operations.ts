@@ -846,10 +846,13 @@ const operations: Operations = {
   arrayExpression: {
     arrayArguments: ["elements"],
     exec: (args, astArgs, ctx) => {
-      function getArrayArgumentValue(arrayArg) {
-        return arrayArg.map(e => e[0]);
-      }
-      return getArrayArgumentValue(args.elements);
+      let arr = [];
+      args.elements.forEach((el, i) => {
+        const [value, trackingValue] = el;
+        arr.push(value);
+        ctx.trackObjectPropertyAssignment(arr, i.toString(), trackingValue);
+      });
+      return arr;
     },
     visitor(path) {
       return this.createNode!(
