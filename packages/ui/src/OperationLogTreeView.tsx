@@ -1,6 +1,7 @@
 import * as React from "react";
 import { resolveStackFrame } from "./api";
 import operations from "../../core/src/operations";
+import { template } from "lodash";
 
 type OperationLogTreeViewProps = {
   operationLog: any;
@@ -144,6 +145,8 @@ function renderTree(log, containerSelector) {
 
     const index = data ? data.index : "n/a";
 
+    const escapedStr = template("<%- str %>!")({ str });
+
     var node = {
       innerHTML: `<div>
         <div
@@ -158,7 +161,7 @@ function renderTree(log, containerSelector) {
             <code style="font-size: 11px" id="${treeCodeDivId}">&nbsp;</code>
           </div>
           <div>
-            <span class="value ${valueClass}">${escape(str)}</span>
+            <span class="value ${valueClass}">${escapedStr}</span>
           </div>  
         </div>
         

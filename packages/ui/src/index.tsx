@@ -21,6 +21,11 @@ import DomInspector from "./DomInspector";
 
 import "./main.scss";
 
+// global function used by tree view html
+window["showSteps"] = function(logId, charIndex) {
+  actions.selectAndTraverse(logId, charIndex);
+};
+
 let App = () => {
   return (
     <div>
