@@ -293,4 +293,44 @@ describe("Arrays", () => {
     const tLastStep = t[t.length - 1];
     expect(tLastStep.operationLog.operation).toBe("stringLiteral");
   });
+
+  describe("Array.prototype.join", () => {
+    it("Can traverse basic join call", async () => {
+      const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["ab", "cd"]
+        return arr.join("-#-")
+      `);
+      expect(normal).toBe("ab-#-cd");
+      var t1 = await traverse({ operationLog: tracking, charIndex: 6 });
+      const t1LastStep = t1[t1.length - 1];
+      expect(t1LastStep.charIndex).toBe(1);
+      expect(t1LastStep.operationLog.result.str).toBe("cd");
+
+      var t2 = await traverse({ operationLog: tracking, charIndex: 3 });
+      const t2LastStep = t2[t2.length - 1];
+      expect(t2LastStep.charIndex).toBe(1);
+      expect(t2LastStep.operationLog.result.str).toBe("-#-");
+    });
+  });
+  it("Can traverse join calls with the default separator (,)", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var arr = ["a", "b"]
+      return arr.join()
+    `);
+    expect(normal).toBe("a,b");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.charIndex).toBe(0);
+    expect(t1LastStep.operationLog.result.str).toBe(",");
+  });
+  it("Can traverse join calls with undefined/null values", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return [null, undefined].join("-")
+    `);
+    expect(normal).toBe("-");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.charIndex).toBe(0);
+    expect(t1LastStep.operationLog.result.str).toBe("-");
+  });
 });

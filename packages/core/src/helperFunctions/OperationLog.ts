@@ -37,6 +37,15 @@ function serializeValue(value, nativeFunctions): SerializedValue {
   if (value === nativeFunctions.ArrayPrototypePush) {
     knownValue = "Array.prototype.push";
   }
+  if (value === nativeFunctions.ArrayPrototypeJoin) {
+    knownValue = "Array.prototype.join";
+  }
+  if (value === undefined) {
+    knownValue = "undefined";
+  }
+  if (value === null) {
+    knownValue = "null";
+  }
   var length;
 
   if (

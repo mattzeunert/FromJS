@@ -23,6 +23,7 @@ import {
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import { getLastOperationValueResult } from "./FunctionNames";
+import HtmlToOperationLogMapping from "./helperFunctions/HtmlToOperationLogMapping";
 
 interface TraversalStep {
   charIndex: number;
@@ -496,6 +497,43 @@ const operations: Operations = {
             );
           });
           retT = fnArgs[fnArgs.length - 1];
+        } else if (fn === ctx.nativeFunctions.ArrayPrototypeJoin) {
+          object.forEach((item, i) => {
+            let arrayValueTrackingValue = ctx.getObjectPropertyTrackingValue(
+              object,
+              i
+            );
+            if (!arrayValueTrackingValue) {
+              arrayValueTrackingValue = ctx.createOperationLog({
+                operation: ctx.operationTypes.untrackedValue,
+                args: {},
+                astArgs: {},
+                runtimeArgs: {
+                  type: "Unknown Array Join Value"
+                },
+                result: object[i],
+                loc: ctx.loc
+              });
+            }
+            extraTrackingValues["arrayValue" + i] = [
+              null, // not needed, avoid object[i] lookup which may have side effects
+              arrayValueTrackingValue
+            ];
+          });
+          if (fnArgs[0]) {
+            extraTrackingValues["separator"] = [null, fnArgs[0]];
+          } else {
+            extraTrackingValues["separator"] = [
+              null,
+              ctx.createOperationLog({
+                operation: ctx.operationTypes.defaultArrayJoinSeparator,
+                args: {},
+                astArgs: {},
+                result: ",",
+                loc: ctx.loc
+              })
+            ];
+          }
         } else {
           if (
             ctx.lastOperationType === "returnStatement" &&
@@ -516,6 +554,7 @@ const operations: Operations = {
     },
     traverse(operationLog, charIndex) {
       var knownFunction = operationLog.args.function.result.knownValue;
+
       if (knownFunction) {
         switch (knownFunction) {
           case "String.prototype.slice":
@@ -530,6 +569,34 @@ const operations: Operations = {
               operationLog: operationLog.args.context,
               charIndex: charIndex + whitespaceAtStart
             };
+          case "Array.prototype.join":
+            const parts = [];
+            let partIndex = 0;
+            let arrayValue;
+            while (
+              ((arrayValue = operationLog.extraArgs["arrayValue" + partIndex]),
+              arrayValue !== undefined)
+            ) {
+              let joinParameter = arrayValue.result.primitive + "";
+              if ([null, undefined].includes(arrayValue.result.primitive)) {
+                joinParameter = "";
+              }
+              parts.push([joinParameter, arrayValue]);
+              parts.push([
+                operationLog.extraArgs.separator.result.primitive + "",
+                operationLog.extraArgs.separator
+              ]);
+              partIndex++;
+            }
+            parts.pop(); // take off last separator
+
+            const mapping = new HtmlToOperationLogMapping(parts);
+            const match = mapping.getOriginAtCharacterIndex(charIndex);
+            return {
+              charIndex: match.charIndex,
+              operationLog: match.origin
+            };
+
           case "String.prototype.replace":
             // I'm not 100% confident about this code, but it works for now
 

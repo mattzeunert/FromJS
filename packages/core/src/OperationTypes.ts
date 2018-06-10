@@ -17,3 +17,5 @@ export const stringReplacement = "stringReplacement";
 export const localStorageValue = "localStorageValue";
 export const jsonParseResult = "jsonParseResult";
 export const newExpressionResult = "newExpressionResult";
+export const defaultArrayJoinSeparator = "defaultArrayJoinSeparator";
+export const untrackedValue = "untrackedValue";

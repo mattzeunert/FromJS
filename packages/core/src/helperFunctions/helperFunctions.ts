@@ -31,6 +31,8 @@ declare var __FUNCTION_NAMES__,
     stringPrototypeSlice: String.prototype.slice,
     stringPrototypeReplace: String.prototype.replace,
     stringPrototypeTrim: String.prototype.trim,
+    ArrayPrototypePush: Array.prototype.push,
+    ArrayPrototypeJoin: Array.prototype.join,
     jsonParse: JSON.parse
   };
 
