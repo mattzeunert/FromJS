@@ -493,7 +493,14 @@ const operations: Operations = {
             ctx.trackObjectPropertyAssignment(
               object,
               arrayLengthBeforePush + i,
-              arg
+              arg,
+              ctx.createOperationLog({
+                operation: ctx.operationTypes.arrayIndex,
+                args: {},
+                result: arrayLengthBeforePush + i,
+                astArgs: {},
+                loc: ctx.loc
+              })
             );
           });
           retT = fnArgs[fnArgs.length - 1];
@@ -832,7 +839,8 @@ const operations: Operations = {
               result: propertyValue,
               astArgs: {},
               loc: ctx.loc
-            })
+            }),
+            property.key[1]
           );
         } else if (propertyType === "ObjectMethod") {
           var propertyKind = property.kind[0];
@@ -887,7 +895,7 @@ const operations: Operations = {
         } else {
           return ignoredObjectExpression({
             type: [type],
-            key: [prop.key],
+            key: [prop.key, getLastOperationTrackingResultCall],
             value: [prop.value, getLastOperationTrackingResultCall]
           });
         }
@@ -945,7 +953,19 @@ const operations: Operations = {
       args.elements.forEach((el, i) => {
         const [value, trackingValue] = el;
         arr.push(value);
-        ctx.trackObjectPropertyAssignment(arr, i.toString(), trackingValue);
+        const nameTrackingValue = ctx.createOperationLog({
+          operation: ctx.operationTypes.arrayIndex,
+          args: {},
+          result: i,
+          astArgs: {},
+          loc: ctx.loc
+        });
+        ctx.trackObjectPropertyAssignment(
+          arr,
+          i.toString(),
+          trackingValue,
+          nameTrackingValue
+        );
       });
       return arr;
     },
@@ -1082,7 +1102,8 @@ const operations: Operations = {
             loc: ctx.loc,
             argTrackingValues: [currentValueT, args.argument[1]],
             argNames: ["currentValue", "argument"]
-          })
+          }),
+          propNameT
         );
 
         if (obj instanceof HTMLElement && propName === "innerHTML") {
@@ -1705,8 +1726,14 @@ const operations: Operations = {
           property.loc = path.node.left.property.loc;
         }
 
-        operationArguments["object"] = [path.node.left.object, t.nullLiteral()];
-        operationArguments["propertyName"] = [property, t.nullLiteral()];
+        operationArguments["object"] = [
+          path.node.left.object,
+          getLastOperationTrackingResultCall
+        ];
+        operationArguments["propertyName"] = [
+          property,
+          getLastOperationTrackingResultCall
+        ];
         operationArguments["argument"] = [
           path.node.right,
           getLastOperationTrackingResultCall

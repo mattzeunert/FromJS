@@ -70,6 +70,11 @@ export function ignoredObjectExpression(props) {
 }
 
 function getLocObjectASTNode(loc) {
+  const DISABLE_LOC_FOR_DEBUGGING = false;
+  if (DISABLE_LOC_FOR_DEBUGGING) {
+    return ignoreNode(t.nullLiteral());
+  }
+
   loc.url = getCurrentBabelFilePath();
 
   // Using JSON.parse instead of creating object directly because

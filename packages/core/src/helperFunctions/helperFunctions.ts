@@ -100,13 +100,13 @@ declare var __FUNCTION_NAMES__,
     return log.index;
   }
 
-  window["__debugLookupLog"] = function(logId, currentDepth = 0) {
+  global["__debugLookupLog"] = function(logId, currentDepth = 0) {
     try {
-      var log = JSON.parse(JSON.stringify(window["__debugAllLogs"][logId]));
+      var log = JSON.parse(JSON.stringify(global["__debugAllLogs"][logId]));
       if (currentDepth < 3) {
         const newArgs = {};
         Object.keys(log.args).forEach(key => {
-          newArgs[key] = window["__debugLookupLog"](
+          newArgs[key] = global["__debugLookupLog"](
             log.args[key],
             currentDepth + 1
           );
@@ -140,7 +140,17 @@ declare var __FUNCTION_NAMES__,
     allFnArgTrackingValues
   ) {
     allFnArgTrackingValues.forEach((trackingValue, i) => {
-      trackObjectPropertyAssignment(argumentsObject, i, trackingValue);
+      trackObjectPropertyAssignment(
+        argumentsObject,
+        i,
+        trackingValue,
+        createOperationLog({
+          operation: operationTypes.arrayIndex,
+          args: {},
+          result: i,
+          astArgs: {}
+        })
+      );
     });
     return argumentsObject;
   };
@@ -178,27 +188,45 @@ declare var __FUNCTION_NAMES__,
 
   const objTrackingMap = new Map();
   window["__debugObjTrackingMap"] = objTrackingMap;
-  function trackObjectPropertyAssignment(obj, propName, trackingValue) {
+  function trackObjectPropertyAssignment(
+    obj,
+    propName,
+    propertyValueTrackingValue,
+    propertyNameTrackingValue = null
+  ) {
+    if (!propertyNameTrackingValue) {
+      // debugger;
+      console.count("no propertyNameTrackingValue");
+    }
     // console.log("trackObjectPropertyAssignment", obj, propName, trackingValue)
     var objectPropertyTrackingInfo = objTrackingMap.get(obj);
     if (!objectPropertyTrackingInfo) {
       objectPropertyTrackingInfo = {};
       objTrackingMap.set(obj, objectPropertyTrackingInfo);
     }
-    if (typeof trackingValue !== "number" && !!trackingValue) {
+    if (
+      typeof propertyValueTrackingValue !== "number" &&
+      !!propertyValueTrackingValue
+    ) {
       debugger;
     }
     // "_" prefix because to avoid conflict with normal object methods,
     // e.g. there used to be problems when getting tracking value for "constructor" prop
-    objectPropertyTrackingInfo["_" + propName] = trackingValue;
+    objectPropertyTrackingInfo["_" + propName] = {
+      value: propertyValueTrackingValue,
+      name: propertyNameTrackingValue
+    };
   }
   function getObjectPropertyTrackingValue(obj, propName) {
     var objectPropertyTrackingInfo = objTrackingMap.get(obj);
     if (!objectPropertyTrackingInfo) {
       return null;
     }
-    const trackingValue = objectPropertyTrackingInfo["_" + propName];
-    return trackingValue;
+    const trackingValues = objectPropertyTrackingInfo["_" + propName];
+    if (!trackingValues) {
+      return null;
+    }
+    return trackingValues.value;
   }
   window["getObjectPropertyTrackingValue"] = getObjectPropertyTrackingValue;
 
