@@ -272,18 +272,18 @@ const operations: Operations = {
 
       var object = context[0];
 
-      let argTrackingInfo = fnArgs;
       if (fn === Function.prototype.call) {
-        argTrackingInfo = fnArgs.slice(1);
+        fnArgs = fnArgs.slice(1);
       } else if (fn === Function.prototype.apply) {
         const argArray = fnArgValues[1];
         if (!argArray.length) {
           // hmm can this even happen in a program that's not already broken?
-          argTrackingInfo = null;
+          console.log("can this even happen?");
+          fnArgs = null;
         } else {
-          argTrackingInfo = [];
+          fnArgs = [];
           for (let i = 0; i < argArray.length; i++) {
-            argTrackingInfo.push(
+            fnArgs.push(
               makeFunctionArgument([
                 argArray[i],
                 ctx.getObjectPropertyTrackingValue(argArray, i)
@@ -292,6 +292,7 @@ const operations: Operations = {
           }
         }
       }
+      let argTrackingInfo = fnArgs;
 
       ctx.argTrackingInfo = argTrackingInfo;
 
@@ -485,6 +486,16 @@ const operations: Operations = {
             result: ret,
             loc: ctx.loc
           });
+        } else if (fn === ctx.nativeFunctions.ArrayPrototypePush) {
+          const arrayLengthBeforePush = object.length - fnArgs.length;
+          fnArgs.forEach((arg, i) => {
+            ctx.trackObjectPropertyAssignment(
+              object,
+              arrayLengthBeforePush + i,
+              arg
+            );
+          });
+          retT = fnArgs[fnArgs.length - 1];
         } else {
           if (
             ctx.lastOperationType === "returnStatement" &&

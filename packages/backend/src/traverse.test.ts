@@ -270,3 +270,27 @@ it("Can traverse arguments fn.apply(this, arguments)", async () => {
   const tLastStep = t[t.length - 1];
   expect(tLastStep.operationLog.operation).toBe("stringLiteral");
 });
+
+describe("Arrays", () => {
+  it("Can traverse values in array literals", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var arr = ["a", "b"]
+      return arr[1]
+    `);
+    expect(normal).toBe("b");
+    var t = await traverse({ operationLog: tracking, charIndex: 0 });
+    const tLastStep = t[t.length - 1];
+    expect(tLastStep.operationLog.operation).toBe("stringLiteral");
+  });
+  it("Can traverse pushed values", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var arr = []
+      arr.push("a", "b")
+      return arr[1]
+    `);
+    expect(normal).toBe("b");
+    var t = await traverse({ operationLog: tracking, charIndex: 0 });
+    const tLastStep = t[t.length - 1];
+    expect(tLastStep.operationLog.operation).toBe("stringLiteral");
+  });
+});
