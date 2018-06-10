@@ -276,12 +276,21 @@ const operations: Operations = {
       if (fn === Function.prototype.call) {
         argTrackingInfo = fnArgs.slice(1);
       } else if (fn === Function.prototype.apply) {
-        argTrackingInfo = fnArgValues[1].map((v, i) => {
-          return makeFunctionArgument([
-            fnArgValues[1][i],
-            ctx.getObjectPropertyTrackingValue(fnArgValues[1], i)
-          ]);
-        });
+        const argArray = fnArgValues[1];
+        if (!argArray.length) {
+          // hmm can this even happen in a program that's not already broken?
+          argTrackingInfo = null;
+        } else {
+          argTrackingInfo = [];
+          for (let i = 0; i < argArray.length; i++) {
+            argTrackingInfo.push(
+              makeFunctionArgument([
+                argArray[i],
+                ctx.getObjectPropertyTrackingValue(argArray, i)
+              ])
+            );
+          }
+        }
       }
 
       ctx.argTrackingInfo = argTrackingInfo;
@@ -914,10 +923,18 @@ const operations: Operations = {
 
       path.node.ignore = true;
 
+      let node = path.node;
+      if (node.name === "arguments") {
+        node = ignoredCallExpression("addTrackingToArgumentsObject", [
+          node,
+          ignoredIdentifier("__allFnArgTrackingValues")
+        ]);
+      }
+
       return this.createNode!(
         {
           value: ignoredArrayExpression([
-            path.node,
+            node,
             trackingIdentifierIfExists(path.node.name)
           ])
         },

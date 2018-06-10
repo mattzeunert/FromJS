@@ -127,7 +127,20 @@ declare var __FUNCTION_NAMES__,
       console.log("no arg tracking info...");
       return null;
     }
+    if (index === undefined) {
+      return argTrackingInfo;
+    }
     return argTrackingInfo[index];
+  };
+
+  global["addTrackingToArgumentsObject"] = function(
+    argumentsObject,
+    allFnArgTrackingValues
+  ) {
+    allFnArgTrackingValues.forEach((trackingValue, i) => {
+      trackObjectPropertyAssignment(argumentsObject, i, trackingValue);
+    });
+    return argumentsObject;
   };
 
   global.getTrackingAndNormalValue = function(value) {

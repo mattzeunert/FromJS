@@ -95,6 +95,16 @@ function plugin(babel) {
       d.ignore = true;
       path.node.body.body.unshift(d);
     });
+
+    var d = t.variableDeclaration("var", [
+      // keep whole list in case the function uses `arguments` object
+      t.variableDeclarator(
+        ignoredIdentifier("__allFnArgTrackingValues"),
+        ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [])
+      )
+    ]);
+    d.ignore = true;
+    path.node.body.body.unshift(d);
   }
 
   const visitors = {

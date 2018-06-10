@@ -254,3 +254,19 @@ describe("String.prototype.trim", () => {
     expect(tLastStep.charIndex).toBe(2);
   });
 });
+
+it("Can traverse arguments fn.apply(this, arguments)", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    function f1() {
+      return f2.apply(this, arguments)
+    }
+    function f2(a) {
+      return a + a
+    }
+    return f1("a")
+  `);
+  expect(normal).toBe("aa");
+  var t = await traverse({ operationLog: tracking, charIndex: 0 });
+  const tLastStep = t[t.length - 1];
+  expect(tLastStep.operationLog.operation).toBe("stringLiteral");
+});
