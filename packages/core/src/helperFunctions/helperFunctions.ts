@@ -2,6 +2,7 @@ import OperationLog from "./OperationLog";
 import getElementOperationLogMapping from "./getHtmlNodeOperationLogMapping";
 import getHtmlNodeOperationLogMapping from "./getHtmlNodeOperationLogMapping";
 import initDomInspectionUI from "./initDomInspectionUI";
+import KnownValues from "./KnownValues";
 
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
@@ -27,14 +28,7 @@ declare var __FUNCTION_NAMES__,
 
   global.getElementOperationLogMapping = getElementOperationLogMapping;
 
-  const nativeFunctions = {
-    stringPrototypeSlice: String.prototype.slice,
-    stringPrototypeReplace: String.prototype.replace,
-    stringPrototypeTrim: String.prototype.trim,
-    ArrayPrototypePush: Array.prototype.push,
-    ArrayPrototypeJoin: Array.prototype.join,
-    jsonParse: JSON.parse
-  };
+  let knownValues = new KnownValues();
 
   function postToBE(endpoint, data) {
     return fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
@@ -88,7 +82,7 @@ declare var __FUNCTION_NAMES__,
     // args.stackFrames = args.stackFrames.filter(
     //   line => line !== "Error" && !line.includes("/helperFns.js")
     // );
-    args.nativeFunctions = nativeFunctions;
+    args.knownValues = knownValues;
     var log = new OperationLog(args);
     storeLog(log);
 
@@ -324,7 +318,7 @@ declare var __FUNCTION_NAMES__,
         getObjectPropertyTrackingValue: getObjectPropertyValueTrackingValue,
         trackObjectPropertyAssignment,
         createOperationLog,
-        nativeFunctions,
+        knownValues,
         global,
         loc,
         registerEvalScript(evalScript) {

@@ -38,11 +38,20 @@ export async function traverse(
       }
     }
 
-    if (nextStep && nextStep.operationLog) {
+    const hasEmptyStepResult =
+      nextStep &&
+      nextStep.operationLog &&
+      nextStep.operationLog.result.str === "";
+    if (nextStep && nextStep.operationLog && !hasEmptyStepResult) {
       traverse(nextStep, steps, server).then(() => {
         resolve(steps);
       });
     } else {
+      if (hasEmptyStepResult) {
+        console.log(
+          "hmm need to look into this... still traversing but step result is empty"
+        );
+      }
       resolve(steps);
     }
   });

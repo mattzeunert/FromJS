@@ -326,7 +326,7 @@ const operations: Operations = {
           loc: ctx.loc
         });
       } else if (
-        fn === ctx.nativeFunctions.stringPrototypeReplace &&
+        fn === ctx.knownValues.getValue("String.prototype.replace") &&
         ["string", "number"].includes(typeof fnArgValues[1])
       ) {
         function countGroupsInRegExp(re) {
@@ -335,10 +335,9 @@ const operations: Operations = {
         }
 
         let index = 0;
-        ret = ctx.nativeFunctions.stringPrototypeReplace.call(
-          object,
-          fnArgValues[0],
-          function() {
+        ret = ctx.knownValues
+          .getValue("String.prototype.replace")
+          .call(object, fnArgValues[0], function() {
             var argumentsArray = Array.prototype.slice.apply(arguments, []);
             var match = argumentsArray[0];
             var submatches = argumentsArray.slice(1, argumentsArray.length - 2);
@@ -406,11 +405,10 @@ const operations: Operations = {
 
             index++;
             return replacement;
-          }
-        );
+          });
         retT = null;
-      } else if (fn === ctx.nativeFunctions.jsonParse) {
-        const parsed = ctx.nativeFunctions.jsonParse.call(JSON, fnArgValues[0]);
+      } else if (fn === ctx.knownValues.getValue("JSON.parse")) {
+        const parsed = fn.call(JSON, fnArgValues[0]);
 
         function traverseObject(obj, fn, keyPath: any[] = []) {
           Object.entries(obj).forEach(([key, value]) => {
@@ -440,7 +438,7 @@ const operations: Operations = {
 
         ret = parsed;
       } else {
-        if (fn === ctx.nativeFunctions.stringPrototypeReplace) {
+        if (fn === ctx.knownValues.getValue("String.prototype.replace")) {
           console.log("unhandled string replace call");
         }
         const fnIsEval = fn === eval;
@@ -463,7 +461,7 @@ const operations: Operations = {
           ctx.registerEvalScript(ret.evalScript);
           ret = ret.returnValue;
           retT = ctx.lastOpTrackingResultWithoutResetting;
-        } else if (fn === ctx.nativeFunctions.ArrayPrototypePush) {
+        } else if (fn === ctx.knownValues.getValue("Array.prototype.push")) {
           const arrayLengthBeforePush = object.length - fnArgs.length;
           fnArgs.forEach((arg, i) => {
             ctx.trackObjectPropertyAssignment(
@@ -480,7 +478,7 @@ const operations: Operations = {
             );
           });
           retT = fnArgs[fnArgs.length - 1];
-        } else if (fn === ctx.nativeFunctions.ArrayPrototypeJoin) {
+        } else if (fn === ctx.knownValues.getValue("Array.prototype.join")) {
           object.forEach((item, i) => {
             let arrayValueTrackingValue = ctx.getObjectPropertyTrackingValue(
               object,

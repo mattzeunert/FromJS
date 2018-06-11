@@ -1,3 +1,5 @@
+import KnownValues from "./KnownValues";
+
 // todo: would be better if the server provided this value
 const getOperationIndex = (function() {
   var operationIndexBase = Math.round(Math.random() * 1000 * 1000 * 1000);
@@ -22,37 +24,11 @@ function eachArgument(args, arrayArguments, fn) {
   });
 }
 
-function serializeValue(value, nativeFunctions): SerializedValue {
+function serializeValue(value, knownValues: KnownValues): SerializedValue {
   // todo: consider accessing properties that are getters could have negative impact...
-  var global = Function("return this")();
-  var knownValue: null | string = null;
-  if (value === nativeFunctions.stringPrototypeSlice) {
-    knownValue = "String.prototype.slice";
-  }
-  if (value === nativeFunctions.stringPrototypeReplace) {
-    knownValue = "String.prototype.replace";
-  }
-  if (value === nativeFunctions.stringPrototypeTrim) {
-    knownValue = "String.prototype.trim";
-  }
-  if (value === nativeFunctions.ArrayPrototypePush) {
-    knownValue = "Array.prototype.push";
-  }
-  if (value === nativeFunctions.ArrayPrototypeJoin) {
-    knownValue = "Array.prototype.join";
-  }
-  if (value === undefined) {
-    knownValue = "undefined";
-  }
-  if (value === null) {
-    knownValue = "null";
-  }
-  if (global["localStorage"] && value === global["localStorage"]) {
-    knownValue = "localStorage";
-  }
-  if (global["localStorage"] && value === global["localStorage"].getItem) {
-    knownValue = "localStorage.getItem";
-  }
+
+  var knownValue: null | string = knownValues.getName(value);
+
   var length;
 
   if (
@@ -138,7 +114,7 @@ export default class OperationLog {
     extraArgs,
     stackFrames,
     loc,
-    nativeFunctions,
+    knownValues,
     runtimeArgs
   }) {
     var arrayArguments: any[] = [];
@@ -153,7 +129,7 @@ export default class OperationLog {
     this.stackFrames = stackFrames;
 
     this.operation = operation;
-    this.result = serializeValue(result, nativeFunctions);
+    this.result = serializeValue(result, knownValues);
     if (operation === "objectExpression" && args.properties) {
       // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
       args.properties = args.properties.map(prop => {

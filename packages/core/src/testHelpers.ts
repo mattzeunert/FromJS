@@ -20,6 +20,7 @@ export function instrumentAndRun(code) {
       const __storeLog = server.storeLog.bind(server);
 
       var result: InstrumentAndRunResult = eval(code);
+      delete global["__didInitializeDataFlowTracking"];
       result.code = code.split("* HELPER_FUNCTIONS_END */")[1]; // only the interesting code
 
       if (result.tracking) {
