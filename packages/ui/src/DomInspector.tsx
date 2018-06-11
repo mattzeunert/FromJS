@@ -17,19 +17,16 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
     }
     return (
       <div>
-        inspect dom
-        <TextEl
-          highlightedCharacterIndex={this.props.domToInspect.charIndex}
-          onCharacterClick={charIndex => {
-            selectInspectedDomCharIndex(charIndex);
-          }}
-          text={this.props.domToInspect.outerHTML}
-        />
-        {/* <pre>
-          {JSON.stringify(this.state.domInfo, null, 4)}
-          {this.state.domInfo.outerHTML}
-          <button onClick={() => this.inspect(5)}>inspect char 5</button>
-        </pre> */}
+        <div className="title">Inspect DOM HTML</div>
+        <div style={{ border: "1px solid #ddd", marginBottom: 10 }}>
+          <TextEl
+            highlightedCharacterIndex={this.props.domToInspect.charIndex}
+            onCharacterClick={charIndex => {
+              selectInspectedDomCharIndex(charIndex);
+            }}
+            text={this.props.domToInspect.outerHTML}
+          />
+        </div>
       </div>
     );
   }

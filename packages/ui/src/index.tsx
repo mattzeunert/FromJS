@@ -29,13 +29,13 @@ window["showSteps"] = function(logId, charIndex) {
 let App = () => {
   return (
     <div>
+      <DomInspector />
+      <TraversalSteps />
       <button
         onClick={() => appState.set("debugMode", !appState.get("debugMode"))}
       >
         Debug
       </button>
-      <DomInspector />
-      <TraversalSteps />
     </div>
   );
 };

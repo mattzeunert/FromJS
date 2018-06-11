@@ -86,35 +86,40 @@ let TraversalStep = class TraversalStep extends React.Component<
     // const afterChar = prepareText(str.slice(charIndex + 1));
 
     let operationTypeDetail = null;
-    if (operationLog.operation === "identifier" && stackFrame && code) {
-      if (!operationLog.loc) {
-        console.log(
-          "operation doesn't have loc might need to add in visitor",
-          operationLog
-        );
-      } else {
-        operationTypeDetail = code.slice(
-          operationLog.loc.start.column,
-          operationLog.loc.end.column
-        );
-      }
-    } else if (operationLog.operation === "callExpression") {
-      const knownValue = operationLog.args.function.result.knownValue;
-      if (knownValue) {
-        operationTypeDetail = knownValue;
-      }
-    } else if (operationLog.operation === "memberExpression") {
-      const knownValue = operationLog.args.object.result.knownValue;
-      if (knownValue) {
-        operationTypeDetail = knownValue + "[...]";
-      }
+    try {
+      if (operationLog.operation === "identifier" && stackFrame && code) {
+        if (!operationLog.loc) {
+          console.log(
+            "operation doesn't have loc might need to add in visitor",
+            operationLog
+          );
+        } else {
+          operationTypeDetail = code.slice(
+            operationLog.loc.start.column,
+            operationLog.loc.end.column
+          );
+        }
+      } else if (operationLog.operation === "callExpression") {
+        const knownValue = operationLog.args.function.result.knownValue;
+        if (knownValue) {
+          operationTypeDetail = knownValue;
+        }
+      } else if (operationLog.operation === "memberExpression") {
+        const knownValue = operationLog.args.object.result.knownValue;
+        if (knownValue) {
+          operationTypeDetail = knownValue + "[...]";
+        }
 
-      const knownTypes = operationLog.args.object.result.knownTypes || [];
-      if (knownTypes.includes("HTMLInputElement")) {
-        operationTypeDetail =
-          "HTMLInputElement." + operationLog.args.propName.result.primitive;
+        const knownTypes = operationLog.args.object.result.knownTypes || [];
+        if (knownTypes.includes("HTMLInputElement")) {
+          operationTypeDetail =
+            "HTMLInputElement." + operationLog.args.propName.result.primitive;
+        }
       }
+    } catch (err) {
+      console.log(err);
     }
+
     if (operationTypeDetail) {
       operationTypeDetail = "(" + operationTypeDetail + ")";
     }

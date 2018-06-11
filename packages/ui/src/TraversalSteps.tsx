@@ -62,24 +62,24 @@ let TraversalSteps = class TraversalSteps extends React.Component<
 
     return (
       <div>
-        <div>Inspected step:</div>
+        <div className="title">Inspected JS string:</div>
         <TraversalStep key={steps[0].operationLog.index} step={steps[0]} />
-        <div>First step where selected character was introduced:</div>
+        <div className="title">Origin of selected character:</div>
         <TraversalStep
           key={steps[steps.length - 1].operationLog.index}
           step={steps[steps.length - 1]}
         />
-        <hr />
+        {/* <hr />
         <hr />
         <div>Relevant code:</div>
         {interestingSteps.map(step => (
           <TraversalStep key={step.operationLog.index} step={step} />
         ))
-        /* .reverse() */
-        }
+        } */}
+        <div style={{ height: 10 }} />
         <hr />
-        <hr />
-        <div>Full data flow:</div>
+        <div style={{ height: 10 }} />
+        <div className="title">Full data flow:</div>
         {stepsToShow.map(step => (
           <TraversalStep key={step.operationLog.index} step={step} />
         ))
