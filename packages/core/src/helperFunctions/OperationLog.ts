@@ -68,6 +68,15 @@ function serializeValue(value, nativeFunctions): SerializedValue {
 
   var type = typeof value;
 
+  var knownTypes = null;
+  if (
+    global["HTMLInputElement"] &&
+    value instanceof global["HTMLInputElement"]
+  ) {
+    knownTypes = [];
+    knownTypes.push("HTMLInputElement");
+  }
+
   var primitive;
   if (["string", "null", "number"].includes(type)) {
     primitive = value;
@@ -96,7 +105,8 @@ function serializeValue(value, nativeFunctions): SerializedValue {
     type,
     str,
     primitive,
-    knownValue
+    knownValue,
+    knownTypes
   };
 }
 
@@ -106,6 +116,7 @@ export interface SerializedValue {
   str: string;
   primitive: number | null | string;
   knownValue: string | null;
+  knownTypes: null | any[];
 }
 
 export default class OperationLog {

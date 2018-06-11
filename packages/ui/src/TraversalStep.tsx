@@ -108,6 +108,12 @@ let TraversalStep = class TraversalStep extends React.Component<
       if (knownValue) {
         operationTypeDetail = knownValue + "[...]";
       }
+
+      const knownTypes = operationLog.args.object.result.knownTypes || [];
+      if (knownTypes.includes("HTMLInputElement")) {
+        operationTypeDetail =
+          "HTMLInputElement." + operationLog.args.propName.result.primitive;
+      }
     }
     if (operationTypeDetail) {
       operationTypeDetail = "(" + operationTypeDetail + ")";
