@@ -175,6 +175,20 @@ describe("Can traverse string replacement calls", () => {
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.charIndex).toBe(2);
   });
+
+  test("Works for $n substitutions", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    var ret = "abbbxy".replace(/(b+)/, "$1<>")
+    return ret
+  `);
+    expect(normal).toBe("abbb<>xy");
+    var t1 = await traverse({
+      operationLog: tracking,
+      charIndex: "abbb<>xy".indexOf("y")
+    });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.charIndex).toBe("abbbxy".indexOf("y"));
+  });
 });
 
 describe("JSON.parse", () => {

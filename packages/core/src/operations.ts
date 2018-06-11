@@ -692,7 +692,7 @@ const operations: Operations = {
                 start,
                 end,
                 replacement,
-                replacement.args.value.result.primitive
+                replacement.result.primitive
               );
               currentIndexInSubjectString = end;
             });
