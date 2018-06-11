@@ -77,17 +77,6 @@ const operations: Operations = {
         object,
         propertyName
       );
-      if (object === ctx.global.localStorage) {
-        trackingValue = ctx.createOperationLog({
-          operation: ctx.operationTypes.localStorageValue,
-          args: {
-            propertyName: args.propName
-          },
-          astArgs: {},
-          result: ret,
-          loc: ctx.loc
-        });
-      }
 
       ctx.extraArgTrackingValues = {
         propertyValue: [ret, trackingValue]
@@ -474,19 +463,6 @@ const operations: Operations = {
           ctx.registerEvalScript(ret.evalScript);
           ret = ret.returnValue;
           retT = ctx.lastOpTrackingResultWithoutResetting;
-        } else if (
-          ctx.global.localStorage &&
-          fn === ctx.global.localStorage.getItem
-        ) {
-          retT = ctx.createOperationLog({
-            operation: ctx.operationTypes.localStorageValue,
-            args: {
-              propertyName: fnArgs[0]
-            },
-            astArgs: {},
-            result: ret,
-            loc: ctx.loc
-          });
         } else if (fn === ctx.nativeFunctions.ArrayPrototypePush) {
           const arrayLengthBeforePush = object.length - fnArgs.length;
           fnArgs.forEach((arg, i) => {

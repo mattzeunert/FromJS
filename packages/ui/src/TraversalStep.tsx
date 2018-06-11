@@ -103,6 +103,11 @@ let TraversalStep = class TraversalStep extends React.Component<
       if (knownValue) {
         operationTypeDetail = knownValue;
       }
+    } else if (operationLog.operation === "memberExpression") {
+      const knownValue = operationLog.args.object.result.knownValue;
+      if (knownValue) {
+        operationTypeDetail = knownValue + "[...]";
+      }
     }
     if (operationTypeDetail) {
       operationTypeDetail = "(" + operationTypeDetail + ")";

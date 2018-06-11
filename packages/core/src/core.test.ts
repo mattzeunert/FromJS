@@ -654,17 +654,15 @@ describe("localStorage", () => {
         return localStorage.prop
       `);
     expect(normal).toBe("hi");
-    expect(tracking.extraArgs.propertyValue.operation).toBe(
-      OperationTypes.localStorageValue
-    );
+    expect(tracking.args.object.result.knownValue).toBe("localStorage");
   });
   it("Tracks a localStorage value accessed using localStorage.getItem('prop')", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         return localStorage.getItem("prop")
       `);
     expect(normal).toBe("hi");
-    expect(tracking.extraArgs.returnValue.operation).toBe(
-      OperationTypes.localStorageValue
+    expect(tracking.args.function.result.knownValue).toBe(
+      "localStorage.getItem"
     );
   });
 });

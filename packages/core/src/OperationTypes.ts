@@ -14,7 +14,6 @@ export const conditionalExpression = "conditionalExpression";
 export const stringReplacement = "stringReplacement";
 // Why is localStorageValue a type rather than just looking at the callExpression/memberExpression?
 // Because we need to an operation type for the return value!
-export const localStorageValue = "localStorageValue";
 export const jsonParseResult = "jsonParseResult";
 export const newExpressionResult = "newExpressionResult";
 export const defaultArrayJoinSeparator = "defaultArrayJoinSeparator";

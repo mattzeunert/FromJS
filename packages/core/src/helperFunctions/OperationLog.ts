@@ -24,6 +24,7 @@ function eachArgument(args, arrayArguments, fn) {
 
 function serializeValue(value, nativeFunctions): SerializedValue {
   // todo: consider accessing properties that are getters could have negative impact...
+  var global = Function("return this")();
   var knownValue: null | string = null;
   if (value === nativeFunctions.stringPrototypeSlice) {
     knownValue = "String.prototype.slice";
@@ -45,6 +46,12 @@ function serializeValue(value, nativeFunctions): SerializedValue {
   }
   if (value === null) {
     knownValue = "null";
+  }
+  if (global["localStorage"] && value === global["localStorage"]) {
+    knownValue = "localStorage";
+  }
+  if (global["localStorage"] && value === global["localStorage"].getItem) {
+    knownValue = "localStorage.getItem";
   }
   var length;
 

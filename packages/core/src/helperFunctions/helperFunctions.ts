@@ -317,6 +317,7 @@ declare var __FUNCTION_NAMES__,
 
     var extraTrackingValues = {};
     var ret;
+    var runtimeArgs;
     if (operationsExec[opName]) {
       const ctx = {
         operationTypes,
@@ -341,6 +342,9 @@ declare var __FUNCTION_NAMES__,
         },
         get lastReturnStatementResult() {
           return lastReturnStatementResult;
+        },
+        set runtimeArgs(value) {
+          runtimeArgs = value;
         },
         set lastMemberExpressionResult([normal, tracking]) {
           lastMemberExpressionObjectValue = normal;
