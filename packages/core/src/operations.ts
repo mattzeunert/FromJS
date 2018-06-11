@@ -1530,7 +1530,11 @@ const operations: Operations = {
                         // support tables yet (turn <table> into <table><tbody>),
                         // but once that is supported this might just fix itself
                         console.warn("No offsets for attribute mapping");
-                        for (var i = 0; i < textAfterAssignment.length; i++) {
+                        for (
+                          let ii = 0;
+                          ii < textAfterAssignment.length;
+                          ii++
+                        ) {
                           offsetAtCharIndex.push(-extraCharsAddedHere);
                         }
                       } else {
