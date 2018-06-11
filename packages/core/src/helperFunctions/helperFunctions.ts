@@ -139,6 +139,10 @@ declare var __FUNCTION_NAMES__,
     argumentsObject,
     allFnArgTrackingValues
   ) {
+    if (!allFnArgTrackingValues) {
+      console.log("no tracking values for arguments object");
+      return argumentsObject;
+    }
     allFnArgTrackingValues.forEach((trackingValue, i) => {
       trackObjectPropertyAssignment(
         argumentsObject,
