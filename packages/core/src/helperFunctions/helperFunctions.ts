@@ -217,7 +217,8 @@ declare var __FUNCTION_NAMES__,
       name: propertyNameTrackingValue
     };
   }
-  function getObjectPropertyTrackingValue(obj, propName) {
+
+  function getObjectPropertyTrackingValues(obj, propName) {
     var objectPropertyTrackingInfo = objTrackingMap.get(obj);
     if (!objectPropertyTrackingInfo) {
       return null;
@@ -226,9 +227,27 @@ declare var __FUNCTION_NAMES__,
     if (!trackingValues) {
       return null;
     }
+    return trackingValues;
+  }
+
+  function getObjectPropertyValueTrackingValue(obj, propName) {
+    const trackingValues = getObjectPropertyTrackingValues(obj, propName);
+    if (trackingValues === null) {
+      return null;
+    }
     return trackingValues.value;
   }
-  window["getObjectPropertyTrackingValue"] = getObjectPropertyTrackingValue;
+  window[
+    "getObjectPropertyTrackingValue"
+  ] = getObjectPropertyValueTrackingValue;
+
+  window["getObjectPropertyNameTrackingValue"] = function(obj, propName) {
+    const trackingValues = getObjectPropertyTrackingValues(obj, propName);
+    if (trackingValues === null) {
+      return null;
+    }
+    return trackingValues.name;
+  };
 
   var lastMemberExpressionObjectValue = null;
   var lastMemberExpressionObjectTrackingValue = null;
@@ -297,7 +316,7 @@ declare var __FUNCTION_NAMES__,
     if (operationsExec[opName]) {
       const ctx = {
         operationTypes,
-        getObjectPropertyTrackingValue,
+        getObjectPropertyTrackingValue: getObjectPropertyValueTrackingValue,
         trackObjectPropertyAssignment,
         createOperationLog,
         nativeFunctions,

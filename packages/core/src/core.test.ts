@@ -1,6 +1,7 @@
 import * as OperationTypes from "./OperationTypes";
 import { instrumentAndRun } from "./testHelpers";
 import { compileSync } from "./compile";
+import { assignmentExpression } from "@babel/types";
 
 test("adds 1 + 2 to equal 3", done => {
   instrumentAndRun("return 1 + 2").then(({ normal, tracking }) => {
@@ -714,5 +715,49 @@ describe("call/apply/bind", () => {
   `);
 
     expect(normal).toBe("ab");
+  });
+});
+
+describe("for ... in", () => {
+  it("Tracks for in key variables", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    const obj = {a: "b"}
+    let ret
+    for (var name in obj) {
+      ret = name
+    }
+    return ret
+  `);
+
+    expect(normal).toBe("a");
+    const assignedValue = tracking.args.value.args.argument;
+    expect(assignedValue.args.value.operation).toBe("stringLiteral");
+  });
+
+  it("Doesn't break if the body doesn't have a block statement, i.e. {}", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    const obj = {a: "b"}
+    let ret
+    for (var name in obj) ret = name
+    return ret
+  `);
+
+    expect(normal).toBe("a");
+    const assignedValue = tracking.args.value.args.argument;
+    expect(assignedValue.args.value.operation).toBe("stringLiteral");
+  });
+
+  it("Supports the variable being declared outside the for in loop", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    const obj = {a: "b"}
+    let ret
+    let name
+    for (name in obj) ret = name
+    return ret
+  `);
+
+    expect(normal).toBe("a");
+    const assignedValue = tracking.args.value.args.argument;
+    expect(assignedValue.args.value.operation).toBe("stringLiteral");
   });
 });

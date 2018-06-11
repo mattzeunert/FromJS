@@ -208,6 +208,74 @@ function plugin(babel) {
           );
         }
       });
+    },
+
+    ForInStatement(path) {
+      if (path.node.ignore) return;
+
+      let varName;
+      let isNewVariable;
+      if (path.node.left.type === "VariableDeclaration") {
+        varName = path.node.left.declarations[0].id.name;
+        isNewVariable = true;
+      } else if (path.node.left.type === "Identifier") {
+        varName = path.node.left.name;
+        isNewVariable = false;
+      } else {
+        throw Error("not sure what this is");
+      }
+
+      path.traverse({
+        ExpressionStatement(path) {
+          // replace `for (i in k) sth` with `for (i in k) {sth}`
+          if (path.parent.type !== "ForInStatement") {
+            return;
+          }
+          path.replaceWith(babel.types.blockStatement([path.node]));
+        },
+        IfStatement(path) {
+          // replace `for (i in k) if () sth` with `for (i in k) {if () sth}`
+          if (path.parent.type !== "ForInStatement") {
+            return;
+          }
+          path.replaceWith(babel.types.blockStatement([path.node]));
+        },
+        ReturnStatement(path) {
+          if (path.parent.type !== "ForInStatement") {
+            return;
+          }
+          path.replaceWith(babel.types.blockStatement([path.node]));
+        },
+        ForStatement(path) {
+          // replace `for (i in k) for () abc` with `for (i in k) {for () abc}`
+          if (path.parent.type !== "ForInStatement") {
+            return;
+          }
+          path.replaceWith(babel.types.blockStatement([path.node]));
+        }
+        // TODO: are there other statement types I need to handle???
+      });
+
+      if (isNewVariable) {
+        var declaration = ignoreNode(
+          t.variableDeclaration("var", [
+            t.variableDeclarator(ignoredIdentifier(getTrackingVarName(varName)))
+          ])
+        );
+        path.node.body.body.unshift(declaration);
+      }
+
+      var assignment = ignoreNode(
+        t.assignmentExpression(
+          "=",
+          ignoredIdentifier(getTrackingVarName(varName)),
+          ignoredCallExpression("getObjectPropertyNameTrackingValue", [
+            path.node.right,
+            ignoredIdentifier(varName)
+          ])
+        )
+      );
+      path.node.body.body.unshift(assignment);
     }
   };
 
