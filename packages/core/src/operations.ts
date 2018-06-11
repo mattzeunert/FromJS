@@ -24,6 +24,7 @@ import {
 import OperationLog from "./helperFunctions/OperationLog";
 import { getLastOperationValueResult } from "./FunctionNames";
 import HtmlToOperationLogMapping from "./helperFunctions/HtmlToOperationLogMapping";
+import { ExecContext } from "./helperFunctions/ExecContext";
 
 interface TraversalStep {
   charIndex: number;
@@ -66,7 +67,7 @@ interface Operations {
 
 const operations: Operations = {
   memberExpression: {
-    exec: (args, astArgs, ctx) => {
+    exec: (args, astArgs, ctx: ExecContext) => {
       var ret;
       var object = args.object[0];
       var objectT = args.object[1];
@@ -155,7 +156,7 @@ const operations: Operations = {
       }
       throw "aaa";
     },
-    exec: (args, astArgs, ctx) => {
+    exec: (args, astArgs, ctx: ExecContext) => {
       var { left, right } = args;
       var ret;
       left = left[0];
@@ -179,7 +180,7 @@ const operations: Operations = {
   },
   localStorageValue: {},
   conditionalExpression: {
-    exec: (args, astArgs, ctx) => {
+    exec: (args, astArgs, ctx: ExecContext) => {
       return args.result[0];
     },
     traverse(operationLog, charIndex) {
@@ -229,7 +230,7 @@ const operations: Operations = {
   },
   stringReplacement: {},
   callExpression: {
-    exec: (args, astArgs, ctx) => {
+    exec: (args, astArgs, ctx: ExecContext) => {
       function makeFunctionArgument([value, trackingValue]) {
         return ctx.createOperationLog({
           operation: ctx.operationTypes.functionArgument,
@@ -792,7 +793,7 @@ const operations: Operations = {
     }
   },
   objectExpression: {
-    exec: (args, astArgs, ctx) => {
+    exec: (args, astArgs, ctx: ExecContext) => {
       var obj = {};
       var methodProperties = {};
 
@@ -903,7 +904,7 @@ const operations: Operations = {
         path.node.loc
       );
     },
-    exec: (args, astArgs, ctx) => {
+    exec: (args, astArgs, ctx: ExecContext) => {
       return args.value[0];
     }
   },
@@ -920,13 +921,13 @@ const operations: Operations = {
         path.node.loc
       );
     },
-    exec: (args, astArgs, ctx) => {
+    exec: (args, astArgs, ctx: ExecContext) => {
       return args.value[0];
     }
   },
   arrayExpression: {
     arrayArguments: ["elements"],
-    exec: (args, astArgs, ctx) => {
+    exec: (args, astArgs, ctx: ExecContext) => {
       let arr = [];
       args.elements.forEach((el, i) => {
         const [value, trackingValue] = el;
@@ -960,7 +961,7 @@ const operations: Operations = {
     }
   },
   returnStatement: {
-    exec: (args, astArgs, ctx) => {
+    exec: (args, astArgs, ctx: ExecContext) => {
       return args.returnValue[0];
     },
     traverse(operationLog, charIndex) {
@@ -983,7 +984,7 @@ const operations: Operations = {
     }
   },
   identifier: {
-    exec: (args, astArgs, ctx) => {
+    exec: (args, astArgs, ctx: ExecContext) => {
       return args.value[0];
     },
     traverse(operationLog, charIndex) {
@@ -1033,7 +1034,7 @@ const operations: Operations = {
     }
   },
   assignmentExpression: {
-    exec: (args, astArgs, ctx) => {
+    exec: (args, astArgs, ctx: ExecContext) => {
       var ret;
       const assignmentType = args.type[0];
       const operator = astArgs.operator;

@@ -3,6 +3,7 @@ import getElementOperationLogMapping from "./getHtmlNodeOperationLogMapping";
 import getHtmlNodeOperationLogMapping from "./getHtmlNodeOperationLogMapping";
 import initDomInspectionUI from "./initDomInspectionUI";
 import KnownValues from "./KnownValues";
+import { ExecContext } from "./ExecContext";
 
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
@@ -313,7 +314,7 @@ declare var __FUNCTION_NAMES__,
     var ret;
     var runtimeArgs;
     if (operationsExec[opName]) {
-      const ctx = {
+      const ctx: ExecContext = {
         operationTypes,
         getObjectPropertyTrackingValue: getObjectPropertyValueTrackingValue,
         trackObjectPropertyAssignment,
