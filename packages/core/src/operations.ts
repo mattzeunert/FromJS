@@ -88,6 +88,13 @@ const operations: Operations = {
       return ret;
     },
     traverse(operationLog, charIndex) {
+      const propNameAsNumber = parseFloat(operationLog.args.propName.result.primitive)
+      if (operationLog.args.object.result.type === "string" && !isNaN(propNameAsNumber)) {
+        return {
+          operationLog: operationLog.args.object,
+          charIndex: charIndex + propNameAsNumber
+        }
+      }
       return {
         operationLog: operationLog.extraArgs.propertyValue,
         charIndex: charIndex

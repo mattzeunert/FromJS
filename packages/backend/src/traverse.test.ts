@@ -102,6 +102,20 @@ test("Can traverse String.prototype.slice", async () => {
   ]);
 });
 
+test("Traverse str[n] character access", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+  var str = "abcde"
+  return str[2]
+`);
+
+  expect(normal).toBe("c");
+  var t = await traverse({ operationLog: tracking, charIndex: 0 });
+  var lastStep = t[t.length - 1];
+
+  expect(lastStep.charIndex).toBe(2);
+  expect(lastStep.operationLog.operation).toBe("stringLiteral");
+});
+
 test("Traversing += assignment expressions", async () => {
   const { normal, tracking, code } = await instrumentAndRun(`
     var a = "a"

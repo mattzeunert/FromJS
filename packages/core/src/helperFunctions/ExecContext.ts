@@ -1,4 +1,3 @@
-import { read } from "fs";
 import OperationLog from "./OperationLog";
 import KnownValues from "./KnownValues";
 
