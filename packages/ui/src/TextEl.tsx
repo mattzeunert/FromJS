@@ -148,6 +148,10 @@ export class TextEl extends React.Component<any, any> {
     }
 
     var val = this.props.text;
+    if (!val) {
+      console.log("NO TEXTEL VAL");
+      val = "";
+    }
 
     var self = this;
     var highlightedCharIndex = this.props.highlightedCharacterIndex;
