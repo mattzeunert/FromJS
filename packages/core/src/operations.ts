@@ -624,8 +624,8 @@ const operations: Operations = {
                   (part.isPartOfSubject ? part.fromIndexInOriginal : 0) +
                   (indexInResult - resultIndexBeforePart);
 
-                if (charIndex > part.operationLog.result.str.length) {
-                  charIndex = part.operationLog.result.str.length - 1;
+                if (charIndex > part.operationLog.result.primitive.length) {
+                  charIndex = part.operationLog.result.primitive.length - 1;
                 }
 
                 let operationLog = part.operationLog;
@@ -671,7 +671,9 @@ const operations: Operations = {
               };
             }
 
-            const valueMap = new ValueMapV2(subjectOperationLog.result.str);
+            const valueMap = new ValueMapV2(
+              subjectOperationLog.result.primitive
+            );
 
             let currentIndexInSubjectString = 0;
             replacements.forEach(replacement => {
@@ -682,7 +684,7 @@ const operations: Operations = {
                 from,
                 to,
                 subjectOperationLog,
-                subjectOperationLog.result.str.slice(from, to),
+                subjectOperationLog.result.primitive.slice(from, to),
                 true
               );
 
@@ -690,15 +692,17 @@ const operations: Operations = {
                 start,
                 end,
                 replacement,
-                replacement.args.value.result.str
+                replacement.args.value.result.primitive
               );
               currentIndexInSubjectString = end;
             });
             valueMap.push(
               currentIndexInSubjectString,
-              subjectOperationLog.result.str.length,
+              subjectOperationLog.result.primitive.length,
               subjectOperationLog,
-              subjectOperationLog.result.str.slice(currentIndexInSubjectString),
+              subjectOperationLog.result.primitive.slice(
+                currentIndexInSubjectString
+              ),
               true
             );
 

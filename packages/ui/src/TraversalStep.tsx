@@ -146,7 +146,10 @@ let TraversalStep = class TraversalStep extends React.Component<
           {debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
           {debugMode && (
             <button
-              onClick={() => this.setState({ showLogJson: !showLogJson })}
+              onClick={() => {
+                window["logJson"] = operationLog;
+                this.setState({ showLogJson: !showLogJson });
+              }}
             >
               toggle show log json
             </button>
