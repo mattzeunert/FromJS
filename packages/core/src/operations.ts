@@ -473,7 +473,9 @@ const operations: Operations = {
           if (hasInstrumentationFunction) {
             fn = ctx.global["__fromJSEval"];
           } else {
-            console.log("Calling eval but can't instrument code");
+            if (!ctx.global.__forTestsDontShowCantEvalLog) {
+              console.log("Calling eval but can't instrument code");
+            }
           }
         }
         const lastReturnStatementResultBeforeCall =

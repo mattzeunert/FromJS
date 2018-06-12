@@ -582,15 +582,17 @@ describe("eval/new Function", () => {
       evalScript: []
     };
   }
-  afterEach(() => delete global.__fromJSEval);
+  afterEach(() => delete global["__fromJSEval"]);
   it("Doesn't break when no compilation function __fromJSEval is available", async () => {
+    global["__forTestsDontShowCantEvalLog"] = true;
     const { normal, tracking, code } = await instrumentAndRun(`
       return eval("5")
     `);
+    delete global["__forTestsDontShowCantEvalLog"];
     expect(normal).toBe(5);
   });
   it("Compiles eval'd code if __fromJSEval is available", async () => {
-    global.__fromJSEval = __fromJSEval;
+    global["__fromJSEval"] = __fromJSEval;
     const { normal, tracking, code } = await instrumentAndRun(`
       return eval("5")
     `);
@@ -601,7 +603,7 @@ describe("eval/new Function", () => {
     );
   });
   it("Compiles new Function() code if __fromJSEval is available", async () => {
-    global.__fromJSEval = __fromJSEval;
+    global["__fromJSEval"] = __fromJSEval;
     const { normal, tracking, code } = await instrumentAndRun(`
       const sum = new Function("a", "b", "return a + b");
       return sum(1,2)
