@@ -6,6 +6,10 @@ export interface ExecContext {
     object: any,
     propertyName: string | number
   ) => number;
+  getObjectPropertyNameTrackingValue: (
+    object: any,
+    propertyName: string | number
+  ) => number;
   extraArgTrackingValues: any;
   lastMemberExpressionResult: [any, any];
   createOperationLog(any): number;

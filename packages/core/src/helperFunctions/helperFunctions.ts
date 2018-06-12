@@ -226,13 +226,17 @@ declare var __FUNCTION_NAMES__,
     "getObjectPropertyTrackingValue"
   ] = getObjectPropertyValueTrackingValue;
 
-  window["getObjectPropertyNameTrackingValue"] = function(obj, propName) {
+  function getObjectPropertyNameTrackingValue(obj, propName) {
     const trackingValues = getObjectPropertyTrackingValues(obj, propName);
     if (trackingValues === null) {
       return null;
     }
     return trackingValues.name;
-  };
+  }
+
+  window[
+    "getObjectPropertyNameTrackingValue"
+  ] = getObjectPropertyNameTrackingValue;
 
   var lastMemberExpressionObjectValue = null;
   var lastMemberExpressionObjectTrackingValue = null;
@@ -303,6 +307,7 @@ declare var __FUNCTION_NAMES__,
       const ctx: ExecContext = {
         operationTypes,
         getObjectPropertyTrackingValue: getObjectPropertyValueTrackingValue,
+        getObjectPropertyNameTrackingValue,
         trackObjectPropertyAssignment,
         createOperationLog,
         knownValues,

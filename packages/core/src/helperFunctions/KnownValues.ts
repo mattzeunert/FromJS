@@ -11,6 +11,7 @@ export default class KnownValues {
       "Array.prototype.push": Array.prototype.push,
       "Array.prototype.join": Array.prototype.join,
       "JSON.parse": JSON.parse,
+      "Object.keys": Object.keys,
       undefined: undefined,
       null: null
     });

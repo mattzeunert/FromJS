@@ -507,6 +507,26 @@ const operations: Operations = {
             );
           });
           retT = fnArgs[fnArgs.length - 1];
+        } else if (fn === ctx.knownValues.getValue("Object.keys")) {
+          ret.forEach((key, i) => {
+            const trackingValue = ctx.getObjectPropertyNameTrackingValue(
+              fnArgValues[0],
+              key
+            );
+            const nameTrackingValue = ctx.createOperationLog({
+              operation: ctx.operationTypes.arrayIndex,
+              args: {},
+              result: i,
+              astArgs: {},
+              loc: ctx.loc
+            });
+            ctx.trackObjectPropertyAssignment(
+              ret,
+              i,
+              trackingValue,
+              nameTrackingValue
+            );
+          });
         } else if (fn === ctx.knownValues.getValue("Array.prototype.join")) {
           object.forEach((item, i) => {
             let arrayValueTrackingValue = ctx.getObjectPropertyTrackingValue(
