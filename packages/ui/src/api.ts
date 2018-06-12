@@ -24,8 +24,12 @@ export function resolveStackFrame(operationLog) {
 }
 
 export function inspectDomChar(charIndex) {
+  console.time("inspectDomChar");
   return callApi("inspectDomChar", {
     charIndex
+  }).then(function(re) {
+    console.timeEnd("inspectDomChar");
+    return re;
   });
 }
 

@@ -11,7 +11,6 @@ let TraversalSteps = class TraversalSteps extends React.Component<
   {}
 > {
   render() {
-    console.log(this.props, "ppp");
     if (!this.props.inspectionTarget || !this.props.inspectionTarget.logId) {
       return <div>no inspection target (maybe no data was captured)</div>;
     }

@@ -17,7 +17,9 @@ appState.select("inspectionTarget").on("update", ({ target }) => {
   if (!inspectionTarget || inspectionTarget.logId === null) {
     console.log("no inspection target!!");
   } else {
+    console.time("Load Steps");
     loadSteps(inspectionTarget).then(r => {
+      console.timeEnd("Load Steps");
       var steps = r.steps;
       console.log({ steps });
 
