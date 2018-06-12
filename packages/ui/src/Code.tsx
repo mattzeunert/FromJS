@@ -1,10 +1,9 @@
 import * as React from "react";
 import HorizontalScrollContainer from "./HorizontalScrollContainer";
-import { ResolvedStackFrame } from "@fromjs/backend/dist/src/StackFrameResolver";
 import "./Code.scss";
 
 interface CodeProps {
-  resolvedStackFrame: ResolvedStackFrame;
+  resolvedStackFrame: any;
   traversalStep: any;
 }
 

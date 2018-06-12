@@ -16,6 +16,7 @@ import { createProxy } from "./backend.createProxy";
 import { BackendOptions } from "./BackendOptions";
 import { HtmlToOperationLogMapping } from "@fromjs/core";
 import { template } from "lodash";
+import * as ui from "@fromjs/ui";
 
 export default class Backend {
   constructor(options: BackendOptions) {
@@ -83,7 +84,11 @@ export default class Backend {
 }
 
 function setupUI(options, app, wss, getProxy) {
-  let uiDir = path.resolve(__dirname + "/../node_modules/@fromjs/ui");
+  let uiDir = require
+    .resolve("@fromjs/ui")
+    .split("/")
+    .slice(0, -1)
+    .join("/");
   let startPageDir = path.resolve(__dirname + "/../start-page");
 
   app.get("/", (req, res) => {
