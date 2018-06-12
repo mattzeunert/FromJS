@@ -12,6 +12,12 @@ export default class KnownValues {
       "Array.prototype.join": Array.prototype.join,
       "JSON.parse": JSON.parse,
       "Object.keys": Object.keys,
+      "Number.prototype.toString": Number.prototype.toString,
+      "Boolean.prototype.toString": Boolean.prototype.toString,
+      "Object.prototype.toString": Object.prototype.toString,
+      "String.prototype.toString": String.prototype.toString,
+      "Date.prototype.getMinutes": Date.prototype.getMinutes,
+      "Date.prototype.getHours": Date.prototype.getHours,
       undefined: undefined,
       null: null
     });
