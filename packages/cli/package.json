@@ -9,5 +9,8 @@
     "opn": "^5.3.0",
     "puppeteer": "^1.4.0",
     "@fromjs/backend": "^0.1.0"
+  },
+  "bin": {
+    "fromjs": "./bin/fromjs"
   }
 }
