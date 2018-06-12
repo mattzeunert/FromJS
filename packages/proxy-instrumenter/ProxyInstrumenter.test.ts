@@ -75,25 +75,41 @@ describe("ProxyInstrumenter", () => {
     proxy.close();
   });
 
-  it("Intercepts and rewrite requests", async () => {
-    const response = await makeRequest("/test.js");
-    expect(response).toBe("Hello World!");
-  });
+  it(
+    "Intercepts and rewrite requests",
+    async () => {
+      const response = await makeRequest("/test.js");
+      expect(response).toBe("Hello World!");
+    },
+    10000
+  );
 
-  it("Can skip rewritting some URLs", async () => {
-    const response = await makeRequest("/dontRewrite/test.js");
-    expect(response).toBe("Hi World!");
-  });
+  it(
+    "Can skip rewritting some URLs",
+    async () => {
+      const response = await makeRequest("/dontRewrite/test.js");
+      expect(response).toBe("Hi World!");
+    },
+    10000
+  );
 
-  it("Can handle eval'd scripts", async () => {
-    const result = await proxy.instrumentForEval(`var a = "Hi"`);
-    expect(result.instrumentedCode).toContain("Hello");
-  });
+  it(
+    "Can handle eval'd scripts",
+    async () => {
+      const result = await proxy.instrumentForEval(`var a = "Hi"`);
+      expect(result.instrumentedCode).toContain("Hello");
+    },
+    10000
+  );
 
-  it("Can rewrite HTML", async () => {
-    const response = await makeRequest("/html", {
-      accept: "text/html"
-    });
-    expect(response).toContain("EXTRA_HTML");
-  });
+  it(
+    "Can rewrite HTML",
+    async () => {
+      const response = await makeRequest("/html", {
+        accept: "text/html"
+      });
+      expect(response).toContain("EXTRA_HTML");
+    },
+    10000
+  );
 });
