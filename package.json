@@ -24,7 +24,7 @@
     "compile-all-watch": "echo \"doing sequential non watch compile first to prepare\";npm run compile;npm run compile-core-watch & npm run compile-proxy-instrumenter-watch & npm run compile-backend-watch & npm run compile-cli-watch"
   },
   "dependencies": {
-    "jest": "^22.4.3",
+    "jest": "^23.1.0",
     "lerna": "^2.10.1",
     "prettier": "^1.12.1",
     "typescript": "^2.8.1"
