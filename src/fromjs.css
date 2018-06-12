@@ -1,119 +1,119 @@
 body {
-    margin: 0;
-    background: white;
-    color: #444;
+  margin: 0;
+  background: white;
+  color: #444;
 }
 
-code{
-    font-size: 14px;
-    padding: 0;
-    margin: 0;
-    border-radius: 0;
-    background: transparent;
+code {
+  font-size: 14px;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  background: transparent;
 }
 button {
-    border: none;
-    background: transparent;
-    box-shadow: none;
-    min-height: none;
-    border-radius: 0;
-    padding: 0;
-    min-height: 0px;
-    min-width: 0px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  min-height: none;
+  border-radius: 0;
+  padding: 0;
+  min-height: 0px;
+  min-width: 0px;
 }
 button:hover,
-button:focus, {
-    background: inherit;
-    border: none;
-    box-shadow: none;
+button:focus {
+  background: inherit;
+  border: none;
+  box-shadow: none;
 }
 
 .fromjs-show-inspector-button {
-    padding: 10px;
-    border: none;
+  padding: 10px;
+  border: none;
 }
 .fromjs-show-inspector-button:hover {
-    background: #1b0d80;
+  background: #1b0d80;
 }
 
-.fromjs-outer-container, .fromjs-outer-container div {
-    width: auto;
-    margin: 0;
-    padding: 0;
-    background-color: transparent;
-    border-radius: 0;
+.fromjs-outer-container,
+.fromjs-outer-container div {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  background-color: transparent;
+  border-radius: 0;
 }
 
 .toggle-inspector-button {
-    position: fixed;
-    top: 0;
-    right: 0;
-    z-index: 999999999999;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 999999999999;
 
-    color: white;
-    line-height: 22px;
-    background: #333;
-    font-weight: bold;
-    cursor: pointer;
+  color: white;
+  line-height: 22px;
+  background: #333;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 .close-inspector-button {
-    font-size: 16px;
+  font-size: 16px;
 
-    width: 0;
-    height: 0;
-    border-left: 20px solid transparent;
-    border-bottom: 20px solid transparent;
-    display: inline-block;
-    padding: 0;
-    border-top: 20px solid #333;
-    border-right: 20px solid #333;
-    background: transparent;
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-bottom: 20px solid transparent;
+  display: inline-block;
+  padding: 0;
+  border-top: 20px solid #333;
+  border-right: 20px solid #333;
+  background: transparent;
 }
 .close-inspector-button:after {
-    content: "\00d7";
-    display: block;
-    margin-top: -20px;
-    font-size: 16px;
-    padding-left: 6px;
+  content: "\00d7";
+  display: block;
+  margin-top: -20px;
+  font-size: 16px;
+  padding-left: 6px;
 }
 
 .close-inspector-button:hover {
-    border-top-color: #1b0d80;
-    border-right-color: #1b0d80;
+  border-top-color: #1b0d80;
+  border-right-color: #1b0d80;
 }
 
 #fromjs .fromjs-intro {
-    padding: 10px;
+  padding: 10px;
 }
 #fromjs .fromjs-intro a {
-    color: #0088ff;
-    text-decoration: none;
+  color: #0088ff;
+  text-decoration: none;
 }
 
 body:not(.fromjsIsMobile) .fromjs-value span:hover {
-    color: red;
-    border-bottom: 2px solid red;
+  color: red;
+  border-bottom: 2px solid red;
 }
 #fromjs .fromjs-value {
-    padding: 10px;
-    max-height: 151px;
-    overflow: auto;
+  padding: 10px;
+  max-height: 151px;
+  overflow: auto;
 }
 #fromjs .fromjs-value span {
-    cursor: pointer;
+  cursor: pointer;
 }
 body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
-    background: #ff1a1a;
+  background: #ff1a1a;
 }
 
 #fromjs .fromjs-value__whitespace-character.fromjs-highlighted-character {
-    background: #9ad0ff;
+  background: #9ad0ff;
 }
 #fromjs .fromjs-value__content {
-
 }
-#fromjs .fromjs-stack__code {
+/* #fromjs .fromjs-stack__code {
     line-height: 18px;
     word-wrap: nowrap;
     white-space: nowrap;
@@ -144,245 +144,245 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
     border-right: 2px solid #0088ff;
     padding-left: 1px;
     margin-right: 2px;
-}
+} */
 
 #fromjs * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 #fromjs .fromjs-highlighted-character {
-    color: #0088ff;
-    font-weight: bold;
-    border-bottom: 2px solid #0088ff;
+  color: #0088ff;
+  font-weight: bold;
+  border-bottom: 2px solid #0088ff;
 }
 
 #fromjs .origin-path-step__filename {
-    color: black;
-    text-decoration: none;
-    color: #555;
-    cursor: pointer;
+  color: black;
+  text-decoration: none;
+  color: #555;
+  cursor: pointer;
 }
 #fromjs .origin-path-step__filename:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 #fromjs .fromjs-origin-path-step__stack-frame-selector-toggle {
-    float: right;
-    font-size: 20px;
-    padding-top: 2px;
-    padding-right: 2px;
-    color: #08f;
-    cursor: pointer;
-    outline: none;
+  float: right;
+  font-size: 20px;
+  padding-top: 2px;
+  padding-right: 2px;
+  color: #08f;
+  cursor: pointer;
+  outline: none;
 }
 #fromjs .fromjs-origin-path-step__stack-frame-selector-toggle:hover {
-    color: red
+  color: red;
 }
 
 #fromjs .fromjs-input-value-link {
-    paddging: 4px;
-    padding-left: 10px;
-    cursor: pointer;
+  paddging: 4px;
+  padding-left: 10px;
+  cursor: pointer;
 }
 #fromjs .fromjs-input-value-link:hover {
-    color: red;
+  color: red;
 }
 
-#fromjs .fromjs-origin-path-step .fromjs-origin-path-step__only-show-on-step-hover {
-    display: none;
+#fromjs
+  .fromjs-origin-path-step
+  .fromjs-origin-path-step__only-show-on-step-hover {
+  display: none;
 }
-#fromjs .fromjs-origin-path-step:hover .fromjs-origin-path-step__only-show-on-step-hover {
-    display: inline-block;
+#fromjs
+  .fromjs-origin-path-step:hover
+  .fromjs-origin-path-step__only-show-on-step-hover {
+  display: inline-block;
 }
 
 #fromjs .fromjs-origin-path-step .call-stack-path {
-    display: none;
+  display: none;
 }
 #fromjs .fromjs-origin-path-step:hover .call-stack-path {
-    display: inline;
+  display: inline;
 }
 #fromjs .fromjs-origin-path-step .origin-path-step__filename {
-    display: inline;
+  display: inline;
 }
 #fromjs .fromjs-origin-path-step:hover .origin-path-step__filename {
-    display: none;
+  display: none;
 }
-
 
 #fromjs .fromjs-stack-frame-selector__item,
 .fromjs-stack-frame-selector__show-all-button {
-    padding: 2px;
-    padding-left: 10px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-    overflow: hidden;
+  padding: 2px;
+  padding-left: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  overflow: hidden;
 }
 .fromjs-stack-frame-selector__item:last-child {
-    border-bottom-width: 2px;
+  border-bottom-width: 2px;
 }
 .fromjs-stack-frame-selector__item--selected * {
-    color: #0088ff !important;
+  color: #0088ff !important;
 }
 .fromjs-stack-frame-selector__item:hover * {
-    color: red !important;
+  color: red !important;
 }
 
 .fromjs-stack-frame-selector__show-all-button {
-    display: block;
-    color: green;
-    text-align: center;
-    padding-top: 10px;
-    padding-bottom: 10px;
+  display: block;
+  color: green;
+  text-align: center;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 .fromjs-stack-frame-selector__show-all-button:hover {
-    color: red;
+  color: red;
 }
 
-
 #fromjs-sidebar {
-    position: fixed;
-    z-index: 1000000;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    height: 100vh;
-    width: 40vw;
+  position: fixed;
+  z-index: 1000000;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  width: 40vw;
 }
 
 #fromjs {
+  font-family: "Arial";
+  font-size: 14px;
 
-    font-family: "Arial";
-    font-size: 14px;
-
-    background: white;
-    overflow: auto;
-    /* without this scrolling the sidebar doesn't work on iOS
+  background: white;
+  overflow: auto;
+  /* without this scrolling the sidebar doesn't work on iOS
     if the page content is also scrollable */
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
 }
 
 .fromjs-stack__line-number {
-    border-right: 1px solid #ddd;
-    padding-right: 5px;
-    padding-left: 5px;
-    margin-right: 5px;
-    text-align: right;
-    min-width: 30px;
-    display: inline-block;
+  border-right: 1px solid #ddd;
+  padding-right: 5px;
+  padding-left: 5px;
+  margin-right: 5px;
+  text-align: right;
+  min-width: 30px;
+  display: inline-block;
 }
 
 .fromjs-horizontal-scroll-container {
-    overflow-x: auto;
-    white-space: nowrap;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 .fromjs-horizontal-scroll-container > div {
-    display: inline-block;
-    min-width: 100%;
+  display: inline-block;
+  min-width: 100%;
 }
 
-.fromjs-btn-link{
-    color: green;
-    cursor: pointer;
-    border: none;
-    background: transparent;
+.fromjs-btn-link {
+  color: green;
+  cursor: pointer;
+  border: none;
+  background: transparent;
 }
 .fromjs-btn-link:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 .fromjs-element-marker {
-    position: absolute;
-    z-index: 10000;
-    pointer-events: none;
+  position: absolute;
+  z-index: 10000;
+  pointer-events: none;
 }
 
 #fromjs hr {
-    // from todomvc
-    margin: 20px 0;
-    border: 0;
-    border-top: 1px dashed #c5c5c5;
-    border-bottom: 1px dashed #f7f7f7;
+  // from todomvc
+  margin: 20px 0;
+  border: 0;
+  border-top: 1px dashed #c5c5c5;
+  border-bottom: 1px dashed #f7f7f7;
 }
 
 #fromjs .fromjs-go-up-button {
-    font-size: 20px;
-    font-weight: bold;
-    color: #08f;
-    cursor: pointer;
-    margin: 0;
-    outline: none;
-    padding: 0;
-    background: none;
-    vertical-align: baseline;
-    -webkit-appearance: none;
-    border: none;
+  font-size: 20px;
+  font-weight: bold;
+  color: #08f;
+  cursor: pointer;
+  margin: 0;
+  outline: none;
+  padding: 0;
+  background: none;
+  vertical-align: baseline;
+  -webkit-appearance: none;
+  border: none;
 }
 .fromjs-go-up-button:hover {
-    color: red;
+  color: red;
 }
 
 .open-file-in-new-window {
-    display: inline-block;
-    padding-left: 10px;
-    padding-bottom: 10px;
-    font-size: 12px;
+  display: inline-block;
+  padding-left: 10px;
+  padding-bottom: 10px;
+  font-size: 12px;
 }
-
 
 .fromjs-info-icon {
-    background: black;
-    color: white;
-    font-weight: bold;
-    border-radius: 50px;
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    text-align: center;
-    margin-left: 2px;
-    line-height: 17px;
-    font-size: 12px;
-    -webkit-font-smoothing: antialiased;
+  background: black;
+  color: white;
+  font-weight: bold;
+  border-radius: 50px;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  text-align: center;
+  margin-left: 2px;
+  line-height: 17px;
+  font-size: 12px;
+  -webkit-font-smoothing: antialiased;
 }
 [data-tip]:hover .fromjs-info-icon {
-    background: #08f;
+  background: #08f;
 }
 
 [data-tip]:hover {
-    color: #08f;
+  color: #08f;
 }
 .__react_component_tooltip .multi-line {
-    text-align: left;
-    line-height: 16px;
-    font-size: 12px;
+  text-align: left;
+  line-height: 16px;
+  font-size: 12px;
 }
 .__react_component_tooltip {
-    transition: none !important;
+  transition: none !important;
 }
 #fromjs .__react_component_tooltip {
-    border-radius: 3px;
-    padding: 8px 21px;
+  border-radius: 3px;
+  padding: 8px 21px;
 }
 
 .fromjs-unsupported-device {
-    padding: 20px;
-    position: fixed;
-    top: 0;
-    font-size: 20px;
-    width: 100%;
-    height: 100%;
-    background: white;
-    font-family: Arial;
-    box-sizing: border-box;
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  font-size: 20px;
+  width: 100%;
+  height: 100%;
+  background: white;
+  font-family: Arial;
+  box-sizing: border-box;
 }
 
 .call-stack-path {
-    color: rgba(51, 51, 51, 0.5);
+  color: rgba(51, 51, 51, 0.5);
 }
 .call-stack-path__item {
-    cursor: pointer;
+  cursor: pointer;
 }
 .call-stack-path__item:hover {
-    color: #08f;
+  color: #08f;
 }
 .call-stack-path__item--selected {
-    color: #333;
+  color: #333;
 }

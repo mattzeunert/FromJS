@@ -1,27 +1,40 @@
 import compile from "./compile";
-import InMemoryLogServer from "./InMemoryLogServer";
+import InMemoryLogServer from "./LogServer/InMemoryLogServer";
+import OperationLog from "./helperFunctions/OperationLog";
 
 const server = new InMemoryLogServer();
 
+interface InstrumentAndRunResult {
+  code: string;
+  tracking?: OperationLog;
+  normal?: any;
+}
+
 export function instrumentAndRun(code) {
-  return new Promise(resolve => {
+  return new Promise<InstrumentAndRunResult>(resolve => {
     code = `getTrackingAndNormalValue((function(){ ${code} })())`;
-    compile(code).then((result: any) => {
-      var code = result.code;
+
+    compile(code).then((compileResult: any) => {
+      var code = compileResult.code;
 
       const __storeLog = server.storeLog.bind(server);
 
-      var result = eval(result.code);
+      var result: InstrumentAndRunResult = eval(code);
+      delete global["__didInitializeDataFlowTracking"];
       result.code = code.split("* HELPER_FUNCTIONS_END */")[1]; // only the interesting code
 
       if (result.tracking) {
-        server.loadLog(result.tracking, log => {
-          // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
-          result.tracking =
-            log.args.value.extraArgs.returnValue.args.returnValue;
-          // console.log(result.tracking)
-          resolve(result);
-        }, 7);
+        server.loadLog(
+          result.tracking,
+          (err, log) => {
+            // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
+            result.tracking =
+              log.args.value.extraArgs.returnValue.args.returnValue;
+            // console.log(result.tracking)
+            resolve(result);
+          },
+          10
+        );
       } else {
         resolve(result);
       }
@@ -29,4 +42,4 @@ export function instrumentAndRun(code) {
   });
 }
 
-export { server }
+export { server };

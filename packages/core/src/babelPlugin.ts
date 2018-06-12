@@ -3,7 +3,7 @@ import * as babel from "@babel/core";
 import * as OperationTypes from "./OperationTypes";
 // import * as fs from "fs";
 import * as babylon from "babylon";
-import operations from "./operations";
+import operations, { shouldSkipIdentifier } from "./operations";
 import {
   ignoreNode,
   ignoredArrayExpression,
@@ -16,7 +16,9 @@ import {
   runIfIdentifierExists,
   isInNodeType,
   isInIdOfVariableDeclarator,
-  isInLeftPartOfAssignmentExpression
+  isInLeftPartOfAssignmentExpression,
+  getTrackingVarName,
+  addLoc
 } from "./babelPluginHelpers";
 
 import helperCodeLoaded from "../helperFunctions";
@@ -48,7 +50,7 @@ Object.keys(operations).forEach(opName => {
   }
   opsArrayArgumentsString += `${opName}: [${operations[
     opName
-  ].arrayArguments.map(a => `"${a}"`)}],`;
+  ].arrayArguments!.map(a => `"${a}"`)}],`;
 });
 opsArrayArgumentsString += `}`;
 
@@ -61,39 +63,30 @@ helperCode += "/* HELPER_FUNCTIONS_END */ ";
 
 // I got some babel-generator "cannot read property 'type' of undefined" errors
 // when prepending the code itself, so just prepend a single eval call expression
-helperCode = "eval(`" + helperCode.replace(/\\/g, "\\\\").replace(/`/g, "\\`") + "\n//# sourceURL=/helperFns.js`)";
-helperCode += "// aaaaa" // this seems to help with debugging/evaling the code... not sure why...just take it out if the tests dont break
+helperCode =
+  "eval(`" +
+  helperCode.replace(/\\/g, "\\\\").replace(/`/g, "\\`") +
+  "\n//# sourceURL=/helperFns.js`)";
+helperCode += "// aaaaa"; // this seems to help with debugging/evaling the code... not sure why...just take it out if the tests dont break
 
-export default function plugin(babel) {
+function plugin(babel) {
   const { types: t } = babel;
 
-  function isInWhileStatement(path) {
-    return isInNodeType("WhileStatement", path);
-  }
-
-  function isInIfStatement(path) {
-    return isInNodeType("IfStatement", path);
-  }
-
-  function isInForStatement(path) {
-    return isInNodeType("ForStatement", path);
-  }
-
-  function isInAssignmentExpression(path) {
-    return isInNodeType("AssignmentExpression", path);
-  }
-
-  function isInCallExpressionCallee(path) {
-    return isInNodeType("CallExpression", path, function (path, prevPath) {
-      return path.node.callee === prevPath.node;
-    });
-  }
+  // const str = t.stringLiteral;
+  // if (!t["x"]) {
+  //   t["x"] = true;
+  //   t.stringLiteral = function() {
+  //     const node = str.apply(this, arguments);
+  //     node.stack = Error().stack;
+  //     return node;
+  //   };
+  // }
 
   function handleFunction(path) {
     path.node.params.forEach((param, i) => {
       var d = t.variableDeclaration("var", [
         t.variableDeclarator(
-          ignoredIdentifier(param.name + "_t"),
+          addLoc(ignoredIdentifier(getTrackingVarName(param.name)), param.loc),
           ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [
             ignoredNumericLiteral(i)
           ])
@@ -102,33 +95,48 @@ export default function plugin(babel) {
       d.ignore = true;
       path.node.body.body.unshift(d);
     });
+
+    var d = t.variableDeclaration("var", [
+      // keep whole list in case the function uses `arguments` object
+      // We can't just access the arg tracking values when `arguments` is used (instead of doing it
+      // at the top of the function)
+      // That's because when we return the argTrackingValues are not reset to the parent function's
+      t.variableDeclarator(
+        ignoredIdentifier("__allFnArgTrackingValues"),
+        ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [])
+      )
+    ]);
+    d.ignore = true;
+    path.node.body.body.unshift(d);
   }
 
   const visitors = {
     FunctionDeclaration(path) {
-      handleFunction(path)
+      handleFunction(path);
     },
 
     FunctionExpression(path) {
-      handleFunction(path)
+      handleFunction(path);
     },
-
 
     VariableDeclaration(path) {
       if (path.parent.type === "ForInStatement") {
         return;
       }
       var originalDeclarations = path.node.declarations;
-      var newDeclarations = [];
-      originalDeclarations.forEach(function (decl) {
+      var newDeclarations: any[] = [];
+      originalDeclarations.forEach(function(decl) {
         newDeclarations.push(decl);
         if (!decl.init) {
-          decl.init = ignoredIdentifier("undefined");
+          decl.init = addLoc(ignoredIdentifier("undefined"), decl.loc);
         }
 
         newDeclarations.push(
           t.variableDeclarator(
-            ignoredIdentifier(decl.id.name + "_t"),
+            addLoc(
+              ignoredIdentifier(getTrackingVarName(decl.id.name)),
+              decl.id.loc
+            ),
             ignoredCallExpression(
               FunctionNames.getLastOperationTrackingResult,
               []
@@ -137,6 +145,140 @@ export default function plugin(babel) {
         );
       });
       path.node.declarations = newDeclarations;
+    },
+
+    WithStatement(path) {
+      function i(node) {
+        if (node.name === null) {
+          debugger;
+        }
+        node.ignoreInWithStatementVisitor = true;
+        return node;
+      }
+
+      // not an ideal way to track things and might not work for nested
+      // with statements, but with statement use should be rare.
+      // Underscore uses them for templates though.
+      let obj = path.node.object;
+      path.get("object").traverse({
+        Identifier(path) {
+          path.replaceWith(i(path.node));
+        }
+      });
+      path.traverse({
+        Identifier(path) {
+          if (path.node.ignoreInWithStatementVisitor) {
+            return;
+          }
+          if (shouldSkipIdentifier(path)) {
+            return;
+          }
+          if (
+            ["WithStatement", "FunctionExpression"].includes(path.parent.type)
+          ) {
+            return;
+          }
+          if (path.parent.type === "MemberExpression") {
+            if ((path.parent.property = path.node)) {
+              console.log("ignoreing");
+              return;
+            }
+          }
+          path.node.ignoreInWithStatementVisitor = true;
+
+          const identifierName = path.node.name;
+          path.replaceWith(
+            ignoreNode(
+              t.conditionalExpression(
+                ignoreNode(
+                  t.binaryExpression(
+                    "in",
+                    addLoc(t.stringLiteral(identifierName), path.node.loc),
+                    obj
+                  )
+                ),
+                addLoc(
+                  t.memberExpression(
+                    obj,
+                    addLoc(t.stringLiteral(identifierName), path.node.loc),
+                    true
+                  ),
+                  path.node.loc
+                ),
+                i(addLoc(t.identifier(identifierName), path.node.loc))
+              )
+            )
+          );
+        }
+      });
+    },
+
+    ForInStatement(path) {
+      if (path.node.ignore) return;
+
+      let varName;
+      let isNewVariable;
+      if (path.node.left.type === "VariableDeclaration") {
+        varName = path.node.left.declarations[0].id.name;
+        isNewVariable = true;
+      } else if (path.node.left.type === "Identifier") {
+        varName = path.node.left.name;
+        isNewVariable = false;
+      } else {
+        throw Error("not sure what this is");
+      }
+
+      path.traverse({
+        ExpressionStatement(path) {
+          // replace `for (i in k) sth` with `for (i in k) {sth}`
+          if (path.parent.type !== "ForInStatement") {
+            return;
+          }
+          path.replaceWith(babel.types.blockStatement([path.node]));
+        },
+        IfStatement(path) {
+          // replace `for (i in k) if () sth` with `for (i in k) {if () sth}`
+          if (path.parent.type !== "ForInStatement") {
+            return;
+          }
+          path.replaceWith(babel.types.blockStatement([path.node]));
+        },
+        ReturnStatement(path) {
+          if (path.parent.type !== "ForInStatement") {
+            return;
+          }
+          path.replaceWith(babel.types.blockStatement([path.node]));
+        },
+        ForStatement(path) {
+          // replace `for (i in k) for () abc` with `for (i in k) {for () abc}`
+          if (path.parent.type !== "ForInStatement") {
+            return;
+          }
+          path.replaceWith(babel.types.blockStatement([path.node]));
+        }
+        // TODO: are there other statement types I need to handle???
+      });
+
+      if (isNewVariable) {
+        var declaration = ignoreNode(
+          t.variableDeclaration("var", [
+            t.variableDeclarator(ignoredIdentifier(getTrackingVarName(varName)))
+          ])
+        );
+        path.node.body.body.unshift(declaration);
+      }
+
+      var assignment = ignoreNode(
+        t.assignmentExpression(
+          "=",
+          ignoredIdentifier(getTrackingVarName(varName)),
+          ignoredCallExpression("getObjectPropertyNameTrackingValue", [
+            ignoreNode(path.node.right),
+            ignoredIdentifier(varName)
+          ])
+        )
+      );
+      path.node.body.body.unshift(assignment);
     }
   };
 
@@ -147,6 +289,9 @@ export default function plugin(babel) {
       visitors[key] = path => {
         var ret = operation.visitor.call(operation, path);
         if (ret) {
+          if (!ret.loc) {
+            // debugger;
+          }
           path.replaceWith(ret);
         }
       };
@@ -155,7 +300,7 @@ export default function plugin(babel) {
 
   Object.keys(visitors).forEach(key => {
     var originalVisitor = visitors[key];
-    visitors[key] = function (path) {
+    visitors[key] = function(path) {
       if (path.node.ignore) {
         return;
       }
@@ -165,8 +310,27 @@ export default function plugin(babel) {
 
   visitors["Program"] = {
     // Run on exit so injected code isn't processed by other babel plugins
-    exit: function (path) {
-      var initCodeAstNodes = babylon.parse(helperCode).program.body.reverse();
+    exit: function(path) {
+      const babelPluginOptions = plugin["babelPluginOptions"];
+      let usableHelperCode;
+      if (babelPluginOptions) {
+        const { accessToken, backendPort } = babelPluginOptions;
+        usableHelperCode = helperCode;
+        usableHelperCode = usableHelperCode.replace(
+          "ACCESS_TOKEN_PLACEHOLDER",
+          accessToken
+        );
+        usableHelperCode = usableHelperCode.replace(
+          "BACKEND_PORT_PLACEHOLDER",
+          backendPort
+        );
+      } else {
+        usableHelperCode = helperCode;
+      }
+
+      var initCodeAstNodes = babylon
+        .parse(usableHelperCode)
+        .program.body.reverse();
       initCodeAstNodes.forEach(node => {
         path.node.body.unshift(node);
       });
@@ -178,3 +342,5 @@ export default function plugin(babel) {
     visitor: visitors
   };
 }
+
+export default plugin;

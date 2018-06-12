@@ -11,6 +11,7 @@ node_modules
 .sass-cache
 _site
 .DS_Store
+dist
 packages/proxy-instrumenter/ca
 packages/core/dist/helperFunctions.js
 packages/ui/dist
@@ -19,3 +20,10 @@ packages/core/dist
 packages/core/helperFunctions.ts
 packages/backend/logs.json
 packages/backend/ca
+ca
+logs.json
+
+packages/core/helperFunctions.js
+packages/core/compileInBrowser.js
+
+mydb

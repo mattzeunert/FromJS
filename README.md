@@ -2,9 +2,7 @@
 
 Understand JavaScript apps. See the code for responsible for each character on the screen.
 
-FromJS 1 broke most sites. I'm working on FromJS 2 now which will actually work. If you want updates sign up on [the FromJS website](http://www.fromjs.com/) or follow me on [Twitter](https://twitter.com/mattzeunert).
-
-[fromjs.com](http://www.fromjs.com/)
+FromJS 1 broke most sites. I'm working on FromJS 2 now which will actually work. If you want updates sign up on [fromjs.com](http://www.fromjs.com/) or follow me on [Twitter](https://twitter.com/mattzeunert).
 
 ![](https://cloud.githubusercontent.com/assets/1303660/17478187/e9b9b2bc-5d61-11e6-8645-b89574767bf4.png)
 

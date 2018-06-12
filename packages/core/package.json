@@ -5,13 +5,18 @@
   "types": "./dist/index.d.ts",
   "license": "MIT",
   "scripts": {
-    "webpack-watch": "webpack --watch"
+    "webpack-helperFunctions": "webpack --config webpack.helperFunctions.config.js",
+    "webpack-build": "npm run webpack-helperFunctions; webpack",
+    "webpack-watch": "npm run webpack-helperFunctions; webpack --watch"
   },
   "dependencies": {
     "@babel/core": "^7.0.0-beta.40",
+    "@types/jest": "^23.0.0",
     "awesome-typescript-loader": "^4.0.1",
     "babylon": "^6.18.0",
     "jest": "^22.4.2",
+    "leveldown": "^4.0.1",
+    "levelup": "^3.0.1",
     "prettier": "^1.11.1",
     "ts-loader": "^4.1.0",
     "typescript": "^2.7.2",

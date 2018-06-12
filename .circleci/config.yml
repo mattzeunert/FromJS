@@ -32,9 +32,9 @@ jobs:
       
       - run: ./node_modules/.bin/lerna bootstrap
 
-      - run: cd packages/core;./node_modules/.bin/webpack;cd ../..
+      - run: cd packages/core;npm run webpack-build;cd ../..
 
-      - run: npm run compile-core; cd ../..
+      - run: npm run compile-all
 
       - run: yarn test
 

@@ -1,0 +1,171 @@
+.chart {
+  /* height: 1500px; */
+  height: 600px;
+  margin: 5px;
+  width: 99vw;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+  -webkit-font-smoothing: antialias;
+}
+
+.node-name {
+  font-weight: bold;
+}
+
+.nodeExample1 {
+  padding: 2px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  background-color: #ffffff;
+  border: 1px solid #000;
+  width: 150px;
+  font-family: Tahoma;
+  font-size: 13px;
+}
+
+.node.node--not-loaded {
+  width: 100px;
+}
+
+#code,
+#compiled-code {
+  width: 500px;
+  height: 100px;
+  font-size: 14px;
+  font-family: Courier New;
+}
+
+#compiled-code {
+  display: none;
+  width: 100vw;
+  height: 200px;
+  font-size: 12px;
+}
+
+.chart {
+  font-weight: bold;
+}
+
+.value {
+  font-family: Courier New;
+  font-size: 11px;
+}
+
+.value--string {
+  color: #a00;
+
+  white-space: nowrap;
+  overflow-x: scroll;
+  display: inline-block;
+  width: 100%;
+  vertical-align: bottom;
+}
+
+.value--number {
+  color: #00a;
+}
+
+.value--other {
+  color: #0a0;
+}
+
+.operation {
+}
+
+.CodeMirror {
+  height: 150px !important;
+}
+
+.node {
+  border-color: #999;
+  padding: 4px;
+  width: 280px;
+}
+
+.highlight-step {
+  border: 2px solid #f627c9;
+}
+
+path {
+  stroke: #999;
+}
+
+#chars {
+  font-size: 20px;
+  font-family: Courier New;
+}
+
+.code-container {
+  border: 1px solid #dde;
+  padding: 4px;
+}
+
+.node .code-container {
+  white-space: nowrap;
+  overflow-x: scroll;
+  width: 100%;
+}
+
+.code-container * {
+  font-family: monospace;
+}
+
+.step__string {
+  background: #fff9f9;
+  border: 1px solid #dde;
+  padding: 4px;
+  color: #777;
+  line-height: 1.3em;
+}
+
+.step__string * {
+  font-family: monospace;
+}
+
+.step__header {
+  width: 100%;
+  font-family: Arial;
+  background: aliceblue;
+  overflow: hidden;
+  padding: 5px;
+  border-bottom: 1px solid #eee;
+}
+
+.step__operation-type {
+  float: left;
+  font-size: 14px;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.step__body {
+}
+
+.step__body button {
+  float: right;
+  border: none;
+  background: transparent;
+  text-decoration: underline;
+  margin-top: 6px;
+}
+
+.step .code-container {
+  border-bottom: none;
+}
+
+.step {
+  max-width: 90%;
+  margin-bottom: 10px;
+  border: 1px solid rgb(221, 221, 221);
+}
+
+.title {
+  margin-bottom: 10px;
+  text-decoration: underline;
+  margin-top: 20px;
+  color: #444;
+}

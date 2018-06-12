@@ -1,5 +1,9 @@
+import KnownValues from "./KnownValues";
+
+var global = Function("return this")();
+
 // todo: would be better if the server provided this value
-const getOperationIndex = (function () {
+const getOperationIndex = (function() {
   var operationIndexBase = Math.round(Math.random() * 1000 * 1000 * 1000);
   var operationIndex = 0;
   return function getOperationIndex() {
@@ -22,24 +26,34 @@ function eachArgument(args, arrayArguments, fn) {
   });
 }
 
-function serializeValue(value, nativeFunctions): SerializedValue {
+function serializeValue(value, knownValues: KnownValues): SerializedValue {
   // todo: consider accessing properties that are getters could have negative impact...
-  var knownValue = null;
-  if (value === nativeFunctions.stringPrototypeSlice) {
-    knownValue = "String.prototype.slice";
-  }
-  if (value === nativeFunctions.stringPrototypeReplace) {
-    knownValue = "String.prototype.replace";
-  }
+
+  var knownValue: null | string = knownValues.getName(value);
+
   var length;
-  // todo: more performant way than doing try catch
-  try {
-    length = value.length;
-  } catch (err) {
-    length = null;
+
+  if (
+    typeof value === "string" ||
+    (typeof value === "object" && value !== null && "length" in value)
+  ) {
+    // need try catch because you e.g. NodeList has length but you can't acces it
+    // because it's illegal invocation
+    try {
+      length = value.length;
+    } catch (err) {}
   }
 
   var type = typeof value;
+
+  var knownTypes = null;
+  if (
+    global["HTMLInputElement"] &&
+    value instanceof global["HTMLInputElement"]
+  ) {
+    knownTypes = [];
+    knownTypes.push("HTMLInputElement");
+  }
 
   var primitive;
   if (["string", "null", "number"].includes(type)) {
@@ -48,6 +62,18 @@ function serializeValue(value, nativeFunctions): SerializedValue {
   let str;
   try {
     str = (value + "").slice(0, 200);
+    if (str === "[object Object]") {
+      const keys = Object.keys(value);
+      if (keys.length > 10) {
+        keys.push("...");
+      }
+      str +=
+        "{" +
+        Object.keys(value)
+          .slice(0, 10)
+          .join(", ") +
+        "}";
+    }
   } catch (err) {
     str = "(Error while serializing)";
   }
@@ -57,7 +83,8 @@ function serializeValue(value, nativeFunctions): SerializedValue {
     type,
     str,
     primitive,
-    knownValue
+    knownValue,
+    knownTypes
   };
 }
 
@@ -67,6 +94,7 @@ export interface SerializedValue {
   str: string;
   primitive: number | null | string;
   knownValue: string | null;
+  knownTypes: null | any[];
 }
 
 export default class OperationLog {
@@ -80,16 +108,30 @@ export default class OperationLog {
   loc: any;
   runtimeArgs: any;
 
-  constructor({ operation, result, args, astArgs, extraArgs, stackFrames, loc, nativeFunctions, runtimeArgs }) {
-    var arrayArguments = [];
+  constructor({
+    operation,
+    result,
+    args,
+    astArgs,
+    extraArgs,
+    stackFrames,
+    loc,
+    knownValues,
+    runtimeArgs
+  }) {
+    var arrayArguments: any[] = [];
     if (operation === "arrayExpression") {
       arrayArguments = ["elements"];
+    }
+
+    if (!loc) {
+      console.log("no loc for operation", operation);
     }
 
     this.stackFrames = stackFrames;
 
     this.operation = operation;
-    this.result = serializeValue(result, nativeFunctions);
+    this.result = serializeValue(result, knownValues);
     if (operation === "objectExpression" && args.properties) {
       // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
       args.properties = args.properties.map(prop => {
@@ -102,23 +144,37 @@ export default class OperationLog {
     } else {
       // only store argument operation log because ol.result === a[0]
       eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
-        if (arg[1] === "undefined") {
-          debugger
-          throw Error("no arg operationlog found, did you only pass in an operationlog")
+        if (
+          typeof arg[1] !== "number" &&
+          arg[1] !== null &&
+          arg[1] !== undefined &&
+          arg[1] !== false
+        ) {
+          debugger;
+          throw Error(
+            "no arg operationlog found, did you only pass in an operationlog"
+          );
         }
         updateArg(arg[1]);
       });
     }
     if (typeof extraArgs === "object") {
       eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
-        if (arg[1] === "undefined") {
-          debugger
-          throw Error("no arg operationlog found, did you only pass in an operationlog")
+        if (
+          typeof arg[1] !== "number" &&
+          arg[1] !== null &&
+          arg[1] !== undefined &&
+          arg[1] !== false
+        ) {
+          debugger;
+          throw Error(
+            "no arg operationlog found, did you only pass in an operationlog"
+          );
         }
         updateArg(arg[1]);
       });
     }
-    this.runtimeArgs = runtimeArgs
+    this.runtimeArgs = runtimeArgs;
     this.loc = loc;
     this.args = args;
     this.astArgs = astArgs;

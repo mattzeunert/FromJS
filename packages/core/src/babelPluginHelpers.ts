@@ -1,5 +1,7 @@
 import * as FunctionNames from "./FunctionNames";
 import * as t from "@babel/types";
+import { identifier } from "./OperationTypes";
+import { getCurrentBabelFilePath } from "./getBabelOptions";
 
 declare module "@babel/types" {
   // Should just be interface Node, but somehow it only works if
@@ -18,8 +20,17 @@ declare module "@babel/types" {
   }
 }
 
+export function addLoc(node, loc) {
+  node.loc = loc;
+  if (!loc) {
+    debugger;
+  }
+  return node;
+}
+
 export function ignoreNode(node) {
   node.ignore = true;
+  // node.__debugIgnore = Error().stack
   return node;
 }
 
@@ -28,27 +39,19 @@ export function ignoredArrayExpression(items) {
 }
 
 export function ignoredStringLiteral(str) {
-  var l = t.stringLiteral(str);
-  l.ignore = true;
-  return l;
+  return ignoreNode(t.stringLiteral(str));
 }
 
 export function ignoredIdentifier(name) {
-  var id = t.identifier(name);
-  id.ignore = true;
-  return id;
+  return ignoreNode(t.identifier(name));
 }
 
 export function ignoredCallExpression(identifier, args) {
-  var call = t.callExpression(ignoredIdentifier(identifier), args);
-  call.ignore = true;
-  return call;
+  return ignoreNode(t.callExpression(ignoredIdentifier(identifier), args));
 }
 
 export function ignoredNumericLiteral(number) {
-  var n = t.numericLiteral(number);
-  n.ignore = true;
-  return n;
+  return ignoreNode(t.numericLiteral(number));
 }
 
 export function ignoredObjectExpression(props) {
@@ -67,21 +70,48 @@ export function ignoredObjectExpression(props) {
 }
 
 function getLocObjectASTNode(loc) {
-
-  function getASTNode(location) {
-    return ignoredObjectExpression({
-      line: ignoredNumericLiteral(location.line),
-      column: ignoredNumericLiteral(location.column)
-    })
+  const DISABLE_LOC_FOR_DEBUGGING = false;
+  if (DISABLE_LOC_FOR_DEBUGGING) {
+    return ignoreNode(t.nullLiteral());
   }
-  return ignoredObjectExpression({
-    start: getASTNode(loc.start),
-    end: getASTNode(loc.end)
-  })
+
+  loc.url = getCurrentBabelFilePath();
+
+  // Using JSON.parse instead of creating object directly because
+  // it speeds up overall Babel compile time by a third, and reduces file size
+  // by 30%
+  return ignoreNode(
+    t.callExpression(
+      ignoreNode(
+        t.memberExpression(
+          ignoredIdentifier("JSON"),
+          ignoredIdentifier("parse")
+        )
+      ),
+      [ignoredStringLiteral(JSON.stringify(loc))]
+    )
+  );
+
+  // function getASTNode(location) {
+  //   return ignoredObjectExpression({
+  //     line: ignoredNumericLiteral(location.line),
+  //     column: ignoredNumericLiteral(location.column)
+  //   });
+  // }
+  // return ignoredObjectExpression({
+  //   start: getASTNode(loc.start),
+  //   end: getASTNode(loc.end)
+  // });
 }
 
+let noLocCount = 0;
 export function createOperation(opType, opArgs, astArgs = null, loc = null) {
   const argsAreArray = opArgs.length !== undefined;
+
+  if (!loc) {
+    noLocCount++;
+    console.log("no loc for", opType, noLocCount);
+  }
 
   if (argsAreArray) {
     // todo: remove this branch in the future, should always use obj
@@ -100,7 +130,7 @@ export function createOperation(opType, opArgs, astArgs = null, loc = null) {
   }
 
   if (loc) {
-    call.loc = loc
+    call.loc = loc;
   }
   return call;
 }
@@ -111,19 +141,23 @@ export const getLastOperationTrackingResultCall = ignoredCallExpression(
 );
 
 export function isInLeftPartOfAssignmentExpression(path) {
-  return isInNodeType("AssignmentExpression", path, function (path, prevPath) {
+  return isInNodeType("AssignmentExpression", path, function(path, prevPath) {
     return path.node.left === prevPath.node;
   });
 }
 
 export function isInIdOfVariableDeclarator(path) {
-  return isInNodeType("VariableDeclarator", path, function (path, prevPath) {
+  return isInNodeType("VariableDeclarator", path, function(path, prevPath) {
     return path.node.id === prevPath.node;
   });
 }
 
+export function getTrackingVarName(identifierName) {
+  return identifierName + "___tv";
+}
+
 export function trackingIdentifierIfExists(identifierName) {
-  var trackingIdentifierName = identifierName + "_t";
+  var trackingIdentifierName = getTrackingVarName(identifierName);
   return runIfIdentifierExists(
     trackingIdentifierName,
     ignoredIdentifier(trackingIdentifierName)
@@ -133,9 +167,9 @@ export function trackingIdentifierIfExists(identifierName) {
 export function isInNodeType(
   type,
   path,
-  extraCondition = null,
-  prevPath = null
-) {
+  extraCondition: any = null,
+  prevPath: any = null
+): boolean {
   if (prevPath === null) {
     isInNodeType(type, path.parentPath, extraCondition, path);
   }
@@ -143,13 +177,14 @@ export function isInNodeType(
     return false;
   }
   if (path.node.type === type) {
-    if (!extraCondition || extraCondition(path, prevPath)) {
+    if (!extraCondition || extraCondition!(path, prevPath)) {
       return true;
     }
   }
   if (path.parentPath) {
     return isInNodeType(type, path.parentPath, extraCondition, path);
   }
+  throw Error("unreachable");
 }
 
 export function runIfIdentifierExists(identifierName, thenNode) {
@@ -175,6 +210,10 @@ export function createSetMemoValue(key, value, trackingValue) {
     value,
     trackingValue
   ]);
+}
+
+export function createGetMemoArray(key) {
+  return ignoredCallExpression("__getMemoArray", [ignoredStringLiteral(key)]);
 }
 
 export function createGetMemoValue(key) {
