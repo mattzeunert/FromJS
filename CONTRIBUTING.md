@@ -13,9 +13,9 @@ Use `lerna bootstrap` to install dependencies.
 I usually run all of these commands:
 
 * `yarn run test-watch` for unit/integration tests
-* `yarn run compile-all-watch`
 * In packages/ui `yarn run webpack-watch` for building the inspector UI
 * In packages/core `yarn run webpack-watch` to build the helperFunctions (compiled result is used by Babel plugin)
+* `yarn run compile-all-watch`
 * `npm run cli-debug`
 * `npm run cli-browser` (open browser separately so the BE/Proxy process can restart)
 
