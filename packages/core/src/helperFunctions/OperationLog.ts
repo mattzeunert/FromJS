@@ -46,7 +46,7 @@ function serializeValue(value, knownValues: KnownValues): SerializedValue {
 
   var type = typeof value;
 
-  var knownTypes = null;
+  var knownTypes: any[] | null = null;
   if (
     global["HTMLInputElement"] &&
     value instanceof global["HTMLInputElement"]

@@ -280,7 +280,7 @@ const operations: Operations = {
         if (!argArray.length) {
           // hmm can this even happen in a program that's not already broken?
           console.log("can this even happen?");
-          fnArgs = null;
+          fnArgs = [];
         } else {
           fnArgs = [];
           for (let i = 0; i < argArray.length; i++) {
@@ -303,7 +303,7 @@ const operations: Operations = {
         typeof ctx.global["__fromJSEval"] === "function";
 
       var ret;
-      let retT = null;
+      let retT: any = null;
       if (astArgs.isNewExpression) {
         const isNewFunctionCall = args.function[0] === Function;
         if (isNewFunctionCall && hasInstrumentationFunction) {
@@ -613,7 +613,7 @@ const operations: Operations = {
               charIndex: charIndex + whitespaceAtStart
             };
           case "Array.prototype.join":
-            const parts = [];
+            const parts: any[] = [];
             let partIndex = 0;
             let arrayValue;
             while (
@@ -1011,7 +1011,7 @@ const operations: Operations = {
   arrayExpression: {
     arrayArguments: ["elements"],
     exec: (args, astArgs, ctx: ExecContext) => {
-      let arr = [];
+      let arr: any[] = [];
       args.elements.forEach((el, i) => {
         const [value, trackingValue] = el;
         arr.push(value);
@@ -1105,7 +1105,7 @@ const operations: Operations = {
 
       let node = path.node;
 
-      let astArgs = null;
+      let astArgs: any = null;
       const args: any = {
         value: ignoredArrayExpression([
           node,
