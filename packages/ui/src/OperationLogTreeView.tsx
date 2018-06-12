@@ -19,9 +19,7 @@ export default class OperationLogTreeView extends React.Component<
         className="chart"
         style={{ width: "100%", height: 500, border: "1px solid #ddd" }}
         id={this.getContainerId()}
-      >
-        xxxxxx
-      </div>
+      />
     );
   }
   getContainerId() {
@@ -71,7 +69,7 @@ function renderTree(log, containerSelector) {
     }
 
     if (data && data.operation === "functionArgument") {
-      return makeNode(data.args.value);
+      return makeNode(data.args.value, argName);
     }
 
     var childValues;
@@ -79,7 +77,7 @@ function renderTree(log, containerSelector) {
     if (data && operationLogIsNotLoaded) {
       return {
         innerHTML: `<div style="font-size: 11px; color: #999; font-weight: normal;">
-        (Not loaded in FE, inspect parent to see details.)
+        (${argName} not loaded in FE, inspect parent to see details.)
       </div>`,
 
         HTMLclass: "node--not-loaded",
@@ -97,8 +95,40 @@ function renderTree(log, containerSelector) {
     } else {
       childValues = [];
     }
-    childValues = childValues.filter(c => !!c.arg);
+    const hiddenValues = [];
+    childValues = childValues.filter(childValue => {
+      if (!childValue.arg) {
+        hiddenValues.push("other");
+        return false;
+      }
+      if (
+        data.operation === "callExpression" &&
+        childValue.argName === "function"
+      ) {
+        // Most of the time the user won't care where the called function originated
+        hiddenValues.push("function");
+        return false;
+      }
+      if (
+        data.operation === "callExpression" &&
+        childValue.argName === "context" &&
+        (!childValue.arg.result || childValue.arg.result.type === "object") // context matters if it's e.g. a string, but not if you do e.g. Math.function (i.e. object is Math)
+      ) {
+        hiddenValues.push("context");
+        return false;
+      }
+      if (
+        data.operation === "callExpression" &&
+        childValue.argName === "returnValue"
+      ) {
+        hiddenValues.push("returnValue");
+        return false;
+      }
+      return true;
+    });
+
     var children = [];
+
     if (!isDataRootOrigin(data)) {
       children = childValues.map((child, i) =>
         makeNode(child.arg, child.argName, childValues.length - 1)
@@ -147,6 +177,8 @@ function renderTree(log, containerSelector) {
 
     const escapedStr = template("<%- str %>!")({ str });
 
+    console.log({ argName });
+
     var node = {
       innerHTML: `<div>
         <div
@@ -164,6 +196,7 @@ function renderTree(log, containerSelector) {
             <span class="value ${valueClass}">${escapedStr}</span>
           </div>  
         </div>
+        ${hiddenValues && "Hidden ancestor values: " + hiddenValues.join(", ")}
         
       </div>`,
 
