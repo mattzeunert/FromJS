@@ -59,7 +59,7 @@ function getSourceCodeObject(frameObject, code) {
     line: makeLine(lines[frameObject.lineNumber - 1], frameObject.columnNumber),
     previousLines: lines
       .slice(
-        frameObject.lineNumber - 1 - NUMBER_OF_LINES_TO_LOAD,
+        Math.max(frameObject.lineNumber - 1 - NUMBER_OF_LINES_TO_LOAD, 0),
         frameObject.lineNumber - 1
       )
       .map(l => makeLine(l, 0)),
