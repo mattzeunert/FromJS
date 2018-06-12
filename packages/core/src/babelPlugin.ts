@@ -98,6 +98,9 @@ function plugin(babel) {
 
     var d = t.variableDeclaration("var", [
       // keep whole list in case the function uses `arguments` object
+      // We can't just access the arg tracking values when `arguments` is used (instead of doing it
+      // at the top of the function)
+      // That's because when we return the argTrackingValues are not reset to the parent function's
       t.variableDeclarator(
         ignoredIdentifier("__allFnArgTrackingValues"),
         ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [])

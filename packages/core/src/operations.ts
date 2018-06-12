@@ -1048,6 +1048,26 @@ const operations: Operations = {
   },
   identifier: {
     exec: (args, astArgs, ctx: ExecContext) => {
+      if (astArgs && astArgs.isArguments) {
+        if (args.allFnArgTrackingValues) {
+          args.allFnArgTrackingValues[0].forEach((trackingValue, i) => {
+            ctx.trackObjectPropertyAssignment(
+              args.value[0],
+              i,
+              trackingValue,
+              ctx.createOperationLog({
+                operation: ctx.operationTypes.arrayIndex,
+                args: {},
+                result: i,
+                astArgs: {},
+                loc: ctx.loc
+              })
+            );
+          });
+        } else {
+          console.log("no tracking values for arguments object");
+        }
+      }
       return args.value[0];
     },
     traverse(operationLog, charIndex) {
@@ -1064,23 +1084,23 @@ const operations: Operations = {
       path.node.ignore = true;
 
       let node = path.node;
-      if (node.name === "arguments") {
-        node = ignoredCallExpression("addTrackingToArgumentsObject", [
+
+      let astArgs = null;
+      const args: any = {
+        value: ignoredArrayExpression([
           node,
-          ignoredIdentifier("__allFnArgTrackingValues")
+          trackingIdentifierIfExists(path.node.name)
+        ])
+      };
+      if (node.name === "arguments") {
+        astArgs = { isArguments: ignoreNode(t.booleanLiteral(true)) };
+        args.allFnArgTrackingValues = ignoredArrayExpression([
+          ignoredIdentifier("__allFnArgTrackingValues"),
+          ignoreNode(t.nullLiteral())
         ]);
       }
 
-      return this.createNode!(
-        {
-          value: ignoredArrayExpression([
-            node,
-            trackingIdentifierIfExists(path.node.name)
-          ])
-        },
-        {},
-        path.node.loc
-      );
+      return this.createNode!(args, astArgs, path.node.loc);
     }
   },
   memexpAsLeftAssExp: {},
