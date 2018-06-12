@@ -87,12 +87,12 @@ class ProxyInstrumenter {
     this.proxy.onRequest(this.onRequest.bind(this));
 
     this.proxy.onResponseEnd((ctx, callback) => {
-      log(
-        "resp end",
-        getUrl(ctx),
-        "#req still in progress:",
-        this.requestsInProgress.length
-      );
+      // log(
+      //   "resp end",
+      //   getUrl(ctx),
+      //   "#req still in progress:",
+      //   this.requestsInProgress.length
+      // );
       callback();
     });
   }
@@ -178,8 +178,6 @@ class ProxyInstrumenter {
           sendResponse(this.rewriteHtml(body));
           return;
         }
-
-        console.log("maybe process", url);
 
         maybeProcessJs(body, responseCode => {
           sendResponse(responseCode);
