@@ -284,6 +284,7 @@ describe("String.prototype.substr", () => {
       return "abcde".substr(-2, 1)
     `);
     expect(normal).toBe("d");
+    var t = await traverse({ operationLog: tracking, charIndex: 0 }); // char "d"
 
     const tLastStep = t[t.length - 1];
     expect(tLastStep.charIndex).toBe(3);

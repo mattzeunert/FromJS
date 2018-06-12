@@ -34,13 +34,36 @@ test("Can handle try catch statements", done => {
   });
 });
 
-test("Does not break negative numeric literals", async () => {
-  const { normal, tracking, code } = await instrumentAndRun(`
-      return -100
-    `);
+describe("UnaryExpression", () => {
+  test("Can handle ++ unary expresion", done => {
+    instrumentAndRun(`
+      var a = 0
+      a++
+      return a
+    `).then(({ normal, tracking }) => {
+      expect(normal).toBe(1);
+      done();
+    });
+  });
 
-  expect(normal).toBe(-100);
-  expect(tracking.result.primitive).toBe(-100);
+  test("Does not break negative numeric literals", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return -100
+      `);
+
+    expect(normal).toBe(-100);
+    expect(tracking.result.primitive).toBe(-100);
+  });
+
+  test("Does not break minus sign before identifier", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const num = 100
+        return -num
+      `);
+
+    expect(normal).toBe(-100);
+    expect(tracking.result.primitive).toBe(-100);
+  });
 });
 
 test("Can handle for in statements", done => {
@@ -99,17 +122,6 @@ describe("Can handle variables that aren't declared explicitly", () => {
       expect(normal).toBe(4);
       done();
     });
-  });
-});
-
-test("Can handle ++ unary expresion", done => {
-  instrumentAndRun(`
-    var a = 0
-    a++
-    return a
-  `).then(({ normal, tracking }) => {
-    expect(normal).toBe(1);
-    done();
   });
 });
 
