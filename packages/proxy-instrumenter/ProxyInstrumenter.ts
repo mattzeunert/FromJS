@@ -142,6 +142,8 @@ class ProxyInstrumenter {
       shouldInstrument = this.shouldInstrument(requestInfo);
     }
 
+    ctx.use(Proxy.gunzip);
+
     if (isHtml && this.rewriteHtml && shouldInstrument) {
       this.waitForResponseEnd(ctx).then(({ body, ctx, sendResponse }) => {
         sendResponse(this.rewriteHtml(body));
@@ -166,8 +168,6 @@ class ProxyInstrumenter {
       };
 
       var mapUrl = url.replace(".js", ".js.map");
-
-      ctx.use(Proxy.gunzip);
 
       this.waitForResponseEnd(ctx).then(({ body, ctx, sendResponse }) => {
         var contentTypeHeader =
