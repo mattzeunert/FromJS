@@ -22,7 +22,6 @@ import {
   getTrackingVarName
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
-import { getLastOperationValueResult } from "./FunctionNames";
 import HtmlToOperationLogMapping from "./helperFunctions/HtmlToOperationLogMapping";
 import { ExecContext } from "./helperFunctions/ExecContext";
 
@@ -88,12 +87,17 @@ const operations: Operations = {
       return ret;
     },
     traverse(operationLog, charIndex) {
-      const propNameAsNumber = parseFloat(operationLog.args.propName.result.primitive)
-      if (operationLog.args.object.result.type === "string" && !isNaN(propNameAsNumber)) {
+      const propNameAsNumber = parseFloat(
+        operationLog.args.propName.result.primitive
+      );
+      if (
+        operationLog.args.object.result.type === "string" &&
+        !isNaN(propNameAsNumber)
+      ) {
         return {
           operationLog: operationLog.args.object,
           charIndex: charIndex + propNameAsNumber
-        }
+        };
       }
       return {
         operationLog: operationLog.extraArgs.propertyValue,
@@ -185,7 +189,6 @@ const operations: Operations = {
       return ret;
     }
   },
-  localStorageValue: {},
   conditionalExpression: {
     exec: (args, astArgs, ctx: ExecContext) => {
       return args.result[0];
@@ -551,6 +554,19 @@ const operations: Operations = {
               operationLog: operationLog.args.context,
               charIndex: charIndex + operationLog.args.arg0.result.primitive
             };
+          case "String.prototype.substr":
+            const { context, arg0: start, arg1: length } = operationLog.args;
+            let startValue = parseFloat(start.result.primitive);
+
+            if (startValue < 0) {
+              startValue = context.result.length + startValue;
+            }
+
+            return {
+              operationLog: context,
+              charIndex: charIndex + startValue
+            };
+
           case "String.prototype.trim":
             let str = operationLog.args.context.result.primitive;
             let whitespaceAtStart = str.match(/^\s*/)[0].length;

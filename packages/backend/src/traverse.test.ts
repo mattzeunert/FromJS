@@ -258,6 +258,38 @@ it("Can traverse arguments for a function expression (rather than a function dec
   ]);
 });
 
+describe("String.prototype.substr", () => {
+  it("Works in when passing a positive start and length", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return "abcde".substr(2, 2)
+    `);
+    expect(normal).toBe("cd");
+    var t = await traverse({ operationLog: tracking, charIndex: 1 }); // char "d"
+
+    const tLastStep = t[t.length - 1];
+    expect(tLastStep.charIndex).toBe(3);
+  });
+  it("Works in when passing a start argument only", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return "abcde".substr(2)
+    `);
+    expect(normal).toBe("cde");
+    var t = await traverse({ operationLog: tracking, charIndex: 1 }); // char "c"
+
+    const tLastStep = t[t.length - 1];
+    expect(tLastStep.charIndex).toBe(3);
+  });
+  it("Works in when passing a negative start argument", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return "abcde".substr(-2, 1)
+    `);
+    expect(normal).toBe("d");
+
+    const tLastStep = t[t.length - 1];
+    expect(tLastStep.charIndex).toBe(3);
+  });
+});
+
 describe("String.prototype.trim", () => {
   it("Adjusts char index based on amount of whitespace removed", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
