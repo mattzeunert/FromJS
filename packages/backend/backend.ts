@@ -18,6 +18,18 @@ import { HtmlToOperationLogMapping } from "@fromjs/core";
 import { template } from "lodash";
 import * as ui from "@fromjs/ui";
 
+let uiDir = require
+  .resolve("@fromjs/ui")
+  .split("/")
+  .slice(0, -1)
+  .join("/");
+let coreDir = require
+  .resolve("@fromjs/core")
+  .split("/")
+  .slice(0, -1)
+  .join("/");
+let startPageDir = path.resolve(__dirname + "/../start-page");
+
 export default class Backend {
   constructor(options: BackendOptions) {
     var { bePort, proxyPort } = options;
@@ -84,13 +96,6 @@ export default class Backend {
 }
 
 function setupUI(options, app, wss, getProxy) {
-  let uiDir = require
-    .resolve("@fromjs/ui")
-    .split("/")
-    .slice(0, -1)
-    .join("/");
-  let startPageDir = path.resolve(__dirname + "/../start-page");
-
   app.get("/", (req, res) => {
     let html = fs.readFileSync(uiDir + "/index.html").toString();
     html = html.replace(/BACKEND_PORT_PLACEHOLDER/g, options.bePort.toString());
@@ -219,17 +224,13 @@ function setupBackend(options, app, wss, getProxy) {
 
   app.get("/jsFiles/compileInBrowser.js", (req, res) => {
     const code = fs
-      .readFileSync(
-        __dirname + "/../node_modules/@fromjs/core/compileInBrowser.js"
-      )
+      .readFileSync(coreDir + "/../compileInBrowser.js")
       .toString();
     res.end(code);
   });
   app.get("/jsFiles/babel-standalone.js", (req, res) => {
     const code = fs
-      .readFileSync(
-        __dirname + "/../node_modules/@fromjs/core/babel-standalone.js"
-      )
+      .readFileSync(coreDir + "/../babel-standalone.js")
       .toString();
     res.end(code);
   });
