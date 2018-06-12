@@ -34,6 +34,15 @@ test("Can handle try catch statements", done => {
   });
 });
 
+test("Does not break negative numeric literals", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      return -100
+    `);
+
+  expect(normal).toBe(-100);
+  expect(tracking.result.primitive).toBe(-100);
+});
+
 test("Can handle for in statements", done => {
   instrumentAndRun(`
     var obj = {}

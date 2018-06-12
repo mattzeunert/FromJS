@@ -932,6 +932,28 @@ const operations: Operations = {
       return args.value[0];
     }
   },
+  unaryExpression: {
+    exec: (args, astArgs, ctx: ExecContext) => {
+      if (astArgs.operator === "-") {
+        return -args.argument[0];
+      } else {
+        throw Error("unknown unary expression operator");
+      }
+    },
+    visitor(path) {
+      if (path.node.operator === "-") {
+        return this.createNode!(
+          {
+            argument: [path.node.argument, getLastOperationTrackingResultCall]
+          },
+          {
+            operator: ignoredStringLiteral(path.node.operator)
+          },
+          path.node.loc
+        );
+      }
+    }
+  },
   arrayExpression: {
     arrayArguments: ["elements"],
     exec: (args, astArgs, ctx: ExecContext) => {
@@ -1827,6 +1849,9 @@ export function eachArgument(operationLog, fn) {
 
 Object.keys(operations).forEach(opName => {
   const operation = operations[opName];
+  if (!OperationTypes[opName]!) {
+    throw Error("No op type: " + opName);
+  }
   operation.createNode = function(args, astArgs, loc = null) {
     const operation = createOperation(
       OperationTypes[opName],
