@@ -15,6 +15,7 @@ import * as http from "http";
 import { createProxy } from "./backend.createProxy";
 import { BackendOptions } from "./BackendOptions";
 import { HtmlToOperationLogMapping } from "@fromjs/core";
+import { template } from "lodash";
 
 export default class Backend {
   constructor(options: BackendOptions) {
@@ -87,7 +88,15 @@ function setupUI(options, app, wss, getProxy) {
 
   app.get("/", (req, res) => {
     let html = fs.readFileSync(uiDir + "/index.html").toString();
-    html = html.replace("BACKEND_PORT_PLACEHOLDER", options.bePort.toString());
+    html = html.replace(/BACKEND_PORT_PLACEHOLDER/g, options.bePort.toString());
+    res.send(html);
+  });
+
+  app.get("/start", (req, res) => {
+    let html = fs.readFileSync(startPageDir + "/index.html").toString();
+    const appJSCode = fs.readFileSync(startPageDir + "/app.js").toString();
+    const escapedAppJSCode = template("<%- code %>")({ code: appJSCode });
+    html = html.replace("APP_JS_CODE", escapedAppJSCode);
     res.send(html);
   });
 
