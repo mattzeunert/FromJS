@@ -11,7 +11,7 @@
     "puppeteer": "^1.4.0"
   },
   "bin": {
-    "fromjs": "./bin/fromjs"
+    "fromjs": "bin/fromjs"
   },
   "publishConfig": {
     "access": "public"
