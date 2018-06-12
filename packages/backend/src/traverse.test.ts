@@ -237,6 +237,26 @@ describe("JSON.parse", () => {
     expect(lastStep.operationLog.operation).toBe("stringLiteral");
     expect(lastStep.charIndex).toBe(text.indexOf("l"));
   });
+
+  it.only("Can find property names in the JSON", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var obj = JSON.parse('{"a": {"b": 5}}');
+        let ret
+        for (var name in obj) {
+          ret = name
+        }
+        return ret
+      `);
+
+    expect(normal).toBe("a");
+
+    var t = await traverse({ operationLog: tracking, charIndex: 0 });
+    var lastStep = t[t.length - 1];
+
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(2);
+    expect(getStepTypeList(t)).toContain("jsonParseResult");
+  });
 });
 
 it("Can traverse arguments for a function expression (rather than a function declaration)", async () => {

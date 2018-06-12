@@ -442,7 +442,23 @@ const operations: Operations = {
             },
             loc: ctx.loc
           });
-          ctx.trackObjectPropertyAssignment(obj, key, trackingValue);
+          const nameTrackingValue = ctx.createOperationLog({
+            operation: ctx.operationTypes.jsonParseResult,
+            args: {
+              json: args.arg0
+            },
+            result: key,
+            runtimeArgs: {
+              keyPath: keyPath
+            },
+            loc: ctx.loc
+          });
+          ctx.trackObjectPropertyAssignment(
+            obj,
+            key,
+            trackingValue,
+            nameTrackingValue
+          );
         });
 
         retT = null; // could set something here, but what really matters is the properties

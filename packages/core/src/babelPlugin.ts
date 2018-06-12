@@ -270,7 +270,7 @@ function plugin(babel) {
           "=",
           ignoredIdentifier(getTrackingVarName(varName)),
           ignoredCallExpression("getObjectPropertyNameTrackingValue", [
-            path.node.right,
+            ignoreNode(path.node.right),
             ignoredIdentifier(varName)
           ])
         )

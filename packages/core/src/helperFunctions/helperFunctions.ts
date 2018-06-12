@@ -89,8 +89,8 @@ declare var __FUNCTION_NAMES__,
 
     // Normally we just store the numbers, but it's useful for
     // debugging to be able to view the log object
-    // window["__debugAllLogs"] = window["__debugAllLogs"] || {};
-    // window["__debugAllLogs"][log.index] = log;
+    window["__debugAllLogs"] = window["__debugAllLogs"] || {};
+    window["__debugAllLogs"][log.index] = log;
 
     return log.index;
   }
@@ -98,7 +98,7 @@ declare var __FUNCTION_NAMES__,
   global["__debugLookupLog"] = function(logId, currentDepth = 0) {
     try {
       var log = JSON.parse(JSON.stringify(global["__debugAllLogs"][logId]));
-      if (currentDepth < 3) {
+      if (currentDepth < 12) {
         const newArgs = {};
         Object.keys(log.args).forEach(key => {
           newArgs[key] = global["__debugLookupLog"](
@@ -107,6 +107,16 @@ declare var __FUNCTION_NAMES__,
           );
         });
         log.args = newArgs;
+      }
+      if (currentDepth < 12 && log.extraArgs) {
+        const newExtraArgs = {};
+        Object.keys(log.extraArgs).forEach(key => {
+          newExtraArgs[key] = global["__debugLookupLog"](
+            log.extraArgs[key],
+            currentDepth + 1
+          );
+        });
+        log.extraArgs = newExtraArgs;
       }
 
       return log;
