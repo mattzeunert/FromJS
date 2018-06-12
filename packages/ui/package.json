@@ -14,6 +14,7 @@
     "baobab-react": "^3.0.0",
     "@fromjs/core": "^1.0.0",
     "@fromjs/backend": "^1.0.0",
+    "classnames": "^2.2.6",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
     "source-map-loader": "^0.2.3",
@@ -22,9 +23,9 @@
     "webpack-cli": "^2.0.12"
   },
   "devDependencies": {
+    "css-loader": "^0.28.11",
     "node-sass": "^4.9.0",
     "sass-loader": "^7.0.1",
-    "style-loader": "^0.21.0",
-    "css-loader": "^0.28.11"
+    "style-loader": "^0.21.0"
   }
 }

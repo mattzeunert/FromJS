@@ -5,6 +5,10 @@ import { resolveStackFrame } from "./api";
 import appState from "./appState";
 import { TextEl } from "./TextEl";
 import Code from "./Code";
+import { truncate } from "lodash";
+import { selectAndTraverse } from "./actions";
+import * as cx from "classnames";
+import "./TraversalStep.scss";
 
 function getFileNameFromPath(path) {
   const parts = path.split("/");
@@ -48,6 +52,19 @@ let TraversalStep = class TraversalStep extends React.Component<
       })
       .catch(err => "yolo");
   }
+
+  getAllArgs() {
+    const operationLog = this.props.step.operationLog;
+    const allArgs = [];
+    Object.entries(operationLog.args).forEach(([name, value]) => {
+      allArgs.push({ name, value });
+    });
+    Object.entries(operationLog.extraArgs || {}).forEach(([name, value]) => {
+      allArgs.push({ name, value });
+    });
+    return allArgs;
+  }
+
   render() {
     const { step, debugMode } = this.props;
     const { charIndex, operationLog } = step;
@@ -123,7 +140,6 @@ let TraversalStep = class TraversalStep extends React.Component<
     if (operationTypeDetail) {
       operationTypeDetail = "(" + operationTypeDetail + ")";
     }
-
     return (
       <div className="step">
         <div className="step__header">
@@ -169,6 +185,46 @@ let TraversalStep = class TraversalStep extends React.Component<
             <span>{afterChar}</span>
           </div> */}
 
+          {isExpanded && (
+            <div className="step__arguments">
+              <div className="step__arguments__title">
+                Inspect input/output values:
+              </div>
+              {this.getAllArgs().map(({ name, value }) => {
+                const canInspect = !!value;
+                return (
+                  <div
+                    className={cx("step__argument", {
+                      "step__argument--can-inspect": canInspect
+                    })}
+                    onClick={() => {
+                      if (!canInspect) {
+                        return;
+                      }
+                      selectAndTraverse(value.index, 0);
+                    }}
+                  >
+                    <span style={{ color: "#b91212" }}>{name}:</span>
+                    &nbsp;
+                    <span>
+                      {value
+                        ? truncate(value.result.str, { length: 80 })
+                        : "(no tracking value)"}
+                    </span>
+                  </div>
+                );
+              })}
+              <div>
+                <button
+                  style={{ float: "right" }}
+                  onClick={() => this.setState({ showTree: !showTree })}
+                >
+                  Show Tree
+                </button>
+              </div>
+            </div>
+          )}
+
           {this.state.stackFrame && (
             <Code
               resolvedStackFrame={this.state.stackFrame}
@@ -184,16 +240,7 @@ let TraversalStep = class TraversalStep extends React.Component<
               }
             />
           </div>
-          <div>
-            {isExpanded && (
-              <button
-                style={{ float: "right" }}
-                onClick={() => this.setState({ showTree: !showTree })}
-              >
-                Show Tree
-              </button>
-            )}
-          </div>
+
           {showTree && <OperationLogTreeView operationLog={operationLog} />}
         </div>
       </div>

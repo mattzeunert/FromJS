@@ -1,0 +1,30 @@
+.step__arguments {
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+  border-top: 1px solid #eee;
+  padding-bottom: 6px;
+  padding-top: 6px;
+}
+.step__arguments__title {
+  padding-bottom: 6px;
+  font-size: 12px;
+  text-decoration: underline;
+}
+.step__arguments__title,
+.step__argument {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+.step__argument {
+  opacity: 0.9;
+  width: 100%;
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+.step__argument--can-inspect {
+  cursor: pointer;
+}
+.step__argument--can-inspect:hover {
+  opacity: 1;
+  background: #f0f8ff;
+}

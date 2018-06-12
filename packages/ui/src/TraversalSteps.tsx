@@ -30,7 +30,6 @@ let TraversalSteps = class TraversalSteps extends React.Component<
       const previousStepCriteria = getStepInterestingnessCriteria(previousStep);
       const stepCriteria = getStepInterestingnessCriteria(step);
 
-      console.log(step);
       if (step.operationLog.operation === "jsonParseResult") {
         // debugger;
       }
