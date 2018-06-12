@@ -12,7 +12,6 @@ interface CodeState {
   surroundingLineCount: number;
 }
 
-const MAX_LINES_TO_SHOW_BEFORE_AND_AFTER = 200;
 export default class Code extends React.Component<CodeProps, CodeState> {
   constructor(props) {
     super(props);
@@ -31,16 +30,8 @@ export default class Code extends React.Component<CodeProps, CodeState> {
     var self = this;
 
     var barSpan = <span className="fromjs-stack__code-column" />;
-    // var originPathItem = this.props.originPathItem;
 
     var highlighNthCharAfterColumn = null;
-    // if (originPathItem.origin.action === "String Literal") {
-    //   highlighNthCharAfterColumn = "'".length + originPathItem.characterIndex;
-    // }
-    // if (originPathItem.origin.action === "Initial Page HTML") {
-    //   highlighNthCharAfterColumn = 0;
-    //   barSpan = null;
-    // }
 
     var highlightClass = "fromjs-highlighted-character";
     var hasHighlight = highlighNthCharAfterColumn !== null;
@@ -49,10 +40,6 @@ export default class Code extends React.Component<CodeProps, CodeState> {
       highlightClass = "";
     }
 
-    // highlighNthCharAfterColumn = adjustColumnForEscapeSequences(
-    //   frame.line.substr(frame.columnNumber),
-    //   highlighNthCharAfterColumn
-    // );
     const columnNumber = frame.columnNumber;
     var strBetweenBarAndHighlight = frame.code.line.text.substring(
       columnNumber,
@@ -122,54 +109,32 @@ export default class Code extends React.Component<CodeProps, CodeState> {
         return [];
       }
 
-      // if (self.state.truncate) {
-      var previousTwo = frame.code.previousLines
+      var previousLines = frame.code.previousLines
         .slice(-surroundingLineCount)
         .map(l => l.text);
 
-      return previousTwo.map(function(line, i) {
-        return getLine(line, frame.lineNumber - i - 1, i === 0 ? "\u25B2" : "");
+      return previousLines.map(function(line, i) {
+        return getLine(
+          line,
+          frame.lineNumber + i - previousLines.length,
+          i === 0 ? "\u25B2" : ""
+        );
       });
-      // } else {
-      //   var prevLinesToShow = frame.previousLines;
-      //   if (prevLinesToShow.length > MAX_LINES_TO_SHOW_BEFORE_AND_AFTER) {
-      //     prevLinesToShow = frame.code.previousLines.slice(
-      //       frame.code.previousLines.length - MAX_LINES_TO_SHOW_BEFORE_AND_AFTER
-      //     );
-      //   }
-      //   var linesNotShown =
-      //     frame.code.previousLines.length - prevLinesToShow.length;
-      //   return prevLinesToShow.map(l => l.text).map(function(line, i) {
-      //     return getLine(line, i + 1 + linesNotShown);
-      //   });
-      // }
     }
     function getNextLines() {
       if (frame.code.nextLines.length === 0) {
         return [];
       }
-      // if (self.state.truncate) {
-      var nextTwo = frame.code.nextLines
+      var nextLines = frame.code.nextLines
         .slice(0, surroundingLineCount)
         .map(l => l.text);
-      return nextTwo.map(function(line, i) {
+      return nextLines.map(function(line, i) {
         return getLine(
           line,
           frame.lineNumber + 1 + i,
-          i === nextTwo.length - 1 ? "\u25BC" : ""
+          i === nextLines.length - 1 ? "\u25BC" : ""
         );
       });
-      // } else {
-      //   var nextLinesToShow = frame.code.nextLines;
-      //   if (frame.code.nextLines.length > MAX_LINES_TO_SHOW_BEFORE_AND_AFTER) {
-      //     nextLinesToShow = frame.code.nextLines
-      //       .slice(0, MAX_LINES_TO_SHOW_BEFORE_AND_AFTER)
-      //       .map(l => l.text);
-      //   }
-      //   return nextLinesToShow.map(function(line, i) {
-      //     return getLine(line, i + frame.lineNumber + 1);
-      //   });
-      // }
     }
 
     var highlightIndexInLine = columnNumber + highlighNthCharAfterColumn;
@@ -214,7 +179,7 @@ export default class Code extends React.Component<CodeProps, CodeState> {
               }}
             >
               {getPrevLines()}
-              <div>
+              <div style={{ background: "#fff0f0" }}>
                 <LineNumber lineNumber={frame.lineNumber} />
                 <span>{processFrameString(strBeforeBar)}</span>
                 {barSpan}
