@@ -1,6 +1,6 @@
 {
   "name": "@fromjs/proxy-instrumenter",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "./dist/ProxyInstrumenter.js",
   "types": "./dist/ProxyInstrumenter.d.ts",
   "license": "MIT",
@@ -11,5 +11,8 @@
     "threads": "^0.10.1",
     "ts-node": "^5.0.1",
     "wait-until": "^0.0.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
