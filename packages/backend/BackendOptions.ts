@@ -20,4 +20,8 @@ export class BackendOptions {
   getTrackingDataDirectory() {
     return path.resolve(this.sessionDirectory, "tracking-data");
   }
+
+  getRootCertPath() {
+    return path.resolve(this.getCertDirectory(), "certs", "ca.pem");
+  }
 }
