@@ -19,7 +19,8 @@ import {
   ignoredIdentifier,
   ignoredObjectExpression,
   createGetMemoArray,
-  getTrackingVarName
+  getTrackingVarName,
+  skipPath
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import HtmlToOperationLogMapping from "./helperFunctions/HtmlToOperationLogMapping";
@@ -957,12 +958,14 @@ const operations: Operations = {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
-      return this.createNode!(
-        {
-          value: [ignoredStringLiteral(path.node.value), t.nullLiteral()]
-        },
-        {},
-        path.node.loc
+      return skipPath(
+        this.createNode!(
+          {
+            value: [ignoredStringLiteral(path.node.value), t.nullLiteral()]
+          },
+          {},
+          path.node.loc
+        )
       );
     },
     exec: (args, astArgs, ctx: ExecContext) => {
@@ -974,12 +977,14 @@ const operations: Operations = {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
-      return this.createNode!(
-        {
-          value: [ignoredNumericLiteral(path.node.value), t.nullLiteral()]
-        },
-        null,
-        path.node.loc
+      return skipPath(
+        this.createNode!(
+          {
+            value: [ignoredNumericLiteral(path.node.value), t.nullLiteral()]
+          },
+          null,
+          path.node.loc
+        )
       );
     },
     exec: (args, astArgs, ctx: ExecContext) => {
@@ -1120,7 +1125,7 @@ const operations: Operations = {
         ]);
       }
 
-      return this.createNode!(args, astArgs, path.node.loc);
+      return skipPath(this.createNode!(args, astArgs, path.node.loc));
     }
   },
   memexpAsLeftAssExp: {},

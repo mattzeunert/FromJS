@@ -18,10 +18,12 @@ import {
   isInIdOfVariableDeclarator,
   isInLeftPartOfAssignmentExpression,
   getTrackingVarName,
-  addLoc
+  addLoc,
+  skipPath
 } from "./babelPluginHelpers";
 
 import helperCodeLoaded from "../helperFunctions";
+import { SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION } from "constants";
 var helperCode = helperCodeLoaded
   .toString()
   .replace("__FUNCTION_NAMES__", JSON.stringify(FunctionNames));
@@ -86,13 +88,14 @@ function plugin(babel) {
     path.node.params.forEach((param, i) => {
       var d = t.variableDeclaration("var", [
         t.variableDeclarator(
-          addLoc(ignoredIdentifier(getTrackingVarName(param.name)), param.loc),
-          ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [
-            ignoredNumericLiteral(i)
-          ])
+          addLoc(t.identifier(getTrackingVarName(param.name)), param.loc),
+          t.callExpression(
+            t.identifier(FunctionNames.getFunctionArgTrackingInfo),
+            [t.numericLiteral(i)]
+          )
         )
       ]);
-      d.ignore = true;
+      skipPath(d);
       path.node.body.body.unshift(d);
     });
 
@@ -106,7 +109,7 @@ function plugin(babel) {
         ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [])
       )
     ]);
-    d.ignore = true;
+    skipPath(d);
     path.node.body.body.unshift(d);
   }
 
@@ -133,13 +136,12 @@ function plugin(babel) {
 
         newDeclarations.push(
           t.variableDeclarator(
-            addLoc(
-              ignoredIdentifier(getTrackingVarName(decl.id.name)),
-              decl.id.loc
-            ),
-            ignoredCallExpression(
-              FunctionNames.getLastOperationTrackingResult,
-              []
+            addLoc(t.identifier(getTrackingVarName(decl.id.name)), decl.id.loc),
+            skipPath(
+              t.callExpression(
+                t.identifier(FunctionNames.getLastOperationTrackingResult),
+                []
+              )
             )
           )
         );
@@ -286,6 +288,9 @@ function plugin(babel) {
     var operation = operations[key];
     key = key[0].toUpperCase() + key.slice(1);
     if (operation.visitor) {
+      if (visitors[key]) {
+        throw Error("duplicate visitor " + key);
+      }
       visitors[key] = path => {
         var ret = operation.visitor.call(operation, path);
         if (ret) {
@@ -298,12 +303,25 @@ function plugin(babel) {
     }
   });
 
+  // var enter = 0;
+  // var enterNotIgnored = 0;
+
   Object.keys(visitors).forEach(key => {
     var originalVisitor = visitors[key];
     visitors[key] = function(path) {
+      // enter++;
+      if (path.node.skipPath) {
+        path.skip();
+        return;
+      }
+      if (path.node.skipKeys) {
+        path.skipKeys = path.node.skipKeys;
+        return;
+      }
       if (path.node.ignore) {
         return;
       }
+      // enterNotIgnored++;
       return originalVisitor.apply(this, arguments);
     };
   });
@@ -327,6 +345,8 @@ function plugin(babel) {
       } else {
         usableHelperCode = helperCode;
       }
+
+      // console.log({ enter, enterNotIgnored });
 
       var initCodeAstNodes = babylon
         .parse(usableHelperCode)

@@ -69,6 +69,12 @@ export function ignoredObjectExpression(props) {
   return ignoreNode(t.objectExpression(properties));
 }
 
+export function skipPath(node) {
+  // skips the entire path, i.e. also all children!
+  node.skipPath = true;
+  return node;
+}
+
 function getLocObjectASTNode(loc) {
   const DISABLE_LOC_FOR_DEBUGGING = false;
   if (DISABLE_LOC_FOR_DEBUGGING) {
@@ -80,15 +86,10 @@ function getLocObjectASTNode(loc) {
   // Using JSON.parse instead of creating object directly because
   // it speeds up overall Babel compile time by a third, and reduces file size
   // by 30%
-  return ignoreNode(
+  return skipPath(
     t.callExpression(
-      ignoreNode(
-        t.memberExpression(
-          ignoredIdentifier("JSON"),
-          ignoredIdentifier("parse")
-        )
-      ),
-      [ignoredStringLiteral(JSON.stringify(loc))]
+      t.memberExpression(t.identifier("JSON"), t.identifier("parse")),
+      [t.stringLiteral(JSON.stringify(loc))]
     )
   );
 
@@ -106,28 +107,22 @@ function getLocObjectASTNode(loc) {
 
 let noLocCount = 0;
 export function createOperation(opType, opArgs, astArgs = null, loc = null) {
-  const argsAreArray = opArgs.length !== undefined;
-
   if (!loc) {
     noLocCount++;
     console.log("no loc for", opType, noLocCount);
   }
 
-  if (argsAreArray) {
-    // todo: remove this branch in the future, should always use obj
-    var call = ignoredCallExpression(FunctionNames.doOperation, [
-      ignoredStringLiteral(opType),
-      ...opArgs
-    ]);
-  } else {
-    // object
-    var call = ignoredCallExpression(FunctionNames.doOperation, [
-      ignoredStringLiteral(opType),
-      ignoredObjectExpression(opArgs),
-      astArgs !== null ? ignoredObjectExpression(astArgs) : t.nullLiteral(),
-      loc ? getLocObjectASTNode(loc) : t.nullLiteral()
-    ]);
-  }
+  var call = ignoredCallExpression(FunctionNames.doOperation, [
+    ignoredStringLiteral(opType),
+    ignoredObjectExpression(opArgs),
+    astArgs !== null
+      ? skipPath(ignoredObjectExpression(astArgs))
+      : t.nullLiteral(),
+    loc ? getLocObjectASTNode(loc) : t.nullLiteral()
+  ]);
+  call.skipKeys = {
+    callee: true
+  };
 
   if (loc) {
     call.loc = loc;
@@ -135,9 +130,8 @@ export function createOperation(opType, opArgs, astArgs = null, loc = null) {
   return call;
 }
 
-export const getLastOperationTrackingResultCall = ignoredCallExpression(
-  FunctionNames.getLastOperationTrackingResult,
-  []
+export const getLastOperationTrackingResultCall = skipPath(
+  ignoredCallExpression(FunctionNames.getLastOperationTrackingResult, [])
 );
 
 export function isInLeftPartOfAssignmentExpression(path) {
@@ -193,10 +187,12 @@ export function runIfIdentifierExists(identifierName, thenNode) {
     t.logicalExpression(
       "&&",
       iN(
-        t.binaryExpression(
-          "!==",
-          iN(t.unaryExpression("typeof", ignoredIdentifier(identifierName))),
-          ignoredStringLiteral("undefined")
+        skipPath(
+          t.binaryExpression(
+            "!==",
+            iN(t.unaryExpression("typeof", ignoredIdentifier(identifierName))),
+            ignoredStringLiteral("undefined")
+          )
         )
       ),
       thenNode
@@ -213,17 +209,21 @@ export function createSetMemoValue(key, value, trackingValue) {
 }
 
 export function createGetMemoArray(key) {
-  return ignoredCallExpression("__getMemoArray", [ignoredStringLiteral(key)]);
+  return skipPath(
+    ignoredCallExpression("__getMemoArray", [ignoredStringLiteral(key)])
+  );
 }
 
 export function createGetMemoValue(key) {
-  return ignoredCallExpression("__getMemoValue", [ignoredStringLiteral(key)]);
+  return skipPath(
+    ignoredCallExpression("__getMemoValue", [ignoredStringLiteral(key)])
+  );
 }
 
 export function createGetMemoTrackingValue(key) {
-  return ignoredCallExpression("__getMemoTrackingValue", [
-    ignoredStringLiteral(key)
-  ]);
+  return skipPath(
+    ignoredCallExpression("__getMemoTrackingValue", [ignoredStringLiteral(key)])
+  );
 }
 
 export const getLastOpValue = ignoredCallExpression(
