@@ -1077,7 +1077,7 @@ const operations: Operations = {
   identifier: {
     exec: (args, astArgs, ctx: ExecContext) => {
       if (astArgs && astArgs.isArguments) {
-        if (args.allFnArgTrackingValues) {
+        if (args.allFnArgTrackingValues[0]) {
           args.allFnArgTrackingValues[0].forEach((trackingValue, i) => {
             ctx.trackObjectPropertyAssignment(
               args.value[0],

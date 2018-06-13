@@ -76,8 +76,9 @@ class ProxyInstrumenter {
       // ctx may be null
       if (ctx) {
         url = getUrl(ctx);
+        this.finishRequest(ctx.requestId);
       }
-      this.finishRequest(ctx.requestId);
+
       console.error("[PROXY]" + errorKind + " on " + url + ":", err);
     });
 
@@ -391,7 +392,7 @@ class ProxyInstrumenter {
             resolve(response);
             compilerProcess.kill();
           })
-          .on("error", (error) => {
+          .on("error", error => {
             this.log("worker error", error);
           });
       }
