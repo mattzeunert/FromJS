@@ -28,8 +28,8 @@ startProxy({
   handleEvalScript,
   port: proxyPort,
   instrumenterFilePath: __dirname + "/instrumentCode.js",
+  verbose: false,
   shouldInstrument: ({ port, path }) => {
-    console.log("shoul", path, bePort);
     return port !== bePort || path.startsWith("/start");
   },
   rewriteHtml: html => {
