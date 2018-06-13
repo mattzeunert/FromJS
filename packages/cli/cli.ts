@@ -25,18 +25,20 @@ if (commander.shouldOpenBrowser === "only") {
   console.log("Only opening browser with proxy port set to", proxyPort);
   openBrowser();
 } else {
-  const backend = new Backend(
-    new BackendOptions({
-      bePort,
-      proxyPort,
-      sessionDirectory: commander.sessionDirectory,
-      onReady: async function() {
-        if (commander.shouldOpenBrowser === "yes") {
-          openBrowser();
-        }
+  const backendOptions = new BackendOptions({
+    bePort,
+    proxyPort,
+    sessionDirectory: commander.sessionDirectory,
+    onReady: async function() {
+      if (commander.shouldOpenBrowser === "yes") {
+        openBrowser();
       }
-    })
-  );
+      console.log(
+        "Root certificate for HTTPS: " + backendOptions.getRootCertPath()
+      );
+    }
+  });
+  const backend = new Backend(backendOptions);
 }
 
 async function openBrowser() {

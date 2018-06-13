@@ -80,7 +80,6 @@ export default class Backend {
     };
 
     function getProxy() {
-      console.log("getproxy", proxyInterface);
       return proxyInterface;
     }
 
