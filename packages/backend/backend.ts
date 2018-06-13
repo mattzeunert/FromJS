@@ -132,6 +132,10 @@ function setupUI(options, app, wss, getProxy) {
   app.get("/", (req, res) => {
     let html = fs.readFileSync(uiDir + "/index.html").toString();
     html = html.replace(/BACKEND_PORT_PLACEHOLDER/g, options.bePort.toString());
+    html = html.replace(
+      /IS_INSPECTING_DEMO_APP_PLACEHOLDER/,
+      isInspectingDemoApp.toString()
+    );
     res.send(html);
   });
 
