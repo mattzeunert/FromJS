@@ -196,8 +196,11 @@ function renderTree(log, containerSelector) {
             <span class="value ${valueClass}">${escapedStr}</span>
           </div>  
         </div>
-        ${hiddenValues.length > 0 &&
-          "Hidden ancestor values: " + hiddenValues.join(", ")}
+        ${
+          hiddenValues.length > 1
+            ? "Hidden ancestor values: " + hiddenValues.join(", ")
+            : ""
+        }
         
       </div>`,
 
