@@ -12,7 +12,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<
 > {
   render() {
     if (!this.props.inspectionTarget || !this.props.inspectionTarget.logId) {
-      return <div>no inspection target (maybe no data was captured)</div>;
+      return <div>No tracking data available</div>;
     }
     let stepsToShow = [];
     let steps = this.props.steps;
