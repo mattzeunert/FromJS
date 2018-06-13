@@ -3,7 +3,11 @@ import { selectInspectedDomCharIndex } from "./actions";
 
 let backendPort = window["backendPort"];
 let backendRoot = "http://localhost:" + backendPort;
+const resolveStackFrameCache = {};
 export function resolveStackFrame(operationLog) {
+  if (resolveStackFrameCache[operationLog.index]) {
+    return Promise.resolve(resolveStackFrameCache[operationLog.index]);
+  }
   return fetch(backendRoot + "/resolveStackFrame", {
     method: "POST",
     headers: {
@@ -11,16 +15,20 @@ export function resolveStackFrame(operationLog) {
       "Content-Type": "application/json"
     } as any,
     body: JSON.stringify({
-      stackFrameString: operationLog.stackFrames[0],
       operationLog: operationLog
     })
-  }).then(res => {
-    if (res.status === 500) {
-      throw "resolve stack error";
-    } else {
-      return res.json();
-    }
-  });
+  })
+    .then(res => {
+      if (res.status === 500) {
+        throw "resolve stack error";
+      } else {
+        return res.json();
+      }
+    })
+    .then(res => {
+      resolveStackFrameCache[operationLog.index] = res;
+      return res;
+    });
 }
 
 export function inspectDomChar(charIndex) {

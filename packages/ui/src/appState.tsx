@@ -14,7 +14,7 @@ export default appState;
 
 appState.select("inspectionTarget").on("update", ({ target }) => {
   const inspectionTarget = target.get();
-  if (!inspectionTarget || inspectionTarget.logId === null) {
+  if (!inspectionTarget || !inspectionTarget.logId) {
     console.log("no inspection target!!");
   } else {
     console.time("Load Steps");
