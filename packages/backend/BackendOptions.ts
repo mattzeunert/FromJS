@@ -26,6 +26,6 @@ export class BackendOptions {
   }
 
   getSessionJsonPath() {
-    return path.resolve(this.getCertDirectory(), "session.json");
+    return path.resolve(this.sessionDirectory, "session.json");
   }
 }
