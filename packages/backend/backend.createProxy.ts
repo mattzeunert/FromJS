@@ -17,7 +17,12 @@ export function createProxy(params: CreateProxyWrapperArgs) {
     }
 
     const child = fork(__dirname + "/backend.proxy.js", [
-      JSON.stringify(params)
+      JSON.stringify({
+        accessToken: params.accessToken,
+        bePort: params.options.bePort,
+        proxyPort: params.options.proxyPort,
+        certDirectory: params.options.getCertDirectory()
+      })
     ]);
 
     const proxyInterface = {};
