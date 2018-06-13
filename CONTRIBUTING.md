@@ -19,21 +19,10 @@ I usually run all of these commands:
 * `npm run cli-debug`
 * `npm run cli-browser` (open browser separately so the BE/Proxy process can restart)
 
-To connect to the proxy:
-
 ```
-const puppeteer = require("puppeteer");
-
-(async () => {
-  const browser = await puppeteer.launch({
-    args: ["--proxy-server=127.0.0.1:8081"],
-    headless: false
-  });
-})();
-```
-
 ## Updating the website
 
 To update the React demo and playground make sure `npm run server` is running, then run `npm run build-website`.
 
 The Backbone TodoMVC demo isn't updated. It uses a pre-rendered DOM with tracking data in `data.json`, and with the current setup this can't be replicated. Either way, it would be a bunch of work to make the current setup work on mobile etc, whereas the old demo sort of does work on some phones.
+```

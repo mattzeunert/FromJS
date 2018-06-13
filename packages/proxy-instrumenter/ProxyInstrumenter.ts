@@ -391,8 +391,8 @@ class ProxyInstrumenter {
             resolve(response);
             compilerProcess.kill();
           })
-          .on("error", function(error) {
-            log("worker error", error);
+          .on("error", (error) => {
+            this.log("worker error", error);
           });
       }
     });
