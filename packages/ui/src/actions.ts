@@ -38,3 +38,7 @@ export function selectInspectedDomCharIndex(charIndex) {
 export function expandDomInspector() {
   appState.set("collapseDomInspector", false);
 }
+
+export function setIsInspectingDemoApp(isInspecting) {
+  appState.set("isInspectingDemoApp", isInspecting);
+}
