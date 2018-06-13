@@ -5,6 +5,7 @@ import TraversalStep from "./TraversalStep";
 type TraversalStepsProps = {
   steps?: any[];
   inspectionTarget?: any;
+  collapseDomInspector?: boolean;
 };
 let TraversalSteps = class TraversalSteps extends React.Component<
   TraversalStepsProps,
@@ -60,7 +61,12 @@ let TraversalSteps = class TraversalSteps extends React.Component<
 
     return (
       <div>
-        <div className="title">Inspected JS string:</div>
+        <div className="title">
+          Inspected JS string{" "}
+          {this.props.collapseDomInspector
+            ? " (click a character to view its origin)"
+            : ""}:
+        </div>
         <TraversalStep key={steps[0].operationLog.index} step={steps[0]} />
         <div className="title">Origin of selected character:</div>
         <TraversalStep
@@ -77,12 +83,15 @@ let TraversalSteps = class TraversalSteps extends React.Component<
         <div style={{ height: 10 }} />
         <hr />
         <div style={{ height: 10 }} />
-        <div className="title">Full data flow:</div>
-        {stepsToShow.map(step => (
-          <TraversalStep key={step.operationLog.index} step={step} />
-        ))
-        /* .reverse() */
-        }
+        <div className="title">
+          Full data flow &ndash; the story of how the inspected string was
+          constructed :
+        </div>
+        {stepsToShow
+          .map(step => (
+            <TraversalStep key={step.operationLog.index} step={step} />
+          ))
+          .reverse()}
       </div>
     );
   }
@@ -92,7 +101,8 @@ TraversalSteps = branch(
   {
     debugMode: ["debugMode"],
     steps: ["steps"],
-    inspectionTarget: ["inspectionTarget"]
+    inspectionTarget: ["inspectionTarget"],
+    collapseDomInspector: ["collapseDomInspector"]
   },
   TraversalSteps
 );

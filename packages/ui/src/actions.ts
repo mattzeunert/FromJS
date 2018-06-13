@@ -30,6 +30,7 @@ export function selectInspectedDomCharIndex(charIndex) {
   inspectDomChar(charIndex).then(({ logId, charIndex }) => {
     if (logId) {
       appState.set("inspectionTarget", { logId, charIndex });
+      appState.set("collapseDomInspector", false);
       traverse();
     }
   });

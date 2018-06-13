@@ -1,11 +1,10 @@
 import * as Baobab from "baobab";
-import { loadSteps } from "./api";
 
 var appState = new Baobab({
   debugMode: false,
   steps: [],
   inspectionTarget: null,
-  collapseDomInspector: false,
+  collapseDomInspector: true,
   isInspectingDemoApp: window["isInspectingDemoAppAtPageLoad"]
 });
 window["appState"] = appState;

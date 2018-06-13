@@ -13,10 +13,12 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
     return (
       <div>
         <div className="title">
-          Inspected DOM HTML{this.props.collapseDomInspector && (
+          Inspected DOM HTML{this.props.collapseDomInspector ? (
             <button onClick={() => expandDomInspector()}>
               Show inspected Element
             </button>
+          ) : (
+            " (click a character to view its origin)"
           )}
         </div>
         {!this.props.collapseDomInspector && (

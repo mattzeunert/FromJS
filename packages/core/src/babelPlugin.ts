@@ -23,7 +23,7 @@ import {
 } from "./babelPluginHelpers";
 
 import helperCodeLoaded from "../helperFunctions";
-import { SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION } from "constants";
+
 var helperCode = helperCodeLoaded
   .toString()
   .replace("__FUNCTION_NAMES__", JSON.stringify(FunctionNames));
