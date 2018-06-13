@@ -19,6 +19,8 @@ import * as Baobab from "baobab";
 import { branch, root } from "baobab-react/higher-order";
 import DomInspector from "./DomInspector";
 
+window["__debugActions"] = actions;
+
 import "./main.scss";
 
 // global function used by tree view html
