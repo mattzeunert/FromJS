@@ -2,6 +2,15 @@ import operations, { eachArgument } from "../operations";
 
 export class LogServer {
   getLog(logIndex: number, cb: any) {}
+  hasLog(logIndex: number, cb: (hasLog: boolean) => void) {
+    this.loadLog(
+      logIndex,
+      function(err, log) {
+        cb(!err);
+      },
+      0
+    );
+  }
   loadLog(log, fn, maxDepth = Number.POSITIVE_INFINITY, currentDepth = 0) {
     // console.count("load")
     let logIndex;

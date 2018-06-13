@@ -297,20 +297,44 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
   });
 
   app.post("/traverse", (req, res) => {
-    // crude way to first wait for any new logs to be sent through...
-    setTimeout(async function() {
+    const { logId, charIndex } = req.body;
+    const tryTraverse = (previousAttempts = 0) => {
+      logServer.hasLog(logId, hasLog => {
+        if (hasLog) {
+          finishRequest();
+        } else {
+          const timeout = 250;
+          const timeElapsed = timeout * previousAttempts;
+          if (timeElapsed > 2000) {
+            res.status(500);
+            res.end(
+              JSON.stringify({
+                err: "Log not found - might still be saving data"
+              })
+            );
+          } else {
+            setTimeout(() => {
+              tryTraverse(previousAttempts + 1);
+            }, timeout);
+          }
+        }
+      });
+    };
+
+    const finishRequest = async function finishRequest() {
       var steps = await traverse(
         {
-          operationLog: req.body.logId,
-          charIndex: req.body.charIndex
+          operationLog: logId,
+          charIndex: charIndex
         },
         [],
         logServer
       );
 
       res.end(JSON.stringify({ steps }));
-      // });
-    }, 500);
+    };
+
+    tryTraverse();
   });
 
   const resolver = new StackFrameResolver({ proxyPort: options.proxyPort });
