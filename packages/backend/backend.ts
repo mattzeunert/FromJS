@@ -63,7 +63,6 @@ export default class Backend {
       };
       saveSessionConfig();
     }
-    console.log(sessionConfig);
 
     var { bePort, proxyPort } = options;
 
