@@ -85,8 +85,9 @@ function plugin(babel) {
   // }
 
   function handleFunction(path) {
+    const declarators: any[] = [];
     path.node.params.forEach((param, i) => {
-      var d = t.variableDeclaration("var", [
+      declarators.push(
         t.variableDeclarator(
           addLoc(t.identifier(getTrackingVarName(param.name)), param.loc),
           t.callExpression(
@@ -94,21 +95,21 @@ function plugin(babel) {
             [t.numericLiteral(i)]
           )
         )
-      ]);
-      skipPath(d);
-      path.node.body.body.unshift(d);
+      );
     });
 
-    var d = t.variableDeclaration("var", [
-      // keep whole list in case the function uses `arguments` object
-      // We can't just access the arg tracking values when `arguments` is used (instead of doing it
-      // at the top of the function)
-      // That's because when we return the argTrackingValues are not reset to the parent function's
+    // keep whole list in case the function uses `arguments` object
+    // We can't just access the arg tracking values when `arguments` is used (instead of doing it
+    // at the top of the function)
+    // That's because when we return the argTrackingValues are not reset to the parent function's
+    declarators.push(
       t.variableDeclarator(
         ignoredIdentifier("__allFnArgTrackingValues"),
         ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [])
       )
-    ]);
+    );
+
+    const d = t.variableDeclaration("let", declarators);
     skipPath(d);
     path.node.body.body.unshift(d);
   }
