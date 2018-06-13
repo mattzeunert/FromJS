@@ -201,7 +201,7 @@ let TraversalStep = class TraversalStep extends React.Component<
                       if (!canInspect) {
                         return;
                       }
-                      selectAndTraverse(value.index, 0);
+                      selectAndTraverse(value.index, 0, "traversalStep");
                     }}
                   >
                     <span style={{ color: "#b91212" }}>{name}:</span>
@@ -236,7 +236,11 @@ let TraversalStep = class TraversalStep extends React.Component<
               text={str}
               highlightedCharacterIndex={charIndex}
               onCharacterClick={charIndex =>
-                appState.set(["inspectionTarget", "charIndex"], charIndex)
+                selectAndTraverse(
+                  appState.get("inspectionTarget").logId,
+                  charIndex,
+                  "traversalStep"
+                )
               }
             />
           </div>

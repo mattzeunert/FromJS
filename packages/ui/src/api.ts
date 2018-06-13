@@ -1,5 +1,5 @@
 import appState from "./appState";
-import { selectInspectedDomCharIndex } from "./actions";
+import { selectInspectedDomCharIndex, selectAndTraverse } from "./actions";
 
 let backendPort = window["backendPort"];
 let backendRoot = "http://localhost:" + backendPort;
@@ -69,12 +69,8 @@ exampleSocket.onmessage = function(event) {
   console.log("websocket onmessage", event.data);
   const message = JSON.parse(event.data);
   if (message.type === "inspectOperationLog") {
-    appState.set("inspectionTarget", {
-      logId: message.operationLogId,
-      charIndex: 0
-    });
+    selectAndTraverse(message.operationLogId, 0);
   } else if (message.type === "inspectDOM") {
-    console.log("inspectdom", event);
     handleDomToInspectMessage(message);
   }
 };
@@ -97,10 +93,7 @@ fetch(backendRoot + "/inspect", {
   .then(res => res.json())
   .then(r => {
     const { logToInspect } = r;
-    appState.set("inspectionTarget", {
-      logId: logToInspect,
-      charIndex: 0
-    });
+    selectAndTraverse(logToInspect, 0);
   });
 
 fetch(backendRoot + "/inspectDOM", {
