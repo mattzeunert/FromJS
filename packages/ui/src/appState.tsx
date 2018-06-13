@@ -5,7 +5,8 @@ var appState = new Baobab({
   debugMode: false,
   steps: [],
   inspectionTarget: null,
-  collapseDomInspector: false
+  collapseDomInspector: false,
+  isInspectingDemoApp: true
 });
 window["appState"] = appState;
 

@@ -18,6 +18,7 @@ import { callApi, loadSteps } from "./api";
 import * as Baobab from "baobab";
 import { branch, root } from "baobab-react/higher-order";
 import DomInspector from "./DomInspector";
+import * as cx from "classnames";
 
 window["__debugActions"] = actions;
 
@@ -28,19 +29,38 @@ window["showSteps"] = function(logId, charIndex) {
   actions.selectAndTraverse(logId, charIndex);
 };
 
-let App = () => {
+let App = props => {
   return (
-    <div>
-      <DomInspector />
-      <TraversalSteps />
-      <button
-        onClick={() => appState.set("debugMode", !appState.get("debugMode"))}
-      >
-        Debug
-      </button>
+    <div
+      className={cx("app", {
+        "app--isInspectingDemoApp": props.isInspectingDemoApp
+      })}
+    >
+      <div className="app__inspector">
+        <DomInspector />
+        <TraversalSteps />
+        <button
+          onClick={() => appState.set("debugMode", !appState.get("debugMode"))}
+        >
+          Debug
+        </button>
+      </div>
+      <div
+        dangerouslySetInnerHTML={{
+          __html: `<iframe src="http://localhost:${location.port}/start/" />`
+        }}
+        className="app__demo"
+      />
     </div>
   );
 };
+
+App = branch(
+  {
+    isInspectingDemoApp: ["isInspectingDemoApp"]
+  },
+  App
+);
 
 App = root(appState, App);
 
