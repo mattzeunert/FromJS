@@ -12,12 +12,16 @@ export function createProxy(params: CreateProxyWrapperArgs) {
 
     // If debugging parent process allow debuggign child process as well
     if (process.execArgv.join(",").includes("--inspect")) {
-      console.log("starting proxy with --inspect");
       process.execArgv.push("--inspect=" + 9223);
     }
 
     const child = fork(__dirname + "/backend.proxy.js", [
-      JSON.stringify(params)
+      JSON.stringify({
+        accessToken: params.accessToken,
+        bePort: params.options.bePort,
+        proxyPort: params.options.proxyPort,
+        certDirectory: params.options.getCertDirectory()
+      })
     ]);
 
     const proxyInterface = {};
@@ -33,9 +37,7 @@ export function createProxy(params: CreateProxyWrapperArgs) {
     child.on("message", function(message) {
       if (message.type === "isReady") {
         resolve(proxyInterface);
-        console.log("ready");
       }
-      console.log("got message from proxy process", arguments);
     });
   });
 }

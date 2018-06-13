@@ -5,9 +5,9 @@ import { LogServer } from "./LogServer";
 
 export default class LevelDBLogServer extends LogServer {
   db: any;
-  constructor() {
+  constructor(dbPath: string) {
     super();
-    this.db = levelup(leveldown("./mydb"));
+    this.db = levelup(leveldown(dbPath));
   }
   storeLog(log: OperationLog) {
     this.db.put(log.index.toString(), JSON.stringify(log), function(err) {
@@ -20,7 +20,6 @@ export default class LevelDBLogServer extends LogServer {
   ) {
     this.db.get(index.toString(), function(err, value) {
       if (err) {
-        console.log("leveldb get err", err);
         fn(err, null);
         return;
       }

@@ -45,6 +45,7 @@ describe("ProxyInstrumenter", () => {
       port: proxyPort,
       instrumenterFilePath: __dirname + "/testInstrumenter.js",
       silent: true,
+      certDirectory: "./fromjs-session/certs",
       rewriteHtml: html => {
         return html + "EXTRA_HTML";
       },

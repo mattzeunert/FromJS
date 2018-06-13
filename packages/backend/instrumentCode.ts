@@ -27,11 +27,11 @@ function instrumentCode() {
       // because there might be other environemnts being created
       // in iframes or web workers
       try {
-        console.time("[COMPILER] Compile " + url);
+        // console.time("[COMPILER] Compile " + url);
         const ret = compileSync(code, {}, url);
 
         resolve(ret);
-        console.timeEnd("[COMPILER] Compile " + url);
+        // console.timeEnd("[COMPILER] Compile " + url);
       } catch (err) {
         console.log("FAILED " + url, err);
         reject(err);
@@ -57,7 +57,6 @@ module.exports = function instrument(args, done) {
 
   instrumentCode()(body, url, babelPluginOptions).then(
     function(result) {
-      console.log("[COMPILER] Done process for", url);
       done(result);
     },
     function(err) {
