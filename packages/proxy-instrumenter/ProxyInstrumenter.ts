@@ -347,11 +347,11 @@ class ProxyInstrumenter {
 
   getSourceMap(url) {
     var jsUrl = url.replace(".js.map", ".js");
-    console.time("Get sourceMap" + url);
+    // console.time("Get sourceMap" + url);
     return new Promise(resolve => {
       this.proxiedFetchUrl(jsUrl).then(body => {
         this.processCode(body, jsUrl).then(function(result) {
-          console.timeEnd("Get sourceMap" + url);
+          // console.timeEnd("Get sourceMap" + url);
           resolve(result.map);
         });
       });

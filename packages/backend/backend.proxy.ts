@@ -5,8 +5,6 @@ declare var process: any;
 import { BackendOptions } from "./BackendOptions";
 process.title = "FromJS - Proxy";
 process.on("message", function(message) {
-  console.log("proxy got messsage", arguments);
-  // debugger;
   if (message.arguments[1]) {
     throw Error("todo......");
   }
