@@ -158,7 +158,6 @@ path {
 }
 
 .step {
-  max-width: 90%;
   margin-bottom: 10px;
   border: 1px solid rgb(221, 221, 221);
 }
@@ -174,6 +173,7 @@ path {
   .app__inspector {
     float: left;
     width: 100%;
+    padding: 10px;
   }
   .app__demo {
     display: none;
@@ -182,14 +182,15 @@ path {
   }
   &.app--isInspectingDemoApp {
     .app__inspector {
-      width: 59%;
+      width: 60%;
     }
     .app__demo {
       display: block;
       width: 40%;
       iframe {
         width: 100%;
-        height: 450px;
+        height: 500px;
+        border: 2px solid #ddd;
       }
     }
   }
