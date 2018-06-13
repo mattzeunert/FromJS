@@ -819,6 +819,11 @@ const operations: Operations = {
         fnArgs["arg" + i] = arg;
       });
 
+      const astArgs = {};
+      if (isNewExpression) {
+        astArgs["isNewExpression"] = ignoreNode(t.booleanLiteral(true));
+      }
+
       var call = operations.callExpression.createNode!(
         {
           function: [
@@ -830,9 +835,7 @@ const operations: Operations = {
           context: [executionContext, executionContextTrackingValue],
           ...fnArgs
         },
-        {
-          isNewExpression: ignoreNode(t.booleanLiteral(isNewExpression))
-        },
+        astArgs,
         path.node.callee.loc
       );
 
@@ -961,7 +964,7 @@ const operations: Operations = {
       return skipPath(
         this.createNode!(
           {
-            value: [ignoredStringLiteral(path.node.value), t.nullLiteral()]
+            value: [ignoredStringLiteral(path.node.value)]
           },
           {},
           path.node.loc
@@ -980,7 +983,7 @@ const operations: Operations = {
       return skipPath(
         this.createNode!(
           {
-            value: [ignoredNumericLiteral(path.node.value), t.nullLiteral()]
+            value: [ignoredNumericLiteral(path.node.value)]
           },
           null,
           path.node.loc
@@ -1120,8 +1123,7 @@ const operations: Operations = {
       if (node.name === "arguments") {
         astArgs = { isArguments: ignoreNode(t.booleanLiteral(true)) };
         args.allFnArgTrackingValues = ignoredArrayExpression([
-          ignoredIdentifier("__allFnArgTrackingValues"),
-          ignoreNode(t.nullLiteral())
+          ignoredIdentifier("__allFnArgTrackingValues")
         ]);
       }
 
@@ -1800,8 +1802,7 @@ const operations: Operations = {
 
       let operationArguments = {
         type: ignoredArrayExpression([
-          ignoredStringLiteral(path.node.left.type),
-          t.nullLiteral()
+          ignoredStringLiteral(path.node.left.type)
         ])
       };
 
