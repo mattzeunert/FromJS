@@ -77,7 +77,7 @@ class ProxyInstrumenter {
       if (ctx) {
         url = getUrl(ctx);
       }
-      this.finishRequest(url);
+      this.finishRequest(ctx.requestId);
       console.error("[PROXY]" + errorKind + " on " + url + ":", err);
     });
 
@@ -127,7 +127,8 @@ class ProxyInstrumenter {
         var value = this.urlCache[url].headers[name];
         ctx.proxyToClientResponse.setHeader(name, value);
       });
-      this.finishRequest(url);
+
+      this.preventBrowserCaching(ctx);
       ctx.proxyToClientResponse.end(new Buffer(this.urlCache[url].body));
       return;
     }
@@ -226,9 +227,24 @@ class ProxyInstrumenter {
     });
   }
 
+  preventBrowserCaching(ctx) {
+    try {
+      ctx.proxyToClientResponse.setHeader(
+        "Cache-Control",
+        "no-cache, no-store, must-revalidate"
+      );
+      ctx.proxyToClientResponse.setHeader("Pragma", "no-cache");
+      ctx.proxyToClientResponse.setHeader("Expires", "0");
+    } catch (err) {
+      console.log(err, getUrl(ctx));
+    }
+  }
+
   waitForResponseEnd(ctx) {
     var jsFetchStartTime = new Date();
     return new Promise<any>(resolve => {
+      this.preventBrowserCaching(ctx);
+
       var chunks: any[] = [];
       ctx.onResponseData(function(ctx, chunk, callback) {
         chunks.push(chunk);
