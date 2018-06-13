@@ -24,4 +24,8 @@ export class BackendOptions {
   getRootCertPath() {
     return path.resolve(this.getCertDirectory(), "certs", "ca.pem");
   }
+
+  getSessionJsonPath() {
+    return path.resolve(this.getCertDirectory(), "session.json");
+  }
 }
