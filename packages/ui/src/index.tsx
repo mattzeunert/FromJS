@@ -45,12 +45,14 @@ let App = props => {
           Debug
         </button>
       </div>
-      <div
-        dangerouslySetInnerHTML={{
-          __html: `<iframe src="http://localhost:${location.port}/start/" />`
-        }}
-        className="app__demo"
-      />
+      {props.isInspectingDemoApp && (
+        <div
+          dangerouslySetInnerHTML={{
+            __html: `<iframe src="http://localhost:${location.port}/start/" />`
+          }}
+          className="app__demo"
+        />
+      )}
     </div>
   );
 };
