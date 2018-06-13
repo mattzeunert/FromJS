@@ -36,11 +36,16 @@ let App = props => {
       <p>To inspect any website open a new tab in this browser and load it.</p>
       <p>
         To select the value you want to inspect:<br /> 1) Click "Enable DOM
-        Inspector" and then select an element <br />2) Use fromJSInspect(value)
+        Inspector" and then select an element <br />2) Use{" "}
+        <code>fromJSInspect(value)</code>
         in your source code
       </p>
       <p>
         After selecting a value this page will show its dataflow information.
+      </p>
+      <p>
+        Ask questions and report bugs{" "}
+        <a href="https://github.com/mattzeunert/FromJS/issues">on Github</a>.
       </p>
     </div>
   );
