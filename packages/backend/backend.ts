@@ -30,8 +30,23 @@ let coreDir = require
   .join("/");
 let startPageDir = path.resolve(__dirname + "/../start-page");
 
+function ensureDirectoriesExist(options: BackendOptions) {
+  const directories = [
+    options.sessionDirectory,
+    options.getCertDirectory(),
+    options.getTrackingDataDirectory()
+  ];
+  directories.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
+  });
+}
+
 export default class Backend {
   constructor(options: BackendOptions) {
+    ensureDirectoriesExist(options);
+
     var { bePort, proxyPort } = options;
 
     const app = express();
@@ -219,8 +234,8 @@ function setupUI(options, app, wss, getProxy) {
   });
 }
 
-function setupBackend(options, app, wss, getProxy) {
-  const logServer = new LevelDBLogServer();
+function setupBackend(options: BackendOptions, app, wss, getProxy) {
+  const logServer = new LevelDBLogServer(options.getTrackingDataDirectory());
 
   app.get("/jsFiles/compileInBrowser.js", (req, res) => {
     const code = fs
@@ -365,3 +380,5 @@ function allowCrossOrigin(res) {
     "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
   );
 }
+
+export { BackendOptions };

@@ -17,16 +17,14 @@ let proxy;
 
 const options = JSON.parse(process.argv[process.argv.length - 1]);
 
-const {
-  accessToken,
-  options: { bePort, proxyPort }
-} = options;
+const { accessToken, bePort, proxyPort, certDirectory } = options;
 
 startProxy({
   babelPluginOptions: {
     accessToken,
     backendPort: bePort
   },
+  certDirectory: certDirectory,
   handleEvalScript,
   port: proxyPort,
   instrumenterFilePath: __dirname + "/instrumentCode.js",

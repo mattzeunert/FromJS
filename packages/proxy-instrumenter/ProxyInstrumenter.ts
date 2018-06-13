@@ -55,6 +55,7 @@ class ProxyInstrumenter {
   silent = false;
   rewriteHtml: any;
   handleEvalScript: any;
+  certDirectory: string;
 
   constructor({
     babelPluginOptions,
@@ -63,7 +64,8 @@ class ProxyInstrumenter {
     shouldInstrument,
     silent,
     rewriteHtml,
-    handleEvalScript
+    handleEvalScript,
+    certDirectory
   }) {
     this.port = port;
     this.instrumenterFilePath = instrumenterFilePath;
@@ -73,6 +75,8 @@ class ProxyInstrumenter {
     this.rewriteHtml = rewriteHtml;
     this.silent = silent;
     this.handleEvalScript = handleEvalScript;
+    this.certDirectory = certDirectory;
+    console.log("certDirectory", this.certDirectory);
 
     this.proxy.onError((ctx, err, errorKind) => {
       var url = "n/a";
@@ -200,7 +204,7 @@ class ProxyInstrumenter {
 
   start() {
     var port = this.port;
-    this.proxy.listen({ port: port, sslCaDir: "./ca" });
+    this.proxy.listen({ port: port, sslCaDir: this.certDirectory });
     if (!this.silent) {
       log("Listening on " + port);
     }

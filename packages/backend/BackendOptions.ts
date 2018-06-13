@@ -1,5 +1,23 @@
-export interface BackendOptions {
+import * as path from "path";
+
+export class BackendOptions {
   bePort: number;
   proxyPort: number;
+  sessionDirectory: string;
   onReady: () => void;
+
+  constructor({ bePort, proxyPort, sessionDirectory, onReady }) {
+    this.bePort = bePort;
+    this.proxyPort = proxyPort;
+    this.sessionDirectory = sessionDirectory;
+    this.onReady = onReady;
+  }
+
+  getCertDirectory() {
+    return path.resolve(this.sessionDirectory, "certs");
+  }
+
+  getTrackingDataDirectory() {
+    return path.resolve(this.sessionDirectory, "tracking-data");
+  }
 }
