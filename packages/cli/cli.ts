@@ -1,8 +1,8 @@
 import * as commander from "commander";
 import Backend from "@fromjs/backend";
-import * as puppeteer from "puppeteer";
 import * as process from "process";
 import { BackendOptions } from "@fromjs/backend";
+import * as chromeLauncher from "chrome-launcher";
 
 process["titl" + "e"] = "FromJS - CLI";
 
@@ -42,10 +42,8 @@ if (commander.shouldOpenBrowser === "only") {
 }
 
 async function openBrowser() {
-  const browser = await puppeteer.launch({
-    args: ["--proxy-server=127.0.0.1:" + proxyPort],
-    headless: false
+  await chromeLauncher.launch({
+    startingUrl: "http://localhost:" + bePort,
+    chromeFlags: ["--proxy-server=127.0.0.1:" + proxyPort]
   });
-  const page = await browser.newPage();
-  await page.goto("http://localhost:" + bePort);
 }
