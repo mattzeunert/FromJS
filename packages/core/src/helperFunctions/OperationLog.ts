@@ -125,7 +125,7 @@ export default class OperationLog {
     }
 
     if (!loc) {
-      console.log("no loc for operation", operation);
+      console.log("no loc at runtime for operation", operation);
     }
 
     this.stackFrames = stackFrames;
