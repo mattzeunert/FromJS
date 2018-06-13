@@ -5,19 +5,14 @@ import { callApi, inspectDomChar } from "./api";
 import { selectInspectedDomCharIndex } from "./actions";
 import { TextEl } from "./TextEl";
 
-let inspectDom;
 let DomInspector = class DomInspector extends React.Component<any, any> {
   render() {
-    // if (Math.random() > 0.0000000001) {
-    //   return null;
-    // }
-
     if (!this.props.domToInspect) {
       return null;
     }
     return (
       <div>
-        <div className="title">Inspect DOM HTML</div>
+        <div className="title">Inspected DOM HTML</div>
         <div style={{ border: "1px solid #ddd", marginBottom: 10 }}>
           <TextEl
             highlightedCharacterIndex={this.props.domToInspect.charIndex}
