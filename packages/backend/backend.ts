@@ -104,7 +104,7 @@ export default class Backend {
     });
 
     server.listen(bePort, () =>
-      console.log("Backend server listening on port " + bePort)
+      console.log("Server listening on port " + bePort)
     );
   }
 }
@@ -286,11 +286,6 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
   app.post("/traverse", (req, res) => {
     // crude way to first wait for any new logs to be sent through...
     setTimeout(async function() {
-      console.log("traverse", req.body);
-      console.time("loading log for traverse");
-
-      // internalServerInterface.loadLog(req.body.logId, async function (log) {
-      console.timeEnd("loading log for traverse");
       var steps = await traverse(
         {
           operationLog: req.body.logId,

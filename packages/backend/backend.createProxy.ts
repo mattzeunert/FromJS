@@ -12,7 +12,6 @@ export function createProxy(params: CreateProxyWrapperArgs) {
 
     // If debugging parent process allow debuggign child process as well
     if (process.execArgv.join(",").includes("--inspect")) {
-      console.log("starting proxy with --inspect");
       process.execArgv.push("--inspect=" + 9223);
     }
 
@@ -38,9 +37,7 @@ export function createProxy(params: CreateProxyWrapperArgs) {
     child.on("message", function(message) {
       if (message.type === "isReady") {
         resolve(proxyInterface);
-        console.log("ready");
       }
-      console.log("got message from proxy process", arguments);
     });
   });
 }

@@ -3,15 +3,6 @@ import * as waitUntil from "wait-until";
 import * as fs from "fs";
 import * as Proxy from "http-mitm-proxy";
 
-function logWithPrefix(prefix) {
-  return function log(...args) {
-    args.unshift(prefix);
-    console.log.apply(console, args);
-  };
-}
-
-const log = logWithPrefix("[PROXY]");
-
 ////////////////////////
 
 Error["stackTraceLimit"] = Infinity;
@@ -56,6 +47,7 @@ class ProxyInstrumenter {
   rewriteHtml: any;
   handleEvalScript: any;
   certDirectory: string;
+  verbose: boolean;
 
   constructor({
     babelPluginOptions,
@@ -65,7 +57,8 @@ class ProxyInstrumenter {
     silent,
     rewriteHtml,
     handleEvalScript,
-    certDirectory
+    certDirectory,
+    verbose
   }) {
     this.port = port;
     this.instrumenterFilePath = instrumenterFilePath;
@@ -76,7 +69,7 @@ class ProxyInstrumenter {
     this.silent = silent;
     this.handleEvalScript = handleEvalScript;
     this.certDirectory = certDirectory;
-    console.log("certDirectory", this.certDirectory);
+    this.verbose = verbose;
 
     this.proxy.onError((ctx, err, errorKind) => {
       var url = "n/a";
@@ -91,7 +84,7 @@ class ProxyInstrumenter {
     this.proxy.onRequest(this.onRequest.bind(this));
 
     this.proxy.onResponseEnd((ctx, callback) => {
-      // log(
+      // this.log(
       //   "resp end",
       //   getUrl(ctx),
       //   "#req still in progress:",
@@ -99,6 +92,11 @@ class ProxyInstrumenter {
       // );
       callback();
     });
+  }
+
+  log(...args) {
+    args.unshift("[PROXY]");
+    console.log.apply(console, args);
   }
 
   onRequest(ctx, callback) {
@@ -112,8 +110,8 @@ class ProxyInstrumenter {
     var url = requestInfo.url;
     ctx.requestId = url + "_" + Math.random();
 
-    if (!this.silent) {
-      log("Request: " + url);
+    if (!this.silent && this.verbose) {
+      this.log("Request: " + url);
     }
 
     if (url === "http://example.com/verifyProxyWorks") {
@@ -122,7 +120,9 @@ class ProxyInstrumenter {
     }
 
     if (this.urlCache[url]) {
-      log("Url cache hit!");
+      if (this.verbose) {
+        this.log("Url cache hit!");
+      }
       Object.keys(this.urlCache[url].headers).forEach(name => {
         var value = this.urlCache[url].headers[name];
         ctx.proxyToClientResponse.setHeader(name, value);
@@ -161,7 +161,7 @@ class ProxyInstrumenter {
               done(result.code);
             },
             err => {
-              log("process code error", err);
+              this.log("process code error", err);
               this.finishRequest(ctx.requestId);
               done(body);
             }
@@ -178,7 +178,7 @@ class ProxyInstrumenter {
           ctx.serverToProxyResponse.headers["content-type"];
 
         if (contentTypeHeader && contentTypeHeader.includes("text/html")) {
-          log("file name looked like js but is text/html", url);
+          this.log("file name looked like js but is text/html", url);
           sendResponse(this.rewriteHtml(body));
           return;
         }
@@ -205,9 +205,6 @@ class ProxyInstrumenter {
   start() {
     var port = this.port;
     this.proxy.listen({ port: port, sslCaDir: this.certDirectory });
-    if (!this.silent) {
-      log("Listening on " + port);
-    }
     // Was having issues in CI, so make sure to wait for proxy to be ready
     return new Promise(resolve => {
       waitUntil()
@@ -245,8 +242,8 @@ class ProxyInstrumenter {
         var body = buffer.toString();
         var msElapsed = new Date().valueOf() - jsFetchStartTime.valueOf();
         var speed = Math.round(buffer.byteLength / msElapsed / 1000 * 1000);
-        if (!this.silent) {
-          log(
+        if (!this.silent && this.verbose) {
+          this.log(
             "JS ResponseEnd",
             getUrl(ctx),
             "Time:",
@@ -261,6 +258,7 @@ class ProxyInstrumenter {
         const sendResponse = responseBody => {
           this.finishRequest(ctx.requestId);
           if (body.length === 0) {
+            // console.log(body, responseBody);
             console.log("EMPTY RESPONSE", getUrl(ctx));
           } else {
             this.urlCache[getUrl(ctx)] = {

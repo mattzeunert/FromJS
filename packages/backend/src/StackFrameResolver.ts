@@ -78,7 +78,6 @@ class StackFrameResolver {
   _proxyPort: number | null = null;
 
   constructor({ proxyPort }) {
-    console.log("creating stackframeresolver", proxyPort);
     this._proxyPort = proxyPort;
     this._gps = new StackTraceGPS({ ajax: this._ajax.bind(this) });
   }
