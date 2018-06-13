@@ -30,6 +30,20 @@ window["showSteps"] = function(logId, charIndex) {
 };
 
 let App = props => {
+  const welcome = (
+    <div className="welcome">
+      <h2>FromJS</h2>
+      <p>To inspect any website open a new tab in this browser and load it.</p>
+      <p>
+        To select the value you want to inspect:<br /> 1) Click "Enable DOM
+        Inspector" and then select an element <br />2) Use fromJSInspect(value)
+        in your source code
+      </p>
+      <p>
+        After selecting a value this page will show its dataflow information.
+      </p>
+    </div>
+  );
   return (
     <div
       className={cx("app", {
@@ -46,13 +60,18 @@ let App = props => {
         </button>
       </div>
       {props.isInspectingDemoApp && (
-        <div
-          dangerouslySetInnerHTML={{
-            __html: `<iframe src="http://localhost:${location.port}/start/" />`
-          }}
-          className="app__demo"
-        />
+        <div className="app__demo">
+          {welcome}
+          <div
+            dangerouslySetInnerHTML={{
+              __html: `<iframe src="http://localhost:${
+                location.port
+              }/start/" />`
+            }}
+          />
+        </div>
       )}
+      {!props.isInspectingDemoApp && welcome}
     </div>
   );
 };
