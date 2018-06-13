@@ -231,36 +231,11 @@ function plugin(babel) {
         throw Error("not sure what this is");
       }
 
-      path.traverse({
-        ExpressionStatement(path) {
-          // replace `for (i in k) sth` with `for (i in k) {sth}`
-          if (path.parent.type !== "ForInStatement") {
-            return;
-          }
-          path.replaceWith(babel.types.blockStatement([path.node]));
-        },
-        IfStatement(path) {
-          // replace `for (i in k) if () sth` with `for (i in k) {if () sth}`
-          if (path.parent.type !== "ForInStatement") {
-            return;
-          }
-          path.replaceWith(babel.types.blockStatement([path.node]));
-        },
-        ReturnStatement(path) {
-          if (path.parent.type !== "ForInStatement") {
-            return;
-          }
-          path.replaceWith(babel.types.blockStatement([path.node]));
-        },
-        ForStatement(path) {
-          // replace `for (i in k) for () abc` with `for (i in k) {for () abc}`
-          if (path.parent.type !== "ForInStatement") {
-            return;
-          }
-          path.replaceWith(babel.types.blockStatement([path.node]));
-        }
-        // TODO: are there other statement types I need to handle???
-      });
+      if (path.node.body.type !== "BlockStatement") {
+        path.node.body = ignoreNode(
+          babel.types.blockStatement([path.node.body])
+        );
+      }
 
       if (isNewVariable) {
         var declaration = ignoreNode(
@@ -272,13 +247,17 @@ function plugin(babel) {
       }
 
       var assignment = ignoreNode(
-        t.assignmentExpression(
-          "=",
-          ignoredIdentifier(getTrackingVarName(varName)),
-          ignoredCallExpression("getObjectPropertyNameTrackingValue", [
-            ignoreNode(path.node.right),
-            ignoredIdentifier(varName)
-          ])
+        t.expressionStatement(
+          ignoreNode(
+            t.assignmentExpression(
+              "=",
+              ignoredIdentifier(getTrackingVarName(varName)),
+              ignoredCallExpression("getObjectPropertyNameTrackingValue", [
+                ignoreNode(path.node.right),
+                ignoredIdentifier(varName)
+              ])
+            )
+          )
         )
       );
       path.node.body.body.unshift(assignment);

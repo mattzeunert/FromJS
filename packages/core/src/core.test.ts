@@ -66,17 +66,6 @@ describe("UnaryExpression", () => {
   });
 });
 
-test("Can handle for in statements", done => {
-  instrumentAndRun(`
-    var obj = {}
-    for (var key in obj) {}
-    for (key in obj) {}
-    return null
-  `).then(({ normal, tracking }) => {
-    done();
-  });
-});
-
 test("Can handle function expressions", done => {
   instrumentAndRun(`
     var fn = function sth(){}
@@ -740,6 +729,29 @@ describe("call/apply/bind", () => {
 });
 
 describe("for ... in", () => {
+  test("Can handle multiple complex nested for in statements", done => {
+    // based on some Trello source code that caused problems
+    instrumentAndRun(`
+      var obj = {
+        obj2: {a: 5}
+      }
+      var key1, key2
+      var vOuter, vInner,x
+      function getValue(obj, key) {
+        return obj[key]
+      }
+      for (key in obj)
+      for (key2 in ((x = 12), (vOuter = getValue(obj, key))))
+        (vInner = vOuter[key2]), (vInner += 2);
+
+      return vInner /* 7 */ + x /* 12 */
+
+    `).then(({ normal, tracking }) => {
+      expect(normal).toBe(19);
+      done();
+    });
+  });
+
   it("Tracks for in key variables", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
     const obj = {a: "b"}
