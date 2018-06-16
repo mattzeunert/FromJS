@@ -17,6 +17,7 @@
     "access": "public"
   },
   "devDependencies": {
+    "@types/jest": "^23.1.0",
     "puppeteer": "^1.5.0"
   }
 }
