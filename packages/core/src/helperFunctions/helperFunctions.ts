@@ -166,7 +166,9 @@ declare var __FUNCTION_NAMES__,
     if (!argTrackingInfo && typeof value === "number") {
       logId = value;
     } else if (value instanceof Node) {
-      postToBE("/inspectDOM", getHtmlNodeOperationLogMapping(value));
+      const mapping = getHtmlNodeOperationLogMapping(value);
+      console.log({ mapping });
+      postToBE("/inspectDOM", mapping);
     } else {
       logId = argTrackingInfo[0];
     }
@@ -174,6 +176,17 @@ declare var __FUNCTION_NAMES__,
       logId
     });
   };
+
+  function getTrackingPropName(propName) {
+    // note: might be worth using Map instead and seeing how perf is affected
+    if (typeof propName === "symbol") {
+      return propName;
+    } else {
+      // "_" prefix because to avoid conflict with normal object methods,
+      // e.g. there used to be problems when getting tracking value for "constructor" prop
+      return "_" + propName;
+    }
+  }
 
   const objTrackingMap = new Map();
   window["__debugObjTrackingMap"] = objTrackingMap;
@@ -199,9 +212,7 @@ declare var __FUNCTION_NAMES__,
     ) {
       debugger;
     }
-    // "_" prefix because to avoid conflict with normal object methods,
-    // e.g. there used to be problems when getting tracking value for "constructor" prop
-    objectPropertyTrackingInfo["_" + propName] = {
+    objectPropertyTrackingInfo[getTrackingPropName(propName)] = {
       value: propertyValueTrackingValue,
       name: propertyNameTrackingValue
     };
@@ -212,7 +223,8 @@ declare var __FUNCTION_NAMES__,
     if (!objectPropertyTrackingInfo) {
       return null;
     }
-    const trackingValues = objectPropertyTrackingInfo["_" + propName];
+    const trackingValues =
+      objectPropertyTrackingInfo[getTrackingPropName(propName)];
     if (!trackingValues) {
       return null;
     }
