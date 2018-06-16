@@ -3,7 +3,7 @@ import KnownValues from "./KnownValues";
 var global = Function("return this")();
 
 // todo: would be better if the server provided this value
-const getOperationIndex = (function() {
+export const getOperationIndex = (function() {
   var operationIndexBase = Math.round(Math.random() * 1000 * 1000 * 1000);
   var operationIndex = 0;
   return function getOperationIndex() {
@@ -108,7 +108,8 @@ export default class OperationLog {
     stackFrames,
     loc,
     knownValues,
-    runtimeArgs
+    runtimeArgs,
+    index
   }) {
     var arrayArguments: any[] = [];
     if (operation === "arrayExpression") {
@@ -170,6 +171,6 @@ export default class OperationLog {
     this.args = args;
     this.astArgs = astArgs;
     this.extraArgs = extraArgs;
-    this.index = getOperationIndex();
+    this.index = index;
   }
 }
