@@ -8,7 +8,13 @@ const proxyPort = port + 1;
 
 function startServer() {
   const requestHandler = (request, response) => {
-    response.end(`Hi World!`);
+    if (request.url.includes("/html")) {
+      response.end(`
+        <script src="sth.js" integrity="sha384-473gyfhsfsk" crossorigin="anonymous"></script>
+      `);
+    } else {
+      response.end(`Hi World!`);
+    }
   };
 
   const server = http.createServer(requestHandler);
@@ -110,6 +116,19 @@ describe("ProxyInstrumenter", () => {
         accept: "text/html"
       });
       expect(response).toContain("EXTRA_HTML");
+    },
+    10000
+  );
+
+  it(
+    "Removes script tag integrity checks",
+    async () => {
+      const response = await makeRequest("/html", {
+        accept: "text/html"
+      });
+      expect(response).toContain(
+        `<script src="sth.js" crossorigin="anonymous"></script>`
+      );
     },
     10000
   );
