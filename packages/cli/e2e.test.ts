@@ -1,5 +1,6 @@
 const { spawn } = require("child_process");
 const puppeteer = require("puppeteer");
+const killPort = require("kill-port");
 
 function setTimeoutPromise(timeout) {
   return new Promise(resolve => {
@@ -19,6 +20,11 @@ function waitForProxyReady(command) {
 }
 
 describe("E2E", () => {
+  beforeAll(async () => {
+    await killPort(12100);
+    await killPort(12101);
+  });
+
   let command;
   it(
     "works",
