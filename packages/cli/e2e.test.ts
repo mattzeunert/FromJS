@@ -7,12 +7,24 @@ function setTimeoutPromise(timeout) {
   });
 }
 
+function waitForProxyReady(command) {
+  return new Promise(resolve => {
+    command.stdout.on("data", function(data) {
+      // not very explicit, but currently this message means the proxy is ready
+      if (data.toString().includes("Root certificate")) {
+        resolve();
+      }
+    });
+  });
+}
+
 describe("E2E", () => {
+  let command;
   it(
     "works",
     async () => {
       console.time("e2e");
-      spawn(__dirname + "/bin/fromjs", [
+      command = spawn(__dirname + "/bin/fromjs", [
         "--port",
         "12100",
         "--shouldOpenBrowser",
@@ -20,6 +32,12 @@ describe("E2E", () => {
         "--sessionDirectory",
         "/tmp/fromjs-e2e"
       ]);
+
+      command.stderr.on("data", function(data) {
+        console.log("err", data.toString());
+      });
+
+      await waitForProxyReady(command);
 
       const browser = await puppeteer.launch({
         args: ["--proxy-server=127.0.0.1:12101"],
