@@ -131,6 +131,10 @@ declare var __FUNCTION_NAMES__,
     functionNames.getFunctionArgTrackingInfo
   ] = function getArgTrackingInfo(index) {
     if (argTrackingInfo === null) {
+      // this can happen when function is invoked without callexpression op,
+      // e.g. when it's a callback argument to a native api call
+      // TODO: return some kind of tracking value here ("untracked argument")
+      // ideally also include a loc
       console.log("no arg tracking info...");
       return null;
     }
