@@ -375,7 +375,7 @@ const operations: Operations = {
                   if (!isNaN(submatchIndex)) {
                     var submatch = submatches[submatchIndex - 1]; // $n is one-based, array is zero-based
                     if (submatch === undefined) {
-                      var maxSubmatchIndex = countGroupsInRegExp(args[0]);
+                      var maxSubmatchIndex = countGroupsInRegExp(args.arg0[0]);
                       var submatchIsDefinedInRegExp =
                         submatchIndex < maxSubmatchIndex;
 
