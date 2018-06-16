@@ -349,7 +349,7 @@ class ValueMapV2 {
   }
 }
 
-export default {
+export default <any>{
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
     function makeFunctionArgument([value, trackingValue]) {
       return ctx.createOperationLog({

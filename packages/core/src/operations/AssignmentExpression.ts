@@ -14,7 +14,7 @@ import {
 import traverseStringConcat from "../traverseStringConcat";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 
-export default {
+export default <any>{
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
     var ret;
     const assignmentType = args.type[0];
