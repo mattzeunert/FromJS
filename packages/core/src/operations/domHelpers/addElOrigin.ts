@@ -1,4 +1,4 @@
-export default function addElOrigin(el, what, trackingValue) {
+export default function addElOrigin(el, what, origin) {
   const {
     action,
     inputValues,
@@ -9,7 +9,7 @@ export default function addElOrigin(el, what, trackingValue) {
     error,
     child,
     children
-  } = trackingValue;
+  } = origin;
 
   if (!el.__elOrigin) {
     el.__elOrigin = {};
@@ -36,9 +36,24 @@ export default function addElOrigin(el, what, trackingValue) {
     el.__elOrigin[what] = {
       action,
       trackingValue: inputValues[0][1],
-      inputValuesCharacterIndex,
-      extraCharsAdded,
+      inputValuesCharacterIndex: inputValuesCharacterIndex || [0],
+      extraCharsAdded: extraCharsAdded || 0,
       offsetAtCharIndex
     };
   }
+}
+
+export function addOriginInfoToCreatedElement(
+  el,
+  tagNameTrackingValue,
+  action
+) {
+  const origin = {
+    inputValues: [[null, tagNameTrackingValue]],
+    value: el.tagName,
+    action
+  };
+  addElOrigin(el, "openingTagStart", origin);
+  addElOrigin(el, "openingTagEnd", origin);
+  addElOrigin(el, "closingTag", origin);
 }

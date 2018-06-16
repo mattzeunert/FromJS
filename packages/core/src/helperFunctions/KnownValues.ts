@@ -30,6 +30,13 @@ export default class KnownValues {
       });
     }
 
+    if (global["document"]) {
+      const document = global.document;
+      Object.assign(this._knownValues, {
+        "document.createElement": document.createElement
+      });
+    }
+
     Object.keys(this._knownValues).forEach(key => {
       this._knownValuesMap.set(this._knownValues[key], key);
     });
