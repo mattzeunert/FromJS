@@ -18,6 +18,7 @@ import { HtmlToOperationLogMapping } from "@fromjs/core";
 import { template } from "lodash";
 import * as ui from "@fromjs/ui";
 import { LocStore } from "./LocStore";
+import * as getFolderSize from "get-folder-size";
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -47,6 +48,10 @@ function ensureDirectoriesExist(options: BackendOptions) {
 export default class Backend {
   constructor(options: BackendOptions) {
     ensureDirectoriesExist(options);
+
+    getFolderSize(options.sessionDirectory, (err, size) => {
+      console.log("Session size: ", (size / 1024 / 1024).toFixed(2) + " MB");
+    });
 
     let sessionConfig;
     function saveSessionConfig() {
