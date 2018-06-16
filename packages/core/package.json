@@ -20,7 +20,9 @@
     "prettier": "^1.11.1",
     "ts-loader": "^4.1.0",
     "typescript": "^2.7.2",
-    "webpack": "^4.5.0"
+    "webpack": "^4.5.0",
+    "leveldown": "^4.0.1",
+    "levelup": "^3.0.1"
   },
   "devDependencies": {
     "line-column": "^1.0.2",
