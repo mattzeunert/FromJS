@@ -1,12 +1,15 @@
 import babelPlugin from "./babelPlugin";
 import handleEvalScript from "./handleEvalScript";
-import getBabelOptions from "./getBabelOptions";
+import getBabelOptions, { getAndResetLocs } from "./getBabelOptions";
 
 window["__fromJSEval"] = function(code) {
   function compile(code, url, done) {
-    done(
-      window["Babel"].transform(code, getBabelOptions(babelPlugin, {}, url))
+    const babelResult = window["Babel"].transform(
+      code,
+      getBabelOptions(babelPlugin, {}, url)
     );
+    babelResult.locs = getAndResetLocs();
+    done(babelResult);
   }
 
   let returnValue;

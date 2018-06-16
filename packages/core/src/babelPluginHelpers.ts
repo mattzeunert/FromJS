@@ -1,7 +1,7 @@
 import * as FunctionNames from "./FunctionNames";
 import * as t from "@babel/types";
 import { identifier } from "./OperationTypes";
-import { getCurrentBabelFilePath } from "./getBabelOptions";
+import { getCurrentBabelFilePath, createLoc } from "./getBabelOptions";
 
 declare module "@babel/types" {
   // Should just be interface Node, but somehow it only works if
@@ -82,16 +82,19 @@ function getLocObjectASTNode(loc) {
   }
 
   loc.url = getCurrentBabelFilePath();
+  const locId = createLoc(loc);
+
+  return ignoredStringLiteral(locId);
 
   // Using JSON.parse instead of creating object directly because
   // it speeds up overall Babel compile time by a third, and reduces file size
   // by 30%
-  return skipPath(
-    t.callExpression(
-      t.memberExpression(t.identifier("JSON"), t.identifier("parse")),
-      [t.stringLiteral(JSON.stringify(loc))]
-    )
-  );
+  // return skipPath(
+  //   t.callExpression(
+  //     t.memberExpression(t.identifier("JSON"), t.identifier("parse")),
+  //     [t.stringLiteral(JSON.stringify(loc))]
+  //   )
+  // );
 
   // function getASTNode(location) {
   //   return ignoredObjectExpression({

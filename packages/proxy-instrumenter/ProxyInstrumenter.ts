@@ -48,6 +48,8 @@ class ProxyInstrumenter {
   handleEvalScript: any;
   certDirectory: string;
   verbose: boolean;
+  onCompilationComplete: any;
+  onRegisterEvalScript: any;
 
   constructor({
     babelPluginOptions,
@@ -58,7 +60,9 @@ class ProxyInstrumenter {
     rewriteHtml,
     handleEvalScript,
     certDirectory,
-    verbose
+    verbose,
+    onCompilationComplete,
+    onRegisterEvalScript
   }) {
     this.port = port;
     this.instrumenterFilePath = instrumenterFilePath;
@@ -70,6 +74,8 @@ class ProxyInstrumenter {
     this.handleEvalScript = handleEvalScript;
     this.certDirectory = certDirectory;
     this.verbose = verbose;
+    this.onCompilationComplete = onCompilationComplete;
+    this.onRegisterEvalScript = onRegisterEvalScript;
 
     this.proxy.onError((ctx, err, errorKind) => {
       var url = "n/a";
@@ -324,7 +330,7 @@ class ProxyInstrumenter {
     });
   }
 
-  registerEvalScript({ url, code, instrumentedCode, map }) {
+  registerEvalScript({ url, code, instrumentedCode, map, locs }) {
     this.urlCache[url] = {
       headers: {},
       body: instrumentedCode
@@ -337,6 +343,7 @@ class ProxyInstrumenter {
       headers: {},
       body: JSON.stringify(map)
     };
+    this.onRegisterEvalScript({ url, code, instrumentedCode, map, locs });
   }
 
   finishRequest(finishedRequestId) {
@@ -412,7 +419,10 @@ class ProxyInstrumenter {
     }
     return this.requestProcessCode(body, url, this.babelPluginOptions).then(
       response => {
-        var { code, map } = <any>response;
+        var { code, map, locs } = <any>response;
+        if (this.onCompilationComplete) {
+          this.onCompilationComplete(response);
+        }
         var result = { code, map };
         this.setProcessCodeCache(body, url, result);
         return Promise.resolve(result);
