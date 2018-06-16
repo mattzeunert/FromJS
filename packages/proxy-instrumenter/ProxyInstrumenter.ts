@@ -142,6 +142,15 @@ class ProxyInstrumenter {
 
     this.requestsInProgress.push(ctx.requestId);
 
+    const proxyToServerHeaders = ctx.proxyToServerRequestOptions.headers;
+    if ("accept-encoding" in proxyToServerHeaders) {
+      // Disable Brotli compression since we can't decode it
+      // (e.g. cloudflare uses it if we let it)
+      proxyToServerHeaders["accept-encoding"] = proxyToServerHeaders[
+        "accept-encoding"
+      ].replace(", br", "");
+    }
+
     var isDontProcess = ctx.clientToProxyRequest.url.includes("?dontprocess");
     var isMap = url.split("?")[0].endsWith(".map") && !url.includes(".css.map");
     var isHtml =
