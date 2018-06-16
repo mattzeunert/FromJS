@@ -1170,12 +1170,24 @@ const operations: Operations = {
         });
 
         var argument = args.argument[0];
-        if (operator === "=") {
-          ret = obj[propName] = argument;
-        } else if (operator === "+=") {
-          ret = obj[propName] = obj[propName] + argument;
-        } else {
-          throw Error("unknown op " + operator);
+        switch (operator) {
+          case "=":
+            ret = obj[propName] = argument;
+            break;
+          case "+=":
+            ret = obj[propName] = obj[propName] + argument;
+            break;
+          case "-=":
+            ret = obj[propName] = obj[propName] + argument;
+            break;
+          case "|=":
+            ret = obj[propName] = obj[propName] |= argument;
+            break;
+          case "&=":
+            ret = obj[propName] = obj[propName] &= argument;
+            break;
+          default:
+            throw Error("unknown operator " + operator);
         }
 
         ctx.trackObjectPropertyAssignment(
