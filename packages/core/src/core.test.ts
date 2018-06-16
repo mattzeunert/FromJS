@@ -809,3 +809,30 @@ describe("Doesn't break classes", () => {
     expect(normal).toBe("a");
   });
 });
+
+describe("Doesn't break bitwise operators", async () => {
+  it("Doesn't break | and & for variables", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const FLAG1 = 0b100
+      const FLAG2 = 0b010
+      let value = 0
+      value |= FLAG1
+      value = value | FLAG2
+      return value & FLAG1
+    `);
+    expect(normal).toBe(0b100);
+  });
+  it("Doesn't break | and & for object properties", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const FLAG1 = 0b100
+      const FLAG2 = 0b010
+      let obj = {value: 0}
+      obj.value |= FLAG1
+      obj.value = obj.value | FLAG2
+      const ret = {value: obj.value}
+      ret.value &= FLAG1
+      return ret.value
+    `);
+    expect(normal).toBe(0b100);
+  });
+});
