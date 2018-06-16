@@ -1052,7 +1052,8 @@ const operations: Operations = {
     }
   },
   returnStatement: {
-    exec: (args, astArgs, ctx: ExecContext) => {
+    exec: (args, astArgs, ctx: ExecContext, logData) => {
+      ctx.lastReturnStatementResult = [args.returnValue[0], logData.index];
       return args.returnValue[0];
     },
     traverse(operationLog, charIndex) {

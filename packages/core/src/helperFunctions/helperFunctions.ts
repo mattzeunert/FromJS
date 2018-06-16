@@ -1,4 +1,4 @@
-import OperationLog from "./OperationLog";
+import OperationLog, { getOperationIndex } from "./OperationLog";
 import getElementOperationLogMapping from "./getHtmlNodeOperationLogMapping";
 import getHtmlNodeOperationLogMapping from "./getHtmlNodeOperationLogMapping";
 import initDomInspectionUI from "./initDomInspectionUI";
@@ -286,7 +286,10 @@ declare var __FUNCTION_NAMES__,
     getObjectPropertyTrackingValue: getObjectPropertyValueTrackingValue,
     getObjectPropertyNameTrackingValue,
     trackObjectPropertyAssignment,
-    createOperationLog,
+    createOperationLog: function(args) {
+      args.index = getOperationIndex();
+      return createOperationLog(args);
+    },
     knownValues,
     global,
     registerEvalScript(evalScript) {
@@ -301,6 +304,9 @@ declare var __FUNCTION_NAMES__,
     },
     get lastReturnStatementResult() {
       return lastReturnStatementResult;
+    },
+    set lastReturnStatementResult(val) {
+      lastReturnStatementResult = val;
     },
     set lastMemberExpressionResult([normal, tracking]) {
       lastMemberExpressionObjectValue = normal;
@@ -340,7 +346,8 @@ declare var __FUNCTION_NAMES__,
       operation: opName,
       args: objArgs,
       astArgs: astArgs,
-      loc
+      loc,
+      index: getOperationIndex()
     };
 
     var ret;
@@ -362,13 +369,6 @@ declare var __FUNCTION_NAMES__,
 
     lastOpTrackingResultWithoutResetting = trackingValue;
     setLastOpTrackingResult(trackingValue);
-
-    if (opName === "returnStatement") {
-      // should ideally be in operations.ts
-      // however: it can't be in exec because there
-      // the trackingvalue doesn't exist yet!
-      lastReturnStatementResult = [ret, trackingValue];
-    }
 
     lastOperationType = opName;
 
