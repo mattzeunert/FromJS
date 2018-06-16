@@ -43,7 +43,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<
     }
 
     function getStepInterestingnessCriteria(step) {
-      let str = step.operationLog.result.str;
+      let str = step.operationLog.result.getTruncatedUIString();
 
       let charIndexTwoCharsBefore = step.charIndex - 2;
       if (charIndexTwoCharsBefore < 0) {

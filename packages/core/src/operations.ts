@@ -1135,8 +1135,10 @@ const operations: Operations = {
     traverse(operationLog, charIndex) {
       // This traversal method is inaccurate but still useful
       // Ideally we should probably have a JSON parser
-      const valueReadFromJson = operationLog.result.str;
-      charIndex += operationLog.args.json.result.str.indexOf(valueReadFromJson);
+      const valueReadFromJson = operationLog.result.primitive;
+      charIndex += operationLog.args.json.result.primitive.indexOf(
+        valueReadFromJson
+      );
       return {
         operationLog: operationLog.args.json,
         charIndex

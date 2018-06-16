@@ -55,43 +55,34 @@ function serializeValue(value, knownValues: KnownValues): SerializedValue {
     knownTypes.push("HTMLInputElement");
   }
 
-  var primitive;
-  if (["string", "null", "number"].includes(type)) {
+  var primitive = "";
+  if (["string", "null", "number", "boolean"].includes(type)) {
     primitive = value;
   }
   let str;
-  try {
-    str = (value + "").slice(0, 200);
-    if (str === "[object Object]") {
-      const keys = Object.keys(value);
-      if (keys.length > 10) {
-        keys.push("...");
-      }
-      str +=
-        "{" +
-        Object.keys(value)
-          .slice(0, 10)
-          .join(", ") +
-        "}";
+  let keys;
+  if (typeof str === "object") {
+    keys = Object.keys(value);
+    if (keys.length > 6) {
+      keys = keys.slice(0, 6);
+      keys.push("...");
     }
-  } catch (err) {
-    str = "(Error while serializing)";
   }
 
   return <SerializedValue>{
     length,
     type,
-    str,
     primitive,
     knownValue,
-    knownTypes
+    knownTypes,
+    keys
   };
 }
 
 export interface SerializedValue {
   length: any;
   type: string;
-  str: string;
+  keys?: string[];
   primitive: number | null | string;
   knownValue: string | null;
   knownTypes: null | any[];

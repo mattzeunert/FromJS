@@ -4,6 +4,7 @@ import {
   selectAndTraverse,
   setIsInspectingDemoApp
 } from "./actions";
+import FEOperationLog from "./FEOperationLogs";
 
 let backendPort = window["backendPort"];
 let backendRoot = "http://localhost:" + backendPort;
@@ -64,7 +65,14 @@ export function loadSteps({ logId, charIndex }) {
       "Content-Type": "application/json"
     } as any,
     body: JSON.stringify({ logId: logId, charIndex })
-  }).then(res => res.json());
+  })
+    .then(res => res.json())
+    .then(steps => {
+      steps.steps.forEach(
+        step => (step.operationLog = new FEOperationLog(step.operationLog))
+      );
+      return steps;
+    });
 }
 
 var exampleSocket = new WebSocket("ws://127.0.0.1:" + backendPort);
