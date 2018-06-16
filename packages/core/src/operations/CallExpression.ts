@@ -9,6 +9,333 @@ import HtmlToOperationLogMapping from "../helperFunctions/HtmlToOperationLogMapp
 import * as OperationTypes from "../OperationTypes";
 import { ExecContext } from "../helperFunctions/ExecContext";
 
+const specialCases = {
+  "String.prototype.replace": ({
+    fn,
+    ctx,
+    object,
+    fnArgValues,
+    args,
+    extraTrackingValues,
+    logData
+  }) => {
+    function countGroupsInRegExp(re) {
+      // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
+      return new RegExp(re.toString() + "|").exec("")!.length;
+    }
+
+    let index = 0;
+    var ret = ctx.knownValues
+      .getValue("String.prototype.replace")
+      .call(object, fnArgValues[0], function() {
+        var argumentsArray = Array.prototype.slice.apply(arguments, []);
+        var match = argumentsArray[0];
+        var submatches = argumentsArray.slice(1, argumentsArray.length - 2);
+        var offset = argumentsArray[argumentsArray.length - 2];
+        var string = argumentsArray[argumentsArray.length - 1];
+
+        var newArgsArray = [match, ...submatches, offset, string];
+        let replacement;
+        let replacementParameter = fnArgValues[1];
+        if (["string", "number"].includes(typeof replacementParameter)) {
+          let replacementValue = replacementParameter.toString();
+          replacementValue = replacementValue.replace(
+            new RegExp(
+              // I'm using fromCharCode because the string escaping for helperCode
+              // doesn't work properly... if it's fixed we can just uses backtick directly
+              "\\$([0-9]{1,2}|[$" +
+              String.fromCharCode(96) /* backtick */ +
+                "&'])",
+              "g"
+            ),
+            function(dollarMatch, dollarSubmatch) {
+              var submatchIndex = parseFloat(dollarSubmatch);
+              if (!isNaN(submatchIndex)) {
+                var submatch = submatches[submatchIndex - 1]; // $n is one-based, array is zero-based
+                if (submatch === undefined) {
+                  var maxSubmatchIndex = countGroupsInRegExp(args.arg0[0]);
+                  var submatchIsDefinedInRegExp =
+                    submatchIndex < maxSubmatchIndex;
+
+                  if (submatchIsDefinedInRegExp) {
+                    submatch = "";
+                  } else {
+                    submatch = "$" + dollarSubmatch;
+                  }
+                }
+                return submatch;
+              } else if (dollarSubmatch === "&") {
+                return match;
+              } else {
+                throw "not handled!!";
+              }
+            }
+          );
+          replacement = replacementValue;
+        } else {
+          throw Error("unhandled replacement param type");
+        }
+
+        extraTrackingValues["replacement" + index] = [
+          null,
+          ctx.createOperationLog({
+            operation: ctx.operationTypes.stringReplacement,
+            args: {
+              value: args.arg1
+            },
+            astArgs: {},
+            result: replacement,
+            loc: logData.loc,
+            runtimeArgs: {
+              start: offset,
+              end: offset + match.length
+            }
+          })
+        ];
+
+        index++;
+        return replacement;
+      });
+    var retT = null;
+    return [ret, retT];
+  },
+  "JSON.parse": ({
+    fn,
+    ctx,
+    object,
+    fnArgValues,
+    args,
+    extraTrackingValues,
+    logData
+  }) => {
+    const parsed = fn.call(JSON, fnArgValues[0]);
+    var ret, retT;
+
+    function traverseObject(obj, fn, keyPath: any[] = []) {
+      Object.entries(obj).forEach(([key, value]) => {
+        fn([...keyPath, key].join("."), value, key, obj);
+        if (typeof value === "object") {
+          traverseObject(value, fn, [...keyPath, key]);
+        }
+      });
+    }
+
+    traverseObject(parsed, (keyPath, value, key, obj) => {
+      const trackingValue = ctx.createOperationLog({
+        operation: ctx.operationTypes.jsonParseResult,
+        args: {
+          json: args.arg0
+        },
+        result: value,
+        runtimeArgs: {
+          keyPath: keyPath
+        },
+        loc: logData.loc
+      });
+      const nameTrackingValue = ctx.createOperationLog({
+        operation: ctx.operationTypes.jsonParseResult,
+        args: {
+          json: args.arg0
+        },
+        result: key,
+        runtimeArgs: {
+          keyPath: keyPath
+        },
+        loc: logData.loc
+      });
+      ctx.trackObjectPropertyAssignment(
+        obj,
+        key,
+        trackingValue,
+        nameTrackingValue
+      );
+    });
+
+    retT = null; // could set something here, but what really matters is the properties
+
+    ret = parsed;
+    return [ret, retT];
+  }
+};
+
+const specialValuesForPostprocessing = {
+  "Array.prototype.push": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgsValues,
+    ret,
+    retT,
+    extraTrackingValues
+  }) => {
+    const arrayLengthBeforePush = object.length - fnArgs.length;
+    fnArgs.forEach((arg, i) => {
+      ctx.trackObjectPropertyAssignment(
+        object,
+        arrayLengthBeforePush + i,
+        arg,
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.arrayIndex,
+          args: {},
+          result: arrayLengthBeforePush + i,
+          astArgs: {},
+          loc: logData.loc
+        })
+      );
+    });
+    return fnArgs[fnArgs.length - 1];
+  },
+  "Object.keys": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT,
+    extraTrackingValues
+  }) => {
+    ret.forEach((key, i) => {
+      const trackingValue = ctx.getObjectPropertyNameTrackingValue(
+        fnArgValues[0],
+        key
+      );
+      const nameTrackingValue = ctx.createOperationLog({
+        operation: ctx.operationTypes.arrayIndex,
+        args: {},
+        result: i,
+        astArgs: {},
+        loc: logData.loc
+      });
+      ctx.trackObjectPropertyAssignment(
+        ret,
+        i,
+        trackingValue,
+        nameTrackingValue
+      );
+    });
+    return retT;
+  },
+  "Array.prototype.join": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT,
+    extraTrackingValues
+  }) => {
+    object.forEach((item, i) => {
+      let arrayValueTrackingValue = ctx.getObjectPropertyTrackingValue(
+        object,
+        i
+      );
+      if (!arrayValueTrackingValue) {
+        arrayValueTrackingValue = ctx.createOperationLog({
+          operation: ctx.operationTypes.untrackedValue,
+          args: {},
+          astArgs: {},
+          runtimeArgs: {
+            type: "Unknown Array Join Value"
+          },
+          result: object[i],
+          loc: logData.loc
+        });
+      }
+      extraTrackingValues["arrayValue" + i] = [
+        null, // not needed, avoid object[i] lookup which may have side effects
+        arrayValueTrackingValue
+      ];
+    });
+    if (fnArgs[0]) {
+      extraTrackingValues["separator"] = [null, fnArgs[0]];
+    } else {
+      extraTrackingValues["separator"] = [
+        null,
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.defaultArrayJoinSeparator,
+          args: {},
+          astArgs: {},
+          result: ",",
+          loc: logData.loc
+        })
+      ];
+    }
+    return retT;
+  }
+};
+
+class ValueMapV2 {
+  parts: any[] = [];
+  originalString = "";
+
+  constructor(originalString: string) {
+    this.originalString = originalString;
+  }
+
+  push(
+    fromIndexInOriginal,
+    toIndexInOriginal,
+    operationLog,
+    resultString,
+    isPartOfSubject = false
+  ) {
+    this.parts.push({
+      fromIndexInOriginal,
+      toIndexInOriginal,
+      operationLog,
+      resultString,
+      isPartOfSubject
+    });
+  }
+
+  getAtResultIndex(indexInResult) {
+    let resultString = "";
+    let part: any | null = null;
+    for (var i = 0; i < this.parts.length; i++) {
+      part = this.parts[i];
+      resultString += part.resultString;
+      if (resultString.length > indexInResult) {
+        break;
+      }
+    }
+
+    const resultIndexBeforePart =
+      resultString.length - part.resultString.length;
+    let charIndex =
+      (part.isPartOfSubject ? part.fromIndexInOriginal : 0) +
+      (indexInResult - resultIndexBeforePart);
+
+    if (charIndex > part.operationLog.result.primitive.length) {
+      charIndex = part.operationLog.result.primitive.length - 1;
+    }
+
+    let operationLog = part.operationLog;
+    if (operationLog.operation === OperationTypes.stringReplacement) {
+      operationLog = operationLog.args.value;
+    }
+    return {
+      charIndex,
+      operationLog: operationLog
+    };
+  }
+
+  __debugPrint() {
+    let originalString = "";
+    let newString = "";
+    this.parts.forEach(part => {
+      newString += part.resultString;
+      originalString += this.originalString.slice(
+        part.fromIndexInOriginal,
+        part.toIndexInOriginal
+      );
+    });
+    console.log({ originalString, newString });
+  }
+}
+
 export default {
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
     function makeFunctionArgument([value, trackingValue]) {
@@ -102,246 +429,73 @@ export default {
         result: {},
         loc: logData.loc
       });
-    } else if (
-      fn === ctx.knownValues.getValue("String.prototype.replace") &&
-      ["string", "number"].includes(typeof fnArgValues[1])
-    ) {
-      function countGroupsInRegExp(re) {
-        // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
-        return new RegExp(re.toString() + "|").exec("")!.length;
-      }
-
-      let index = 0;
-      ret = ctx.knownValues
-        .getValue("String.prototype.replace")
-        .call(object, fnArgValues[0], function() {
-          var argumentsArray = Array.prototype.slice.apply(arguments, []);
-          var match = argumentsArray[0];
-          var submatches = argumentsArray.slice(1, argumentsArray.length - 2);
-          var offset = argumentsArray[argumentsArray.length - 2];
-          var string = argumentsArray[argumentsArray.length - 1];
-
-          var newArgsArray = [match, ...submatches, offset, string];
-          let replacement;
-          let replacementParameter = fnArgValues[1];
-          if (["string", "number"].includes(typeof replacementParameter)) {
-            let replacementValue = replacementParameter.toString();
-            replacementValue = replacementValue.replace(
-              new RegExp(
-                // I'm using fromCharCode because the string escaping for helperCode
-                // doesn't work properly... if it's fixed we can just uses backtick directly
-                "\\$([0-9]{1,2}|[$" +
-                String.fromCharCode(96) /* backtick */ +
-                  "&'])",
-                "g"
-              ),
-              function(dollarMatch, dollarSubmatch) {
-                var submatchIndex = parseFloat(dollarSubmatch);
-                if (!isNaN(submatchIndex)) {
-                  var submatch = submatches[submatchIndex - 1]; // $n is one-based, array is zero-based
-                  if (submatch === undefined) {
-                    var maxSubmatchIndex = countGroupsInRegExp(args.arg0[0]);
-                    var submatchIsDefinedInRegExp =
-                      submatchIndex < maxSubmatchIndex;
-
-                    if (submatchIsDefinedInRegExp) {
-                      submatch = "";
-                    } else {
-                      submatch = "$" + dollarSubmatch;
-                    }
-                  }
-                  return submatch;
-                } else if (dollarSubmatch === "&") {
-                  return match;
-                } else {
-                  throw "not handled!!";
-                }
-              }
-            );
-            replacement = replacementValue;
-          } else {
-            throw Error("unhandled replacement param type");
-          }
-
-          extraTrackingValues["replacement" + index] = [
-            null,
-            ctx.createOperationLog({
-              operation: ctx.operationTypes.stringReplacement,
-              args: {
-                value: args.arg1
-              },
-              astArgs: {},
-              result: replacement,
-              loc: logData.loc,
-              runtimeArgs: {
-                start: offset,
-                end: offset + match.length
-              }
-            })
-          ];
-
-          index++;
-          return replacement;
-        });
-      retT = null;
-    } else if (fn === ctx.knownValues.getValue("JSON.parse")) {
-      const parsed = fn.call(JSON, fnArgValues[0]);
-
-      function traverseObject(obj, fn, keyPath: any[] = []) {
-        Object.entries(obj).forEach(([key, value]) => {
-          fn([...keyPath, key].join("."), value, key, obj);
-          if (typeof value === "object") {
-            traverseObject(value, fn, [...keyPath, key]);
-          }
-        });
-      }
-
-      traverseObject(parsed, (keyPath, value, key, obj) => {
-        const trackingValue = ctx.createOperationLog({
-          operation: ctx.operationTypes.jsonParseResult,
-          args: {
-            json: args.arg0
-          },
-          result: value,
-          runtimeArgs: {
-            keyPath: keyPath
-          },
-          loc: logData.loc
-        });
-        const nameTrackingValue = ctx.createOperationLog({
-          operation: ctx.operationTypes.jsonParseResult,
-          args: {
-            json: args.arg0
-          },
-          result: key,
-          runtimeArgs: {
-            keyPath: keyPath
-          },
-          loc: logData.loc
-        });
-        ctx.trackObjectPropertyAssignment(
-          obj,
-          key,
-          trackingValue,
-          nameTrackingValue
-        );
-      });
-
-      retT = null; // could set something here, but what really matters is the properties
-
-      ret = parsed;
     } else {
-      if (fn === ctx.knownValues.getValue("String.prototype.replace")) {
-        console.log("unhandled string replace call");
-      }
-      const fnIsEval = fn === eval;
-      if (fnIsEval) {
-        if (hasInstrumentationFunction) {
-          fn = ctx.global["__fromJSEval"];
-        } else {
-          if (!ctx.global.__forTestsDontShowCantEvalLog) {
-            console.log("Calling eval but can't instrument code");
-          }
-        }
-      }
-      const lastReturnStatementResultBeforeCall =
-        ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
-      ret = fn.apply(object, fnArgValues);
-      ctx.argTrackingInfo = null;
-      const lastReturnStatementResultAfterCall =
-        ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
-      // Don't pretend to have a tracked return value if an uninstrumented function was called
-      // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
-      if (fnIsEval && hasInstrumentationFunction) {
-        ctx.registerEvalScript(ret.evalScript);
-        ret = ret.returnValue;
-        retT = ctx.lastOpTrackingResultWithoutResetting;
-      } else if (fn === ctx.knownValues.getValue("Array.prototype.push")) {
-        const arrayLengthBeforePush = object.length - fnArgs.length;
-        fnArgs.forEach((arg, i) => {
-          ctx.trackObjectPropertyAssignment(
-            object,
-            arrayLengthBeforePush + i,
-            arg,
-            ctx.createOperationLog({
-              operation: ctx.operationTypes.arrayIndex,
-              args: {},
-              result: arrayLengthBeforePush + i,
-              astArgs: {},
-              loc: logData.loc
-            })
-          );
+      const fnKnownValue = ctx.knownValues.getName(fn);
+      if (
+        specialCases[fnKnownValue] &&
+        (fnKnownValue !== "String.prototype.replace" ||
+          ["string", "number"].includes(typeof fnArgValues[1]))
+      ) {
+        const r = specialCases[fnKnownValue]({
+          fn,
+          ctx,
+          object,
+          fnArgValues,
+          args,
+          extraTrackingValues,
+          logData
         });
-        retT = fnArgs[fnArgs.length - 1];
-      } else if (fn === ctx.knownValues.getValue("Object.keys")) {
-        ret.forEach((key, i) => {
-          const trackingValue = ctx.getObjectPropertyNameTrackingValue(
-            fnArgValues[0],
-            key
-          );
-          const nameTrackingValue = ctx.createOperationLog({
-            operation: ctx.operationTypes.arrayIndex,
-            args: {},
-            result: i,
-            astArgs: {},
-            loc: logData.loc
-          });
-          ctx.trackObjectPropertyAssignment(
-            ret,
-            i,
-            trackingValue,
-            nameTrackingValue
-          );
-        });
-      } else if (fn === ctx.knownValues.getValue("Array.prototype.join")) {
-        object.forEach((item, i) => {
-          let arrayValueTrackingValue = ctx.getObjectPropertyTrackingValue(
-            object,
-            i
-          );
-          if (!arrayValueTrackingValue) {
-            arrayValueTrackingValue = ctx.createOperationLog({
-              operation: ctx.operationTypes.untrackedValue,
-              args: {},
-              astArgs: {},
-              runtimeArgs: {
-                type: "Unknown Array Join Value"
-              },
-              result: object[i],
-              loc: logData.loc
-            });
-          }
-          extraTrackingValues["arrayValue" + i] = [
-            null, // not needed, avoid object[i] lookup which may have side effects
-            arrayValueTrackingValue
-          ];
-        });
-        if (fnArgs[0]) {
-          extraTrackingValues["separator"] = [null, fnArgs[0]];
-        } else {
-          extraTrackingValues["separator"] = [
-            null,
-            ctx.createOperationLog({
-              operation: ctx.operationTypes.defaultArrayJoinSeparator,
-              args: {},
-              astArgs: {},
-              result: ",",
-              loc: logData.loc
-            })
-          ];
-        }
+        ret = r[0];
+        retT = r[1];
       } else {
-        if (
-          ctx.lastOperationType === "returnStatement" &&
-          lastReturnStatementResultAfterCall !==
-            lastReturnStatementResultBeforeCall
-        ) {
-          retT =
-            ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+        if (fn === ctx.knownValues.getValue("String.prototype.replace")) {
+          console.log("unhandled string replace call");
+        }
+        const fnIsEval = fn === eval;
+        if (fnIsEval) {
+          if (hasInstrumentationFunction) {
+            fn = ctx.global["__fromJSEval"];
+          } else {
+            if (!ctx.global.__forTestsDontShowCantEvalLog) {
+              console.log("Calling eval but can't instrument code");
+            }
+          }
+        }
+        const lastReturnStatementResultBeforeCall =
+          ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+        ret = fn.apply(object, fnArgValues);
+        ctx.argTrackingInfo = null;
+        const lastReturnStatementResultAfterCall =
+          ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+        // Don't pretend to have a tracked return value if an uninstrumented function was called
+        // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
+        if (fnIsEval && hasInstrumentationFunction) {
+          ctx.registerEvalScript(ret.evalScript);
+          ret = ret.returnValue;
+          retT = ctx.lastOpTrackingResultWithoutResetting;
+        } else if (specialValuesForPostprocessing[fnKnownValue]) {
+          retT = specialValuesForPostprocessing[fnKnownValue]({
+            object,
+            fnArgs,
+            ctx,
+            logData,
+            fnArgValues,
+            ret,
+            retT,
+            extraTrackingValues
+          });
+        } else {
+          if (
+            ctx.lastOperationType === "returnStatement" &&
+            lastReturnStatementResultAfterCall !==
+              lastReturnStatementResultBeforeCall
+          ) {
+            retT =
+              ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+          }
         }
       }
     }
-
     extraTrackingValues.returnValue = [ret, retT]; // pick up value from returnStatement
 
     logData.extraArgs = extraTrackingValues;
@@ -408,75 +562,6 @@ export default {
 
         case "String.prototype.replace":
           // I'm not 100% confident about this code, but it works for now
-
-          class ValueMapV2 {
-            parts: any[] = [];
-            originalString = "";
-
-            constructor(originalString: string) {
-              this.originalString = originalString;
-            }
-
-            push(
-              fromIndexInOriginal,
-              toIndexInOriginal,
-              operationLog,
-              resultString,
-              isPartOfSubject = false
-            ) {
-              this.parts.push({
-                fromIndexInOriginal,
-                toIndexInOriginal,
-                operationLog,
-                resultString,
-                isPartOfSubject
-              });
-            }
-
-            getAtResultIndex(indexInResult) {
-              let resultString = "";
-              let part: any | null = null;
-              for (var i = 0; i < this.parts.length; i++) {
-                part = this.parts[i];
-                resultString += part.resultString;
-                if (resultString.length > indexInResult) {
-                  break;
-                }
-              }
-
-              const resultIndexBeforePart =
-                resultString.length - part.resultString.length;
-              let charIndex =
-                (part.isPartOfSubject ? part.fromIndexInOriginal : 0) +
-                (indexInResult - resultIndexBeforePart);
-
-              if (charIndex > part.operationLog.result.primitive.length) {
-                charIndex = part.operationLog.result.primitive.length - 1;
-              }
-
-              let operationLog = part.operationLog;
-              if (operationLog.operation === OperationTypes.stringReplacement) {
-                operationLog = operationLog.args.value;
-              }
-              return {
-                charIndex,
-                operationLog: operationLog
-              };
-            }
-
-            __debugPrint() {
-              let originalString = "";
-              let newString = "";
-              this.parts.forEach(part => {
-                newString += part.resultString;
-                originalString += this.originalString.slice(
-                  part.fromIndexInOriginal,
-                  part.toIndexInOriginal
-                );
-              });
-              console.log({ originalString, newString });
-            }
-          }
 
           let matchingReplacement = null;
           let totalCharCountDeltaBeforeMatch = 0;
