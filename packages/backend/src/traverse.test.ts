@@ -18,9 +18,9 @@ test("Can track concatenation of 'a' and 'b'", async () => {
   var t1LastStep = t1[t1.length - 1];
   var t2LastStep = t2[t2.length - 1];
   expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
-  expect(t1LastStep.operationLog.result.str).toBe("a");
+  expect(t1LastStep.operationLog.result.primitive).toBe("a");
   expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
-  expect(t2LastStep.operationLog.result.str).toBe("b");
+  expect(t2LastStep.operationLog.result.primitive).toBe("b");
 });
 
 test("Can track concatenation of 'a' and 'b' in an add function", async () => {
@@ -36,9 +36,9 @@ test("Can track concatenation of 'a' and 'b' in an add function", async () => {
   var t1LastStep = t1[t1.length - 1];
   var t2LastStep = t2[t2.length - 1];
   expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
-  expect(t1LastStep.operationLog.result.str).toBe("a");
+  expect(t1LastStep.operationLog.result.primitive).toBe("a");
   expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
-  expect(t2LastStep.operationLog.result.str).toBe("b");
+  expect(t2LastStep.operationLog.result.primitive).toBe("b");
 
   expect(getStepTypeList(t1)).toEqual([
     "callExpression", // add()
@@ -126,7 +126,7 @@ test("Traversing += assignment expressions", async () => {
   var t = await traverse({ operationLog: tracking, charIndex: 0 });
   var lastStep = t[t.length - 1];
 
-  expect(lastStep.operationLog.result.str).toBe("a");
+  expect(lastStep.operationLog.result.primitive).toBe("a");
 });
 
 test("Can track values through conditional expression", async () => {
@@ -161,7 +161,7 @@ describe("Can traverse string replacement calls", () => {
 
     const lastStep = t[t.length - 1];
     expect(lastStep.charIndex).toBe(1);
-    expect(lastStep.operationLog.result.str).toBe("cc");
+    expect(lastStep.operationLog.result.primitive).toBe("cc");
   });
 
   test("works for simple replacements using strings", async () => {
@@ -385,12 +385,12 @@ describe("Arrays", () => {
       var t1 = await traverse({ operationLog: tracking, charIndex: 6 });
       const t1LastStep = t1[t1.length - 1];
       expect(t1LastStep.charIndex).toBe(1);
-      expect(t1LastStep.operationLog.result.str).toBe("cd");
+      expect(t1LastStep.operationLog.result.primitive).toBe("cd");
 
       var t2 = await traverse({ operationLog: tracking, charIndex: 3 });
       const t2LastStep = t2[t2.length - 1];
       expect(t2LastStep.charIndex).toBe(1);
-      expect(t2LastStep.operationLog.result.str).toBe("-#-");
+      expect(t2LastStep.operationLog.result.primitive).toBe("-#-");
     });
   });
   it("Can traverse join calls with the default separator (,)", async () => {
@@ -402,7 +402,7 @@ describe("Arrays", () => {
     var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.charIndex).toBe(0);
-    expect(t1LastStep.operationLog.result.str).toBe(",");
+    expect(t1LastStep.operationLog.result.primitive).toBe(",");
   });
   it("Can traverse join calls with undefined/null values", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
@@ -412,7 +412,7 @@ describe("Arrays", () => {
     var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.charIndex).toBe(0);
-    expect(t1LastStep.operationLog.result.str).toBe("-");
+    expect(t1LastStep.operationLog.result.primitive).toBe("-");
   });
 });
 

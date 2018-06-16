@@ -315,7 +315,7 @@ describe("Tracks values across assignments", () => {
   `).then(({ normal, tracking, code }) => {
       var strLit = tracking.args.value.args.argument;
       expect(strLit.operation).toBe("stringLiteral");
-      expect(strLit.result.str).toBe("b");
+      expect(strLit.result.primitive).toBe("b");
 
       done();
     });
@@ -363,8 +363,8 @@ it("Can track `/=` binary expressions", done => {
     );
 
     expect(assignmentExpression.astArgs.operator).toBe("/=");
-    expect(assignmentExpression.args.currentValue.result.str).toBe("10");
-    expect(assignmentExpression.args.argument.result.str).toBe("2");
+    expect(assignmentExpression.args.currentValue.result.primitive).toBe(10);
+    expect(assignmentExpression.args.argument.result.primitive).toBe(2);
 
     done();
   });
@@ -448,7 +448,7 @@ describe("String replace", () => {
       const replacement = tracking.args.value.extraArgs.replacement0;
       const replacementValue = replacement.args.value;
       expect(replacementValue.operation).toBe("stringLiteral");
-      expect(replacementValue.result.str).toBe("c");
+      expect(replacementValue.result.primitive).toBe("c");
       expect(replacement.runtimeArgs.start).toBe(1);
       expect(replacement.runtimeArgs.end).toBe(2);
 
@@ -492,7 +492,7 @@ describe("JSON.parse", () => {
       const propertyValue = tracking.extraArgs.propertyValue;
       const json = propertyValue.args.json;
       const keyPath = propertyValue.runtimeArgs.keyPath;
-      expect(json.result.str).toBe('{"a": {"b": 5}}');
+      expect(json.result.primitive).toBe('{"a": {"b": 5}}');
       expect(keyPath).toBe("a.b");
 
       done();
@@ -695,7 +695,7 @@ describe("call/apply/bind", () => {
     const binaryExpression = returnStatement.args.returnValue;
     const { left, right } = binaryExpression.args;
 
-    expect(right.args.value.result.str).toBe("b");
+    expect(right.args.value.result.primitive).toBe("b");
   });
 
   it("Doesn't break apply", async () => {

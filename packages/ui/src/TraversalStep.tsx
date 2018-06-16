@@ -9,6 +9,7 @@ import { truncate } from "lodash";
 import { selectAndTraverse } from "./actions";
 import * as cx from "classnames";
 import "./TraversalStep.scss";
+import FEOperationLog from "./FEOperationLogs";
 
 function getFileNameFromPath(path) {
   const parts = path.split("/");
@@ -191,6 +192,7 @@ let TraversalStep = class TraversalStep extends React.Component<
                 Inspect input/output values:
               </div>
               {this.getAllArgs().map(({ name, value }) => {
+                value = new FEOperationLog(value);
                 const canInspect = !!value;
                 return (
                   <div
@@ -208,7 +210,9 @@ let TraversalStep = class TraversalStep extends React.Component<
                     &nbsp;
                     <span>
                       {value
-                        ? truncate(value.result.str, { length: 80 })
+                        ? truncate(value.result.getTruncatedUIString(), {
+                            length: 80
+                          })
                         : "(no tracking value)"}
                     </span>
                   </div>
