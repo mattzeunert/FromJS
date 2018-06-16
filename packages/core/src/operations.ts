@@ -1,5 +1,4 @@
 import * as OperationTypes from "./OperationTypes";
-import * as t from "@babel/types";
 import {
   createOperation,
   ignoredArrayExpression,
@@ -15,16 +14,25 @@ import {
   createSetMemoValue,
   createGetMemoValue,
   createGetMemoTrackingValue,
-  getLastOpValue,
+  getLastOpValueCall,
   ignoredIdentifier,
   ignoredObjectExpression,
   createGetMemoArray,
   getTrackingVarName,
-  skipPath
+  skipPath,
+  initForBabel as initForBabelPH
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import HtmlToOperationLogMapping from "./helperFunctions/HtmlToOperationLogMapping";
 import { ExecContext } from "./helperFunctions/ExecContext";
+
+let t;
+// This file is also imported into helperFunctions, i.e. FE code that can't load
+// Babel dependencies
+export function initForBabel(babelTypes) {
+  t = babelTypes;
+  initForBabelPH(babelTypes);
+}
 
 interface TraversalStep {
   charIndex: number;
@@ -127,8 +135,8 @@ const operations: Operations = {
 
       const op = this.createNode!(
         {
-          object: [path.node.object, getLastOperationTrackingResultCall],
-          propName: [property, getLastOperationTrackingResultCall]
+          object: [path.node.object, getLastOperationTrackingResultCall()],
+          propName: [property, getLastOperationTrackingResultCall()]
         },
         {},
         path.node.loc
@@ -144,8 +152,8 @@ const operations: Operations = {
       }
       return this.createNode!(
         {
-          left: [path.node.left, getLastOperationTrackingResultCall],
-          right: [path.node.right, getLastOperationTrackingResultCall]
+          left: [path.node.left, getLastOperationTrackingResultCall()],
+          right: [path.node.right, getLastOperationTrackingResultCall()]
         },
         { operator: ignoredStringLiteral(path.node.operator) },
         path.node.loc
@@ -204,17 +212,17 @@ const operations: Operations = {
       var saveTestValue = createSetMemoValue(
         "lastConditionalExpressionTest",
         path.node.test,
-        getLastOperationTrackingResultCall
+        getLastOperationTrackingResultCall()
       );
       var saveConsequentValue = createSetMemoValue(
         "lastConditionalExpressionResult",
         path.node.consequent,
-        getLastOperationTrackingResultCall
+        getLastOperationTrackingResultCall()
       );
       var saveAlernativeValue = createSetMemoValue(
         "lastConditionalExpressionResult",
         path.node.alternate,
-        getLastOperationTrackingResultCall
+        getLastOperationTrackingResultCall()
       );
       var operation = this.createNode!(
         {
@@ -794,7 +802,7 @@ const operations: Operations = {
       var args: any[] = [];
       path.node.arguments.forEach(arg => {
         args.push(
-          ignoredArrayExpression([arg, getLastOperationTrackingResultCall])
+          ignoredArrayExpression([arg, getLastOperationTrackingResultCall()])
         );
       });
 
@@ -829,8 +837,8 @@ const operations: Operations = {
           function: [
             path.node.callee,
             isMemberExpressionCall
-              ? getLastOperationTrackingResultCall
-              : getLastOperationTrackingResultCall
+              ? getLastOperationTrackingResultCall()
+              : getLastOperationTrackingResultCall()
           ],
           context: [executionContext, executionContextTrackingValue],
           ...fnArgs
@@ -939,8 +947,8 @@ const operations: Operations = {
         } else {
           return ignoredObjectExpression({
             type: [type],
-            key: [prop.key, getLastOperationTrackingResultCall],
-            value: [prop.value, getLastOperationTrackingResultCall]
+            key: [prop.key, getLastOperationTrackingResultCall()],
+            value: [prop.value, getLastOperationTrackingResultCall()]
           });
         }
       });
@@ -1006,7 +1014,7 @@ const operations: Operations = {
       if (path.node.operator === "-") {
         return this.createNode!(
           {
-            argument: [path.node.argument, getLastOperationTrackingResultCall]
+            argument: [path.node.argument, getLastOperationTrackingResultCall()]
           },
           {
             operator: ignoredStringLiteral(path.node.operator)
@@ -1043,7 +1051,7 @@ const operations: Operations = {
       return this.createNode!(
         {
           elements: path.node.elements.map(el =>
-            ignoredArrayExpression([el, getLastOperationTrackingResultCall])
+            ignoredArrayExpression([el, getLastOperationTrackingResultCall()])
           )
         },
         null,
@@ -1067,7 +1075,7 @@ const operations: Operations = {
         {
           returnValue: ignoredArrayExpression([
             path.node.argument,
-            getLastOperationTrackingResultCall
+            getLastOperationTrackingResultCall()
           ])
         },
         {},
@@ -1835,21 +1843,21 @@ const operations: Operations = {
 
         operationArguments["object"] = [
           path.node.left.object,
-          getLastOperationTrackingResultCall
+          getLastOperationTrackingResultCall()
         ];
         operationArguments["propertyName"] = [
           property,
-          getLastOperationTrackingResultCall
+          getLastOperationTrackingResultCall()
         ];
         operationArguments["argument"] = [
           path.node.right,
-          getLastOperationTrackingResultCall
+          getLastOperationTrackingResultCall()
         ];
       } else if (path.node.left.type === "Identifier") {
         var right = createSetMemoValue(
           "lastAssignmentExpressionArgument",
           path.node.right,
-          getLastOperationTrackingResultCall
+          getLastOperationTrackingResultCall()
         );
         path.node.right = right;
 
@@ -1859,7 +1867,7 @@ const operations: Operations = {
             t.assignmentExpression(
               "=",
               ignoredIdentifier(getTrackingVarName(path.node.left.name)),
-              getLastOperationTrackingResultCall
+              getLastOperationTrackingResultCall()
             )
           )
         );
@@ -1874,11 +1882,11 @@ const operations: Operations = {
 
         operationArguments["currentValue"] = ignoredArrayExpression([
           identifierValue,
-          getLastOperationTrackingResultCall
+          getLastOperationTrackingResultCall()
         ]);
         (operationArguments["newValue"] = ignoredArrayExpression([
           path.node,
-          getLastOperationTrackingResultCall
+          getLastOperationTrackingResultCall()
         ])),
           (operationArguments["argument"] = createGetMemoArray(
             "lastAssignmentExpressionArgument"
@@ -1897,7 +1905,11 @@ const operations: Operations = {
 
       if (trackingAssignment) {
         path.replaceWith(
-          t.sequenceExpression([operation, trackingAssignment, getLastOpValue])
+          t.sequenceExpression([
+            operation,
+            trackingAssignment,
+            getLastOpValueCall()
+          ])
         );
       } else {
         path.replaceWith(operation);

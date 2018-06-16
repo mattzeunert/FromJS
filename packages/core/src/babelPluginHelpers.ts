@@ -1,24 +1,31 @@
 import * as FunctionNames from "./FunctionNames";
-import * as t from "@babel/types";
+
 import { identifier } from "./OperationTypes";
 import { getCurrentBabelFilePath, createLoc } from "./getBabelOptions";
 
-declare module "@babel/types" {
-  // Should just be interface Node, but somehow it only works if
-  // I do it separately for each one...
-  interface StringLiteral {
-    ignore: boolean;
-  }
-  interface CallExpression {
-    ignore: boolean;
-  }
-  interface NumericLiteral {
-    ignore: boolean;
-  }
-  interface Identifier {
-    ignore: boolean;
-  }
+let t;
+// This file is also imported into helperFunctions, i.e. FE code that can't load
+// Babel dependencies
+export function initForBabel(babelTypes) {
+  t = babelTypes;
 }
+
+// declare module "@babel/types" {
+//   // Should just be interface Node, but somehow it only works if
+//   // I do it separately for each one...
+//   interface StringLiteral {
+//     ignore: boolean;
+//   }
+//   interface CallExpression {
+//     ignore: boolean;
+//   }
+//   interface NumericLiteral {
+//     ignore: boolean;
+//   }
+//   interface Identifier {
+//     ignore: boolean;
+//   }
+// }
 
 export function addLoc(node, loc) {
   node.loc = loc;
@@ -133,9 +140,10 @@ export function createOperation(opType, opArgs, astArgs = null, loc = null) {
   return call;
 }
 
-export const getLastOperationTrackingResultCall = skipPath(
-  ignoredCallExpression(FunctionNames.getLastOperationTrackingResult, [])
-);
+export const getLastOperationTrackingResultCall = () =>
+  skipPath(
+    ignoredCallExpression(FunctionNames.getLastOperationTrackingResult, [])
+  );
 
 export function isInLeftPartOfAssignmentExpression(path) {
   return isInNodeType("AssignmentExpression", path, function(path, prevPath) {
@@ -229,7 +237,5 @@ export function createGetMemoTrackingValue(key) {
   );
 }
 
-export const getLastOpValue = ignoredCallExpression(
-  FunctionNames.getLastOperationValueResult,
-  []
-);
+export const getLastOpValueCall = () =>
+  ignoredCallExpression(FunctionNames.getLastOperationValueResult, []);
