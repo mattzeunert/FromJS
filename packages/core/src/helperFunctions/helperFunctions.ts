@@ -130,7 +130,7 @@ declare var __FUNCTION_NAMES__,
   global[
     functionNames.getFunctionArgTrackingInfo
   ] = function getArgTrackingInfo(index) {
-    if (!argTrackingInfo) {
+    if (argTrackingInfo === null) {
       console.log("no arg tracking info...");
       return null;
     }

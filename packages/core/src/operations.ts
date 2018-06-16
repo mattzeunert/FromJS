@@ -1973,7 +1973,9 @@ export function shouldSkipIdentifier(path) {
       "UpdateExpression",
       "LabeledStatement",
       "ContinueStatement",
-      "BreakStatement"
+      "BreakStatement",
+      "ClassMethod",
+      "ClassProperty"
     ].includes(path.parent.type)
   ) {
     return true;
