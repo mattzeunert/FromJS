@@ -10,11 +10,9 @@ export interface ExecContext {
     object: any,
     propertyName: string | number
   ) => number;
-  extraArgTrackingValues: any;
   lastMemberExpressionResult: [any, any];
   createOperationLog(any): number;
   operationTypes: any;
-  loc: any;
   argTrackingInfo: any;
   global: any;
   registerEvalScript(evalScript: any): void;
@@ -28,6 +26,5 @@ export interface ExecContext {
   lastReturnStatementResult: any;
   readonly lastOpTrackingResultWithoutResetting;
   readonly lastOpTrackingResult: any;
-  runtimeArgs: any;
   readonly lastOperationType: string;
 }

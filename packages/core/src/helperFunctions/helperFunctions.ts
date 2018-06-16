@@ -281,6 +281,42 @@ declare var __FUNCTION_NAMES__,
     lastOpTrackingResult = trackingValue;
   }
 
+  const ctx: ExecContext = {
+    operationTypes,
+    getObjectPropertyTrackingValue: getObjectPropertyValueTrackingValue,
+    getObjectPropertyNameTrackingValue,
+    trackObjectPropertyAssignment,
+    createOperationLog,
+    knownValues,
+    global,
+    registerEvalScript(evalScript) {
+      // store code etc for eval'd code
+      evalScriptQueue.push(evalScript);
+    },
+    get lastOpTrackingResult() {
+      return lastOpTrackingResult;
+    },
+    get lastOpTrackingResultWithoutResetting() {
+      return lastOpTrackingResultWithoutResetting;
+    },
+    get lastReturnStatementResult() {
+      return lastReturnStatementResult;
+    },
+    set lastMemberExpressionResult([normal, tracking]) {
+      lastMemberExpressionObjectValue = normal;
+      lastMemberExpressionObjectTrackingValue = tracking;
+    },
+    set argTrackingInfo(info) {
+      if (info) {
+        info.forEach(trackingValue => validateTrackingValue(trackingValue));
+      }
+      argTrackingInfo = info;
+    },
+    get lastOperationType() {
+      return lastOperationType;
+    }
+  };
+
   var lastOpValueResult = null;
   var lastOpTrackingResult = null;
   let lastOpTrackingResultWithoutResetting = null;
@@ -300,53 +336,16 @@ declare var __FUNCTION_NAMES__,
       operationArrayArguments[opName].forEach(arrayArgName => {});
     }
 
-    var extraTrackingValues = {};
+    let logData: any = {
+      operation: opName,
+      args: objArgs,
+      astArgs: astArgs,
+      loc
+    };
+
     var ret;
-    var runtimeArgs;
     if (operationsExec[opName]) {
-      const ctx: ExecContext = {
-        operationTypes,
-        getObjectPropertyTrackingValue: getObjectPropertyValueTrackingValue,
-        getObjectPropertyNameTrackingValue,
-        trackObjectPropertyAssignment,
-        createOperationLog,
-        knownValues,
-        global,
-        loc,
-        registerEvalScript(evalScript) {
-          // store code etc for eval'd code
-          evalScriptQueue.push(evalScript);
-        },
-        get lastOpTrackingResult() {
-          return lastOpTrackingResult;
-        },
-        get lastOpTrackingResultWithoutResetting() {
-          return lastOpTrackingResultWithoutResetting;
-        },
-        set extraArgTrackingValues(values) {
-          extraTrackingValues = values;
-        },
-        get lastReturnStatementResult() {
-          return lastReturnStatementResult;
-        },
-        set runtimeArgs(value) {
-          runtimeArgs = value;
-        },
-        set lastMemberExpressionResult([normal, tracking]) {
-          lastMemberExpressionObjectValue = normal;
-          lastMemberExpressionObjectTrackingValue = tracking;
-        },
-        set argTrackingInfo(info) {
-          if (info) {
-            info.forEach(trackingValue => validateTrackingValue(trackingValue));
-          }
-          argTrackingInfo = info;
-        },
-        get lastOperationType() {
-          return lastOperationType;
-        }
-      };
-      ret = operationsExec[opName](objArgs, astArgs, ctx);
+      ret = operationsExec[opName](objArgs, astArgs, ctx, logData);
     } else {
       console.log("unhandled op", opName, args);
       throw Error("oh no");
@@ -356,14 +355,8 @@ declare var __FUNCTION_NAMES__,
       args = [];
     }
 
-    trackingValue = createOperationLog({
-      operation: opName,
-      args: objArgs,
-      astArgs: astArgs,
-      result: ret,
-      extraArgs: extraTrackingValues,
-      loc
-    });
+    logData.result = ret;
+    trackingValue = createOperationLog(logData);
 
     lastOpValueResult = ret;
 

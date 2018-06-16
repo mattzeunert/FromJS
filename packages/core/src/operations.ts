@@ -67,7 +67,7 @@ interface Operations {
 
 const operations: Operations = {
   memberExpression: {
-    exec: (args, astArgs, ctx: ExecContext) => {
+    exec: (args, astArgs, ctx: ExecContext, logData: any) => {
       var ret;
       var object = args.object[0];
       var objectT = args.object[1];
@@ -79,7 +79,7 @@ const operations: Operations = {
         propertyName
       );
 
-      ctx.extraArgTrackingValues = {
+      logData.extraArgs = {
         propertyValue: [ret, trackingValue]
       };
 
@@ -241,14 +241,14 @@ const operations: Operations = {
   },
   stringReplacement: {},
   callExpression: {
-    exec: (args, astArgs, ctx: ExecContext) => {
+    exec: (args, astArgs, ctx: ExecContext, logData: any) => {
       function makeFunctionArgument([value, trackingValue]) {
         return ctx.createOperationLog({
           operation: ctx.operationTypes.functionArgument,
           args: {
             value: [value, trackingValue]
           },
-          loc: ctx.loc,
+          loc: logData.loc,
           astArgs: {},
           result: value
         });
@@ -335,7 +335,7 @@ const operations: Operations = {
           args: {},
           astArgs: {},
           result: {},
-          loc: ctx.loc
+          loc: logData.loc
         });
       } else if (
         fn === ctx.knownValues.getValue("String.prototype.replace") &&
@@ -407,7 +407,7 @@ const operations: Operations = {
                 },
                 astArgs: {},
                 result: replacement,
-                loc: ctx.loc,
+                loc: logData.loc,
                 runtimeArgs: {
                   start: offset,
                   end: offset + match.length
@@ -441,7 +441,7 @@ const operations: Operations = {
             runtimeArgs: {
               keyPath: keyPath
             },
-            loc: ctx.loc
+            loc: logData.loc
           });
           const nameTrackingValue = ctx.createOperationLog({
             operation: ctx.operationTypes.jsonParseResult,
@@ -452,7 +452,7 @@ const operations: Operations = {
             runtimeArgs: {
               keyPath: keyPath
             },
-            loc: ctx.loc
+            loc: logData.loc
           });
           ctx.trackObjectPropertyAssignment(
             obj,
@@ -503,7 +503,7 @@ const operations: Operations = {
                 args: {},
                 result: arrayLengthBeforePush + i,
                 astArgs: {},
-                loc: ctx.loc
+                loc: logData.loc
               })
             );
           });
@@ -519,7 +519,7 @@ const operations: Operations = {
               args: {},
               result: i,
               astArgs: {},
-              loc: ctx.loc
+              loc: logData.loc
             });
             ctx.trackObjectPropertyAssignment(
               ret,
@@ -543,7 +543,7 @@ const operations: Operations = {
                   type: "Unknown Array Join Value"
                 },
                 result: object[i],
-                loc: ctx.loc
+                loc: logData.loc
               });
             }
             extraTrackingValues["arrayValue" + i] = [
@@ -561,7 +561,7 @@ const operations: Operations = {
                 args: {},
                 astArgs: {},
                 result: ",",
-                loc: ctx.loc
+                loc: logData.loc
               })
             ];
           }
@@ -579,7 +579,7 @@ const operations: Operations = {
 
       extraTrackingValues.returnValue = [ret, retT]; // pick up value from returnStatement
 
-      ctx.extraArgTrackingValues = extraTrackingValues;
+      logData.extraArgs = extraTrackingValues;
 
       return ret;
     },
@@ -858,7 +858,7 @@ const operations: Operations = {
     }
   },
   objectExpression: {
-    exec: (args, astArgs, ctx: ExecContext) => {
+    exec: (args, astArgs, ctx: ExecContext, logData: any) => {
       var obj = {};
       var methodProperties = {};
 
@@ -882,7 +882,7 @@ const operations: Operations = {
               args: { propertyValue: [propertyValue, propertyValueT] },
               result: propertyValue,
               astArgs: {},
-              loc: ctx.loc
+              loc: logData.loc
             }),
             property.key[1]
           );
@@ -1018,7 +1018,7 @@ const operations: Operations = {
   },
   arrayExpression: {
     arrayArguments: ["elements"],
-    exec: (args, astArgs, ctx: ExecContext) => {
+    exec: (args, astArgs, ctx: ExecContext, logData: any) => {
       let arr: any[] = [];
       args.elements.forEach((el, i) => {
         const [value, trackingValue] = el;
@@ -1028,7 +1028,7 @@ const operations: Operations = {
           args: {},
           result: i,
           astArgs: {},
-          loc: ctx.loc
+          loc: logData.loc
         });
         ctx.trackObjectPropertyAssignment(
           arr,
@@ -1075,7 +1075,7 @@ const operations: Operations = {
     }
   },
   identifier: {
-    exec: (args, astArgs, ctx: ExecContext) => {
+    exec: (args, astArgs, ctx: ExecContext, logData) => {
       if (astArgs && astArgs.isArguments) {
         if (args.allFnArgTrackingValues[0]) {
           args.allFnArgTrackingValues[0].forEach((trackingValue, i) => {
@@ -1088,7 +1088,7 @@ const operations: Operations = {
                 args: {},
                 result: i,
                 astArgs: {},
-                loc: ctx.loc
+                loc: logData.loc
               })
             );
           });
@@ -1146,7 +1146,7 @@ const operations: Operations = {
     }
   },
   assignmentExpression: {
-    exec: (args, astArgs, ctx: ExecContext) => {
+    exec: (args, astArgs, ctx: ExecContext, logData: any) => {
       var ret;
       const assignmentType = args.type[0];
       const operator = astArgs.operator;
@@ -1165,7 +1165,7 @@ const operations: Operations = {
           },
           astArgs: {},
           result: currentValue,
-          loc: ctx.loc
+          loc: logData.loc
         });
 
         var argument = args.argument[0];
@@ -1190,7 +1190,7 @@ const operations: Operations = {
             astArgs: {
               operator: "="
             },
-            loc: ctx.loc,
+            loc: logData.loc,
             argTrackingValues: [currentValueT, args.argument[1]],
             argNames: ["currentValue", "argument"]
           }),
