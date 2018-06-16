@@ -15,5 +15,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "puppeteer": "^1.5.0"
   }
 }

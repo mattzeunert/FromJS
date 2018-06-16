@@ -194,30 +194,32 @@
     lodash "^4.17.5"
     to-fast-properties "^2.0.0"
 
-"@fromjs/backend@^0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@fromjs/backend/-/backend-0.1.6.tgz#2e93c041603ea276e3206d912ef3a04deb54af62"
+"@fromjs/backend@^0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@fromjs/backend/-/backend-0.1.7.tgz#27d32fe6636ef03f55ae488471afcb16e0df73de"
   dependencies:
-    "@fromjs/core" "^0.1.6"
-    "@fromjs/proxy-instrumenter" "^0.1.6"
-    "@fromjs/ui" "^0.1.6"
+    "@fromjs/core" "^0.1.7"
+    "@fromjs/proxy-instrumenter" "^0.1.7"
+    "@fromjs/ui" "^0.1.7"
     "@types/jest" "^22.2.3"
     "@types/node" "^10.1.3"
     body-parser "^1.18.2"
     error-stack-parser "^2.0.1"
     express "^4.16.3"
+    lodash "^4.17.10"
     prettier "^1.12.1"
     request "^2.85.0"
     stacktrace-gps "^3.0.2"
     ts-node "^5.0.1"
     ws "^5.2.0"
 
-"@fromjs/core@^0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@fromjs/core/-/core-0.1.6.tgz#bdcc57aeaf3f2701a23ab8e19bb3f0cc49b44294"
+"@fromjs/core@^0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@fromjs/core/-/core-0.1.7.tgz#561d4354a2e850654f60f29b863ae0ad24d696ab"
   dependencies:
     "@babel/core" "^7.0.0-beta.40"
     "@types/jest" "^23.0.0"
+    "@types/node" "^10.3.2"
     awesome-typescript-loader "^4.0.1"
     babylon "^6.18.0"
     jest "^22.4.2"
@@ -228,9 +230,9 @@
     typescript "^2.7.2"
     webpack "^4.5.0"
 
-"@fromjs/proxy-instrumenter@^0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@fromjs/proxy-instrumenter/-/proxy-instrumenter-0.1.6.tgz#bafcbf5247f5b2099fc54f32b842a018fd163792"
+"@fromjs/proxy-instrumenter@^0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@fromjs/proxy-instrumenter/-/proxy-instrumenter-0.1.7.tgz#385c4dab2b4543d457e9d11fd4e50c68316d15af"
   dependencies:
     "@types/node" "^10.1.3"
     http-mitm-proxy "^0.6.1"
@@ -239,12 +241,12 @@
     ts-node "^5.0.1"
     wait-until "^0.0.2"
 
-"@fromjs/ui@^0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@fromjs/ui/-/ui-0.1.6.tgz#da922ddb4f35238c9942b7fa955b6201ff0346b4"
+"@fromjs/ui@^0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@fromjs/ui/-/ui-0.1.7.tgz#3a3db809fa7240760cbc44e92fa9f5f6f1dc7f6d"
   dependencies:
     "@babel/standalone" "^7.0.0-beta.42"
-    "@fromjs/core" "^0.1.6"
+    "@fromjs/core" "^0.1.7"
     "@types/react" "^16.3.14"
     awesome-typescript-loader "^4.0.1"
     baobab "^2.5.2"
@@ -254,6 +256,7 @@
     react-dom "^16.3.2"
     source-map-loader "^0.2.3"
     ts-loader "^4.1.0"
+    typescript "^2.9.1"
     webpack "^4.1.1"
     webpack-cli "^2.0.12"
 
@@ -297,6 +300,10 @@
 "@types/node@^10.1.3":
   version "10.1.3"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.1.3.tgz#5c16980936c4e3c83ce64e8ed71fb37bd7aea135"
+
+"@types/node@^10.3.2":
+  version "10.3.3"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.3.3.tgz#8798d9e39af2fa604f715ee6a6b19796528e46c3"
 
 "@types/node@^9.3.0":
   version "9.6.21"
@@ -484,6 +491,12 @@ acorn-globals@^4.1.0:
 acorn@^5.0.0, acorn@^5.3.0, acorn@^5.6.2:
   version "5.6.2"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.6.2.tgz#b1da1d7be2ac1b4a327fb9eab851702c5045b4e7"
+
+agent-base@^4.1.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/agent-base/-/agent-base-4.2.0.tgz#9838b5c3392b962bad031e6a4c5e1024abec45ce"
+  dependencies:
+    es6-promisify "^5.0.0"
 
 ajv-keywords@^3.1.0:
   version "3.2.0"
@@ -1898,7 +1911,7 @@ concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
 
-concat-stream@^1.5.0:
+concat-stream@1.6.2, concat-stream@^1.5.0:
   version "1.6.2"
   resolved "https://registry.yarnpkg.com/concat-stream/-/concat-stream-1.6.2.tgz#904bdf194cd3122fc675c77fc4ac3d4ff0fd1a34"
   dependencies:
@@ -2364,6 +2377,16 @@ es-to-primitive@^1.1.1:
     is-date-object "^1.0.1"
     is-symbol "^1.0.1"
 
+es6-promise@^4.0.3:
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-4.2.4.tgz#dc4221c2b16518760bd8c39a52d8f356fc00ed29"
+
+es6-promisify@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/es6-promisify/-/es6-promisify-5.0.0.tgz#5109d62f3e56ea967c4b63505aef08291c8a5203"
+  dependencies:
+    es6-promise "^4.0.3"
+
 escape-html@~1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/escape-html/-/escape-html-1.0.3.tgz#0258eae4d3d0c0974de1c169188ef0051d1d1988"
@@ -2581,6 +2604,15 @@ extglob@^2.0.4:
     snapdragon "^0.8.1"
     to-regex "^3.0.1"
 
+extract-zip@^1.6.6:
+  version "1.6.7"
+  resolved "https://registry.yarnpkg.com/extract-zip/-/extract-zip-1.6.7.tgz#a840b4b8af6403264c8db57f4f1a74333ef81fe9"
+  dependencies:
+    concat-stream "1.6.2"
+    debug "2.6.9"
+    mkdirp "0.5.1"
+    yauzl "2.4.1"
+
 extsprintf@1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.3.0.tgz#96918440e3041a7a414f8c52e3c574eb3c3e1e05"
@@ -2637,6 +2669,12 @@ fbjs@^0.8.16:
     promise "^7.1.1"
     setimmediate "^1.0.5"
     ua-parser-js "^0.7.18"
+
+fd-slicer@~1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/fd-slicer/-/fd-slicer-1.0.1.tgz#8b5bcbd9ec327c5041bf9ab023fd6750f1177e65"
+  dependencies:
+    pend "~1.2.0"
 
 figures@^1.7.0:
   version "1.7.0"
@@ -3163,6 +3201,13 @@ http-signature@~1.2.0:
 https-browserify@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/https-browserify/-/https-browserify-1.0.0.tgz#ec06c10e0a34c0f2faf199f7fd7fc78fffd03c73"
+
+https-proxy-agent@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/https-proxy-agent/-/https-proxy-agent-2.2.1.tgz#51552970fa04d723e04c56d04178c3f92592bbc0"
+  dependencies:
+    agent-base "^4.1.0"
+    debug "^3.1.0"
 
 iconv-lite@0.4.19:
   version "0.4.19"
@@ -4440,6 +4485,10 @@ mime@1.4.1:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/mime/-/mime-1.4.1.tgz#121f9ebc49e3766f311a76e1fa1c8003c4b03aa6"
 
+mime@^2.0.3:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/mime/-/mime-2.3.1.tgz#b1621c54d63b97c47d3cfe7f7215f7d64517c369"
+
 mimic-fn@^1.0.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-1.2.0.tgz#820c86a39334640e99516928bd03fca88057d022"
@@ -5036,6 +5085,10 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
+pend@~1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/pend/-/pend-1.2.0.tgz#7a57eb550a6783f9115331fcf4663d5c8e007a50"
+
 performance-now@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
@@ -5135,6 +5188,10 @@ process@^0.11.10:
   version "0.11.10"
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
 
+progress@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/progress/-/progress-2.0.0.tgz#8a1be366bf8fc23db2bd23f10c6fe920b4389d1f"
+
 promise-inflight@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/promise-inflight/-/promise-inflight-1.0.1.tgz#98472870bf228132fcbdd868129bad12c3c029e3"
@@ -5159,6 +5216,10 @@ proxy-addr@~2.0.3:
   dependencies:
     forwarded "~0.1.2"
     ipaddr.js "1.6.0"
+
+proxy-from-env@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-1.0.0.tgz#33c50398f70ea7eb96d21f7b817630a55791c7ee"
 
 prr@~1.0.1:
   version "1.0.1"
@@ -5215,6 +5276,19 @@ punycode@^1.2.4, punycode@^1.4.1:
 punycode@^2.1.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
+
+puppeteer@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-1.5.0.tgz#e35db3f3ba3d41013feb65be02bdaa727ec7b8ec"
+  dependencies:
+    debug "^3.1.0"
+    extract-zip "^1.6.6"
+    https-proxy-agent "^2.2.1"
+    mime "^2.0.3"
+    progress "^2.0.0"
+    proxy-from-env "^1.0.0"
+    rimraf "^2.6.1"
+    ws "^5.1.1"
 
 qs@6.5.1:
   version "6.5.1"
@@ -6332,6 +6406,10 @@ typescript@^2.7.2:
   version "2.9.1"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.9.1.tgz#fdb19d2c67a15d11995fd15640e373e09ab09961"
 
+typescript@^2.9.1:
+  version "2.9.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.9.2.tgz#1cbf61d05d6b96269244eb6a3bce4bd914e0f00c"
+
 ua-parser-js@^0.7.18:
   version "0.7.18"
   resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.18.tgz#a7bfd92f56edfb117083b69e31d2aa8882d4b1ed"
@@ -6761,7 +6839,7 @@ ws@^4.0.0:
     async-limiter "~1.0.0"
     safe-buffer "~5.1.0"
 
-ws@^5.2.0:
+ws@^5.1.1, ws@^5.2.0:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/ws/-/ws-5.2.0.tgz#9fd95e3ac7c76f6ae8bcc868a0e3f11f1290c33e"
   dependencies:
@@ -6851,6 +6929,12 @@ yargs@~3.10.0:
     cliui "^2.1.0"
     decamelize "^1.0.0"
     window-size "0.1.0"
+
+yauzl@2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/yauzl/-/yauzl-2.4.1.tgz#9528f442dab1b2284e58b4379bb194e22e0c4005"
+  dependencies:
+    fd-slicer "~1.0.1"
 
 yeoman-environment@^2.0.5, yeoman-environment@^2.1.1:
   version "2.2.0"
