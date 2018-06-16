@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/local/bin/node /usr/local/bin/yarn add kill-port --dev
+  /usr/local/bin/node /usr/local/bin/yarn add request --dev
 
 PATH: 
   /Users/mattzeunert/.rvm/gems/ruby-2.2.1/bin:/Users/mattzeunert/.rvm/gems/ruby-2.2.1@global/bin:/Users/mattzeunert/.rvm/rubies/ruby-2.2.1/bin:/Users/mattzeunert/google-cloud-sdk/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/Applications/Postgres.app/Contents/Versions/9.3/bin:/opt/X11/bin:/Users/mattzeunert/.rvm/bin
@@ -34,7 +34,9 @@ npm manifest:
     },
     "devDependencies": {
       "@types/jest": "^23.1.0",
-      "puppeteer": "^1.5.0"
+      "kill-port": "^1.2.0",
+      "puppeteer": "^1.5.0",
+      "http-server": "^0.11.1"
     }
   }
 
@@ -746,7 +748,7 @@ Lockfile:
     version "1.0.0"
     resolved "https://registry.yarnpkg.com/async-limiter/-/async-limiter-1.0.0.tgz#78faed8c3d074ab81f22b4e985d79e8738f720f8"
   
-  async@^1.4.0, async@^1.5.0:
+  async@^1.4.0, async@^1.5.0, async@^1.5.2:
     version "1.5.2"
     resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
   
@@ -2029,6 +2031,10 @@ Lockfile:
     version "1.0.2"
     resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
   
+  corser@~2.0.0:
+    version "2.0.1"
+    resolved "https://registry.yarnpkg.com/corser/-/corser-2.0.1.tgz#8eda252ecaab5840dcd975ceb90d9370c819ff87"
+  
   create-ecdh@^4.0.0:
     version "4.0.3"
     resolved "https://registry.yarnpkg.com/create-ecdh/-/create-ecdh-4.0.3.tgz#c9111b6f33045c4697f144787f9254cdc77c45ff"
@@ -2065,7 +2071,7 @@ Lockfile:
       shebang-command "^1.2.0"
       which "^1.2.9"
   
-  cross-spawn@^6.0.5:
+  cross-spawn@^6.0.0, cross-spawn@^6.0.5:
     version "6.0.5"
     resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-6.0.5.tgz#4a5ec7c64dfae22c3a14124dbacdee846d80cbc4"
     dependencies:
@@ -2309,6 +2315,15 @@ Lockfile:
     dependencies:
       jsbn "~0.1.0"
   
+  ecstatic@^3.0.0:
+    version "3.2.0"
+    resolved "https://registry.yarnpkg.com/ecstatic/-/ecstatic-3.2.0.tgz#1b1aee1ca7c6b99cfb5cf6c9b26b481b90c4409f"
+    dependencies:
+      he "^1.1.1"
+      mime "^1.4.1"
+      minimist "^1.1.0"
+      url-join "^2.0.2"
+  
   editions@^1.3.3:
     version "1.3.4"
     resolved "https://registry.yarnpkg.com/editions/-/editions-1.3.4.tgz#3662cb592347c3168eb8e498a0ff73271d67f50b"
@@ -2491,6 +2506,10 @@ Lockfile:
     version "2.0.3"
     resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-2.0.3.tgz#b5e1079b59fb5e1ba2771c0a993be060a58c99ba"
   
+  eventemitter3@^3.0.0:
+    version "3.1.0"
+    resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-3.1.0.tgz#090b4d6cdbd645ed10bf750d4b5407942d7ba163"
+  
   events@^1.0.0:
     version "1.1.1"
     resolved "https://registry.yarnpkg.com/events/-/events-1.1.1.tgz#9ebdb7635ad099c70dcc4c2a1f5004288e8bd924"
@@ -2507,6 +2526,18 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/exec-sh/-/exec-sh-0.2.1.tgz#163b98a6e89e6b65b47c2a28d215bc1f63989c38"
     dependencies:
       merge "^1.1.3"
+  
+  execa@^0.10.0:
+    version "0.10.0"
+    resolved "https://registry.yarnpkg.com/execa/-/execa-0.10.0.tgz#ff456a8f53f90f8eccc71a96d11bdfc7f082cb50"
+    dependencies:
+      cross-spawn "^6.0.0"
+      get-stream "^3.0.0"
+      is-stream "^1.1.0"
+      npm-run-path "^2.0.0"
+      p-finally "^1.0.0"
+      signal-exit "^3.0.0"
+      strip-eof "^1.0.0"
   
   execa@^0.7.0:
     version "0.7.0"
@@ -2810,6 +2841,12 @@ Lockfile:
       inherits "^2.0.1"
       readable-stream "^2.0.4"
   
+  follow-redirects@^1.0.0:
+    version "1.5.0"
+    resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.5.0.tgz#234f49cf770b7f35b40e790f636ceba0c3a0ab77"
+    dependencies:
+      debug "^3.1.0"
+  
   for-in@^1.0.1, for-in@^1.0.2:
     version "1.0.2"
     resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
@@ -2911,6 +2948,10 @@ Lockfile:
   get-stream@3.0.0, get-stream@^3.0.0:
     version "3.0.0"
     resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-3.0.0.tgz#8e943d1358dc37555054ecbe2edb05aa174ede14"
+  
+  get-them-args@^1.3.1:
+    version "1.3.1"
+    resolved "https://registry.yarnpkg.com/get-them-args/-/get-them-args-1.3.1.tgz#ac1aeca013fda7db12591aaac129c58118e3daa8"
   
   get-value@^2.0.3, get-value@^2.0.6:
     version "2.0.6"
@@ -3174,6 +3215,10 @@ Lockfile:
       inherits "^2.0.3"
       minimalistic-assert "^1.0.0"
   
+  he@^1.1.1:
+    version "1.1.1"
+    resolved "https://registry.yarnpkg.com/he/-/he-1.1.1.tgz#93410fd21b009735151f8868c2f271f3427e23fd"
+  
   hmac-drbg@^1.0.0:
     version "1.0.1"
     resolved "https://registry.yarnpkg.com/hmac-drbg/-/hmac-drbg-1.0.1.tgz#d2745701025a6c775a6c545793ed502fc0c649a1"
@@ -3237,6 +3282,27 @@ Lockfile:
       optimist "^0.6.1"
       semaphore "^1.1.0"
       ws "^3.2.0"
+  
+  http-proxy@^1.8.1:
+    version "1.17.0"
+    resolved "https://registry.yarnpkg.com/http-proxy/-/http-proxy-1.17.0.tgz#7ad38494658f84605e2f6db4436df410f4e5be9a"
+    dependencies:
+      eventemitter3 "^3.0.0"
+      follow-redirects "^1.0.0"
+      requires-port "^1.0.0"
+  
+  http-server@^0.11.1:
+    version "0.11.1"
+    resolved "https://registry.yarnpkg.com/http-server/-/http-server-0.11.1.tgz#2302a56a6ffef7f9abea0147d838a5e9b6b6a79b"
+    dependencies:
+      colors "1.0.3"
+      corser "~2.0.0"
+      ecstatic "^3.0.0"
+      http-proxy "^1.8.1"
+      opener "~1.4.0"
+      optimist "0.6.x"
+      portfinder "^1.0.13"
+      union "~0.4.3"
   
   http-signature@~1.2.0:
     version "1.2.0"
@@ -4144,6 +4210,13 @@ Lockfile:
     dependencies:
       json-buffer "3.0.0"
   
+  kill-port@^1.2.0:
+    version "1.2.0"
+    resolved "https://registry.yarnpkg.com/kill-port/-/kill-port-1.2.0.tgz#5cf7d4b0707be94558d3ff273398037479375cbb"
+    dependencies:
+      execa "^0.10.0"
+      get-them-args "^1.3.1"
+  
   kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.2.0:
     version "3.2.2"
     resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-3.2.2.tgz#31ea21a734bab9bbb0f32466d893aea51e4a3c64"
@@ -4533,6 +4606,10 @@ Lockfile:
     version "1.4.1"
     resolved "https://registry.yarnpkg.com/mime/-/mime-1.4.1.tgz#121f9ebc49e3766f311a76e1fa1c8003c4b03aa6"
   
+  mime@^1.4.1:
+    version "1.6.0"
+    resolved "https://registry.yarnpkg.com/mime/-/mime-1.6.0.tgz#32cd9e5c64553bd58d19a568af452acff04981b1"
+  
   mime@^2.0.3:
     version "2.3.1"
     resolved "https://registry.yarnpkg.com/mime/-/mime-2.3.1.tgz#b1621c54d63b97c47d3cfe7f7215f7d64517c369"
@@ -4567,7 +4644,7 @@ Lockfile:
     version "0.1.0"
     resolved "https://registry.yarnpkg.com/minimist/-/minimist-0.1.0.tgz#99df657a52574c21c9057497df742790b2b4c0de"
   
-  minimist@^1.1.1, minimist@^1.2.0:
+  minimist@^1.1.0, minimist@^1.1.1, minimist@^1.2.0:
     version "1.2.0"
     resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.0.tgz#a35008b20f41383eec1fb914f4cd5df79a264284"
   
@@ -4610,7 +4687,7 @@ Lockfile:
       for-in "^1.0.2"
       is-extendable "^1.0.1"
   
-  mkdirp@0.5.1, mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.0:
+  mkdirp@0.5.1, mkdirp@0.5.x, mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.0:
     version "0.5.1"
     resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.1.tgz#30057438eac6cf7f8c4767f38648d6697d75c903"
     dependencies:
@@ -4913,13 +4990,17 @@ Lockfile:
     dependencies:
       mimic-fn "^1.0.0"
   
+  opener@~1.4.0:
+    version "1.4.3"
+    resolved "https://registry.yarnpkg.com/opener/-/opener-1.4.3.tgz#5c6da2c5d7e5831e8ffa3964950f8d6674ac90b8"
+  
   opn@^5.3.0:
     version "5.3.0"
     resolved "https://registry.yarnpkg.com/opn/-/opn-5.3.0.tgz#64871565c863875f052cfdf53d3e3cb5adb53b1c"
     dependencies:
       is-wsl "^1.1.0"
   
-  optimist@^0.6.1:
+  optimist@0.6.x, optimist@^0.6.1:
     version "0.6.1"
     resolved "https://registry.yarnpkg.com/optimist/-/optimist-0.6.1.tgz#da3ea74686fa21a19a111c326e90eb15a0196686"
     dependencies:
@@ -5169,6 +5250,14 @@ Lockfile:
     version "1.1.0"
     resolved "https://registry.yarnpkg.com/pn/-/pn-1.1.0.tgz#e2f4cef0e219f463c179ab37463e4e1ecdccbafb"
   
+  portfinder@^1.0.13:
+    version "1.0.13"
+    resolved "https://registry.yarnpkg.com/portfinder/-/portfinder-1.0.13.tgz#bb32ecd87c27104ae6ee44b5a3ccbf0ebb1aede9"
+    dependencies:
+      async "^1.5.2"
+      debug "^2.2.0"
+      mkdirp "0.5.x"
+  
   posix-character-classes@^0.1.0:
     version "0.1.1"
     resolved "https://registry.yarnpkg.com/posix-character-classes/-/posix-character-classes-0.1.1.tgz#01eac0fe3b5af71a2a6c02feabb8c1fef7e00eab"
@@ -5345,6 +5434,10 @@ Lockfile:
   qs@6.5.2, qs@~6.5.1:
     version "6.5.2"
     resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.2.tgz#cb3ae806e8740444584ef154ce8ee98d403f3e36"
+  
+  qs@~2.3.3:
+    version "2.3.3"
+    resolved "https://registry.yarnpkg.com/qs/-/qs-2.3.3.tgz#e9e85adbe75da0bbe4c8e0476a086290f863b404"
   
   query-string@^5.0.1:
     version "5.1.1"
@@ -5625,6 +5718,10 @@ Lockfile:
   require-main-filename@^1.0.1:
     version "1.0.1"
     resolved "https://registry.yarnpkg.com/require-main-filename/-/require-main-filename-1.0.1.tgz#97f717b69d48784f5f526a6c5aa8ffdda055a4d1"
+  
+  requires-port@^1.0.0:
+    version "1.0.0"
+    resolved "https://registry.yarnpkg.com/requires-port/-/requires-port-1.0.0.tgz#925d2601d39ac485e091cf0da5c6e694dc3dcaff"
   
   resolve-cwd@^2.0.0:
     version "2.0.0"
@@ -6512,6 +6609,12 @@ Lockfile:
       is-extendable "^0.1.1"
       set-value "^0.4.3"
   
+  union@~0.4.3:
+    version "0.4.6"
+    resolved "https://registry.yarnpkg.com/union/-/union-0.4.6.tgz#198fbdaeba254e788b0efcb630bc11f24a2959e0"
+    dependencies:
+      qs "~2.3.3"
+  
   unique-filename@^1.1.0:
     version "1.1.0"
     resolved "https://registry.yarnpkg.com/unique-filename/-/unique-filename-1.1.0.tgz#d05f2fe4032560871f30e93cbe735eea201514f3"
@@ -6552,6 +6655,10 @@ Lockfile:
   urix@^0.1.0:
     version "0.1.0"
     resolved "https://registry.yarnpkg.com/urix/-/urix-0.1.0.tgz#da937f7a62e21fec1fd18d49b35c2935067a6c72"
+  
+  url-join@^2.0.2:
+    version "2.0.5"
+    resolved "https://registry.yarnpkg.com/url-join/-/url-join-2.0.5.tgz#5af22f18c052a000a48d7b82c5e9c2e2feeda728"
   
   url-parse-lax@^1.0.0:
     version "1.0.0"
@@ -7039,4 +7146,4 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/yn/-/yn-2.0.0.tgz#e5adabc8acf408f6385fc76495684c88e6af689a"
 
 Trace: 
-  Error: ENOENT: no such file or directory, copyfile '/Users/mattzeunert/Library/Caches/Yarn/v1/npm-@types/jest-22.2.3-0157c0316dc3722c43a7b71de3fdf3acbccef10d/README.md' -> '/Users/mattzeunert/projects/FromJS/packages/cli/node_modules/@fromjs/backend/node_modules/@types/jest/README.md'
+  Error: ENOENT: no such file or directory, copyfile '/Users/mattzeunert/Library/Caches/Yarn/v1/npm-@types/jest-22.2.3-0157c0316dc3722c43a7b71de3fdf3acbccef10d/index.d.ts' -> '/Users/mattzeunert/projects/FromJS/packages/cli/node_modules/@fromjs/backend/node_modules/@types/jest/index.d.ts'
