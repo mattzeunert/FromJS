@@ -1,6 +1,11 @@
 const { spawn } = require("child_process");
 const puppeteer = require("puppeteer");
 const killPort = require("kill-port");
+const request = require("request");
+
+const backendPort = 12100;
+const proxyPort = backendPort + 1;
+const webServerPort = proxyPort + 1;
 
 function setTimeoutPromise(timeout) {
   return new Promise(resolve => {
@@ -19,16 +24,71 @@ function waitForProxyReady(command) {
   });
 }
 
+function startWebServer() {
+  return new Promise(resolve => {
+    let command = spawn(__dirname + "/node_modules/.bin/http-server", [
+      "-p",
+      webServerPort.toString(),
+      __dirname
+    ]);
+    command.stdout.on("data", function(data) {
+      if (data.toString().includes("Hit CTRL-C to stop the server")) {
+        resolve();
+      }
+    });
+    command.stderr.on("data", function(data) {
+      console.log("err", data.toString());
+    });
+  });
+}
+
+function inspectDomChar(charIndex) {
+  return new Promise(resolve => {
+    request.post(
+      {
+        url: "http://localhost:" + backendPort + "/inspectDomChar",
+        json: {
+          charIndex
+        }
+      },
+      function(err, resp, body) {
+        resolve(body);
+      }
+    );
+  });
+}
+
+function traverse(firstStep) {
+  return new Promise(resolve => {
+    request.post(
+      {
+        url: "http://localhost:" + backendPort + "/traverse",
+        json: firstStep
+      },
+      function(err, resp, body) {
+        resolve(body);
+      }
+    );
+  });
+}
+
+async function inspectDomCharAndTraverse(charIndex) {
+  const firstStep = await inspectDomChar(charIndex);
+  const steps = (await traverse(firstStep))["steps"];
+  return steps[steps.length - 1];
+}
+
 describe("E2E", () => {
   let browser;
 
   beforeAll(async () => {
-    await killPort(12100);
-    await killPort(12101);
+    await killPort(backendPort);
+    await killPort(proxyPort);
+    await killPort(webServerPort);
 
     command = spawn(__dirname + "/bin/fromjs", [
       "--port",
-      "12100",
+      backendPort.toString(),
       "--shouldOpenBrowser",
       "no",
       "--sessionDirectory",
@@ -40,19 +100,24 @@ describe("E2E", () => {
     });
 
     browser = await puppeteer.launch({
-      args: ["--proxy-server=127.0.0.1:12101"],
-      headless: true
+      args: ["--proxy-server=127.0.0.1:" + proxyPort],
+      headless: false
     });
 
+    await startWebServer();
     await waitForProxyReady(command);
+  });
+
+  afterAll(async () => {
+    await browser.close();
   });
 
   let command;
   it(
-    "works",
+    "Can load the start page",
     async () => {
       const page = await browser.newPage();
-      await page.goto("http://localhost:12100");
+      await page.goto("http://localhost:" + backendPort);
       await page.waitForSelector(".step");
 
       const text = await page.evaluate(
@@ -60,9 +125,31 @@ describe("E2E", () => {
       );
       expect(text).toContain("StringLiteral");
 
-      await browser.close();
-      console.timeEnd("e2e");
+      await page.close();
     },
     30000
+  );
+
+  it(
+    "Does DOM to JS tracking",
+    async () => {
+      const page = await browser.newPage();
+      await page.goto("http://localhost:" + webServerPort + "/test");
+      const testResult = await (await page.waitForFunction(
+        'window["testResult"]'
+      )).jsonValue();
+
+      const html = testResult.parts.map(p => p[0]).join("");
+
+      console.log(
+        "Waiting 2000ms for the BE to have the inspection data (mapping and logs)... should do this without timeout"
+      );
+      await setTimeoutPromise(2000);
+
+      const res = await inspectDomCharAndTraverse(html.indexOf("span"));
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("span");
+    },
+    20000
   );
 });

@@ -167,6 +167,8 @@ declare var __FUNCTION_NAMES__,
 
   initDomInspectionUI();
 
+  global["__getHtmlNodeOperationLogMapping"] = getHtmlNodeOperationLogMapping;
+
   global.fromJSInspect = function(value: any) {
     let logId;
     if (!argTrackingInfo && typeof value === "number") {
