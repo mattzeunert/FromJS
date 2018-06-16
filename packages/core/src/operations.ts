@@ -278,7 +278,7 @@ const operations: Operations = {
         fnArgs = fnArgs.slice(1);
       } else if (fn === Function.prototype.apply) {
         const argArray = fnArgValues[1];
-        if (!argArray.length) {
+        if (!("length" in argArray)) {
           // hmm can this even happen in a program that's not already broken?
           console.log("can this even happen?");
           fnArgs = [];

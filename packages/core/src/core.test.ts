@@ -794,3 +794,18 @@ describe("for ... in", () => {
     expect(assignedValue.args.value.operation).toBe("stringLiteral");
   });
 });
+
+describe("Doesn't break classes", () => {
+  it("Doesn't break class methods", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const C = class {
+        getA() {
+          return "a";
+        }
+      };
+      return new C().getA();
+    `);
+
+    expect(normal).toBe("a");
+  });
+});
