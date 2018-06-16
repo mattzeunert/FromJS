@@ -165,9 +165,15 @@ class ProxyInstrumenter {
 
     ctx.use(Proxy.gunzip);
 
-    if (isHtml && this.rewriteHtml && shouldInstrument) {
+    if (isHtml && shouldInstrument) {
       this.waitForResponseEnd(ctx).then(({ body, ctx, sendResponse }) => {
-        sendResponse(this.rewriteHtml(body));
+        if (this.rewriteHtml) {
+          body = this.rewriteHtml(body);
+        }
+        // Remove integrity hashes, since the browser will prevent loading
+        // the instrumented HTML otherwise
+        body = body.replace(/ integrity="[\S]+"/g, "");
+        sendResponse(body);
       });
       callback();
     } else if (checkIsJS(ctx) && shouldInstrument) {
