@@ -17,6 +17,7 @@ import { BackendOptions } from "./BackendOptions";
 import { HtmlToOperationLogMapping } from "@fromjs/core";
 import { template } from "lodash";
 import * as ui from "@fromjs/ui";
+import { LocStore } from "./LocStore";
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -96,12 +97,13 @@ export default class Backend {
     }
 
     setupUI(options, app, wss, getProxy);
-    setupBackend(options, app, wss, getProxy);
+    let { storeLocs } = setupBackend(options, app, wss, getProxy);
 
     let proxyInterface;
     createProxy({
       accessToken: sessionConfig.accessToken,
-      options
+      options,
+      storeLocs
     }).then(pInterface => {
       proxyInterface = pInterface;
       "justtotest" && getProxy();
@@ -265,6 +267,7 @@ function setupUI(options, app, wss, getProxy) {
 
 function setupBackend(options: BackendOptions, app, wss, getProxy) {
   const logServer = new LevelDBLogServer(options.getTrackingDataDirectory());
+  const locStore = new LocStore(options.getLocStorePath());
 
   app.get("/jsFiles/compileInBrowser.js", (req, res) => {
     const code = fs
@@ -363,8 +366,10 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
 
     // use loc if available because sourcemaps are buggy...
     if (operationLog.loc) {
-      resolver.resolveFrameFromLoc(operationLog.loc).then(rr => {
-        res.end(JSON.stringify(rr));
+      locStore.getLoc(operationLog.loc, loc => {
+        resolver.resolveFrameFromLoc(loc).then(rr => {
+          res.end(JSON.stringify(rr));
+        });
       });
     } else {
       res.status(500);
@@ -406,6 +411,14 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
         );
       });
   });
+
+  return {
+    storeLocs: locs => {
+      locStore.write(locs, function() {
+        console.log("stored locs");
+      });
+    }
+  };
 }
 
 function broadcast(wss, data) {

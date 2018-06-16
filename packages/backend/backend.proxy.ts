@@ -2,7 +2,6 @@ import { startProxy } from "@fromjs/proxy-instrumenter";
 import { handleEvalScript } from "@fromjs/core";
 declare var process: any;
 
-import { BackendOptions } from "./BackendOptions";
 process.title = "FromJS - Proxy";
 process.on("message", function(message) {
   if (message.arguments[1]) {
@@ -36,6 +35,12 @@ startProxy({
       <script src="http://localhost:${bePort}/jsFiles/compileInBrowser.js"></script>
       ` + html
     );
+  },
+  onCompilationComplete: (response: any) => {
+    process.send({ type: "storeLocs", locs: response.locs });
+  },
+  onRegisterEvalScript: response => {
+    process.send({ type: "storeLocs", locs: response.locs });
   }
 }).then(p => {
   proxy = p;

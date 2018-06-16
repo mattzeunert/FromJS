@@ -28,4 +28,8 @@ export class BackendOptions {
   getSessionJsonPath() {
     return path.resolve(this.sessionDirectory, "session.json");
   }
+
+  getLocStorePath() {
+    return path.resolve(this.sessionDirectory, "locs");
+  }
 }

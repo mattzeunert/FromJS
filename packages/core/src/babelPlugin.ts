@@ -109,7 +109,7 @@ function plugin(babel) {
       )
     );
 
-    const d = t.variableDeclaration("let", declarators);
+    const d = t.variableDeclaration("var", declarators);
     skipPath(d);
     path.node.body.body.unshift(d);
     path.node.ignore = true; // I'm not sure why it would re-enter the functiondecl/expr, but it has happened before

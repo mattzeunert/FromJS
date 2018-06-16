@@ -1,7 +1,7 @@
 import * as babel from "@babel/core";
 import plugin from "./babelPlugin";
 import * as prettier from "prettier";
-import getBabelOptions from "./getBabelOptions";
+import getBabelOptions, { getAndResetLocs } from "./getBabelOptions";
 
 var sourceMapRegex = /\/\/#[\W]*sourceMappingURL=.*$/;
 function removeSourceMapIfAny(code) {
@@ -40,6 +40,7 @@ export function compileSync(code, extraBabelOptions = {}, url = "/no_url.js") {
   );
   return {
     map: babelResult.map,
-    code: babelResult.code + "\n//# sourceMappingURL=" + url + ".map"
+    code: babelResult.code + "\n//# sourceMappingURL=" + url + ".map",
+    locs: getAndResetLocs()
   };
 }
