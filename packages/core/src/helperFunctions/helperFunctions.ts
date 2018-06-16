@@ -326,21 +326,17 @@ declare var __FUNCTION_NAMES__,
   var lastOpValueResult = null;
   var lastOpTrackingResult = null;
   let lastOpTrackingResultWithoutResetting = null;
-  global[functionNames.doOperation] = function ___op(opName: string, ...args) {
-    var value, trackingValue;
+  global[functionNames.doOperation] = function ___op(
+    opName: string,
+    objArgs,
+    astArgs,
+    loc
+  ) {
+    var trackingValue;
 
-    var objArgs;
-    var astArgs;
-    var argNames = [];
-
-    objArgs = args[0];
-    astArgs = args[1];
-    const loc = args[2];
-
-    args;
-    if (operationArrayArguments[opName]) {
-      operationArrayArguments[opName].forEach(arrayArgName => {});
-    }
+    // if (operationArrayArguments[opName]) {
+    //   operationArrayArguments[opName].forEach(arrayArgName => {});
+    // }
 
     let logData: any = {
       operation: opName,
@@ -354,12 +350,8 @@ declare var __FUNCTION_NAMES__,
     if (operationsExec[opName]) {
       ret = operationsExec[opName](objArgs, astArgs, ctx, logData);
     } else {
-      console.log("unhandled op", opName, args);
+      console.log("unhandled op", opName);
       throw Error("oh no");
-    }
-
-    if (opName === operationTypes.objectExpression) {
-      args = [];
     }
 
     logData.result = ret;
