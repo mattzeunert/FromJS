@@ -3,7 +3,7 @@ import * as babel from "@babel/core";
 import * as OperationTypes from "./OperationTypes";
 // import * as fs from "fs";
 import * as babylon from "babylon";
-import operations, { shouldSkipIdentifier } from "./operations";
+import operations, { shouldSkipIdentifier, initForBabel } from "./operations";
 import {
   ignoreNode,
   ignoredArrayExpression,
@@ -24,6 +24,9 @@ import {
 
 import helperCodeLoaded from "../helperFunctions";
 
+import * as t from "@babel/types";
+initForBabel(t);
+
 var helperCode = helperCodeLoaded
   .toString()
   .replace("__FUNCTION_NAMES__", JSON.stringify(FunctionNames));
@@ -31,18 +34,6 @@ helperCode = helperCode.replace(
   "__OPERATION_TYPES__",
   JSON.stringify(OperationTypes)
 );
-
-var opsExecString = `{`;
-Object.keys(operations).forEach(opName => {
-  if (!operations[opName].exec) {
-    // console.log("no exec for operation", opName);
-    return;
-  }
-  opsExecString += `${opName}: ${operations[opName].exec.toString()},`;
-});
-opsExecString += `}`;
-
-helperCode = helperCode.replace("__OPERATIONS_EXEC__", opsExecString);
 
 var opsArrayArgumentsString = `{`;
 Object.keys(operations).forEach(opName => {

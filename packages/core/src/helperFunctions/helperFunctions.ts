@@ -4,6 +4,7 @@ import getHtmlNodeOperationLogMapping from "./getHtmlNodeOperationLogMapping";
 import initDomInspectionUI from "./initDomInspectionUI";
 import KnownValues from "./KnownValues";
 import { ExecContext } from "./ExecContext";
+import operations from "../operations";
 
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
@@ -28,6 +29,11 @@ declare var __FUNCTION_NAMES__,
   global.__didInitializeDataFlowTracking = true;
 
   global.getElementOperationLogMapping = getElementOperationLogMapping;
+
+  operationsExec = {};
+  Object.keys(operations).forEach(opName => {
+    operationsExec[opName] = operations[opName].exec;
+  });
 
   let knownValues = new KnownValues();
 
@@ -402,6 +408,6 @@ declare var __FUNCTION_NAMES__,
 })(
   __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
-  __OPERATIONS_EXEC__,
+  null,
   __OPERATION_ARRAY_ARGUMENTS__
 );
