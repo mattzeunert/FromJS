@@ -146,14 +146,23 @@ describe("E2E", () => {
 
       const html = testResult.parts.map(p => p[0]).join("");
 
+      console.log(html);
       console.log(
         "Waiting 2000ms for the BE to have the inspection data (mapping and logs)... should do this without timeout"
       );
       await setTimeoutPromise(2000);
 
-      const res = await inspectDomCharAndTraverse(html.indexOf("span"));
+      let res = await inspectDomCharAndTraverse(html.indexOf("span"));
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("span");
+
+      res = await inspectDomCharAndTraverse(html.indexOf("setAttribute"));
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("setAttribute");
+
+      res = await inspectDomCharAndTraverse(html.indexOf("attr="));
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("attr");
     },
     20000
   );

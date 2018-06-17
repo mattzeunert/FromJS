@@ -1,4 +1,5 @@
 const span = document.createElement("span");
+span.setAttribute("attr", "setAttribute");
 
 document.querySelector("#app").appendChild(span);
 
