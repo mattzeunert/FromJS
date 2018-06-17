@@ -36,6 +36,8 @@ jobs:
 
       - run: cd packages/core;npm run webpack-build;cd ../..
 
+      - run: cd packages/ui;npm run webpack-build;cd ../..
+
       - run: npm run compile-all
 
       - run: yarn test

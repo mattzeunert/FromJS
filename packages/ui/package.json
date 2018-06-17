@@ -4,6 +4,7 @@
   "main": "empty.js",
   "license": "MIT",
   "scripts": {
+    "webpack-build": "webpack",
     "webpack-watch": "webpack --watch"
   },
   "dependencies": {
