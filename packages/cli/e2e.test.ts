@@ -100,7 +100,12 @@ describe("E2E", () => {
     });
 
     browser = await puppeteer.launch({
-      args: ["--proxy-server=127.0.0.1:" + proxyPort],
+      args: [
+        "--proxy-server=127.0.0.1:" + proxyPort,
+        // To make it work in CI:
+        "--no-sandbox",
+        "--disable-setuid-sandbox"
+      ],
       headless: false
     });
 
