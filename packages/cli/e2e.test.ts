@@ -111,14 +111,13 @@ describe("E2E", () => {
       args: [
         "--proxy-server=127.0.0.1:" + proxyPort,
         // To make it work in CI:
-        "--no-sandbox",
-        "--disable-setuid-sandbox"
+        "--no-sandbox"
       ],
       headless: true
     });
 
     await startWebServer();
-  });
+  }, 20000);
 
   afterAll(async () => {
     await browser.close();
@@ -128,8 +127,14 @@ describe("E2E", () => {
   it(
     "Can load the start page",
     async () => {
+      console.log("will open page");
       const page = await browser.newPage();
-      await page.goto("http://localhost:" + backendPort);
+      page.on("pageerror", function(err) {
+        console.log("Page error: " + err.toString());
+      });
+      await page.goto("http://localhost:" + backendPort + "/");
+      await setTimeoutPromise(2000);
+
       await page.waitForSelector(".step");
 
       const text = await page.evaluate(
@@ -137,9 +142,6 @@ describe("E2E", () => {
       );
       expect(text).toContain("StringLiteral");
 
-      page.on("pageerror", function(err) {
-        console.log("Page error: " + err.toString());
-      });
       await page.close();
     },
     30000
