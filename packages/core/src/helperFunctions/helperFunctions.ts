@@ -5,6 +5,7 @@ import initDomInspectionUI from "./initDomInspectionUI";
 import KnownValues from "./KnownValues";
 import { ExecContext } from "./ExecContext";
 import operations from "../operations";
+import { SKIP_TRACKING, VERIFY } from "../config";
 
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
@@ -77,6 +78,9 @@ declare var __FUNCTION_NAMES__,
 
   let lastOperationType = null;
   function createOperationLog(args) {
+    if (SKIP_TRACKING) {
+      return 1111;
+    }
     args.stackFrames = []; // don't use Error().stack, use loc instead
     // args.stackFrames = Error().stack.split(String.fromCharCode(10));
     // // Sometimes the json traversal results in Array.forEach<anonymous>
@@ -141,7 +145,9 @@ declare var __FUNCTION_NAMES__,
       // e.g. when it's a callback argument to a native api call
       // TODO: return some kind of tracking value here ("untracked argument")
       // ideally also include a loc
-      console.log("no arg tracking info...");
+      if (VERIFY) {
+        console.log("no arg tracking info...");
+      }
       return null;
     }
     if (index === undefined) {
@@ -204,7 +210,7 @@ declare var __FUNCTION_NAMES__,
     propertyValueTrackingValue,
     propertyNameTrackingValue = null
   ) {
-    if (!propertyNameTrackingValue) {
+    if (!propertyNameTrackingValue && VERIFY) {
       // debugger;
       console.count("no propertyNameTrackingValue");
     }

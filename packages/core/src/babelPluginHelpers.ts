@@ -2,6 +2,7 @@ import * as FunctionNames from "./FunctionNames";
 
 import { identifier } from "./OperationTypes";
 import { getCurrentBabelFilePath, createLoc } from "./getBabelOptions";
+import { VERIFY, SKIP_TRACKING } from "./config";
 
 let t;
 // This file is also imported into helperFunctions, i.e. FE code that can't load
@@ -83,7 +84,7 @@ export function skipPath(node) {
 }
 
 function getLocObjectASTNode(loc) {
-  const DISABLE_LOC_FOR_DEBUGGING = false;
+  const DISABLE_LOC_FOR_DEBUGGING = false || SKIP_TRACKING;
   if (DISABLE_LOC_FOR_DEBUGGING) {
     return ignoreNode(t.nullLiteral());
   }
@@ -117,7 +118,7 @@ function getLocObjectASTNode(loc) {
 
 let noLocCount = 0;
 export function createOperation(opType, opArgs, astArgs = null, loc = null) {
-  if (!loc) {
+  if (!loc && VERIFY) {
     noLocCount++;
     console.log("no loc for", opType, noLocCount);
   }

@@ -11,6 +11,10 @@ export default function addElOrigin(el, what, origin) {
     children
   } = origin;
 
+  if (!el) {
+    debugger;
+  }
+
   if (!el.__elOrigin) {
     el.__elOrigin = {};
   }

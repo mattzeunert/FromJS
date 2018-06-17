@@ -4,8 +4,6 @@ import * as process from "process";
 import { BackendOptions } from "@fromjs/backend";
 import * as chromeLauncher from "chrome-launcher";
 
-process["titl" + "e"] = "FromJS - CLI";
-
 commander
   .option("--shouldOpenBrowser <shouldOpen>", "yes|no|only", "yes")
   .option("-p, --port <port>", "Server port", 7000)
@@ -19,6 +17,8 @@ commander
 
 let bePort = parseFloat(commander.port);
 let proxyPort = bePort + 1;
+
+process["titl" + "e"] = "FromJS - CLI (" + bePort + ")";
 
 if (commander.shouldOpenBrowser === "only") {
   process["titl" + "e"] = "FromJS - CLI (browser only)";

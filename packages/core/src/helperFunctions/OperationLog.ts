@@ -1,4 +1,5 @@
 import KnownValues from "./KnownValues";
+import { VERIFY } from "../config";
 
 var global = Function("return this")();
 
@@ -116,7 +117,7 @@ export default class OperationLog {
       arrayArguments = ["elements"];
     }
 
-    if (!loc) {
+    if (VERIFY && !loc) {
       console.log("no loc at runtime for operation", operation);
     }
 
@@ -137,6 +138,7 @@ export default class OperationLog {
       // only store argument operation log because ol.result === a[0]
       eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
         if (
+          VERIFY &&
           typeof arg[1] !== "number" &&
           arg[1] !== null &&
           arg[1] !== undefined &&
@@ -153,6 +155,7 @@ export default class OperationLog {
     if (typeof extraArgs === "object") {
       eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
         if (
+          VERIFY &&
           typeof arg[1] !== "number" &&
           arg[1] !== null &&
           arg[1] !== undefined &&

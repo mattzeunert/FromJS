@@ -12,6 +12,7 @@ import addElOrigin, {
   addOriginInfoToCreatedElement
 } from "./domHelpers/addElOrigin";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
+import { VERIFY } from "../config"
 
 const specialCases = {
   "String.prototype.replace": ({
@@ -531,7 +532,7 @@ export default <any>{
         ret = r[0];
         retT = r[1];
       } else {
-        if (fn === ctx.knownValues.getValue("String.prototype.replace")) {
+        if (fn === ctx.knownValues.getValue("String.prototype.replace") && VERIFY) {
           console.log("unhandled string replace call");
         }
         const fnIsEval = fn === eval;

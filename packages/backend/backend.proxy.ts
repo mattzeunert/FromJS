@@ -2,7 +2,6 @@ import { startProxy } from "@fromjs/proxy-instrumenter";
 import { handleEvalScript } from "@fromjs/core";
 declare var process: any;
 
-process.title = "FromJS - Proxy";
 process.on("message", function(message) {
   if (message.arguments[1]) {
     throw Error("todo......");
@@ -15,6 +14,8 @@ let proxy;
 const options = JSON.parse(process.argv[process.argv.length - 1]);
 
 const { accessToken, bePort, proxyPort, certDirectory } = options;
+
+process.title = "FromJS - Proxy (" + proxyPort + ")";
 
 startProxy({
   babelPluginOptions: {
