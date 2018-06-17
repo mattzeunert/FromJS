@@ -281,6 +281,20 @@ const specialValuesForPostprocessing = {
   }) => {
     addOriginInfoToCreatedElement(ret, fnArgs[0], "document.createElement");
   },
+  "document.createTextNode": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT,
+    extraTrackingValues
+  }) => {
+    addElOrigin(ret, "textValue", {
+      inputValues: [[null, fnArgs[0]]]
+    });
+  },
   "HTMLElement.prototype.setAttribute": ({
     object,
     fnArgs,
