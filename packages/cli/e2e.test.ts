@@ -95,11 +95,17 @@ describe("E2E", () => {
       "/tmp/fromjs-e2e"
     ]);
 
-    command.stderr.on("data", function(data) {
-      console.log("err", data.toString());
+    command.stdout.on("data", function(data) {
+      console.log("CLI out", data.toString());
     });
 
+    command.stderr.on("data", function(data) {
+      console.log("CLI err", data.toString());
+    });
+
+    console.log("waiting for proxy");
     await waitForProxyReady(command);
+    console.log("proxy ready!");
 
     browser = await puppeteer.launch({
       args: [
