@@ -130,6 +130,9 @@ describe("E2E", () => {
       );
       expect(text).toContain("StringLiteral");
 
+      page.on("pageerror", function(err) {
+        console.log("Page error: " + err.toString());
+      });
       await page.close();
     },
     30000
@@ -139,6 +142,9 @@ describe("E2E", () => {
     "Does DOM to JS tracking",
     async () => {
       const page = await browser.newPage();
+      page.on("pageerror", function(err) {
+        console.log("Page error: " + err.toString());
+      });
       await page.goto("http://localhost:" + webServerPort + "/test");
       const testResult = await (await page.waitForFunction(
         'window["testResult"]'
@@ -152,10 +158,12 @@ describe("E2E", () => {
       );
       await setTimeoutPromise(2000);
 
+      // createElement
       let res = await inspectDomCharAndTraverse(html.indexOf("span"));
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("span");
 
+      // setAttribute
       res = await inspectDomCharAndTraverse(html.indexOf("setAttribute"));
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("setAttribute");
@@ -164,10 +172,12 @@ describe("E2E", () => {
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("attr");
 
+      // innerHTML
       res = await inspectDomCharAndTraverse(html.indexOf("<b>"));
       expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("abc<b>ddd</b>");
+      expect(res.operationLog.result.primitive).toBe("abc<b>innerHTML</b>");
 
+      // insertAjacentHTML
       res = await inspectDomCharAndTraverse(
         html.indexOf("insertAdjacentHTML2")
       );
@@ -175,6 +185,11 @@ describe("E2E", () => {
       expect(res.operationLog.result.primitive).toBe(
         "<div>insertAdjacentHTML1</div><div>insertAdjacentHTML2</div>"
       );
+
+      // textContent
+      res = await inspectDomCharAndTraverse(html.indexOf("textContent"));
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("textContent");
     },
     20000
   );
