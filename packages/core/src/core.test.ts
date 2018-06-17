@@ -808,6 +808,19 @@ describe("for ... in", () => {
 
     expect(normal).toBe(1);
   });
+
+  it("Doesn't break if the for in statement contains a for loop", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    var obj = {a: [1,2,3]}
+      var arr = []
+      for (var key in obj) 
+        for (var i=0; i< obj[key].length; i++)
+          arr.push(obj[key][i])
+    return arr
+  `);
+
+    expect(normal).toEqual([1, 2, 3]);
+  });
 });
 
 describe("Doesn't break classes", () => {
@@ -850,4 +863,33 @@ describe("Doesn't break bitwise operators", async () => {
     `);
     expect(normal).toBe(0b100);
   });
+});
+
+it("Doesn't break for loop with empty string as condition", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      var wasInBody = false;
+      for (var a=0; "";) {
+          wasInBody = true;
+          break;
+      }
+      return wasInBody;
+    `);
+  expect(normal).toBe(false);
+});
+
+describe("Logical Expressions", () => {
+  it("Doesn't break nested AND/OR expressions", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return (1 && 2) || 3
+      `);
+    expect(normal).toBe(2);
+  });
+});
+
+it("Can handle nested conditional operators", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      var a = true ? ('' ? null : ({} ? 'yes' : null)) : null;
+      return a
+    `);
+  expect(normal).toBe("yes");
 });
