@@ -30,7 +30,6 @@ import CallExpression from "./operations/CallExpression";
 import AssignmentExpression from "./operations/AssignmentExpression";
 import traverseStringConcat from "./traverseStringConcat";
 
-
 let t;
 // This file is also imported into helperFunctions, i.e. FE code that can't load
 // Babel dependencies
@@ -46,7 +45,11 @@ interface TraversalStep {
 
 function createNode(args, astArgs = null) {}
 
-
+interface Shorthand {
+  getExec: any;
+  fnName: any;
+  visitor: any;
+}
 
 interface Operations {
   [key: string]: {
@@ -55,6 +58,7 @@ interface Operations {
     exec?: any;
     arrayArguments?: string[];
     getArgumentsArray?: any;
+    shorthand?: Shorthand;
     traverse?: (
       operationLog: any,
       charIndex: number
@@ -352,6 +356,24 @@ const operations: Operations = {
     }
   },
   stringLiteral: {
+    shorthand: {
+      fnName: "__strLit",
+      getExec: doOperation => {
+        return (value, loc) => {
+          return doOperation(
+            "stringLiteral",
+            {
+              value: [value]
+            },
+            null,
+            loc
+          );
+        };
+      },
+      visitor: (opArgs, astArgs, locAstNode) => {
+        return ignoredCallExpression("__strLit", [opArgs.value[0], locAstNode]);
+      }
+    },
     visitor(path) {
       if (path.parent.type === "ObjectProperty") {
         return;
@@ -371,6 +393,24 @@ const operations: Operations = {
     }
   },
   numericLiteral: {
+    shorthand: {
+      fnName: "__numLit",
+      getExec: doOperation => {
+        return (value, loc) => {
+          return doOperation(
+            "numericLiteral",
+            {
+              value: [value]
+            },
+            null,
+            loc
+          );
+        };
+      },
+      visitor: (opArgs, astArgs, locAstNode) => {
+        return ignoredCallExpression("__numLit", [opArgs.value[0], locAstNode]);
+      }
+    },
     visitor(path) {
       if (path.parent.type === "ObjectProperty") {
         return;
@@ -471,6 +511,28 @@ const operations: Operations = {
     }
   },
   identifier: {
+    shorthand: {
+      fnName: "__ident",
+      getExec: doOperation => {
+        return (value, loc) => {
+          return doOperation(
+            "identifier",
+            {
+              value
+            },
+            null,
+            loc
+          );
+        };
+      },
+      visitor: (opArgs, astArgs, locAstNode) => {
+        if (astArgs && astArgs["isArguments"]) {
+          // __ident doesn't take astArgs
+          return null;
+        }
+        return ignoredCallExpression("__ident", [opArgs.value, locAstNode]);
+      }
+    },
     exec: (args, astArgs, ctx: ExecContext, logData) => {
       if (astArgs && astArgs.isArguments) {
         if (args.allFnArgTrackingValues[0]) {
@@ -595,7 +657,8 @@ Object.keys(operations).forEach(opName => {
       OperationTypes[opName],
       args,
       astArgs,
-      loc
+      loc,
+      operations[opName].shorthand || null
     );
     return operation;
   };
