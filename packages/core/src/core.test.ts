@@ -741,8 +741,8 @@ describe("for ... in", () => {
         return obj[key]
       }
       for (key in obj)
-      for (key2 in ((x = 12), (vOuter = getValue(obj, key))))
-        (vInner = vOuter[key2]), (vInner += 2);
+        for (key2 in ((x = 12), (vOuter = getValue(obj, key))))
+          (vInner = vOuter[key2]), (vInner += 2);
 
       return vInner /* 7 */ + x /* 12 */
 
@@ -761,7 +761,6 @@ describe("for ... in", () => {
     }
     return ret
   `);
-
     expect(normal).toBe("a");
     const assignedValue = tracking.args.value.args.argument;
     expect(assignedValue.args.value.operation).toBe("stringLiteral");
@@ -792,6 +791,22 @@ describe("for ... in", () => {
     expect(normal).toBe("a");
     const assignedValue = tracking.args.value.args.argument;
     expect(assignedValue.args.value.operation).toBe("stringLiteral");
+  });
+
+  it("Doesn't evaluate for in statement right value more than once", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    let counter = 0
+    function getObj() {
+      counter++
+      return {a: 1, b: 2, c: 3}
+    }
+    for (var key in getObj()) {
+
+    }
+    return counter
+  `);
+
+    expect(normal).toBe(1);
   });
 });
 
