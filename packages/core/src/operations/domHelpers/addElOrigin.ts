@@ -33,9 +33,13 @@ export default function addElOrigin(el, what, origin) {
       addElOrigin(el, "prependChild", { child });
     });
   } else {
+    const tv = inputValues[0][1];
+    if (!tv) {
+      console.error("no tv", inputValues, inputValues[0], inputValues[0][1]);
+    }
     el.__elOrigin[what] = {
       action,
-      trackingValue: inputValues[0][1],
+      trackingValue: tv,
       inputValuesCharacterIndex: inputValuesCharacterIndex || [0],
       extraCharsAdded: extraCharsAdded || 0,
       offsetAtCharIndex

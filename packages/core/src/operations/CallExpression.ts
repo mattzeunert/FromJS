@@ -11,6 +11,7 @@ import { ExecContext } from "../helperFunctions/ExecContext";
 import addElOrigin, {
   addOriginInfoToCreatedElement
 } from "./domHelpers/addElOrigin";
+import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 
 const specialCases = {
   "String.prototype.replace": ({
@@ -298,6 +299,40 @@ const specialValuesForPostprocessing = {
     addElOrigin(object, "attribute_" + attrName + "_value", {
       inputValues: [[null, attrValueArg]]
     });
+  },
+  "HTMLElement.prototype.insertAdjacentHTML": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT,
+    extraTrackingValues
+  }) => {
+    const position = fnArgValues[0].toLowerCase();
+    if (position !== "afterbegin") {
+      console.log("Not tracking insertAdjacentHTML at", position);
+      return;
+    }
+
+    var el = object;
+
+    const html = fnArgValues[1];
+
+    const helperDiv = document.createElement("div");
+    helperDiv.innerHTML = html;
+    const nodeAddedCount = helperDiv.childNodes.length;
+    var childNodesBefore = Array.from(el.childNodes).slice(nodeAddedCount);
+
+    mapInnerHTMLAssignment(
+      el,
+      [html, fnArgs[1]],
+      "insertAdjacentHTML",
+      undefined,
+      undefined,
+      childNodesBefore
+    );
   }
 };
 

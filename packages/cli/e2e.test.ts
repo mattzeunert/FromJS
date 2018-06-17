@@ -106,7 +106,7 @@ describe("E2E", () => {
         "--no-sandbox",
         "--disable-setuid-sandbox"
       ],
-      headless: false
+      headless: true
     });
 
     await startWebServer();
@@ -163,6 +163,18 @@ describe("E2E", () => {
       res = await inspectDomCharAndTraverse(html.indexOf("attr="));
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("attr");
+
+      res = await inspectDomCharAndTraverse(html.indexOf("<b>"));
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("abc<b>ddd</b>");
+
+      res = await inspectDomCharAndTraverse(
+        html.indexOf("insertAdjacentHTML2")
+      );
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe(
+        "<div>insertAdjacentHTML1</div><div>insertAdjacentHTML2</div>"
+      );
     },
     20000
   );
