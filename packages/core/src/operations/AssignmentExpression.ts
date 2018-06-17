@@ -13,6 +13,7 @@ import {
 } from "../babelPluginHelpers";
 import traverseStringConcat from "../traverseStringConcat";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
+import addElOrigin from "./domHelpers/addElOrigin";
 
 export default <any>{
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
@@ -80,6 +81,18 @@ export default <any>{
 
       if (obj instanceof HTMLElement && propName === "innerHTML") {
         mapInnerHTMLAssignment(obj, args.argument, "assignInnerHTML", 0);
+      } else if (obj instanceof HTMLElement && propName === "textContent") {
+        if (obj.nodeType === Node.TEXT_NODE) {
+          addElOrigin(obj, "textContent", {
+            inputValues: [args.argument]
+          });
+        } else if (obj.nodeType === Node.ELEMENT_NODE) {
+          addElOrigin(obj.childNodes[0], "textValue", {
+            inputValues: [args.argument]
+          });
+        } else {
+          console.log("do i need to handle this? can this even happen?");
+        }
       }
     } else if (assignmentType === "Identifier") {
       ret = args.newValue[0];
