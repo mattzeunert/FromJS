@@ -31,11 +31,6 @@ declare var __FUNCTION_NAMES__,
 
   global.getElementOperationLogMapping = getElementOperationLogMapping;
 
-  operationsExec = {};
-  Object.keys(operations).forEach(opName => {
-    operationsExec[opName] = operations[opName].exec;
-  });
-
   let knownValues = new KnownValues();
 
   function postToBE(endpoint, data) {
@@ -401,6 +396,21 @@ declare var __FUNCTION_NAMES__,
 
     return ret;
   };
+
+  operationsExec = {};
+  Object.keys(operations).forEach(opName => {
+    const op = operations[opName];
+    // The object creation in so many places is expensive
+    // so some simple ops have a shorthand function that
+    // is called instead of __op and calls through to __op
+    if (op.shorthand) {
+      global[op.shorthand.fnName] = op.shorthand.getExec(
+        global[functionNames.doOperation]
+      );
+    }
+
+    operationsExec[opName] = op.exec;
+  });
 
   global[functionNames.getLastOperationValueResult] = function getLastOp() {
     var ret = lastOpValueResult;

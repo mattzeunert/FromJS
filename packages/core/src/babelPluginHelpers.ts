@@ -117,20 +117,43 @@ function getLocObjectASTNode(loc) {
 }
 
 let noLocCount = 0;
-export function createOperation(opType, opArgs, astArgs = null, loc = null) {
+export function createOperation(
+  opType,
+  opArgs,
+  astArgs = null,
+  loc = null,
+  shorthand: any = null
+) {
   if (!loc && VERIFY) {
     noLocCount++;
     console.log("no loc for", opType, noLocCount);
   }
 
-  var call = ignoredCallExpression(FunctionNames.doOperation, [
+  let locAstNode;
+  if (!loc || SKIP_TRACKING) {
+    locAstNode = t.nullLiteral();
+  } else {
+    locAstNode = getLocObjectASTNode(loc);
+  }
+
+  if (shorthand) {
+    const call = shorthand!["visitor"](opArgs, astArgs, locAstNode);
+    if (call) {
+      return call;
+    }
+  }
+
+  const args = [
     ignoredStringLiteral(opType),
     ignoredObjectExpression(opArgs),
     astArgs !== null
       ? skipPath(ignoredObjectExpression(astArgs))
-      : t.nullLiteral(),
-    loc ? getLocObjectASTNode(loc) : t.nullLiteral()
-  ]);
+      : t.nullLiteral()
+  ];
+  if (loc && !SKIP_TRACKING) {
+    args.push(locAstNode);
+  }
+  var call = ignoredCallExpression(FunctionNames.doOperation, args);
   call.skipKeys = {
     callee: true
   };
