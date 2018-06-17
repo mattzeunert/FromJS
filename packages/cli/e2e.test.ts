@@ -99,6 +99,8 @@ describe("E2E", () => {
       console.log("err", data.toString());
     });
 
+    await waitForProxyReady(command);
+
     browser = await puppeteer.launch({
       args: [
         "--proxy-server=127.0.0.1:" + proxyPort,
@@ -110,7 +112,6 @@ describe("E2E", () => {
     });
 
     await startWebServer();
-    await waitForProxyReady(command);
   });
 
   afterAll(async () => {
