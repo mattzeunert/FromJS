@@ -296,9 +296,9 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
       "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
     );
 
-    req.body.logs.forEach(function(log) {
-      logServer.storeLog(log);
-    });
+    const start = new Date();
+
+    logServer.storeLogs(req.body.logs);
 
     req.body.evalScripts.forEach(function(evalScript) {
       getProxy().registerEvalScript(evalScript);
