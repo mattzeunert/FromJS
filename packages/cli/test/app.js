@@ -5,6 +5,8 @@ span.innerHTML = "abc<b>innerHTML</b>";
 const div = document.createElement("div");
 div.textContent = "textContent";
 
+const textNode = document.createTextNode("createTextNode");
+
 const app = document.querySelector("#app");
 
 app.appendChild(span);
@@ -13,6 +15,7 @@ app.insertAdjacentHTML(
   "afterbegin",
   "<div>insertAdjacentHTML1</div><div>insertAdjacentHTML2</div>"
 );
+app.appendChild(textNode);
 
 fromJSInspect(app);
 

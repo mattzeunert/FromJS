@@ -34,6 +34,7 @@ export default class KnownValues {
       const document = global.document;
       Object.assign(this._knownValues, {
         "document.createElement": document.createElement,
+        "document.createTextNode": document.createTextNode,
         "HTMLElement.prototype.setAttribute":
           HTMLElement.prototype.setAttribute,
         "HTMLElement.prototype.insertAdjacentHTML":
