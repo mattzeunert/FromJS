@@ -498,6 +498,11 @@ describe("JSON.parse", () => {
       done();
     });
   });
+  it("Doesn't break on null values", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return JSON.parse('{"a": null}')
+    `);
+  });
 });
 
 it("Tracks arguments to NewExpressions", async () => {
