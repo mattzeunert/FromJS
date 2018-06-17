@@ -229,6 +229,21 @@ function plugin(babel) {
         );
       }
 
+      let forInRightValueName =
+        "__forInRightValue" +
+        Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
+
+      path.insertBefore(
+        ignoreNode(
+          t.variableDeclaration("let", [
+            t.variableDeclarator(
+              ignoredIdentifier(forInRightValueName),
+              path.node.right
+            )
+          ])
+        )
+      );
+
       if (isNewVariable) {
         var declaration = ignoreNode(
           t.variableDeclaration("var", [
@@ -238,6 +253,8 @@ function plugin(babel) {
         path.node.body.body.unshift(declaration);
       }
 
+      path.node.right = ignoredIdentifier(forInRightValueName);
+
       var assignment = ignoreNode(
         t.expressionStatement(
           ignoreNode(
@@ -245,7 +262,7 @@ function plugin(babel) {
               "=",
               ignoredIdentifier(getTrackingVarName(varName)),
               ignoredCallExpression("getObjectPropertyNameTrackingValue", [
-                ignoreNode(path.node.right),
+                ignoredIdentifier(forInRightValueName),
                 ignoredIdentifier(varName)
               ])
             )
