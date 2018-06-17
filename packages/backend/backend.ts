@@ -419,9 +419,7 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
 
   return {
     storeLocs: locs => {
-      locStore.write(locs, function() {
-        console.log("stored locs");
-      });
+      locStore.write(locs, function() {});
     }
   };
 }
