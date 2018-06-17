@@ -224,10 +224,15 @@ function plugin(babel) {
       }
 
       if (path.node.body.type !== "BlockStatement") {
+        // Technically it might not be safe to make this conversion
+        // because it affects scoping for let/const inside the body
+        // ...although that's not usually what you do inside a for in body
         path.node.body = ignoreNode(
           babel.types.blockStatement([path.node.body])
         );
       }
+
+      const body = path.node.body.body;
 
       let forInRightValueName =
         "__forInRightValue" +
@@ -250,7 +255,7 @@ function plugin(babel) {
             t.variableDeclarator(ignoredIdentifier(getTrackingVarName(varName)))
           ])
         );
-        path.node.body.body.unshift(declaration);
+        body.unshift(declaration);
       }
 
       path.node.right = ignoredIdentifier(forInRightValueName);
@@ -269,7 +274,7 @@ function plugin(babel) {
           )
         )
       );
-      path.node.body.body.unshift(assignment);
+      body.unshift(assignment);
     }
   };
 

@@ -821,6 +821,16 @@ describe("for ... in", () => {
 
     expect(normal).toEqual([1, 2, 3]);
   });
+
+  it("Doesn't break when for in loop is in an if statement without a block expression", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      if (true)
+        for (b in {a: 2})
+          return b
+    `);
+
+    expect(normal).toEqual("a");
+  });
 });
 
 describe("Doesn't break classes", () => {
