@@ -87,9 +87,12 @@ export default <any>{
             inputValues: [args.argument]
           });
         } else if (obj.nodeType === Node.ELEMENT_NODE) {
-          addElOrigin(obj.childNodes[0], "textValue", {
-            inputValues: [args.argument]
-          });
+          if (obj.childNodes.length > 0) {
+            // can be 0 still if textValue is ""
+            addElOrigin(obj.childNodes[0], "textValue", {
+              inputValues: [args.argument]
+            });
+          }
         } else {
           console.log("do i need to handle this? can this even happen?");
         }
