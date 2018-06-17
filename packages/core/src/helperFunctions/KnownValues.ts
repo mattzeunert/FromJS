@@ -33,7 +33,8 @@ export default class KnownValues {
     if (global["document"]) {
       const document = global.document;
       Object.assign(this._knownValues, {
-        "document.createElement": document.createElement
+        "document.createElement": document.createElement,
+        "HTMLElement.prototype.setAttribute": HTMLElement.prototype.setAttribute
       });
     }
 

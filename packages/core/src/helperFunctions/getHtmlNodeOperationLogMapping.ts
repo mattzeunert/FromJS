@@ -21,9 +21,10 @@ function getNodeHtmlParts(node: Node) {
 
     for (var i = 0; i < el.attributes.length; i++) {
       const attr = el.attributes[i];
+      parts.push([" " + attr.name, origin["attribute_" + attr.name + "_name"]]);
       parts.push([
-        " " + attr.name + '="' + attr.textContent + '"',
-        origin["attribute_" + attr.name]
+        '="' + attr.textContent + '"',
+        origin["attribute_" + attr.name + "_value"]
       ]);
     }
 

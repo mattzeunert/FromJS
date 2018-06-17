@@ -8,7 +8,9 @@ import {
 import HtmlToOperationLogMapping from "../helperFunctions/HtmlToOperationLogMapping";
 import * as OperationTypes from "../OperationTypes";
 import { ExecContext } from "../helperFunctions/ExecContext";
-import { addOriginInfoToCreatedElement } from "./domHelpers/addElOrigin";
+import addElOrigin, {
+  addOriginInfoToCreatedElement
+} from "./domHelpers/addElOrigin";
 
 const specialCases = {
   "String.prototype.replace": ({
@@ -271,12 +273,31 @@ const specialValuesForPostprocessing = {
     fnArgs,
     ctx,
     logData,
-    fnArgsValues,
+    fnArgValues,
     ret,
     retT,
     extraTrackingValues
   }) => {
     addOriginInfoToCreatedElement(ret, fnArgs[0], "document.createElement");
+  },
+  "HTMLElement.prototype.setAttribute": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT,
+    extraTrackingValues
+  }) => {
+    const [attrNameArg, attrValueArg] = fnArgs;
+    let attrName = fnArgValues[0];
+    addElOrigin(object, "attribute_" + attrName + "_name", {
+      inputValues: [[null, attrNameArg]]
+    });
+    addElOrigin(object, "attribute_" + attrName + "_value", {
+      inputValues: [[null, attrValueArg]]
+    });
   }
 };
 
