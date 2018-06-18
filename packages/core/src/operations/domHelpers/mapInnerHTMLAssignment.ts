@@ -369,11 +369,23 @@ export default function mapInnerHTMLAssignment(
             offsetAtCharIndex.push(lastOffset); // map the "'" after the attribute value
           }
 
-          addElOrigin(child, "attribute_" + attr.name, {
+          addElOrigin(child, "attribute_" + attr.name + "_name", {
             action: actionName,
             trackingValue: assignedInnerHTML[1],
             value: serializedHtml,
             inputValuesCharacterIndex: [charOffsetInSerializedHtmlBefore],
+            extraCharsAdded: charsAddedInSerializedHtml,
+            offsetAtCharIndex: offsetAtCharIndex,
+            error: error
+          });
+
+          addElOrigin(child, "attribute_" + attr.name + "_value", {
+            action: actionName,
+            trackingValue: assignedInnerHTML[1],
+            value: serializedHtml,
+            inputValuesCharacterIndex: [
+              charOffsetInSerializedHtmlBefore + (" " + attr.name).length
+            ],
             extraCharsAdded: charsAddedInSerializedHtml,
             offsetAtCharIndex: offsetAtCharIndex,
             error: error
