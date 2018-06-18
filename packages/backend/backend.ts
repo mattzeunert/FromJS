@@ -47,9 +47,17 @@ function ensureDirectoriesExist(options: BackendOptions) {
 }
 
 const LOG_PERF = true;
+const DELETE_EXISTING_LOGS_AT_START = false;
 
 export default class Backend {
   constructor(options: BackendOptions) {
+    if (DELETE_EXISTING_LOGS_AT_START) {
+      console.log(
+        "deleting existing log data, this makes sure perf data is more comparable... presumably leveldb slows down with more data"
+      );
+      require("rimraf").sync(options.getLocStorePath());
+      require("rimraf").sync(options.getTrackingDataDirectory());
+    }
     ensureDirectoriesExist(options);
 
     getFolderSize(options.sessionDirectory, (err, size) => {
