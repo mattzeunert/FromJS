@@ -27,7 +27,13 @@ startProxy({
   port: proxyPort,
   instrumenterFilePath: __dirname + "/instrumentCode.js",
   verbose: false,
-  shouldInstrument: ({ port, path }) => {
+  shouldBlock: ({ url }) => {
+    return url.includes("inspectlet");
+  },
+  shouldInstrument: ({ port, path, url }) => {
+    if (url.includes("youtube") || url.includes("tether")) {
+      return false;
+    }
     return port !== bePort || path.startsWith("/start");
   },
   rewriteHtml: html => {
