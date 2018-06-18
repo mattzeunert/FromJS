@@ -40,15 +40,19 @@ export default class Code extends React.Component<CodeProps, CodeState> {
     }
 
     const columnNumber = frame.columnNumber;
+    const lineFirstCharIndex = frame.code.line.firstCharIndex;
     var strBetweenBarAndHighlight = frame.code.line.text.substring(
-      columnNumber,
-      columnNumber + highlighNthCharAfterColumn
+      columnNumber - lineFirstCharIndex,
+      columnNumber + highlighNthCharAfterColumn - lineFirstCharIndex
     );
 
     const truncate = this.state.surroundingLineCount < 2;
 
     // If strings are too long and would hide highlighted content truncate them
-    var strBeforeBar = frame.code.line.text.substr(0, columnNumber);
+    var strBeforeBar = frame.code.line.text.substr(
+      0,
+      columnNumber - lineFirstCharIndex
+    );
     if (strBeforeBar.length > 50 && truncate) {
       strBeforeBar =
         strBeforeBar.substr(0, 10) +
@@ -61,6 +65,10 @@ export default class Code extends React.Component<CodeProps, CodeState> {
         "..." +
         strBetweenBarAndHighlight.substr(strBetweenBarAndHighlight.length - 20);
     }
+
+    const strAfterBar = frame.code.line.text.substr(
+      columnNumber + highlighNthCharAfterColumn + 1 - lineFirstCharIndex
+    );
 
     interface LineNumberProps {
       arrow?: string;
@@ -184,13 +192,7 @@ export default class Code extends React.Component<CodeProps, CodeState> {
                 {barSpan}
                 <span>{processFrameString(strBetweenBarAndHighlight)}</span>
                 <span className={highlightClass}>{highlightedString}</span>
-                <span>
-                  {processFrameString(
-                    frame.code.line.text.substr(
-                      columnNumber + highlighNthCharAfterColumn + 1
-                    )
-                  )}
-                </span>
+                <span>{processFrameString(strAfterBar)}</span>
               </div>
               {getNextLines()}
             </code>
