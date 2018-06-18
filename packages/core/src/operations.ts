@@ -94,6 +94,7 @@ const operations: Operations = {
         operationLog.args.propName.result.primitive
       );
       if (
+        operationLog.args.object &&
         operationLog.args.object.result.type === "string" &&
         !isNaN(propNameAsNumber)
       ) {

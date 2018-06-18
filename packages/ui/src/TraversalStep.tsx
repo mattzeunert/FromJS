@@ -133,6 +133,8 @@ let TraversalStep = class TraversalStep extends React.Component<
           operationTypeDetail =
             "HTMLInputElement." + operationLog.args.propName.result.primitive;
         }
+      } else if (operationLog.operation === "fetchResponse") {
+        operationTypeDetail = operationLog.runtimeArgs.url;
       }
     } catch (err) {
       console.log(err);

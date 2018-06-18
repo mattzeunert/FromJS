@@ -20,3 +20,5 @@ export const arrayIndex = "arrayIndex";
 export const objectProperty = "objectProperty";
 export const unaryExpression = "unaryExpression";
 export const memexpAsLeftAssExp = "memexpAsLeftAssExp";
+export const objectAssign = "objectAssign";
+export const fetchResponse = "fetchResponse";

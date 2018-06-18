@@ -13,6 +13,7 @@ import addElOrigin, {
 } from "./domHelpers/addElOrigin";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import { VERIFY } from "../config";
+import { doOperation } from "../FunctionNames";
 
 const specialCases = {
   "String.prototype.replace": ({
@@ -565,6 +566,61 @@ export default <any>{
             }
           }
         }
+
+        if (fn === ctx.global["fetch"]) {
+          // not super accurate but until there's a proper solution
+          // let's pretend we can match the fetch call
+          // to the response value via the url
+          ctx.global["__fetches"] = ctx.global["__fetches"] || {};
+          const url =
+            typeof fnArgValues[0] === "string"
+              ? fnArgValues[0]
+              : fnArgValues[0].url;
+          ctx.global["__fetches"][url] = logData.index;
+        }
+
+        if (
+          ctx.global["Response"] &&
+          fn === ctx.global.Response.prototype.json
+        ) {
+          fn = function() {
+            const response = this;
+            return this.text().then(function(text) {
+              if (text === '{"ok":true}') {
+                return Promise.resolve(JSON.parse(text));
+              }
+
+              const t = ctx.createOperationLog({
+                operation: ctx.operationTypes.fetchResponse,
+                args: {
+                  value: [text],
+                  fetchCall: [
+                    "(FetchCall)",
+                    ctx.global["__fetches"][response.url]
+                  ]
+                },
+                astArgs: {},
+                result: text,
+                runtimeArgs: {
+                  url: response.url
+                },
+                loc: logData.loc
+              });
+
+              const obj = ctx.global[doOperation](
+                "callExpression",
+                {
+                  context: [JSON],
+                  function: [JSON.parse],
+                  arg0: [text, t]
+                },
+                {}
+              );
+              return Promise.resolve(obj);
+            });
+          };
+        }
+
         const lastReturnStatementResultBeforeCall =
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
         ret = fn.apply(object, fnArgValues);
