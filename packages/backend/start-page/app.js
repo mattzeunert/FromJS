@@ -15,3 +15,12 @@ function padLeft(str, paddingChar, length) {
   }
   return str;
 }
+
+// fetch("https://api.ipify.org?format=json")
+//   .then(function(r) {
+//     return r.json();
+//   })
+//   .then(function(res) {
+//     const v = res.ip;
+//     fromJSInspect(v);
+//   });

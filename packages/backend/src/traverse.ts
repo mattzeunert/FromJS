@@ -43,9 +43,14 @@ export async function traverse(
       nextStep.operationLog &&
       nextStep.operationLog.result.primitive === "";
     if (nextStep && nextStep.operationLog && !hasEmptyStepResult) {
-      traverse(nextStep, steps, server).then(() => {
-        resolve(steps);
-      });
+      traverse(nextStep, steps, server)
+        .then(() => {
+          resolve(steps);
+        })
+        .catch(err => {
+          console.log(err);
+          resolve(steps);
+        });
     } else {
       if (hasEmptyStepResult) {
         console.log(
