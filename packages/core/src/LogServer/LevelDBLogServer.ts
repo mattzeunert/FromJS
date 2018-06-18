@@ -14,7 +14,7 @@ export default class LevelDBLogServer extends LogServer {
       if (err) return console.log("Ooops! (put)", err); // some kind of I/O error
     });
   }
-  storeLogs(logs: OperationLog[]) {
+  storeLogs(logs: OperationLog[], callback = function() {}) {
     var ops: any[] = [];
 
     logs.forEach(log => {
@@ -27,6 +27,7 @@ export default class LevelDBLogServer extends LogServer {
 
     this.db.batch(ops, function(err) {
       if (err) return console.log("Ooops!  - level db error (logs)", err);
+      callback();
     });
   }
   getLog(
