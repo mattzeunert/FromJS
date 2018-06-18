@@ -299,6 +299,20 @@ const specialValuesForPostprocessing = {
       trackingValue: fnArgs[0]
     });
   },
+  "document.createComment": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT,
+    extraTrackingValues
+  }) => {
+    addElOrigin(ret, "textValue", {
+      trackingValue: fnArgs[0]
+    });
+  },
   "HTMLElement.prototype.setAttribute": ({
     object,
     fnArgs,

@@ -35,6 +35,7 @@ export default class KnownValues {
       Object.assign(this._knownValues, {
         "document.createElement": document.createElement,
         "document.createTextNode": document.createTextNode,
+        "document.createComment": document.createComment,
         "HTMLElement.prototype.setAttribute":
           HTMLElement.prototype.setAttribute,
         "HTMLElement.prototype.insertAdjacentHTML":

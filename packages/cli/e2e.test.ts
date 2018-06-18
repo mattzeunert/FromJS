@@ -175,6 +175,11 @@ describe("E2E", () => {
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("createTextNode");
 
+      // createComment
+      res = await inspectDomCharAndTraverse(html.indexOf("createComment"));
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("createComment");
+
       // setAttribute
       res = await inspectDomCharAndTraverse(html.indexOf("setAttribute"));
       expect(res.operationLog.operation).toBe("stringLiteral");
