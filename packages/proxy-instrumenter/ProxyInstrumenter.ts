@@ -50,6 +50,7 @@ class ProxyInstrumenter {
   verbose: boolean;
   onCompilationComplete: any;
   onRegisterEvalScript: any;
+  shouldBlock: any;
 
   constructor({
     babelPluginOptions,
@@ -62,7 +63,8 @@ class ProxyInstrumenter {
     certDirectory,
     verbose,
     onCompilationComplete,
-    onRegisterEvalScript
+    onRegisterEvalScript,
+    shouldBlock
   }) {
     this.port = port;
     this.instrumenterFilePath = instrumenterFilePath;
@@ -76,6 +78,7 @@ class ProxyInstrumenter {
     this.verbose = verbose;
     this.onCompilationComplete = onCompilationComplete;
     this.onRegisterEvalScript = onRegisterEvalScript;
+    this.shouldBlock = shouldBlock;
 
     this.proxy.onError((ctx, err, errorKind) => {
       var url = "n/a";
@@ -116,6 +119,11 @@ class ProxyInstrumenter {
     };
     var url = requestInfo.url;
     ctx.requestId = url + "_" + Math.random();
+
+    if (this.shouldBlock && this.shouldBlock(requestInfo)) {
+      ctx.proxyToClientResponse.end("");
+      return;
+    }
 
     if (!this.silent && this.verbose) {
       this.log("Request: " + url);
@@ -299,6 +307,12 @@ class ProxyInstrumenter {
             // console.log(body, responseBody);
             console.log("EMPTY RESPONSE", getUrl(ctx));
           } else {
+            console.log(
+              getUrl(ctx),
+              "size",
+              Math.round(responseBody.length / 1024 / 1024 * 10) / 10,
+              "MB"
+            );
             this.urlCache[getUrl(ctx)] = {
               body: responseBody,
               headers: ctx.serverToProxyResponse.headers
