@@ -253,20 +253,25 @@ function setupUI(options, app, wss, getProxy) {
       return;
     }
 
+    const origin = mappingResult.origin;
+
+    let offset = 0;
     if (
-      mappingResult.origin.inputValuesCharacterIndex &&
-      mappingResult.origin.inputValuesCharacterIndex.length > 1
+      origin.offsetAtCharIndex &&
+      origin.offsetAtCharIndex[mappingResult.charIndex]
     ) {
-      debugger; // probably should do mapping for each char
+      offset = origin.offsetAtCharIndex[mappingResult.charIndex];
     }
+    let charIndex =
+      mappingResult.charIndex +
+      origin.inputValuesCharacterIndex[0] -
+      origin.extraCharsAdded +
+      offset;
 
     res.end(
       JSON.stringify({
         logId: mappingResult.origin.trackingValue,
-        charIndex:
-          mappingResult.charIndex +
-          mappingResult.origin.inputValuesCharacterIndex[0] -
-          mappingResult.origin.extraCharsAdded
+        charIndex
       })
     );
   });
