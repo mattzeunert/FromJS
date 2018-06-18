@@ -24,12 +24,12 @@ function getSourceCodeObject(frameObject, code) {
       var text = fullLine;
       var firstCharIndex = 0;
       var lastCharIndex = fullLine.length;
-      if (fullLine.length > 100) {
-        firstCharIndex = focusColumn - 50;
+      if (fullLine.length > 300) {
+        firstCharIndex = focusColumn - 100;
         if (firstCharIndex < 0) {
           firstCharIndex = 0;
         }
-        lastCharIndex = firstCharIndex + 100;
+        lastCharIndex = firstCharIndex + 200;
         text = fullLine.slice(firstCharIndex, lastCharIndex);
       }
       return {
