@@ -77,20 +77,29 @@ export default function initDomInspectionUI() {
     showDomInspector = !showDomInspector;
   }
 
+  function init() {
+    toggleInspectDomButton.innerHTML = "Enable DOM Inspector";
+    toggleInspectDomButton.addEventListener("click", function() {
+      toggleDomInspector();
+      toggleInspectDomButton.innerHTML = showDomInspector
+        ? "Disable DOM Inspector"
+        : "Enable DOM Inspector";
+    });
+    toggleInspectDomButton.setAttribute(
+      "style",
+      "position: fixed;z-index: 100000000; bottom: 0;right:0;padding: 10px;background: black; color: white;font-family: Arial;cursor:pointer;"
+    );
+    global["document"]["body"].appendChild(toggleInspectDomButton);
+  }
+
   if (global["document"]) {
-    if (global["document"]["body"]) {
-      toggleInspectDomButton.innerHTML = "Enable DOM Inspector";
-      toggleInspectDomButton.addEventListener("click", function() {
-        toggleDomInspector();
-        toggleInspectDomButton.innerHTML = showDomInspector
-          ? "Disable DOM Inspector"
-          : "Enable DOM Inspector";
-      });
-      toggleInspectDomButton.setAttribute(
-        "style",
-        "position: fixed;bottom: 0;right:0;padding: 10px;background: black; color: white;font-family: Arial;cursor:pointer;"
-      );
-      global["document"]["body"].appendChild(toggleInspectDomButton);
-    }
+    const interval = setInterval(function() {
+      // Wait for HTML body
+      console.log(global["document"]["body"]);
+      if (global["document"]["body"]) {
+        clearInterval(interval);
+        init();
+      }
+    }, 1000);
   }
 }
