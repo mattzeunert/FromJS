@@ -19,6 +19,7 @@ import { template } from "lodash";
 import * as ui from "@fromjs/ui";
 import { LocStore } from "./LocStore";
 import * as getFolderSize from "get-folder-size";
+import * as responseTime from "response-time";
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -44,6 +45,8 @@ function ensureDirectoriesExist(options: BackendOptions) {
     }
   });
 }
+
+const LOG_PERF = true;
 
 export default class Backend {
   constructor(options: BackendOptions) {
@@ -73,6 +76,15 @@ export default class Backend {
     var { bePort, proxyPort } = options;
 
     const app = express();
+
+    if (LOG_PERF) {
+      app.use(
+        responseTime((req, res, time) => {
+          console.log(req.method, req.url, time + "ms");
+        })
+      );
+    }
+
     app.use(bodyParser.json({ limit: "250mb" }));
     const server = http.createServer(app);
     const wss = new WebSocket.Server({ server });
@@ -296,9 +308,21 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
       "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
     );
 
-    const start = new Date();
-
-    logServer.storeLogs(req.body.logs);
+    const startTime = new Date();
+    logServer.storeLogs(req.body.logs, function() {
+      const timePassed = new Date().valueOf() - startTime.valueOf();
+      const timePer1000 =
+        Math.round(timePassed / req.body.logs.length * 1000 * 10) / 10;
+      if (LOG_PERF) {
+        console.log(
+          "storing logs took " +
+            timePassed +
+            "ms, per 1000 logs: " +
+            timePer1000 +
+            "ms"
+        );
+      }
+    });
 
     req.body.evalScripts.forEach(function(evalScript) {
       getProxy().registerEvalScript(evalScript);
