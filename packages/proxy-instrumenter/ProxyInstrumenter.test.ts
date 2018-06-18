@@ -55,6 +55,9 @@ describe("ProxyInstrumenter", () => {
       rewriteHtml: html => {
         return html + "EXTRA_HTML";
       },
+      shouldBlock: function({ url }) {
+        return url.includes("/blocked");
+      },
       shouldInstrument: function({ path }) {
         if (path.indexOf("/dontRewrite") === 0) {
           return false;
@@ -129,6 +132,15 @@ describe("ProxyInstrumenter", () => {
       expect(response).toContain(
         `<script src="sth.js" crossorigin="anonymous"></script>`
       );
+    },
+    10000
+  );
+
+  it(
+    "Can block some URLs",
+    async () => {
+      const response = await makeRequest("/blocked");
+      expect(response).toBe("");
     },
     10000
   );
