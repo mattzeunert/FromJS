@@ -84,13 +84,13 @@ export default <any>{
       } else if (obj instanceof HTMLElement && propName === "textContent") {
         if (obj.nodeType === Node.TEXT_NODE) {
           addElOrigin(obj, "textContent", {
-            inputValues: [args.argument]
+            trackingValue: args.argument[1]
           });
         } else if (obj.nodeType === Node.ELEMENT_NODE) {
           if (obj.childNodes.length > 0) {
             // can be 0 still if textValue is ""
             addElOrigin(obj.childNodes[0], "textValue", {
-              inputValues: [args.argument]
+              trackingValue: args.argument[1]
             });
           }
         } else {

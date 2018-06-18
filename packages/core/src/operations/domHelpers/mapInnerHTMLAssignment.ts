@@ -218,7 +218,7 @@ export default function mapInnerHTMLAssignment(
 
         addElOrigin(child, "textValue", {
           action: actionName,
-          inputValues: [assignedInnerHTML],
+          trackingValue: assignedInnerHTML[1],
           value: serializedHtml,
           inputValuesCharacterIndex: [charOffsetInSerializedHtml],
           extraCharsAdded: charsAddedInSerializedHtml,
@@ -234,7 +234,7 @@ export default function mapInnerHTMLAssignment(
       } else if (isCommentNode) {
         addElOrigin(child, "commentStart", {
           action: actionName,
-          inputValues: [assignedInnerHTML],
+          trackingValue: assignedInnerHTML[1],
           inputValuesCharacterIndex: [charOffsetInSerializedHtml],
           value: serializedHtml
         });
@@ -244,7 +244,7 @@ export default function mapInnerHTMLAssignment(
 
         addElOrigin(child, "textValue", {
           value: serializedHtml,
-          inputValues: [assignedInnerHTML],
+          trackingValue: assignedInnerHTML[1],
           inputValuesCharacterIndex: [charOffsetInSerializedHtml],
           action: actionName,
           error: error
@@ -254,7 +254,7 @@ export default function mapInnerHTMLAssignment(
 
         addElOrigin(child, "commentEnd", {
           action: actionName,
-          inputValues: [assignedInnerHTML],
+          trackingValue: assignedInnerHTML[1],
           inputValuesCharacterIndex: [charOffsetInSerializedHtml],
           value: serializedHtml
         });
@@ -263,7 +263,7 @@ export default function mapInnerHTMLAssignment(
       } else if (isElementNode) {
         addElOrigin(child, "openingTagStart", {
           action: actionName,
-          inputValues: [assignedInnerHTML],
+          trackingValue: assignedInnerHTML[1],
           inputValuesCharacterIndex: [charOffsetInSerializedHtml],
           value: serializedHtml,
           extraCharsAdded: charsAddedInSerializedHtml,
@@ -398,7 +398,7 @@ export default function mapInnerHTMLAssignment(
 
           addElOrigin(child, "attribute_" + attr.name, {
             action: actionName,
-            inputValues: [assignedInnerHTML],
+            trackingValue: assignedInnerHTML[1],
             value: serializedHtml,
             inputValuesCharacterIndex: [charOffsetInSerializedHtmlBefore],
             extraCharsAdded: charsAddedInSerializedHtml,
@@ -460,7 +460,7 @@ export default function mapInnerHTMLAssignment(
         }
         addElOrigin(child, "openingTagEnd", {
           action: actionName,
-          inputValues: [assignedInnerHTML],
+          trackingValue: assignedInnerHTML[1],
           inputValuesCharacterIndex: [charOffsetInSerializedHtml],
           value: serializedHtml,
           extraCharsAdded: charsAddedInSerializedHtml,
@@ -481,7 +481,7 @@ export default function mapInnerHTMLAssignment(
         if (tagTypeHasClosingTag(child.tagName)) {
           addElOrigin(child, "closingTag", {
             action: actionName,
-            inputValues: [assignedInnerHTML],
+            trackingValue: assignedInnerHTML[1],
             inputValuesCharacterIndex: [charOffsetInSerializedHtml],
             value: serializedHtml,
             extraCharsAdded: charsAddedInSerializedHtml,
