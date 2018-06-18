@@ -95,17 +95,15 @@ describe("E2E", () => {
       "/tmp/fromjs-e2e"
     ]);
 
-    command.stdout.on("data", function(data) {
-      console.log("CLI out", data.toString());
-    });
+    // command.stdout.on("data", function(data) {
+    //   console.log("CLI out", data.toString());
+    // });
 
-    command.stderr.on("data", function(data) {
-      console.log("CLI err", data.toString());
-    });
+    // command.stderr.on("data", function(data) {
+    //   console.log("CLI err", data.toString());
+    // });
 
-    console.log("waiting for proxy");
     await waitForProxyReady(command);
-    console.log("proxy ready!");
 
     browser = await puppeteer.launch({
       args: [
@@ -127,7 +125,6 @@ describe("E2E", () => {
   it(
     "Can load the start page",
     async () => {
-      console.log("will open page");
       const page = await browser.newPage();
       page.on("pageerror", function(err) {
         console.log("Page error: " + err.toString());
@@ -161,7 +158,6 @@ describe("E2E", () => {
 
       const html = testResult.parts.map(p => p[0]).join("");
 
-      console.log(html);
       console.log(
         "Waiting 2000ms for the BE to have the inspection data (mapping and logs)... should do this without timeout"
       );
