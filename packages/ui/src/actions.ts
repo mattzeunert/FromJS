@@ -43,3 +43,11 @@ export function expandDomInspector() {
 export function setIsInspectingDemoApp(isInspecting) {
   appState.set("isInspectingDemoApp", isInspecting);
 }
+
+export function enableShowFullDataFlow() {
+  appState.set("showFullDataFlow", true);
+}
+
+export function disableShowFullDataFlow() {
+  appState.set("showFullDataFlow", false);
+}

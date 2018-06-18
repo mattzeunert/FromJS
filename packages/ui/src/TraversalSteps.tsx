@@ -1,11 +1,13 @@
 import { branch, root } from "baobab-react/higher-order";
 import * as React from "react";
 import TraversalStep from "./TraversalStep";
+import { enableShowFullDataFlow, disableShowFullDataFlow } from "./actions";
 
 type TraversalStepsProps = {
   steps?: any[];
   inspectionTarget?: any;
   collapseDomInspector?: boolean;
+  showFullDataFlow?: boolean;
 };
 let TraversalSteps = class TraversalSteps extends React.Component<
   TraversalStepsProps,
@@ -83,15 +85,25 @@ let TraversalSteps = class TraversalSteps extends React.Component<
         <div style={{ height: 10 }} />
         <hr />
         <div style={{ height: 10 }} />
-        <div className="title">
-          Full data flow &ndash; the story of how the inspected string was
-          constructed :
+        <div
+          className="title"
+          style={{ cursor: "pointer" }}
+          onClick={() =>
+            this.props.showFullDataFlow
+              ? disableShowFullDataFlow()
+              : enableShowFullDataFlow()
+          }
+        >
+          {this.props.showFullDataFlow &&
+            "Full data flow &ndash; the story of how the inspected string was constructed:"}
+          {!this.props.showFullDataFlow && "Click to show full data flow"}
         </div>
-        {stepsToShow
-          .map(step => (
-            <TraversalStep key={step.operationLog.index} step={step} />
-          ))
-          .reverse()}
+        {this.props.showFullDataFlow &&
+          stepsToShow
+            .map(step => (
+              <TraversalStep key={step.operationLog.index} step={step} />
+            ))
+            .reverse()}
       </div>
     );
   }
@@ -102,7 +114,8 @@ TraversalSteps = branch(
     debugMode: ["debugMode"],
     steps: ["steps"],
     inspectionTarget: ["inspectionTarget"],
-    collapseDomInspector: ["collapseDomInspector"]
+    collapseDomInspector: ["collapseDomInspector"],
+    showFullDataFlow: ["showFullDataFlow"]
   },
   TraversalSteps
 );
