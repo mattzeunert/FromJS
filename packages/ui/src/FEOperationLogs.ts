@@ -26,7 +26,12 @@ class FESerializedValue implements SerializedValue {
       }
     }
 
-    return "[" + this.type + "]" + " {" + this.keys.join(", ") + "}";
+    console.log(
+      "keys arent' stored right now (easy to enable by might be bad for perf) so just showing type"
+    );
+    return "[" + this.type + "]";
+
+    // return "[" + this.type + "]" + " {" + this.keys.join(", ") + "}";
   }
 }
 
