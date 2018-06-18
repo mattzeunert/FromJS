@@ -192,7 +192,7 @@ let TraversalStep = class TraversalStep extends React.Component<
                 Inspect input/output values:
               </div>
               {this.getAllArgs().map(({ name, value }) => {
-                value = new FEOperationLog(value);
+                value = value && new FEOperationLog(value);
                 const canInspect = !!value;
                 return (
                   <div
