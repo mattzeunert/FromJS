@@ -95,7 +95,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<
           }
         >
           {this.props.showFullDataFlow &&
-            "Full data flow &ndash; the story of how the inspected string was constructed:"}
+            "Full data flow – the story of how the inspected string was constructed:"}
           {!this.props.showFullDataFlow && "Click to show full data flow"}
         </div>
         {this.props.showFullDataFlow &&
