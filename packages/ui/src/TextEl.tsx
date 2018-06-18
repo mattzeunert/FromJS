@@ -186,7 +186,7 @@ export class TextEl extends React.Component<any, any> {
           var chunks = line.splitAtCharIndex(highlightedCharIndex);
 
           var textBeforeHighlight = chunks[0].text;
-          if (textBeforeHighlight.length > 100 && self.state.truncateText) {
+          if (textBeforeHighlight.length > 150 && self.state.truncateText) {
             var textA = textBeforeHighlight.slice(0, 60);
             var textB = textBeforeHighlight.slice(
               textBeforeHighlight.length - 10
