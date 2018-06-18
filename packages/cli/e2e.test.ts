@@ -130,7 +130,6 @@ describe("E2E", () => {
         console.log("Page error: " + err.toString());
       });
       await page.goto("http://localhost:" + backendPort + "/");
-      await setTimeoutPromise(2000);
 
       await page.waitForSelector(".step");
 
@@ -158,13 +157,16 @@ describe("E2E", () => {
 
       const html = testResult.parts.map(p => p[0]).join("");
 
-      console.log(
-        "Waiting 2000ms for the BE to have the inspection data (mapping and logs)... should do this without timeout"
-      );
-      await setTimeoutPromise(2000);
-
       // createElement
-      let res = await inspectDomCharAndTraverse(html.indexOf("span"));
+
+      let res;
+      try {
+        res = await inspectDomCharAndTraverse(html.indexOf("span"));
+      } catch (err) {
+        console.log("Looks like inspected page hasn't sent all data to BE yet");
+        await setTimeoutPromise(2000);
+        res = await inspectDomCharAndTraverse(html.indexOf("span"));
+      }
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("span");
 
