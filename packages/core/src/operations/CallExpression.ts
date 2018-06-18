@@ -296,7 +296,7 @@ const specialValuesForPostprocessing = {
     extraTrackingValues
   }) => {
     addElOrigin(ret, "textValue", {
-      inputValues: [[null, fnArgs[0]]]
+      trackingValue: fnArgs[0]
     });
   },
   "HTMLElement.prototype.setAttribute": ({
@@ -312,10 +312,10 @@ const specialValuesForPostprocessing = {
     const [attrNameArg, attrValueArg] = fnArgs;
     let attrName = fnArgValues[0];
     addElOrigin(object, "attribute_" + attrName + "_name", {
-      inputValues: [[null, attrNameArg]]
+      trackingValue: attrNameArg
     });
     addElOrigin(object, "attribute_" + attrName + "_value", {
-      inputValues: [[null, attrValueArg]]
+      trackingValue: attrValueArg
     });
   },
   "HTMLElement.prototype.insertAdjacentHTML": ({

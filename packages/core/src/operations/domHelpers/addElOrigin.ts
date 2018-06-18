@@ -1,14 +1,14 @@
 export default function addElOrigin(el, what, origin) {
   const {
     action,
-    inputValues,
     value,
     inputValuesCharacterIndex,
     extraCharsAdded,
     offsetAtCharIndex,
     error,
     child,
-    children
+    children,
+    trackingValue // aka inputValue
   } = origin;
 
   if (!el) {
@@ -37,13 +37,12 @@ export default function addElOrigin(el, what, origin) {
       addElOrigin(el, "prependChild", { child });
     });
   } else {
-    const tv = inputValues[0][1];
-    if (!tv) {
-      console.error("no tv", inputValues, inputValues[0], inputValues[0][1]);
+    if (!("trackingValue" in origin)) {
+      console.log("no tracking value in addelorigin");
     }
     el.__elOrigin[what] = {
       action,
-      trackingValue: tv,
+      trackingValue,
       inputValuesCharacterIndex: inputValuesCharacterIndex || [0],
       extraCharsAdded: extraCharsAdded || 0,
       offsetAtCharIndex
@@ -57,7 +56,7 @@ export function addOriginInfoToCreatedElement(
   action
 ) {
   const origin = {
-    inputValues: [[null, tagNameTrackingValue]],
+    trackingValue: tagNameTrackingValue,
     value: el.tagName,
     action
   };
