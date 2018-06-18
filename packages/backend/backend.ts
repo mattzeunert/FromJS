@@ -152,8 +152,9 @@ function setupUI(options, app, wss, getProxy) {
   let isInspectingDemoApp = true;
   function setIsInspectingDemoApp(req) {
     const ref = req.headers.referer;
-    isInspectingDemoApp =
-      ref && ref.includes("http://localhost:" + options.bePort + "/start/");
+    isInspectingDemoApp = !!(
+      ref && ref.includes("http://localhost:" + options.bePort + "/start/")
+    );
   }
 
   app.get("/", (req, res) => {
