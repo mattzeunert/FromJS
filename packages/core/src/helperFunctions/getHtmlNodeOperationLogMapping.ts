@@ -40,7 +40,11 @@ function getNodeHtmlParts(node: Node) {
   } else if (node.nodeType === Node.TEXT_NODE) {
     parts.push([node.textContent, origin.textValue]);
   } else if (node.nodeType === Node.COMMENT_NODE) {
-    console.log("TODO COMMENT_NODE");
+    parts.push(["<!--", origin.commentStart]);
+    parts.push([node.textContent, origin.textValue]);
+    parts.push(["-->", origin.commentEnd]);
+  } else {
+    console.log("TODO unknown node type");
   }
   return parts;
 }

@@ -189,6 +189,15 @@ describe("E2E", () => {
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("abc<b>innerHTML</b>");
 
+      // Comment in innerHTML
+      res = await inspectDomCharAndTraverse(
+        html.indexOf("<!-- COMMENT_IN_INNERTHML -->")
+      );
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe(
+        "<!-- COMMENT_IN_INNERTHML -->"
+      );
+
       // insertAjacentHTML
       res = await inspectDomCharAndTraverse(
         html.indexOf("insertAdjacentHTML2")
