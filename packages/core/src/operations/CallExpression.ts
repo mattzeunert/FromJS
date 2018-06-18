@@ -13,6 +13,7 @@ import addElOrigin, {
 } from "./domHelpers/addElOrigin";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import { VERIFY } from "../config";
+import { getFunctionArgTrackingInfo } from "../FunctionNames";
 
 const specialCases = {
   "String.prototype.replace": ({
@@ -517,11 +518,51 @@ export default <any>{
         if (isNewFunctionCall) {
           console.log("can't instrument new Function() code");
         }
+        const isNewPromiseCall = args.function[0] === Promise;
+
+        let fnArgsToUse = fnArgValues;
+        if (isNewPromiseCall) {
+          if (fnArgsToUse.length !== 1) {
+            // can this happen??
+            debugger;
+          }
+          const executor = fnArgsToUse[0];
+          fnArgsToUse[0] = function(resolve, reject) {
+            return executor.apply(this, [
+              function() {
+                const trackingValue = ctx.global[getFunctionArgTrackingInfo](0);
+                // Wait a bit because the executor is called immediately
+                // as part of the new Promise() call, rather than after
+                // the promise has been created (which is when ret is set)
+                setImmediate(() => {
+                  let promise = ret;
+
+                  console.log("resolving, setting tv", promise.name);
+                  debugger;
+                  ctx.global["setFromJSPromiseResolvedValueTrackingValue"](
+                    promise,
+                    trackingValue
+                  );
+                  resolve.apply(this, arguments);
+                });
+              },
+              function() {
+                console.log("TODO: track reject");
+                return reject.apply(this, arguments);
+              }
+            ]);
+          };
+        }
+
         let thisValue = null; // overwritten inside new()
         ret = new (Function.prototype.bind.apply(args.function[0], [
           thisValue,
-          ...fnArgValues
+          ...fnArgsToUse
         ]))();
+
+        if (isNewPromiseCall) {
+          console.log("new promise", ret);
+        }
       }
       retT = ctx.createOperationLog({
         operation: ctx.operationTypes.newExpressionResult,
@@ -565,12 +606,37 @@ export default <any>{
             }
           }
         }
+
+        let fnArgsForApply = fnArgValues;
+
+        if (fn === Promise.prototype.then) {
+          fnArgsForApply = [...fnArgsForApply];
+          const onFulfilled = fnArgValues[0];
+          const onRejected = fnArgValues[1];
+          const promise = object;
+          if (onFulfilled) {
+            fnArgsForApply[0] = function() {
+              debugger;
+              console.log("prom fuliflled", promise, promise.name);
+              // console.log("todo: dont use global here, just use ctx");
+              const resolveTrackingValue = ctx.global[
+                "getFromJSPromiseResolvedValueTrackingValue"
+              ](promise);
+              ctx.argTrackingInfo = [
+                makeFunctionArgument([arguments[0], resolveTrackingValue])
+              ];
+              return onFulfilled.apply(this, arguments);
+            };
+          }
+        }
+
         const lastReturnStatementResultBeforeCall =
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
-        ret = fn.apply(object, fnArgValues);
+        ret = fn.apply(object, fnArgsForApply);
         ctx.argTrackingInfo = null;
         const lastReturnStatementResultAfterCall =
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+
         // Don't pretend to have a tracked return value if an uninstrumented function was called
         // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
         if (fnIsEval && hasInstrumentationFunction) {

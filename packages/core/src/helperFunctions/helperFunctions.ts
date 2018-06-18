@@ -158,13 +158,27 @@ declare var __FUNCTION_NAMES__,
     };
   };
 
-  // don't think this is needed, only used in demo with live code ediotr i think
-  global.inspect = function(value) {
-    global.inspectedValue = {
-      normal: value,
-      tracking: argTrackingInfo[0]
-    };
+  global["setFromJSPromiseResolvedValueTrackingValue"] = function(
+    promise,
+    trackingValue
+  ) {
+    // console.log("todo: probs better to use Map for this");
+    promise.fromJSResolvedValueTrackingValue = trackingValue;
   };
+
+  global["getFromJSPromiseResolvedValueTrackingValue"] = function(promise) {
+    return promise.fromJSResolvedValueTrackingValue;
+  };
+
+  // // don't think this is needed, only used in demo with live code ediotr i think
+  // ALSO: name "inspect" is bad because chrome has a customInspect functionality
+  // that's called when logging an object
+  // global.inspect = function(value) {
+  //   global.inspectedValue = {
+  //     normal: value,
+  //     tracking: argTrackingInfo[0]
+  //   };
+  // };
 
   initDomInspectionUI();
 

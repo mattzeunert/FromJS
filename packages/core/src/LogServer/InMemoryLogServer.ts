@@ -8,6 +8,7 @@ interface LogsObject {
 export default class InMemoryLogServer extends LogServer {
   _storedLogs: LogsObject = {};
   storeLog(log) {
+    // console.log("store log", log);
     this._storedLogs[log.index] = log;
   }
   storeLogs(logs, callback = function() {}) {

@@ -18,25 +18,52 @@ export function instrumentAndRun(code) {
       var code = compileResult.code;
 
       const __storeLog = server.storeLog.bind(server);
-      var result: InstrumentAndRunResult = eval(code);
 
-      delete global["__didInitializeDataFlowTracking"];
-      result.code = code.split("* HELPER_FUNCTIONS_END */")[1]; // only the interesting code
+      var result: InstrumentAndRunResult;
 
-      if (result.tracking) {
-        server.loadLog(
-          result.tracking,
-          (err, log) => {
-            // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
-            result.tracking =
-              log.args.value.extraArgs.returnValue.args.returnValue;
-            // console.log(result.tracking)
-            resolve(result);
-          },
-          10
-        );
-      } else {
-        resolve(result);
+      let testIsAsync = false;
+      const asyncTest = function() {
+        testIsAsync = true;
+        return function finish(value) {
+          result = {
+            code: "",
+            normal: value,
+            tracking: global["__fnArg"](0)
+          };
+          finishRunning();
+        };
+      };
+      result = eval(code);
+
+      if (!testIsAsync) {
+        finishRunning();
+      }
+
+      function finishRunning() {
+        delete global["__didInitializeDataFlowTracking"];
+        result.code = code.split("* HELPER_FUNCTIONS_END */")[1]; // only the interesting code
+
+        if (result.tracking) {
+          server.loadLog(
+            result.tracking,
+            (err, log) => {
+              if (testIsAsync) {
+                // remove functionArgument
+                result.tracking = log.args.value;
+                resolve(result);
+              } else {
+                // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
+                result.tracking =
+                  log.args.value.extraArgs.returnValue.args.returnValue;
+                // console.log(result.tracking)
+                resolve(result);
+              }
+            },
+            10
+          );
+        } else {
+          resolve(result);
+        }
       }
     });
   });

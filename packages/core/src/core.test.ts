@@ -908,3 +908,50 @@ it("Can handle nested conditional operators", async () => {
     `);
   expect(normal).toBe("yes");
 });
+
+describe("Tracks values through promises", () => {
+  it("Works when creating a promise with new Promise()", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      let finishAsyncTest = asyncTest()
+      const p = new Promise(function(resolve){
+        resolve("abc")
+      }).then(function(res){
+        finishAsyncTest(res)
+      })
+    `);
+    expect(normal).toBe("abc");
+    expect(tracking.args.value.args.value.operation).toBe("stringLiteral");
+  });
+
+  it.only("Works when returning a new promise from then", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      let finishAsyncTest = asyncTest()
+      const p = new Promise(function(resolve){
+        resolve("abc")
+      })
+      p.name = "p"
+      const pp = p.then(function(res){
+
+
+        // problem: this isn't resolving with a value but with another promise
+        // that promise will be resolved , not pp
+        / *return new Promise(function(resolve) {
+          debugger
+          resolve(res + res)
+        })*/
+      })
+      pp.name = "pp"
+      const ppp = pp.then(function(res){
+        debugger
+        finishAsyncTest(res)
+      })
+      
+      ppp.name = "ppp"
+    `);
+    expect(normal).toBe("abcabc");
+    console.log(tracking.args.value);
+    // expect(tracking.args.value.args.value.operation).toBe("stringLiteral");
+  });
+
+  // check doesn't break promise rejection
+});
