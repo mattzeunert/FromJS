@@ -440,3 +440,56 @@ it("Can traverse Object.assign", async () => {
   const t1LastStep = t1[t1.length - 1];
   expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
 });
+
+describe("Array.slice", () => {
+  it("Supports traversal of normal usage", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["1", "2", "3"]
+        return arr.slice(1,3)[1]
+      `);
+    expect(normal).toBe("3");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+  });
+  it("Supports traversal with negative start index", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["1", "2", "3", "4"]
+        return arr.slice(-3, 3)[1]
+      `);
+    expect(normal).toBe("3");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+  });
+  it("Supports traversal with negative start index and no end index", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["1", "2", "3", "4"]
+        return arr.slice(-2)[1]
+      `);
+    expect(normal).toBe("4");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+  });
+  it("Supports traversal with positive start index and no end index", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["1", "2", "3", "4"]
+        return arr.slice(1)[2]
+      `);
+    expect(normal).toBe("4");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+  });
+  it("Supports traversal with positive start index and negative end index", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["1", "2", "3", "4"]
+        return arr.slice(1, -1)[1]
+      `);
+    expect(normal).toBe("3");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+  });
+});

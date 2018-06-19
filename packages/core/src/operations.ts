@@ -623,6 +623,14 @@ const operations: Operations = {
         charIndex
       };
     }
+  },
+  arraySlice: {
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.value,
+        charIndex
+      };
+    }
   }
 };
 

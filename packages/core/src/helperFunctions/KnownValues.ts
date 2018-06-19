@@ -10,6 +10,7 @@ export default class KnownValues {
       "String.prototype.trim": String.prototype.trim,
       "Array.prototype.push": Array.prototype.push,
       "Array.prototype.join": Array.prototype.join,
+      "Array.prototype.slice": Array.prototype.slice,
       "JSON.parse": JSON.parse,
       "Object.keys": Object.keys,
       "Object.assign": Object.assign,
