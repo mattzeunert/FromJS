@@ -493,3 +493,27 @@ describe("Array.slice", () => {
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
   });
 });
+
+describe("Array.map", () => {
+  it("Passes values through to mapping function", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["1", "2"]
+        return arr.map(function(value){
+          return value
+        })[1]
+      `);
+    expect(normal).toBe("2");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+  });
+  it("Supports all callback arguments and thisArg", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["1", "2"]
+        return arr.map(function(value, index, array){
+          return value + index + array.length + this
+        }, "x")[0]
+      `);
+    expect(normal).toBe("102x");
+  });
+});

@@ -728,9 +728,46 @@ export default <any>{
           };
         }
 
+        let fnArgValuesForApply = fnArgValues;
+
+        let mapResultTrackingValues;
+        if (fn === ctx.knownValues.getValue("Array.prototype.map")) {
+          mapResultTrackingValues = [];
+          fnArgValuesForApply = fnArgValues.slice();
+          const originalMappingFunction = fnArgValuesForApply[0];
+          const array = object;
+          fnArgValuesForApply[0] = function(item, index) {
+            const itemTrackingInfo = ctx.getObjectPropertyTrackingValue(
+              array,
+              index.toString()
+            );
+            let context;
+            if (fnArgValues.length > 1) {
+              context = [fnArgValues[1], fnArgs[1]];
+            } else {
+              context = [ctx.global, null];
+            }
+            const ret = ctx.global[doOperation](
+              "callExpression",
+              {
+                context: context,
+                function: [originalMappingFunction, null],
+                arg0: [item, itemTrackingInfo, null],
+                arg1: [index, null],
+                arg2: [array, null]
+              },
+              {},
+              logData.loc
+            );
+            mapResultTrackingValues.push(ctx.lastOpTrackingResult);
+
+            return ret;
+          };
+        }
+
         const lastReturnStatementResultBeforeCall =
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
-        ret = fn.apply(object, fnArgValues);
+        ret = fn.apply(object, fnArgValuesForApply);
         ctx.argTrackingInfo = null;
         const lastReturnStatementResultAfterCall =
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
@@ -761,6 +798,23 @@ export default <any>{
               ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
           }
         }
+
+        if (fn === ctx.knownValues.getValue("Array.prototype.map")) {
+          mapResultTrackingValues.forEach((tv, i) => {
+            ctx.trackObjectPropertyAssignment(
+              ret,
+              i.toString(),
+              mapResultTrackingValues[i],
+              ctx.createOperationLog({
+                operation: ctx.operationTypes.arrayIndex,
+                args: {},
+                result: i,
+                astArgs: {},
+                loc: logData.loc
+              })
+            );
+          });
+        }
       }
     }
     extraTrackingValues.returnValue = [ret, retT]; // pick up value from returnStatement
@@ -770,7 +824,9 @@ export default <any>{
     return ret;
   },
   traverse(operationLog, charIndex) {
-    var knownFunction = operationLog.args.function.result.knownValue;
+    var knownFunction =
+      operationLog.args.function &&
+      operationLog.args.function.result.knownValue;
 
     if (knownFunction) {
       switch (knownFunction) {
