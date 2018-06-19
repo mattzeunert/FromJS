@@ -427,3 +427,16 @@ it("Tracks Object.keys", async () => {
   const t1LastStep = t1[t1.length - 1];
   expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
 });
+
+it("Can traverse Object.assign", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    let obj = {a: "a"}
+    let obj2 = {b: "b"}
+    obj = Object.assign(obj, obj2)
+    return obj.b
+  `);
+  expect(normal).toBe("b");
+  var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+  const t1LastStep = t1[t1.length - 1];
+  expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+});

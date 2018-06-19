@@ -908,3 +908,11 @@ it("Can handle nested conditional operators", async () => {
     `);
   expect(normal).toBe("yes");
 });
+
+it("Doesn't break when calling Object.assign with undefined/falsy values", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = Object.assign({}, false, null, undefined, {a:"a"})
+      return obj.a
+    `);
+  expect(normal).toBe("a");
+});
