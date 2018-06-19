@@ -24,6 +24,8 @@ export default function initDomInspectionUI() {
       previewedElement = el;
       if (previewedElement !== selectedElement) {
         addHighlight(el, "previewed");
+      } else {
+        removeHighlight("previewed");
       }
     } else if (e.type === "mouseleave") {
       previewedElement = null;
@@ -33,17 +35,23 @@ export default function initDomInspectionUI() {
     e.stopPropagation();
   }
 
+  function getMarkerElementFromHighlightReason(
+    highlightReason: "selected" | "previewed"
+  ) {
+    return highlightReason === "selected"
+      ? selectedElementMarker
+      : previewedElementMarker;
+  }
+
   function addHighlight(element, highlightReason: "selected" | "previewed") {
     const rect = element.getBoundingClientRect();
-    let marker =
-      highlightReason === "selected"
-        ? selectedElementMarker
-        : previewedElementMarker;
+    let marker = getMarkerElementFromHighlightReason(highlightReason);
+
     const color = highlightReason === "selected" ? "blue" : "green";
     const zIndex = highlightReason === "selected" ? 10000001 : 10000000;
     marker.setAttribute(
       "style",
-      "position: absolute; z-index: " +
+      "position: absolute; display: block; z-index: " +
         zIndex +
         "; pointer-events: none;border: 2px solid " +
         color +
@@ -58,6 +66,11 @@ export default function initDomInspectionUI() {
         rect.width +
         "px;"
     );
+  }
+
+  function removeHighlight(highlightReason: "selected" | "previewed") {
+    let marker = getMarkerElementFromHighlightReason(highlightReason);
+    marker.style.display = "none";
   }
 
   function toggleDomInspector() {
