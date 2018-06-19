@@ -53,7 +53,7 @@ function getSourceCodeObject(frameObject, code) {
     );
   }
 
-  const NUMBER_OF_LINES_TO_LOAD = 7;
+  const NUMBER_OF_LINES_TO_LOAD = 15;
 
   return {
     line: makeLine(lines[frameObject.lineNumber - 1], frameObject.columnNumber),
