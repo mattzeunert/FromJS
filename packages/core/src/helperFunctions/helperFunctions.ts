@@ -35,13 +35,16 @@ declare var __FUNCTION_NAMES__,
 
   function postToBE(endpoint, data) {
     const body = JSON.stringify(data);
-    console.log(
-      "Saving logs: ",
-      data.length,
-      "Size: ",
-      body.length / 1024 / 1024,
-      "Mb"
-    );
+    if (endpoint === "/storeLogs") {
+      console.log(
+        "Saving logs: ",
+        data.logs.length,
+        "Size: ",
+        body.length / 1024 / 1024,
+        "Mb"
+      );
+    }
+
     return fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
       method: "POST",
       headers: new Headers({
