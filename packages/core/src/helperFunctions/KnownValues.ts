@@ -12,6 +12,7 @@ export default class KnownValues {
       "Array.prototype.join": Array.prototype.join,
       "JSON.parse": JSON.parse,
       "Object.keys": Object.keys,
+      "Object.assign": Object.assign,
       "Number.prototype.toString": Number.prototype.toString,
       "Boolean.prototype.toString": Boolean.prototype.toString,
       "Object.prototype.toString": Object.prototype.toString,

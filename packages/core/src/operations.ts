@@ -615,7 +615,15 @@ const operations: Operations = {
       };
     }
   },
-  assignmentExpression: AssignmentExpression
+  assignmentExpression: AssignmentExpression,
+  objectAssign: {
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.value,
+        charIndex
+      };
+    }
+  }
 };
 
 function eachArgumentInObject(args, operationName, fn) {

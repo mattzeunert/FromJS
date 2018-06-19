@@ -226,6 +226,54 @@ const specialValuesForPostprocessing = {
     });
     return retT;
   },
+  "Object.assign": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT,
+    extraTrackingValues
+  }) => {
+    ctx = <ExecContext>ctx;
+    const target = fnArgValues[0];
+    const sources = fnArgValues.slice(1);
+    sources.forEach(source => {
+      if (!source || typeof source !== "object") {
+        return;
+      }
+      Object.keys(source).forEach(key => {
+        const valueTrackingValue = ctx.createOperationLog({
+          operation: ctx.operationTypes.objectAssign,
+          args: {
+            value: [null, ctx.getObjectPropertyTrackingValue(source, key)],
+            call: [null, logData.index]
+          },
+          result: source[key],
+          astArgs: {},
+          loc: logData.loc
+        });
+        const nameTrackingValue = ctx.createOperationLog({
+          operation: ctx.operationTypes.objectAssign,
+          args: {
+            value: [null, ctx.getObjectPropertyNameTrackingValue(source, key)],
+            call: [null, logData.index]
+          },
+          result: key,
+          astArgs: {},
+          loc: logData.loc
+        });
+
+        ctx.trackObjectPropertyAssignment(
+          target,
+          key,
+          valueTrackingValue,
+          nameTrackingValue
+        );
+      });
+    });
+  },
   "Array.prototype.join": ({
     object,
     fnArgs,
