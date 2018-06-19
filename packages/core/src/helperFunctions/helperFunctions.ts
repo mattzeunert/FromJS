@@ -34,6 +34,14 @@ declare var __FUNCTION_NAMES__,
   let knownValues = new KnownValues();
 
   function postToBE(endpoint, data) {
+    const body = JSON.stringify(data);
+    console.log(
+      "Saving logs: ",
+      data.length,
+      "Size: ",
+      body.length / 1024 / 1024,
+      "Mb"
+    );
     return fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
       method: "POST",
       headers: new Headers({
@@ -41,7 +49,7 @@ declare var __FUNCTION_NAMES__,
         "Content-Type": "application/json",
         Authorization: accessToken
       }),
-      body: JSON.stringify(data)
+      body: body
     }).then(res => res.json());
   }
 
@@ -55,11 +63,8 @@ declare var __FUNCTION_NAMES__,
     postToBE("/storeLogs", {
       logs: logQueue,
       evalScripts: evalScriptQueue
-    }).then(r => {
-      console.log("stored logs");
     });
 
-    console.log("saving n logs", logQueue.length);
     logQueue = [];
     evalScriptQueue = [];
   }
@@ -389,7 +394,7 @@ declare var __FUNCTION_NAMES__,
 
     lastOperationType = opName;
 
-    if (logQueue.length > 10000) {
+    if (logQueue.length > 100000) {
       // avoid running out of memory
       sendLogsToServer();
     }
