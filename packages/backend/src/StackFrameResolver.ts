@@ -119,7 +119,7 @@ class StackFrameResolver {
   }
 
   _fetchCode(frameObject) {
-    return this._gps.ajax(frameObject.fileName);
+    return this._gps._get(frameObject.fileName);
   }
 
   resolveFrameFromLoc(loc) {
@@ -127,25 +127,6 @@ class StackFrameResolver {
     frameObject.fileName = loc.url + "?dontprocess";
     frameObject.lineNumber = loc.start.line;
     frameObject.columnNumber = loc.start.column;
-
-    function ajax(url) {
-      return new Promise((resolve, reject) => {
-        var r = request.defaults();
-        r(
-          {
-            url,
-            rejectUnauthorized: false // fix UNABLE_TO_VERIFY_LEAF_SIGNATURE when loading trello board
-          },
-          function(err, res, body) {
-            if (err) {
-              console.error("request source maping error", err, url);
-            } else {
-              resolve(body);
-            }
-          }
-        );
-      });
-    }
 
     // copied from stacktrace-gps
     function _findSourceMappingURL(source) {
@@ -170,7 +151,7 @@ class StackFrameResolver {
         .pinpoint(frameObject)
         .then(pinpointedFrameObject => {
           this._nonProxyGps
-            .ajax(frameObject.fileName)
+            ._get(frameObject.fileName)
             .then(unSourcemappedCode => {
               let smUrl = _findSourceMappingURL(unSourcemappedCode);
               if (!(smUrl.includes("http") || smUrl.includes("https"))) {
