@@ -631,6 +631,14 @@ const operations: Operations = {
         charIndex
       };
     }
+  },
+  arrayConcat: {
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.value,
+        charIndex
+      };
+    }
   }
 };
 

@@ -381,6 +381,55 @@ const specialValuesForPostprocessing = {
     }
     return retT;
   },
+  "Array.prototype.concat": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT,
+    extraTrackingValues
+  }) => {
+    const concatValues = [object, ...fnArgValues];
+    let i = 0;
+    concatValues.forEach(concatValue => {
+      if (Array.isArray(concatValue)) {
+        concatValue.forEach((arrayValue, indexInOriginalArray) => {
+          ctx.trackObjectPropertyAssignment(
+            ret,
+            i.toString(),
+            ctx.createOperationLog({
+              operation: ctx.operationTypes.arrayConcat,
+              args: {
+                value: [
+                  null,
+                  ctx.getObjectPropertyTrackingValue(
+                    concatValue,
+                    indexInOriginalArray.toString()
+                  )
+                ]
+              },
+              result: arrayValue,
+              astArgs: {},
+              loc: logData.loc
+            }),
+            ctx.createOperationLog({
+              operation: ctx.operationTypes.arrayIndex,
+              args: {},
+              result: i,
+              astArgs: {},
+              loc: logData.loc
+            })
+          );
+          i++;
+        });
+      } else if (VERIFY) {
+        i++;
+        console.log("todo: need to handle non array arr.concat args");
+      }
+    });
+  },
   "document.createElement": ({
     object,
     fnArgs,

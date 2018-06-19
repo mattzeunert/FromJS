@@ -517,3 +517,21 @@ describe("Array.map", () => {
     expect(normal).toBe("102x");
   });
 });
+
+describe("Array.concat", () => {
+  it("Passes values through to mapping function", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["1"].concat(["2"])
+        return arr[0] + arr[1]
+      `);
+    expect(normal).toBe("12");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t2LastStep = t2[t1.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+  });
+});
