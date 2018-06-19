@@ -274,6 +274,65 @@ const specialValuesForPostprocessing = {
       });
     });
   },
+  "Array.prototype.slice": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT,
+    extraTrackingValues
+  }) => {
+    ctx = <ExecContext>ctx;
+    const resultArray = ret;
+    const inputArray = object;
+
+    let startIndex = fnArgValues[0];
+    if (startIndex < 0) {
+      startIndex = inputArray.length + startIndex;
+    }
+    let endIndex = fnArgValues[0];
+    if (endIndex < 0) {
+      endIndex = inputArray.length + endIndex;
+    }
+
+    function makeTrackingValue(result, valueTv) {
+      return ctx.createOperationLog({
+        operation: ctx.operationTypes.arraySlice,
+        args: {
+          value: [null, valueTv],
+          call: [null, logData.index]
+        },
+        result: result,
+        astArgs: {},
+        loc: logData.loc
+      });
+    }
+
+    resultArray.forEach((item, i) => {
+      // todo: create slice call action
+      const originalIndex = i + startIndex;
+      ctx.trackObjectPropertyAssignment(
+        resultArray,
+        i.toString(),
+        makeTrackingValue(
+          item,
+          ctx.getObjectPropertyTrackingValue(
+            inputArray,
+            originalIndex.toString()
+          )
+        ),
+        makeTrackingValue(
+          i,
+          ctx.getObjectPropertyNameTrackingValue(
+            inputArray,
+            originalIndex.toString()
+          )
+        )
+      );
+    });
+  },
   "Array.prototype.join": ({
     object,
     fnArgs,
