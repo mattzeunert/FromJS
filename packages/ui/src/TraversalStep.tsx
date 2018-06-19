@@ -25,6 +25,7 @@ type TraversalStepState = {
   showLogJson: boolean;
   showTree: boolean;
   isExpanded: boolean;
+  isHovering: boolean;
 };
 
 let TraversalStep = class TraversalStep extends React.Component<
@@ -37,7 +38,8 @@ let TraversalStep = class TraversalStep extends React.Component<
       stackFrame: null,
       showLogJson: false,
       showTree: false,
-      isExpanded: false
+      isExpanded: false,
+      isHovering: false
     };
 
     const { step } = props;
@@ -144,7 +146,11 @@ let TraversalStep = class TraversalStep extends React.Component<
       operationTypeDetail = "(" + operationTypeDetail + ")";
     }
     return (
-      <div className="step">
+      <div
+        className="step"
+        onMouseEnter={() => this.setState({ isHovering: true })}
+        onMouseLeave={() => this.setState({ isHovering: false })}
+      >
         <div className="step__header">
           <div className="step__operation-type">
             {operationLog.operation[0].toUpperCase() +
@@ -152,7 +158,7 @@ let TraversalStep = class TraversalStep extends React.Component<
             {operationTypeDetail}
           </div>
           <span style={{ fontSize: "12px", marginTop: 3, float: "left" }}>
-            {getFileNameFromPath(fileName)}
+            {this.state.isHovering ? fileName : getFileNameFromPath(fileName)}
           </span>
           <button
             style={{ float: "right" }}
