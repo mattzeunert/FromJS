@@ -121,6 +121,7 @@ class ProxyInstrumenter {
     ctx.requestId = url + "_" + Math.random();
 
     if (this.shouldBlock && this.shouldBlock(requestInfo)) {
+      ctx.proxyToClientResponse.statusCode = 401; // Unauthorized
       ctx.proxyToClientResponse.end("");
       return;
     }
