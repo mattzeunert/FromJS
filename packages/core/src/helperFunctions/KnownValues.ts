@@ -16,6 +16,7 @@ export default class KnownValues {
       "Array.prototype.map": Array.prototype.map,
       "Array.prototype.reduce": Array.prototype.reduce,
       "Array.prototype.concat": Array.prototype.concat,
+      "Array.prototype.shift": Array.prototype.shift,
       "JSON.parse": JSON.parse,
       "Object.keys": Object.keys,
       "Object.assign": Object.assign,
