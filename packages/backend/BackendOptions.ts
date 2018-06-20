@@ -5,12 +5,23 @@ export class BackendOptions {
   proxyPort: number;
   sessionDirectory: string;
   onReady: () => void;
+  dontTrack: any[];
+  block: any[];
 
-  constructor({ bePort, proxyPort, sessionDirectory, onReady }) {
+  constructor({
+    bePort,
+    proxyPort,
+    sessionDirectory,
+    onReady,
+    dontTrack,
+    block
+  }) {
     this.bePort = bePort;
     this.proxyPort = proxyPort;
     this.sessionDirectory = sessionDirectory;
     this.onReady = onReady;
+    this.dontTrack = dontTrack;
+    this.block = block;
   }
 
   getCertDirectory() {
@@ -26,6 +37,10 @@ export class BackendOptions {
   }
 
   getSessionJsonPath() {
-    return path.resolve(this.getCertDirectory(), "session.json");
+    return path.resolve(this.sessionDirectory, "session.json");
+  }
+
+  getLocStorePath() {
+    return path.resolve(this.sessionDirectory, "locs");
   }
 }

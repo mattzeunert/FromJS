@@ -17,6 +17,9 @@ import { BackendOptions } from "./BackendOptions";
 import { HtmlToOperationLogMapping } from "@fromjs/core";
 import { template } from "lodash";
 import * as ui from "@fromjs/ui";
+import { LocStore } from "./LocStore";
+import * as getFolderSize from "get-folder-size";
+import * as responseTime from "response-time";
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -43,9 +46,23 @@ function ensureDirectoriesExist(options: BackendOptions) {
   });
 }
 
+const LOG_PERF = false;
+const DELETE_EXISTING_LOGS_AT_START = false;
+
 export default class Backend {
   constructor(options: BackendOptions) {
+    if (DELETE_EXISTING_LOGS_AT_START) {
+      console.log(
+        "deleting existing log data, this makes sure perf data is more comparable... presumably leveldb slows down with more data"
+      );
+      require("rimraf").sync(options.getLocStorePath());
+      require("rimraf").sync(options.getTrackingDataDirectory());
+    }
     ensureDirectoriesExist(options);
+
+    getFolderSize(options.sessionDirectory, (err, size) => {
+      console.log("Session size: ", (size / 1024 / 1024).toFixed(2) + " MB");
+    });
 
     let sessionConfig;
     function saveSessionConfig() {
@@ -63,11 +80,19 @@ export default class Backend {
       };
       saveSessionConfig();
     }
-    console.log(sessionConfig);
 
     var { bePort, proxyPort } = options;
 
     const app = express();
+
+    if (LOG_PERF) {
+      app.use(
+        responseTime((req, res, time) => {
+          console.log(req.method, req.url, time + "ms");
+        })
+      );
+    }
+
     app.use(bodyParser.json({ limit: "250mb" }));
     const server = http.createServer(app);
     const wss = new WebSocket.Server({ server });
@@ -97,12 +122,13 @@ export default class Backend {
     }
 
     setupUI(options, app, wss, getProxy);
-    setupBackend(options, app, wss, getProxy);
+    let { storeLocs } = setupBackend(options, app, wss, getProxy);
 
     let proxyInterface;
     createProxy({
       accessToken: sessionConfig.accessToken,
-      options
+      options,
+      storeLocs
     }).then(pInterface => {
       proxyInterface = pInterface;
       "justtotest" && getProxy();
@@ -123,9 +149,21 @@ export default class Backend {
 }
 
 function setupUI(options, app, wss, getProxy) {
+  let isInspectingDemoApp = true;
+  function setIsInspectingDemoApp(req) {
+    const ref = req.headers.referer;
+    isInspectingDemoApp = !!(
+      ref && ref.includes("http://localhost:" + options.bePort + "/start/")
+    );
+  }
+
   app.get("/", (req, res) => {
     let html = fs.readFileSync(uiDir + "/index.html").toString();
     html = html.replace(/BACKEND_PORT_PLACEHOLDER/g, options.bePort.toString());
+    html = html.replace(
+      /IS_INSPECTING_DEMO_APP_PLACEHOLDER/,
+      isInspectingDemoApp.toString()
+    );
     res.send(html);
   });
 
@@ -142,7 +180,9 @@ function setupUI(options, app, wss, getProxy) {
 
   function getDomToInspectMessage() {
     if (!domToInspect) {
-      return {};
+      return {
+        err: "Backend has no selected DOM to inspect"
+      };
     }
 
     const mapping = new HtmlToOperationLogMapping((<any>domToInspect).parts);
@@ -159,7 +199,8 @@ function setupUI(options, app, wss, getProxy) {
 
     return {
       html: (<any>domToInspect).parts.map(p => p[0]).join(""),
-      charIndex: goodDefaultCharIndex
+      charIndex: goodDefaultCharIndex,
+      isInspectingDemoApp
     };
   }
 
@@ -175,6 +216,8 @@ function setupUI(options, app, wss, getProxy) {
       "Access-Control-Allow-Headers",
       "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
     );
+
+    setIsInspectingDemoApp(req);
 
     domToInspect = req.body;
 
@@ -193,11 +236,21 @@ function setupUI(options, app, wss, getProxy) {
   app.get("/inspect", (req, res) => {
     res.end(
       JSON.stringify({
-        logToInspect
+        logToInspect,
+        isInspectingDemoApp
       })
     );
   });
   app.post("/inspectDomChar", (req, res) => {
+    if (!domToInspect) {
+      res.status(500);
+      res.json({
+        err: "Backend has no selected DOM to inspect"
+      });
+      res.end();
+      return;
+    }
+
     const mapping = new HtmlToOperationLogMapping((<any>domToInspect).parts);
     const mappingResult: any = mapping.getOriginAtCharacterIndex(
       req.body.charIndex
@@ -212,20 +265,25 @@ function setupUI(options, app, wss, getProxy) {
       return;
     }
 
+    const origin = mappingResult.origin;
+
+    let offset = 0;
     if (
-      mappingResult.origin.inputValuesCharacterIndex &&
-      mappingResult.origin.inputValuesCharacterIndex.length > 1
+      origin.offsetAtCharIndex &&
+      origin.offsetAtCharIndex[mappingResult.charIndex]
     ) {
-      debugger; // probably should do mapping for each char
+      offset = origin.offsetAtCharIndex[mappingResult.charIndex];
     }
+    let charIndex =
+      mappingResult.charIndex +
+      origin.inputValuesCharacterIndex[0] -
+      origin.extraCharsAdded +
+      offset;
 
     res.end(
       JSON.stringify({
         logId: mappingResult.origin.trackingValue,
-        charIndex:
-          mappingResult.charIndex +
-          mappingResult.origin.inputValuesCharacterIndex[0] -
-          mappingResult.origin.extraCharsAdded
+        charIndex
       })
     );
   });
@@ -236,11 +294,14 @@ function setupUI(options, app, wss, getProxy) {
     logToInspect = req.body.logId;
     res.end("{}");
 
+    setIsInspectingDemoApp(req);
+
     broadcast(
       wss,
       JSON.stringify({
         type: "inspectOperationLog",
-        operationLogId: logToInspect
+        operationLogId: logToInspect,
+        isInspectingDemoApp
       })
     );
   });
@@ -248,6 +309,7 @@ function setupUI(options, app, wss, getProxy) {
 
 function setupBackend(options: BackendOptions, app, wss, getProxy) {
   const logServer = new LevelDBLogServer(options.getTrackingDataDirectory());
+  const locStore = new LocStore(options.getLocStorePath());
 
   app.get("/jsFiles/compileInBrowser.js", (req, res) => {
     const code = fs
@@ -271,8 +333,20 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
       "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
     );
 
-    req.body.logs.forEach(function(log) {
-      logServer.storeLog(log);
+    const startTime = new Date();
+    logServer.storeLogs(req.body.logs, function() {
+      const timePassed = new Date().valueOf() - startTime.valueOf();
+      const timePer1000 =
+        Math.round(timePassed / req.body.logs.length * 1000 * 10) / 10;
+      if (LOG_PERF) {
+        console.log(
+          "storing logs took " +
+            timePassed +
+            "ms, per 1000 logs: " +
+            timePer1000 +
+            "ms"
+        );
+      }
     });
 
     req.body.evalScripts.forEach(function(evalScript) {
@@ -322,14 +396,24 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
     };
 
     const finishRequest = async function finishRequest() {
-      var steps = await traverse(
-        {
-          operationLog: logId,
-          charIndex: charIndex
-        },
-        [],
-        logServer
-      );
+      let steps;
+      try {
+        steps = await traverse(
+          {
+            operationLog: logId,
+            charIndex: charIndex
+          },
+          [],
+          logServer
+        );
+      } catch (err) {
+        res.status(500);
+        res.end(
+          JSON.stringify({
+            err: "Log not found in backend"
+          })
+        );
+      }
 
       res.end(JSON.stringify({ steps }));
     };
@@ -346,8 +430,10 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
 
     // use loc if available because sourcemaps are buggy...
     if (operationLog.loc) {
-      resolver.resolveFrameFromLoc(operationLog.loc).then(rr => {
-        res.end(JSON.stringify(rr));
+      locStore.getLoc(operationLog.loc, loc => {
+        resolver.resolveFrameFromLoc(loc).then(rr => {
+          res.end(JSON.stringify(rr));
+        });
       });
     } else {
       res.status(500);
@@ -389,6 +475,12 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
         );
       });
   });
+
+  return {
+    storeLocs: locs => {
+      locStore.write(locs, function() {});
+    }
+  };
 }
 
 function broadcast(wss, data) {

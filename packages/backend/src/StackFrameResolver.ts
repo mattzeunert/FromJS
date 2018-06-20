@@ -24,12 +24,12 @@ function getSourceCodeObject(frameObject, code) {
       var text = fullLine;
       var firstCharIndex = 0;
       var lastCharIndex = fullLine.length;
-      if (fullLine.length > 100) {
-        firstCharIndex = focusColumn - 50;
+      if (fullLine.length > 300) {
+        firstCharIndex = focusColumn - 100;
         if (firstCharIndex < 0) {
           firstCharIndex = 0;
         }
-        lastCharIndex = firstCharIndex + 100;
+        lastCharIndex = firstCharIndex + 200;
         text = fullLine.slice(firstCharIndex, lastCharIndex);
       }
       return {
@@ -53,7 +53,7 @@ function getSourceCodeObject(frameObject, code) {
     );
   }
 
-  const NUMBER_OF_LINES_TO_LOAD = 7;
+  const NUMBER_OF_LINES_TO_LOAD = 15;
 
   return {
     line: makeLine(lines[frameObject.lineNumber - 1], frameObject.columnNumber),
@@ -75,32 +75,45 @@ function getSourceCodeObject(frameObject, code) {
 class StackFrameResolver {
   _cache = {};
   _gps: any = null;
+  _nonProxyGps: any = null;
   _proxyPort: number | null = null;
 
   constructor({ proxyPort }) {
     this._proxyPort = proxyPort;
-    this._gps = new StackTraceGPS({ ajax: this._ajax.bind(this) });
+    this._gps = new StackTraceGPS({ ajax: this.getAjax("proxy") });
+    this._nonProxyGps = new StackTraceGPS({ ajax: this.getAjax("normal") });
   }
 
-  _ajax(url) {
-    return new Promise((resolve, reject) => {
-      var r = request.defaults({
-        proxy: "http://127.0.0.1:" + this._proxyPort
-      });
-      r(
-        {
-          url,
-          rejectUnauthorized: false // fix UNABLE_TO_VERIFY_LEAF_SIGNATURE when loading trello board
-        },
-        function(err, res, body) {
-          if (err) {
-            console.error("request source maping error", err, url);
-          } else {
-            resolve(body);
-          }
+  getAjax(type: "proxy" | "normal") {
+    const ajax = url => {
+      if (type === "normal" && url.includes(":11111")) {
+        // We use this port for eval scripts, which are only available through the proxy
+        return this._gps._get(url);
+      }
+      return new Promise((resolve, reject) => {
+        const options: any = {};
+        if (type === "proxy") {
+          options.proxy = "http://127.0.0.1:" + this._proxyPort;
         }
-      );
-    });
+
+        var r = request.defaults(options);
+        r(
+          {
+            url,
+            rejectUnauthorized: false // fix UNABLE_TO_VERIFY_LEAF_SIGNATURE when loading trello board
+          },
+          function(err, res, body) {
+            if (err) {
+              console.error("request source maping error", err, url);
+            } else {
+              resolve(body);
+            }
+          }
+        );
+      });
+    };
+
+    return ajax.bind(this);
   }
 
   resolveSourceCode(frameObject) {
@@ -110,7 +123,7 @@ class StackFrameResolver {
   }
 
   _fetchCode(frameObject) {
-    return this._gps.ajax(frameObject.fileName);
+    return this._gps._get(frameObject.fileName);
   }
 
   resolveFrameFromLoc(loc) {
@@ -118,10 +131,65 @@ class StackFrameResolver {
     frameObject.fileName = loc.url + "?dontprocess";
     frameObject.lineNumber = loc.start.line;
     frameObject.columnNumber = loc.start.column;
-    return this.resolveSourceCode(frameObject).then(code => {
-      frameObject.code = code;
-      // frameObject.__debugOnly_FrameString = frameString;
-      return Promise.resolve(frameObject);
+
+    // copied from stacktrace-gps
+    function _findSourceMappingURL(source) {
+      var sourceMappingUrlRegExp = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/gm;
+      var lastSourceMappingUrl;
+      var matchSourceMappingUrl;
+      while ((matchSourceMappingUrl = sourceMappingUrlRegExp.exec(source))) {
+        // jshint ignore:line
+        lastSourceMappingUrl = matchSourceMappingUrl[1];
+      }
+      if (lastSourceMappingUrl) {
+        return lastSourceMappingUrl;
+      } else {
+        throw new Error("sourceMappingURL not found");
+      }
+    }
+
+    return new Promise(resolve => {
+      // Currently only supports the happy path, and assumes
+      // sourcemap uses sourcescontent instead of URL refs
+      this._nonProxyGps
+        .pinpoint(frameObject)
+        .then(pinpointedFrameObject => {
+          this._nonProxyGps
+            ._get(frameObject.fileName)
+            .then(unSourcemappedCode => {
+              let smUrl = _findSourceMappingURL(unSourcemappedCode);
+              if (!(smUrl.includes("http") || smUrl.includes("https"))) {
+                const basePath = frameObject.fileName
+                  .split("/")
+                  .slice(0, -1)
+                  .join("/");
+                smUrl = basePath + "/" + smUrl;
+              }
+
+              this._nonProxyGps.sourceMapConsumerCache[smUrl].then(function(
+                smConsumer
+              ) {
+                const sourcesIndex = smConsumer.sources.indexOf(
+                  pinpointedFrameObject.fileName
+                );
+                const code = smConsumer.sourcesContent[sourcesIndex];
+
+                pinpointedFrameObject.code = getSourceCodeObject(
+                  pinpointedFrameObject,
+                  code
+                );
+                resolve(pinpointedFrameObject);
+              });
+            });
+        })
+        .catch(err => {
+          // console.log("falling back to not using source maps");
+          return this.resolveSourceCode(frameObject).then(code => {
+            frameObject.code = code;
+            // frameObject.__debugOnly_FrameString = frameString;
+            resolve(frameObject);
+          });
+        });
     });
   }
 

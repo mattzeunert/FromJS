@@ -2,8 +2,6 @@ import { startProxy } from "@fromjs/proxy-instrumenter";
 import { handleEvalScript } from "@fromjs/core";
 declare var process: any;
 
-import { BackendOptions } from "./BackendOptions";
-process.title = "FromJS - Proxy";
 process.on("message", function(message) {
   if (message.arguments[1]) {
     throw Error("todo......");
@@ -15,7 +13,16 @@ let proxy;
 
 const options = JSON.parse(process.argv[process.argv.length - 1]);
 
-const { accessToken, bePort, proxyPort, certDirectory } = options;
+const {
+  accessToken,
+  bePort,
+  proxyPort,
+  certDirectory,
+  dontTrack,
+  block
+} = options;
+
+process.title = "FromJS - Proxy (" + proxyPort + ")";
 
 startProxy({
   babelPluginOptions: {
@@ -27,7 +34,16 @@ startProxy({
   port: proxyPort,
   instrumenterFilePath: __dirname + "/instrumentCode.js",
   verbose: false,
-  shouldInstrument: ({ port, path }) => {
+  shouldBlock: ({ url }) => {
+    if (block.some(dt => url.includes(dt))) {
+      return true;
+    }
+    return false;
+  },
+  shouldInstrument: ({ port, path, url }) => {
+    if (dontTrack.some(dt => url.includes(dt))) {
+      return false;
+    }
     return port !== bePort || path.startsWith("/start");
   },
   rewriteHtml: html => {
@@ -36,6 +52,12 @@ startProxy({
       <script src="http://localhost:${bePort}/jsFiles/compileInBrowser.js"></script>
       ` + html
     );
+  },
+  onCompilationComplete: (response: any) => {
+    process.send({ type: "storeLocs", locs: response.locs });
+  },
+  onRegisterEvalScript: response => {
+    process.send({ type: "storeLocs", locs: response.locs });
   }
 }).then(p => {
   proxy = p;

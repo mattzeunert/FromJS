@@ -66,17 +66,6 @@ describe("UnaryExpression", () => {
   });
 });
 
-test("Can handle for in statements", done => {
-  instrumentAndRun(`
-    var obj = {}
-    for (var key in obj) {}
-    for (key in obj) {}
-    return null
-  `).then(({ normal, tracking }) => {
-    done();
-  });
-});
-
 test("Can handle function expressions", done => {
   instrumentAndRun(`
     var fn = function sth(){}
@@ -326,7 +315,7 @@ describe("Tracks values across assignments", () => {
   `).then(({ normal, tracking, code }) => {
       var strLit = tracking.args.value.args.argument;
       expect(strLit.operation).toBe("stringLiteral");
-      expect(strLit.result.str).toBe("b");
+      expect(strLit.result.primitive).toBe("b");
 
       done();
     });
@@ -374,8 +363,8 @@ it("Can track `/=` binary expressions", done => {
     );
 
     expect(assignmentExpression.astArgs.operator).toBe("/=");
-    expect(assignmentExpression.args.currentValue.result.str).toBe("10");
-    expect(assignmentExpression.args.argument.result.str).toBe("2");
+    expect(assignmentExpression.args.currentValue.result.primitive).toBe(10);
+    expect(assignmentExpression.args.argument.result.primitive).toBe(2);
 
     done();
   });
@@ -459,7 +448,7 @@ describe("String replace", () => {
       const replacement = tracking.args.value.extraArgs.replacement0;
       const replacementValue = replacement.args.value;
       expect(replacementValue.operation).toBe("stringLiteral");
-      expect(replacementValue.result.str).toBe("c");
+      expect(replacementValue.result.primitive).toBe("c");
       expect(replacement.runtimeArgs.start).toBe(1);
       expect(replacement.runtimeArgs.end).toBe(2);
 
@@ -503,11 +492,16 @@ describe("JSON.parse", () => {
       const propertyValue = tracking.extraArgs.propertyValue;
       const json = propertyValue.args.json;
       const keyPath = propertyValue.runtimeArgs.keyPath;
-      expect(json.result.str).toBe('{"a": {"b": 5}}');
+      expect(json.result.primitive).toBe('{"a": {"b": 5}}');
       expect(keyPath).toBe("a.b");
 
       done();
     });
+  });
+  it("Doesn't break on null values", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return JSON.parse('{"a": null}')
+    `);
   });
 });
 
@@ -706,7 +700,7 @@ describe("call/apply/bind", () => {
     const binaryExpression = returnStatement.args.returnValue;
     const { left, right } = binaryExpression.args;
 
-    expect(right.args.value.result.str).toBe("b");
+    expect(right.args.value.result.primitive).toBe("b");
   });
 
   it("Doesn't break apply", async () => {
@@ -740,6 +734,29 @@ describe("call/apply/bind", () => {
 });
 
 describe("for ... in", () => {
+  test("Can handle multiple complex nested for in statements", done => {
+    // based on some Trello source code that caused problems
+    instrumentAndRun(`
+      var obj = {
+        obj2: {a: 5}
+      }
+      var key1, key2
+      var vOuter, vInner,x
+      function getValue(obj, key) {
+        return obj[key]
+      }
+      for (key in obj)
+        for (key2 in ((x = 12), (vOuter = getValue(obj, key))))
+          (vInner = vOuter[key2]), (vInner += 2);
+
+      return vInner /* 7 */ + x /* 12 */
+
+    `).then(({ normal, tracking }) => {
+      expect(normal).toBe(19);
+      done();
+    });
+  });
+
   it("Tracks for in key variables", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
     const obj = {a: "b"}
@@ -749,7 +766,6 @@ describe("for ... in", () => {
     }
     return ret
   `);
-
     expect(normal).toBe("a");
     const assignedValue = tracking.args.value.args.argument;
     expect(assignedValue.args.value.operation).toBe("stringLiteral");
@@ -781,4 +797,122 @@ describe("for ... in", () => {
     const assignedValue = tracking.args.value.args.argument;
     expect(assignedValue.args.value.operation).toBe("stringLiteral");
   });
+
+  it("Doesn't evaluate for in statement right value more than once", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    let counter = 0
+    function getObj() {
+      counter++
+      return {a: 1, b: 2, c: 3}
+    }
+    for (var key in getObj()) {
+
+    }
+    return counter
+  `);
+
+    expect(normal).toBe(1);
+  });
+
+  it("Doesn't break if the for in statement contains a for loop", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    var obj = {a: [1,2,3]}
+      var arr = []
+      for (var key in obj) 
+        for (var i=0; i< obj[key].length; i++)
+          arr.push(obj[key][i])
+    return arr
+  `);
+
+    expect(normal).toEqual([1, 2, 3]);
+  });
+
+  it("Doesn't break when for in loop is in an if statement without a block expression", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      if (true)
+        for (b in {a: 2})
+          return b
+    `);
+
+    expect(normal).toEqual("a");
+  });
+});
+
+describe("Doesn't break classes", () => {
+  it("Doesn't break class methods", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const C = class {
+        getA() {
+          return "a";
+        }
+      };
+      return new C().getA();
+    `);
+
+    expect(normal).toBe("a");
+  });
+});
+
+describe("Doesn't break bitwise operators", async () => {
+  it("Doesn't break | and & for variables", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const FLAG1 = 0b100
+      const FLAG2 = 0b010
+      let value = 0
+      value |= FLAG1
+      value = value | FLAG2
+      return value & FLAG1
+    `);
+    expect(normal).toBe(0b100);
+  });
+  it("Doesn't break | and & for object properties", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const FLAG1 = 0b100
+      const FLAG2 = 0b010
+      let obj = {value: 0}
+      obj.value |= FLAG1
+      obj.value = obj.value | FLAG2
+      const ret = {value: obj.value}
+      ret.value &= FLAG1
+      return ret.value
+    `);
+    expect(normal).toBe(0b100);
+  });
+});
+
+it("Doesn't break for loop with empty string as condition", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      var wasInBody = false;
+      for (var a=0; "";) {
+          wasInBody = true;
+          break;
+      }
+      return wasInBody;
+    `);
+  expect(normal).toBe(false);
+});
+
+describe("Logical Expressions", () => {
+  it("Doesn't break nested AND/OR expressions", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return (1 && 2) || 3
+      `);
+    expect(normal).toBe(2);
+  });
+});
+
+it("Can handle nested conditional operators", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      var a = true ? ('' ? null : ({} ? 'yes' : null)) : null;
+      return a
+    `);
+  expect(normal).toBe("yes");
+});
+
+it("Doesn't break when calling Object.assign with undefined/falsy values", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = Object.assign({}, false, null, undefined, {a:"a"})
+      return obj.a
+    `);
+  expect(normal).toBe("a");
 });

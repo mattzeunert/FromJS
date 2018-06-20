@@ -3,6 +3,7 @@ import { BackendOptions } from "./BackendOptions";
 export interface CreateProxyWrapperArgs {
   accessToken: string;
   options: BackendOptions;
+  storeLocs: (locs: any[]) => void;
 }
 
 /* Start proxy in a child process and enable communication */
@@ -20,7 +21,9 @@ export function createProxy(params: CreateProxyWrapperArgs) {
         accessToken: params.accessToken,
         bePort: params.options.bePort,
         proxyPort: params.options.proxyPort,
-        certDirectory: params.options.getCertDirectory()
+        certDirectory: params.options.getCertDirectory(),
+        dontTrack: params.options.dontTrack,
+        block: params.options.block
       })
     ]);
 
@@ -37,6 +40,9 @@ export function createProxy(params: CreateProxyWrapperArgs) {
     child.on("message", function(message) {
       if (message.type === "isReady") {
         resolve(proxyInterface);
+      }
+      if (message.type === "storeLocs") {
+        params.storeLocs(message.locs);
       }
     });
   });

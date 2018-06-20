@@ -1,8 +1,28 @@
 import appState from "./appState";
-import { inspectDomChar } from "./api";
+import { inspectDomChar, loadSteps } from "./api";
 
-export function selectAndTraverse(logId, charIndex) {
+function traverse() {
+  const inspectionTarget = appState.get("inspectionTarget");
+  if (!inspectionTarget || !inspectionTarget.logId) {
+    console.log("no inspection target!!");
+  } else {
+    console.time("Load Steps");
+    loadSteps(inspectionTarget).then(r => {
+      console.timeEnd("Load Steps");
+      var steps = r.steps;
+      console.log({ steps });
+
+      appState.set("steps", steps);
+    });
+  }
+}
+
+export function selectAndTraverse(logId, charIndex, origin?) {
   appState.set("inspectionTarget", { logId, charIndex });
+  if (origin === "traversalStep") {
+    appState.set("collapseDomInspector", true);
+  }
+  traverse();
 }
 
 export function selectInspectedDomCharIndex(charIndex) {
@@ -10,6 +30,24 @@ export function selectInspectedDomCharIndex(charIndex) {
   inspectDomChar(charIndex).then(({ logId, charIndex }) => {
     if (logId) {
       appState.set("inspectionTarget", { logId, charIndex });
+      appState.set("collapseDomInspector", false);
+      traverse();
     }
   });
+}
+
+export function expandDomInspector() {
+  appState.set("collapseDomInspector", false);
+}
+
+export function setIsInspectingDemoApp(isInspecting) {
+  appState.set("isInspectingDemoApp", isInspecting);
+}
+
+export function enableShowFullDataFlow() {
+  appState.set("showFullDataFlow", true);
+}
+
+export function disableShowFullDataFlow() {
+  appState.set("showFullDataFlow", false);
 }

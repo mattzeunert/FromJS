@@ -9,6 +9,7 @@ import { truncate } from "lodash";
 import { selectAndTraverse } from "./actions";
 import * as cx from "classnames";
 import "./TraversalStep.scss";
+import FEOperationLog from "./FEOperationLogs";
 
 function getFileNameFromPath(path) {
   const parts = path.split("/");
@@ -24,6 +25,7 @@ type TraversalStepState = {
   showLogJson: boolean;
   showTree: boolean;
   isExpanded: boolean;
+  isHovering: boolean;
 };
 
 let TraversalStep = class TraversalStep extends React.Component<
@@ -36,7 +38,8 @@ let TraversalStep = class TraversalStep extends React.Component<
       stackFrame: null,
       showLogJson: false,
       showTree: false,
-      isExpanded: false
+      isExpanded: false,
+      isHovering: false
     };
 
     const { step } = props;
@@ -68,25 +71,36 @@ let TraversalStep = class TraversalStep extends React.Component<
   render() {
     const { step, debugMode } = this.props;
     const { charIndex, operationLog } = step;
-    const { showTree, showLogJson, stackFrame, isExpanded } = this.state;
+    const { showTree, showLogJson, stackFrame } = this.state;
+    let { isExpanded } = this.state;
     let code;
     let fileName, columnNumber, lineNumber;
     let previousLine, nextLine;
 
+    if (operationLog.result.type === "object") {
+      // the user probably cares about the arguments
+      isExpanded = true;
+    }
+
     try {
-      const { previousLines, nextLines } = stackFrame.code;
-      code = stackFrame.code.line.text;
-      fileName = stackFrame.fileName.replace("?dontprocess", "");
-      lineNumber = stackFrame.lineNumber;
-      columnNumber = stackFrame.columnNumber;
-      if (previousLines.length > 0) {
-        previousLine = previousLines[previousLines.length - 1].text;
-      }
-      if (nextLines.length > 0) {
-        nextLine = nextLines[0].text;
+      if (stackFrame) {
+        const { previousLines, nextLines } = stackFrame.code;
+        code = stackFrame.code.line.text;
+        fileName = stackFrame.fileName.replace("?dontprocess", "");
+        lineNumber = stackFrame.lineNumber;
+        columnNumber = stackFrame.columnNumber;
+        if (previousLines.length > 0) {
+          previousLine = previousLines[previousLines.length - 1].text;
+        }
+        if (nextLines.length > 0) {
+          nextLine = nextLines[0].text;
+        }
+      } else {
+        code = "(Loading...)";
+        fileName = "(Loading...)";
       }
     } catch (err) {
-      code = "Loading or error...";
+      code = "(error)";
       fileName = "(error)";
     }
 
@@ -132,6 +146,8 @@ let TraversalStep = class TraversalStep extends React.Component<
           operationTypeDetail =
             "HTMLInputElement." + operationLog.args.propName.result.primitive;
         }
+      } else if (operationLog.operation === "fetchResponse") {
+        operationTypeDetail = operationLog.runtimeArgs.url;
       }
     } catch (err) {
       console.log(err);
@@ -141,7 +157,11 @@ let TraversalStep = class TraversalStep extends React.Component<
       operationTypeDetail = "(" + operationTypeDetail + ")";
     }
     return (
-      <div className="step">
+      <div
+        className="step"
+        onMouseEnter={() => this.setState({ isHovering: true })}
+        onMouseLeave={() => this.setState({ isHovering: false })}
+      >
         <div className="step__header">
           <div className="step__operation-type">
             {operationLog.operation[0].toUpperCase() +
@@ -149,7 +169,7 @@ let TraversalStep = class TraversalStep extends React.Component<
             {operationTypeDetail}
           </div>
           <span style={{ fontSize: "12px", marginTop: 3, float: "left" }}>
-            {getFileNameFromPath(fileName)}
+            {this.state.isHovering ? fileName : getFileNameFromPath(fileName)}
           </span>
           <button
             style={{ float: "right" }}
@@ -191,6 +211,7 @@ let TraversalStep = class TraversalStep extends React.Component<
                 Inspect input/output values:
               </div>
               {this.getAllArgs().map(({ name, value }) => {
+                value = value && new FEOperationLog(value);
                 const canInspect = !!value;
                 return (
                   <div
@@ -201,14 +222,16 @@ let TraversalStep = class TraversalStep extends React.Component<
                       if (!canInspect) {
                         return;
                       }
-                      selectAndTraverse(value.index, 0);
+                      selectAndTraverse(value.index, 0, "traversalStep");
                     }}
                   >
                     <span style={{ color: "#b91212" }}>{name}:</span>
                     &nbsp;
                     <span>
                       {value
-                        ? truncate(value.result.str, { length: 80 })
+                        ? truncate(value.result.getTruncatedUIString(), {
+                            length: 80
+                          })
                         : "(no tracking value)"}
                     </span>
                   </div>
@@ -236,7 +259,11 @@ let TraversalStep = class TraversalStep extends React.Component<
               text={str}
               highlightedCharacterIndex={charIndex}
               onCharacterClick={charIndex =>
-                appState.set(["inspectionTarget", "charIndex"], charIndex)
+                selectAndTraverse(
+                  operationLog.index,
+                  charIndex,
+                  "traversalStep"
+                )
               }
             />
           </div>

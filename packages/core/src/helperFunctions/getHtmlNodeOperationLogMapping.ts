@@ -21,9 +21,10 @@ function getNodeHtmlParts(node: Node) {
 
     for (var i = 0; i < el.attributes.length; i++) {
       const attr = el.attributes[i];
+      parts.push([" " + attr.name, origin["attribute_" + attr.name + "_name"]]);
       parts.push([
-        " " + attr.name + '="' + attr.textContent + '"',
-        origin["attribute_" + attr.name]
+        '="' + attr.textContent + '"',
+        origin["attribute_" + attr.name + "_value"]
       ]);
     }
 
@@ -39,7 +40,11 @@ function getNodeHtmlParts(node: Node) {
   } else if (node.nodeType === Node.TEXT_NODE) {
     parts.push([node.textContent, origin.textValue]);
   } else if (node.nodeType === Node.COMMENT_NODE) {
-    console.log("TODO COMMENT_NODE");
+    parts.push(["<!--", origin.commentStart]);
+    parts.push([node.textContent, origin.textValue]);
+    parts.push(["-->", origin.commentEnd]);
+  } else {
+    console.log("TODO unknown node type");
   }
   return parts;
 }

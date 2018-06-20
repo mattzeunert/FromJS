@@ -14,7 +14,8 @@ export default function handleEvalScript(code, compile, done) {
     done({
       instrumentedCode,
       code,
-      url
+      url,
+      locs: babelResult.locs
     });
   });
 }

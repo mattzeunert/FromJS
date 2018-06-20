@@ -2,6 +2,7 @@ import * as React from "react";
 import { resolveStackFrame } from "./api";
 import operations from "../../core/src/operations";
 import { template } from "lodash";
+import FEOperationLog from "./FEOperationLogs";
 
 type OperationLogTreeViewProps = {
   operationLog: any;
@@ -152,7 +153,7 @@ function renderTree(log, containerSelector) {
 
     var resVal;
     if (data) {
-      resVal = data.result;
+      resVal = (data as FEOperationLog).result;
     } else {
       // debugger;
       resVal = {
@@ -162,7 +163,7 @@ function renderTree(log, containerSelector) {
     }
 
     var valueClass = "value--other";
-    var str = truncate(resVal.str, 40 * 10000);
+    var str = truncate(resVal.getTruncatedUIString(), 40 * 10000);
     if (resVal.type === "string") {
       valueClass = "value--string";
       str = `"${str}"`;
@@ -196,7 +197,11 @@ function renderTree(log, containerSelector) {
             <span class="value ${valueClass}">${escapedStr}</span>
           </div>  
         </div>
-        ${hiddenValues && "Hidden ancestor values: " + hiddenValues.join(", ")}
+        ${
+          hiddenValues.length > 1
+            ? "Hidden ancestor values: " + hiddenValues.join(", ")
+            : ""
+        }
         
       </div>`,
 

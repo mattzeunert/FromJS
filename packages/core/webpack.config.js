@@ -41,7 +41,13 @@ module.exports = {
       setTimeout(function() {
         const fs = require("fs");
         var code = fs.readFileSync("./helperFunctions.js").toString();
-        code = `export default \`${code}\``;
+        code = code.replace(/\\/g, "MARKER_BACKSLASH");
+        code = code.replace(/`/g, "MARKER_BACKTICK");
+        code = `
+          let code = \`${code}\`;
+          code = code.replace(/MARKER_BACKSLASH/g, "\\\\").replace(/MARKER_BACKTICK/g, "\\\`");
+          export default code
+        `;
 
         let currentTsFile;
         try {

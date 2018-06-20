@@ -10,12 +10,16 @@ export async function traverse(
   steps: TraversalStep[] = [],
   server
 ) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve, reject) => {
     let nextStep: TraversalStep | null | undefined = null;
 
     let { operationLog, charIndex } = step;
 
-    operationLog = await server.loadLogAwaitable(operationLog, 5);
+    try {
+      operationLog = await server.loadLogAwaitable(operationLog, 5);
+    } catch (err) {
+      reject(err);
+    }
 
     steps.push({
       ...step,
@@ -41,11 +45,16 @@ export async function traverse(
     const hasEmptyStepResult =
       nextStep &&
       nextStep.operationLog &&
-      nextStep.operationLog.result.str === "";
+      nextStep.operationLog.result.primitive === "";
     if (nextStep && nextStep.operationLog && !hasEmptyStepResult) {
-      traverse(nextStep, steps, server).then(() => {
-        resolve(steps);
-      });
+      traverse(nextStep, steps, server)
+        .then(() => {
+          resolve(steps);
+        })
+        .catch(err => {
+          console.log(err);
+          resolve(steps);
+        });
     } else {
       if (hasEmptyStepResult) {
         console.log(

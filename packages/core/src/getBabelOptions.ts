@@ -6,6 +6,21 @@ let currentBabelFilePath = null;
 export function getCurrentBabelFilePath() {
   return currentBabelFilePath;
 }
+// more global state for babel
+let locs = {};
+export function createLoc(value) {
+  // would be nice to just use an integer, but then need to avoid collisions better
+  const id =
+    Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36) +
+    Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
+  locs[id] = value;
+  return id;
+}
+export function getAndResetLocs() {
+  var ret = locs;
+  locs = {};
+  return ret;
+}
 
 export default function getBabelOptions(plugin, extraBabelOptions = {}, url) {
   currentBabelFilePath = url;

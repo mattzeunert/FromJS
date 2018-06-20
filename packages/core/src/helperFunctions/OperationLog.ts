@@ -1,9 +1,10 @@
 import KnownValues from "./KnownValues";
+import { VERIFY } from "../config";
 
 var global = Function("return this")();
 
 // todo: would be better if the server provided this value
-const getOperationIndex = (function() {
+export const getOperationIndex = (function() {
   var operationIndexBase = Math.round(Math.random() * 1000 * 1000 * 1000);
   var operationIndex = 0;
   return function getOperationIndex() {
@@ -55,43 +56,40 @@ function serializeValue(value, knownValues: KnownValues): SerializedValue {
     knownTypes.push("HTMLInputElement");
   }
 
-  var primitive;
-  if (["string", "null", "number"].includes(type)) {
+  var primitive = "";
+  if (["string", "null", "number", "boolean"].includes(type)) {
     primitive = value;
   }
   let str;
+  let keys;
   try {
-    str = (value + "").slice(0, 200);
-    if (str === "[object Object]") {
-      const keys = Object.keys(value);
-      if (keys.length > 10) {
+    if (type === "object" && value !== null) {
+      // todo: rethink this regarding perf
+      // maybe don't collect keys, maybe do for...in instead
+      // also: when inspecting i really want the trakcing data for
+      // values/keys to be accessible, so maybe just storing keys makes more sense
+      keys = Object.keys(value);
+      if (keys.length > 6) {
+        keys = keys.slice(0, 6);
         keys.push("...");
       }
-      str +=
-        "{" +
-        Object.keys(value)
-          .slice(0, 10)
-          .join(", ") +
-        "}";
     }
-  } catch (err) {
-    str = "(Error while serializing)";
-  }
+  } catch (err) {}
 
   return <SerializedValue>{
     length,
     type,
-    str,
     primitive,
     knownValue,
-    knownTypes
+    knownTypes,
+    keys
   };
 }
 
 export interface SerializedValue {
   length: any;
   type: string;
-  str: string;
+  keys?: string[];
   primitive: number | null | string;
   knownValue: string | null;
   knownTypes: null | any[];
@@ -117,15 +115,16 @@ export default class OperationLog {
     stackFrames,
     loc,
     knownValues,
-    runtimeArgs
+    runtimeArgs,
+    index
   }) {
     var arrayArguments: any[] = [];
     if (operation === "arrayExpression") {
       arrayArguments = ["elements"];
     }
 
-    if (!loc) {
-      console.log("no loc for operation", operation);
+    if (VERIFY && !loc) {
+      console.log("no loc at runtime for operation", operation);
     }
 
     this.stackFrames = stackFrames;
@@ -145,6 +144,7 @@ export default class OperationLog {
       // only store argument operation log because ol.result === a[0]
       eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
         if (
+          VERIFY &&
           typeof arg[1] !== "number" &&
           arg[1] !== null &&
           arg[1] !== undefined &&
@@ -161,6 +161,7 @@ export default class OperationLog {
     if (typeof extraArgs === "object") {
       eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
         if (
+          VERIFY &&
           typeof arg[1] !== "number" &&
           arg[1] !== null &&
           arg[1] !== undefined &&
@@ -179,6 +180,6 @@ export default class OperationLog {
     this.args = args;
     this.astArgs = astArgs;
     this.extraArgs = extraArgs;
-    this.index = getOperationIndex();
+    this.index = index;
   }
 }

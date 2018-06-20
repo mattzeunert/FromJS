@@ -3,7 +3,7 @@ import * as babel from "@babel/core";
 import * as OperationTypes from "./OperationTypes";
 // import * as fs from "fs";
 import * as babylon from "babylon";
-import operations, { shouldSkipIdentifier } from "./operations";
+import operations, { shouldSkipIdentifier, initForBabel } from "./operations";
 import {
   ignoreNode,
   ignoredArrayExpression,
@@ -18,10 +18,15 @@ import {
   isInIdOfVariableDeclarator,
   isInLeftPartOfAssignmentExpression,
   getTrackingVarName,
-  addLoc
+  addLoc,
+  skipPath
 } from "./babelPluginHelpers";
 
 import helperCodeLoaded from "../helperFunctions";
+
+import * as t from "@babel/types";
+initForBabel(t);
+
 var helperCode = helperCodeLoaded
   .toString()
   .replace("__FUNCTION_NAMES__", JSON.stringify(FunctionNames));
@@ -29,18 +34,6 @@ helperCode = helperCode.replace(
   "__OPERATION_TYPES__",
   JSON.stringify(OperationTypes)
 );
-
-var opsExecString = `{`;
-Object.keys(operations).forEach(opName => {
-  if (!operations[opName].exec) {
-    // console.log("no exec for operation", opName);
-    return;
-  }
-  opsExecString += `${opName}: ${operations[opName].exec.toString()},`;
-});
-opsExecString += `}`;
-
-helperCode = helperCode.replace("__OPERATIONS_EXEC__", opsExecString);
 
 var opsArrayArgumentsString = `{`;
 Object.keys(operations).forEach(opName => {
@@ -83,31 +76,34 @@ function plugin(babel) {
   // }
 
   function handleFunction(path) {
+    const declarators: any[] = [];
     path.node.params.forEach((param, i) => {
-      var d = t.variableDeclaration("var", [
+      declarators.push(
         t.variableDeclarator(
-          addLoc(ignoredIdentifier(getTrackingVarName(param.name)), param.loc),
-          ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [
-            ignoredNumericLiteral(i)
-          ])
+          addLoc(t.identifier(getTrackingVarName(param.name)), param.loc),
+          t.callExpression(
+            t.identifier(FunctionNames.getFunctionArgTrackingInfo),
+            [t.numericLiteral(i)]
+          )
         )
-      ]);
-      d.ignore = true;
-      path.node.body.body.unshift(d);
+      );
     });
 
-    var d = t.variableDeclaration("var", [
-      // keep whole list in case the function uses `arguments` object
-      // We can't just access the arg tracking values when `arguments` is used (instead of doing it
-      // at the top of the function)
-      // That's because when we return the argTrackingValues are not reset to the parent function's
+    // keep whole list in case the function uses `arguments` object
+    // We can't just access the arg tracking values when `arguments` is used (instead of doing it
+    // at the top of the function)
+    // That's because when we return the argTrackingValues are not reset to the parent function's
+    declarators.push(
       t.variableDeclarator(
         ignoredIdentifier("__allFnArgTrackingValues"),
         ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [])
       )
-    ]);
-    d.ignore = true;
+    );
+
+    const d = t.variableDeclaration("var", declarators);
+    skipPath(d);
     path.node.body.body.unshift(d);
+    path.node.ignore = true; // I'm not sure why it would re-enter the functiondecl/expr, but it has happened before
   }
 
   const visitors = {
@@ -133,13 +129,12 @@ function plugin(babel) {
 
         newDeclarations.push(
           t.variableDeclarator(
-            addLoc(
-              ignoredIdentifier(getTrackingVarName(decl.id.name)),
-              decl.id.loc
-            ),
-            ignoredCallExpression(
-              FunctionNames.getLastOperationTrackingResult,
-              []
+            addLoc(t.identifier(getTrackingVarName(decl.id.name)), decl.id.loc),
+            skipPath(
+              t.callExpression(
+                t.identifier(FunctionNames.getLastOperationTrackingResult),
+                []
+              )
             )
           )
         );
@@ -228,36 +223,31 @@ function plugin(babel) {
         throw Error("not sure what this is");
       }
 
-      path.traverse({
-        ExpressionStatement(path) {
-          // replace `for (i in k) sth` with `for (i in k) {sth}`
-          if (path.parent.type !== "ForInStatement") {
-            return;
-          }
-          path.replaceWith(babel.types.blockStatement([path.node]));
-        },
-        IfStatement(path) {
-          // replace `for (i in k) if () sth` with `for (i in k) {if () sth}`
-          if (path.parent.type !== "ForInStatement") {
-            return;
-          }
-          path.replaceWith(babel.types.blockStatement([path.node]));
-        },
-        ReturnStatement(path) {
-          if (path.parent.type !== "ForInStatement") {
-            return;
-          }
-          path.replaceWith(babel.types.blockStatement([path.node]));
-        },
-        ForStatement(path) {
-          // replace `for (i in k) for () abc` with `for (i in k) {for () abc}`
-          if (path.parent.type !== "ForInStatement") {
-            return;
-          }
-          path.replaceWith(babel.types.blockStatement([path.node]));
-        }
-        // TODO: are there other statement types I need to handle???
-      });
+      if (path.node.body.type !== "BlockStatement") {
+        // Technically it might not be safe to make this conversion
+        // because it affects scoping for let/const inside the body
+        // ...although that's not usually what you do inside a for in body
+        path.node.body = ignoreNode(
+          babel.types.blockStatement([path.node.body])
+        );
+      }
+
+      const body = path.node.body.body;
+
+      let forInRightValueName =
+        "__forInRightValue" +
+        Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
+
+      path.insertBefore(
+        ignoreNode(
+          t.variableDeclaration("let", [
+            t.variableDeclarator(
+              ignoredIdentifier(forInRightValueName),
+              path.node.right
+            )
+          ])
+        )
+      );
 
       if (isNewVariable) {
         var declaration = ignoreNode(
@@ -265,20 +255,26 @@ function plugin(babel) {
             t.variableDeclarator(ignoredIdentifier(getTrackingVarName(varName)))
           ])
         );
-        path.node.body.body.unshift(declaration);
+        body.unshift(declaration);
       }
 
+      path.node.right = ignoredIdentifier(forInRightValueName);
+
       var assignment = ignoreNode(
-        t.assignmentExpression(
-          "=",
-          ignoredIdentifier(getTrackingVarName(varName)),
-          ignoredCallExpression("getObjectPropertyNameTrackingValue", [
-            ignoreNode(path.node.right),
-            ignoredIdentifier(varName)
-          ])
+        t.expressionStatement(
+          ignoreNode(
+            t.assignmentExpression(
+              "=",
+              ignoredIdentifier(getTrackingVarName(varName)),
+              ignoredCallExpression("getObjectPropertyNameTrackingValue", [
+                ignoredIdentifier(forInRightValueName),
+                ignoredIdentifier(varName)
+              ])
+            )
+          )
         )
       );
-      path.node.body.body.unshift(assignment);
+      body.unshift(assignment);
     }
   };
 
@@ -286,6 +282,9 @@ function plugin(babel) {
     var operation = operations[key];
     key = key[0].toUpperCase() + key.slice(1);
     if (operation.visitor) {
+      if (visitors[key]) {
+        throw Error("duplicate visitor " + key);
+      }
       visitors[key] = path => {
         var ret = operation.visitor.call(operation, path);
         if (ret) {
@@ -298,12 +297,25 @@ function plugin(babel) {
     }
   });
 
+  // var enter = 0;
+  // var enterNotIgnored = 0;
+
   Object.keys(visitors).forEach(key => {
     var originalVisitor = visitors[key];
     visitors[key] = function(path) {
+      // enter++;
+      if (path.node.skipPath) {
+        path.skip();
+        return;
+      }
+      if (path.node.skipKeys) {
+        path.skipKeys = path.node.skipKeys;
+        return;
+      }
       if (path.node.ignore) {
         return;
       }
+      // enterNotIgnored++;
       return originalVisitor.apply(this, arguments);
     };
   });
@@ -327,6 +339,8 @@ function plugin(babel) {
       } else {
         usableHelperCode = helperCode;
       }
+
+      // console.log({ enter, enterNotIgnored });
 
       var initCodeAstNodes = babylon
         .parse(usableHelperCode)

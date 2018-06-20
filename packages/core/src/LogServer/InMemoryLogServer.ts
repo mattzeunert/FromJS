@@ -10,6 +10,10 @@ export default class InMemoryLogServer extends LogServer {
   storeLog(log) {
     this._storedLogs[log.index] = log;
   }
+  storeLogs(logs, callback = function() {}) {
+    logs.forEach(log => this.storeLog(log));
+    callback();
+  }
   getLog(index: number, fn: (err: any, log: OperationLog | null) => void) {
     var log = this._storedLogs[index];
     if (!log) {

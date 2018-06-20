@@ -1,9 +1,19 @@
 import appState from "./appState";
-import { selectInspectedDomCharIndex } from "./actions";
+import {
+  selectInspectedDomCharIndex,
+  selectAndTraverse,
+  setIsInspectingDemoApp
+} from "./actions";
+import FEOperationLog from "./FEOperationLogs";
+import { debounce } from "lodash";
 
 let backendPort = window["backendPort"];
 let backendRoot = "http://localhost:" + backendPort;
+const resolveStackFrameCache = {};
 export function resolveStackFrame(operationLog) {
+  if (resolveStackFrameCache[operationLog.index]) {
+    return Promise.resolve(resolveStackFrameCache[operationLog.index]);
+  }
   return fetch(backendRoot + "/resolveStackFrame", {
     method: "POST",
     headers: {
@@ -11,16 +21,20 @@ export function resolveStackFrame(operationLog) {
       "Content-Type": "application/json"
     } as any,
     body: JSON.stringify({
-      stackFrameString: operationLog.stackFrames[0],
       operationLog: operationLog
     })
-  }).then(res => {
-    if (res.status === 500) {
-      throw "resolve stack error";
-    } else {
-      return res.json();
-    }
-  });
+  })
+    .then(res => {
+      if (res.status === 500) {
+        throw "resolve stack error";
+      } else {
+        return res.json();
+      }
+    })
+    .then(res => {
+      resolveStackFrameCache[operationLog.index] = res;
+      return res;
+    });
 }
 
 export function inspectDomChar(charIndex) {
@@ -34,6 +48,14 @@ export function inspectDomChar(charIndex) {
 }
 
 export function callApi(endpoint, data) {
+  const requestId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+  function finishRequest() {
+    let apiRequestsInProgress = appState
+      .get("apiRequestsInProgress")
+      .filter(request => request.requestId !== requestId);
+    appState.set("apiRequestsInProgress", apiRequestsInProgress);
+  }
+  appState.select("apiRequestsInProgress").push({ endpoint, data, requestId });
   return fetch(backendRoot + "/" + endpoint, {
     method: "POST",
     headers: {
@@ -41,18 +63,64 @@ export function callApi(endpoint, data) {
       "Content-Type": "application/json"
     } as any,
     body: JSON.stringify(data)
-  }).then(r => r.json());
+  })
+    .then(r => r.json())
+    .then(r => {
+      if (r.err) {
+        handleError(r.err);
+        return Promise.reject();
+      }
+      finishRequest();
+      return r;
+    })
+    .catch(e => {
+      finishRequest();
+      handleError(e.message);
+    });
+}
+
+let errorQueue = [];
+const handleError = function handleError(errorMessage) {
+  console.log("handleerror", errorMessage);
+  errorQueue.push(errorMessage);
+  showErrorAlert();
+};
+let showErrorAlert = debounce(function() {
+  alert("Errors: \n" + errorQueue.join("\n\n"));
+  errorQueue = [];
+}, 100);
+
+function makeFEOperationLog(log) {
+  if (log.args) {
+    const newArgs = {};
+    Object.keys(log.args).forEach(key => {
+      const argLog = log.args[key];
+      newArgs[key] =
+        argLog && typeof argLog === "object" && makeFEOperationLog(argLog);
+    });
+    log.args = newArgs;
+  }
+
+  if (log.extraArgs) {
+    const newExtraArgs = {};
+    Object.keys(log.extraArgs).forEach(key => {
+      const argLog = log.extraArgs[key];
+      newExtraArgs[key] =
+        argLog && typeof argLog === "object" && makeFEOperationLog(argLog);
+    });
+    log.extraArgs = newExtraArgs;
+  }
+
+  return new FEOperationLog(log);
 }
 
 export function loadSteps({ logId, charIndex }) {
-  return fetch(backendRoot + "/traverse", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    } as any,
-    body: JSON.stringify({ logId: logId, charIndex })
-  }).then(res => res.json());
+  return callApi("traverse", { logId: logId, charIndex }).then(steps => {
+    steps.steps.forEach(
+      step => (step.operationLog = makeFEOperationLog(step.operationLog))
+    );
+    return steps;
+  });
 }
 
 var exampleSocket = new WebSocket("ws://127.0.0.1:" + backendPort);
@@ -61,12 +129,9 @@ exampleSocket.onmessage = function(event) {
   console.log("websocket onmessage", event.data);
   const message = JSON.parse(event.data);
   if (message.type === "inspectOperationLog") {
-    appState.set("inspectionTarget", {
-      logId: message.operationLogId,
-      charIndex: 0
-    });
+    setIsInspectingDemoApp(message.isInspectingDemoApp);
+    selectAndTraverse(message.operationLogId, 0);
   } else if (message.type === "inspectDOM") {
-    console.log("inspectdom", event);
     handleDomToInspectMessage(message);
   }
 };
@@ -76,6 +141,7 @@ function handleDomToInspectMessage(message) {
     outerHTML: message.html,
     charIndex: message.charIndex
   });
+  setIsInspectingDemoApp(message.isInspectingDemoApp);
   selectInspectedDomCharIndex(message.charIndex);
 }
 
@@ -89,10 +155,8 @@ fetch(backendRoot + "/inspect", {
   .then(res => res.json())
   .then(r => {
     const { logToInspect } = r;
-    appState.set("inspectionTarget", {
-      logId: logToInspect,
-      charIndex: 0
-    });
+    setIsInspectingDemoApp(r.isInspectingDemoApp);
+    selectAndTraverse(logToInspect, 0);
   });
 
 fetch(backendRoot + "/inspectDOM", {

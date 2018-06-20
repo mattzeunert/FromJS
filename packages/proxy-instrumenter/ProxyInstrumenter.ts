@@ -48,6 +48,9 @@ class ProxyInstrumenter {
   handleEvalScript: any;
   certDirectory: string;
   verbose: boolean;
+  onCompilationComplete: any;
+  onRegisterEvalScript: any;
+  shouldBlock: any;
 
   constructor({
     babelPluginOptions,
@@ -58,7 +61,10 @@ class ProxyInstrumenter {
     rewriteHtml,
     handleEvalScript,
     certDirectory,
-    verbose
+    verbose,
+    onCompilationComplete,
+    onRegisterEvalScript,
+    shouldBlock
   }) {
     this.port = port;
     this.instrumenterFilePath = instrumenterFilePath;
@@ -70,14 +76,18 @@ class ProxyInstrumenter {
     this.handleEvalScript = handleEvalScript;
     this.certDirectory = certDirectory;
     this.verbose = verbose;
+    this.onCompilationComplete = onCompilationComplete;
+    this.onRegisterEvalScript = onRegisterEvalScript;
+    this.shouldBlock = shouldBlock;
 
     this.proxy.onError((ctx, err, errorKind) => {
       var url = "n/a";
       // ctx may be null
       if (ctx) {
         url = getUrl(ctx);
+        this.finishRequest(ctx.requestId);
       }
-      this.finishRequest(url);
+
       console.error("[PROXY]" + errorKind + " on " + url + ":", err);
     });
 
@@ -110,6 +120,12 @@ class ProxyInstrumenter {
     var url = requestInfo.url;
     ctx.requestId = url + "_" + Math.random();
 
+    if (this.shouldBlock && this.shouldBlock(requestInfo)) {
+      ctx.proxyToClientResponse.statusCode = 401; // Unauthorized
+      ctx.proxyToClientResponse.end("");
+      return;
+    }
+
     if (!this.silent && this.verbose) {
       this.log("Request: " + url);
     }
@@ -127,12 +143,22 @@ class ProxyInstrumenter {
         var value = this.urlCache[url].headers[name];
         ctx.proxyToClientResponse.setHeader(name, value);
       });
-      this.finishRequest(url);
+
+      this.preventBrowserCaching(ctx);
       ctx.proxyToClientResponse.end(new Buffer(this.urlCache[url].body));
       return;
     }
 
     this.requestsInProgress.push(ctx.requestId);
+
+    const proxyToServerHeaders = ctx.proxyToServerRequestOptions.headers;
+    if ("accept-encoding" in proxyToServerHeaders) {
+      // Disable Brotli compression since we can't decode it
+      // (e.g. cloudflare uses it if we let it)
+      proxyToServerHeaders["accept-encoding"] = proxyToServerHeaders[
+        "accept-encoding"
+      ].replace(", br", "");
+    }
 
     var isDontProcess = ctx.clientToProxyRequest.url.includes("?dontprocess");
     var isMap = url.split("?")[0].endsWith(".map") && !url.includes(".css.map");
@@ -148,9 +174,15 @@ class ProxyInstrumenter {
 
     ctx.use(Proxy.gunzip);
 
-    if (isHtml && this.rewriteHtml && shouldInstrument) {
+    if (isHtml && shouldInstrument) {
       this.waitForResponseEnd(ctx).then(({ body, ctx, sendResponse }) => {
-        sendResponse(this.rewriteHtml(body));
+        if (this.rewriteHtml) {
+          body = this.rewriteHtml(body);
+        }
+        // Remove integrity hashes, since the browser will prevent loading
+        // the instrumented HTML otherwise
+        body = body.replace(/ integrity="[\S]+"/g, "");
+        sendResponse(body);
       });
       callback();
     } else if (checkIsJS(ctx) && shouldInstrument) {
@@ -226,9 +258,24 @@ class ProxyInstrumenter {
     });
   }
 
+  preventBrowserCaching(ctx) {
+    try {
+      ctx.proxyToClientResponse.setHeader(
+        "Cache-Control",
+        "no-cache, no-store, must-revalidate"
+      );
+      ctx.proxyToClientResponse.setHeader("Pragma", "no-cache");
+      ctx.proxyToClientResponse.setHeader("Expires", "0");
+    } catch (err) {
+      console.log(err, getUrl(ctx));
+    }
+  }
+
   waitForResponseEnd(ctx) {
     var jsFetchStartTime = new Date();
     return new Promise<any>(resolve => {
+      this.preventBrowserCaching(ctx);
+
       var chunks: any[] = [];
       ctx.onResponseData(function(ctx, chunk, callback) {
         chunks.push(chunk);
@@ -261,6 +308,12 @@ class ProxyInstrumenter {
             // console.log(body, responseBody);
             console.log("EMPTY RESPONSE", getUrl(ctx));
           } else {
+            // console.log(
+            //   getUrl(ctx),
+            //   "size",
+            //   Math.round(responseBody.length / 1024 / 1024 * 10) / 10,
+            //   "MB"
+            // );
             this.urlCache[getUrl(ctx)] = {
               body: responseBody,
               headers: ctx.serverToProxyResponse.headers
@@ -307,7 +360,7 @@ class ProxyInstrumenter {
     });
   }
 
-  registerEvalScript({ url, code, instrumentedCode, map }) {
+  registerEvalScript({ url, code, instrumentedCode, map, locs }) {
     this.urlCache[url] = {
       headers: {},
       body: instrumentedCode
@@ -320,6 +373,7 @@ class ProxyInstrumenter {
       headers: {},
       body: JSON.stringify(map)
     };
+    this.onRegisterEvalScript({ url, code, instrumentedCode, map, locs });
   }
 
   finishRequest(finishedRequestId) {
@@ -375,8 +429,8 @@ class ProxyInstrumenter {
             resolve(response);
             compilerProcess.kill();
           })
-          .on("error", function(error) {
-            log("worker error", error);
+          .on("error", error => {
+            this.log("worker error", error);
           });
       }
     });
@@ -395,7 +449,10 @@ class ProxyInstrumenter {
     }
     return this.requestProcessCode(body, url, this.babelPluginOptions).then(
       response => {
-        var { code, map } = <any>response;
+        var { code, map, locs } = <any>response;
+        if (this.onCompilationComplete) {
+          this.onCompilationComplete(response);
+        }
         var result = { code, map };
         this.setProcessCodeCache(body, url, result);
         return Promise.resolve(result);
