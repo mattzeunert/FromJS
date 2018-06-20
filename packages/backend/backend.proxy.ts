@@ -13,7 +13,7 @@ let proxy;
 
 const options = JSON.parse(process.argv[process.argv.length - 1]);
 
-const { accessToken, bePort, proxyPort, certDirectory } = options;
+const { accessToken, bePort, proxyPort, certDirectory, dontTrack } = options;
 
 process.title = "FromJS - Proxy (" + proxyPort + ")";
 
@@ -27,7 +27,10 @@ startProxy({
   port: proxyPort,
   instrumenterFilePath: __dirname + "/instrumentCode.js",
   verbose: false,
-  shouldInstrument: ({ port, path }) => {
+  shouldInstrument: ({ port, path, url }) => {
+    if (dontTrack.some(dt => url.includes(dt))) {
+      return false;
+    }
     return port !== bePort || path.startsWith("/start");
   },
   rewriteHtml: html => {
