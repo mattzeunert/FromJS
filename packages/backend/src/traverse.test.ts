@@ -567,3 +567,47 @@ it("Can traverse decodeURIComponent", async () => {
   const t2LastStep = t2[t2.length - 1];
   expect(t2LastStep.charIndex).toBe(8);
 });
+
+describe("String.prototype.match", () => {
+  test("Can traverse String.prototype.match results", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const arr = "a4c89a".match(/[0-9]+/g)
+        return arr[0] + arr[1]
+      `);
+
+    expect(normal).toBe("489");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(1);
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 2 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.charIndex).toBe(4);
+  });
+
+  // not technically a traversal test but it makes sense to have .match tests in one place
+  // ... maybe we should just merge core.test.ts with traverse.test.ts
+  it("Doesn't break on non-global regexes with multiple match groups", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const arr = "zzabc".match(/(a)(b)/)
+        return arr[0] + arr[1] + arr[2]
+      `);
+
+    expect(normal).toBe("abab");
+  });
+
+  it("Tries to not get confused with same matched characters in mutliple groups", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const arr = "zzaba".match(/(a)(b)(a)/)
+        return arr[1] + arr[2] + arr[3]
+      `);
+
+    expect(normal).toBe("aba");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 2 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.charIndex).toBe(4);
+  });
+});

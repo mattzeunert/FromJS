@@ -601,6 +601,14 @@ const operations: Operations = {
     }
   },
   memexpAsLeftAssExp: {},
+  matchResult: {
+    traverse(operationLog: OperationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.input,
+        charIndex: operationLog.runtimeArgs.matchIndex + charIndex
+      };
+    }
+  },
   jsonParseResult: {
     traverse(operationLog, charIndex) {
       // This traversal method is inaccurate but still useful

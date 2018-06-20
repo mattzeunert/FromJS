@@ -1430,6 +1430,12 @@ clone-buffer@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/clone-buffer/-/clone-buffer-1.0.0.tgz#e3e25b207ac4e701af721e2cb5a16792cac3dc58"
 
+clone-regexp@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/clone-regexp/-/clone-regexp-2.1.0.tgz#d17b9ff55840b2cb2d84eab618bc4f8d2af4b631"
+  dependencies:
+    is-regexp "^2.0.0"
+
 clone-response@1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/clone-response/-/clone-response-1.0.2.tgz#d1dc973920314df67fbeb94223b4ee350239e96b"
@@ -2990,6 +2996,10 @@ is-regex@^1.0.4:
   resolved "https://registry.yarnpkg.com/is-regex/-/is-regex-1.0.4.tgz#5517489b547091b0930e095654ced25ee97e9491"
   dependencies:
     has "^1.0.1"
+
+is-regexp@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/is-regexp/-/is-regexp-2.0.0.tgz#d669511d64a620c7a8dffa9a1e00710f9275ace0"
 
 is-retry-allowed@^1.0.0, is-retry-allowed@^1.1.0:
   version "1.1.0"
