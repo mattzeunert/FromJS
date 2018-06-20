@@ -424,6 +424,27 @@ const specialValuesForPostprocessing = {
       });
     });
   },
+  "Array.prototype.shift": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT,
+    extraTrackingValues
+  }) => {
+    // Note: O(n) is not very efficient...
+    const array = object;
+    array.forEach((item, i) => {
+      ctx.trackObjectPropertyAssignment(
+        array,
+        i.toString(),
+        ctx.getObjectPropertyTrackingValue(array, i + 1),
+        ctx.getObjectPropertyNameTrackingValue(array, i + 1)
+      );
+    });
+  },
   "Array.prototype.slice": ({
     object,
     fnArgs,
