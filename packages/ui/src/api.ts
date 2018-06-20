@@ -5,6 +5,7 @@ import {
   setIsInspectingDemoApp
 } from "./actions";
 import FEOperationLog from "./FEOperationLogs";
+import { debounce } from "lodash";
 
 let backendPort = window["backendPort"];
 let backendRoot = "http://localhost:" + backendPort;
@@ -54,25 +55,36 @@ export function callApi(endpoint, data) {
       "Content-Type": "application/json"
     } as any,
     body: JSON.stringify(data)
-  }).then(r => r.json());
+  })
+    .then(r => r.json())
+    .then(r => {
+      if (r.err) {
+        handleError(r.err);
+        return Promise.reject();
+      }
+      return r;
+    })
+    .catch(e => handleError(e.message));
 }
 
+let errorQueue = [];
+const handleError = function handleError(errorMessage) {
+  console.log("handleerror", errorMessage);
+  errorQueue.push(errorMessage);
+  showErrorAlert();
+};
+let showErrorAlert = debounce(function() {
+  alert("Errors: \n" + errorQueue.join("\n\n"));
+  errorQueue = [];
+}, 100);
+
 export function loadSteps({ logId, charIndex }) {
-  return fetch(backendRoot + "/traverse", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    } as any,
-    body: JSON.stringify({ logId: logId, charIndex })
-  })
-    .then(res => res.json())
-    .then(steps => {
-      steps.steps.forEach(
-        step => (step.operationLog = new FEOperationLog(step.operationLog))
-      );
-      return steps;
-    });
+  return callApi("traverse", { logId: logId, charIndex }).then(steps => {
+    steps.steps.forEach(
+      step => (step.operationLog = new FEOperationLog(step.operationLog))
+    );
+    return steps;
+  });
 }
 
 var exampleSocket = new WebSocket("ws://127.0.0.1:" + backendPort);

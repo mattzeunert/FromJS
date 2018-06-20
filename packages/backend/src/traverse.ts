@@ -10,12 +10,16 @@ export async function traverse(
   steps: TraversalStep[] = [],
   server
 ) {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve, reject) => {
     let nextStep: TraversalStep | null | undefined = null;
 
     let { operationLog, charIndex } = step;
 
-    operationLog = await server.loadLogAwaitable(operationLog, 5);
+    try {
+      operationLog = await server.loadLogAwaitable(operationLog, 5);
+    } catch (err) {
+      reject(err);
+    }
 
     steps.push({
       ...step,
