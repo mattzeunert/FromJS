@@ -22,7 +22,8 @@ export function createProxy(params: CreateProxyWrapperArgs) {
         bePort: params.options.bePort,
         proxyPort: params.options.proxyPort,
         certDirectory: params.options.getCertDirectory(),
-        dontTrack: params.options.dontTrack
+        dontTrack: params.options.dontTrack,
+        block: params.options.block
       })
     ]);
 

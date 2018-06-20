@@ -16,7 +16,13 @@ commander
   )
   .option(
     "-d, --dontTrack <urlParts>",
-    "JS files at URLs containing the comma separated urlParts will not be instrumented, e.g. youtube,google",
+    "JS files at URLs containing the comma separated urlParts will not be instrumented. Example parameters: youtube,google",
+    list,
+    []
+  )
+  .option(
+    "-b, --block <urlParts>",
+    "JS files at URLs containing the comma separated urlParts will not be loaded. Example parameters: youtube,google",
     list,
     []
   )
@@ -37,6 +43,7 @@ if (commander.shouldOpenBrowser === "only") {
     bePort,
     proxyPort,
     dontTrack: commander.dontTrack,
+    block: commander.block,
     sessionDirectory: commander.sessionDirectory,
     onReady: async function() {
       if (commander.shouldOpenBrowser === "yes") {
