@@ -1122,6 +1122,26 @@ export default <any>{
             operationLog: context,
             charIndex: charIndex + startValue
           };
+        case "String.prototype.substring":
+          const parentStr = operationLog.args.context;
+          let startIndex = parseFloat(operationLog.args.arg0.result.primitive);
+          let endIndex;
+          if (operationLog.args.arg1) {
+            endIndex = parseFloat(operationLog.args.arg1.result.primitive);
+          } else {
+            endIndex = parentStr.result.primitive.length;
+          }
+
+          if (startIndex > endIndex) {
+            let tmp = endIndex;
+            endIndex = startIndex;
+            startIndex = tmp;
+          }
+
+          return {
+            operationLog: parentStr,
+            charIndex: charIndex + startIndex
+          };
         case "encodeURIComponent":
           var unencodedString: string = operationLog.args.arg0.result.primitive.toString();
           var encodedString: string = operationLog.result.primitive.toString();

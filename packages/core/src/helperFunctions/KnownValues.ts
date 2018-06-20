@@ -6,6 +6,7 @@ export default class KnownValues {
     Object.assign(this._knownValues, {
       "String.prototype.slice": String.prototype.slice,
       "String.prototype.substr": String.prototype.substr,
+      "String.prototype.substring": String.prototype.substring,
       "String.prototype.replace": String.prototype.replace,
       "String.prototype.trim": String.prototype.trim,
       "String.prototype.match": String.prototype.match,

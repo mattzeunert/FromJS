@@ -664,3 +664,31 @@ it("Traverses array correctly after calling shift on it", async () => {
   expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
   expect(t1LastStep.operationLog.result.primitive).toBe("b");
 });
+
+describe("String.prototype.substring", () => {
+  it("Traverses substring call with indexStart and indexEnd being strings", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    return "abcd".substring("1", "3") // str args should also work
+  `);
+
+    expect(normal).toBe("bc");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(2);
+  });
+
+  it("Traverses substring call with indexEnd being less than indexStart", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    return "abcde".substring(3,2)
+  `);
+
+    expect(normal).toBe("c");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(2);
+  });
+});
