@@ -916,3 +916,12 @@ it("Doesn't break when calling Object.assign with undefined/falsy values", async
     `);
   expect(normal).toBe("a");
 });
+
+it("Doesn't break when calling .apply with no args", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    let fn = function() {return this.a};
+    let ctx = {a: "a"}
+    return fn.apply(ctx)
+  `);
+  expect(normal).toBe("a");
+});

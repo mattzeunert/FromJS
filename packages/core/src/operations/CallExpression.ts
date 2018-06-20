@@ -810,7 +810,7 @@ export default <any>{
     if (fn === Function.prototype.call) {
       fnArgs = fnArgs.slice(1);
     } else if (fn === Function.prototype.apply) {
-      const argArray = fnArgValues[1];
+      const argArray = fnArgValues[1] || [];
       if (!("length" in argArray)) {
         // hmm can this even happen in a program that's not already broken?
         console.log("can this even happen?");
