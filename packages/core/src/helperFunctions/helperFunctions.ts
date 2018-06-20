@@ -5,7 +5,7 @@ import initDomInspectionUI from "./initDomInspectionUI";
 import KnownValues from "./KnownValues";
 import { ExecContext } from "./ExecContext";
 import operations from "../operations";
-import { SKIP_TRACKING, VERIFY } from "../config";
+import { SKIP_TRACKING, VERIFY, KEEP_LOGS_IN_MEMORY } from "../config";
 
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
@@ -100,43 +100,47 @@ declare var __FUNCTION_NAMES__,
     var log = new OperationLog(args);
     storeLog(log);
 
-    // Normally we just store the numbers, but it's useful for
-    // debugging to be able to view the log object
-    window["__debugAllLogs"] = window["__debugAllLogs"] || {};
-    window["__debugAllLogs"][log.index] = log;
+    if (KEEP_LOGS_IN_MEMORY) {
+      // Normally we just store the numbers, but it's useful for
+      // debugging to be able to view the log object
+      window["__debugAllLogs"] = window["__debugAllLogs"] || {};
+      window["__debugAllLogs"][log.index] = log;
+    }
 
     return log.index;
   }
 
-  global["__debugLookupLog"] = function(logId, currentDepth = 0) {
-    try {
-      var log = JSON.parse(JSON.stringify(global["__debugAllLogs"][logId]));
-      if (currentDepth < 12) {
-        const newArgs = {};
-        Object.keys(log.args).forEach(key => {
-          newArgs[key] = global["__debugLookupLog"](
-            log.args[key],
-            currentDepth + 1
-          );
-        });
-        log.args = newArgs;
-      }
-      if (currentDepth < 12 && log.extraArgs) {
-        const newExtraArgs = {};
-        Object.keys(log.extraArgs).forEach(key => {
-          newExtraArgs[key] = global["__debugLookupLog"](
-            log.extraArgs[key],
-            currentDepth + 1
-          );
-        });
-        log.extraArgs = newExtraArgs;
-      }
+  if (KEEP_LOGS_IN_MEMORY) {
+    global["__debugLookupLog"] = function(logId, currentDepth = 0) {
+      try {
+        var log = JSON.parse(JSON.stringify(global["__debugAllLogs"][logId]));
+        if (currentDepth < 12) {
+          const newArgs = {};
+          Object.keys(log.args).forEach(key => {
+            newArgs[key] = global["__debugLookupLog"](
+              log.args[key],
+              currentDepth + 1
+            );
+          });
+          log.args = newArgs;
+        }
+        if (currentDepth < 12 && log.extraArgs) {
+          const newExtraArgs = {};
+          Object.keys(log.extraArgs).forEach(key => {
+            newExtraArgs[key] = global["__debugLookupLog"](
+              log.extraArgs[key],
+              currentDepth + 1
+            );
+          });
+          log.extraArgs = newExtraArgs;
+        }
 
-      return log;
-    } catch (err) {
-      return logId;
-    }
-  };
+        return log;
+      } catch (err) {
+        return logId;
+      }
+    };
+  }
 
   var argTrackingInfo = null;
 
