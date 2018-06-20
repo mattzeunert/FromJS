@@ -33,10 +33,17 @@ window["showSteps"] = function(logId, charIndex) {
 };
 
 let App = props => {
+  const hasInspectorData = props.hasInspectorData;
+
   const welcome = (
     <div className="welcome">
-      <h2>FromJS</h2>
-      <p>To inspect any website open a new tab in this browser and load it.</p>
+      <h2>Get Started</h2>
+      <p>
+        To inspect any website open a new tab in this browser and load it.{" "}
+        <a href="http://todomvc.com/examples/backbone/" target="_blank">
+          Try it!
+        </a>
+      </p>
       <p>
         To select the value you want to inspect:<br /> 1) Click "Enable DOM
         Inspector" and then select an element <br />2) Use{" "}
@@ -50,6 +57,15 @@ let App = props => {
         Ask questions and report bugs{" "}
         <a href="https://github.com/mattzeunert/FromJS/issues">on Github</a>.
       </p>
+
+      <button
+        className="load-demo-app"
+        onClick={() =>
+          actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
+        }
+      >
+        {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
+      </button>
     </div>
   );
   return (
@@ -58,35 +74,42 @@ let App = props => {
         "app--isInspectingDemoApp": props.isInspectingDemoApp
       })}
     >
-      <div className="app__inspector">
-        <DomInspector />
-        <TraversalSteps />
-        <button
-          onClick={() => appState.set("debugMode", !appState.get("debugMode"))}
-        >
-          Debug
-        </button>
-      </div>
-      {props.isInspectingDemoApp && (
-        <div className="app__demo">
-          {welcome}
-          <div
-            dangerouslySetInnerHTML={{
-              __html: `<iframe src="http://localhost:${
-                location.port
-              }/start/" />`
-            }}
-          />
+      <div className="app-header">FromJS Dataflow Inspector</div>
+      <div style={{ margin: 5, overflow: "hidden" }}>
+        <div className="app__inspector">
+          <DomInspector />
+          <TraversalSteps />
+          <button
+            onClick={() =>
+              appState.set("debugMode", !appState.get("debugMode"))
+            }
+          >
+            Debug
+          </button>
         </div>
-      )}
-      {!props.isInspectingDemoApp && welcome}
+
+        <div className="app__demo">
+          {!hasInspectorData && welcome}
+          {props.isInspectingDemoApp && (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: `<iframe src="http://localhost:${
+                  location.port
+                }/start/" />`
+              }}
+            />
+          )}
+        </div>
+      </div>
+      {hasInspectorData && welcome}
     </div>
   );
 };
 
 App = branch(
   {
-    isInspectingDemoApp: ["isInspectingDemoApp"]
+    isInspectingDemoApp: ["isInspectingDemoApp"],
+    hasInspectorData: ["hasInspectorData"]
   },
   App
 );

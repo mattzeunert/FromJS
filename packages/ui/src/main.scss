@@ -5,6 +5,10 @@
   width: 99vw;
 }
 
+body {
+  margin: 0;
+}
+
 * {
   box-sizing: border-box;
   font-family: Arial, sans-serif;
@@ -200,4 +204,22 @@ path {
   border: 2px solid #eee;
   padding: 10px;
   margin-bottom: 10px;
+}
+
+.app-header {
+  background: #15054e;
+  color: white;
+  padding: 10px;
+}
+
+.load-demo-app {
+  background: #236fb1;
+  color: white;
+  padding: 10px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  &:hover {
+    background: #15054e;
+  }
 }

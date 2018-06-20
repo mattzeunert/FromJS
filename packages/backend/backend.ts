@@ -149,21 +149,9 @@ export default class Backend {
 }
 
 function setupUI(options, app, wss, getProxy) {
-  let isInspectingDemoApp = true;
-  function setIsInspectingDemoApp(req) {
-    const ref = req.headers.referer;
-    isInspectingDemoApp = !!(
-      ref && ref.includes("http://localhost:" + options.bePort + "/start/")
-    );
-  }
-
   app.get("/", (req, res) => {
     let html = fs.readFileSync(uiDir + "/index.html").toString();
     html = html.replace(/BACKEND_PORT_PLACEHOLDER/g, options.bePort.toString());
-    html = html.replace(
-      /IS_INSPECTING_DEMO_APP_PLACEHOLDER/,
-      isInspectingDemoApp.toString()
-    );
     res.send(html);
   });
 
@@ -199,8 +187,7 @@ function setupUI(options, app, wss, getProxy) {
 
     return {
       html: (<any>domToInspect).parts.map(p => p[0]).join(""),
-      charIndex: goodDefaultCharIndex,
-      isInspectingDemoApp
+      charIndex: goodDefaultCharIndex
     };
   }
 
@@ -216,8 +203,6 @@ function setupUI(options, app, wss, getProxy) {
       "Access-Control-Allow-Headers",
       "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
     );
-
-    setIsInspectingDemoApp(req);
 
     domToInspect = req.body;
 
@@ -236,8 +221,7 @@ function setupUI(options, app, wss, getProxy) {
   app.get("/inspect", (req, res) => {
     res.end(
       JSON.stringify({
-        logToInspect,
-        isInspectingDemoApp
+        logToInspect
       })
     );
   });
@@ -294,14 +278,11 @@ function setupUI(options, app, wss, getProxy) {
     logToInspect = req.body.logId;
     res.end("{}");
 
-    setIsInspectingDemoApp(req);
-
     broadcast(
       wss,
       JSON.stringify({
         type: "inspectOperationLog",
-        operationLogId: logToInspect,
-        isInspectingDemoApp
+        operationLogId: logToInspect
       })
     );
   });

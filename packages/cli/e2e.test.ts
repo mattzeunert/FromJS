@@ -130,6 +130,11 @@ describe("E2E", () => {
         console.log("Page error: " + err.toString());
       });
       await page.goto("http://localhost:" + backendPort + "/");
+      await page.waitForSelector(".load-demo-app");
+
+      await await page.evaluate(() =>
+        (<HTMLElement>document.querySelector(".load-demo-app")).click()
+      );
 
       await page.waitForSelector(".step");
 
