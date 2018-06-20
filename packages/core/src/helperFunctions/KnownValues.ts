@@ -22,6 +22,8 @@ export default class KnownValues {
       "String.prototype.toString": String.prototype.toString,
       "Date.prototype.getMinutes": Date.prototype.getMinutes,
       "Date.prototype.getHours": Date.prototype.getHours,
+      encodeURIComponent: encodeURIComponent,
+      decodeURIComponent: decodeURIComponent,
       undefined: undefined,
       null: null
     });

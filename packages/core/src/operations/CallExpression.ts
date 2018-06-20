@@ -14,6 +14,8 @@ import addElOrigin, {
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import { VERIFY } from "../config";
 import { doOperation } from "../FunctionNames";
+import OperationLog from "../helperFunctions/OperationLog";
+import { encode } from "punycode";
 
 const specialCases = {
   "String.prototype.replace": ({
@@ -529,6 +531,9 @@ class ValueMapV2 {
   parts: any[] = [];
   originalString = "";
 
+  // TODO: clean up mapping, maybe merge with other mapping one used
+  // for thml
+  // also: originalString is confusing (maybe?)
   constructor(originalString: string) {
     this.originalString = originalString;
   }
@@ -549,7 +554,10 @@ class ValueMapV2 {
     });
   }
 
-  getAtResultIndex(indexInResult) {
+  getAtResultIndex(
+    indexInResult,
+    /* hacky arg for encodeuricompoennt */ dontAddBackBasedOnLocationInResultValue = false
+  ) {
     let resultString = "";
     let part: any | null = null;
     for (var i = 0; i < this.parts.length; i++) {
@@ -564,7 +572,9 @@ class ValueMapV2 {
       resultString.length - part.resultString.length;
     let charIndex =
       (part.isPartOfSubject ? part.fromIndexInOriginal : 0) +
-      (indexInResult - resultIndexBeforePart);
+      (dontAddBackBasedOnLocationInResultValue
+        ? 0
+        : indexInResult - resultIndexBeforePart);
 
     if (charIndex > part.operationLog.result.primitive.length) {
       charIndex = part.operationLog.result.primitive.length - 1;
@@ -872,7 +882,7 @@ export default <any>{
 
     return ret;
   },
-  traverse(operationLog, charIndex) {
+  traverse(operationLog: OperationLog, charIndex) {
     var knownFunction =
       operationLog.args.function &&
       operationLog.args.function.result.knownValue;
@@ -896,6 +906,39 @@ export default <any>{
             operationLog: context,
             charIndex: charIndex + startValue
           };
+        case "encodeURIComponent":
+          var unencodedString: string = operationLog.args.arg0.result.primitive.toString();
+          var encodedString: string = operationLog.result.primitive.toString();
+
+          const map = new ValueMapV2(unencodedString);
+
+          for (var i = 0; i < unencodedString.length; i++) {
+            var unencodedChar = unencodedString[i];
+            var encodedChar = encodeURIComponent(unencodedChar);
+            map.push(i, i + 1, operationLog.args.arg0, encodedChar, true);
+          }
+          return map.getAtResultIndex(charIndex, true);
+        case "decodeURIComponent":
+          var encodedString: string = operationLog.args.arg0.result.primitive.toString();
+          var unencodedString: string = operationLog.result.primitive.toString();
+
+          const m = new ValueMapV2(encodedString);
+
+          let extraCharsTotal = 0;
+          for (var i = 0; i < unencodedString.length; i++) {
+            const unencodedChar = unencodedString[i];
+            const encodedChar = encodeURIComponent(unencodedChar);
+            const extraCharsHere = encodedChar.length - 1;
+            m.push(
+              i + extraCharsTotal,
+              i + extraCharsTotal + extraCharsHere,
+              operationLog.args.arg0,
+              unencodedChar,
+              true
+            );
+            extraCharsTotal += extraCharsHere;
+          }
+          return m.getAtResultIndex(charIndex, true);
 
         case "String.prototype.trim":
           let str = operationLog.args.context.result.primitive;
