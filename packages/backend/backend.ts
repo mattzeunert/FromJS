@@ -46,7 +46,7 @@ function ensureDirectoriesExist(options: BackendOptions) {
   });
 }
 
-const LOG_PERF = true;
+const LOG_PERF = false;
 const DELETE_EXISTING_LOGS_AT_START = false;
 
 export default class Backend {
