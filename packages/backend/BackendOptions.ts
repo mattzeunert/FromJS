@@ -5,12 +5,14 @@ export class BackendOptions {
   proxyPort: number;
   sessionDirectory: string;
   onReady: () => void;
+  dontTrack: any[];
 
-  constructor({ bePort, proxyPort, sessionDirectory, onReady }) {
+  constructor({ bePort, proxyPort, sessionDirectory, onReady, dontTrack }) {
     this.bePort = bePort;
     this.proxyPort = proxyPort;
     this.sessionDirectory = sessionDirectory;
     this.onReady = onReady;
+    this.dontTrack = dontTrack;
   }
 
   getCertDirectory() {

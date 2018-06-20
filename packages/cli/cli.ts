@@ -4,6 +4,8 @@ import * as process from "process";
 import { BackendOptions } from "@fromjs/backend";
 import * as chromeLauncher from "chrome-launcher";
 
+const list = val => val.split(",");
+
 commander
   .option("--shouldOpenBrowser <shouldOpen>", "yes|no|only", "yes")
   .option("-p, --port <port>", "Server port", 7000)
@@ -11,6 +13,12 @@ commander
     "-s, --sessionDirectory <sessionDirectory>",
     "Where to store tracking data",
     "fromjs-session"
+  )
+  .option(
+    "-d, --dontTrack <urlParts>",
+    "JS files at URLs containing the comma separated urlParts will not be instrumented, e.g. youtube,google",
+    list,
+    []
   )
   .version(require("../package.json").version)
   .parse(process.argv);
@@ -28,6 +36,7 @@ if (commander.shouldOpenBrowser === "only") {
   const backendOptions = new BackendOptions({
     bePort,
     proxyPort,
+    dontTrack: commander.dontTrack,
     sessionDirectory: commander.sessionDirectory,
     onReady: async function() {
       if (commander.shouldOpenBrowser === "yes") {

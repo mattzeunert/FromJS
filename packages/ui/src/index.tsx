@@ -22,6 +22,9 @@ import * as cx from "classnames";
 
 window["__debugActions"] = actions;
 
+import * as api from "./api";
+window["__debugApi"] = api;
+
 import "./main.scss";
 
 // global function used by tree view html
