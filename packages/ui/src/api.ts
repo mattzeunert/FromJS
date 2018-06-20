@@ -10,27 +10,10 @@ export function resolveStackFrame(operationLog) {
   if (resolveStackFrameCache[operationLog.index]) {
     return Promise.resolve(resolveStackFrameCache[operationLog.index]);
   }
-  return fetch(backendRoot + "/resolveStackFrame", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    } as any,
-    body: JSON.stringify({
-      operationLog: operationLog
-    })
-  })
-    .then(res => {
-      if (res.status === 500) {
-        throw "resolve stack error";
-      } else {
-        return res.json();
-      }
-    })
-    .then(res => {
-      resolveStackFrameCache[operationLog.index] = res;
-      return res;
-    });
+  return callApi("resolveStackFrame", { operationLog }).then(res => {
+    resolveStackFrameCache[operationLog.index] = res;
+    return res;
+  });
 }
 
 export function inspectDomChar(charIndex) {
