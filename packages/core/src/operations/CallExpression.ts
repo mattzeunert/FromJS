@@ -15,7 +15,12 @@ import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import { VERIFY } from "../config";
 import { doOperation } from "../FunctionNames";
 import OperationLog from "../helperFunctions/OperationLog";
-import { encode } from "punycode";
+import * as cloneRegExp from "clone-regexp";
+
+function countGroupsInRegExp(re) {
+  // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
+  return new RegExp(re.toString() + "|").exec("")!.length;
+}
 
 const specialCases = {
   "String.prototype.replace": ({
@@ -27,11 +32,6 @@ const specialCases = {
     extraTrackingValues,
     logData
   }) => {
-    function countGroupsInRegExp(re) {
-      // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
-      return new RegExp(re.toString() + "|").exec("")!.length;
-    }
-
     let index = 0;
     var ret = ctx.knownValues
       .getValue("String.prototype.replace")
@@ -169,13 +169,113 @@ const specialCases = {
   }
 };
 
+// add tracking values to returned objects
 const specialValuesForPostprocessing = {
+  "String.prototype.match": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT,
+    context,
+    extraTrackingValues
+  }) => {
+    ctx = <ExecContext>ctx;
+    if (!Array.isArray(ret)) {
+      return;
+    }
+    let regExp = fnArgValues[0];
+    if (!(regExp instanceof RegExp)) {
+      console.log("non regexp match param, is this possible?");
+      return;
+    }
+
+    // this will break if inspected code depends on state
+    regExp = cloneRegExp(regExp);
+
+    let matches = [];
+    var match;
+    while ((match = regExp.exec(object)) != null) {
+      matches.push(match);
+      if (!regExp.global) {
+        // break because otherwise exec will start over at beginning of the string
+        break;
+      }
+    }
+
+    if (!regExp.global) {
+      // non global regexp has group match results:
+      // /(a)(b)/.exec("abc") => ["ab", "a", "b"], index 0
+      let newMatches = [];
+
+      let index = matches[0].index;
+      let fullMatch = matches[0][0];
+      let fullMatchRemaining = fullMatch;
+
+      newMatches.push({
+        index: index
+      });
+
+      let charsRemovedFromFullMatch = 0;
+
+      for (var i = 1; i < matches[0].length; i++) {
+        let matchString = matches[0][i];
+        // This can be inaccurate but better than nothing
+        let indexOffset = fullMatchRemaining.indexOf(matchString);
+        if (indexOffset === -1) {
+          debugger;
+        }
+        newMatches.push({
+          index: index + indexOffset + charsRemovedFromFullMatch
+        });
+
+        // cut down match against which we do indexOf(), since we know
+        // a single location can't get double matched
+        // (maybe it could with nested regexp groups but let's not worry about that for now)
+        let charsToRemove = indexOffset + matchString.length;
+        charsRemovedFromFullMatch += charsToRemove;
+        fullMatchRemaining = fullMatchRemaining.slice(charsToRemove);
+      }
+      matches = newMatches;
+    }
+
+    ret.forEach((item, i) => {
+      if (!matches[i]) {
+        debugger;
+      }
+      ctx.trackObjectPropertyAssignment(
+        ret,
+        i.toString(),
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.matchResult,
+          args: {
+            input: context
+          },
+          result: item,
+          astArgs: {},
+          runtimeArgs: {
+            matchIndex: matches[i].index
+          },
+          loc: logData.loc
+        }),
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.arrayIndex,
+          args: {},
+          result: i,
+          astArgs: {},
+          loc: logData.loc
+        })
+      );
+    });
+  },
   "Array.prototype.push": ({
     object,
     fnArgs,
     ctx,
     logData,
-    fnArgsValues,
+    fnArgValues,
     ret,
     retT,
     extraTrackingValues
@@ -837,16 +937,22 @@ export default <any>{
           ret = ret.returnValue;
           retT = ctx.lastOpTrackingResultWithoutResetting;
         } else if (specialValuesForPostprocessing[fnKnownValue]) {
-          retT = specialValuesForPostprocessing[fnKnownValue]({
-            object,
-            fnArgs,
-            ctx,
-            logData,
-            fnArgValues,
-            ret,
-            retT,
-            extraTrackingValues
-          });
+          try {
+            retT = specialValuesForPostprocessing[fnKnownValue]({
+              object,
+              context,
+              fnArgs,
+              ctx,
+              logData,
+              fnArgValues,
+              ret,
+              retT,
+              extraTrackingValues
+            });
+          } catch (err) {
+            console.error("post procressing error", fnKnownValue, err);
+            debugger;
+          }
         } else {
           if (
             ctx.lastOperationType === "returnStatement" &&
@@ -975,6 +1081,13 @@ export default <any>{
             operationLog: match.origin
           };
 
+        case "String.prototype.match":
+          operationLog;
+          charIndex;
+          var resMap = new ValueMapV2(
+            operationLog.args.object.result.primitive.toString()
+          );
+          debugger;
         case "String.prototype.replace":
           // I'm not 100% confident about this code, but it works for now
 

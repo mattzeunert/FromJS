@@ -8,6 +8,7 @@ export default class KnownValues {
       "String.prototype.substr": String.prototype.substr,
       "String.prototype.replace": String.prototype.replace,
       "String.prototype.trim": String.prototype.trim,
+      "String.prototype.match": String.prototype.match,
       "Array.prototype.push": Array.prototype.push,
       "Array.prototype.join": Array.prototype.join,
       "Array.prototype.slice": Array.prototype.slice,

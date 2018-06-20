@@ -27,3 +27,4 @@ export const fetchResponse = "fetchResponse";
 export const objectAssign = "objectAssign";
 export const arraySlice = "arraySlice";
 export const arrayConcat = "arrayConcat";
+export const matchResult = "matchResult";
