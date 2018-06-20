@@ -8,6 +8,7 @@ type TraversalStepsProps = {
   inspectionTarget?: any;
   collapseDomInspector?: boolean;
   showFullDataFlow?: boolean;
+  isTraversing?: boolean;
 };
 let TraversalSteps = class TraversalSteps extends React.Component<
   TraversalStepsProps,
@@ -20,7 +21,11 @@ let TraversalSteps = class TraversalSteps extends React.Component<
     let stepsToShow = [];
     let steps = this.props.steps;
     if (!steps.length) {
-      return null;
+      if (this.props.isTraversing) {
+        return <div>Loading...</div>;
+      } else {
+        return null;
+      }
     }
 
     stepsToShow = steps;
@@ -62,7 +67,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<
     }
 
     return (
-      <div>
+      <div style={{ opacity: this.props.isTraversing ? 0.5 : 1 }}>
         <div className="title">
           Inspected JS string{" "}
           {this.props.collapseDomInspector
@@ -115,7 +120,8 @@ TraversalSteps = branch(
     steps: ["steps"],
     inspectionTarget: ["inspectionTarget"],
     collapseDomInspector: ["collapseDomInspector"],
-    showFullDataFlow: ["showFullDataFlow"]
+    showFullDataFlow: ["showFullDataFlow"],
+    isTraversing: ["hasInProgressRequest", "traverse"]
   },
   TraversalSteps
 );

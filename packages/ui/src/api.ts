@@ -48,6 +48,14 @@ export function inspectDomChar(charIndex) {
 }
 
 export function callApi(endpoint, data) {
+  const requestId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+  function finishRequest() {
+    let apiRequestsInProgress = appState
+      .get("apiRequestsInProgress")
+      .filter(request => request.requestId !== requestId);
+    appState.set("apiRequestsInProgress", apiRequestsInProgress);
+  }
+  appState.select("apiRequestsInProgress").push({ endpoint, data, requestId });
   return fetch(backendRoot + "/" + endpoint, {
     method: "POST",
     headers: {
@@ -62,9 +70,13 @@ export function callApi(endpoint, data) {
         handleError(r.err);
         return Promise.reject();
       }
+      finishRequest();
       return r;
     })
-    .catch(e => handleError(e.message));
+    .catch(e => {
+      finishRequest();
+      handleError(e.message);
+    });
 }
 
 let errorQueue = [];
