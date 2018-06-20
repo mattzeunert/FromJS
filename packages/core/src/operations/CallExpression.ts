@@ -270,6 +270,54 @@ const specialValuesForPostprocessing = {
       );
     });
   },
+  "String.prototype.split": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT,
+    context,
+    extraTrackingValues
+  }) => {
+    ctx = <ExecContext>ctx;
+
+    const str = object;
+    const strT = context[1];
+
+    const array = ret;
+
+    // TODO: properly track indices where string came from
+    // I thought I could do that by just capturing the string
+    // and the separator, but the separator can also be a regexp
+    ret.forEach((item, i) => {
+      ctx.trackObjectPropertyAssignment(
+        array,
+        i.toString(),
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.splitResult,
+          args: {
+            string: [str, strT],
+            separator: [fnArgValues[0], fnArgs[0]]
+          },
+          runtimeArgs: {
+            splitResultIndex: i
+          },
+          result: item,
+          astArgs: {},
+          loc: logData.loc
+        }),
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.arrayIndex,
+          args: {},
+          result: i,
+          astArgs: {},
+          loc: logData.loc
+        })
+      );
+    });
+  },
   "Array.prototype.push": ({
     object,
     fnArgs,
