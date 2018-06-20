@@ -90,10 +90,34 @@ let showErrorAlert = debounce(function() {
   errorQueue = [];
 }, 100);
 
+function makeFEOperationLog(log) {
+  if (log.args) {
+    const newArgs = {};
+    Object.keys(log.args).forEach(key => {
+      const argLog = log.args[key];
+      newArgs[key] =
+        argLog && typeof argLog === "object" && makeFEOperationLog(argLog);
+    });
+    log.args = newArgs;
+  }
+
+  if (log.extraArgs) {
+    const newExtraArgs = {};
+    Object.keys(log.extraArgs).forEach(key => {
+      const argLog = log.extraArgs[key];
+      newExtraArgs[key] =
+        argLog && typeof argLog === "object" && makeFEOperationLog(argLog);
+    });
+    log.extraArgs = newExtraArgs;
+  }
+
+  return new FEOperationLog(log);
+}
+
 export function loadSteps({ logId, charIndex }) {
   return callApi("traverse", { logId: logId, charIndex }).then(steps => {
     steps.steps.forEach(
-      step => (step.operationLog = new FEOperationLog(step.operationLog))
+      step => (step.operationLog = makeFEOperationLog(step.operationLog))
     );
     return steps;
   });
