@@ -180,7 +180,9 @@ function setupUI(options, app, wss, getProxy) {
 
   function getDomToInspectMessage() {
     if (!domToInspect) {
-      return {};
+      return {
+        err: "Backend has no selected DOM to inspect"
+      };
     }
 
     const mapping = new HtmlToOperationLogMapping((<any>domToInspect).parts);
@@ -240,6 +242,15 @@ function setupUI(options, app, wss, getProxy) {
     );
   });
   app.post("/inspectDomChar", (req, res) => {
+    if (!domToInspect) {
+      res.status(500);
+      res.json({
+        err: "Backend has no selected DOM to inspect"
+      });
+      res.end();
+      return;
+    }
+
     const mapping = new HtmlToOperationLogMapping((<any>domToInspect).parts);
     const mappingResult: any = mapping.getOriginAtCharacterIndex(
       req.body.charIndex
@@ -385,14 +396,24 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
     };
 
     const finishRequest = async function finishRequest() {
-      var steps = await traverse(
-        {
-          operationLog: logId,
-          charIndex: charIndex
-        },
-        [],
-        logServer
-      );
+      let steps;
+      try {
+        steps = await traverse(
+          {
+            operationLog: logId,
+            charIndex: charIndex
+          },
+          [],
+          logServer
+        );
+      } catch (err) {
+        res.status(500);
+        res.end(
+          JSON.stringify({
+            err: "Log not found in backend"
+          })
+        );
+      }
 
       res.end(JSON.stringify({ steps }));
     };
