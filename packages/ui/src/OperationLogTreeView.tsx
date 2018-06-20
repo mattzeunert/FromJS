@@ -33,6 +33,7 @@ export default class OperationLogTreeView extends React.Component<
 
 function renderTree(log, containerSelector) {
   console.log("rendertree", log);
+  // debugger;
   var data = log;
 
   var nodeStructure;
@@ -158,7 +159,10 @@ function renderTree(log, containerSelector) {
       // debugger;
       resVal = {
         type: "string",
-        str: "todo (no data)"
+        str: "todo (no data)",
+        getTruncatedUIString: function() {
+          return this.str;
+        }
       };
     }
 
