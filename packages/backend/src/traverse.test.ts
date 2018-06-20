@@ -535,3 +535,35 @@ describe("Array.concat", () => {
     expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
   });
 });
+
+it("Can traverse encodeURIComponent", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      return encodeURIComponent("a@b#c")
+    `);
+  expect(normal).toBe("a%40b%23c");
+
+  var t1 = await traverse({ operationLog: tracking, charIndex: 7 });
+  const t1LastStep = t1[t1.length - 1];
+  expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+  expect(t1LastStep.charIndex).toBe(3);
+
+  var t2 = await traverse({ operationLog: tracking, charIndex: 9 });
+  const t2LastStep = t2[t2.length - 1];
+  expect(t2LastStep.charIndex).toBe(4);
+});
+
+it("Can traverse decodeURIComponent", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      return decodeURIComponent("a%40b%23c")
+    `);
+  expect(normal).toBe("a@b#c");
+
+  var t1 = await traverse({ operationLog: tracking, charIndex: 3 });
+  const t1LastStep = t1[t1.length - 1];
+  expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+  expect(t1LastStep.charIndex).toBe(5);
+
+  var t2 = await traverse({ operationLog: tracking, charIndex: 4 });
+  const t2LastStep = t2[t2.length - 1];
+  expect(t2LastStep.charIndex).toBe(8);
+});
