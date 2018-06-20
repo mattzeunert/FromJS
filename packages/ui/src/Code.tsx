@@ -66,10 +66,6 @@ export default class Code extends React.Component<CodeProps, CodeState> {
         strBetweenBarAndHighlight.substr(strBetweenBarAndHighlight.length - 20);
     }
 
-    const strAfterBar = frame.code.line.text.substr(
-      columnNumber + highlighNthCharAfterColumn + 1 - lineFirstCharIndex
-    );
-
     interface LineNumberProps {
       arrow?: string;
       lineNumber: number;
@@ -155,6 +151,13 @@ export default class Code extends React.Component<CodeProps, CodeState> {
     if (frame.code.line.text.length < highlightIndexInLine) {
       // debugger; // shoudn't happen
     }
+
+    const strAfterBar = frame.code.line.text.substr(
+      columnNumber +
+        highlighNthCharAfterColumn +
+        highlightedString.length -
+        lineFirstCharIndex
+    );
 
     return (
       <div
