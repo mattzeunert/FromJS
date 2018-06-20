@@ -26,3 +26,7 @@ To update the React demo and playground make sure `npm run server` is running, t
 
 The Backbone TodoMVC demo isn't updated. It uses a pre-rendered DOM with tracking data in `data.json`, and with the current setup this can't be replicated. Either way, it would be a bunch of work to make the current setup work on mobile etc, whereas the old demo sort of does work on some phones.
 ```
+
+## Architecture diagram
+
+![](https://user-images.githubusercontent.com/1303660/41681002-35ebae24-74cb-11e8-8a2d-d2a2b8b34145.png)
