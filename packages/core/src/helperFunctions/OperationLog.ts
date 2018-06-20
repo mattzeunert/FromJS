@@ -62,13 +62,19 @@ function serializeValue(value, knownValues: KnownValues): SerializedValue {
   }
   let str;
   let keys;
-  if (typeof str === "object") {
-    keys = Object.keys(value);
-    if (keys.length > 6) {
-      keys = keys.slice(0, 6);
-      keys.push("...");
+  try {
+    if (type === "object" && value !== null) {
+      // todo: rethink this regarding perf
+      // maybe don't collect keys, maybe do for...in instead
+      // also: when inspecting i really want the trakcing data for
+      // values/keys to be accessible, so maybe just storing keys makes more sense
+      keys = Object.keys(value);
+      if (keys.length > 6) {
+        keys = keys.slice(0, 6);
+        keys.push("...");
+      }
     }
-  }
+  } catch (err) {}
 
   return <SerializedValue>{
     length,
