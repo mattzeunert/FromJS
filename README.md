@@ -16,7 +16,7 @@ Run FromJS: `fromjs` - this will open a Chrome browser window
 
 By default this will launch a web server on [localhost:7000](http://localhost:7000/), a proxy server on port 7001, and store the collected data in `./fromjs-session`.
 
-Loading pages will be slow! For large apps expect it to take several minutes. It will be faster once the page's JS files are cached. Maybe try somethign simple like [Backbone TodoMVC](http://todomvc.com/examples/backbone/) to get started.
+Loading pages will be slow! For large apps expect it to take several minutes. It will be faster once the page's JS files are cached. Maybe try something simple like [Backbone TodoMVC](http://todomvc.com/examples/backbone/) to get started.
 
 ## The page inspector UI
 
