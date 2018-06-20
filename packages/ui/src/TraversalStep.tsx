@@ -254,7 +254,7 @@ let TraversalStep = class TraversalStep extends React.Component<
               highlightedCharacterIndex={charIndex}
               onCharacterClick={charIndex =>
                 selectAndTraverse(
-                  appState.get("inspectionTarget").logId,
+                  operationLog.index,
                   charIndex,
                   "traversalStep"
                 )
