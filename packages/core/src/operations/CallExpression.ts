@@ -924,6 +924,44 @@ export default <any>{
           };
         }
 
+        let reduceResultTrackingValue;
+        let reduceResultNormalValue;
+        if (fn === ctx.knownValues.getValue("Array.prototype.reduce")) {
+          reduceResultTrackingValue = fnArgs[1];
+          reduceResultNormalValue = fnArgValues[1];
+          const originalReduceFunction = fnArgValuesForApply[0];
+
+          fnArgValuesForApply[0] = function(
+            previousRet,
+            param,
+            currentIndex,
+            array
+          ) {
+            let paramTrackingValue = ctx.getObjectPropertyTrackingValue(
+              array,
+              currentIndex.toString()
+            );
+
+            const ret = ctx.global[doOperation](
+              "callExpression",
+              {
+                context: [ctx.global, null],
+                function: [originalReduceFunction, null],
+                arg0: [reduceResultNormalValue, reduceResultTrackingValue],
+                arg1: [param, paramTrackingValue],
+                arg2: [currentIndex, null],
+                arg3: [array, null]
+              },
+              {},
+              logData.loc
+            );
+            reduceResultNormalValue = ret;
+            reduceResultTrackingValue = ctx.lastOpTrackingResult;
+
+            return ret;
+          };
+        }
+
         const lastReturnStatementResultBeforeCall =
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
         ret = fn.apply(object, fnArgValuesForApply);
@@ -979,6 +1017,9 @@ export default <any>{
               })
             );
           });
+        }
+        if (fn === ctx.knownValues.getValue("Array.prototype.reduce")) {
+          retT = reduceResultTrackingValue;
         }
       }
     }
@@ -1052,6 +1093,11 @@ export default <any>{
           return {
             operationLog: operationLog.args.context,
             charIndex: charIndex + whitespaceAtStart
+          };
+        case "Array.prototype.reduce":
+          return {
+            operationLog: operationLog.extraArgs.returnValue,
+            charIndex: charIndex
           };
         case "Array.prototype.join":
           const parts: any[] = [];

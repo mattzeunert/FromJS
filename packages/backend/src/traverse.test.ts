@@ -589,6 +589,7 @@ describe("String.prototype.match", () => {
 
   // not technically a traversal test but it makes sense to have .match tests in one place
   // ... maybe we should just merge core.test.ts with traverse.test.ts
+  // ... or move them next to the relevant files, like callexpression.ts
   it("Doesn't break on non-global regexes with multiple match groups", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         const arr = "zzabc".match(/(a)(b)/)
@@ -609,5 +610,27 @@ describe("String.prototype.match", () => {
     var t2 = await traverse({ operationLog: tracking, charIndex: 2 });
     const t2LastStep = t2[t2.length - 1];
     expect(t2LastStep.charIndex).toBe(4);
+  });
+});
+
+describe("Array.prototype.reduce", () => {
+  it("Passes values through to mapping function", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return ["aa", "bb", "cc"].reduce(function(ret, param){
+          return ret + param
+        }, "")
+      `);
+
+    expect(normal).toBe("aabbcc");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("aa");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 5 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.result.primitive).toBe("cc");
+    expect(t2LastStep.charIndex).toBe(1);
   });
 });
