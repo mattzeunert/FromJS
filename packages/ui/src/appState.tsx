@@ -6,7 +6,7 @@ var appState = new Baobab({
   steps: [],
   inspectionTarget: null,
   collapseDomInspector: true,
-  isInspectingDemoApp: window["isInspectingDemoAppAtPageLoad"],
+  isInspectingDemoApp: false,
   showFullDataFlow: false,
   apiRequestsInProgress: [],
   hasInProgressRequest: {
@@ -18,7 +18,16 @@ var appState = new Baobab({
         return apiRequestsInProgress.some(r => r.endpoint === "traverse");
       }
     })
-  }
+  },
+  hasInspectorData: monkey({
+    cursors: {
+      steps: ["steps"],
+      inspectionTarget: ["inspectionTarget"]
+    },
+    get: function({ steps, inspectionTarget }) {
+      return steps || inspectionTarget;
+    }
+  })
 });
 window["appState"] = appState;
 
