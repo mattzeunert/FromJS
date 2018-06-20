@@ -179,7 +179,7 @@ class StackFrameResolver {
             });
         })
         .catch(err => {
-          console.log("falling back to not using source maps");
+          // console.log("falling back to not using source maps");
           return this.resolveSourceCode(frameObject).then(code => {
             frameObject.code = code;
             // frameObject.__debugOnly_FrameString = frameString;
