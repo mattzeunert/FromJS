@@ -86,6 +86,10 @@ class StackFrameResolver {
 
   getAjax(type: "proxy" | "normal") {
     const ajax = url => {
+      if (type === "normal" && url.includes(":11111")) {
+        // We use this port for eval scripts, which are only available through the proxy
+        return this._gps._get(url);
+      }
       return new Promise((resolve, reject) => {
         const options: any = {};
         if (type === "proxy") {
