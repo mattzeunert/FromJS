@@ -307,12 +307,12 @@ class ProxyInstrumenter {
             // console.log(body, responseBody);
             console.log("EMPTY RESPONSE", getUrl(ctx));
           } else {
-            console.log(
-              getUrl(ctx),
-              "size",
-              Math.round(responseBody.length / 1024 / 1024 * 10) / 10,
-              "MB"
-            );
+            // console.log(
+            //   getUrl(ctx),
+            //   "size",
+            //   Math.round(responseBody.length / 1024 / 1024 * 10) / 10,
+            //   "MB"
+            // );
             this.urlCache[getUrl(ctx)] = {
               body: responseBody,
               headers: ctx.serverToProxyResponse.headers
