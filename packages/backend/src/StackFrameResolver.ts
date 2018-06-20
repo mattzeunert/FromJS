@@ -151,45 +151,54 @@ class StackFrameResolver {
     return new Promise(resolve => {
       // Currently only supports the happy path, and assumes
       // sourcemap uses sourcescontent instead of URL refs
-      this._nonProxyGps
-        .pinpoint(frameObject)
-        .then(pinpointedFrameObject => {
-          this._nonProxyGps
-            ._get(frameObject.fileName)
-            .then(unSourcemappedCode => {
-              let smUrl = _findSourceMappingURL(unSourcemappedCode);
-              if (!(smUrl.includes("http") || smUrl.includes("https"))) {
-                const basePath = frameObject.fileName
-                  .split("/")
-                  .slice(0, -1)
-                  .join("/");
-                smUrl = basePath + "/" + smUrl;
-              }
 
-              this._nonProxyGps.sourceMapConsumerCache[smUrl].then(function(
-                smConsumer
-              ) {
-                const sourcesIndex = smConsumer.sources.indexOf(
-                  pinpointedFrameObject.fileName
-                );
-                const code = smConsumer.sourcesContent[sourcesIndex];
-
-                pinpointedFrameObject.code = getSourceCodeObject(
-                  pinpointedFrameObject,
-                  code
-                );
-                resolve(pinpointedFrameObject);
-              });
-            });
-        })
-        .catch(err => {
-          // console.log("falling back to not using source maps");
-          return this.resolveSourceCode(frameObject).then(code => {
-            frameObject.code = code;
-            // frameObject.__debugOnly_FrameString = frameString;
-            resolve(frameObject);
-          });
+      const finishWithoutSourceMaps = () => {
+        return this.resolveSourceCode(frameObject).then(code => {
+          frameObject.code = code;
+          // frameObject.__debugOnly_FrameString = frameString;
+          resolve(frameObject);
         });
+      };
+
+      console.log(frameObject.fileName);
+      if (!frameObject.fileName.includes(":11111")) {
+        this._nonProxyGps
+          .pinpoint(frameObject)
+          .then(pinpointedFrameObject => {
+            this._nonProxyGps
+              ._get(frameObject.fileName)
+              .then(unSourcemappedCode => {
+                let smUrl = _findSourceMappingURL(unSourcemappedCode);
+                if (!(smUrl.includes("http") || smUrl.includes("https"))) {
+                  const basePath = frameObject.fileName
+                    .split("/")
+                    .slice(0, -1)
+                    .join("/");
+                  smUrl = basePath + "/" + smUrl;
+                }
+
+                this._nonProxyGps.sourceMapConsumerCache[smUrl].then(function(
+                  smConsumer
+                ) {
+                  const sourcesIndex = smConsumer.sources.indexOf(
+                    pinpointedFrameObject.fileName
+                  );
+                  const code = smConsumer.sourcesContent[sourcesIndex];
+
+                  pinpointedFrameObject.code = getSourceCodeObject(
+                    pinpointedFrameObject,
+                    code
+                  );
+                  resolve(pinpointedFrameObject);
+                });
+              });
+          })
+          .catch(err => {
+            finishWithoutSourceMaps();
+          });
+      } else {
+        finishWithoutSourceMaps();
+      }
     });
   }
 
