@@ -614,7 +614,7 @@ describe("String.prototype.match", () => {
 });
 
 describe("Array.prototype.reduce", () => {
-  it("Passes values through to mapping function", async () => {
+  it("Passes values through to reducer function", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         return ["aa", "bb", "cc"].reduce(function(ret, param){
           return ret + param
@@ -632,5 +632,20 @@ describe("Array.prototype.reduce", () => {
     const t2LastStep = t2[t2.length - 1];
     expect(t2LastStep.operationLog.result.primitive).toBe("cc");
     expect(t2LastStep.charIndex).toBe(1);
+  });
+});
+
+describe("String.prototype.split", () => {
+  it("Can traverse string split result array ", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return "hello--world".split("--")[1]
+      `);
+
+    expect(normal).toBe("world");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(8);
   });
 });

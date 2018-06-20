@@ -601,6 +601,22 @@ const operations: Operations = {
     }
   },
   memexpAsLeftAssExp: {},
+  splitResult: {
+    traverse(operationLog: OperationLog, charIndex) {
+      const originalString = operationLog.args.string.result.primitive;
+      const separator = operationLog.args.separator.result.primitive || "";
+
+      console.log(
+        "TODO: actually capture the indices where the string came from at runtime"
+      );
+
+      return {
+        operationLog: operationLog.args.string,
+        charIndex:
+          originalString.indexOf(operationLog.result.primitive) + charIndex
+      };
+    }
+  },
   matchResult: {
     traverse(operationLog: OperationLog, charIndex) {
       return {
