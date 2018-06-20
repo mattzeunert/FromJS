@@ -76,10 +76,17 @@ let TraversalSteps = class TraversalSteps extends React.Component<
         </div>
         <TraversalStep key={steps[0].operationLog.index} step={steps[0]} />
         <div className="title">Origin of selected character:</div>
-        <TraversalStep
-          key={steps[steps.length - 1].operationLog.index}
-          step={steps[steps.length - 1]}
-        />
+        {steps.length > 1 && (
+          <TraversalStep
+            key={steps[steps.length - 1].operationLog.index}
+            step={steps[steps.length - 1]}
+          />
+        )}
+        {steps.length === 1 && (
+          <div style={{ opacity: 0.5 }}>
+            (same as above, only one step is available)
+          </div>
+        )}
         {/* <hr />
         <hr />
         <div>Relevant code:</div>
@@ -101,7 +108,8 @@ let TraversalSteps = class TraversalSteps extends React.Component<
         >
           {this.props.showFullDataFlow &&
             "Full data flow – the story of how the inspected string was constructed:"}
-          {!this.props.showFullDataFlow && "Click to show full data flow"}
+          {!this.props.showFullDataFlow &&
+            "Click to show full data flow (" + steps.length + " steps)"}
         </div>
         {this.props.showFullDataFlow &&
           stepsToShow
