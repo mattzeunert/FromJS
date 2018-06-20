@@ -179,8 +179,8 @@ export default class Code extends React.Component<CodeProps, CodeState> {
                 const nextSurroundingLineCount = {
                   // 1: 3,
                   3: 7,
-                  7: 14,
-                  14: 3
+                  7: 20,
+                  20: 3
                 };
 
                 self.setState({
