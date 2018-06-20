@@ -71,10 +71,16 @@ let TraversalStep = class TraversalStep extends React.Component<
   render() {
     const { step, debugMode } = this.props;
     const { charIndex, operationLog } = step;
-    const { showTree, showLogJson, stackFrame, isExpanded } = this.state;
+    const { showTree, showLogJson, stackFrame } = this.state;
+    let { isExpanded } = this.state;
     let code;
     let fileName, columnNumber, lineNumber;
     let previousLine, nextLine;
+
+    if (operationLog.result.type === "object") {
+      // the user probably cares about the arguments
+      isExpanded = true;
+    }
 
     try {
       if (stackFrame) {
