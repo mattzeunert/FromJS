@@ -265,7 +265,15 @@ class ProxyInstrumenter {
         "no-cache, no-store, must-revalidate"
       );
       ctx.proxyToClientResponse.setHeader("Pragma", "no-cache");
-      ctx.proxyToClientResponse.setHeader("Expires", "0");
+      ctx.proxyToClientResponse.setHeader("expires", "0");
+
+      var setHeader = ctx.proxyToClientResponse.setHeader;
+      ctx.proxyToClientResponse.setHeader = function(header) {
+        if (header === "cache-control" || header === "expires") {
+          return;
+        }
+        return setHeader.apply(this, arguments);
+      };
     } catch (err) {
       console.log(err, getUrl(ctx));
     }
