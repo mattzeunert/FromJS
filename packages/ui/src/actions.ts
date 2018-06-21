@@ -55,3 +55,7 @@ export function enableShowFullDataFlow() {
 export function disableShowFullDataFlow() {
   appState.set("showFullDataFlow", false);
 }
+
+export function setCollapseGetStartedIfHasData(collapse) {
+  appState.set("collapseGetStartedIfHasData", collapse);
+}
