@@ -4,6 +4,7 @@ import appState from "./appState";
 import { callApi, inspectDomChar } from "./api";
 import { selectInspectedDomCharIndex, expandDomInspector } from "./actions";
 import { TextEl } from "./TextEl";
+import * as cx from "classnames";
 
 let DomInspector = class DomInspector extends React.Component<any, any> {
   render() {
@@ -12,26 +13,32 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
     }
     return (
       <div>
-        <div className="title">
-          Inspected DOM HTML{this.props.collapseDomInspector ? (
-            <button onClick={() => expandDomInspector()}>
-              Show inspected Element
-            </button>
-          ) : (
-            " (click a character to view its origin)"
+        <div
+          className={cx("named-step-container", {
+            "named-step-container--collapsed": this.props.collapseDomInspector
+          })}
+        >
+          <div className="title">
+            Inspected DOM HTML{this.props.collapseDomInspector ? (
+              <button onClick={() => expandDomInspector()}>
+                Show inspected Element
+              </button>
+            ) : (
+              " (click a character to view its origin)"
+            )}
+          </div>
+          {!this.props.collapseDomInspector && (
+            <div style={{ border: "1px solid #ddd" }}>
+              <TextEl
+                highlightedCharacterIndex={this.props.domToInspect.charIndex}
+                onCharacterClick={charIndex => {
+                  selectInspectedDomCharIndex(charIndex);
+                }}
+                text={this.props.domToInspect.outerHTML}
+              />
+            </div>
           )}
         </div>
-        {!this.props.collapseDomInspector && (
-          <div style={{ border: "1px solid #ddd", marginBottom: 10 }}>
-            <TextEl
-              highlightedCharacterIndex={this.props.domToInspect.charIndex}
-              onCharacterClick={charIndex => {
-                selectInspectedDomCharIndex(charIndex);
-              }}
-              text={this.props.domToInspect.outerHTML}
-            />
-          </div>
-        )}
       </div>
     );
   }

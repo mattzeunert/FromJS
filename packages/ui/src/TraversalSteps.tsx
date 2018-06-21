@@ -1,7 +1,12 @@
 import { branch, root } from "baobab-react/higher-order";
 import * as React from "react";
 import TraversalStep from "./TraversalStep";
-import { enableShowFullDataFlow, disableShowFullDataFlow } from "./actions";
+import * as cx from "classnames";
+import {
+  enableShowFullDataFlow,
+  disableShowFullDataFlow,
+  collapseDomInspector
+} from "./actions";
 
 type TraversalStepsProps = {
   steps?: any[];
@@ -68,25 +73,43 @@ let TraversalSteps = class TraversalSteps extends React.Component<
 
     return (
       <div style={{ opacity: this.props.isTraversing ? 0.5 : 1 }}>
-        <div className="title">
-          Inspected JS string{" "}
-          {this.props.collapseDomInspector
-            ? " (click a character to view its origin)"
-            : ""}:
-        </div>
-        <TraversalStep key={steps[0].operationLog.index} step={steps[0]} />
-        <div className="title">Origin of selected character:</div>
-        {steps.length > 1 && (
-          <TraversalStep
-            key={steps[steps.length - 1].operationLog.index}
-            step={steps[steps.length - 1]}
-          />
-        )}
-        {steps.length === 1 && (
-          <div style={{ opacity: 0.5 }}>
-            (same as above, only one step is available)
+        <div
+          className={cx("named-step-container", {
+            "named-step-container--collapsed": !this.props.collapseDomInspector
+          })}
+        >
+          <div className="title">
+            Inspected JS string
+            {this.props.collapseDomInspector
+              ? " (click a character to view its origin)"
+              : ""}:
+            {!this.props.collapseDomInspector && (
+              <button
+                style={{ marginLeft: 10, cursor: "pointer" }}
+                onClick={() => collapseDomInspector()}
+              >
+                Click to show
+              </button>
+            )}
           </div>
-        )}
+          {this.props.collapseDomInspector && (
+            <TraversalStep key={steps[0].operationLog.index} step={steps[0]} />
+          )}
+        </div>
+        <div className="named-step-container">
+          <div className="title">Origin of selected character:</div>
+          {steps.length > 1 && (
+            <TraversalStep
+              key={steps[steps.length - 1].operationLog.index}
+              step={steps[steps.length - 1]}
+            />
+          )}
+          {steps.length === 1 && (
+            <div style={{ opacity: 0.5 }}>
+              (same as above, only one step is available)
+            </div>
+          )}
+        </div>
         {/* <hr />
         <hr />
         <div>Relevant code:</div>
@@ -114,7 +137,9 @@ let TraversalSteps = class TraversalSteps extends React.Component<
         {this.props.showFullDataFlow &&
           stepsToShow
             .map(step => (
-              <TraversalStep key={step.operationLog.index} step={step} />
+              <div style={{ marginBottom: 10 }}>
+                <TraversalStep key={step.operationLog.index} step={step} />
+              </div>
             ))
             .reverse()}
       </div>

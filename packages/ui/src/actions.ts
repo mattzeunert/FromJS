@@ -40,6 +40,10 @@ export function expandDomInspector() {
   appState.set("collapseDomInspector", false);
 }
 
+export function collapseDomInspector() {
+  appState.set("collapseDomInspector", true);
+}
+
 export function setIsInspectingDemoApp(isInspecting) {
   appState.set("isInspectingDemoApp", isInspecting);
 }
