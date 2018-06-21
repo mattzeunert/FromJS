@@ -78,7 +78,7 @@ describe("ProxyInstrumenter", () => {
         });
       }
     });
-  });
+  }, 10000);
 
   afterAll(() => {
     server.close();
