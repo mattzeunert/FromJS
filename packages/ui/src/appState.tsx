@@ -8,6 +8,7 @@ var appState = new Baobab({
   collapseDomInspector: true,
   isInspectingDemoApp: false,
   showFullDataFlow: false,
+  enableInstrumentation: window["enableInstrumentation"],
   apiRequestsInProgress: [],
   hasInProgressRequest: {
     traverse: monkey({

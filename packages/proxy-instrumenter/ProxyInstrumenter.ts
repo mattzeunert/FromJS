@@ -51,6 +51,7 @@ class ProxyInstrumenter {
   onCompilationComplete: any;
   onRegisterEvalScript: any;
   shouldBlock: any;
+  enableInstrumenation = true;
 
   constructor({
     babelPluginOptions,
@@ -119,6 +120,12 @@ class ProxyInstrumenter {
     };
     var url = requestInfo.url;
     ctx.requestId = url + "_" + Math.random();
+
+    if (!this.enableInstrumenation) {
+      this.preventBrowserCaching(ctx);
+      callback();
+      return;
+    }
 
     if (this.shouldBlock && this.shouldBlock(requestInfo)) {
       ctx.proxyToClientResponse.statusCode = 401; // Unauthorized
@@ -234,14 +241,26 @@ class ProxyInstrumenter {
     }
   }
 
+  setEnableInstrumentation(enable) {
+    // Disable instrumentation for all files
+    // Separate setting from shouldInstrument because this will also bypass the cache
+    // (maybe including whether value is instrumented in cache would be better... but this works for now)
+    this.enableInstrumenation = enable;
+  }
+
+  // Just here for FromJS convenience, normally easier to just read value directly
+  _getEnableInstrumentation() {
+    return this.enableInstrumenation;
+  }
+
   start() {
     var port = this.port;
     this.proxy.listen({ port: port, sslCaDir: this.certDirectory });
     // Was having issues in CI, so make sure to wait for proxy to be ready
     return new Promise(resolve => {
       waitUntil()
-        .interval(200)
-        .times(100)
+        .interval(50)
+        .times(200)
         .condition(cb => {
           this.proxiedFetchUrl("http://example.com/verifyProxyWorks").then(
             function(body) {

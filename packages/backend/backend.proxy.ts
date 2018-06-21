@@ -6,7 +6,9 @@ process.on("message", function(message) {
   if (message.arguments[1]) {
     throw Error("todo......");
   }
-  proxy[message.method].call(proxy, message.arguments[0]);
+  const ret = proxy[message.method].call(proxy, message.arguments[0]);
+
+  process.send({ type: "messageResponse", ret, messageId: message.messageId });
 });
 
 let proxy;

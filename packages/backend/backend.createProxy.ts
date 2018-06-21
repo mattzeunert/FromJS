@@ -27,13 +27,27 @@ export function createProxy(params: CreateProxyWrapperArgs) {
       })
     ]);
 
-    const proxyInterface = {};
-    ["registerEvalScript", "instrumentForEval"].forEach(method => {
+    const messageResponsePromisesResolveFn = {};
+    const proxyInterface: any = {};
+    [
+      "registerEvalScript",
+      "instrumentForEval",
+      "setEnableInstrumentation",
+      "_getEnableInstrumentation"
+    ].forEach(method => {
       proxyInterface[method] = function() {
-        child.send({
-          method,
-          arguments
+        const messageId = Math.floor(
+          Math.random() * Number.MAX_SAFE_INTEGER
+        ).toString();
+        const promise = new Promise(resolve => {
+          messageResponsePromisesResolveFn[messageId] = resolve;
+          child.send({
+            method,
+            arguments,
+            messageId
+          });
         });
+        return promise;
       };
     });
 
@@ -43,6 +57,9 @@ export function createProxy(params: CreateProxyWrapperArgs) {
       }
       if (message.type === "storeLocs") {
         params.storeLocs(message.locs);
+      }
+      if (message.type === "messageResponse") {
+        messageResponsePromisesResolveFn[message.messageId](message.ret);
       }
     });
   });
