@@ -10,6 +10,7 @@ var appState = new Baobab({
   showFullDataFlow: false,
   enableInstrumentation: window["enableInstrumentation"],
   apiRequestsInProgress: [],
+  collapseGetStartedIfHasData: true,
   hasInProgressRequest: {
     traverse: monkey({
       cursors: {
@@ -26,7 +27,10 @@ var appState = new Baobab({
       inspectionTarget: ["inspectionTarget"]
     },
     get: function({ steps, inspectionTarget }) {
-      return steps || inspectionTarget;
+      return (
+        (steps && steps.length > 0) ||
+        (inspectionTarget && inspectionTarget.logId)
+      );
     }
   })
 });

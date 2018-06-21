@@ -118,22 +118,30 @@ let TraversalSteps = class TraversalSteps extends React.Component<
         ))
         } */}
         <div style={{ height: 10 }} />
-        <hr />
-        <div style={{ height: 10 }} />
-        <div
-          className="title"
-          style={{ cursor: "pointer" }}
-          onClick={() =>
-            this.props.showFullDataFlow
-              ? disableShowFullDataFlow()
-              : enableShowFullDataFlow()
-          }
-        >
-          {this.props.showFullDataFlow &&
-            "Full data flow – the story of how the inspected string was constructed:"}
-          {!this.props.showFullDataFlow &&
-            "Click to show full data flow (" + steps.length + " steps)"}
-        </div>
+        {this.props.showFullDataFlow && (
+          <div
+            className="title"
+            style={{
+              cursor: "pointer"
+            }}
+            onClick={() => disableShowFullDataFlow()}
+          >
+            Full data flow – the story of how the inspected string was
+            constructed:
+          </div>
+        )}
+        {!this.props.showFullDataFlow && (
+          <button
+            onClick={() => enableShowFullDataFlow()}
+            style={{
+              fontSize: 14,
+              padding: 5,
+              cursor: "pointer"
+            }}
+          >
+            Show full data flow ({steps.length} steps)
+          </button>
+        )}
         {this.props.showFullDataFlow &&
           stepsToShow
             .map(step => (

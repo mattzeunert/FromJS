@@ -35,37 +35,67 @@ window["showSteps"] = function(logId, charIndex) {
 let App = props => {
   const hasInspectorData = props.hasInspectorData;
 
+  const expandWelcome = !props.collapseGetStartedIfHasData || !hasInspectorData;
+  console.log({ hasInspectorData, expandWelcome });
   const welcome = (
-    <div className="welcome">
-      <h2>Get Started</h2>
-      <p>
-        To inspect any website open a new tab in this browser and load it.{" "}
-        <a href="http://todomvc.com/examples/backbone/" target="_blank">
-          Try it!
-        </a>
-      </p>
-      <p>
-        To select the value you want to inspect:<br /> 1) Click "Enable DOM
-        Inspector" and then select an element <br />2) Use{" "}
-        <code>fromJSInspect(value)</code>
-        in your source code
-      </p>
-      <p>
-        After selecting a value this page will show its dataflow information.
-      </p>
-      <p>
-        Ask questions and report bugs{" "}
-        <a href="https://github.com/mattzeunert/FromJS/issues">on Github</a>.
-      </p>
-
-      <button
-        className="load-demo-app"
-        onClick={() =>
-          actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
-        }
+    <div
+      className="welcome"
+      style={{
+        marginTop: expandWelcome ? 0 : 10,
+        opacity: expandWelcome ? 1 : 0.75,
+        maxWidth: expandWelcome ? 800 : 200
+      }}
+    >
+      <h3
+        style={{
+          marginTop: 5,
+          marginBottom: 10,
+          fontSize: expandWelcome ? "" : 12
+        }}
       >
-        {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
-      </button>
+        Get Started{!expandWelcome && (
+          <button
+            style={{ marginLeft: 10 }}
+            onClick={() => actions.setCollapseGetStartedIfHasData(false)}
+          >
+            Show
+          </button>
+        )}
+      </h3>
+
+      {expandWelcome && (
+        <div>
+          <p>
+            To inspect any website open a new tab in this browser and load it.{" "}
+            <a href="http://todomvc.com/examples/backbone/" target="_blank">
+              Try it!
+            </a>
+          </p>
+          <p>
+            To select the value you want to inspect:<br /> 1) Click "Enable DOM
+            Inspector" and then select an element <br />2) Use{" "}
+            <code>fromJSInspect(value)</code>
+            in your source code
+          </p>
+          <p>
+            After selecting a value this page will show its dataflow
+            information.
+          </p>
+          <p>
+            Ask questions and report bugs{" "}
+            <a href="https://github.com/mattzeunert/FromJS/issues">on Github</a>.
+          </p>
+
+          <button
+            className="load-demo-app"
+            onClick={() =>
+              actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
+            }
+          >
+            {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
+          </button>
+        </div>
+      )}
     </div>
   );
   return (
@@ -100,7 +130,6 @@ let App = props => {
         </div>
 
         <div className="app__demo">
-          {!hasInspectorData && welcome}
           {props.isInspectingDemoApp && (
             <div
               dangerouslySetInnerHTML={{
@@ -112,7 +141,7 @@ let App = props => {
           )}
         </div>
       </div>
-      {hasInspectorData && welcome}
+      {welcome}
     </div>
   );
 };
@@ -121,7 +150,8 @@ App = branch(
   {
     isInspectingDemoApp: ["isInspectingDemoApp"],
     hasInspectorData: ["hasInspectorData"],
-    enableInstrumentation: ["enableInstrumentation"]
+    enableInstrumentation: ["enableInstrumentation"],
+    collapseGetStartedIfHasData: ["collapseGetStartedIfHasData"]
   },
   App
 );
