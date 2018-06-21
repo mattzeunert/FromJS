@@ -74,18 +74,25 @@ let App = props => {
         "app--isInspectingDemoApp": props.isInspectingDemoApp
       })}
     >
-      <div className="app-header">FromJS Dataflow Inspector</div>
+      <div className="app-header">
+        FromJS Dataflow Inspector
+        <button
+          onClick={() => appState.set("debugMode", !appState.get("debugMode"))}
+        >
+          Toggle Debug Mode
+        </button>
+        <button
+          onClick={() => {
+            api.setEnableInstrumentation(!props.enableInstrumentation);
+          }}
+        >
+          {props.enableInstrumentation ? "Disable" : "Enable"} instrumentation
+        </button>
+      </div>
       <div style={{ margin: 5, overflow: "hidden" }}>
         <div className="app__inspector">
           <DomInspector />
           <TraversalSteps />
-          <button
-            onClick={() =>
-              appState.set("debugMode", !appState.get("debugMode"))
-            }
-          >
-            Debug
-          </button>
         </div>
 
         <div className="app__demo">
@@ -109,7 +116,8 @@ let App = props => {
 App = branch(
   {
     isInspectingDemoApp: ["isInspectingDemoApp"],
-    hasInspectorData: ["hasInspectorData"]
+    hasInspectorData: ["hasInspectorData"],
+    enableInstrumentation: ["enableInstrumentation"]
   },
   App
 );

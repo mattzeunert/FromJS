@@ -102,6 +102,11 @@ export function loadSteps({ logId, charIndex }) {
   });
 }
 
+export function setEnableInstrumentation(enableInstrumentation) {
+  appState.set("enableInstrumentation", enableInstrumentation);
+  return callApi("setEnableInstrumentation", { enableInstrumentation });
+}
+
 var exampleSocket = new WebSocket("ws://127.0.0.1:" + backendPort);
 
 exampleSocket.onmessage = function(event) {
