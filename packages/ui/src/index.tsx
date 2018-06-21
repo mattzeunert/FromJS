@@ -76,18 +76,22 @@ let App = props => {
     >
       <div className="app-header">
         FromJS Dataflow Inspector
-        <button
-          onClick={() => appState.set("debugMode", !appState.get("debugMode"))}
-        >
-          Toggle Debug Mode
-        </button>
-        <button
-          onClick={() => {
-            api.setEnableInstrumentation(!props.enableInstrumentation);
-          }}
-        >
-          {props.enableInstrumentation ? "Disable" : "Enable"} instrumentation
-        </button>
+        <div style={{ float: "right" }}>
+          <button
+            onClick={() =>
+              appState.set("debugMode", !appState.get("debugMode"))
+            }
+          >
+            Toggle Debug Mode
+          </button>
+          <button
+            onClick={() => {
+              api.setEnableInstrumentation(!props.enableInstrumentation);
+            }}
+          >
+            {props.enableInstrumentation ? "Disable" : "Enable"} instrumentation
+          </button>
+        </div>
       </div>
       <div style={{ margin: 5, overflow: "hidden" }}>
         <div className="app__inspector">
