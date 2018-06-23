@@ -160,7 +160,6 @@ class StackFrameResolver {
         });
       };
 
-      console.log(frameObject.fileName);
       if (!frameObject.fileName.includes(":11111")) {
         this._nonProxyGps
           .pinpoint(frameObject)
