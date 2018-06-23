@@ -2,6 +2,7 @@ const { spawn } = require("child_process");
 const puppeteer = require("puppeteer");
 const killPort = require("kill-port");
 const request = require("request");
+import { OperationLog } from "@fromjs/core";
 
 const backendPort = 12100;
 const proxyPort = backendPort + 1;
@@ -16,8 +17,7 @@ function setTimeoutPromise(timeout) {
 function waitForProxyReady(command) {
   return new Promise(resolve => {
     command.stdout.on("data", function(data) {
-      // not very explicit, but currently this message means the proxy is ready
-      if (data.toString().includes("Root certificate")) {
+      if (data.toString().includes("Server listening")) {
         resolve();
       }
     });
@@ -75,7 +75,11 @@ function traverse(firstStep) {
 async function inspectDomCharAndTraverse(charIndex) {
   const firstStep = await inspectDomChar(charIndex);
   const steps = (await traverse(firstStep))["steps"];
-  return steps[steps.length - 1];
+  const lastStep = steps[steps.length - 1];
+  return {
+    charIndex: lastStep.charIndex,
+    operationLog: new OperationLog(lastStep.operationLog)
+  };
 }
 
 describe("E2E", () => {

@@ -125,11 +125,12 @@ export default class Backend {
     let { storeLocs } = setupBackend(options, app, wss, getProxy);
 
     let proxyInterface;
-    createProxy({
+    const proxyReady = createProxy({
       accessToken: sessionConfig.accessToken,
       options,
       storeLocs
-    }).then(pInterface => {
+    });
+    proxyReady.then(pInterface => {
       proxyInterface = pInterface;
       "justtotest" && getProxy();
       if (options.onReady) {
@@ -142,9 +143,13 @@ export default class Backend {
       app.options(path, allowCrossOriginRequests);
     });
 
-    server.listen(bePort, () =>
-      console.log("Server listening on port " + bePort)
-    );
+    const serverReady = new Promise(resolve => {
+      server.listen(bePort, () => resolve());
+    });
+
+    Promise.all([proxyReady, serverReady]).then(function() {
+      console.log("Server listening on port " + bePort);
+    });
   }
 }
 
