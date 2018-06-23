@@ -31,7 +31,8 @@ export default class KnownValues {
       decodeURIComponent: decodeURIComponent,
       undefined: undefined,
       null: null,
-      fetch: fetch
+      "Promise.prototype.then": Promise.prototype.then,
+      "Promise.prototype.catch": Promise.prototype.catch
     });
 
     var global = Function("return this")();
@@ -39,6 +40,14 @@ export default class KnownValues {
       Object.assign(this._knownValues, {
         localStorage: global.localStorage,
         "localStorage.getItem": global.localStorage.getItem
+      });
+    }
+
+    if (global["fetch"]) {
+      Object.assign(this._knownValues, {
+        fetch: fetch,
+        "Response.prototype.json": Response.prototype.json,
+        "Response.prototype.text": Response.prototype.text
       });
     }
 
