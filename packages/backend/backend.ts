@@ -428,37 +428,12 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
 
   const resolver = new StackFrameResolver({ proxyPort: options.proxyPort });
 
-  app.post("/resolveStackFrame", (req, res) => {
-    // const frameString = req.body.stackFrameString;
-
-    const operationLog = req.body.operationLog;
-
-    // use loc if available because sourcemaps are buggy...
-    if (operationLog.loc) {
-      locStore.getLoc(operationLog.loc, loc => {
-        resolver.resolveFrameFromLoc(loc).then(rr => {
-          res.end(JSON.stringify(rr));
-        });
+  app.get("/resolveStackFrame/:loc", (req, res) => {
+    locStore.getLoc(req.params.loc, loc => {
+      resolver.resolveFrameFromLoc(loc).then(rr => {
+        res.end(JSON.stringify(rr, null, 4));
       });
-    } else {
-      res.status(500);
-      res.end(
-        JSON.stringify({
-          err:
-            "not supporting non locs anymore, don't use sourcemap (" +
-            operationLog.operation +
-            ")"
-        })
-      );
-      // resolver
-      //   .resolveFrame(frameString)
-      //   .then(rr => {
-      //     res.end(JSON.stringify(rr));
-      //   })
-      //   .catch(err => {
-
-      //   });
-    }
+    });
   });
 
   app.post("/prettify", (req, res) => {
