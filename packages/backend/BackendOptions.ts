@@ -32,10 +32,6 @@ export class BackendOptions {
     return path.resolve(this.sessionDirectory, "tracking-data");
   }
 
-  getRootCertPath() {
-    return path.resolve(this.getCertDirectory(), "certs", "ca.pem");
-  }
-
   getSessionJsonPath() {
     return path.resolve(this.sessionDirectory, "session.json");
   }

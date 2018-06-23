@@ -49,9 +49,6 @@ if (commander.shouldOpenBrowser === "only") {
       if (commander.shouldOpenBrowser === "yes") {
         openBrowser();
       }
-      console.log(
-        "Root certificate for HTTPS: " + backendOptions.getRootCertPath()
-      );
     }
   });
   const backend = new Backend(backendOptions);
@@ -60,6 +57,9 @@ if (commander.shouldOpenBrowser === "only") {
 async function openBrowser() {
   await chromeLauncher.launch({
     startingUrl: "http://localhost:" + bePort,
-    chromeFlags: ["--proxy-server=127.0.0.1:" + proxyPort]
+    chromeFlags: [
+      "--proxy-server=127.0.0.1:" + proxyPort,
+      "--ignore-certificate-errors"
+    ]
   });
 }
