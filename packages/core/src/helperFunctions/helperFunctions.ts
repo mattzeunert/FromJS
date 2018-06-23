@@ -196,6 +196,15 @@ declare var __FUNCTION_NAMES__,
   };
 
   function getTrackingPropName(propName) {
+    if (VERIFY) {
+      try {
+        if (parseFloat(propName) > 200) {
+          console.log(
+            "tracking array index greater than 200...1) perf issue, 2) possibly some kind of infinite loop"
+          );
+        }
+      } catch (err) {}
+    }
     // note: might be worth using Map instead and seeing how perf is affected
     if (typeof propName === "symbol") {
       return propName;
