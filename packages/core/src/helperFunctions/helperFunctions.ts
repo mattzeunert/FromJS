@@ -196,7 +196,7 @@ declare var __FUNCTION_NAMES__,
     }
   }
 
-  const objTrackingMap = new Map();
+  const objTrackingMap = new WeakMap();
   window["__debugObjTrackingMap"] = objTrackingMap;
   function trackObjectPropertyAssignment(
     obj,
