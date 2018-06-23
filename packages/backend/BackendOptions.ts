@@ -39,4 +39,8 @@ export class BackendOptions {
   getLocStorePath() {
     return path.resolve(this.sessionDirectory, "locs");
   }
+
+  getChromeUserDataDirectory() {
+    return path.resolve(this.sessionDirectory, "chrome");
+  }
 }

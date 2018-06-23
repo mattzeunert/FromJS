@@ -34,23 +34,24 @@ let proxyPort = bePort + 1;
 
 process["titl" + "e"] = "FromJS - CLI (" + bePort + ")";
 
+const backendOptions = new BackendOptions({
+  bePort,
+  proxyPort,
+  dontTrack: commander.dontTrack,
+  block: commander.block,
+  sessionDirectory: commander.sessionDirectory,
+  onReady: async function() {
+    if (commander.shouldOpenBrowser === "yes") {
+      openBrowser();
+    }
+  }
+});
+
 if (commander.shouldOpenBrowser === "only") {
   process["titl" + "e"] = "FromJS - CLI (browser only)";
   console.log("Only opening browser with proxy port set to", proxyPort);
   openBrowser();
 } else {
-  const backendOptions = new BackendOptions({
-    bePort,
-    proxyPort,
-    dontTrack: commander.dontTrack,
-    block: commander.block,
-    sessionDirectory: commander.sessionDirectory,
-    onReady: async function() {
-      if (commander.shouldOpenBrowser === "yes") {
-        openBrowser();
-      }
-    }
-  });
   const backend = new Backend(backendOptions);
 }
 
@@ -59,7 +60,8 @@ async function openBrowser() {
     startingUrl: "http://localhost:" + bePort,
     chromeFlags: [
       "--proxy-server=127.0.0.1:" + proxyPort,
-      "--ignore-certificate-errors"
+      "--ignore-certificate-errors",
+      "--user-data-dir=" + backendOptions.getChromeUserDataDirectory()
     ]
   });
 }
