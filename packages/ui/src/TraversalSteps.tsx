@@ -135,7 +135,6 @@ let TraversalSteps = class TraversalSteps extends React.Component<
             onClick={() => enableShowFullDataFlow()}
             style={{
               fontSize: 14,
-              padding: 5,
               cursor: "pointer"
             }}
           >
