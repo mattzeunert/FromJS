@@ -10,7 +10,11 @@ export function resolveStackFrame(operationLog) {
   if (resolveStackFrameCache[operationLog.index]) {
     return Promise.resolve(resolveStackFrameCache[operationLog.index]);
   }
-  return callApi("resolveStackFrame", { operationLog }).then(res => {
+  return callApi(
+    "resolveStackFrame/" + operationLog.loc,
+    {},
+    { method: "GET" }
+  ).then(res => {
     resolveStackFrameCache[operationLog.index] = res;
     return res;
   });
@@ -26,7 +30,7 @@ export function inspectDomChar(charIndex) {
   });
 }
 
-export function callApi(endpoint, data) {
+export function callApi(endpoint, data, extraOptions: any = {}) {
   const requestId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
   function finishRequest() {
     let apiRequestsInProgress = appState
@@ -35,14 +39,20 @@ export function callApi(endpoint, data) {
     appState.set("apiRequestsInProgress", apiRequestsInProgress);
   }
   appState.select("apiRequestsInProgress").push({ endpoint, data, requestId });
-  return fetch(backendRoot + "/" + endpoint, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    } as any,
-    body: JSON.stringify(data)
-  })
+  const requestDetails: any = Object.assign(
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      } as any
+    },
+    extraOptions
+  );
+  if (extraOptions.method !== "GET") {
+    requestDetails.body = JSON.stringify(data);
+  }
+  return fetch(backendRoot + "/" + endpoint, requestDetails)
     .then(r => r.json())
     .then(r => {
       if (r.err) {
