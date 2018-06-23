@@ -288,6 +288,11 @@ const specialValuesForPostprocessing = {
 
     const array = ret;
 
+    if (!Array.isArray(ret)) {
+      // can happen if separator is something like {[Symbol.split]: fn}
+      return;
+    }
+
     // TODO: properly track indices where string came from
     // I thought I could do that by just capturing the string
     // and the separator, but the separator can also be a regexp
