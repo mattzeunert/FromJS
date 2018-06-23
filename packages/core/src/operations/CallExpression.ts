@@ -195,7 +195,7 @@ const specialValuesForPostprocessing = {
     // this will break if inspected code depends on state
     regExp = cloneRegExp(regExp);
 
-    let matches = [];
+    let matches: any[] = [];
     var match;
     while ((match = regExp.exec(object)) != null) {
       matches.push(match);
@@ -208,7 +208,7 @@ const specialValuesForPostprocessing = {
     if (!regExp.global) {
       // non global regexp has group match results:
       // /(a)(b)/.exec("abc") => ["ab", "a", "b"], index 0
-      let newMatches = [];
+      let newMatches: any[] = [];
 
       let index = matches[0].index;
       let fullMatch = matches[0][0];
@@ -918,9 +918,9 @@ export default <any>{
           ctx.global["Response"] &&
           fn === ctx.global.Response.prototype.json
         ) {
-          fn = function() {
-            const response = this;
-            return this.text().then(function(text) {
+          fn = function(this: Response) {
+            const response: Response = this;
+            return response.text().then(function(text) {
               if (text === '{"ok":true}') {
                 return Promise.resolve(JSON.parse(text));
               }
@@ -1144,7 +1144,7 @@ export default <any>{
           };
         case "encodeURIComponent":
           var unencodedString: string = operationLog.args.arg0.result.primitive.toString();
-          var encodedString: string = operationLog.result.primitive.toString();
+          var encodedString: string = operationLog.result.primitive!.toString();
 
           const map = new ValueMapV2(unencodedString);
 
@@ -1156,7 +1156,7 @@ export default <any>{
           return map.getAtResultIndex(charIndex, true);
         case "decodeURIComponent":
           var encodedString: string = operationLog.args.arg0.result.primitive.toString();
-          var unencodedString: string = operationLog.result.primitive.toString();
+          var unencodedString: string = operationLog.result.primitive!.toString();
 
           const m = new ValueMapV2(encodedString);
 

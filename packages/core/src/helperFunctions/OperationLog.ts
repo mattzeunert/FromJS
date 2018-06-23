@@ -38,7 +38,7 @@ export interface SerializedValueData {
   length: any;
   type: string;
   keys?: string[];
-  primitive: number | null | string;
+  primitive: number | null | string | boolean;
   knownValue: string | null;
   knownTypes: null | any[];
 }
@@ -107,14 +107,17 @@ class SerializedValue implements SerializedValueData {
   length: any;
   type: string;
   keys?: string[];
-  primitive: number | null | string;
+  primitive: number | null | string | boolean;
   knownValue: string | null;
   knownTypes: null | any[];
 
-  constructor(data) {
-    Object.keys(data).forEach(key => {
-      this[key] = data[key];
-    });
+  constructor(data: SerializedValueData) {
+    this.length = data.length;
+    this.type = data.type;
+    this.keys = data.keys;
+    this.primitive = data.primitive;
+    this.knownValue = data.knownValue;
+    this.knownTypes = data.knownTypes;
   }
 
   getTruncatedUIString() {
