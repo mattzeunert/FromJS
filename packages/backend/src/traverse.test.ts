@@ -648,6 +648,35 @@ describe("String.prototype.split", () => {
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t1LastStep.charIndex).toBe(8);
   });
+  it("Can traverse string split result when passing in an object with a Symbol.split function ", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const separator = {
+        [Symbol.split]: function(str){
+          return [str.slice(0,1), str.slice(1)]
+        }
+      }
+      return "something".split(separator)[1]
+    `);
+
+    expect(normal).toBe("omething");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(2);
+  });
+  it("It doesn't break when Symbol.split function doesn't return an array", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const separator = {
+        [Symbol.split]: function(str){
+          return 123
+        }
+      }
+      return "something".split(separator)
+    `);
+
+    expect(normal).toBe(123);
+  });
 });
 
 it("Traverses array correctly after calling shift on it", async () => {

@@ -1,7 +1,6 @@
 import * as OperationTypes from "./OperationTypes";
 import { instrumentAndRun } from "./testHelpers";
 import { compileSync } from "./compile";
-import { assignmentExpression } from "@babel/types";
 
 test("adds 1 + 2 to equal 3", done => {
   instrumentAndRun("return 1 + 2").then(({ normal, tracking }) => {
