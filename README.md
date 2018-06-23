@@ -12,7 +12,7 @@ This is how you use it: open any web page, select an element with the DOM inspec
 
 Install FromJS:
 
-Yarn: `sudo yarn global add @fromjs/cli`
+Yarn: `sudo yarn global add @fromjs/cli`  
 NPM: `sudo npm install -g @fromjs/cli --unsafe-perm` [(Why unsafe-perm?)](https://github.com/mattzeunert/FromJS/issues/93)
 
 Run FromJS: `fromjs` - this will open a Chrome browser window
