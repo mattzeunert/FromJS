@@ -119,7 +119,7 @@ let App = props => {
               api.setEnableInstrumentation(!props.enableInstrumentation);
             }}
           >
-            {props.enableInstrumentation ? "Disable" : "Enable"} instrumentation
+            {props.enableInstrumentation ? "Disable" : "Enable"} tracking
           </button>
         </div>
       </div>
