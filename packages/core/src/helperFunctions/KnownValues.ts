@@ -30,7 +30,8 @@ export default class KnownValues {
       encodeURIComponent: encodeURIComponent,
       decodeURIComponent: decodeURIComponent,
       undefined: undefined,
-      null: null
+      null: null,
+      fetch: fetch
     });
 
     var global = Function("return this")();

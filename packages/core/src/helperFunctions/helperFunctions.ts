@@ -33,6 +33,10 @@ declare var __FUNCTION_NAMES__,
 
   let knownValues = new KnownValues();
 
+  // Make sure to use native methods in case browser methods get
+  // overwritten (e.g. NewRelic instrumentation does it)
+  let fetch = knownValues.getValue("fetch");
+
   function postToBE(endpoint, data) {
     const body = JSON.stringify(data);
     if (endpoint === "/storeLogs") {
