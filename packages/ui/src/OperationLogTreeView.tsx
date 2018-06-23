@@ -2,7 +2,7 @@ import * as React from "react";
 import { resolveStackFrame } from "./api";
 import operations from "../../core/src/operations";
 import { template } from "lodash";
-import FEOperationLog from "./FEOperationLogs";
+import OperationLog from "../../core/src/helperFunctions/OperationLog";
 
 type OperationLogTreeViewProps = {
   operationLog: any;
@@ -154,7 +154,7 @@ function renderTree(log, containerSelector) {
 
     var resVal;
     if (data) {
-      resVal = (data as FEOperationLog).result;
+      resVal = (data as OperationLog).result;
     } else {
       // debugger;
       resVal = {

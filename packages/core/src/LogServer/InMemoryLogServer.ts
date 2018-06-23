@@ -23,7 +23,7 @@ export default class InMemoryLogServer extends LogServer {
 
     // deep clone log so we can modify it without affecting the original
     // possibly slow, can fix later
-    log = JSON.parse(JSON.stringify(log));
+    log = new OperationLog(JSON.parse(JSON.stringify(log)));
     fn(null, log);
   }
 }

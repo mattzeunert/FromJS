@@ -9,7 +9,7 @@ import { truncate } from "lodash";
 import { selectAndTraverse } from "./actions";
 import * as cx from "classnames";
 import "./TraversalStep.scss";
-import FEOperationLog from "./FEOperationLogs";
+import OperationLog from "../../core/src/helperFunctions/OperationLog";
 
 function getFileNameFromPath(path) {
   const parts = path.split("/");
@@ -211,7 +211,7 @@ let TraversalStep = class TraversalStep extends React.Component<
                 Inspect input/output values:
               </div>
               {this.getAllArgs().map(({ name, value }) => {
-                value = value && new FEOperationLog(value);
+                value = value && new OperationLog(value);
                 const canInspect = !!value;
                 return (
                   <div
