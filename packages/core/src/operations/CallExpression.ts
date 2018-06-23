@@ -330,14 +330,15 @@ const specialValuesForPostprocessing = {
   }) => {
     const arrayLengthBeforePush = object.length - fnArgs.length;
     fnArgs.forEach((arg, i) => {
+      const arrayIndex = arrayLengthBeforePush + i;
       ctx.trackObjectPropertyAssignment(
         object,
-        arrayLengthBeforePush + i,
+        arrayIndex,
         arg,
         ctx.createOperationLog({
           operation: ctx.operationTypes.arrayIndex,
           args: {},
-          result: arrayLengthBeforePush + i,
+          result: arrayIndex,
           astArgs: {},
           loc: logData.loc
         })
@@ -920,7 +921,11 @@ export default <any>{
         ) {
           fn = function(this: Response) {
             const response: Response = this;
-            return response.text().then(function(text) {
+            let then = ctx.knownValues.getValue("Promise.prototype.then");
+            const p = ctx.knownValues
+              .getName("Response.prototype.text")
+              .apply(response);
+            return then.call(p, function(text) {
               if (text === '{"ok":true}') {
                 return Promise.resolve(JSON.parse(text));
               }

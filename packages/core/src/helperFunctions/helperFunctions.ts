@@ -36,6 +36,7 @@ declare var __FUNCTION_NAMES__,
   // Make sure to use native methods in case browser methods get
   // overwritten (e.g. NewRelic instrumentation does it)
   let fetch = knownValues.getValue("fetch");
+  let then = knownValues.getValue("Promise.prototype.then");
 
   function postToBE(endpoint, data) {
     const body = JSON.stringify(data);
@@ -49,7 +50,7 @@ declare var __FUNCTION_NAMES__,
       );
     }
 
-    return fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
+    const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
       method: "POST",
       headers: new Headers({
         Accept: "application/json",
@@ -57,7 +58,12 @@ declare var __FUNCTION_NAMES__,
         Authorization: accessToken
       }),
       body: body
-    }).then(res => res.json());
+    });
+    then.call(p, res =>
+      knownValues.getValue("Response.prototype.json").apply(res)
+    );
+
+    return p;
   }
 
   let logQueue = [];
