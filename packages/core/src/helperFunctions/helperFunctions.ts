@@ -81,7 +81,11 @@ declare var __FUNCTION_NAMES__,
     logQueue = [];
     evalScriptQueue = [];
   }
-  setInterval(sendLogsToServer, 200);
+  // If page laods quickly try to send data to BE soon, later on wait
+  // 1s between requests
+  setTimeout(sendLogsToServer, 200);
+  setTimeout(sendLogsToServer, 400);
+  setInterval(sendLogsToServer, 1000);
   function remotelyStoreLog(log) {
     logQueue.push(log);
   }
