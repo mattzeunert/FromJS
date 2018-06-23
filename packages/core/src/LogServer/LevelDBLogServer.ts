@@ -40,7 +40,7 @@ export default class LevelDBLogServer extends LogServer {
         return;
       }
       value = JSON.parse(value.toString());
-      fn(null, value);
+      fn(null, new OperationLog(value));
     });
   }
 }

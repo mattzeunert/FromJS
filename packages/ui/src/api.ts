@@ -1,7 +1,7 @@
 import appState from "./appState";
 import { selectInspectedDomCharIndex, selectAndTraverse } from "./actions";
-import FEOperationLog from "./FEOperationLogs";
 import { debounce } from "lodash";
+import OperationLog from "../../core/src/helperFunctions/OperationLog";
 
 let backendPort = window["backendPort"];
 let backendRoot = "http://localhost:" + backendPort;
@@ -90,7 +90,7 @@ function makeFEOperationLog(log) {
     log.extraArgs = newExtraArgs;
   }
 
-  return new FEOperationLog(log);
+  return new OperationLog(log);
 }
 
 export function loadSteps({ logId, charIndex }) {

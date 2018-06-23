@@ -14,28 +14,48 @@ export const getOperationIndex = (function() {
   };
 })();
 
-// TODO: don't copy/paste this
-function eachArgument(args, arrayArguments, fn) {
-  Object.keys(args).forEach(key => {
-    if (arrayArguments.includes(key)) {
-      args[key].forEach((a, i) => {
-        fn(a, "element" + i, newValue => (args[key][i] = newValue));
-      });
-    } else {
-      fn(args[key], key, newValue => (args[key] = newValue));
-    }
-  });
-}
-
-function serializeValue(value, knownValues: KnownValues): SerializedValue {
+function serializeValue(
+  value,
+  knownValues: KnownValues
+): StoredSerializedValue {
   // todo: consider accessing properties that are getters could have negative impact...
 
-  var knownValue: null | string = knownValues.getName(value);
+  const type = typeof value;
+
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean" ||
+    value === null
+  ) {
+    return value;
+  }
+
+  return getSerializedValueObject(value, type, knownValues);
+}
+
+export interface SerializedValueData {
+  length: any;
+  type: string;
+  keys?: string[];
+  primitive: number | null | string;
+  knownValue: string | null;
+  knownTypes: null | any[];
+}
+
+type StoredSerializedValue = SerializedValueData | string | number | boolean;
+
+function getSerializedValueObject(value, type, knownValues) {
+  var knownValue: null | string = knownValues && knownValues.getName(value);
+
+  if (type === null) {
+    type = typeof value;
+  }
 
   var length;
 
   if (
-    typeof value === "string" ||
+    typeof value == "string" ||
     (typeof value === "object" && value !== null && "length" in value)
   ) {
     // need try catch because you e.g. NodeList has length but you can't acces it
@@ -44,8 +64,6 @@ function serializeValue(value, knownValues: KnownValues): SerializedValue {
       length = value.length;
     } catch (err) {}
   }
-
-  var type = typeof value;
 
   var knownTypes: any[] | null = null;
   if (
@@ -57,10 +75,9 @@ function serializeValue(value, knownValues: KnownValues): SerializedValue {
   }
 
   var primitive = "";
-  if (["string", "null", "number", "boolean"].includes(type)) {
+  if (["string", "number", "boolean", "null"].includes(type)) {
     primitive = value;
   }
-  let str;
   let keys;
   try {
     if (type === "object" && value !== null) {
@@ -69,14 +86,14 @@ function serializeValue(value, knownValues: KnownValues): SerializedValue {
       // also: when inspecting i really want the trakcing data for
       // values/keys to be accessible, so maybe just storing keys makes more sense
       keys = Object.keys(value);
-      if (keys.length > 6) {
-        keys = keys.slice(0, 6);
+      if (keys.length > 5) {
+        keys = keys.slice(0, 5);
         keys.push("...");
       }
     }
   } catch (err) {}
 
-  return <SerializedValue>{
+  return <SerializedValueData>{
     length,
     type,
     primitive,
@@ -86,18 +103,54 @@ function serializeValue(value, knownValues: KnownValues): SerializedValue {
   };
 }
 
-export interface SerializedValue {
+class SerializedValue implements SerializedValueData {
   length: any;
   type: string;
   keys?: string[];
   primitive: number | null | string;
   knownValue: string | null;
   knownTypes: null | any[];
+
+  constructor(data) {
+    Object.keys(data).forEach(key => {
+      this[key] = data[key];
+    });
+  }
+
+  getTruncatedUIString() {
+    if (["string", "null", "number", "boolean"].includes(this.type)) {
+      let ret = this.primitive + "";
+      if (ret.length > 200) {
+        return ret.slice(0, 200);
+      } else {
+        return ret;
+      }
+    }
+    let str = "[" + this.type + "]";
+    if (this.keys && this.keys.length > 0) {
+      str += " {" + this.keys.join(", ") + "}";
+    }
+    return str;
+
+    // return "[" + this.type + "]" + " {" + this.keys.join(", ") + "}";
+  }
 }
 
-export default class OperationLog {
+interface OperationLogInterface {
   operation: string;
-  result: SerializedValue;
+  _result: StoredSerializedValue;
+  args: any;
+  extraArgs: any;
+  index: number;
+  astArgs: any;
+  stackFrames: string[];
+  loc: any;
+  runtimeArgs: any;
+}
+
+export default class OperationLog implements OperationLogInterface {
+  operation: string;
+  _result: StoredSerializedValue;
   args: any;
   extraArgs: any;
   index: number;
@@ -106,80 +159,122 @@ export default class OperationLog {
   loc: any;
   runtimeArgs: any;
 
+  get result(): SerializedValue {
+    const resultIsSerializedValueObject =
+      !["string", "boolean", "number"].includes(typeof this._result) &&
+      this._result !== null &&
+      "type" in <any>this._result &&
+      "knownValue" in <any>this._result;
+
+    let sv: SerializedValueData;
+    if (resultIsSerializedValueObject) {
+      sv = <SerializedValueData>this._result;
+    } else {
+      sv = getSerializedValueObject(this._result, null, null);
+    }
+
+    return new SerializedValue(sv);
+  }
+
+  static createAtRuntime;
+
   constructor({
     operation,
-    result,
+    _result,
     args,
     astArgs,
     extraArgs,
     stackFrames,
     loc,
-    knownValues,
     runtimeArgs,
     index
   }) {
-    var arrayArguments: any[] = [];
-    if (operation === "arrayExpression") {
-      arrayArguments = ["elements"];
-    }
-
-    if (VERIFY && !loc) {
-      console.log("no loc at runtime for operation", operation);
-    }
-
     this.stackFrames = stackFrames;
 
     this.operation = operation;
-    this.result = serializeValue(result, knownValues);
-    if (operation === "objectExpression" && args.properties) {
-      // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
-      args.properties = args.properties.map(prop => {
-        return {
-          key: prop.key[1],
-          type: prop.type[1],
-          value: prop.value[1]
-        };
-      });
-    } else {
-      // only store argument operation log because ol.result === a[0]
-      eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
-        if (
-          VERIFY &&
-          typeof arg[1] !== "number" &&
-          arg[1] !== null &&
-          arg[1] !== undefined &&
-          arg[1] !== false
-        ) {
-          debugger;
-          throw Error(
-            "no arg operationlog found, did you only pass in an operationlog"
-          );
-        }
-        updateArg(arg[1]);
-      });
-    }
-    if (typeof extraArgs === "object") {
-      eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
-        if (
-          VERIFY &&
-          typeof arg[1] !== "number" &&
-          arg[1] !== null &&
-          arg[1] !== undefined &&
-          arg[1] !== false
-        ) {
-          debugger;
-          throw Error(
-            "no arg operationlog found, did you only pass in an operationlog"
-          );
-        }
-        updateArg(arg[1]);
-      });
-    }
+    this._result = _result;
     this.runtimeArgs = runtimeArgs;
     this.loc = loc;
     this.args = args;
     this.astArgs = astArgs;
     this.extraArgs = extraArgs;
     this.index = index;
+  }
+}
+OperationLog.createAtRuntime = function(
+  { operation, result, args, astArgs, extraArgs, loc, runtimeArgs, index },
+  knownValues
+): OperationLogInterface {
+  var arrayArguments: any[] = [];
+  if (operation === "arrayExpression") {
+    arrayArguments = ["elements"];
+  }
+
+  if (VERIFY && !loc) {
+    console.log("no loc at runtime for operation", operation);
+  }
+
+  if (operation === "objectExpression" && args.properties) {
+    // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
+    args.properties = args.properties.map(prop => {
+      return {
+        key: prop.key[1],
+        type: prop.type[1],
+        value: prop.value[1]
+      };
+    });
+  } else {
+    // only store argument operation log because ol.result === a[0]
+    eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
+      verifyArg(arg);
+      updateArg(arg[1]);
+    });
+  }
+  if (typeof extraArgs === "object") {
+    eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
+      verifyArg(arg);
+      updateArg(arg[1]);
+    });
+  }
+
+  return <OperationLogInterface>{
+    operation,
+    _result: serializeValue(result, knownValues),
+    index,
+    extraArgs,
+    args,
+    astArgs,
+    loc,
+    runtimeArgs
+  };
+};
+
+// TODO: don't copy/paste this
+function eachArgument(args, arrayArguments, fn) {
+  const keys = Object.keys(args);
+  for (var i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    if (arrayArguments.includes(key)) {
+      args[key].forEach((a, i) => {
+        fn(a, "element" + i, newValue => (args[key][i] = newValue));
+      });
+    } else {
+      fn(args[key], key, newValue => (args[key] = newValue));
+    }
+  }
+}
+
+function verifyArg(arg) {
+  if (
+    VERIFY &&
+    typeof arg[1] !== "number" &&
+    arg[1] !== null &&
+    arg[1] !== undefined &&
+    arg[1] !== false
+  ) {
+    debugger;
+    throw Error(
+      "no arg operationlog found, did you only pass in an operationlog"
+    );
   }
 }
