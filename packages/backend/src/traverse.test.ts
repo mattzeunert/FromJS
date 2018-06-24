@@ -494,7 +494,7 @@ describe("Array.slice", () => {
   });
 });
 
-describe("Array.map", () => {
+describe("Array.prototype.map", () => {
   it("Passes values through to mapping function", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         var arr = ["1", "2"]
@@ -515,6 +515,31 @@ describe("Array.map", () => {
         }, "x")[0]
       `);
     expect(normal).toBe("102x");
+  });
+});
+
+describe("Array.prototype.filter", () => {
+  it("Passes values through to filter function and tracks result values", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["1", "2", "3", "4"]
+        let v
+        const greaterThan2 = arr.filter(function(value){
+          
+          v = value
+          console.log({v, v___tv})
+          return parseFloat(value) > 2
+        })
+        return v + "-" + greaterThan2[0]
+      `);
+    expect(normal).toBe("4-3");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 2 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
   });
 });
 

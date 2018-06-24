@@ -1046,6 +1046,36 @@ export default <any>{
           };
         }
 
+        let filterResults;
+        if (fn === ctx.knownValues.getValue("Array.prototype.filter")) {
+          filterResults = [];
+
+          const originalFilterFunction = fnArgValuesForApply[0];
+
+          fnArgValuesForApply[0] = function(element, index, array, thisArg) {
+            const ret = ctx.global[doOperation](
+              "callExpression",
+              {
+                context: [ctx.global, null],
+                function: [originalFilterFunction, null],
+                arg0: [
+                  element,
+                  ctx.getObjectPropertyTrackingValue(array, index)
+                ],
+                arg1: [index, null],
+                arg2: [array, null],
+                arg3: [thisArg, null]
+              },
+              {},
+              logData.loc
+            );
+
+            filterResults.push(ret);
+
+            return ret;
+          };
+        }
+
         const lastReturnStatementResultBeforeCall =
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
         ret = fn.apply(object, fnArgValuesForApply);
@@ -1104,6 +1134,27 @@ export default <any>{
         }
         if (fn === ctx.knownValues.getValue("Array.prototype.reduce")) {
           retT = reduceResultTrackingValue;
+        }
+        if (fn === ctx.knownValues.getValue("Array.prototype.filter")) {
+          let resultArrayIndex = 0;
+          object.forEach(function(originalArrayItem, originalArrayIndex) {
+            if (filterResults[originalArrayIndex]) {
+              ctx.trackObjectPropertyAssignment(
+                ret,
+                resultArrayIndex,
+                ctx.getObjectPropertyTrackingValue(object, originalArrayIndex),
+                ctx.createOperationLog({
+                  operation: ctx.operationTypes.arrayIndex,
+                  args: {},
+                  result: resultArrayIndex,
+                  astArgs: {},
+                  loc: logData.loc
+                })
+              );
+
+              resultArrayIndex++;
+            }
+          });
         }
       }
     }
