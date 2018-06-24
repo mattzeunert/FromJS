@@ -1182,6 +1182,11 @@ export default <any>{
 
     if (knownFunction) {
       switch (knownFunction) {
+        case "String.prototype.toString":
+          return {
+            operationLog: operationLog.args.context,
+            charIndex
+          };
         case "String.prototype.slice":
           return {
             operationLog: operationLog.args.context,

@@ -799,3 +799,18 @@ describe("String.prototype.substring", () => {
     expect(t1LastStep.charIndex).toBe(2);
   });
 });
+
+describe("String.prototype.toString", () => {
+  it("Traverses toString call", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    return "abcd".toString()
+  `);
+
+    expect(normal).toBe("abcd");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(1);
+  });
+});
