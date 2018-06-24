@@ -39,6 +39,16 @@ describe("try catch", () => {
   });
 });
 
+test("Does not break obj.val -=", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    var obj = {val: 5}
+    obj.val -= 2
+    return obj.val
+  `);
+
+  expect(normal).toBe(3);
+});
+
 describe("UnaryExpression", () => {
   test("Can handle ++ unary expresion", done => {
     instrumentAndRun(`
