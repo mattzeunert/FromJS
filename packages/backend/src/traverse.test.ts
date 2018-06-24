@@ -354,6 +354,17 @@ describe("String.prototype.trim", () => {
     const tLastStep = t[t.length - 1];
     expect(tLastStep.charIndex).toBe(2);
   });
+  it.only("Doesn't break when called with apply", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var str = " a"
+      return String.prototype.trim.apply(str, [])
+    `);
+    expect(normal).toBe("a");
+    var t = await traverse({ operationLog: tracking, charIndex: 0 });
+
+    const tLastStep = t[t.length - 1];
+    expect(tLastStep.charIndex).toBe(1);
+  });
 });
 
 it("Can traverse arguments fn.apply(this, arguments)", async () => {
