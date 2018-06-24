@@ -50,19 +50,39 @@ test("Can track concatenation of 'a' and 'b' in an add function", async () => {
   ]);
 });
 
-test("Can track values through object assignments", async () => {
-  const { normal, tracking, code } = await instrumentAndRun(`
-    var obj = {}
-    obj.a = "x"
+describe("Assignment Expressions", () => {
+  test("Can track values through object assignments", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = {}
+      obj.a = "x"
+      return obj.a
+    `);
+    var t = await traverse({ operationLog: tracking, charIndex: 0 });
+
+    expect(getStepTypeList(t)).toEqual([
+      "memberExpression",
+      "assignmentExpression",
+      "stringLiteral"
+    ]);
+  });
+  test("Can traverse += operation for object assignments", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    var obj = { a: "a" }
+    obj.a += "b"
     return obj.a
   `);
-  var t = await traverse({ operationLog: tracking, charIndex: 0 });
 
-  expect(getStepTypeList(t)).toEqual([
-    "memberExpression",
-    "assignmentExpression",
-    "stringLiteral"
-  ]);
+    expect(normal).toBe("ab");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("a");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t2LastStep.operationLog.result.primitive).toBe("b");
+  });
 });
 
 test("Can track values through object literals", async () => {
