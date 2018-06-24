@@ -33,6 +33,12 @@ export default <any>{
           object: [obj, objT],
           propertyName: [propName, propNameT]
         },
+        extraArgs: {
+          propertyValue: [
+            currentValue,
+            ctx.getObjectPropertyTrackingValue(obj, propName)
+          ]
+        },
         astArgs: {},
         result: currentValue,
         loc: logData.loc
@@ -63,14 +69,14 @@ export default <any>{
         obj,
         propName,
         ctx.createOperationLog({
-          result: args.argument[0],
+          result: ret,
           operation: "assignmentExpression",
           args: {
             currentValue: [currentValue, currentValueT],
             argument: args.argument
           },
           astArgs: {
-            operator: "="
+            operator
           },
           loc: logData.loc,
           argTrackingValues: [currentValueT, args.argument[1]],

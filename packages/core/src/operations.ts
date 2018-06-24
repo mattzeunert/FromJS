@@ -600,7 +600,14 @@ const operations: Operations = {
       return skipPath(this.createNode!(args, astArgs, path.node.loc));
     }
   },
-  memexpAsLeftAssExp: {},
+  memexpAsLeftAssExp: {
+    traverse(operationLog: OperationLog, charIndex: number) {
+      return {
+        operationLog: operationLog.extraArgs.propertyValue,
+        charIndex
+      };
+    }
+  },
   splitResult: {
     traverse(operationLog: OperationLog, charIndex) {
       const originalString = operationLog.args.string.result.primitive;
