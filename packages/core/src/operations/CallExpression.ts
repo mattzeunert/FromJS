@@ -1395,14 +1395,6 @@ const CallExpression = <any>{
             charIndex: match.charIndex,
             operationLog: match.origin
           };
-
-        case "String.prototype.match":
-          operationLog;
-          charIndex;
-          var resMap = new ValueMapV2(
-            operationLog.args.object.result.primitive.toString()
-          );
-          debugger;
         case "String.prototype.replace":
           // I'm not 100% confident about this code, but it works for now
 
