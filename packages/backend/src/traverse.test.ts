@@ -672,6 +672,25 @@ describe("Array.prototype.reduce", () => {
     expect(t2LastStep.operationLog.result.primitive).toBe("cc");
     expect(t2LastStep.charIndex).toBe(1);
   });
+  it("It works when not passing in an initial value", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return ["a", "b", "c"].reduce(function(ret, param){
+          return ret + param
+        })
+      `);
+
+    expect(normal).toBe("abc");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("a");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 2 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.result.primitive).toBe("c");
+    expect(t2LastStep.charIndex).toBe(0);
+  });
 });
 
 describe("String.prototype.split", () => {
