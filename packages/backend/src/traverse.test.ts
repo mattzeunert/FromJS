@@ -354,7 +354,7 @@ describe("String.prototype.trim", () => {
     const tLastStep = t[t.length - 1];
     expect(tLastStep.charIndex).toBe(2);
   });
-  it.only("Doesn't break when called with apply", async () => {
+  it("Doesn't break when called with apply", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       var str = " a"
       return String.prototype.trim.apply(str, [])
@@ -779,6 +779,18 @@ describe("String.prototype.split", () => {
   it("Can traverse string split result array ", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         return "hello--world".split("--")[1]
+      `);
+
+    expect(normal).toBe("world");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(8);
+  });
+  it("Can traverse string split result array when called with apply", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return String.prototype.split.apply("hello--world", ["--"])[1]
       `);
 
     expect(normal).toBe("world");
