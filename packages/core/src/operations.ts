@@ -535,7 +535,11 @@ const operations: Operations = {
       }
     },
     exec: (args, astArgs, ctx: ExecContext, logData) => {
-      if (astArgs && astArgs.isArguments) {
+      if (
+        astArgs &&
+        astArgs.isArguments &&
+        !ctx.objectHasPropertyTrackingData(args.value[0])
+      ) {
         if (args.allFnArgTrackingValues[0]) {
           args.allFnArgTrackingValues[0].forEach((trackingValue, i) => {
             ctx.trackObjectPropertyAssignment(

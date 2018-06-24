@@ -24,6 +24,7 @@ export interface ExecContext {
     nameTrackingValue?: number | OperationLog
   );
   lastReturnStatementResult: any;
+  objectHasPropertyTrackingData: (obj: any) => boolean;
   readonly lastOpTrackingResultWithoutResetting;
   readonly lastOpTrackingResult: any;
   readonly lastOperationType: string;

@@ -443,14 +443,14 @@ const specialValuesForPostprocessing = {
   }) => {
     // Note: O(n) is not very efficient...
     const array = object;
-    array.forEach((item, i) => {
+    for (var i = 0; i < array.length; i++) {
       ctx.trackObjectPropertyAssignment(
         array,
         i.toString(),
         ctx.getObjectPropertyTrackingValue(array, i + 1),
         ctx.getObjectPropertyNameTrackingValue(array, i + 1)
       );
-    });
+    }
   },
   "Array.prototype.slice": ({
     object,
