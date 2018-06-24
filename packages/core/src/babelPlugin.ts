@@ -208,6 +208,17 @@ function plugin(babel) {
       });
     },
 
+    CatchClause(path) {
+      const errName = path.node.param.name;
+      // We don't track anything, but this var has to exist to avoid "err___tv is undeclared" errors
+      const trackingVarDec = skipPath(
+        t.variableDeclaration("var", [
+          t.variableDeclarator(t.identifier(getTrackingVarName(errName)))
+        ])
+      );
+      path.node.body.body.push(trackingVarDec);
+    },
+
     ForInStatement(path) {
       if (path.node.ignore) return;
 
