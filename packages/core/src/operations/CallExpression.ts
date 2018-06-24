@@ -604,11 +604,12 @@ const specialValuesForPostprocessing = {
               indexInOriginalArray.toString()
             )
           );
+          i++;
         });
       } else {
         trackProp(i, concatValue, fnArgs[valueIndex - 1]);
+        i++;
       }
-      i++;
     });
   },
   "document.createElement": ({
