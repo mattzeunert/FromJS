@@ -606,6 +606,7 @@ const specialValuesForPostprocessing = {
           );
         });
       } else {
+        trackProp(i, concatValue, fnArgs[valueIndex - 1]);
       }
       i++;
     });
