@@ -47,7 +47,7 @@ export default <any>{
           ret = obj[propName] = obj[propName] + argument;
           break;
         case "-=":
-          ret = obj[propName] = obj[propName] + argument;
+          ret = obj[propName] = obj[propName] - argument;
           break;
         case "|=":
           ret = obj[propName] = obj[propName] |= argument;
