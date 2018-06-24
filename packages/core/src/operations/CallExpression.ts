@@ -16,6 +16,7 @@ import { VERIFY } from "../config";
 import { doOperation } from "../FunctionNames";
 import OperationLog from "../helperFunctions/OperationLog";
 import * as cloneRegExp from "clone-regexp";
+import { callExpression } from "@babel/types";
 
 function countGroupsInRegExp(re) {
   // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
@@ -465,13 +466,20 @@ const specialValuesForPostprocessing = {
     const resultArray = ret;
     const inputArray = object;
 
-    let startIndex = fnArgValues[0];
-    if (startIndex < 0) {
-      startIndex = inputArray.length + startIndex;
-    }
-    let endIndex = fnArgValues[0];
-    if (endIndex < 0) {
-      endIndex = inputArray.length + endIndex;
+    let startIndex, endIndex;
+
+    if (fnArgValues.length === 0) {
+      startIndex = 0;
+      endIndex = resultArray.length;
+    } else {
+      startIndex = fnArgValues[0];
+      if (startIndex < 0) {
+        startIndex = inputArray.length + startIndex;
+      }
+      endIndex = fnArgValues[0];
+      if (endIndex < 0) {
+        endIndex = inputArray.length + endIndex;
+      }
     }
 
     function makeTrackingValue(result, valueTv) {
@@ -784,7 +792,7 @@ class ValueMapV2 {
   }
 }
 
-export default <any>{
+const CallExpression = <any>{
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
     function makeFunctionArgument([value, trackingValue]) {
       return ctx.createOperationLog({
@@ -818,18 +826,32 @@ export default <any>{
 
     var object = context[0];
 
-    if (fn === Function.prototype.call) {
-      fnArgs = fnArgs.slice(1);
-    } else if (fn === Function.prototype.apply) {
+    const functionIsCall = fn === Function.prototype.call;
+    const functionIsApply = fn === Function.prototype.apply;
+    const functionIsCallOrApply = functionIsCall || functionIsApply;
+
+    // There are basically two sets of arguments:
+    // 1) The args passed into callExpression.exec
+    // 2) The args passed into .apply/argTrackingValues, and used for special case handlers
+    let fnAtInvocation = functionIsCallOrApply ? context[0] : fn;
+    let fnArgsAtInvocation = fnArgs;
+    let fnArgValuesAtInvocation = fnArgValues;
+
+    if (functionIsCall) {
+      fnArgsAtInvocation = fnArgs.slice(1);
+      fnArgValuesAtInvocation = fnArgValues.slice(1);
+    } else if (functionIsApply) {
       const argArray = fnArgValues[1] || [];
       if (!("length" in argArray)) {
         // hmm can this even happen in a program that's not already broken?
         console.log("can this even happen?");
-        fnArgs = [];
+        fnArgsAtInvocation = [];
       } else {
-        fnArgs = [];
+        fnArgsAtInvocation = [];
+        fnArgValuesAtInvocation = [];
         for (let i = 0; i < argArray.length; i++) {
-          fnArgs.push(
+          fnArgValuesAtInvocation.push(argArray[i]);
+          fnArgsAtInvocation.push(
             makeFunctionArgument([
               argArray[i],
               ctx.getObjectPropertyTrackingValue(argArray, i)
@@ -838,9 +860,8 @@ export default <any>{
         }
       }
     }
-    let argTrackingInfo = fnArgs;
 
-    ctx.argTrackingInfo = argTrackingInfo;
+    ctx.argTrackingInfo = fnArgsAtInvocation;
 
     const extraTrackingValues: any = {};
 
@@ -878,21 +899,49 @@ export default <any>{
         loc: logData.loc
       });
     } else {
-      const fnKnownValue = ctx.knownValues.getName(fn);
+      const fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
+      let specialCaseArgs = getSpecialCaseArgs();
+
+      function getSpecialCaseArgs() {
+        if (!fnKnownValue) {
+          return;
+        }
+
+        if (
+          !specialCases[fnKnownValue] &&
+          !specialValuesForPostprocessing[fnKnownValue]
+        ) {
+          return;
+        }
+
+        const specialCaseArgs = {
+          fn,
+          ctx,
+          object,
+          fnArgs: fnArgsAtInvocation,
+          fnArgValues: fnArgValuesAtInvocation,
+          args,
+          extraTrackingValues,
+          logData,
+          context,
+          ret,
+          retT
+        };
+        if (functionIsCallOrApply) {
+          specialCaseArgs.fn = object;
+          specialCaseArgs.object = fnArgValues[0];
+          specialCaseArgs.context = [fnArgs[0], fnArgValues[0]];
+        }
+
+        return specialCaseArgs;
+      }
+
       if (
         specialCases[fnKnownValue] &&
         (fnKnownValue !== "String.prototype.replace" ||
           ["string", "number"].includes(typeof fnArgValues[1]))
       ) {
-        const r = specialCases[fnKnownValue]({
-          fn,
-          ctx,
-          object,
-          fnArgValues,
-          args,
-          extraTrackingValues,
-          logData
-        });
+        const r = specialCases[fnKnownValue](specialCaseArgs);
         ret = r[0];
         retT = r[1];
       } else {
@@ -913,7 +962,7 @@ export default <any>{
           }
         }
 
-        if (fn === ctx.global["fetch"]) {
+        if (fnKnownValue === "fetch") {
           // not super accurate but until there's a proper solution
           // let's pretend we can match the fetch call
           // to the response value via the url
@@ -925,10 +974,7 @@ export default <any>{
           ctx.global["__fetches"][url] = logData.index;
         }
 
-        if (
-          ctx.global["Response"] &&
-          fn === ctx.global.Response.prototype.json
-        ) {
+        if (fnKnownValue === "Response.prototype.json") {
           fn = function(this: Response) {
             const response: Response = this;
             let then = ctx.knownValues.getValue("Promise.prototype.then");
@@ -973,13 +1019,33 @@ export default <any>{
 
         let fnArgValuesForApply = fnArgValues;
 
+        function setFnArgForApply(argIndex, argValue) {
+          if (functionIsApply) {
+            const argList = fnArgValuesForApply[1].slice();
+            argList[argIndex] = argValue;
+          } else if (functionIsCall) {
+            fnArgValuesForApply[argIndex + 1] = argValue;
+          } else {
+            fnArgValuesForApply[argIndex] = argValue;
+          }
+        }
+        function getFnArgForApply(argIndex) {
+          if (functionIsApply) {
+            const argList = fnArgValuesForApply[1];
+            return argList[argIndex];
+          } else if (functionIsCall) {
+            return fnArgValuesForApply[argIndex + 1];
+          } else {
+            return fnArgValuesForApply[0];
+          }
+        }
+
         let mapResultTrackingValues;
-        if (fn === ctx.knownValues.getValue("Array.prototype.map")) {
+        if (fnKnownValue === "Array.prototype.map") {
           mapResultTrackingValues = [];
           fnArgValuesForApply = fnArgValues.slice();
-          const originalMappingFunction = fnArgValuesForApply[0];
-          const array = object;
-          fnArgValuesForApply[0] = function(item, index) {
+          const originalMappingFunction = getFnArgForApply(0);
+          setFnArgForApply(0, function(this: any, item, index, array) {
             const itemTrackingInfo = ctx.getObjectPropertyTrackingValue(
               array,
               index.toString()
@@ -993,7 +1059,7 @@ export default <any>{
             const ret = ctx.global[doOperation](
               "callExpression",
               {
-                context: context,
+                context: this,
                 function: [originalMappingFunction, null],
                 arg0: [item, itemTrackingInfo, null],
                 arg1: [index, null],
@@ -1005,12 +1071,12 @@ export default <any>{
             mapResultTrackingValues.push(ctx.lastOpTrackingResult);
 
             return ret;
-          };
+          });
         }
 
         let reduceResultTrackingValue;
         let reduceResultNormalValue;
-        if (fn === ctx.knownValues.getValue("Array.prototype.reduce")) {
+        if (fnKnownValue === "Array.prototype.reduce") {
           if (fnArgs.length > 1) {
             reduceResultTrackingValue = fnArgs[1];
             reduceResultNormalValue = fnArgValues[1];
@@ -1024,9 +1090,9 @@ export default <any>{
             );
           }
 
-          const originalReduceFunction = fnArgValuesForApply[0];
+          const originalReduceFunction = getFnArgForApply(0);
 
-          fnArgValuesForApply[0] = function(
+          setFnArgForApply(0, function(
             previousRet,
             param,
             currentIndex,
@@ -1054,16 +1120,16 @@ export default <any>{
             reduceResultTrackingValue = ctx.lastOpTrackingResult;
 
             return ret;
-          };
+          });
         }
 
         let filterResults;
-        if (fn === ctx.knownValues.getValue("Array.prototype.filter")) {
+        if (fnKnownValue === "Array.prototype.filter") {
           filterResults = [];
 
-          const originalFilterFunction = fnArgValuesForApply[0];
+          const originalFilterFunction = getFnArgForApply(0);
 
-          fnArgValuesForApply[0] = function(element, index, array, thisArg) {
+          setFnArgForApply(0, function(element, index, array, thisArg) {
             const ret = ctx.global[doOperation](
               "callExpression",
               {
@@ -1084,7 +1150,7 @@ export default <any>{
             filterResults.push(ret);
 
             return ret;
-          };
+          });
         }
 
         const lastReturnStatementResultBeforeCall =
@@ -1101,17 +1167,9 @@ export default <any>{
           retT = ctx.lastOpTrackingResultWithoutResetting;
         } else if (specialValuesForPostprocessing[fnKnownValue]) {
           try {
-            retT = specialValuesForPostprocessing[fnKnownValue]({
-              object,
-              context,
-              fnArgs,
-              ctx,
-              logData,
-              fnArgValues,
-              ret,
-              retT,
-              extraTrackingValues
-            });
+            retT = specialValuesForPostprocessing[fnKnownValue](
+              getSpecialCaseArgs()
+            );
           } catch (err) {
             console.error("post procressing error", fnKnownValue, err);
             debugger;
@@ -1127,7 +1185,29 @@ export default <any>{
           }
         }
 
-        if (fn === ctx.knownValues.getValue("Array.prototype.map")) {
+        if (functionIsCallOrApply && fnKnownValue) {
+          let callOrApplyInvocationArgs;
+
+          callOrApplyInvocationArgs = {};
+          fnArgValuesAtInvocation.forEach((arg, i) => {
+            callOrApplyInvocationArgs["arg" + i] = [
+              null,
+              fnArgsAtInvocation[i]
+            ];
+          });
+
+          extraTrackingValues.call = [
+            null,
+            ctx.createOperationLog({
+              operation: ctx.operationTypes.callExpression,
+              args: callOrApplyInvocationArgs,
+              result: ret,
+              loc: logData.loc
+            })
+          ];
+        }
+
+        if (fnKnownValue === "Array.prototype.map") {
           mapResultTrackingValues.forEach((tv, i) => {
             ctx.trackObjectPropertyAssignment(
               ret,
@@ -1143,10 +1223,10 @@ export default <any>{
             );
           });
         }
-        if (fn === ctx.knownValues.getValue("Array.prototype.reduce")) {
+        if (fnKnownValue === "Array.prototype.reduce") {
           retT = reduceResultTrackingValue;
         }
-        if (fn === ctx.knownValues.getValue("Array.prototype.filter")) {
+        if (fnKnownValue === "Array.prototype.filter") {
           let resultArrayIndex = 0;
           object.forEach(function(originalArrayItem, originalArrayIndex) {
             if (filterResults[originalArrayIndex]) {
@@ -1179,6 +1259,24 @@ export default <any>{
     var knownFunction =
       operationLog.args.function &&
       operationLog.args.function.result.knownValue;
+
+    if (
+      (knownFunction === "Function.prototype.call" ||
+        knownFunction === "Function.prototype.apply") &&
+      operationLog.extraArgs.call
+    ) {
+      const args = operationLog.extraArgs.call.args;
+      args.function = operationLog.args.context;
+      args.context = operationLog.args.arg0;
+      return this.traverse(
+        {
+          operation: OperationTypes.callExpression,
+          args,
+          result: operationLog.result
+        },
+        charIndex
+      );
+    }
 
     if (knownFunction) {
       switch (knownFunction) {
@@ -1369,6 +1467,11 @@ export default <any>{
               index++;
             }
           }
+        default:
+          return {
+            operationLog: operationLog.extraArgs.returnValue,
+            charIndex: charIndex
+          };
       }
     } else {
       return {
@@ -1435,3 +1538,5 @@ export default <any>{
     return call;
   }
 };
+
+export default CallExpression;
