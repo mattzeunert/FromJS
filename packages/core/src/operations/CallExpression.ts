@@ -1011,8 +1011,19 @@ export default <any>{
         let reduceResultTrackingValue;
         let reduceResultNormalValue;
         if (fn === ctx.knownValues.getValue("Array.prototype.reduce")) {
-          reduceResultTrackingValue = fnArgs[1];
-          reduceResultNormalValue = fnArgValues[1];
+          if (fnArgs.length > 1) {
+            reduceResultTrackingValue = fnArgs[1];
+            reduceResultNormalValue = fnArgValues[1];
+          } else {
+            // "If no initial value is supplied, the first element in the array will be used."
+            // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
+            reduceResultNormalValue = object[0];
+            reduceResultTrackingValue = ctx.getObjectPropertyTrackingValue(
+              object,
+              0
+            );
+          }
+
           const originalReduceFunction = fnArgValuesForApply[0];
 
           fnArgValuesForApply[0] = function(
