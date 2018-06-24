@@ -930,7 +930,7 @@ const CallExpression = <any>{
         if (functionIsCallOrApply) {
           specialCaseArgs.fn = object;
           specialCaseArgs.object = fnArgValues[0];
-          specialCaseArgs.context = [fnArgs[0], fnArgValues[0]];
+          specialCaseArgs.context = [fnArgValues[0], fnArgs[0]];
         }
 
         return specialCaseArgs;
