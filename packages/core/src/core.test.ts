@@ -24,12 +24,18 @@ test("Can handle variable declarations with init value", done => {
   });
 });
 
-test("Can handle try catch statements", done => {
-  instrumentAndRun(`
-    try {} catch (err) {}
-    return null
-  `).then(({ normal, tracking }) => {
-    done();
+describe("try catch", () => {
+  test("Can handle try catch statements", done => {
+    instrumentAndRun(`
+      try {
+        throw Error("e")
+      } catch (err) {
+        var a = err
+      }
+      return null
+    `).then(({ normal, tracking, code }) => {
+      done();
+    });
   });
 });
 
