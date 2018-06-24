@@ -519,7 +519,7 @@ describe("Array.map", () => {
 });
 
 describe("Array.concat", () => {
-  it("Passes values through to mapping function", async () => {
+  it("Works when calling .concat with an array argument", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         var arr = ["1"].concat(["2"])
         return arr[0] + arr[1]
@@ -529,10 +529,24 @@ describe("Array.concat", () => {
     var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("1");
 
     var t2 = await traverse({ operationLog: tracking, charIndex: 1 });
-    const t2LastStep = t2[t1.length - 1];
+    const t2LastStep = t2[t2.length - 1];
     expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t2LastStep.operationLog.result.primitive).toBe("2");
+  });
+  it("Works when calling .concat with an non-array argument", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["1"].concat("2")
+        return arr[0] + arr[1]
+      `);
+    expect(normal).toBe("12");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t2LastStep.operationLog.result.primitive).toBe("2");
   });
 });
 

@@ -570,41 +570,44 @@ const specialValuesForPostprocessing = {
   }) => {
     const concatValues = [object, ...fnArgValues];
     let i = 0;
-    concatValues.forEach(concatValue => {
+    concatValues.forEach((concatValue, valueIndex) => {
+      function trackProp(i, value, trackingValue) {
+        ctx.trackObjectPropertyAssignment(
+          ret,
+          i.toString(),
+          ctx.createOperationLog({
+            operation: ctx.operationTypes.arrayConcat,
+            args: {
+              value: [null, trackingValue]
+            },
+            result: value,
+            astArgs: {},
+            loc: logData.loc
+          }),
+          ctx.createOperationLog({
+            operation: ctx.operationTypes.arrayIndex,
+            args: {},
+            result: i,
+            astArgs: {},
+            loc: logData.loc
+          })
+        );
+      }
+
       if (Array.isArray(concatValue)) {
         concatValue.forEach((arrayValue, indexInOriginalArray) => {
-          ctx.trackObjectPropertyAssignment(
-            ret,
-            i.toString(),
-            ctx.createOperationLog({
-              operation: ctx.operationTypes.arrayConcat,
-              args: {
-                value: [
-                  null,
-                  ctx.getObjectPropertyTrackingValue(
-                    concatValue,
-                    indexInOriginalArray.toString()
-                  )
-                ]
-              },
-              result: arrayValue,
-              astArgs: {},
-              loc: logData.loc
-            }),
-            ctx.createOperationLog({
-              operation: ctx.operationTypes.arrayIndex,
-              args: {},
-              result: i,
-              astArgs: {},
-              loc: logData.loc
-            })
+          trackProp(
+            i,
+            arrayValue,
+            ctx.getObjectPropertyTrackingValue(
+              concatValue,
+              indexInOriginalArray.toString()
+            )
           );
-          i++;
         });
-      } else if (VERIFY) {
-        i++;
-        console.log("todo: need to handle non array arr.concat args");
+      } else {
       }
+      i++;
     });
   },
   "document.createElement": ({
