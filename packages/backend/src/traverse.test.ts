@@ -808,19 +808,38 @@ describe("String.prototype.split", () => {
   });
 });
 
-it("Traverses array correctly after calling shift on it", async () => {
-  const { normal, tracking, code } = await instrumentAndRun(`
-    const arr = ["a", "b"]
-    arr.shift()
-    return arr[0]
-  `);
+describe("Array.prototype.shift", () => {
+  it("Traverses array correctly after calling shift on it", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const arr = ["a", "b"]
+      arr.shift()
+      return arr[0]
+    `);
 
-  expect(normal).toBe("b");
+    expect(normal).toBe("b");
 
-  var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
-  const t1LastStep = t1[t1.length - 1];
-  expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
-  expect(t1LastStep.operationLog.result.primitive).toBe("b");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("b");
+  });
+  it("Traverses arguments array correctly after calling shift arguments", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function fn() {
+        const shift = Array.prototype.shift
+        shift.call(arguments)
+        return arguments[0]
+      }
+      return fn("a", "b", "c")
+    `);
+
+    expect(normal).toBe("b");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("b");
+  });
 });
 
 describe("String.prototype.substring", () => {

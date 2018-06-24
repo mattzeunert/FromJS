@@ -343,6 +343,9 @@ declare var __FUNCTION_NAMES__,
       // store code etc for eval'd code
       evalScriptQueue.push(evalScript);
     },
+    objectHasPropertyTrackingData(obj) {
+      return !!objTrackingMap.get(obj);
+    },
     get lastOpTrackingResult() {
       return lastOpTrackingResult;
     },
