@@ -15,6 +15,7 @@ export default class KnownValues {
       "Array.prototype.join": Array.prototype.join,
       "Array.prototype.slice": Array.prototype.slice,
       "Array.prototype.map": Array.prototype.map,
+      "Array.prototype.filter": Array.prototype.filter,
       "Array.prototype.reduce": Array.prototype.reduce,
       "Array.prototype.concat": Array.prototype.concat,
       "Array.prototype.shift": Array.prototype.shift,
@@ -27,13 +28,14 @@ export default class KnownValues {
       "String.prototype.toString": String.prototype.toString,
       "Date.prototype.getMinutes": Date.prototype.getMinutes,
       "Date.prototype.getHours": Date.prototype.getHours,
-      "Array.prototype.filter": Array.prototype.filter,
       encodeURIComponent: encodeURIComponent,
       decodeURIComponent: decodeURIComponent,
       undefined: undefined,
       null: null,
       "Promise.prototype.then": Promise.prototype.then,
-      "Promise.prototype.catch": Promise.prototype.catch
+      "Promise.prototype.catch": Promise.prototype.catch,
+      "Function.prototype.call": Function.prototype.call,
+      "Function.prototype.apply": Function.prototype.apply
     });
 
     var global = Function("return this")();

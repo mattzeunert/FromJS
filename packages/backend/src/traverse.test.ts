@@ -512,6 +512,20 @@ describe("Array.slice", () => {
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
   });
+  it("Supports being called with .call and arguments object", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const slice = Array.prototype.slice
+        function fn() {
+          const arr = slice.call(arguments)
+          return arr[0]
+        }
+        return fn("Hi")
+      `);
+    expect(normal).toBe("Hi");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+  });
 });
 
 describe("Array.prototype.map", () => {
@@ -536,6 +550,28 @@ describe("Array.prototype.map", () => {
       `);
     expect(normal).toBe("102x");
   });
+  it("When invoked with .apply, still supports all callback arguments and thisArg", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["1", "2"]
+        const map = arr.map
+        var arr2 = map.apply(arr, [function(value, index, array){
+          return value + index + array.length + this
+        }, "x"])
+        return arr2[0]
+      `);
+    expect(normal).toBe("102x");
+  });
+  it("When invoked with .call, still supports all callback arguments and thisArg", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["1", "2"]
+        const map = arr.map
+        var arr2 = map.call(arr, function(value, index, array){
+          return value + index + array.length + this
+        }, "x")
+        return arr2[0]
+      `);
+    expect(normal).toBe("102x");
+  });
 });
 
 describe("Array.prototype.filter", () => {
@@ -544,9 +580,7 @@ describe("Array.prototype.filter", () => {
         var arr = ["1", "2", "3", "4"]
         let v
         const greaterThan2 = arr.filter(function(value){
-          
           v = value
-          console.log({v, v___tv})
           return parseFloat(value) > 2
         })
         return v + "-" + greaterThan2[0]
@@ -595,20 +629,37 @@ describe("Array.concat", () => {
   });
 });
 
-it("Can traverse encodeURIComponent", async () => {
-  const { normal, tracking, code } = await instrumentAndRun(`
-      return encodeURIComponent("a@b#c")
-    `);
-  expect(normal).toBe("a%40b%23c");
+describe("encodeURICompoennt", () => {
+  it("Can traverse encodeURIComponent", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return encodeURIComponent("a@b#c")
+      `);
+    expect(normal).toBe("a%40b%23c");
 
-  var t1 = await traverse({ operationLog: tracking, charIndex: 7 });
-  const t1LastStep = t1[t1.length - 1];
-  expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
-  expect(t1LastStep.charIndex).toBe(3);
+    var t1 = await traverse({ operationLog: tracking, charIndex: 7 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(3);
 
-  var t2 = await traverse({ operationLog: tracking, charIndex: 9 });
-  const t2LastStep = t2[t2.length - 1];
-  expect(t2LastStep.charIndex).toBe(4);
+    var t2 = await traverse({ operationLog: tracking, charIndex: 9 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.charIndex).toBe(4);
+  });
+  it("Can traverse encodeURIComponent when called with .call", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return encodeURIComponent.call(null, "a@b#c")
+      `);
+    expect(normal).toBe("a%40b%23c");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 7 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(3);
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 9 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.charIndex).toBe(4);
+  });
 });
 
 it("Can traverse decodeURIComponent", async () => {
@@ -794,6 +845,33 @@ describe("String.prototype.substring", () => {
     expect(normal).toBe("c");
 
     var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(2);
+  });
+
+  it("Traverses substring when invoked with .call", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    const substring = String.prototype.substring
+    return substring.call("abcd", 1, 3)
+  `);
+
+    expect(normal).toBe("bc");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(2);
+  });
+  it("Traverses substring when invoked with .apply", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    const substring = String.prototype.substring
+    return substring.apply("abcd", [1, 3])
+  `);
+
+    expect(normal).toBe("bc");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t1LastStep.charIndex).toBe(2);
