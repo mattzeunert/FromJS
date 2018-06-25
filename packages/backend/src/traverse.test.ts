@@ -83,6 +83,30 @@ describe("Assignment Expressions", () => {
     expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t2LastStep.operationLog.result.primitive).toBe("b");
   });
+  test("Can traverse results of assignment expression", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var v
+      return v = "a"
+    `);
+    expect(normal).toBe("a");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("a");
+    expect(t1LastStep.charIndex).toBe(0);
+  });
+  test("Can traverse results of assignment expression if assigning to an object", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = {}
+      return obj.a = "a"
+    `);
+    expect(normal).toBe("a");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("a");
+    expect(t1LastStep.charIndex).toBe(0);
+  });
 });
 
 test("Can track values through object literals", async () => {
