@@ -143,9 +143,9 @@ describe("E2E", () => {
       await page.waitForSelector(".step");
 
       const text = await page.evaluate(
-        () => document.querySelectorAll(".step")[1]["innerText"]
+        () => document.querySelectorAll(".step")[0]["innerText"]
       );
-      expect(text).toContain("StringLiteral");
+      expect(text).toContain("HTMLInputElement.value");
 
       await page.close();
     },
