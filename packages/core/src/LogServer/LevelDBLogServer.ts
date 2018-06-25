@@ -5,9 +5,11 @@ import { LogServer } from "./LogServer";
 
 export default class LevelDBLogServer extends LogServer {
   db: any;
+  levelDownDb: any;
   constructor(dbPath: string) {
     super();
-    this.db = levelup(leveldown(dbPath));
+    this.levelDownDb = leveldown(dbPath);
+    this.db = levelup(this.levelDownDb);
   }
   storeLog(log: OperationLog) {
     this.db.put(log.index.toString(), JSON.stringify(log), function(err) {
@@ -25,7 +27,9 @@ export default class LevelDBLogServer extends LogServer {
       });
     });
 
-    this.db.batch(ops, function(err) {
+    // levelDownDb._batch vs db.batch:
+    // _batch bypasses some validation code which should help performance a bit
+    this.levelDownDb._batch(ops, function(err) {
       if (err) return console.log("Ooops!  - level db error (logs)", err);
       callback();
     });
