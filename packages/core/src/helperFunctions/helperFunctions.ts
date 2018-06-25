@@ -339,21 +339,25 @@ declare var __FUNCTION_NAMES__,
   var lastReturnStatementResult = null;
 
   const memoValues = {};
-  global["__setMemoValue"] = function(key, value, trackingValue) {
+  global[functionNames.setMemoValue] = function(key, value, trackingValue) {
     // console.log("setmemovalue", value)
     memoValues[key] = { value, trackingValue };
     setLastOpTrackingResult(trackingValue);
     validateTrackingValue(trackingValue);
     return value;
   };
-  global["__getMemoArray"] = function(key) {
+  global[functionNames.getMemoArray] = function(key) {
     const memo = memoValues[key];
     return [memo.value, memo.trackingValue];
   };
-  global["__getMemoValue"] = function(key) {
+  global[functionNames.getMemoValue] = function(key) {
     return memoValues[key].value;
   };
-  global["__getMemoTrackingValue"] = function(key, value, trackingValue) {
+  global[functionNames.getMemoTrackingValue] = function(
+    key,
+    value,
+    trackingValue
+  ) {
     return memoValues[key].trackingValue;
   };
 

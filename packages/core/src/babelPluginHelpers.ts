@@ -244,7 +244,7 @@ export function runIfIdentifierExists(identifierName, thenNode) {
 }
 
 export function createSetMemoValue(key, value, trackingValue) {
-  return ignoredCallExpression("__setMemoValue", [
+  return ignoredCallExpression(FunctionNames.setMemoValue, [
     ignoredStringLiteral(key),
     value,
     trackingValue
@@ -253,19 +253,25 @@ export function createSetMemoValue(key, value, trackingValue) {
 
 export function createGetMemoArray(key) {
   return skipPath(
-    ignoredCallExpression("__getMemoArray", [ignoredStringLiteral(key)])
+    ignoredCallExpression(FunctionNames.getMemoArray, [
+      ignoredStringLiteral(key)
+    ])
   );
 }
 
 export function createGetMemoValue(key) {
   return skipPath(
-    ignoredCallExpression("__getMemoValue", [ignoredStringLiteral(key)])
+    ignoredCallExpression(FunctionNames.getMemoValue, [
+      ignoredStringLiteral(key)
+    ])
   );
 }
 
 export function createGetMemoTrackingValue(key) {
   return skipPath(
-    ignoredCallExpression("__getMemoTrackingValue", [ignoredStringLiteral(key)])
+    ignoredCallExpression(FunctionNames.getMemoTrackingValue, [
+      ignoredStringLiteral(key)
+    ])
   );
 }
 
