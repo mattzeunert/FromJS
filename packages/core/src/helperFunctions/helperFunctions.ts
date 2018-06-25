@@ -183,15 +183,21 @@ declare var __FUNCTION_NAMES__,
 
   global["__getHtmlNodeOperationLogMapping"] = getHtmlNodeOperationLogMapping;
 
-  global.fromJSInspect = function(value: any) {
+  global.fromJSInspect = function(value: any, charIndex: number) {
     let logId;
     if (!argTrackingInfo && typeof value === "number") {
+      if (charIndex) {
+        throw Error("Not supported yet");
+      }
       logId = value;
     } else if (value instanceof Node) {
       const mapping = getHtmlNodeOperationLogMapping(value);
       console.log({ mapping });
-      postToBE("/inspectDOM", mapping);
+      postToBE("/inspectDOM", { ...mapping, charIndex });
     } else {
+      if (charIndex) {
+        throw Error("Not supported yet");
+      }
       logId = argTrackingInfo[0];
     }
     postToBE("/inspect", {
