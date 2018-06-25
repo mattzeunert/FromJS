@@ -5,7 +5,6 @@ export const identifier = "identifier";
 export const returnStatement = "returnStatement";
 export const memberExpression = "memberExpression";
 export const objectExpression = "objectExpression";
-export const functionArgument = "functionArgument";
 export const callExpression = "callExpression";
 export const newExpression = "newExpression";
 export const assignmentExpression = "assignmentExpression";

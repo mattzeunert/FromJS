@@ -35,15 +35,6 @@ export async function traverse(
       } catch (err) {
         console.log("traverse err", operationLog.operation, err);
       }
-    } else {
-      switch (operationLog.operation) {
-        case "functionArgument":
-          nextStep = {
-            operationLog: operationLog.args.value,
-            charIndex: charIndex
-          };
-          break;
-      }
     }
 
     const hasEmptyStepResult =

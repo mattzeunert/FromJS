@@ -794,17 +794,6 @@ class ValueMapV2 {
 
 const CallExpression = <any>{
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
-    function makeFunctionArgument([value, trackingValue]) {
-      return ctx.createOperationLog({
-        operation: ctx.operationTypes.functionArgument,
-        args: {
-          value: [value, trackingValue]
-        },
-        loc: logData.loc,
-        astArgs: {},
-        result: value
-      });
-    }
     var i = 0;
     var arg;
     var fnArgs: any[] = [];
@@ -820,7 +809,7 @@ const CallExpression = <any>{
       }
       arg = args[argKey];
       fnArgValues.push(arg[0]);
-      fnArgs.push(makeFunctionArgument(arg));
+      fnArgs.push(arg[1]);
       i++;
     }
 
@@ -852,10 +841,7 @@ const CallExpression = <any>{
         for (let i = 0; i < argArray.length; i++) {
           fnArgValuesAtInvocation.push(argArray[i]);
           fnArgsAtInvocation.push(
-            makeFunctionArgument([
-              argArray[i],
-              ctx.getObjectPropertyTrackingValue(argArray, i)
-            ])
+            ctx.getObjectPropertyTrackingValue(argArray, i)
           );
         }
       }

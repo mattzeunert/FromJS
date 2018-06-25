@@ -70,10 +70,6 @@ function renderTree(log, containerSelector) {
       return makeNode(data.args.value, argName);
     }
 
-    if (data && data.operation === "functionArgument") {
-      return makeNode(data.args.value, argName);
-    }
-
     var childValues;
     const operationLogIsNotLoaded = typeof data === "number";
     if (data && operationLogIsNotLoaded) {

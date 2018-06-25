@@ -531,8 +531,7 @@ it("Tracks arguments to NewExpressions", async () => {
   expect(normal).toBe(2);
   const memberExpression = tracking;
   const assignedValue = memberExpression.extraArgs.propertyValue.args.argument;
-  const fnArgument = assignedValue.args.value;
-  expect(fnArgument.args.value.operation).toBe("numericLiteral");
+  expect(assignedValue.args.value.operation).toBe("numericLiteral");
 });
 
 it("Doesn't break when encountering a labeled statement", async () => {
@@ -730,7 +729,7 @@ describe("call/apply/bind", () => {
 
     const binaryExpression = tracking.extraArgs.returnValue.args.returnValue;
 
-    const bArg = binaryExpression.args.right.args.value.args.value;
+    const bArg = binaryExpression.args.right.args.value;
     expect(bArg.operation).not.toBe("arrayExpression"); // apply passes in array but it's not an argument
     expect(bArg.operation).toBe("stringLiteral");
   });
