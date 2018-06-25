@@ -774,14 +774,11 @@ const CallExpression = <any>{
 
     const extraTrackingValues: any = {};
 
-    const hasInstrumentationFunction =
-      typeof ctx.global["__fromJSEval"] === "function";
-
     var ret;
     let retT: any = null;
     if (astArgs.isNewExpression) {
       const isNewFunctionCall = args.function[0] === Function;
-      if (isNewFunctionCall && hasInstrumentationFunction) {
+      if (isNewFunctionCall && ctx.hasInstrumentationFunction) {
         let code = fnArgValues[fnArgValues.length - 1];
         let generatedFnArguments = fnArgValues.slice(0, -1);
 
@@ -862,7 +859,7 @@ const CallExpression = <any>{
         }
         const fnIsEval = fn === eval;
         if (fnIsEval) {
-          if (hasInstrumentationFunction) {
+          if (ctx.hasInstrumentationFunction) {
             fn = ctx.global["__fromJSEval"];
           } else {
             if (!ctx.global.__forTestsDontShowCantEvalLog) {
@@ -1070,7 +1067,7 @@ const CallExpression = <any>{
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
         // Don't pretend to have a tracked return value if an uninstrumented function was called
         // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
-        if (fnIsEval && hasInstrumentationFunction) {
+        if (fnIsEval && ctx.hasInstrumentationFunction) {
           ctx.registerEvalScript(ret.evalScript);
           ret = ret.returnValue;
           retT = ctx.lastOpTrackingResultWithoutResetting;

@@ -373,6 +373,7 @@ declare var __FUNCTION_NAMES__,
     getObjectPropertyTrackingValue: getObjectPropertyValueTrackingValue,
     getObjectPropertyNameTrackingValue,
     trackObjectPropertyAssignment,
+    hasInstrumentationFunction: typeof global["__fromJSEval"] === "function",
     createOperationLog: function(args) {
       args.index = getOperationIndex();
       return createOperationLog(args);
