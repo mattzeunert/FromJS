@@ -1,7 +1,5 @@
 import * as React from "react";
 import { branch, root } from "baobab-react/higher-order";
-import appState from "./appState";
-import { callApi, inspectDomChar } from "./api";
 import { selectInspectedDomCharIndex, expandDomInspector } from "./actions";
 import { TextEl } from "./TextEl";
 import * as cx from "classnames";
