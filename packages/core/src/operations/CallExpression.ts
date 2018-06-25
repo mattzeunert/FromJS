@@ -16,7 +16,6 @@ import { VERIFY } from "../config";
 import { doOperation, getLastMemberExpressionObject } from "../FunctionNames";
 import OperationLog from "../helperFunctions/OperationLog";
 import * as cloneRegExp from "clone-regexp";
-import { callExpression } from "@babel/types";
 
 function countGroupsInRegExp(re) {
   // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
@@ -25,7 +24,6 @@ function countGroupsInRegExp(re) {
 
 const specialCases = {
   "String.prototype.replace": ({
-    fn,
     ctx,
     object,
     fnArgValues,
@@ -111,10 +109,9 @@ const specialCases = {
   "JSON.parse": ({
     fn,
     ctx,
-    object,
     fnArgValues,
     args,
-    extraTrackingValues,
+
     logData
   }) => {
     const parsed = fn.call(JSON, fnArgValues[0]);
@@ -174,14 +171,11 @@ const specialCases = {
 const specialValuesForPostprocessing = {
   "String.prototype.match": ({
     object,
-    fnArgs,
     ctx,
     logData,
     fnArgValues,
     ret,
-    retT,
-    context,
-    extraTrackingValues
+    context
   }) => {
     ctx = <ExecContext>ctx;
     if (!Array.isArray(ret)) {
@@ -278,9 +272,7 @@ const specialValuesForPostprocessing = {
     logData,
     fnArgValues,
     ret,
-    retT,
-    context,
-    extraTrackingValues
+    context
   }) => {
     ctx = <ExecContext>ctx;
 
@@ -324,16 +316,7 @@ const specialValuesForPostprocessing = {
       );
     });
   },
-  "Array.prototype.push": ({
-    object,
-    fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
-  }) => {
+  "Array.prototype.push": ({ object, fnArgs, ctx, logData }) => {
     const arrayLengthBeforePush = object.length - fnArgs.length;
     fnArgs.forEach((arg, i) => {
       const arrayIndex = arrayLengthBeforePush + i;
@@ -352,16 +335,7 @@ const specialValuesForPostprocessing = {
     });
     return fnArgs[fnArgs.length - 1];
   },
-  "Object.keys": ({
-    object,
-    fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
-  }) => {
+  "Object.keys": ({ ctx, logData, fnArgValues, ret, retT }) => {
     ret.forEach((key, i) => {
       const trackingValue = ctx.getObjectPropertyNameTrackingValue(
         fnArgValues[0],
@@ -383,16 +357,7 @@ const specialValuesForPostprocessing = {
     });
     return retT;
   },
-  "Object.assign": ({
-    object,
-    fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
-  }) => {
+  "Object.assign": ({ ctx, logData, fnArgValues }) => {
     ctx = <ExecContext>ctx;
     const target = fnArgValues[0];
     const sources = fnArgValues.slice(1);
@@ -433,13 +398,8 @@ const specialValuesForPostprocessing = {
   },
   "Array.prototype.shift": ({
     object,
-    fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
+
+    ctx
   }) => {
     // Note: O(n) is not very efficient...
     const array = object;
@@ -454,13 +414,11 @@ const specialValuesForPostprocessing = {
   },
   "Array.prototype.slice": ({
     object,
-    fnArgs,
+
     ctx,
     logData,
     fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
+    ret
   }) => {
     ctx = <ExecContext>ctx;
     const resultArray = ret;
@@ -523,8 +481,7 @@ const specialValuesForPostprocessing = {
     fnArgs,
     ctx,
     logData,
-    fnArgValues,
-    ret,
+
     retT,
     extraTrackingValues
   }) => {
@@ -572,9 +529,7 @@ const specialValuesForPostprocessing = {
     ctx,
     logData,
     fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
+    ret
   }) => {
     const concatValues = [object, ...fnArgValues];
     let i = 0;
@@ -621,55 +576,27 @@ const specialValuesForPostprocessing = {
     });
   },
   "document.createElement": ({
-    object,
     fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
+
+    ret
   }) => {
     addOriginInfoToCreatedElement(ret, fnArgs[0], "document.createElement");
   },
   "document.createTextNode": ({
-    object,
     fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
+
+    ret
   }) => {
     addElOrigin(ret, "textValue", {
       trackingValue: fnArgs[0]
     });
   },
-  "document.createComment": ({
-    object,
-    fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
-  }) => {
+  "document.createComment": ({ fnArgs, ret }) => {
     addElOrigin(ret, "textValue", {
       trackingValue: fnArgs[0]
     });
   },
-  "HTMLElement.prototype.setAttribute": ({
-    object,
-    fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
-  }) => {
+  "HTMLElement.prototype.setAttribute": ({ object, fnArgs, fnArgValues }) => {
     const [attrNameArg, attrValueArg] = fnArgs;
     let attrName = fnArgValues[0];
     addElOrigin(object, "attribute_" + attrName + "_name", {
@@ -682,12 +609,7 @@ const specialValuesForPostprocessing = {
   "HTMLElement.prototype.insertAdjacentHTML": ({
     object,
     fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
+    fnArgValues
   }) => {
     const position = fnArgValues[0].toLowerCase();
     if (position !== "afterbegin") {
@@ -1471,8 +1393,6 @@ const CallExpression = <any>{
 
     let contextArg;
 
-    let executionContext;
-    let executionContextTrackingValue;
     if (isMemberExpressionCall) {
       contextArg = ignoredCallExpression(getLastMemberExpressionObject, []);
     } else {

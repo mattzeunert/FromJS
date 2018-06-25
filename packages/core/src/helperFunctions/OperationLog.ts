@@ -134,8 +134,6 @@ class SerializedValue implements SerializedValueData {
       str += " {" + this.keys.join(", ") + "}";
     }
     return str;
-
-    // return "[" + this.type + "]" + " {" + this.keys.join(", ") + "}";
   }
 }
 

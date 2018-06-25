@@ -10,25 +10,28 @@ import {
   trackingIdentifierIfExists,
   ignoredCallExpression,
   ignoreNode,
-  runIfIdentifierExists,
   createSetMemoValue,
   createGetMemoValue,
   createGetMemoTrackingValue,
-  getLastOpValueCall,
   ignoredIdentifier,
   ignoredObjectExpression,
-  createGetMemoArray,
   getTrackingVarName,
   skipPath,
   initForBabel as initForBabelPH
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
-import HtmlToOperationLogMapping from "./helperFunctions/HtmlToOperationLogMapping";
 import { ExecContext } from "./helperFunctions/ExecContext";
 
 import CallExpression from "./operations/CallExpression";
 import AssignmentExpression from "./operations/AssignmentExpression";
 import traverseStringConcat from "./traverseStringConcat";
+
+function identifyTraverseFunction(operationLog, charIndex) {
+  return {
+    operationLog: operationLog.args.value,
+    charIndex
+  };
+}
 
 let t;
 // This file is also imported into helperFunctions, i.e. FE code that can't load
@@ -561,12 +564,7 @@ const operations: Operations = {
       }
       return args.value[0];
     },
-    traverse(operationLog, charIndex) {
-      return {
-        operationLog: operationLog.args.value,
-        charIndex: charIndex
-      };
-    },
+    traverse: identifyTraverseFunction,
     visitor(path) {
       if (shouldSkipIdentifier(path)) {
         return;
@@ -652,28 +650,11 @@ const operations: Operations = {
   },
   assignmentExpression: AssignmentExpression,
   objectAssign: {
-    traverse(operationLog, charIndex) {
-      return {
-        operationLog: operationLog.args.value,
-        charIndex
-      };
-    }
+    traverse: identifyTraverseFunction
   },
-  arraySlice: {
-    traverse(operationLog, charIndex) {
-      return {
-        operationLog: operationLog.args.value,
-        charIndex
-      };
-    }
-  },
+  arraySlice: { traverse: identifyTraverseFunction },
   arrayConcat: {
-    traverse(operationLog, charIndex) {
-      return {
-        operationLog: operationLog.args.value,
-        charIndex
-      };
-    }
+    traverse: identifyTraverseFunction
   }
 };
 

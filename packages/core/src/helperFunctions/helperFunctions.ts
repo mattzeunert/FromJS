@@ -6,7 +6,6 @@ import KnownValues from "./KnownValues";
 import { ExecContext } from "./ExecContext";
 import operations from "../operations";
 import { SKIP_TRACKING, VERIFY, KEEP_LOGS_IN_MEMORY } from "../config";
-import { start } from "repl";
 
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
@@ -352,11 +351,7 @@ declare var __FUNCTION_NAMES__,
   global[functionNames.getMemoValue] = function(key) {
     return memoValues[key].value;
   };
-  global[functionNames.getMemoTrackingValue] = function(
-    key,
-    value,
-    trackingValue
-  ) {
+  global[functionNames.getMemoTrackingValue] = function(key) {
     return memoValues[key].trackingValue;
   };
 
@@ -427,10 +422,6 @@ declare var __FUNCTION_NAMES__,
     loc
   ) {
     var trackingValue;
-
-    // if (operationArrayArguments[opName]) {
-    //   operationArrayArguments[opName].forEach(arrayArgName => {});
-    // }
 
     let logData: any = {
       operation: opName,
