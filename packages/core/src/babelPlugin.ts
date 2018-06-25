@@ -85,7 +85,7 @@ function plugin(babel) {
     // That's because when we return the argTrackingValues are not reset to the parent function's
     declarators.push(
       t.variableDeclarator(
-        ignoredIdentifier("__allFnArgTrackingValues"),
+        ignoredIdentifier("__allArgTV"),
         ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [])
       )
     );
@@ -264,10 +264,10 @@ function plugin(babel) {
             t.assignmentExpression(
               "=",
               ignoredIdentifier(getTrackingVarName(varName)),
-              ignoredCallExpression("getObjectPropertyNameTrackingValue", [
-                forInRightValueIdentifier,
-                ignoredIdentifier(varName)
-              ])
+              ignoredCallExpression(
+                FunctionNames.getObjectPropertyNameTrackingValue,
+                [forInRightValueIdentifier, ignoredIdentifier(varName)]
+              )
             )
           )
         )

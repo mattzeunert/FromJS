@@ -6,6 +6,7 @@ import KnownValues from "./KnownValues";
 import { ExecContext } from "./ExecContext";
 import operations from "../operations";
 import { SKIP_TRACKING, VERIFY, KEEP_LOGS_IN_MEMORY } from "../config";
+import * as FunctionNames from "../FunctionNames";
 
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
@@ -322,7 +323,7 @@ declare var __FUNCTION_NAMES__,
   }
 
   window[
-    "getObjectPropertyNameTrackingValue"
+    FunctionNames.getObjectPropertyNameTrackingValue
   ] = getObjectPropertyNameTrackingValue;
 
   var lastMemberExpressionObjectValue = null;

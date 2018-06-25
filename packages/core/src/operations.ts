@@ -602,7 +602,7 @@ const operations: Operations = {
       if (node.name === "arguments") {
         astArgs = { isArguments: ignoreNode(t.booleanLiteral(true)) };
         args.allFnArgTrackingValues = ignoredArrayExpression([
-          ignoredIdentifier("__allFnArgTrackingValues")
+          ignoredIdentifier("__allArgTV")
         ]);
       }
 
