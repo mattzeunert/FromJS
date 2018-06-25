@@ -1036,7 +1036,7 @@ const CallExpression = <any>{
           } else if (functionIsCall) {
             return fnArgValuesForApply[argIndex + 1];
           } else {
-            return fnArgValuesForApply[0];
+            return fnArgValuesForApply[argIndex];
           }
         }
 
@@ -1054,12 +1054,12 @@ const CallExpression = <any>{
             if (fnArgValues.length > 1) {
               context = [fnArgValues[1], fnArgs[1]];
             } else {
-              context = [ctx.global, null];
+              context = [this, null];
             }
             const ret = ctx.global[doOperation](
               "callExpression",
               {
-                context: this,
+                context: [this, null],
                 function: [originalMappingFunction, null],
                 arg0: [item, itemTrackingInfo, null],
                 arg1: [index, null],
@@ -1093,6 +1093,7 @@ const CallExpression = <any>{
           const originalReduceFunction = getFnArgForApply(0);
 
           setFnArgForApply(0, function(
+            this: any,
             previousRet,
             param,
             currentIndex,
@@ -1106,7 +1107,7 @@ const CallExpression = <any>{
             const ret = ctx.global[doOperation](
               "callExpression",
               {
-                context: [ctx.global, null],
+                context: [this, null],
                 function: [originalReduceFunction, null],
                 arg0: [reduceResultNormalValue, reduceResultTrackingValue],
                 arg1: [param, paramTrackingValue],
@@ -1129,19 +1130,18 @@ const CallExpression = <any>{
 
           const originalFilterFunction = getFnArgForApply(0);
 
-          setFnArgForApply(0, function(element, index, array, thisArg) {
+          setFnArgForApply(0, function(this: any, element, index, array) {
             const ret = ctx.global[doOperation](
               "callExpression",
               {
-                context: [ctx.global, null],
+                context: [this, null],
                 function: [originalFilterFunction, null],
                 arg0: [
                   element,
                   ctx.getObjectPropertyTrackingValue(array, index)
                 ],
                 arg1: [index, null],
-                arg2: [array, null],
-                arg3: [thisArg, null]
+                arg2: [array, null]
               },
               {},
               logData.loc

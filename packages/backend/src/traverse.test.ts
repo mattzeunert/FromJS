@@ -616,6 +616,22 @@ describe("Array.prototype.filter", () => {
     const t2LastStep = t2[t2.length - 1];
     expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
   });
+  it.only("Doesn't break this argument", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        let arr = ["1","2","3","4"]
+        let t 
+        arr = arr.filter(function(value){
+          t = this.toString()
+          return value > parseFloat(this)
+        }, "2")
+        return arr[0] + t
+      `);
+    expect(normal).toBe("32");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+  });
 });
 
 describe("Array.concat", () => {
