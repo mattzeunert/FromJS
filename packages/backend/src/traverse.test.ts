@@ -455,6 +455,16 @@ describe("Arrays", () => {
     expect(t1LastStep.charIndex).toBe(0);
     expect(t1LastStep.operationLog.result.primitive).toBe("b");
   });
+  it("Works on array like objects", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return Array.prototype.join.call({0: "a", 1: "b", length: 2})
+    `);
+    expect(normal).toBe("a,b");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 2 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.charIndex).toBe(0);
+    expect(t1LastStep.operationLog.result.primitive).toBe("b");
+  });
 });
 
 it("Tracks Object.keys", async () => {
@@ -616,7 +626,7 @@ describe("Array.prototype.filter", () => {
     const t2LastStep = t2[t2.length - 1];
     expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
   });
-  it.only("Doesn't break this argument", async () => {
+  it("Doesn't break this argument", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         let arr = ["1","2","3","4"]
         let t 
