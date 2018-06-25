@@ -576,6 +576,46 @@ const specialValuesForPostprocessing = {
       }
     });
   },
+  "Array.prototype.map": ({ mapResultTrackingValues, ret, ctx, logData }) => {
+    mapResultTrackingValues.forEach((tv, i) => {
+      ctx.trackObjectPropertyAssignment(
+        ret,
+        i.toString(),
+        mapResultTrackingValues[i],
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.arrayIndex,
+          args: {},
+          result: i,
+          astArgs: {},
+          loc: logData.loc
+        })
+      );
+    });
+  },
+  "Array.prototype.reduce": ({ reduceResultTrackingValue }) => {
+    return reduceResultTrackingValue;
+  },
+  "Array.prototype.filter": ({ filterResults, ctx, ret, object, logData }) => {
+    let resultArrayIndex = 0;
+    object.forEach(function(originalArrayItem, originalArrayIndex) {
+      if (filterResults[originalArrayIndex]) {
+        ctx.trackObjectPropertyAssignment(
+          ret,
+          resultArrayIndex,
+          ctx.getObjectPropertyTrackingValue(object, originalArrayIndex),
+          ctx.createOperationLog({
+            operation: ctx.operationTypes.arrayIndex,
+            args: {},
+            result: resultArrayIndex,
+            astArgs: {},
+            loc: logData.loc
+          })
+        );
+
+        resultArrayIndex++;
+      }
+    });
+  },
   "document.createElement": ({
     fnArgs,
 
@@ -805,6 +845,11 @@ const CallExpression = <any>{
         loc: logData.loc
       });
     } else {
+      // TODO: move these to an object instead (sth like specialCaseState)
+      let mapResultTrackingValues;
+      let reduceResultTrackingValue;
+      let filterResults;
+
       const fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
       let specialCaseArgs = getSpecialCaseArgs();
 
@@ -831,7 +876,10 @@ const CallExpression = <any>{
           logData,
           context,
           ret,
-          retT
+          retT,
+          mapResultTrackingValues,
+          reduceResultTrackingValue,
+          filterResults
         };
         if (functionIsCallOrApply) {
           specialCaseArgs.fn = object;
@@ -946,7 +994,6 @@ const CallExpression = <any>{
           }
         }
 
-        let mapResultTrackingValues;
         if (fnKnownValue === "Array.prototype.map") {
           mapResultTrackingValues = [];
           fnArgValuesForApply = fnArgValues.slice();
@@ -980,16 +1027,12 @@ const CallExpression = <any>{
           });
         }
 
-        let reduceResultTrackingValue;
-        let reduceResultNormalValue;
         if (fnKnownValue === "Array.prototype.reduce") {
           if (fnArgs.length > 1) {
             reduceResultTrackingValue = fnArgs[1];
-            reduceResultNormalValue = fnArgValues[1];
           } else {
             // "If no initial value is supplied, the first element in the array will be used."
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
-            reduceResultNormalValue = object[0];
             reduceResultTrackingValue = ctx.getObjectPropertyTrackingValue(
               object,
               0
@@ -1015,7 +1058,7 @@ const CallExpression = <any>{
               {
                 context: [this, null],
                 function: [originalReduceFunction, null],
-                arg0: [reduceResultNormalValue, reduceResultTrackingValue],
+                arg0: [previousRet, reduceResultTrackingValue],
                 arg1: [param, paramTrackingValue],
                 arg2: [currentIndex, null],
                 arg3: [array, null]
@@ -1023,14 +1066,12 @@ const CallExpression = <any>{
               {},
               logData.loc
             );
-            reduceResultNormalValue = ret;
             reduceResultTrackingValue = ctx.lastOpTrackingResult;
 
             return ret;
           });
         }
 
-        let filterResults;
         if (fnKnownValue === "Array.prototype.filter") {
           filterResults = [];
 
@@ -1111,47 +1152,6 @@ const CallExpression = <any>{
               loc: logData.loc
             })
           ];
-        }
-
-        if (fnKnownValue === "Array.prototype.map") {
-          mapResultTrackingValues.forEach((tv, i) => {
-            ctx.trackObjectPropertyAssignment(
-              ret,
-              i.toString(),
-              mapResultTrackingValues[i],
-              ctx.createOperationLog({
-                operation: ctx.operationTypes.arrayIndex,
-                args: {},
-                result: i,
-                astArgs: {},
-                loc: logData.loc
-              })
-            );
-          });
-        }
-        if (fnKnownValue === "Array.prototype.reduce") {
-          retT = reduceResultTrackingValue;
-        }
-        if (fnKnownValue === "Array.prototype.filter") {
-          let resultArrayIndex = 0;
-          object.forEach(function(originalArrayItem, originalArrayIndex) {
-            if (filterResults[originalArrayIndex]) {
-              ctx.trackObjectPropertyAssignment(
-                ret,
-                resultArrayIndex,
-                ctx.getObjectPropertyTrackingValue(object, originalArrayIndex),
-                ctx.createOperationLog({
-                  operation: ctx.operationTypes.arrayIndex,
-                  args: {},
-                  result: resultArrayIndex,
-                  astArgs: {},
-                  loc: logData.loc
-                })
-              );
-
-              resultArrayIndex++;
-            }
-          });
         }
       }
     }
