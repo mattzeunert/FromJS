@@ -235,17 +235,14 @@ function plugin(babel) {
 
       const body = path.node.body.body;
 
-      let forInRightValueName =
-        "__forInRightValue" +
-        Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
+      let forInRightValueIdentifier = ignoreNode(
+        path.scope.generateUidIdentifier("__forInRightVal")
+      );
 
       path.insertBefore(
         ignoreNode(
           t.variableDeclaration("let", [
-            t.variableDeclarator(
-              ignoredIdentifier(forInRightValueName),
-              path.node.right
-            )
+            t.variableDeclarator(forInRightValueIdentifier, path.node.right)
           ])
         )
       );
@@ -259,7 +256,7 @@ function plugin(babel) {
         body.unshift(declaration);
       }
 
-      path.node.right = ignoredIdentifier(forInRightValueName);
+      path.node.right = forInRightValueIdentifier;
 
       var assignment = ignoreNode(
         t.expressionStatement(
@@ -268,7 +265,7 @@ function plugin(babel) {
               "=",
               ignoredIdentifier(getTrackingVarName(varName)),
               ignoredCallExpression("getObjectPropertyNameTrackingValue", [
-                ignoredIdentifier(forInRightValueName),
+                forInRightValueIdentifier,
                 ignoredIdentifier(varName)
               ])
             )
