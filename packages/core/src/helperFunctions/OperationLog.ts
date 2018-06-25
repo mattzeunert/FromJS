@@ -74,7 +74,7 @@ function getSerializedValueObject(value, type, knownValues) {
     knownTypes.push("HTMLInputElement");
   }
 
-  var primitive = "";
+  var primitive;
   if (["string", "number", "boolean", "null"].includes(type)) {
     primitive = value;
   }

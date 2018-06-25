@@ -65,16 +65,6 @@ helperCode += "// aaaaa"; // this seems to help with debugging/evaling the code.
 function plugin(babel) {
   const { types: t } = babel;
 
-  // const str = t.stringLiteral;
-  // if (!t["x"]) {
-  //   t["x"] = true;
-  //   t.stringLiteral = function() {
-  //     const node = str.apply(this, arguments);
-  //     node.stack = Error().stack;
-  //     return node;
-  //   };
-  // }
-
   function handleFunction(path) {
     const declarators: any[] = [];
     path.node.params.forEach((param, i) => {
