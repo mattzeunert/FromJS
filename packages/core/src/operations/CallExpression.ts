@@ -528,7 +528,7 @@ const specialValuesForPostprocessing = {
     retT,
     extraTrackingValues
   }) => {
-    object.forEach((item, i) => {
+    for (var i = 0; i < object.length; i++) {
       let arrayValueTrackingValue = ctx.getObjectPropertyTrackingValue(
         object,
         i
@@ -549,7 +549,7 @@ const specialValuesForPostprocessing = {
         null, // not needed, avoid object[i] lookup which may have side effects
         arrayValueTrackingValue
       ];
-    });
+    }
     if (fnArgs[0]) {
       extraTrackingValues["separator"] = [null, fnArgs[0]];
     } else {
