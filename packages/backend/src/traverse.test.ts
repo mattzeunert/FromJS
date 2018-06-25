@@ -445,6 +445,16 @@ describe("Arrays", () => {
     expect(t1LastStep.charIndex).toBe(0);
     expect(t1LastStep.operationLog.result.primitive).toBe("-");
   });
+  it("Can traverse join called with .call", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return Array.prototype.join.call(["a","b"], "-")
+    `);
+    expect(normal).toBe("a-b");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 2 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.charIndex).toBe(0);
+    expect(t1LastStep.operationLog.result.primitive).toBe("b");
+  });
 });
 
 it("Tracks Object.keys", async () => {

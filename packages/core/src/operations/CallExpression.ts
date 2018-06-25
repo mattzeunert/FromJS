@@ -1269,11 +1269,10 @@ const CallExpression = <any>{
       args.function = operationLog.args.context;
       args.context = operationLog.args.arg0;
       return this.traverse(
-        {
-          operation: OperationTypes.callExpression,
-          args,
-          result: operationLog.result
-        },
+        new OperationLog(<any>{
+          ...operationLog,
+          args
+        }),
         charIndex
       );
     }
