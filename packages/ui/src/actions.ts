@@ -32,6 +32,9 @@ export function selectInspectedDomCharIndex(charIndex) {
       appState.set("inspectionTarget", { logId, charIndex });
       appState.set("collapseDomInspector", false);
       traverse();
+    } else {
+      appState.set("inspectionTarget", null);
+      appState.set("collapseDomInspector", true);
     }
   });
 }
