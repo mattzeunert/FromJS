@@ -1,26 +1,27 @@
-const time = new Date();
-const hours = time.getHours();
-const minutes = padLeft(time.getMinutes().toString(), "0", 2);
+let appHtml = '<div id="container">';
+appHtml += "<div>";
+appHtml += "<label>Name:</label>";
+appHtml += '<input type="text" value="World" id="name" />';
+appHtml += "</div>";
+appHtml += '<div id="greeting"></div>';
+appHtml += "</div>";
 
-let message = "It is <span>" + hours + "</span>";
-message += ":";
-message += "<span>" + minutes + "</span>";
+document.querySelector("#app").innerHTML = appHtml;
 
-fromJSInspect(message);
-document.querySelector("#app").innerHTML = message;
+const containerDiv = document.querySelector("#container");
+const nameInput = document.querySelector("#name");
+const greetingDiv = document.querySelector("#greeting");
 
-function padLeft(str, paddingChar, length) {
-  while (str.length < length) {
-    str = paddingChar + str;
-  }
-  return str;
+nameInput.addEventListener("keydown", updateGreeting);
+
+updateGreeting();
+fromJSInspect(
+  containerDiv,
+  containerDiv.outerHTML.indexOf(nameInput.value + "!</div>")
+);
+
+function updateGreeting() {
+  const name = nameInput.value;
+  const greeting = "Hello " + name + "!";
+  greetingDiv.textContent = greeting;
 }
-
-// fetch("https://api.ipify.org?format=json")
-//   .then(function(r) {
-//     return r.json();
-//   })
-//   .then(function(res) {
-//     const v = res.ip;
-//     fromJSInspect(v);
-//   });

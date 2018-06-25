@@ -183,7 +183,7 @@ function setupUI(options, app, wss, getProxy) {
   app.use(express.static(uiDir));
   app.use("/start", express.static(startPageDir));
 
-  function getDomToInspectMessage() {
+  function getDomToInspectMessage(charIndex?) {
     if (!domToInspect) {
       return {
         err: "Backend has no selected DOM to inspect"
@@ -194,12 +194,17 @@ function setupUI(options, app, wss, getProxy) {
 
     const html = mapping.getHtml();
     let goodDefaultCharIndex = 0;
-    const charIndexWhereTextFollows = html.search(/>[^<]/) + 1;
-    if (
-      charIndexWhereTextFollows !== -1 &&
-      mapping.getOriginAtCharacterIndex(charIndexWhereTextFollows)
-    ) {
-      goodDefaultCharIndex = charIndexWhereTextFollows;
+
+    if (charIndex !== undefined) {
+      goodDefaultCharIndex = charIndex;
+    } else {
+      const charIndexWhereTextFollows = html.search(/>[^<]/) + 1;
+      if (
+        charIndexWhereTextFollows !== -1 &&
+        mapping.getOriginAtCharacterIndex(charIndexWhereTextFollows)
+      ) {
+        goodDefaultCharIndex = charIndexWhereTextFollows;
+      }
     }
 
     return {
@@ -227,7 +232,7 @@ function setupUI(options, app, wss, getProxy) {
       wss,
       JSON.stringify({
         type: "inspectDOM",
-        ...getDomToInspectMessage()
+        ...getDomToInspectMessage(req.body.charIndex)
       })
     );
 
