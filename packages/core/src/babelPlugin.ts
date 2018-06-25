@@ -19,7 +19,8 @@ import {
   isInLeftPartOfAssignmentExpression,
   getTrackingVarName,
   addLoc,
-  skipPath
+  skipPath,
+  getTrackingIdentifier
 } from "./babelPluginHelpers";
 
 import helperCodeLoaded from "../helperFunctions";
@@ -70,7 +71,7 @@ function plugin(babel) {
     path.node.params.forEach((param, i) => {
       declarators.push(
         t.variableDeclarator(
-          addLoc(t.identifier(getTrackingVarName(param.name)), param.loc),
+          addLoc(getTrackingIdentifier(param.name), param.loc),
           t.callExpression(
             t.identifier(FunctionNames.getFunctionArgTrackingInfo),
             [t.numericLiteral(i)]
@@ -119,7 +120,7 @@ function plugin(babel) {
 
         newDeclarations.push(
           t.variableDeclarator(
-            addLoc(t.identifier(getTrackingVarName(decl.id.name)), decl.id.loc),
+            addLoc(getTrackingIdentifier(decl.id.name), decl.id.loc),
             skipPath(
               t.callExpression(
                 t.identifier(FunctionNames.getLastOperationTrackingResult),

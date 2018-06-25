@@ -15,9 +15,9 @@ import {
   createGetMemoTrackingValue,
   ignoredIdentifier,
   ignoredObjectExpression,
-  getTrackingVarName,
   skipPath,
-  initForBabel as initForBabelPH
+  initForBabel as initForBabelPH,
+  getTrackingIdentifier
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import { ExecContext } from "./helperFunctions/ExecContext";
@@ -584,9 +584,7 @@ const operations: Operations = {
       let trackingIdentiferLookup;
       const binding = path.scope.getBinding(path.node.name);
       if (binding && ["var", "let", "const", "param"].includes(binding.kind)) {
-        trackingIdentiferLookup = ignoredIdentifier(
-          getTrackingVarName(path.node.name)
-        );
+        trackingIdentiferLookup = getTrackingIdentifier(path.node.name);
       } else {
         // If the value has been declared as a var then we know the
         // tracking var also exists,

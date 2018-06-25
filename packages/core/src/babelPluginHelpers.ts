@@ -189,11 +189,15 @@ export function getTrackingVarName(identifierName) {
   return identifierName + "___tv";
 }
 
+export function getTrackingIdentifier(identifierName) {
+  return ignoredIdentifier(getTrackingVarName(identifierName));
+}
+
 export function trackingIdentifierIfExists(identifierName) {
   var trackingIdentifierName = getTrackingVarName(identifierName);
   return runIfIdentifierExists(
     trackingIdentifierName,
-    ignoredIdentifier(trackingIdentifierName)
+    getTrackingIdentifier(identifierName)
   );
 }
 
