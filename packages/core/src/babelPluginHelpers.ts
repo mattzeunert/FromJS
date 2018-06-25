@@ -62,11 +62,20 @@ export function ignoredNumericLiteral(number) {
   return ignoreNode(t.numericLiteral(number));
 }
 
+const canBeIdentifierRegExp = /^[a-z0-9A-Z]+$/;
+function getObjectId(name) {
+  if (canBeIdentifierRegExp.test(name)) {
+    return ignoredIdentifier(name);
+  } else {
+    return ignoredStringLiteral(name);
+  }
+}
+
 export function ignoredObjectExpression(props) {
   const properties = Object.keys(props).map(propKey => {
     return ignoreNode(
       t.objectProperty(
-        ignoredStringLiteral(propKey),
+        getObjectId(propKey),
         props[propKey].length !== undefined
           ? ignoredArrayExpression(props[propKey])
           : props[propKey]
@@ -93,27 +102,6 @@ function getLocObjectASTNode(loc) {
   const locId = createLoc(loc);
 
   return ignoredStringLiteral(locId);
-
-  // Using JSON.parse instead of creating object directly because
-  // it speeds up overall Babel compile time by a third, and reduces file size
-  // by 30%
-  // return skipPath(
-  //   t.callExpression(
-  //     t.memberExpression(t.identifier("JSON"), t.identifier("parse")),
-  //     [t.stringLiteral(JSON.stringify(loc))]
-  //   )
-  // );
-
-  // function getASTNode(location) {
-  //   return ignoredObjectExpression({
-  //     line: ignoredNumericLiteral(location.line),
-  //     column: ignoredNumericLiteral(location.column)
-  //   });
-  // }
-  // return ignoredObjectExpression({
-  //   start: getASTNode(loc.start),
-  //   end: getASTNode(loc.end)
-  // });
 }
 
 let noLocCount = 0;
