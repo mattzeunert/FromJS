@@ -9,7 +9,8 @@ import {
   ignoredIdentifier,
   getTrackingVarName,
   ignoreNode,
-  createSetMemoValue
+  createSetMemoValue,
+  getLastOperationTrackingResultWithoutResettingCall
 } from "../babelPluginHelpers";
 import traverseStringConcat from "../traverseStringConcat";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
@@ -172,7 +173,14 @@ export default <any>{
           this.t.assignmentExpression(
             "=",
             ignoredIdentifier(getTrackingVarName(path.node.left.name)),
-            getLastOperationTrackingResultCall()
+            // Normally we want to reset the value after an operation, but the problem is
+            // that after the tracking assignment the result value of the assignment operation could
+            // be read.
+            // Like this: `a = (b = 4)`
+            // If we use reset the last tracking value the `a =` assignment will lose the tracking value
+            // (In theory we could detect if the result is used somehow and only not reset if we know it's used
+            // base on the AST)
+            getLastOperationTrackingResultWithoutResettingCall()
           )
         )
       );

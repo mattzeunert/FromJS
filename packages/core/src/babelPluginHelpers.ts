@@ -169,6 +169,14 @@ export const getLastOperationTrackingResultCall = () =>
     ignoredCallExpression(FunctionNames.getLastOperationTrackingResult, [])
   );
 
+export const getLastOperationTrackingResultWithoutResettingCall = () =>
+  skipPath(
+    ignoredCallExpression(
+      FunctionNames.getLastOperationTrackingResultWithoutResetting,
+      []
+    )
+  );
+
 export function isInLeftPartOfAssignmentExpression(path) {
   return isInNodeType("AssignmentExpression", path, function(path, prevPath) {
     return path.node.left === prevPath.node;

@@ -454,6 +454,12 @@ declare var __FUNCTION_NAMES__,
     lastOpTrackingResult = null;
     return ret;
   };
+  global[
+    functionNames.getLastOperationTrackingResultWithoutResetting
+  ] = function getLastOp() {
+    validateTrackingValue(lastOpTrackingResult);
+    return lastOpTrackingResult;
+  };
 })(
   __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
