@@ -15,6 +15,7 @@ import {
 import traverseStringConcat from "../traverseStringConcat";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import addElOrigin from "./domHelpers/addElOrigin";
+import * as MemoValueNames from "../MemoValueNames";
 
 export default <any>{
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
@@ -161,7 +162,7 @@ export default <any>{
       ];
     } else if (path.node.left.type === "Identifier") {
       var right = createSetMemoValue(
-        "lastAssignmentExpressionArgument",
+        MemoValueNames.lastAssignmentExpressionArgument,
         path.node.right,
         getLastOperationTrackingResultCall()
       );
@@ -202,7 +203,7 @@ export default <any>{
         getLastOperationTrackingResultCall()
       ])),
         (operationArguments["argument"] = createGetMemoArray(
-          "lastAssignmentExpressionArgument"
+          MemoValueNames.lastAssignmentExpressionArgument
         ));
     } else {
       throw Error("unhandled assignmentexpression node.left type");
