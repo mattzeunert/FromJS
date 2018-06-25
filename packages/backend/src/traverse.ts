@@ -30,7 +30,11 @@ export async function traverse(
 
     const operation = operations[operationLog.operation];
     if (operation && operation.traverse) {
-      nextStep = operation.traverse(operationLog, charIndex);
+      try {
+        nextStep = operation.traverse(operationLog, charIndex);
+      } catch (err) {
+        console.log("traverse err", operationLog.operation, err);
+      }
     } else {
       switch (operationLog.operation) {
         case "functionArgument":
