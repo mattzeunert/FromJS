@@ -63,12 +63,20 @@ export function ignoredNumericLiteral(number) {
 }
 
 const canBeIdentifierRegExp = /^[a-z0-9A-Z]+$/;
+const objectIdCache = {};
 function getObjectId(name) {
-  if (canBeIdentifierRegExp.test(name)) {
-    return ignoredIdentifier(name);
-  } else {
-    return ignoredStringLiteral(name);
+  // Cache here for improved compilation performance
+  // Not caching at the ignoredIdentifier/IgnoredStringLiteral level because
+  // sometimes the result is modified to add a .loc (which isn't needed right
+  // now I think but if we have sourcemaps in the future it will be needed)
+  if (!objectIdCache[name]) {
+    if (canBeIdentifierRegExp.test(name)) {
+      objectIdCache[name] = ignoredIdentifier(name);
+    } else {
+      objectIdCache[name] = ignoredStringLiteral(name);
+    }
   }
+  return objectIdCache[name];
 }
 
 export function ignoredObjectExpression(props) {
