@@ -13,7 +13,7 @@ import addElOrigin, {
 } from "./domHelpers/addElOrigin";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import { VERIFY } from "../config";
-import { doOperation } from "../FunctionNames";
+import { doOperation, getLastMemberExpressionObject } from "../FunctionNames";
 import OperationLog from "../helperFunctions/OperationLog";
 import * as cloneRegExp from "clone-regexp";
 import { callExpression } from "@babel/types";
@@ -1483,20 +1483,17 @@ const CallExpression = <any>{
       );
     });
 
+    let contextArg;
+
     let executionContext;
     let executionContextTrackingValue;
     if (isMemberExpressionCall) {
-      executionContext = ignoredCallExpression(
-        "getLastMemberExpressionObjectValue",
-        []
-      );
-      executionContextTrackingValue = ignoredCallExpression(
-        "getLastMemberExpressionObjectTrackingValue",
-        []
-      );
+      contextArg = ignoredCallExpression(getLastMemberExpressionObject, []);
     } else {
-      executionContext = ignoredIdentifier("undefined");
-      executionContextTrackingValue = ignoreNode(this.t.nullLiteral());
+      contextArg = [
+        ignoredIdentifier("undefined"),
+        ignoreNode(this.t.nullLiteral())
+      ];
     }
 
     var fnArgs = {};
@@ -1517,7 +1514,7 @@ const CallExpression = <any>{
             ? getLastOperationTrackingResultCall()
             : getLastOperationTrackingResultCall()
         ],
-        context: [executionContext, executionContextTrackingValue],
+        context: contextArg,
         ...fnArgs
       },
       astArgs,

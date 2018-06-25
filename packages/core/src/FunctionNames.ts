@@ -7,3 +7,4 @@ export const setMemoValue = "__setM";
 export const getMemoValue = "__getM";
 export const getMemoTrackingValue = "__getMT";
 export const getMemoArray = "__getMA";
+export const getLastMemberExpressionObject = "getLMEO";

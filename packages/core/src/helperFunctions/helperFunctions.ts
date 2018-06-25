@@ -328,12 +328,11 @@ declare var __FUNCTION_NAMES__,
 
   var lastMemberExpressionObjectValue = null;
   var lastMemberExpressionObjectTrackingValue = null;
-  global["getLastMemberExpressionObjectValue"] = function() {
-    return lastMemberExpressionObjectValue;
-  };
-
-  global["getLastMemberExpressionObjectTrackingValue"] = function() {
-    return lastMemberExpressionObjectTrackingValue;
+  global[functionNames.getLastMemberExpressionObject] = function() {
+    return [
+      lastMemberExpressionObjectValue,
+      lastMemberExpressionObjectTrackingValue
+    ];
   };
 
   var lastReturnStatementResult = null;
