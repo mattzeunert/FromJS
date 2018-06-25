@@ -25,6 +25,7 @@ import { ExecContext } from "./helperFunctions/ExecContext";
 import CallExpression from "./operations/CallExpression";
 import AssignmentExpression from "./operations/AssignmentExpression";
 import traverseStringConcat from "./traverseStringConcat";
+import * as MemoValueNames from "./MemoValueNames";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -208,35 +209,41 @@ const operations: Operations = {
     },
     visitor(path) {
       var saveTestValue = createSetMemoValue(
-        "lastConditionalExpressionTest",
+        MemoValueNames.lastConditionalExpressionTest,
         path.node.test,
         getLastOperationTrackingResultCall()
       );
       var saveConsequentValue = createSetMemoValue(
-        "lastConditionalExpressionResult",
+        MemoValueNames.lastConditionalExpressionResult,
         path.node.consequent,
         getLastOperationTrackingResultCall()
       );
       var saveAlernativeValue = createSetMemoValue(
-        "lastConditionalExpressionResult",
+        MemoValueNames.lastConditionalExpressionResult,
         path.node.alternate,
         getLastOperationTrackingResultCall()
       );
       var operation = this.createNode!(
         {
           test: [
-            createGetMemoValue("lastConditionalExpressionTest"),
-            createGetMemoTrackingValue("lastConditionalExpressionTest")
+            createGetMemoValue(MemoValueNames.lastConditionalExpressionTest),
+            createGetMemoTrackingValue(
+              MemoValueNames.lastConditionalExpressionTest
+            )
           ],
           result: [
             ignoreNode(
               t.conditionalExpression(
-                createGetMemoValue("lastConditionalExpressionTest"),
+                createGetMemoValue(
+                  MemoValueNames.lastConditionalExpressionTest
+                ),
                 saveConsequentValue,
                 saveAlernativeValue
               )
             ),
-            createGetMemoTrackingValue("lastConditionalExpressionResult")
+            createGetMemoTrackingValue(
+              MemoValueNames.lastConditionalExpressionResult
+            )
           ]
         },
         {},
