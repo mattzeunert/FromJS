@@ -3,7 +3,8 @@ import {
   ignoreNode,
   ignoredIdentifier,
   ignoredArrayExpression,
-  ignoredCallExpression
+  ignoredCallExpression,
+  ignoredArrayExpressionIfArray
 } from "../babelPluginHelpers";
 import HtmlToOperationLogMapping from "../helperFunctions/HtmlToOperationLogMapping";
 import * as OperationTypes from "../OperationTypes";
@@ -1377,6 +1378,42 @@ const CallExpression = <any>{
         operationLog: operationLog.extraArgs.returnValue,
         charIndex: charIndex
       };
+    }
+  },
+  shorthand: {
+    fnName: "__cEx",
+    getExec: doOperation => {
+      return function(loc, fn, context, ...args) {
+        const argObj = {
+          function: fn,
+          context
+        };
+        args.forEach((a, i) => {
+          argObj["arg" + i] = a;
+        });
+        return doOperation("callExpression", argObj, {}, loc);
+      };
+    },
+    visitor: (opArgs, astArgs, locAstNode) => {
+      if (astArgs && astArgs["isNewExpression"]) {
+        // not supported by shorthand
+        return null;
+      }
+      var i = 0;
+      try {
+        const argList = [
+          locAstNode,
+          ignoredArrayExpressionIfArray(opArgs.function),
+          ignoredArrayExpressionIfArray(opArgs.context)
+        ];
+        while (opArgs["arg" + i]) {
+          argList.push(ignoredArrayExpressionIfArray(opArgs["arg" + i]));
+          i++;
+        }
+        return ignoredCallExpression("__cEx", argList);
+      } catch (err) {
+        debugger;
+      }
     }
   },
   visitor(path, isNewExpression = false) {

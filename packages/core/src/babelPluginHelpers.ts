@@ -79,14 +79,16 @@ function getObjectId(name) {
   return objectIdCache[name];
 }
 
+export function ignoredArrayExpressionIfArray(p) {
+  return p.length !== undefined ? ignoredArrayExpression(p) : p;
+}
+
 export function ignoredObjectExpression(props) {
   const properties = Object.keys(props).map(propKey => {
     return ignoreNode(
       t.objectProperty(
         getObjectId(propKey),
-        props[propKey].length !== undefined
-          ? ignoredArrayExpression(props[propKey])
-          : props[propKey]
+        ignoredArrayExpressionIfArray(props[propKey])
       )
     );
   });
