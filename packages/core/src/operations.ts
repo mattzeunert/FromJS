@@ -63,6 +63,9 @@ interface Operations {
     createNode?: (args?: any, astArgs?: any, loc?: any) => any;
     visitor?: any;
     exec?: any;
+    // Sometimes (e.g. for string literals) we know the op result
+    // at compile time and can look it up for analysis later
+    canInferResult?: boolean;
     getArgumentsArray?: any;
     shorthand?: Shorthand;
     traverse?: (
@@ -287,6 +290,7 @@ const operations: Operations = {
   },
   objectExpression: ObjectExpression,
   stringLiteral: {
+    canInferResult: true,
     shorthand: {
       fnName: "__str",
       getExec: doOperation => {
@@ -307,12 +311,11 @@ const operations: Operations = {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
+      const value = path.node.value;
+      // Store on loc so it can be looked up later
+      path.node.loc.value = value;
       return skipPath(
-        this.createNode!(
-          [[ignoredStringLiteral(path.node.value)]],
-          {},
-          path.node.loc
-        )
+        this.createNode!([[ignoredStringLiteral(value)]], {}, path.node.loc)
       );
     },
     exec: (args, astArgs, ctx: ExecContext) => {
@@ -340,12 +343,9 @@ const operations: Operations = {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
+      const value = path.node.value;
       return skipPath(
-        this.createNode!(
-          [[ignoredNumericLiteral(path.node.value)]],
-          null,
-          path.node.loc
-        )
+        this.createNode!([[ignoredNumericLiteral(value)]], null, path.node.loc)
       );
     },
     exec: (args, astArgs, ctx: ExecContext) => {
@@ -573,6 +573,9 @@ const operations: Operations = {
 };
 
 function eachArgumentInObject(args, operationName, fn) {
+  if (!args) {
+    return;
+  }
   const operation = operations[operationName];
   const isObjectExpression = operationName === OperationTypes.objectExpression;
 

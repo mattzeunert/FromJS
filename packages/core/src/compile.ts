@@ -3,6 +3,12 @@ import plugin from "./babelPlugin";
 import * as prettier from "prettier";
 import getBabelOptions, { getAndResetLocs } from "./getBabelOptions";
 
+export interface CompilationResult {
+  map: any;
+  code: string;
+  locs: any;
+}
+
 var sourceMapRegex = /\/\/#[\W]*sourceMappingURL=.*$/;
 function removeSourceMapIfAny(code) {
   // In theory we might be able to use this source map, but right now
@@ -18,7 +24,7 @@ function removeSourceMapIfAny(code) {
 }
 
 export default function transform(code, extraBabelOptions = {}) {
-  return new Promise((resolve, reject) => {
+  return new Promise<CompilationResult>((resolve, reject) => {
     let result;
     try {
       result = compileSync(code, extraBabelOptions);
@@ -38,7 +44,7 @@ export function compileSync(code, extraBabelOptions = {}, url = "/no_url.js") {
     code,
     getBabelOptions(plugin, extraBabelOptions, url)
   );
-  return {
+  return <CompilationResult>{
     map: babelResult.map,
     code: babelResult.code + "\n//# sourceMappingURL=" + url + ".map",
     locs: getAndResetLocs()

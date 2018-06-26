@@ -7,6 +7,7 @@ import OperationLog from "./src/helperFunctions/OperationLog";
 import handleEvalScript from "./src/handleEvalScript";
 import { compileSync } from "./src/compile";
 import HtmlToOperationLogMapping from "./src/helperFunctions/HtmlToOperationLogMapping";
+import { LocStore } from "./src/LocStore";
 
 export {
   babelPlugin,
@@ -17,5 +18,6 @@ export {
   OperationLog,
   handleEvalScript,
   compileSync,
-  HtmlToOperationLogMapping
+  HtmlToOperationLogMapping,
+  LocStore
 };

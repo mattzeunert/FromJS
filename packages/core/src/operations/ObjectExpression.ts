@@ -11,7 +11,7 @@ import * as OperationTypes from "../OperationTypes";
 const OBJECT_METHOD = EXPLICIT_NAMES ? "ObjectMethod" : "met";
 const OBJECT_PROPERTY = EXPLICIT_NAMES ? "ObjectProperty" : "pr";
 
-export default {
+export default <any>{
   argNames: ["property"],
   argIsArray: [true],
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {

@@ -1,8 +1,22 @@
-import compile from "./compile";
+import compile, { CompilationResult } from "./compile";
 import InMemoryLogServer from "./LogServer/InMemoryLogServer";
 import OperationLog from "./helperFunctions/OperationLog";
 
-const server = new InMemoryLogServer();
+const inMemoryLocStore: any = {
+  _locs: {},
+  write(locs, callback) {
+    Object.keys(locs).forEach(key => {
+      this._locs[key] = locs[key];
+    });
+    if (callback) {
+      callback();
+    }
+  },
+  getLoc(locId, callback) {
+    callback(this._locs[locId]);
+  }
+};
+const server = new InMemoryLogServer(inMemoryLocStore);
 
 interface InstrumentAndRunResult {
   code: string;
@@ -14,8 +28,12 @@ export function instrumentAndRun(code) {
   return new Promise<InstrumentAndRunResult>(resolve => {
     code = `getTrackingAndNormalValue((function(){ ${code} })())`;
 
-    compile(code).then((compileResult: any) => {
+    compile(code).then((compileResult: CompilationResult) => {
       var code = compileResult.code;
+
+      server._locStore.write(compileResult.locs, function() {
+        /* don't bother waiting since store is sync */
+      });
 
       // console.log(code.split("* HELPER_FUNCTIONS_END */")[1]);
       const __storeLog = server.storeLog.bind(server);

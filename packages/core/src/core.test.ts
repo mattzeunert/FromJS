@@ -1,5 +1,5 @@
 import * as OperationTypes from "./OperationTypes";
-import { instrumentAndRun } from "./testHelpers";
+import { instrumentAndRun, server } from "./testHelpers";
 import { compileSync } from "./compile";
 
 test("adds 1 + 2 to equal 3", done => {
@@ -582,7 +582,9 @@ it("Doesn't break when using non-strict mode features like with", async () => {
 
 describe("eval/new Function", () => {
   function __fromJSEval(code) {
-    let compiledCode = compileSync(code).code;
+    const compilationResult = compileSync(code);
+    let compiledCode = compilationResult.code;
+    server._locStore.write(compilationResult.locs, function() {});
     return {
       returnValue: eval(compiledCode),
       evalScript: []

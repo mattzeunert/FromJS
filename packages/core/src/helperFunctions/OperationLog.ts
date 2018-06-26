@@ -208,18 +208,19 @@ OperationLog.createAtRuntime = function(
   { operation, result, args, astArgs, extraArgs, loc, runtimeArgs, index },
   knownValues
 ): OperationLogInterface {
-  var data = arguments[0];
-
   if (VERIFY && !loc) {
     console.log("no loc at runtime for operation", operation);
   }
+  const op = operations[operation];
 
   if (Array.isArray(args)) {
-    const op = operations[operation];
-    const newArgs = [];
+    const newArgs: any[] = [];
     args.forEach((arg, i) => {
-      if (op["argIsArray"] && invokeIfFunction(op["argIsArray"][i], data)) {
-        const a = [];
+      if (
+        op["argIsArray"] &&
+        invokeIfFunction(op["argIsArray"]![i], arguments[0])
+      ) {
+        const a: any[] = [];
         arg.forEach((arrayArg, arrayArgIndex) => {
           a.push(arrayArg[1]);
         });
@@ -256,9 +257,16 @@ OperationLog.createAtRuntime = function(
     });
   }
 
+  let _result;
+  if (op && op.canInferResult) {
+    // args can be inferred on BE by checking the AST loc data
+  } else {
+    _result = serializeValue(result, knownValues);
+  }
+
   return <OperationLogInterface>{
     operation,
-    _result: serializeValue(result, knownValues),
+    _result,
     index,
     extraArgs,
     args,

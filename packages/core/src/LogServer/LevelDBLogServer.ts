@@ -2,12 +2,13 @@ import * as levelup from "levelup";
 import * as leveldown from "leveldown";
 import OperationLog from "../helperFunctions/OperationLog";
 import { LogServer } from "./LogServer";
+import { LocStore } from "../LocStore";
 
 export default class LevelDBLogServer extends LogServer {
   db: any;
   levelDownDb: any;
-  constructor(dbPath: string) {
-    super();
+  constructor(dbPath: string, locStore: LocStore) {
+    super(locStore);
     this.levelDownDb = leveldown(dbPath);
     this.db = levelup(this.levelDownDb);
   }
