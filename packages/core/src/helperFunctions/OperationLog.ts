@@ -231,6 +231,10 @@ OperationLog.createAtRuntime = function(
     });
 
     args = newArgs;
+
+    if (args.length === 1 && !args[0]) {
+      args = undefined;
+    }
   } else {
     if (operation === "objectExpression" && args.properties) {
       // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"

@@ -83,7 +83,7 @@ const operations: Operations = {
       fnName: "__mEx",
       getExec: doOperation => {
         return (object, propName, loc) => {
-          return doOperation([object, propName], null, loc);
+          return doOperation([object, propName], undefined, loc);
         };
       },
       visitor: (opArgs, astArgs, locAstNode) => {
@@ -295,7 +295,7 @@ const operations: Operations = {
       fnName: "__str",
       getExec: doOperation => {
         return (value, loc) => {
-          return doOperation([value], null, loc);
+          return doOperation([value], undefined, loc);
         };
       },
       visitor: (opArgs, astArgs, locAstNode) => {
@@ -327,7 +327,7 @@ const operations: Operations = {
       fnName: "__num",
       getExec: doOperation => {
         return (value, loc) => {
-          return doOperation([value], null, loc);
+          return doOperation([value], undefined, loc);
         };
       },
       visitor: (opArgs, astArgs, locAstNode) => {
@@ -441,7 +441,7 @@ const operations: Operations = {
       fnName: "__ident",
       getExec: doOperation => {
         return (value, loc) => {
-          return doOperation([value], null, loc);
+          return doOperation([value], undefined, loc);
         };
       },
       visitor: (opArgs, astArgs, locAstNode) => {
