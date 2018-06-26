@@ -76,6 +76,21 @@ interface Operations {
 const operations: Operations = {
   memberExpression: {
     argNames: ["object", "propName"],
+    shorthand: {
+      fnName: "__mEx",
+      getExec: doOperation => {
+        return (object, propName, loc) => {
+          return doOperation("memberExpression", [object, propName], null, loc);
+        };
+      },
+      visitor: (opArgs, astArgs, locAstNode) => {
+        return ignoredCallExpression("__mEx", [
+          ignoredArrayExpression(opArgs[0]),
+          ignoredArrayExpression(opArgs[1]),
+          locAstNode
+        ]);
+      }
+    },
     exec: (args, astArgs, ctx: ExecContext, logData: any) => {
       var ret;
       const [objectArg, propNameArg] = args;
