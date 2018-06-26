@@ -127,6 +127,10 @@ export function createOperation(
     console.log("no loc for", opType, noLocCount);
   }
 
+  if ("type" in opArgs) {
+    throw Error("should not put node into createOp, use array or obj");
+  }
+
   let locAstNode;
   if (!loc || SKIP_TRACKING) {
     locAstNode = t.nullLiteral();
@@ -143,7 +147,9 @@ export function createOperation(
 
   const args = [
     ignoredStringLiteral(opType),
-    ignoredObjectExpression(opArgs),
+    Array.isArray(opArgs)
+      ? ignoredArrayExpression(opArgs)
+      : ignoredObjectExpression(opArgs),
     astArgs !== null
       ? skipPath(ignoredObjectExpression(astArgs))
       : t.nullLiteral()

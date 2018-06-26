@@ -1,5 +1,6 @@
 import KnownValues from "./KnownValues";
 import { VERIFY } from "../config";
+import operations from "../operations";
 
 var global = Function("return this")();
 
@@ -215,22 +216,39 @@ OperationLog.createAtRuntime = function(
     console.log("no loc at runtime for operation", operation);
   }
 
-  if (operation === "objectExpression" && args.properties) {
-    // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
-    args.properties = args.properties.map(prop => {
-      return {
-        key: prop.key[1],
-        type: prop.type[1],
-        value: prop.value[1]
-      };
+  if (Array.isArray(args)) {
+    const op = operations[operation];
+    const newArgs = {}; // todo: don't do this here, do this when looking up the log on BE
+    op["argNames"].forEach((argName, i) => {
+      const isArray = op["argIsArray"][i];
+      if (isArray) {
+        args[i].forEach((argV, argIndex) => {
+          newArgs[argName + argIndex] = argV[1];
+        });
+      } else {
+        newArgs[argName] = args[i][1];
+      }
     });
+    args = newArgs;
   } else {
-    // only store argument operation log because ol.result === a[0]
-    eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
-      verifyArg(arg);
-      updateArg(arg[1]);
-    });
+    if (operation === "objectExpression" && args.properties) {
+      // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
+      args.properties = args.properties.map(prop => {
+        return {
+          key: prop.key[1],
+          type: prop.type[1],
+          value: prop.value[1]
+        };
+      });
+    } else {
+      // only store argument operation log because ol.result === a[0]
+      eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
+        verifyArg(arg);
+        updateArg(arg[1]);
+      });
+    }
   }
+
   if (typeof extraArgs === "object") {
     eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
       verifyArg(arg);

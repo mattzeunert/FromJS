@@ -23,6 +23,10 @@ function countGroupsInRegExp(re) {
   return new RegExp(re.toString() + "|").exec("")!.length;
 }
 
+function getFnArg(args, index) {
+  return args[2][index];
+}
+
 const specialCases = {
   "String.prototype.replace": ({
     ctx,
@@ -61,7 +65,7 @@ const specialCases = {
               if (!isNaN(submatchIndex)) {
                 var submatch = submatches[submatchIndex - 1]; // $n is one-based, array is zero-based
                 if (submatch === undefined) {
-                  var maxSubmatchIndex = countGroupsInRegExp(args.arg0[0]);
+                  var maxSubmatchIndex = countGroupsInRegExp(getFnArg(args, 0));
                   var submatchIsDefinedInRegExp =
                     submatchIndex < maxSubmatchIndex;
 
@@ -89,7 +93,7 @@ const specialCases = {
           ctx.createOperationLog({
             operation: ctx.operationTypes.stringReplacement,
             args: {
-              value: args.arg1
+              value: getFnArg(args, 1)
             },
             astArgs: {},
             result: replacement,
@@ -134,7 +138,7 @@ const specialCases = {
       const trackingValue = ctx.createOperationLog({
         operation: ctx.operationTypes.jsonParseResult,
         args: {
-          json: args.arg0
+          json: getFnArg(args, 0)
         },
         result: value,
         runtimeArgs: {
@@ -145,7 +149,7 @@ const specialCases = {
       const nameTrackingValue = ctx.createOperationLog({
         operation: ctx.operationTypes.jsonParseResult,
         args: {
-          json: args.arg0
+          json: getFnArg(args, 0)
         },
         result: key,
         runtimeArgs: {
@@ -756,21 +760,24 @@ class ValueMapV2 {
 }
 
 const CallExpression = <any>{
+  argNames: ["function", "context", "arg"],
+  argIsArray: [false, false, true],
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
+    let [fnArg, context, argList] = args;
+
     var i = 0;
     var arg;
     var fnArgs: any[] = [];
     var fnArgValues: any[] = [];
 
-    let context = args.context;
-    var fn = args.function[0];
+    var fn = fnArg[0];
 
     while (true) {
-      var argKey = "arg" + i;
-      if (!(argKey in args)) {
+      var argKey = i;
+      if (!(argKey in argList)) {
         break;
       }
-      arg = args[argKey];
+      arg = argList[argKey];
       fnArgValues.push(arg[0]);
       fnArgs.push(arg[1]);
       i++;
@@ -817,7 +824,7 @@ const CallExpression = <any>{
     var ret;
     let retT: any = null;
     if (astArgs.isNewExpression) {
-      const isNewFunctionCall = args.function[0] === Function;
+      const isNewFunctionCall = fnArg[0] === Function;
       if (isNewFunctionCall && ctx.hasInstrumentationFunction) {
         let code = fnArgValues[fnArgValues.length - 1];
         let generatedFnArguments = fnArgValues.slice(0, -1);
@@ -832,7 +839,7 @@ const CallExpression = <any>{
           console.log("can't instrument new Function() code");
         }
         let thisValue = null; // overwritten inside new()
-        ret = new (Function.prototype.bind.apply(args.function[0], [
+        ret = new (Function.prototype.bind.apply(fnArg[0], [
           thisValue,
           ...fnArgValues
         ]))();
@@ -959,11 +966,7 @@ const CallExpression = <any>{
 
               const obj = ctx.global[doOperation](
                 "callExpression",
-                {
-                  context: [JSON],
-                  function: [JSON.parse],
-                  arg0: [text, t]
-                },
+                [[JSON.parse], [JSON], [[text, t]]],
                 {}
               );
               return Promise.resolve(obj);
@@ -1011,13 +1014,11 @@ const CallExpression = <any>{
             }
             const ret = ctx.global[doOperation](
               "callExpression",
-              {
-                context: [this, null],
-                function: [originalMappingFunction, null],
-                arg0: [item, itemTrackingInfo, null],
-                arg1: [index, null],
-                arg2: [array, null]
-              },
+              [
+                [originalMappingFunction, null],
+                [this, null],
+                [[item, itemTrackingInfo, null], [index, null], [array, null]]
+              ],
               {},
               logData.loc
             );
@@ -1055,14 +1056,16 @@ const CallExpression = <any>{
 
             const ret = ctx.global[doOperation](
               "callExpression",
-              {
-                context: [this, null],
-                function: [originalReduceFunction, null],
-                arg0: [previousRet, reduceResultTrackingValue],
-                arg1: [param, paramTrackingValue],
-                arg2: [currentIndex, null],
-                arg3: [array, null]
-              },
+              [
+                [originalReduceFunction, null],
+                [this, null],
+                [
+                  [previousRet, reduceResultTrackingValue],
+                  [param, paramTrackingValue],
+                  [currentIndex, null],
+                  [array, null]
+                ]
+              ],
               {},
               logData.loc
             );
@@ -1080,16 +1083,15 @@ const CallExpression = <any>{
           setFnArgForApply(0, function(this: any, element, index, array) {
             const ret = ctx.global[doOperation](
               "callExpression",
-              {
-                context: [this, null],
-                function: [originalFilterFunction, null],
-                arg0: [
-                  element,
-                  ctx.getObjectPropertyTrackingValue(array, index)
-                ],
-                arg1: [index, null],
-                arg2: [array, null]
-              },
+              [
+                [originalFilterFunction, null],
+                [this, null],
+                [
+                  [element, ctx.getObjectPropertyTrackingValue(array, index)],
+                  [index, null],
+                  [array, null]
+                ]
+              ],
               {},
               logData.loc
             );
@@ -1377,42 +1379,6 @@ const CallExpression = <any>{
       };
     }
   },
-  shorthand: {
-    fnName: "__cEx",
-    getExec: doOperation => {
-      return function(loc, fn, context, ...args) {
-        const argObj = {
-          function: fn,
-          context
-        };
-        args.forEach((a, i) => {
-          argObj["arg" + i] = a;
-        });
-        return doOperation("callExpression", argObj, {}, loc);
-      };
-    },
-    visitor: (opArgs, astArgs, locAstNode) => {
-      if (astArgs && astArgs["isNewExpression"]) {
-        // not supported by shorthand
-        return null;
-      }
-      var i = 0;
-      try {
-        const argList = [
-          locAstNode,
-          ignoredArrayExpressionIfArray(opArgs.function),
-          ignoredArrayExpressionIfArray(opArgs.context)
-        ];
-        while (opArgs["arg" + i]) {
-          argList.push(ignoredArrayExpressionIfArray(opArgs["arg" + i]));
-          i++;
-        }
-        return ignoredCallExpression("__cEx", argList);
-      } catch (err) {
-        debugger;
-      }
-    }
-  },
   visitor(path, isNewExpression = false) {
     const { callee } = path.node;
 
@@ -1430,36 +1396,27 @@ const CallExpression = <any>{
     if (isMemberExpressionCall) {
       contextArg = ignoredCallExpression(getLastMemberExpressionObject, []);
     } else {
-      contextArg = [
+      contextArg = ignoredArrayExpression([
         ignoredIdentifier("undefined"),
         ignoreNode(this.t.nullLiteral())
-      ];
+      ]);
     }
 
-    var fnArgs = {};
-    args.forEach((arg, i) => {
-      fnArgs["arg" + i] = arg;
-    });
+    const fn = ignoredArrayExpression([
+      path.node.callee,
+      isMemberExpressionCall
+        ? getLastOperationTrackingResultCall()
+        : getLastOperationTrackingResultCall()
+    ]);
+
+    var fnArgs = [fn, contextArg, ignoredArrayExpression(args)];
 
     const astArgs = {};
     if (isNewExpression) {
       astArgs["isNewExpression"] = ignoreNode(this.t.booleanLiteral(true));
     }
 
-    var call = this.createNode!(
-      {
-        function: [
-          path.node.callee,
-          isMemberExpressionCall
-            ? getLastOperationTrackingResultCall()
-            : getLastOperationTrackingResultCall()
-        ],
-        context: contextArg,
-        ...fnArgs
-      },
-      astArgs,
-      path.node.callee.loc
-    );
+    var call = this.createNode!(fnArgs, astArgs, path.node.callee.loc);
 
     // todo: would it be better for perf if I updated existing call
     // instead of using replaceWith?

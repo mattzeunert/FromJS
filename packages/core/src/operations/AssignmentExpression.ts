@@ -21,7 +21,7 @@ import * as MemoValueNames from "../MemoValueNames";
 export default <any>{
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
     var ret;
-    const assignmentType = args.type[0];
+    const assignmentType = astArgs.type;
     const operator = astArgs.operator;
     if (assignmentType === "MemberExpression") {
       var obj = args.object[0];
@@ -133,9 +133,8 @@ export default <any>{
   visitor(path) {
     path.node.ignore = true;
 
-    let operationArguments = {
-      type: ignoredArrayExpression([ignoredStringLiteral(path.node.left.type)])
-    };
+    const type = path.node.left.type;
+    const operationArguments = {};
 
     let trackingAssignment: any = null;
 
@@ -213,7 +212,8 @@ export default <any>{
     const operation = this.createNode!(
       operationArguments,
       {
-        operator: ignoredStringLiteral(path.node.operator)
+        operator: ignoredStringLiteral(path.node.operator),
+        type: ignoredStringLiteral(type)
       },
       path.node.loc
     );

@@ -17,6 +17,7 @@ export function instrumentAndRun(code) {
     compile(code).then((compileResult: any) => {
       var code = compileResult.code;
 
+      // console.log(code.split("* HELPER_FUNCTIONS_END */")[1]);
       const __storeLog = server.storeLog.bind(server);
       var result: InstrumentAndRunResult = eval(code);
 
@@ -27,6 +28,9 @@ export function instrumentAndRun(code) {
         server.loadLog(
           result.tracking,
           (err, log) => {
+            if (err) {
+              throw err;
+            }
             // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
             result.tracking = log.extraArgs.returnValue.args.returnValue;
             // console.log(result.tracking)
