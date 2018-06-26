@@ -33,15 +33,10 @@ declare var __FUNCTION_NAMES__,
   let fetch = knownValues.getValue("fetch");
   let then = knownValues.getValue("Promise.prototype.then");
 
-  const perfStats = {
-    totalLogCount: 0,
-    logDataBytesSent: 0
-  };
-
-  window["__fromJSGetPerfStats"] = function getPerfStats() {
-    sendLogsToServer(); // update perf data
-    return perfStats;
-  };
+  // window["__fromJSGetPerfStats"] = function getPerfStats() {
+  //   sendLogsToServer(); // update perf data
+  //   return perfStats;
+  // };
 
   const startTime = new Date();
   setTimeout(checkDone, 200);
@@ -49,35 +44,41 @@ declare var __FUNCTION_NAMES__,
     const done = document.querySelector(".todo-list li");
     if (done) {
       const doneTime = new Date();
-      const perfInfo = window["__fromJSGetPerfStats"]();
       console.log("#####################################");
       console.log("#####################################");
       console.log("#####################################");
       console.log("#####################################");
       console.log("#####################################");
       console.log("#####################################");
-      console.log("DONE", {
-        totalLogCount: perfInfo.totalLogCount / 1000 + "k",
-        logDataSent: perfInfo.logDataBytesSent / 1024 / 1024 + "mb",
-        timeTaken: (doneTime.valueOf() - startTime.valueOf()) / 1000 + "s"
-      });
+      console.log(
+        "DONE",
+        "timeTaken: " + (doneTime.valueOf() - startTime.valueOf()) / 1000 + "s"
+      );
+      worker.postMessage({ showDoneMessage: true });
     } else {
       setTimeout(checkDone, 200);
     }
   }
 
-  function postToBE(endpoint, data) {
+  function postToBE(endpoint, data, statsCallback = function(size) {}) {
+    const stringifyStart = new Date();
     const body = JSON.stringify(data);
+    const stringifyEnd = new Date();
     if (endpoint === "/storeLogs") {
       console.log(
         "Saving logs: ",
         data.logs.length,
         "Size: ",
         body.length / 1024 / 1024,
-        "Mb"
+        "Mb",
+        "Stringify took " +
+          (stringifyEnd.valueOf() - stringifyStart.valueOf()) +
+          "ms"
       );
-      perfStats.totalLogCount += data.logs.length;
-      perfStats.logDataBytesSent += body.length;
+
+      statsCallback({
+        bodyLength: body.length
+      });
     }
     const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
       method: "POST",
@@ -88,9 +89,6 @@ declare var __FUNCTION_NAMES__,
       }),
       body: body
     });
-    then.call(p, res =>
-      knownValues.getValue("Response.prototype.json").apply(res)
-    );
 
     return p;
   }
@@ -98,14 +96,59 @@ declare var __FUNCTION_NAMES__,
   let logQueue = [];
   window["__debugFromJSLogQueue"] = () => logQueue;
   let evalScriptQueue = [];
+  let worker;
   function sendLogsToServer() {
+    if (!worker) {
+      function workerCode() {
+        self["perfStats"] = {
+          totalLogCount: 0,
+          logDataBytesSent: 0
+        };
+        onmessage = function(e) {
+          if (e.data.logs) {
+            self["perfStats"].totalLogCount += e.data.logs.length;
+            postToBE("/storeLogs", e.data, function({ bodyLength }) {
+              self["perfStats"].logDataBytesSent += bodyLength;
+            });
+          } else if (e.data.showDoneMessage) {
+            const perfInfo = self["perfStats"];
+            console.log("DONE", {
+              totalLogCount: perfInfo.totalLogCount / 1000 + "k",
+              logDataSent: perfInfo.logDataBytesSent / 1024 / 1024 + "mb"
+            });
+          }
+        };
+      }
+      worker = new Worker(
+        URL.createObjectURL(
+          new Blob([
+            postToBE +
+              ";var accessToken = '" +
+              accessToken +
+              "'" +
+              ";(" +
+              workerCode +
+              ")()"
+          ])
+        )
+      );
+    }
+
     if (logQueue.length === 0 && evalScriptQueue.length == 0) {
       return;
     }
-    postToBE("/storeLogs", {
+
+    const data = {
       logs: logQueue,
       evalScripts: evalScriptQueue
-    });
+    };
+
+    // Doing this means the data will be cloned, but it seems to be
+    // reasonably fast anyway
+    // Creating the json and making the request in the main thread is super slow!
+    worker.postMessage(data);
+
+    // postToBE("/storeLogs", data);
 
     logQueue = [];
     evalScriptQueue = [];
