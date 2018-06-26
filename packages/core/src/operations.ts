@@ -57,6 +57,8 @@ interface Shorthand {
 
 interface Operations {
   [key: string]: {
+    argNames?: string[] | ((log: any) => string[]);
+    argIsArray?: boolean[] | ((log: any) => boolean[]);
     createNode?: (args?: any, astArgs?: any, loc?: any) => any;
     visitor?: any;
     exec?: any;

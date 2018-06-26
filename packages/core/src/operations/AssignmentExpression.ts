@@ -19,15 +19,23 @@ import addElOrigin from "./domHelpers/addElOrigin";
 import * as MemoValueNames from "../MemoValueNames";
 
 export default <any>{
+  argNames: log => {
+    if (log.astArgs.assignmentType === "MemberExpression") {
+      return ["object", "propertyName", "argument"];
+    } else {
+      return ["currentValue", "newValue", "argument"];
+    }
+  },
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
     var ret;
     const assignmentType = astArgs.type;
     const operator = astArgs.operator;
     if (assignmentType === "MemberExpression") {
-      var obj = args.object[0];
-      var propName = args.propertyName[0];
-      var objT = args.object[1];
-      var propNameT = args.propertyName[1];
+      const [objArg, propertyNameArg, argumentArg] = args;
+      var obj = objArg[0];
+      var propName = propertyNameArg[0];
+      var objT = objArg[1];
+      var propNameT = propertyNameArg[1];
 
       var currentValue = obj[propName];
       var currentValueT = ctx.createOperationLog({
@@ -47,7 +55,7 @@ export default <any>{
         loc: logData.loc
       });
 
-      var argument = args.argument[0];
+      var argument = argumentArg[0];
       switch (operator) {
         case "=":
           ret = obj[propName] = argument;
@@ -76,30 +84,30 @@ export default <any>{
           operation: "assignmentExpression",
           args: {
             currentValue: [currentValue, currentValueT],
-            argument: args.argument
+            argument: argumentArg
           },
           astArgs: {
             operator
           },
           loc: logData.loc,
-          argTrackingValues: [currentValueT, args.argument[1]],
+          argTrackingValues: [currentValueT, argumentArg[1]],
           argNames: ["currentValue", "argument"]
         }),
         propNameT
       );
 
       if (obj instanceof HTMLElement && propName === "innerHTML") {
-        mapInnerHTMLAssignment(obj, args.argument, "assignInnerHTML", 0);
+        mapInnerHTMLAssignment(obj, argumentArg, "assignInnerHTML", 0);
       } else if (obj instanceof HTMLElement && propName === "textContent") {
         if (obj.nodeType === Node.TEXT_NODE) {
           addElOrigin(obj, "textContent", {
-            trackingValue: args.argument[1]
+            trackingValue: argumentArg[1]
           });
         } else if (obj.nodeType === Node.ELEMENT_NODE) {
           if (obj.childNodes.length > 0) {
             // can be 0 still if textValue is ""
             addElOrigin(obj.childNodes[0], "textValue", {
-              trackingValue: args.argument[1]
+              trackingValue: argumentArg[1]
             });
           }
         } else {
@@ -107,7 +115,8 @@ export default <any>{
         }
       }
     } else if (assignmentType === "Identifier") {
-      ret = args.newValue[0];
+      const [currentValueArg, newValueArg, argumentArg] = args;
+      ret = argumentArg[0];
     } else {
       throw Error("unknown: " + assignmentType);
     }
@@ -134,7 +143,7 @@ export default <any>{
     path.node.ignore = true;
 
     const type = path.node.left.type;
-    const operationArguments = {};
+    let operationArguments;
 
     let trackingAssignment: any = null;
 
@@ -148,17 +157,10 @@ export default <any>{
         property.loc = path.node.left.property.loc;
       }
 
-      operationArguments["object"] = [
-        path.node.left.object,
-        getLastOperationTrackingResultCall()
-      ];
-      operationArguments["propertyName"] = [
-        property,
-        getLastOperationTrackingResultCall()
-      ];
-      operationArguments["argument"] = [
-        path.node.right,
-        getLastOperationTrackingResultCall()
+      operationArguments = [
+        [path.node.left.object, getLastOperationTrackingResultCall()],
+        [property, getLastOperationTrackingResultCall()],
+        [path.node.right, getLastOperationTrackingResultCall()]
       ];
     } else if (path.node.left.type === "Identifier") {
       var right = createSetMemoValue(
@@ -194,17 +196,11 @@ export default <any>{
         identifierAssignedTo
       );
 
-      operationArguments["currentValue"] = ignoredArrayExpression([
-        identifierValue,
-        getLastOperationTrackingResultCall()
-      ]);
-      (operationArguments["newValue"] = ignoredArrayExpression([
-        path.node,
-        getLastOperationTrackingResultCall()
-      ])),
-        (operationArguments["argument"] = createGetMemoArray(
-          MemoValueNames.lastAssignmentExpressionArgument
-        ));
+      operationArguments = [
+        [identifierValue, getLastOperationTrackingResultCall()],
+        [path.node, getLastOperationTrackingResultCall()],
+        createGetMemoArray(MemoValueNames.lastAssignmentExpressionArgument)
+      ];
     } else {
       throw Error("unhandled assignmentexpression node.left type");
     }

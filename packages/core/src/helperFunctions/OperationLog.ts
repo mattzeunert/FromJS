@@ -1,6 +1,7 @@
 import KnownValues from "./KnownValues";
 import { VERIFY } from "../config";
 import operations from "../operations";
+import invokeIfFunction from "../invokeIfFunction";
 
 var global = Function("return this")();
 
@@ -208,6 +209,7 @@ OperationLog.createAtRuntime = function(
   knownValues
 ): OperationLogInterface {
   var arrayArguments: any[] = [];
+  var data = arguments[0];
   if (operation === "arrayExpression") {
     arrayArguments = ["elements"];
   }
@@ -220,7 +222,7 @@ OperationLog.createAtRuntime = function(
     const op = operations[operation];
     const newArgs = [];
     args.forEach((arg, i) => {
-      if (op["argIsArray"][i]) {
+      if (op["argIsArray"] && invokeIfFunction(op["argIsArray"][i], data)) {
         const a = [];
         arg.forEach((arrayArg, arrayArgIndex) => {
           a.push(arrayArg[1]);

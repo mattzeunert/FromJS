@@ -148,7 +148,11 @@ export function createOperation(
   const args = [
     ignoredStringLiteral(opType),
     Array.isArray(opArgs)
-      ? ignoredArrayExpression(opArgs)
+      ? ignoredArrayExpression(
+          opArgs.map(a => {
+            return Array.isArray(a) ? ignoredArrayExpression(a) : a;
+          })
+        )
       : ignoredObjectExpression(opArgs),
     astArgs !== null
       ? skipPath(ignoredObjectExpression(astArgs))

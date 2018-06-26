@@ -1396,20 +1396,20 @@ const CallExpression = <any>{
     if (isMemberExpressionCall) {
       contextArg = ignoredCallExpression(getLastMemberExpressionObject, []);
     } else {
-      contextArg = ignoredArrayExpression([
+      contextArg = [
         ignoredIdentifier("undefined"),
         ignoreNode(this.t.nullLiteral())
-      ]);
+      ];
     }
 
-    const fn = ignoredArrayExpression([
+    const fn = [
       path.node.callee,
       isMemberExpressionCall
         ? getLastOperationTrackingResultCall()
         : getLastOperationTrackingResultCall()
-    ]);
+    ];
 
-    var fnArgs = [fn, contextArg, ignoredArrayExpression(args)];
+    var fnArgs = [fn, contextArg, args];
 
     const astArgs = {};
     if (isNewExpression) {

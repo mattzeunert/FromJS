@@ -1,5 +1,5 @@
 import operations, { eachArgument } from "../operations";
-
+import invokeIfFunction from "../invokeIfFunction";
 export class LogServer {
   getLog(logIndex: number, cb: any) {}
   hasLog(logIndex: number, cb: (hasLog: boolean) => void) {
@@ -31,9 +31,12 @@ export class LogServer {
         const args = log.args;
         const op = operations[log.operation];
 
+        let argNames = invokeIfFunction(op.argNames, [log]);
+        let argIsArray = invokeIfFunction(op.argIsArray, [log]);
+
         const newArgs = {}; // todo: don't do this here, do this when looking up the log on BE
-        op["argNames"].forEach((argName, i) => {
-          const isArray = op["argIsArray"][i];
+        argNames.forEach((argName, i) => {
+          const isArray = argIsArray && argIsArray[i];
           if (isArray) {
             args[i].forEach((arrayArg, argIndex) => {
               newArgs[argName + argIndex] = arrayArg;
