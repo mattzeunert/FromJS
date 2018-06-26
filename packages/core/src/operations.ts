@@ -524,38 +524,36 @@ const operations: Operations = {
     }
   },
   identifier: {
+    argNames: ["value"],
     shorthand: {
       fnName: "__ident",
       getExec: doOperation => {
         return (value, loc) => {
-          return doOperation(
-            "identifier",
-            {
-              value
-            },
-            null,
-            loc
-          );
+          return doOperation("identifier", [value], null, loc);
         };
       },
       visitor: (opArgs, astArgs, locAstNode) => {
         if (astArgs && astArgs["isArguments"]) {
-          // __ident doesn't take astArgs
+          // __ident shorthand doesn't support astArgs
           return null;
         }
-        return ignoredCallExpression("__ident", [opArgs.value, locAstNode]);
+        return ignoredCallExpression("__ident", [
+          ignoredArrayExpression(opArgs[0]),
+          locAstNode
+        ]);
       }
     },
     exec: (args, astArgs, ctx: ExecContext, logData) => {
+      const [valueArg, allFnArgTrackingValuesArg] = args;
       if (
         astArgs &&
         astArgs.isArguments &&
-        !ctx.objectHasPropertyTrackingData(args.value[0])
+        !ctx.objectHasPropertyTrackingData(valueArg[0])
       ) {
-        if (args.allFnArgTrackingValues[0]) {
-          args.allFnArgTrackingValues[0].forEach((trackingValue, i) => {
+        if (allFnArgTrackingValuesArg[0]) {
+          allFnArgTrackingValuesArg[0].forEach((trackingValue, i) => {
             ctx.trackObjectPropertyAssignment(
-              args.value[0],
+              valueArg[0],
               i,
               trackingValue,
               ctx.createOperationLog({
@@ -571,7 +569,7 @@ const operations: Operations = {
           console.log("no tracking values for arguments object");
         }
       }
-      return args.value[0];
+      return valueArg[0];
     },
     traverse: identifyTraverseFunction,
     visitor(path) {
@@ -596,14 +594,11 @@ const operations: Operations = {
       }
 
       let astArgs: any = null;
-      const args: any = {
-        value: ignoredArrayExpression([node, trackingIdentiferLookup])
-      };
+      const args: any = [[node, trackingIdentiferLookup]];
+
       if (node.name === "arguments") {
         astArgs = { isArguments: ignoreNode(t.booleanLiteral(true)) };
-        args.allFnArgTrackingValues = ignoredArrayExpression([
-          ignoredIdentifier("__allArgTV")
-        ]);
+        args.push([ignoredIdentifier("__allArgTV")]);
       }
 
       return skipPath(this.createNode!(args, astArgs, path.node.loc));
