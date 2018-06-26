@@ -467,18 +467,15 @@ declare var __FUNCTION_NAMES__,
   operationsExec = {};
   Object.keys(operations).forEach(opName => {
     const op = operations[opName];
+    operationsExec[opName] = op.exec;
+    const doOpFunction = makeDoOperation(opName);
+
     // The object creation in so many places is expensive
     // so some simple ops have a shorthand function that
     // is called instead of __op and calls through to __op
     if (op.shorthand) {
-      global[op.shorthand.fnName] = op.shorthand.getExec(
-        global[functionNames.doOperation]
-      );
+      global[op.shorthand.fnName] = op.shorthand.getExec(doOpFunction);
     }
-
-    operationsExec[opName] = op.exec;
-
-    const doOpFunction = makeDoOperation(opName);
 
     global["__" + opName] = doOpFunction;
   });

@@ -80,7 +80,7 @@ const operations: Operations = {
       fnName: "__mEx",
       getExec: doOperation => {
         return (object, propName, loc) => {
-          return doOperation("memberExpression", [object, propName], null, loc);
+          return doOperation([object, propName], null, loc);
         };
       },
       visitor: (opArgs, astArgs, locAstNode) => {
@@ -390,7 +390,6 @@ const operations: Operations = {
       getExec: doOperation => {
         return (value, loc) => {
           return doOperation(
-            "stringLiteral",
             {
               value: [value]
             },
@@ -427,7 +426,6 @@ const operations: Operations = {
       getExec: doOperation => {
         return (value, loc) => {
           return doOperation(
-            "numericLiteral",
             {
               value: [value]
             },
@@ -545,7 +543,7 @@ const operations: Operations = {
       fnName: "__ident",
       getExec: doOperation => {
         return (value, loc) => {
-          return doOperation("identifier", [value], null, loc);
+          return doOperation([value], null, loc);
         };
       },
       visitor: (opArgs, astArgs, locAstNode) => {
