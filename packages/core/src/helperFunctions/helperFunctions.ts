@@ -177,7 +177,7 @@ declare var __FUNCTION_NAMES__,
   global[
     functionNames.getFunctionArgTrackingInfo
   ] = function getArgTrackingInfo(index) {
-    if (argTrackingInfo === null) {
+    if (!argTrackingInfo) {
       // this can happen when function is invoked without callexpression op,
       // e.g. when it's a callback argument to a native api call
       // TODO: return some kind of tracking value here ("untracked argument")
@@ -185,7 +185,7 @@ declare var __FUNCTION_NAMES__,
       if (VERIFY) {
         console.log("no arg tracking info...");
       }
-      return null;
+      return undefined;
     }
     if (index === undefined) {
       return argTrackingInfo;
@@ -287,20 +287,20 @@ declare var __FUNCTION_NAMES__,
   function getObjectPropertyTrackingValues(obj, propName) {
     var objectPropertyTrackingInfo = objTrackingMap.get(obj);
     if (!objectPropertyTrackingInfo) {
-      return null;
+      return undefined;
     }
     const trackingValues =
       objectPropertyTrackingInfo[getTrackingPropName(propName)];
     if (!trackingValues) {
-      return null;
+      return undefined;
     }
     return trackingValues;
   }
 
   function getObjectPropertyValueTrackingValue(obj, propName) {
     const trackingValues = getObjectPropertyTrackingValues(obj, propName);
-    if (trackingValues === null) {
-      return null;
+    if (trackingValues === undefined) {
+      return undefined;
     }
     return trackingValues.value;
   }
@@ -310,8 +310,8 @@ declare var __FUNCTION_NAMES__,
 
   function getObjectPropertyNameTrackingValue(obj, propName) {
     const trackingValues = getObjectPropertyTrackingValues(obj, propName);
-    if (trackingValues === null) {
-      return null;
+    if (trackingValues === undefined) {
+      return undefined;
     }
     return trackingValues.name;
   }
