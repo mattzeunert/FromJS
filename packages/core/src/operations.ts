@@ -288,74 +288,68 @@ const operations: Operations = {
   objectExpression: ObjectExpression,
   stringLiteral: {
     shorthand: {
-      fnName: "__strLit",
+      fnName: "__str",
       getExec: doOperation => {
         return (value, loc) => {
-          return doOperation(
-            {
-              value: [value]
-            },
-            null,
-            loc
-          );
+          return doOperation([value], null, loc);
         };
       },
       visitor: (opArgs, astArgs, locAstNode) => {
-        return ignoredCallExpression("__strLit", [opArgs.value[0], locAstNode]);
+        const valueArg = opArgs[0];
+        return ignoredCallExpression("__str", [
+          ignoredArrayExpression(valueArg),
+          locAstNode
+        ]);
       }
     },
+    argNames: ["value"],
     visitor(path) {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
       return skipPath(
         this.createNode!(
-          {
-            value: [ignoredStringLiteral(path.node.value)]
-          },
+          [[ignoredStringLiteral(path.node.value)]],
           {},
           path.node.loc
         )
       );
     },
     exec: (args, astArgs, ctx: ExecContext) => {
-      return args.value[0];
+      return args[0][0];
     }
   },
   numericLiteral: {
     shorthand: {
-      fnName: "__numLit",
+      fnName: "__num",
       getExec: doOperation => {
         return (value, loc) => {
-          return doOperation(
-            {
-              value: [value]
-            },
-            null,
-            loc
-          );
+          return doOperation([value], null, loc);
         };
       },
       visitor: (opArgs, astArgs, locAstNode) => {
-        return ignoredCallExpression("__numLit", [opArgs.value[0], locAstNode]);
+        const valueArg = opArgs[0];
+        return ignoredCallExpression("__num", [
+          ignoredArrayExpression(valueArg),
+          locAstNode
+        ]);
       }
     },
+    argNames: ["value"],
     visitor(path) {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
       return skipPath(
         this.createNode!(
-          {
-            value: [ignoredNumericLiteral(path.node.value)]
-          },
+          [[ignoredNumericLiteral(path.node.value)]],
           null,
           path.node.loc
         )
       );
     },
     exec: (args, astArgs, ctx: ExecContext) => {
-      return args.value[0];
+      return args[0][0];
     }
   },
   unaryExpression: {
