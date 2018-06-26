@@ -765,22 +765,15 @@ const CallExpression = <any>{
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
     let [fnArg, context, argList] = args;
 
-    var i = 0;
-    var arg;
     var fnArgs: any[] = [];
     var fnArgValues: any[] = [];
 
     var fn = fnArg[0];
 
-    while (true) {
-      var argKey = i;
-      if (!(argKey in argList)) {
-        break;
-      }
-      arg = argList[argKey];
+    for (var i = 0; i < argList.length; i++) {
+      const arg = argList[i];
       fnArgValues.push(arg[0]);
       fnArgs.push(arg[1]);
-      i++;
     }
 
     var object = context[0];
@@ -824,7 +817,7 @@ const CallExpression = <any>{
     var ret;
     let retT: any = null;
     if (astArgs.isNewExpression) {
-      const isNewFunctionCall = fnArg[0] === Function;
+      const isNewFunctionCall = fn === Function;
       if (isNewFunctionCall && ctx.hasInstrumentationFunction) {
         let code = fnArgValues[fnArgValues.length - 1];
         let generatedFnArguments = fnArgValues.slice(0, -1);
@@ -847,8 +840,7 @@ const CallExpression = <any>{
       retT = ctx.createOperationLog({
         operation: ctx.operationTypes.newExpressionResult,
         args: {},
-        astArgs: {},
-        result: {},
+        result: ret,
         loc: logData.loc
       });
     } else {
@@ -1006,7 +998,6 @@ const CallExpression = <any>{
               array,
               index.toString()
             );
-            let context;
             if (fnArgValues.length > 1) {
               context = [fnArgValues[1], fnArgs[1]];
             } else {
