@@ -36,23 +36,6 @@ helperCode = helperCode.replace(
   JSON.stringify(OperationTypes)
 );
 
-var opsArrayArgumentsString = `{`;
-Object.keys(operations).forEach(opName => {
-  if (!operations[opName].exec) {
-    // console.log("no exec for operation", opName);
-    return;
-  }
-  opsArrayArgumentsString += `${opName}: [${operations[
-    opName
-  ].arrayArguments!.map(a => `"${a}"`)}],`;
-});
-opsArrayArgumentsString += `}`;
-
-helperCode = helperCode.replace(
-  "__OPERATION_ARRAY_ARGUMENTS__",
-  opsArrayArgumentsString
-);
-
 helperCode += "/* HELPER_FUNCTIONS_END */ ";
 
 // I got some babel-generator "cannot read property 'type' of undefined" errors

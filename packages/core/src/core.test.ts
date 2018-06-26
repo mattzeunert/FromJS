@@ -411,9 +411,7 @@ it("Tracks array expressions", done => {
     return a
   `).then(({ normal, tracking, code }) => {
     expect(normal).toEqual([1, 2, 3]);
-    expect(tracking.args.value.args.elements[0].operation).toBe(
-      "numericLiteral"
-    );
+    expect(tracking.args.value.args.element0.operation).toBe("numericLiteral");
 
     done();
   });

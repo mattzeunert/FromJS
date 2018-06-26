@@ -11,15 +11,9 @@ import * as FunctionNames from "../FunctionNames";
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
   __OPERATIONS_EXEC__,
-  __OPERATION_ARRAY_ARGUMENTS__,
   __storeLog;
 
-(function(
-  functionNames,
-  operationTypes,
-  operationsExec,
-  operationArrayArguments
-) {
+(function(functionNames, operationTypes, operationsExec) {
   const accessToken = "ACCESS_TOKEN_PLACEHOLDER";
 
   Error["stackTraceLimit"] = 1000;
@@ -453,8 +447,6 @@ declare var __FUNCTION_NAMES__,
     };
   }
 
-  const doOpFunctions = {};
-
   global[functionNames.doOperation] = function ___op(
     opName: string,
     objArgs,
@@ -497,9 +489,4 @@ declare var __FUNCTION_NAMES__,
     validateTrackingValue(lastOpTrackingResult);
     return lastOpTrackingResult;
   };
-})(
-  __FUNCTION_NAMES__,
-  __OPERATION_TYPES__,
-  null,
-  __OPERATION_ARRAY_ARGUMENTS__
-);
+})(__FUNCTION_NAMES__, __OPERATION_TYPES__, null);

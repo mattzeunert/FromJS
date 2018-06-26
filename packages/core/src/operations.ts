@@ -62,7 +62,6 @@ interface Operations {
     createNode?: (args?: any, astArgs?: any, loc?: any) => any;
     visitor?: any;
     exec?: any;
-    arrayArguments?: string[];
     getArgumentsArray?: any;
     shorthand?: Shorthand;
     traverse?: (
@@ -479,10 +478,12 @@ const operations: Operations = {
     }
   },
   arrayExpression: {
-    arrayArguments: ["elements"],
+    argNames: ["element"],
+    argIsArray: [true],
     exec: (args, astArgs, ctx: ExecContext, logData: any) => {
+      const [elementsArg] = args;
       let arr: any[] = [];
-      args.elements.forEach((el, i) => {
+      elementsArg.forEach((el, i) => {
         const [value, trackingValue] = el;
         arr.push(value);
         const nameTrackingValue = ctx.createOperationLog({
@@ -503,11 +504,11 @@ const operations: Operations = {
     },
     visitor(path) {
       return this.createNode!(
-        {
-          elements: path.node.elements.map(el =>
+        [
+          path.node.elements.map(el =>
             ignoredArrayExpression([el, getLastOperationTrackingResultCall()])
           )
-        },
+        ],
         null,
         path.node.loc
       );
@@ -678,11 +679,6 @@ function eachArgumentInObject(args, operationName, fn) {
   const operation = operations[operationName];
   const isObjectExpression = operationName === OperationTypes.objectExpression;
 
-  let arrayArguments: any[] = [];
-  if (operation && operation.arrayArguments) {
-    arrayArguments = operation.arrayArguments;
-  }
-
   if (isObjectExpression) {
     // todo: this is an objexpression property not an obj expression itself, should be clarified
     fn(args.value, "value", newValue => {
@@ -691,13 +687,7 @@ function eachArgumentInObject(args, operationName, fn) {
     fn(args.key, "key", newValue => (args.key = newValue));
   } else {
     Object.keys(args).forEach(key => {
-      if (arrayArguments.includes(key)) {
-        args[key].forEach((a, i) => {
-          fn(a, "element" + i, newValue => (args[key][i] = newValue));
-        });
-      } else {
-        fn(args[key], key, newValue => (args[key] = newValue));
-      }
+      fn(args[key], key, newValue => (args[key] = newValue));
     });
   }
 }
@@ -730,9 +720,6 @@ Object.keys(operations).forEach(opName => {
     );
     return operation;
   };
-  if (!operation.arrayArguments) {
-    operation.arrayArguments = [];
-  }
   operation.getArgumentsArray = function(operationLog) {
     var ret: any[] = [];
     eachArgument(operationLog, (arg, argName, updateValue) => {

@@ -208,11 +208,7 @@ OperationLog.createAtRuntime = function(
   { operation, result, args, astArgs, extraArgs, loc, runtimeArgs, index },
   knownValues
 ): OperationLogInterface {
-  var arrayArguments: any[] = [];
   var data = arguments[0];
-  if (operation === "arrayExpression") {
-    arrayArguments = ["elements"];
-  }
 
   if (VERIFY && !loc) {
     console.log("no loc at runtime for operation", operation);
@@ -246,7 +242,7 @@ OperationLog.createAtRuntime = function(
       });
     } else {
       // only store argument operation log because ol.result === a[0]
-      eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
+      eachArgument(args, (arg, argName, updateArg) => {
         verifyArg(arg);
         updateArg(arg[1]);
       });
@@ -254,7 +250,7 @@ OperationLog.createAtRuntime = function(
   }
 
   if (typeof extraArgs === "object") {
-    eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
+    eachArgument(extraArgs, (arg, argName, updateArg) => {
       verifyArg(arg);
       updateArg(arg[1]);
     });
@@ -273,17 +269,11 @@ OperationLog.createAtRuntime = function(
 };
 
 // TODO: don't copy/paste this
-function eachArgument(args, arrayArguments, fn) {
+function eachArgument(args, fn) {
   const keys = Object.keys(args);
   for (var i = 0; i < keys.length; i++) {
     const key = keys[i];
-    if (arrayArguments.includes(key)) {
-      args[key].forEach((a, i) => {
-        fn(a, "element" + i, newValue => (args[key][i] = newValue));
-      });
-    } else {
-      fn(args[key], key, newValue => (args[key] = newValue));
-    }
+    fn(args[key], key, newValue => (args[key] = newValue));
   }
 }
 
