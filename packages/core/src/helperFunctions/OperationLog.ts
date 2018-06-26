@@ -83,7 +83,7 @@ function getSerializedValueObject(value, type, knownValues) {
   }
   let keys;
   try {
-    if (type === "object" && value !== null) {
+    if (type === "object" && value !== null && !Array.isArray(value)) {
       // todo: rethink this regarding perf
       // maybe don't collect keys, maybe do for...in instead
       // also: when inspecting i really want the trakcing data for
