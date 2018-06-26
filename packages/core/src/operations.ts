@@ -412,9 +412,11 @@ const operations: Operations = {
     }
   },
   returnStatement: {
+    argNames: ["returnValue"],
     exec: (args, astArgs, ctx: ExecContext, logData) => {
-      ctx.lastReturnStatementResult = [args.returnValue[0], logData.index];
-      return args.returnValue[0];
+      const [returnValueArg] = args;
+      ctx.lastReturnStatementResult = [returnValueArg[0], logData.index];
+      return returnValueArg[0];
     },
     traverse(operationLog, charIndex) {
       return {
@@ -424,12 +426,7 @@ const operations: Operations = {
     },
     visitor(path) {
       path.node.argument = this.createNode!(
-        {
-          returnValue: ignoredArrayExpression([
-            path.node.argument,
-            getLastOperationTrackingResultCall()
-          ])
-        },
+        [[path.node.argument, getLastOperationTrackingResultCall()]],
         {},
         path.node.loc
       );

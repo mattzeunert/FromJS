@@ -33,6 +33,17 @@ export class LogServer {
         return;
       }
 
+      const op = operations[log.operation];
+      if (log.args === undefined && op.argNames) {
+        // We sometimes remove the log if there's no data,
+        // but we want to still be able to access the null value
+        // by it's arg name.
+        // E.g.: ret.args.returnValue
+        log.args = Array.from(new Array(op.argNames.length)).map(
+          i => undefined
+        );
+      }
+
       this._loadDataFromLoc(log).then(() => {
         if (Array.isArray(log.args)) {
           const args = log.args;
