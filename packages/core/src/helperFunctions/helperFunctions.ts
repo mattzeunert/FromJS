@@ -417,46 +417,51 @@ declare var __FUNCTION_NAMES__,
   var lastOpValueResult = null;
   var lastOpTrackingResult = null;
   let lastOpTrackingResultWithoutResetting = null;
+
+  function makeDoOperation(opName: string) {
+    const opExec = operationsExec[opName];
+
+    return function ___op(objArgs, astArgs, loc) {
+      var trackingValue;
+
+      let logData: any = {
+        operation: opName,
+        args: objArgs,
+        astArgs: astArgs,
+        loc,
+        index: getOperationIndex()
+      };
+
+      var ret = opExec(objArgs, astArgs, ctx, logData);
+
+      logData.result = ret;
+      trackingValue = createOperationLog(logData);
+
+      lastOpValueResult = ret;
+
+      lastOpTrackingResultWithoutResetting = trackingValue;
+      setLastOpTrackingResult(trackingValue);
+
+      lastOperationType = opName;
+
+      if (logQueue.length > 100000) {
+        // avoid running out of memory
+        sendLogsToServer();
+      }
+
+      return ret;
+    };
+  }
+
+  const doOpFunctions = {};
+
   global[functionNames.doOperation] = function ___op(
     opName: string,
     objArgs,
     astArgs,
     loc
   ) {
-    var trackingValue;
-
-    let logData: any = {
-      operation: opName,
-      args: objArgs,
-      astArgs: astArgs,
-      loc,
-      index: getOperationIndex()
-    };
-
-    var ret;
-    if (operationsExec[opName]) {
-      ret = operationsExec[opName](objArgs, astArgs, ctx, logData);
-    } else {
-      console.log("unhandled op", opName);
-      throw Error("oh no");
-    }
-
-    logData.result = ret;
-    trackingValue = createOperationLog(logData);
-
-    lastOpValueResult = ret;
-
-    lastOpTrackingResultWithoutResetting = trackingValue;
-    setLastOpTrackingResult(trackingValue);
-
-    lastOperationType = opName;
-
-    if (logQueue.length > 100000) {
-      // avoid running out of memory
-      sendLogsToServer();
-    }
-
-    return ret;
+    return global["__" + opName](objArgs, astArgs, loc);
   };
 
   operationsExec = {};
@@ -472,6 +477,10 @@ declare var __FUNCTION_NAMES__,
     }
 
     operationsExec[opName] = op.exec;
+
+    const doOpFunction = makeDoOperation(opName);
+
+    global["__" + opName] = doOpFunction;
   });
 
   global[functionNames.getLastOperationValueResult] = function getLastOp() {

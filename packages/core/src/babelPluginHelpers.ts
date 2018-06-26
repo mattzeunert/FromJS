@@ -146,7 +146,6 @@ export function createOperation(
   }
 
   const args = [
-    ignoredStringLiteral(opType),
     Array.isArray(opArgs)
       ? ignoredArrayExpression(
           opArgs.map(a => {
@@ -161,7 +160,7 @@ export function createOperation(
   if (loc && !SKIP_TRACKING) {
     args.push(locAstNode);
   }
-  var call = ignoredCallExpression(FunctionNames.doOperation, args);
+  var call = ignoredCallExpression("__" + opType, args);
   call.skipKeys = {
     callee: true
   };
