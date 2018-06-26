@@ -75,7 +75,7 @@ export default class KnownValues {
   getName(value) {
     let knownValue = this._knownValuesMap.get(value);
     if (!knownValue) {
-      knownValue = null;
+      knownValue = undefined;
     }
     return knownValue;
   }

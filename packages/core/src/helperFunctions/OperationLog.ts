@@ -48,7 +48,8 @@ export interface SerializedValueData {
 type StoredSerializedValue = SerializedValueData | string | number | boolean;
 
 function getSerializedValueObject(value, type, knownValues) {
-  var knownValue: null | string = knownValues && knownValues.getName(value);
+  var knownValue: undefined | string =
+    knownValues && knownValues.getName(value);
 
   if (type === null) {
     type = typeof value;
@@ -67,7 +68,7 @@ function getSerializedValueObject(value, type, knownValues) {
     } catch (err) {}
   }
 
-  var knownTypes: any[] | null = null;
+  var knownTypes: any[] | null = undefined;
   if (
     global["HTMLInputElement"] &&
     value instanceof global["HTMLInputElement"]
