@@ -385,9 +385,7 @@ const operations: Operations = {
         arr.push(value);
         const nameTrackingValue = ctx.createOperationLog({
           operation: ctx.operationTypes.arrayIndex,
-          args: {},
           result: i,
-          astArgs: {},
           loc: logData.loc
         });
         ctx.trackObjectPropertyAssignment(
@@ -467,9 +465,7 @@ const operations: Operations = {
               trackingValue,
               ctx.createOperationLog({
                 operation: ctx.operationTypes.arrayIndex,
-                args: {},
                 result: i,
-                astArgs: {},
                 loc: logData.loc
               })
             );

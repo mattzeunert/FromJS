@@ -68,7 +68,7 @@ function getSerializedValueObject(value, type, knownValues) {
     } catch (err) {}
   }
 
-  var knownTypes: any[] | null = undefined;
+  var knownTypes: any[] | undefined = undefined;
   if (
     global["HTMLInputElement"] &&
     value instanceof global["HTMLInputElement"]
@@ -236,7 +236,7 @@ OperationLog.createAtRuntime = function(
     if (args.length === 1 && !args[0]) {
       args = undefined;
     }
-  } else {
+  } else if (args) {
     if (operation === "objectExpression" && args.properties) {
       // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
       args.properties = args.properties.map(prop => {
