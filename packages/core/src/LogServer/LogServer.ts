@@ -27,6 +27,24 @@ export class LogServer {
         fn(err, null);
         return;
       }
+      if (Array.isArray(log.args)) {
+        const args = log.args;
+        const op = operations[log.operation];
+
+        const newArgs = {}; // todo: don't do this here, do this when looking up the log on BE
+        op["argNames"].forEach((argName, i) => {
+          const isArray = op["argIsArray"][i];
+          if (isArray) {
+            args[i].forEach((arrayArg, argIndex) => {
+              newArgs[argName + argIndex] = arrayArg;
+            });
+          } else {
+            newArgs[argName] = args[i];
+          }
+        });
+        log.args = newArgs;
+      }
+
       if (currentDepth < maxDepth) {
         updateEachOperationArgument(
           log,

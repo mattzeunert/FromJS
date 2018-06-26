@@ -218,17 +218,19 @@ OperationLog.createAtRuntime = function(
 
   if (Array.isArray(args)) {
     const op = operations[operation];
-    const newArgs = {}; // todo: don't do this here, do this when looking up the log on BE
-    op["argNames"].forEach((argName, i) => {
-      const isArray = op["argIsArray"][i];
-      if (isArray) {
-        args[i].forEach((argV, argIndex) => {
-          newArgs[argName + argIndex] = argV[1];
+    const newArgs = [];
+    args.forEach((arg, i) => {
+      if (op["argIsArray"][i]) {
+        const a = [];
+        arg.forEach((arrayArg, arrayArgIndex) => {
+          a.push(arrayArg[1]);
         });
+        newArgs.push(a);
       } else {
-        newArgs[argName] = args[i][1];
+        newArgs.push(arg[1]);
       }
     });
+
     args = newArgs;
   } else {
     if (operation === "objectExpression" && args.properties) {
