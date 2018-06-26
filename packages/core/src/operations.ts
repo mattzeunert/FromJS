@@ -75,11 +75,13 @@ interface Operations {
 
 const operations: Operations = {
   memberExpression: {
+    argNames: ["object", "propName"],
     exec: (args, astArgs, ctx: ExecContext, logData: any) => {
       var ret;
-      var object = args.object[0];
-      var objectT = args.object[1];
-      var propertyName = args.propName[0];
+      const [objectArg, propNameArg] = args;
+      var object = objectArg[0];
+      var objectT = objectArg[1];
+      var propertyName = propNameArg[0];
       ret = object[propertyName];
 
       let trackingValue = ctx.getObjectPropertyTrackingValue(
@@ -130,15 +132,14 @@ const operations: Operations = {
         if (path.node.property.type === "Identifier") {
           property = t.stringLiteral(path.node.property.name);
           property.loc = path.node.property.loc;
-          property.debugNote = "memexp";
         }
       }
 
       const op = this.createNode!(
-        {
-          object: [path.node.object, getLastOperationTrackingResultCall()],
-          propName: [property, getLastOperationTrackingResultCall()]
-        },
+        [
+          [path.node.object, getLastOperationTrackingResultCall()],
+          [property, getLastOperationTrackingResultCall()]
+        ],
         {},
         path.node.loc
       );
