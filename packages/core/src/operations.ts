@@ -23,6 +23,7 @@ import OperationLog from "./helperFunctions/OperationLog";
 import { ExecContext } from "./helperFunctions/ExecContext";
 
 import CallExpression from "./operations/CallExpression";
+import ObjectExpression from "./operations/ObjectExpression";
 import AssignmentExpression from "./operations/AssignmentExpression";
 import traverseStringConcat from "./traverseStringConcat";
 import * as MemoValueNames from "./MemoValueNames";
@@ -284,105 +285,7 @@ const operations: Operations = {
       };
     }
   },
-  objectExpression: {
-    exec: (args, astArgs, ctx: ExecContext, logData: any) => {
-      var obj = {};
-      var methodProperties = {};
-
-      for (var i = 0; i < args.properties.length; i++) {
-        var property = args.properties[i];
-
-        var propertyType = property.type[0];
-        var propertyKey = property.key[0];
-
-        if (propertyType === "ObjectProperty") {
-          var propertyValue = property.value[0];
-          var propertyValueT = property.value[1];
-
-          obj[propertyKey] = propertyValue;
-
-          ctx.trackObjectPropertyAssignment(
-            obj,
-            propertyKey,
-            ctx.createOperationLog({
-              operation: "objectProperty",
-              args: { propertyValue: [propertyValue, propertyValueT] },
-              result: propertyValue,
-              astArgs: {},
-              loc: logData.loc
-            }),
-            property.key[1]
-          );
-        } else if (propertyType === "ObjectMethod") {
-          var propertyKind = property.kind[0];
-          var fn = property.value[0];
-          if (!methodProperties[propertyKey]) {
-            methodProperties[propertyKey] = {
-              enumerable: true,
-              configurable: true
-            };
-          }
-          if (propertyKind === "method") {
-            obj[propertyKey] = fn;
-          } else {
-            methodProperties[propertyKey][propertyKind] = fn;
-          }
-        }
-      }
-      Object.defineProperties(obj, methodProperties);
-
-      return obj;
-    },
-    traverse(operationLog, charIndex) {
-      return {
-        operationLog: operationLog.args.propertyValue,
-        charIndex: charIndex
-      };
-    },
-    visitor(path) {
-      path.node.properties.forEach(function(prop) {
-        if (prop.key.type === "Identifier") {
-          const loc = prop.key.loc;
-          prop.key = t.stringLiteral(prop.key.name);
-          prop.key.loc = loc;
-          if (!loc) {
-            debugger;
-          }
-        }
-      });
-
-      var properties = path.node.properties.map(function(prop) {
-        var type = ignoredStringLiteral(prop.type);
-        if (prop.type === "ObjectMethod") {
-          // getters/setters or something like this: obj = {fn(){}}
-          var kind = ignoredStringLiteral(prop.kind);
-          kind.ignore = true;
-          return ignoredObjectExpression({
-            type: [type],
-            key: [prop.key],
-            kind: [kind],
-            value: [t.functionExpression(null, prop.params, prop.body)]
-          });
-        } else {
-          return ignoredObjectExpression({
-            type: [type],
-            key: [prop.key, getLastOperationTrackingResultCall()],
-            value: [prop.value, getLastOperationTrackingResultCall()]
-          });
-        }
-      });
-
-      var call = this.createNode!(
-        {
-          properties
-        },
-        null,
-        path.node.loc
-      );
-
-      return call;
-    }
-  },
+  objectExpression: ObjectExpression,
   stringLiteral: {
     shorthand: {
       fnName: "__strLit",

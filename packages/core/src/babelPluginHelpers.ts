@@ -114,6 +114,10 @@ function getLocObjectASTNode(loc) {
   return ignoredStringLiteral(locId);
 }
 
+export function getBabelTypes() {
+  return t;
+}
+
 let noLocCount = 0;
 export function createOperation(
   opType,
