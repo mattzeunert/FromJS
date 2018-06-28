@@ -116,12 +116,13 @@ class ProxyInstrumenter {
       url: getUrl(ctx),
       path: ctx.clientToProxyRequest.url,
       port:
-        parseFloat(ctx.clientToProxyRequest.headers.host.split(":")[1]) || 80
+        parseFloat(ctx.clientToProxyRequest.headers.host.split(":")[1]) || 80,
+      method: ctx.clientToProxyRequest.method.toUpperCase()
     };
     var url = requestInfo.url;
     ctx.requestId = url + "_" + Math.random();
 
-    if (!this.enableInstrumenation) {
+    if (!this.enableInstrumenation || requestInfo.method !== "GET") {
       this.preventBrowserCaching(ctx);
       callback();
       return;
