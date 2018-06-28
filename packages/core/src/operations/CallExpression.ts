@@ -979,7 +979,7 @@ const CallExpression = <any>{
             const response: Response = this;
             let then = ctx.knownValues.getValue("Promise.prototype.then");
             const p = ctx.knownValues
-              .getName("Response.prototype.text")
+              .getValue("Response.prototype.text")
               .apply(response);
             return then.call(p, function(text) {
               if (text === '{"ok":true}') {
