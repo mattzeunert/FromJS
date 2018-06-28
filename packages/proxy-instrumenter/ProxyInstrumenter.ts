@@ -171,7 +171,9 @@ class ProxyInstrumenter {
     var isMap = url.split("?")[0].endsWith(".map") && !url.includes(".css.map");
     var isHtml =
       !checkIsJS(ctx) &&
-      ctx.clientToProxyRequest.headers.accept &&
+      !requestInfo.url.endsWith(".png") &&
+      !requestInfo.url.endsWith(".jpg");
+    ctx.clientToProxyRequest.headers.accept &&
       ctx.clientToProxyRequest.headers.accept.includes("text/html");
 
     let shouldInstrument = true;
@@ -183,6 +185,13 @@ class ProxyInstrumenter {
 
     if (isHtml && shouldInstrument) {
       this.waitForResponseEnd(ctx).then(({ body, ctx, sendResponse }) => {
+        const contentType = ctx.serverToProxyResponse.headers["content-type"];
+        if (contentType && !contentType.includes("text/html")) {
+          // not html...
+          sendResponse(body);
+          return;
+        }
+
         if (this.rewriteHtml) {
           body = this.rewriteHtml(body);
         }
