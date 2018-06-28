@@ -173,8 +173,9 @@ class ProxyInstrumenter {
     var isHtml =
       !checkIsJS(ctx) &&
       !requestInfo.url.endsWith(".png") &&
-      !requestInfo.url.endsWith(".jpg");
-    ctx.clientToProxyRequest.headers.accept &&
+      !requestInfo.url.endsWith(".jpg") &&
+      !requestInfo.url.endsWith(".woff2") &&
+      ctx.clientToProxyRequest.headers.accept &&
       ctx.clientToProxyRequest.headers.accept.includes("text/html");
 
     let shouldInstrument = true;
