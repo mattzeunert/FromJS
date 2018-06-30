@@ -47,7 +47,7 @@ export interface SerializedValueData {
 
 type StoredSerializedValue = SerializedValueData | string | number | boolean;
 
-function getSerializedValueObject(value, type, knownValues) {
+export function getSerializedValueObject(value, type, knownValues) {
   var knownValue: undefined | string =
     knownValues && knownValues.getName(value);
 
@@ -57,15 +57,8 @@ function getSerializedValueObject(value, type, knownValues) {
 
   var length;
 
-  if (
-    typeof value == "string" ||
-    (typeof value === "object" && value !== null && "length" in value)
-  ) {
-    // need try catch because you e.g. NodeList has length but you can't acces it
-    // because it's illegal invocation
-    try {
-      length = value.length;
-    } catch (err) {}
+  if (Array.isArray(value)) {
+    length = value.length;
   }
 
   var knownTypes: any[] | undefined = undefined;
