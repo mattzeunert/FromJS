@@ -57,7 +57,7 @@ export function getSerializedValueObject(value, type, knownValues) {
 
   var length;
 
-  if (Array.isArray(value)) {
+  if (Array.isArray(value) || type === "string") {
     length = value.length;
   }
 
