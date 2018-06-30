@@ -85,6 +85,7 @@ if (!maxOldSpaceSizeArg) {
       chromeFlags: [
         "--proxy-server=127.0.0.1:" + proxyPort,
         "--ignore-certificate-errors",
+        "--test-type", // otherwise getting unsupported command line flag: --ignore-certificate-errors
         "--user-data-dir=" + backendOptions.getChromeUserDataDirectory()
       ]
     });
