@@ -17,7 +17,8 @@ import {
   ignoredObjectExpression,
   skipPath,
   initForBabel as initForBabelPH,
-  getTrackingIdentifier
+  getTrackingIdentifier,
+  safelyGetVariableTrackingValue
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import { ExecContext } from "./helperFunctions/ExecContext";
@@ -486,17 +487,10 @@ const operations: Operations = {
 
       let node = path.node;
 
-      let trackingIdentiferLookup;
-      const binding = path.scope.getBinding(path.node.name);
-      if (binding && ["var", "let", "const", "param"].includes(binding.kind)) {
-        trackingIdentiferLookup = getTrackingIdentifier(path.node.name);
-      } else {
-        // If the value has been declared as a var then we know the
-        // tracking var also exists,
-        // otherwise we have to confirm it exists at runtime before
-        // trying to access it
-        trackingIdentiferLookup = trackingIdentifierIfExists(path.node.name);
-      }
+      let trackingIdentiferLookup = safelyGetVariableTrackingValue(
+        path.node.name,
+        path.scope
+      );
 
       let astArgs: any = null;
       const args: any = [[node, trackingIdentiferLookup]];

@@ -292,3 +292,16 @@ export function createGetMemoTrackingValue(key) {
 
 export const getLastOpValueCall = () =>
   ignoredCallExpression(FunctionNames.getLastOperationValueResult, []);
+
+export const safelyGetVariableTrackingValue = (identifierName, scope) => {
+  const binding = scope.getBinding(identifierName);
+  if (binding && ["var", "let", "const", "param"].includes(binding.kind)) {
+    return getTrackingIdentifier(identifierName);
+  } else {
+    // If the value has been declared as a var then we know the
+    // tracking var also exists,
+    // otherwise we have to confirm it exists at runtime before
+    // trying to access it
+    return trackingIdentifierIfExists(identifierName);
+  }
+};
