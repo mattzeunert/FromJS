@@ -3,7 +3,10 @@ export default class KnownValues {
   _knownValuesMap = new Map();
 
   constructor() {
+    var global = Function("return this")();
+
     Object.assign(this._knownValues, {
+      global: global,
       "String.prototype.slice": String.prototype.slice,
       "String.prototype.substr": String.prototype.substr,
       "String.prototype.substring": String.prototype.substring,
@@ -38,7 +41,6 @@ export default class KnownValues {
       "Function.prototype.apply": Function.prototype.apply
     });
 
-    var global = Function("return this")();
     if (global["localStorage"]) {
       Object.assign(this._knownValues, {
         localStorage: global.localStorage,
