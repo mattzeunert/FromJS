@@ -1,6 +1,11 @@
 import operations, { eachArgument } from "../operations";
-
+import invokeIfFunction from "../invokeIfFunction";
+import { LocStore } from "../LocStore";
 export class LogServer {
+  _locStore: LocStore;
+  constructor(locStore) {
+    this._locStore = locStore;
+  }
   getLog(logIndex: number, cb: any) {}
   hasLog(logIndex: number, cb: (hasLog: boolean) => void) {
     this.loadLog(
@@ -27,31 +32,78 @@ export class LogServer {
         fn(err, null);
         return;
       }
-      if (currentDepth < maxDepth) {
-        updateEachOperationArgument(
-          log,
-          (log, update) => {
-            if (!log) {
-              update(log);
-            } else {
-              this.loadLog(
-                log,
-                (err, l) => {
-                  if (err) {
-                    fn(err);
-                    return;
-                  }
-                  update(l);
-                },
-                maxDepth,
-                currentDepth + 1
-              );
-            }
-          },
-          () => fn(null, log)
+
+      const op = operations[log.operation];
+      if (log.args === undefined && op.argNames) {
+        // We sometimes remove the log if there's no data,
+        // but we want to still be able to access the null value
+        // by it's arg name.
+        // E.g.: ret.args.returnValue
+        log.args = Array.from(new Array(op.argNames.length)).map(
+          i => undefined
         );
+      }
+
+      this._loadDataFromLoc(log).then(() => {
+        if (Array.isArray(log.args)) {
+          const args = log.args;
+          const op = operations[log.operation];
+
+          let argNames = invokeIfFunction(op.argNames, [log]);
+          let argIsArray = invokeIfFunction(op.argIsArray, [log]);
+
+          const newArgs = {}; // todo: don't do this here, do this when looking up the log on BE
+          argNames.forEach((argName, i) => {
+            const isArray = argIsArray && argIsArray[i];
+            if (isArray) {
+              args[i].forEach((arrayArg, argIndex) => {
+                newArgs[argName + argIndex] = arrayArg;
+              });
+            } else {
+              newArgs[argName] = args[i];
+            }
+          });
+          log.args = newArgs;
+        }
+
+        if (currentDepth < maxDepth) {
+          updateEachOperationArgument(
+            log,
+            (log, update) => {
+              if (!log) {
+                update(log);
+              } else {
+                this.loadLog(
+                  log,
+                  (err, l) => {
+                    if (err) {
+                      fn(err);
+                      return;
+                    }
+                    update(l);
+                  },
+                  maxDepth,
+                  currentDepth + 1
+                );
+              }
+            },
+            () => fn(null, log)
+          );
+        } else {
+          fn(null, log);
+        }
+      });
+    });
+  }
+  _loadDataFromLoc(log) {
+    return new Promise(resolve => {
+      if (log.operation === "stringLiteral") {
+        this._locStore.getLoc(log.loc, loc => {
+          log._result = loc.value;
+          resolve();
+        });
       } else {
-        fn(null, log);
+        resolve();
       }
     });
   }

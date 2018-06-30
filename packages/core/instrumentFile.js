@@ -5,7 +5,7 @@ const fs = require("fs");
 const compile = require("./dist/src/compile").default;
 
 const filePathToInstrument = process.argv[2];
-const fileContent = fs.readFileSync(filePathToInstrument);
+const fileContent = fs.readFileSync(filePathToInstrument).toString();
 console.log(
   "File size before: " + Math.round(fileContent.length / 1024) + "kb"
 );

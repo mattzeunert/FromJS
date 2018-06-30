@@ -6,19 +6,14 @@ import KnownValues from "./KnownValues";
 import { ExecContext } from "./ExecContext";
 import operations from "../operations";
 import { SKIP_TRACKING, VERIFY, KEEP_LOGS_IN_MEMORY } from "../config";
+import * as FunctionNames from "../FunctionNames";
 
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
   __OPERATIONS_EXEC__,
-  __OPERATION_ARRAY_ARGUMENTS__,
   __storeLog;
 
-(function(
-  functionNames,
-  operationTypes,
-  operationsExec,
-  operationArrayArguments
-) {
+(function(functionNames, operationTypes, operationsExec) {
   const accessToken = "ACCESS_TOKEN_PLACEHOLDER";
 
   Error["stackTraceLimit"] = 1000;
@@ -38,18 +33,48 @@ declare var __FUNCTION_NAMES__,
   let fetch = knownValues.getValue("fetch");
   let then = knownValues.getValue("Promise.prototype.then");
 
-  function postToBE(endpoint, data) {
+  // const startTime = new Date();
+  // setTimeout(checkDone, 200);
+  // function checkDone() {
+  //   const done = document.querySelector(".todo-list li");
+  //   if (done) {
+  //     const doneTime = new Date();
+  //     console.log("#####################################");
+  //     console.log("#####################################");
+  //     console.log("#####################################");
+  //     console.log("#####################################");
+  //     console.log("#####################################");
+  //     console.log("#####################################");
+  //     console.log(
+  //       "DONE",
+  //       "timeTaken: " + (doneTime.valueOf() - startTime.valueOf()) / 1000 + "s"
+  //     );
+  //     worker.postMessage({ showDoneMessage: true });
+  //   } else {
+  //     setTimeout(checkDone, 200);
+  //   }
+  // }
+
+  function postToBE(endpoint, data, statsCallback = function(size) {}) {
+    const stringifyStart = new Date();
     const body = JSON.stringify(data);
+    const stringifyEnd = new Date();
     if (endpoint === "/storeLogs") {
       console.log(
         "Saving logs: ",
         data.logs.length,
         "Size: ",
         body.length / 1024 / 1024,
-        "Mb"
+        "Mb",
+        "Stringify took " +
+          (stringifyEnd.valueOf() - stringifyStart.valueOf()) +
+          "ms"
       );
-    }
 
+      statsCallback({
+        bodyLength: body.length
+      });
+    }
     const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
       method: "POST",
       headers: new Headers({
@@ -59,9 +84,6 @@ declare var __FUNCTION_NAMES__,
       }),
       body: body
     });
-    then.call(p, res =>
-      knownValues.getValue("Response.prototype.json").apply(res)
-    );
 
     return p;
   }
@@ -69,14 +91,59 @@ declare var __FUNCTION_NAMES__,
   let logQueue = [];
   window["__debugFromJSLogQueue"] = () => logQueue;
   let evalScriptQueue = [];
+  let worker;
   function sendLogsToServer() {
+    if (!worker) {
+      function workerCode() {
+        self["perfStats"] = {
+          totalLogCount: 0,
+          logDataBytesSent: 0
+        };
+        onmessage = function(e) {
+          if (e.data.logs) {
+            self["perfStats"].totalLogCount += e.data.logs.length;
+            postToBE("/storeLogs", e.data, function({ bodyLength }) {
+              self["perfStats"].logDataBytesSent += bodyLength;
+            });
+          } else if (e.data.showDoneMessage) {
+            const perfInfo = self["perfStats"];
+            console.log("DONE", {
+              totalLogCount: perfInfo.totalLogCount / 1000 + "k",
+              logDataSent: perfInfo.logDataBytesSent / 1024 / 1024 + "mb"
+            });
+          }
+        };
+      }
+      worker = new Worker(
+        URL.createObjectURL(
+          new Blob([
+            postToBE +
+              ";var accessToken = '" +
+              accessToken +
+              "'" +
+              ";(" +
+              workerCode +
+              ")()"
+          ])
+        )
+      );
+    }
+
     if (logQueue.length === 0 && evalScriptQueue.length == 0) {
       return;
     }
-    postToBE("/storeLogs", {
+
+    const data = {
       logs: logQueue,
       evalScripts: evalScriptQueue
-    });
+    };
+
+    // Doing this means the data will be cloned, but it seems to be
+    // reasonably fast anyway
+    // Creating the json and making the request in the main thread is super slow!
+    worker.postMessage(data);
+
+    // postToBE("/storeLogs", data);
 
     logQueue = [];
     evalScriptQueue = [];
@@ -148,7 +215,7 @@ declare var __FUNCTION_NAMES__,
   global[
     functionNames.getFunctionArgTrackingInfo
   ] = function getArgTrackingInfo(index) {
-    if (argTrackingInfo === null) {
+    if (!argTrackingInfo) {
       // this can happen when function is invoked without callexpression op,
       // e.g. when it's a callback argument to a native api call
       // TODO: return some kind of tracking value here ("untracked argument")
@@ -156,7 +223,7 @@ declare var __FUNCTION_NAMES__,
       if (VERIFY) {
         console.log("no arg tracking info...");
       }
-      return null;
+      return undefined;
     }
     if (index === undefined) {
       return argTrackingInfo;
@@ -258,20 +325,20 @@ declare var __FUNCTION_NAMES__,
   function getObjectPropertyTrackingValues(obj, propName) {
     var objectPropertyTrackingInfo = objTrackingMap.get(obj);
     if (!objectPropertyTrackingInfo) {
-      return null;
+      return undefined;
     }
     const trackingValues =
       objectPropertyTrackingInfo[getTrackingPropName(propName)];
     if (!trackingValues) {
-      return null;
+      return undefined;
     }
     return trackingValues;
   }
 
   function getObjectPropertyValueTrackingValue(obj, propName) {
     const trackingValues = getObjectPropertyTrackingValues(obj, propName);
-    if (trackingValues === null) {
-      return null;
+    if (trackingValues === undefined) {
+      return undefined;
     }
     return trackingValues.value;
   }
@@ -281,44 +348,43 @@ declare var __FUNCTION_NAMES__,
 
   function getObjectPropertyNameTrackingValue(obj, propName) {
     const trackingValues = getObjectPropertyTrackingValues(obj, propName);
-    if (trackingValues === null) {
-      return null;
+    if (trackingValues === undefined) {
+      return undefined;
     }
     return trackingValues.name;
   }
 
   window[
-    "getObjectPropertyNameTrackingValue"
+    FunctionNames.getObjectPropertyNameTrackingValue
   ] = getObjectPropertyNameTrackingValue;
 
   var lastMemberExpressionObjectValue = null;
   var lastMemberExpressionObjectTrackingValue = null;
-  global["getLastMemberExpressionObjectValue"] = function() {
-    return lastMemberExpressionObjectValue;
-  };
-
-  global["getLastMemberExpressionObjectTrackingValue"] = function() {
-    return lastMemberExpressionObjectTrackingValue;
+  global[functionNames.getLastMemberExpressionObject] = function() {
+    return [
+      lastMemberExpressionObjectValue,
+      lastMemberExpressionObjectTrackingValue
+    ];
   };
 
   var lastReturnStatementResult = null;
 
   const memoValues = {};
-  global["__setMemoValue"] = function(key, value, trackingValue) {
+  global[functionNames.setMemoValue] = function(key, value, trackingValue) {
     // console.log("setmemovalue", value)
     memoValues[key] = { value, trackingValue };
     setLastOpTrackingResult(trackingValue);
     validateTrackingValue(trackingValue);
     return value;
   };
-  global["__getMemoArray"] = function(key) {
+  global[functionNames.getMemoArray] = function(key) {
     const memo = memoValues[key];
     return [memo.value, memo.trackingValue];
   };
-  global["__getMemoValue"] = function(key) {
+  global[functionNames.getMemoValue] = function(key) {
     return memoValues[key].value;
   };
-  global["__getMemoTrackingValue"] = function(key, value, trackingValue) {
+  global[functionNames.getMemoTrackingValue] = function(key) {
     return memoValues[key].trackingValue;
   };
 
@@ -339,6 +405,7 @@ declare var __FUNCTION_NAMES__,
     getObjectPropertyTrackingValue: getObjectPropertyValueTrackingValue,
     getObjectPropertyNameTrackingValue,
     trackObjectPropertyAssignment,
+    hasInstrumentationFunction: typeof global["__fromJSEval"] === "function",
     createOperationLog: function(args) {
       args.index = getOperationIndex();
       return createOperationLog(args);
@@ -382,65 +449,65 @@ declare var __FUNCTION_NAMES__,
   var lastOpValueResult = null;
   var lastOpTrackingResult = null;
   let lastOpTrackingResultWithoutResetting = null;
+
+  function makeDoOperation(opName: string) {
+    const opExec = operationsExec[opName];
+
+    return function ___op(objArgs, astArgs, loc) {
+      var trackingValue;
+
+      let logData: any = {
+        operation: opName,
+        args: objArgs,
+        astArgs: astArgs,
+        loc,
+        index: getOperationIndex()
+      };
+
+      var ret = opExec(objArgs, astArgs, ctx, logData);
+
+      logData.result = ret;
+      trackingValue = createOperationLog(logData);
+
+      lastOpValueResult = ret;
+
+      lastOpTrackingResultWithoutResetting = trackingValue;
+      setLastOpTrackingResult(trackingValue);
+
+      lastOperationType = opName;
+
+      if (logQueue.length > 100000) {
+        // avoid running out of memory
+        sendLogsToServer();
+      }
+
+      return ret;
+    };
+  }
+
   global[functionNames.doOperation] = function ___op(
     opName: string,
     objArgs,
     astArgs,
     loc
   ) {
-    var trackingValue;
-
-    // if (operationArrayArguments[opName]) {
-    //   operationArrayArguments[opName].forEach(arrayArgName => {});
-    // }
-
-    let logData: any = {
-      operation: opName,
-      args: objArgs,
-      astArgs: astArgs,
-      loc,
-      index: getOperationIndex()
-    };
-
-    var ret;
-    if (operationsExec[opName]) {
-      ret = operationsExec[opName](objArgs, astArgs, ctx, logData);
-    } else {
-      console.log("unhandled op", opName);
-      throw Error("oh no");
-    }
-
-    logData.result = ret;
-    trackingValue = createOperationLog(logData);
-
-    lastOpValueResult = ret;
-
-    lastOpTrackingResultWithoutResetting = trackingValue;
-    setLastOpTrackingResult(trackingValue);
-
-    lastOperationType = opName;
-
-    if (logQueue.length > 100000) {
-      // avoid running out of memory
-      sendLogsToServer();
-    }
-
-    return ret;
+    return global["__" + opName](objArgs, astArgs, loc);
   };
 
   operationsExec = {};
   Object.keys(operations).forEach(opName => {
     const op = operations[opName];
+    operationsExec[opName] = op.exec;
+    const doOpFunction = makeDoOperation(opName);
+
     // The object creation in so many places is expensive
     // so some simple ops have a shorthand function that
     // is called instead of __op and calls through to __op
     if (op.shorthand) {
-      global[op.shorthand.fnName] = op.shorthand.getExec(
-        global[functionNames.doOperation]
-      );
+      global[op.shorthand.fnName] = op.shorthand.getExec(doOpFunction);
     }
 
-    operationsExec[opName] = op.exec;
+    global["__" + opName] = doOpFunction;
   });
 
   global[functionNames.getLastOperationValueResult] = function getLastOp() {
@@ -460,9 +527,4 @@ declare var __FUNCTION_NAMES__,
     validateTrackingValue(lastOpTrackingResult);
     return lastOpTrackingResult;
   };
-})(
-  __FUNCTION_NAMES__,
-  __OPERATION_TYPES__,
-  null,
-  __OPERATION_ARRAY_ARGUMENTS__
-);
+})(__FUNCTION_NAMES__, __OPERATION_TYPES__, null);

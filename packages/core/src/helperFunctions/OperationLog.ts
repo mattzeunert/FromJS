@@ -1,5 +1,7 @@
 import KnownValues from "./KnownValues";
 import { VERIFY } from "../config";
+import operations from "../operations";
+import invokeIfFunction from "../invokeIfFunction";
 
 var global = Function("return this")();
 
@@ -46,7 +48,8 @@ export interface SerializedValueData {
 type StoredSerializedValue = SerializedValueData | string | number | boolean;
 
 function getSerializedValueObject(value, type, knownValues) {
-  var knownValue: null | string = knownValues && knownValues.getName(value);
+  var knownValue: undefined | string =
+    knownValues && knownValues.getName(value);
 
   if (type === null) {
     type = typeof value;
@@ -65,7 +68,7 @@ function getSerializedValueObject(value, type, knownValues) {
     } catch (err) {}
   }
 
-  var knownTypes: any[] | null = null;
+  var knownTypes: any[] | undefined = undefined;
   if (
     global["HTMLInputElement"] &&
     value instanceof global["HTMLInputElement"]
@@ -74,13 +77,18 @@ function getSerializedValueObject(value, type, knownValues) {
     knownTypes.push("HTMLInputElement");
   }
 
-  var primitive = "";
+  var primitive;
   if (["string", "number", "boolean", "null"].includes(type)) {
     primitive = value;
   }
   let keys;
   try {
-    if (type === "object" && value !== null) {
+    if (
+      type === "object" &&
+      value !== null &&
+      !Array.isArray(value) &&
+      !knownValue
+    ) {
       // todo: rethink this regarding perf
       // maybe don't collect keys, maybe do for...in instead
       // also: when inspecting i really want the trakcing data for
@@ -134,8 +142,6 @@ class SerializedValue implements SerializedValueData {
       str += " {" + this.keys.join(", ") + "}";
     }
     return str;
-
-    // return "[" + this.type + "]" + " {" + this.keys.join(", ") + "}";
   }
 }
 
@@ -166,8 +172,7 @@ export default class OperationLog implements OperationLogInterface {
     const resultIsSerializedValueObject =
       !["string", "boolean", "number"].includes(typeof this._result) &&
       this._result !== null &&
-      "type" in <any>this._result &&
-      "knownValue" in <any>this._result;
+      "type" in <any>this._result;
 
     let sv: SerializedValueData;
     if (resultIsSerializedValueObject) {
@@ -208,41 +213,69 @@ OperationLog.createAtRuntime = function(
   { operation, result, args, astArgs, extraArgs, loc, runtimeArgs, index },
   knownValues
 ): OperationLogInterface {
-  var arrayArguments: any[] = [];
-  if (operation === "arrayExpression") {
-    arrayArguments = ["elements"];
-  }
-
   if (VERIFY && !loc) {
     console.log("no loc at runtime for operation", operation);
   }
+  const op = operations[operation];
 
-  if (operation === "objectExpression" && args.properties) {
-    // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
-    args.properties = args.properties.map(prop => {
-      return {
-        key: prop.key[1],
-        type: prop.type[1],
-        value: prop.value[1]
-      };
+  if (Array.isArray(args)) {
+    const newArgs: any[] = [];
+    args.forEach((arg, i) => {
+      if (
+        op["argIsArray"] &&
+        invokeIfFunction(op["argIsArray"]![i], arguments[0])
+      ) {
+        const a: any[] = [];
+        arg.forEach((arrayArg, arrayArgIndex) => {
+          a.push(arrayArg[1]);
+        });
+        newArgs.push(a);
+      } else {
+        newArgs.push(arg[1]);
+      }
     });
-  } else {
-    // only store argument operation log because ol.result === a[0]
-    eachArgument(args, arrayArguments, (arg, argName, updateArg) => {
+
+    args = newArgs;
+
+    if (args.length === 1 && !args[0]) {
+      args = undefined;
+    }
+  } else if (args) {
+    if (operation === "objectExpression" && args.properties) {
+      // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
+      args.properties = args.properties.map(prop => {
+        return {
+          key: prop.key[1],
+          type: prop.type[1],
+          value: prop.value[1]
+        };
+      });
+    } else {
+      // only store argument operation log because ol.result === a[0]
+      eachArgument(args, (arg, argName, updateArg) => {
+        verifyArg(arg);
+        updateArg(arg[1]);
+      });
+    }
+  }
+
+  if (typeof extraArgs === "object") {
+    eachArgument(extraArgs, (arg, argName, updateArg) => {
       verifyArg(arg);
       updateArg(arg[1]);
     });
   }
-  if (typeof extraArgs === "object") {
-    eachArgument(extraArgs, arrayArguments, (arg, argName, updateArg) => {
-      verifyArg(arg);
-      updateArg(arg[1]);
-    });
+
+  let _result;
+  if (op && op.canInferResult) {
+    // args can be inferred on BE by checking the AST loc data
+  } else {
+    _result = serializeValue(result, knownValues);
   }
 
   return <OperationLogInterface>{
     operation,
-    _result: serializeValue(result, knownValues),
+    _result,
     index,
     extraArgs,
     args,
@@ -253,17 +286,11 @@ OperationLog.createAtRuntime = function(
 };
 
 // TODO: don't copy/paste this
-function eachArgument(args, arrayArguments, fn) {
+function eachArgument(args, fn) {
   const keys = Object.keys(args);
   for (var i = 0; i < keys.length; i++) {
     const key = keys[i];
-    if (arrayArguments.includes(key)) {
-      args[key].forEach((a, i) => {
-        fn(a, "element" + i, newValue => (args[key][i] = newValue));
-      });
-    } else {
-      fn(args[key], key, newValue => (args[key] = newValue));
-    }
+    fn(args[key], key, newValue => (args[key] = newValue));
   }
 }
 

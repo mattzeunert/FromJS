@@ -19,7 +19,8 @@ import {
   isInLeftPartOfAssignmentExpression,
   getTrackingVarName,
   addLoc,
-  skipPath
+  skipPath,
+  getTrackingIdentifier
 } from "./babelPluginHelpers";
 
 import helperCodeLoaded from "../helperFunctions";
@@ -35,23 +36,6 @@ helperCode = helperCode.replace(
   JSON.stringify(OperationTypes)
 );
 
-var opsArrayArgumentsString = `{`;
-Object.keys(operations).forEach(opName => {
-  if (!operations[opName].exec) {
-    // console.log("no exec for operation", opName);
-    return;
-  }
-  opsArrayArgumentsString += `${opName}: [${operations[
-    opName
-  ].arrayArguments!.map(a => `"${a}"`)}],`;
-});
-opsArrayArgumentsString += `}`;
-
-helperCode = helperCode.replace(
-  "__OPERATION_ARRAY_ARGUMENTS__",
-  opsArrayArgumentsString
-);
-
 helperCode += "/* HELPER_FUNCTIONS_END */ ";
 
 // I got some babel-generator "cannot read property 'type' of undefined" errors
@@ -65,22 +49,12 @@ helperCode += "// aaaaa"; // this seems to help with debugging/evaling the code.
 function plugin(babel) {
   const { types: t } = babel;
 
-  // const str = t.stringLiteral;
-  // if (!t["x"]) {
-  //   t["x"] = true;
-  //   t.stringLiteral = function() {
-  //     const node = str.apply(this, arguments);
-  //     node.stack = Error().stack;
-  //     return node;
-  //   };
-  // }
-
   function handleFunction(path) {
     const declarators: any[] = [];
     path.node.params.forEach((param, i) => {
       declarators.push(
         t.variableDeclarator(
-          addLoc(t.identifier(getTrackingVarName(param.name)), param.loc),
+          addLoc(getTrackingIdentifier(param.name), param.loc),
           t.callExpression(
             t.identifier(FunctionNames.getFunctionArgTrackingInfo),
             [t.numericLiteral(i)]
@@ -95,7 +69,7 @@ function plugin(babel) {
     // That's because when we return the argTrackingValues are not reset to the parent function's
     declarators.push(
       t.variableDeclarator(
-        ignoredIdentifier("__allFnArgTrackingValues"),
+        ignoredIdentifier("__allArgTV"),
         ignoredCallExpression(FunctionNames.getFunctionArgTrackingInfo, [])
       )
     );
@@ -129,7 +103,7 @@ function plugin(babel) {
 
         newDeclarations.push(
           t.variableDeclarator(
-            addLoc(t.identifier(getTrackingVarName(decl.id.name)), decl.id.loc),
+            addLoc(getTrackingIdentifier(decl.id.name), decl.id.loc),
             skipPath(
               t.callExpression(
                 t.identifier(FunctionNames.getLastOperationTrackingResult),
@@ -245,17 +219,14 @@ function plugin(babel) {
 
       const body = path.node.body.body;
 
-      let forInRightValueName =
-        "__forInRightValue" +
-        Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
+      let forInRightValueIdentifier = ignoreNode(
+        path.scope.generateUidIdentifier("__forInRightVal")
+      );
 
       path.insertBefore(
         ignoreNode(
           t.variableDeclaration("let", [
-            t.variableDeclarator(
-              ignoredIdentifier(forInRightValueName),
-              path.node.right
-            )
+            t.variableDeclarator(forInRightValueIdentifier, path.node.right)
           ])
         )
       );
@@ -269,7 +240,7 @@ function plugin(babel) {
         body.unshift(declaration);
       }
 
-      path.node.right = ignoredIdentifier(forInRightValueName);
+      path.node.right = forInRightValueIdentifier;
 
       var assignment = ignoreNode(
         t.expressionStatement(
@@ -277,10 +248,10 @@ function plugin(babel) {
             t.assignmentExpression(
               "=",
               ignoredIdentifier(getTrackingVarName(varName)),
-              ignoredCallExpression("getObjectPropertyNameTrackingValue", [
-                ignoredIdentifier(forInRightValueName),
-                ignoredIdentifier(varName)
-              ])
+              ignoredCallExpression(
+                FunctionNames.getObjectPropertyNameTrackingValue,
+                [forInRightValueIdentifier, ignoredIdentifier(varName)]
+              )
             )
           )
         )

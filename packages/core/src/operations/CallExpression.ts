@@ -3,7 +3,8 @@ import {
   ignoreNode,
   ignoredIdentifier,
   ignoredArrayExpression,
-  ignoredCallExpression
+  ignoredCallExpression,
+  ignoredArrayExpressionIfArray
 } from "../babelPluginHelpers";
 import HtmlToOperationLogMapping from "../helperFunctions/HtmlToOperationLogMapping";
 import * as OperationTypes from "../OperationTypes";
@@ -13,19 +14,21 @@ import addElOrigin, {
 } from "./domHelpers/addElOrigin";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import { VERIFY } from "../config";
-import { doOperation } from "../FunctionNames";
+import { doOperation, getLastMemberExpressionObject } from "../FunctionNames";
 import OperationLog from "../helperFunctions/OperationLog";
 import * as cloneRegExp from "clone-regexp";
-import { callExpression } from "@babel/types";
 
 function countGroupsInRegExp(re) {
   // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
   return new RegExp(re.toString() + "|").exec("")!.length;
 }
 
+function getFnArg(args, index) {
+  return args[2][index];
+}
+
 const specialCases = {
   "String.prototype.replace": ({
-    fn,
     ctx,
     object,
     fnArgValues,
@@ -62,7 +65,7 @@ const specialCases = {
               if (!isNaN(submatchIndex)) {
                 var submatch = submatches[submatchIndex - 1]; // $n is one-based, array is zero-based
                 if (submatch === undefined) {
-                  var maxSubmatchIndex = countGroupsInRegExp(args.arg0[0]);
+                  var maxSubmatchIndex = countGroupsInRegExp(getFnArg(args, 0));
                   var submatchIsDefinedInRegExp =
                     submatchIndex < maxSubmatchIndex;
 
@@ -90,7 +93,7 @@ const specialCases = {
           ctx.createOperationLog({
             operation: ctx.operationTypes.stringReplacement,
             args: {
-              value: args.arg1
+              value: getFnArg(args, 1)
             },
             astArgs: {},
             result: replacement,
@@ -111,10 +114,9 @@ const specialCases = {
   "JSON.parse": ({
     fn,
     ctx,
-    object,
     fnArgValues,
     args,
-    extraTrackingValues,
+
     logData
   }) => {
     const parsed = fn.call(JSON, fnArgValues[0]);
@@ -136,7 +138,7 @@ const specialCases = {
       const trackingValue = ctx.createOperationLog({
         operation: ctx.operationTypes.jsonParseResult,
         args: {
-          json: args.arg0
+          json: getFnArg(args, 0)
         },
         result: value,
         runtimeArgs: {
@@ -147,7 +149,7 @@ const specialCases = {
       const nameTrackingValue = ctx.createOperationLog({
         operation: ctx.operationTypes.jsonParseResult,
         args: {
-          json: args.arg0
+          json: getFnArg(args, 0)
         },
         result: key,
         runtimeArgs: {
@@ -174,14 +176,11 @@ const specialCases = {
 const specialValuesForPostprocessing = {
   "String.prototype.match": ({
     object,
-    fnArgs,
     ctx,
     logData,
     fnArgValues,
     ret,
-    retT,
-    context,
-    extraTrackingValues
+    context
   }) => {
     ctx = <ExecContext>ctx;
     if (!Array.isArray(ret)) {
@@ -263,9 +262,7 @@ const specialValuesForPostprocessing = {
         }),
         ctx.createOperationLog({
           operation: ctx.operationTypes.arrayIndex,
-          args: {},
           result: i,
-          astArgs: {},
           loc: logData.loc
         })
       );
@@ -278,9 +275,7 @@ const specialValuesForPostprocessing = {
     logData,
     fnArgValues,
     ret,
-    retT,
-    context,
-    extraTrackingValues
+    context
   }) => {
     ctx = <ExecContext>ctx;
 
@@ -316,24 +311,13 @@ const specialValuesForPostprocessing = {
         }),
         ctx.createOperationLog({
           operation: ctx.operationTypes.arrayIndex,
-          args: {},
           result: i,
-          astArgs: {},
           loc: logData.loc
         })
       );
     });
   },
-  "Array.prototype.push": ({
-    object,
-    fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
-  }) => {
+  "Array.prototype.push": ({ object, fnArgs, ctx, logData }) => {
     const arrayLengthBeforePush = object.length - fnArgs.length;
     fnArgs.forEach((arg, i) => {
       const arrayIndex = arrayLengthBeforePush + i;
@@ -343,25 +327,14 @@ const specialValuesForPostprocessing = {
         arg,
         ctx.createOperationLog({
           operation: ctx.operationTypes.arrayIndex,
-          args: {},
           result: arrayIndex,
-          astArgs: {},
           loc: logData.loc
         })
       );
     });
     return fnArgs[fnArgs.length - 1];
   },
-  "Object.keys": ({
-    object,
-    fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
-  }) => {
+  "Object.keys": ({ ctx, logData, fnArgValues, ret, retT }) => {
     ret.forEach((key, i) => {
       const trackingValue = ctx.getObjectPropertyNameTrackingValue(
         fnArgValues[0],
@@ -383,16 +356,7 @@ const specialValuesForPostprocessing = {
     });
     return retT;
   },
-  "Object.assign": ({
-    object,
-    fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
-  }) => {
+  "Object.assign": ({ ctx, logData, fnArgValues }) => {
     ctx = <ExecContext>ctx;
     const target = fnArgValues[0];
     const sources = fnArgValues.slice(1);
@@ -433,13 +397,8 @@ const specialValuesForPostprocessing = {
   },
   "Array.prototype.shift": ({
     object,
-    fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
+
+    ctx
   }) => {
     // Note: O(n) is not very efficient...
     const array = object;
@@ -454,13 +413,11 @@ const specialValuesForPostprocessing = {
   },
   "Array.prototype.slice": ({
     object,
-    fnArgs,
+
     ctx,
     logData,
     fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
+    ret
   }) => {
     ctx = <ExecContext>ctx;
     const resultArray = ret;
@@ -523,8 +480,7 @@ const specialValuesForPostprocessing = {
     fnArgs,
     ctx,
     logData,
-    fnArgValues,
-    ret,
+
     retT,
     extraTrackingValues
   }) => {
@@ -572,9 +528,7 @@ const specialValuesForPostprocessing = {
     ctx,
     logData,
     fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
+    ret
   }) => {
     const concatValues = [object, ...fnArgValues];
     let i = 0;
@@ -589,14 +543,11 @@ const specialValuesForPostprocessing = {
               value: [null, trackingValue]
             },
             result: value,
-            astArgs: {},
             loc: logData.loc
           }),
           ctx.createOperationLog({
             operation: ctx.operationTypes.arrayIndex,
-            args: {},
             result: i,
-            astArgs: {},
             loc: logData.loc
           })
         );
@@ -620,56 +571,64 @@ const specialValuesForPostprocessing = {
       }
     });
   },
+  "Array.prototype.map": ({ mapResultTrackingValues, ret, ctx, logData }) => {
+    mapResultTrackingValues.forEach((tv, i) => {
+      ctx.trackObjectPropertyAssignment(
+        ret,
+        i.toString(),
+        mapResultTrackingValues[i],
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.arrayIndex,
+          result: i,
+          loc: logData.loc
+        })
+      );
+    });
+  },
+  "Array.prototype.reduce": ({ reduceResultTrackingValue }) => {
+    return reduceResultTrackingValue;
+  },
+  "Array.prototype.filter": ({ filterResults, ctx, ret, object, logData }) => {
+    let resultArrayIndex = 0;
+    object.forEach(function(originalArrayItem, originalArrayIndex) {
+      if (filterResults[originalArrayIndex]) {
+        ctx.trackObjectPropertyAssignment(
+          ret,
+          resultArrayIndex,
+          ctx.getObjectPropertyTrackingValue(object, originalArrayIndex),
+          ctx.createOperationLog({
+            operation: ctx.operationTypes.arrayIndex,
+            result: resultArrayIndex,
+            loc: logData.loc
+          })
+        );
+
+        resultArrayIndex++;
+      }
+    });
+  },
   "document.createElement": ({
-    object,
     fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
+
+    ret
   }) => {
     addOriginInfoToCreatedElement(ret, fnArgs[0], "document.createElement");
   },
   "document.createTextNode": ({
-    object,
     fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
+
+    ret
   }) => {
     addElOrigin(ret, "textValue", {
       trackingValue: fnArgs[0]
     });
   },
-  "document.createComment": ({
-    object,
-    fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
-  }) => {
+  "document.createComment": ({ fnArgs, ret }) => {
     addElOrigin(ret, "textValue", {
       trackingValue: fnArgs[0]
     });
   },
-  "HTMLElement.prototype.setAttribute": ({
-    object,
-    fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
-  }) => {
+  "HTMLElement.prototype.setAttribute": ({ object, fnArgs, fnArgValues }) => {
     const [attrNameArg, attrValueArg] = fnArgs;
     let attrName = fnArgValues[0];
     addElOrigin(object, "attribute_" + attrName + "_name", {
@@ -682,12 +641,7 @@ const specialValuesForPostprocessing = {
   "HTMLElement.prototype.insertAdjacentHTML": ({
     object,
     fnArgs,
-    ctx,
-    logData,
-    fnArgValues,
-    ret,
-    retT,
-    extraTrackingValues
+    fnArgValues
   }) => {
     const position = fnArgValues[0].toLowerCase();
     if (position !== "afterbegin") {
@@ -793,35 +747,20 @@ class ValueMapV2 {
 }
 
 const CallExpression = <any>{
+  argNames: ["function", "context", "arg"],
+  argIsArray: [false, false, true],
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
-    function makeFunctionArgument([value, trackingValue]) {
-      return ctx.createOperationLog({
-        operation: ctx.operationTypes.functionArgument,
-        args: {
-          value: [value, trackingValue]
-        },
-        loc: logData.loc,
-        astArgs: {},
-        result: value
-      });
-    }
-    var i = 0;
-    var arg;
+    let [fnArg, context, argList] = args;
+
     var fnArgs: any[] = [];
     var fnArgValues: any[] = [];
 
-    let context = args.context;
-    var fn = args.function[0];
+    var fn = fnArg[0];
 
-    while (true) {
-      var argKey = "arg" + i;
-      if (!(argKey in args)) {
-        break;
-      }
-      arg = args[argKey];
+    for (var i = 0; i < argList.length; i++) {
+      const arg = argList[i];
       fnArgValues.push(arg[0]);
-      fnArgs.push(makeFunctionArgument(arg));
-      i++;
+      fnArgs.push(arg[1]);
     }
 
     var object = context[0];
@@ -852,10 +791,7 @@ const CallExpression = <any>{
         for (let i = 0; i < argArray.length; i++) {
           fnArgValuesAtInvocation.push(argArray[i]);
           fnArgsAtInvocation.push(
-            makeFunctionArgument([
-              argArray[i],
-              ctx.getObjectPropertyTrackingValue(argArray, i)
-            ])
+            ctx.getObjectPropertyTrackingValue(argArray, i)
           );
         }
       }
@@ -865,14 +801,11 @@ const CallExpression = <any>{
 
     const extraTrackingValues: any = {};
 
-    const hasInstrumentationFunction =
-      typeof ctx.global["__fromJSEval"] === "function";
-
     var ret;
     let retT: any = null;
     if (astArgs.isNewExpression) {
-      const isNewFunctionCall = args.function[0] === Function;
-      if (isNewFunctionCall && hasInstrumentationFunction) {
+      const isNewFunctionCall = fn === Function;
+      if (isNewFunctionCall && ctx.hasInstrumentationFunction) {
         let code = fnArgValues[fnArgValues.length - 1];
         let generatedFnArguments = fnArgValues.slice(0, -1);
 
@@ -886,7 +819,7 @@ const CallExpression = <any>{
           console.log("can't instrument new Function() code");
         }
         let thisValue = null; // overwritten inside new()
-        ret = new (Function.prototype.bind.apply(args.function[0], [
+        ret = new (Function.prototype.bind.apply(fnArg[0], [
           thisValue,
           ...fnArgValues
         ]))();
@@ -894,11 +827,15 @@ const CallExpression = <any>{
       retT = ctx.createOperationLog({
         operation: ctx.operationTypes.newExpressionResult,
         args: {},
-        astArgs: {},
-        result: {},
+        result: ret,
         loc: logData.loc
       });
     } else {
+      // TODO: move these to an object instead (sth like specialCaseState)
+      let mapResultTrackingValues;
+      let reduceResultTrackingValue;
+      let filterResults;
+
       const fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
       let specialCaseArgs = getSpecialCaseArgs();
 
@@ -925,7 +862,10 @@ const CallExpression = <any>{
           logData,
           context,
           ret,
-          retT
+          retT,
+          mapResultTrackingValues,
+          reduceResultTrackingValue,
+          filterResults
         };
         if (functionIsCallOrApply) {
           specialCaseArgs.fn = object;
@@ -953,7 +893,7 @@ const CallExpression = <any>{
         }
         const fnIsEval = fn === eval;
         if (fnIsEval) {
-          if (hasInstrumentationFunction) {
+          if (ctx.hasInstrumentationFunction) {
             fn = ctx.global["__fromJSEval"];
           } else {
             if (!ctx.global.__forTestsDontShowCantEvalLog) {
@@ -1005,11 +945,7 @@ const CallExpression = <any>{
 
               const obj = ctx.global[doOperation](
                 "callExpression",
-                {
-                  context: [JSON],
-                  function: [JSON.parse],
-                  arg0: [text, t]
-                },
+                [[JSON.parse], [JSON], [[text, t]]],
                 {}
               );
               return Promise.resolve(obj);
@@ -1040,7 +976,6 @@ const CallExpression = <any>{
           }
         }
 
-        let mapResultTrackingValues;
         if (fnKnownValue === "Array.prototype.map") {
           mapResultTrackingValues = [];
           fnArgValuesForApply = fnArgValues.slice();
@@ -1050,7 +985,6 @@ const CallExpression = <any>{
               array,
               index.toString()
             );
-            let context;
             if (fnArgValues.length > 1) {
               context = [fnArgValues[1], fnArgs[1]];
             } else {
@@ -1058,13 +992,11 @@ const CallExpression = <any>{
             }
             const ret = ctx.global[doOperation](
               "callExpression",
-              {
-                context: [this, null],
-                function: [originalMappingFunction, null],
-                arg0: [item, itemTrackingInfo, null],
-                arg1: [index, null],
-                arg2: [array, null]
-              },
+              [
+                [originalMappingFunction, null],
+                [this, null],
+                [[item, itemTrackingInfo, null], [index, null], [array, null]]
+              ],
               {},
               logData.loc
             );
@@ -1074,16 +1006,12 @@ const CallExpression = <any>{
           });
         }
 
-        let reduceResultTrackingValue;
-        let reduceResultNormalValue;
         if (fnKnownValue === "Array.prototype.reduce") {
           if (fnArgs.length > 1) {
             reduceResultTrackingValue = fnArgs[1];
-            reduceResultNormalValue = fnArgValues[1];
           } else {
             // "If no initial value is supplied, the first element in the array will be used."
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
-            reduceResultNormalValue = object[0];
             reduceResultTrackingValue = ctx.getObjectPropertyTrackingValue(
               object,
               0
@@ -1106,25 +1034,25 @@ const CallExpression = <any>{
 
             const ret = ctx.global[doOperation](
               "callExpression",
-              {
-                context: [this, null],
-                function: [originalReduceFunction, null],
-                arg0: [reduceResultNormalValue, reduceResultTrackingValue],
-                arg1: [param, paramTrackingValue],
-                arg2: [currentIndex, null],
-                arg3: [array, null]
-              },
+              [
+                [originalReduceFunction, null],
+                [this, null],
+                [
+                  [previousRet, reduceResultTrackingValue],
+                  [param, paramTrackingValue],
+                  [currentIndex, null],
+                  [array, null]
+                ]
+              ],
               {},
               logData.loc
             );
-            reduceResultNormalValue = ret;
             reduceResultTrackingValue = ctx.lastOpTrackingResult;
 
             return ret;
           });
         }
 
-        let filterResults;
         if (fnKnownValue === "Array.prototype.filter") {
           filterResults = [];
 
@@ -1133,16 +1061,15 @@ const CallExpression = <any>{
           setFnArgForApply(0, function(this: any, element, index, array) {
             const ret = ctx.global[doOperation](
               "callExpression",
-              {
-                context: [this, null],
-                function: [originalFilterFunction, null],
-                arg0: [
-                  element,
-                  ctx.getObjectPropertyTrackingValue(array, index)
-                ],
-                arg1: [index, null],
-                arg2: [array, null]
-              },
+              [
+                [originalFilterFunction, null],
+                [this, null],
+                [
+                  [element, ctx.getObjectPropertyTrackingValue(array, index)],
+                  [index, null],
+                  [array, null]
+                ]
+              ],
               {},
               logData.loc
             );
@@ -1161,7 +1088,7 @@ const CallExpression = <any>{
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
         // Don't pretend to have a tracked return value if an uninstrumented function was called
         // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
-        if (fnIsEval && hasInstrumentationFunction) {
+        if (fnIsEval && ctx.hasInstrumentationFunction) {
           ctx.registerEvalScript(ret.evalScript);
           ret = ret.returnValue;
           retT = ctx.lastOpTrackingResultWithoutResetting;
@@ -1205,47 +1132,6 @@ const CallExpression = <any>{
               loc: logData.loc
             })
           ];
-        }
-
-        if (fnKnownValue === "Array.prototype.map") {
-          mapResultTrackingValues.forEach((tv, i) => {
-            ctx.trackObjectPropertyAssignment(
-              ret,
-              i.toString(),
-              mapResultTrackingValues[i],
-              ctx.createOperationLog({
-                operation: ctx.operationTypes.arrayIndex,
-                args: {},
-                result: i,
-                astArgs: {},
-                loc: logData.loc
-              })
-            );
-          });
-        }
-        if (fnKnownValue === "Array.prototype.reduce") {
-          retT = reduceResultTrackingValue;
-        }
-        if (fnKnownValue === "Array.prototype.filter") {
-          let resultArrayIndex = 0;
-          object.forEach(function(originalArrayItem, originalArrayIndex) {
-            if (filterResults[originalArrayIndex]) {
-              ctx.trackObjectPropertyAssignment(
-                ret,
-                resultArrayIndex,
-                ctx.getObjectPropertyTrackingValue(object, originalArrayIndex),
-                ctx.createOperationLog({
-                  operation: ctx.operationTypes.arrayIndex,
-                  args: {},
-                  result: resultArrayIndex,
-                  astArgs: {},
-                  loc: logData.loc
-                })
-              );
-
-              resultArrayIndex++;
-            }
-          });
         }
       }
     }
@@ -1483,46 +1369,32 @@ const CallExpression = <any>{
       );
     });
 
-    let executionContext;
-    let executionContextTrackingValue;
+    let contextArg;
+
     if (isMemberExpressionCall) {
-      executionContext = ignoredCallExpression(
-        "getLastMemberExpressionObjectValue",
-        []
-      );
-      executionContextTrackingValue = ignoredCallExpression(
-        "getLastMemberExpressionObjectTrackingValue",
-        []
-      );
+      contextArg = ignoredCallExpression(getLastMemberExpressionObject, []);
     } else {
-      executionContext = ignoredIdentifier("undefined");
-      executionContextTrackingValue = ignoreNode(this.t.nullLiteral());
+      contextArg = [
+        ignoredIdentifier("undefined"),
+        ignoreNode(this.t.nullLiteral())
+      ];
     }
 
-    var fnArgs = {};
-    args.forEach((arg, i) => {
-      fnArgs["arg" + i] = arg;
-    });
+    const fn = [
+      path.node.callee,
+      isMemberExpressionCall
+        ? getLastOperationTrackingResultCall()
+        : getLastOperationTrackingResultCall()
+    ];
+
+    var fnArgs = [fn, contextArg, args];
 
     const astArgs = {};
     if (isNewExpression) {
       astArgs["isNewExpression"] = ignoreNode(this.t.booleanLiteral(true));
     }
 
-    var call = this.createNode!(
-      {
-        function: [
-          path.node.callee,
-          isMemberExpressionCall
-            ? getLastOperationTrackingResultCall()
-            : getLastOperationTrackingResultCall()
-        ],
-        context: [executionContext, executionContextTrackingValue],
-        ...fnArgs
-      },
-      astArgs,
-      path.node.callee.loc
-    );
+    var call = this.createNode!(fnArgs, astArgs, path.node.callee.loc);
 
     // todo: would it be better for perf if I updated existing call
     // instead of using replaceWith?

@@ -1,5 +1,5 @@
 import * as OperationTypes from "./OperationTypes";
-import { instrumentAndRun } from "./testHelpers";
+import { instrumentAndRun, server } from "./testHelpers";
 import { compileSync } from "./compile";
 
 test("adds 1 + 2 to equal 3", done => {
@@ -411,9 +411,7 @@ it("Tracks array expressions", done => {
     return a
   `).then(({ normal, tracking, code }) => {
     expect(normal).toEqual([1, 2, 3]);
-    expect(tracking.args.value.args.elements[0].operation).toBe(
-      "numericLiteral"
-    );
+    expect(tracking.args.value.args.element0.operation).toBe("numericLiteral");
 
     done();
   });
@@ -531,8 +529,7 @@ it("Tracks arguments to NewExpressions", async () => {
   expect(normal).toBe(2);
   const memberExpression = tracking;
   const assignedValue = memberExpression.extraArgs.propertyValue.args.argument;
-  const fnArgument = assignedValue.args.value;
-  expect(fnArgument.args.value.operation).toBe("numericLiteral");
+  expect(assignedValue.args.value.operation).toBe("numericLiteral");
 });
 
 it("Doesn't break when encountering a labeled statement", async () => {
@@ -585,7 +582,9 @@ it("Doesn't break when using non-strict mode features like with", async () => {
 
 describe("eval/new Function", () => {
   function __fromJSEval(code) {
-    let compiledCode = compileSync(code).code;
+    const compilationResult = compileSync(code);
+    let compiledCode = compilationResult.code;
+    server._locStore.write(compilationResult.locs, function() {});
     return {
       returnValue: eval(compiledCode),
       evalScript: []
@@ -730,7 +729,7 @@ describe("call/apply/bind", () => {
 
     const binaryExpression = tracking.extraArgs.returnValue.args.returnValue;
 
-    const bArg = binaryExpression.args.right.args.value.args.value;
+    const bArg = binaryExpression.args.right.args.value;
     expect(bArg.operation).not.toBe("arrayExpression"); // apply passes in array but it's not an argument
     expect(bArg.operation).toBe("stringLiteral");
   });

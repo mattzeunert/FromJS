@@ -346,12 +346,12 @@ class ProxyInstrumenter {
             // console.log(body, responseBody);
             console.log("EMPTY RESPONSE", getUrl(ctx));
           } else {
-            // console.log(
-            //   getUrl(ctx),
-            //   "size",
-            //   Math.round(responseBody.length / 1024 / 1024 * 10) / 10,
-            //   "MB"
-            // );
+            const sizeInMb =
+              Math.round(responseBody.length / 1024 / 1024 * 1000) / 1000;
+            if (sizeInMb > 1) {
+              console.log(getUrl(ctx), "size", sizeInMb, "MB");
+            }
+
             this.urlCache[getUrl(ctx)] = {
               body: responseBody,
               headers: ctx.serverToProxyResponse.headers
@@ -454,6 +454,10 @@ class ProxyInstrumenter {
     return new Promise(resolve => {
       const RUN_IN_SAME_PROCESS = false;
 
+      if (body.length > 1024 * 500) {
+        console.time(url);
+      }
+
       if (RUN_IN_SAME_PROCESS) {
         console.log("Running compilation in proxy process for debugging");
         var compile = require(this.instrumenterFilePath);
@@ -465,6 +469,9 @@ class ProxyInstrumenter {
           .send({ body, url, babelPluginOptions })
           .on("message", function(response) {
             resolve(response);
+            if (body.length > 1024 * 500) {
+              console.timeEnd(url);
+            }
             compilerProcess.kill();
           })
           .on("error", error => {

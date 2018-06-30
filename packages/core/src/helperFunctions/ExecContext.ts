@@ -12,6 +12,7 @@ export interface ExecContext {
   ) => number;
   lastMemberExpressionResult: [any, any];
   createOperationLog(any): number;
+  hasInstrumentationFunction: boolean;
   operationTypes: any;
   argTrackingInfo: any;
   global: any;

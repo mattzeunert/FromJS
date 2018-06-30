@@ -10,25 +10,30 @@ import {
   trackingIdentifierIfExists,
   ignoredCallExpression,
   ignoreNode,
-  runIfIdentifierExists,
   createSetMemoValue,
   createGetMemoValue,
   createGetMemoTrackingValue,
-  getLastOpValueCall,
   ignoredIdentifier,
   ignoredObjectExpression,
-  createGetMemoArray,
-  getTrackingVarName,
   skipPath,
-  initForBabel as initForBabelPH
+  initForBabel as initForBabelPH,
+  getTrackingIdentifier
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
-import HtmlToOperationLogMapping from "./helperFunctions/HtmlToOperationLogMapping";
 import { ExecContext } from "./helperFunctions/ExecContext";
 
 import CallExpression from "./operations/CallExpression";
+import ObjectExpression from "./operations/ObjectExpression";
 import AssignmentExpression from "./operations/AssignmentExpression";
 import traverseStringConcat from "./traverseStringConcat";
+import * as MemoValueNames from "./MemoValueNames";
+
+function identifyTraverseFunction(operationLog, charIndex) {
+  return {
+    operationLog: operationLog.args.value,
+    charIndex
+  };
+}
 
 let t;
 // This file is also imported into helperFunctions, i.e. FE code that can't load
@@ -53,10 +58,14 @@ interface Shorthand {
 
 interface Operations {
   [key: string]: {
+    argNames?: string[] | ((log: any) => string[]);
+    argIsArray?: boolean[] | ((log: any) => boolean[]);
     createNode?: (args?: any, astArgs?: any, loc?: any) => any;
     visitor?: any;
     exec?: any;
-    arrayArguments?: string[];
+    // Sometimes (e.g. for string literals) we know the op result
+    // at compile time and can look it up for analysis later
+    canInferResult?: boolean;
     getArgumentsArray?: any;
     shorthand?: Shorthand;
     traverse?: (
@@ -69,11 +78,28 @@ interface Operations {
 
 const operations: Operations = {
   memberExpression: {
+    argNames: ["object", "propName"],
+    shorthand: {
+      fnName: "__mEx",
+      getExec: doOperation => {
+        return (object, propName, loc) => {
+          return doOperation([object, propName], undefined, loc);
+        };
+      },
+      visitor: (opArgs, astArgs, locAstNode) => {
+        return ignoredCallExpression("__mEx", [
+          ignoredArrayExpression(opArgs[0]),
+          ignoredArrayExpression(opArgs[1]),
+          locAstNode
+        ]);
+      }
+    },
     exec: (args, astArgs, ctx: ExecContext, logData: any) => {
       var ret;
-      var object = args.object[0];
-      var objectT = args.object[1];
-      var propertyName = args.propName[0];
+      const [objectArg, propNameArg] = args;
+      var object = objectArg[0];
+      var objectT = objectArg[1];
+      var propertyName = propNameArg[0];
       ret = object[propertyName];
 
       let trackingValue = ctx.getObjectPropertyTrackingValue(
@@ -124,15 +150,14 @@ const operations: Operations = {
         if (path.node.property.type === "Identifier") {
           property = t.stringLiteral(path.node.property.name);
           property.loc = path.node.property.loc;
-          property.debugNote = "memexp";
         }
       }
 
       const op = this.createNode!(
-        {
-          object: [path.node.object, getLastOperationTrackingResultCall()],
-          propName: [property, getLastOperationTrackingResultCall()]
-        },
+        [
+          [path.node.object, getLastOperationTrackingResultCall()],
+          [property, getLastOperationTrackingResultCall()]
+        ],
         {},
         path.node.loc
       );
@@ -205,35 +230,41 @@ const operations: Operations = {
     },
     visitor(path) {
       var saveTestValue = createSetMemoValue(
-        "lastConditionalExpressionTest",
+        MemoValueNames.lastConditionalExpressionTest,
         path.node.test,
         getLastOperationTrackingResultCall()
       );
       var saveConsequentValue = createSetMemoValue(
-        "lastConditionalExpressionResult",
+        MemoValueNames.lastConditionalExpressionResult,
         path.node.consequent,
         getLastOperationTrackingResultCall()
       );
       var saveAlernativeValue = createSetMemoValue(
-        "lastConditionalExpressionResult",
+        MemoValueNames.lastConditionalExpressionResult,
         path.node.alternate,
         getLastOperationTrackingResultCall()
       );
       var operation = this.createNode!(
         {
           test: [
-            createGetMemoValue("lastConditionalExpressionTest"),
-            createGetMemoTrackingValue("lastConditionalExpressionTest")
+            createGetMemoValue(MemoValueNames.lastConditionalExpressionTest),
+            createGetMemoTrackingValue(
+              MemoValueNames.lastConditionalExpressionTest
+            )
           ],
           result: [
             ignoreNode(
               t.conditionalExpression(
-                createGetMemoValue("lastConditionalExpressionTest"),
+                createGetMemoValue(
+                  MemoValueNames.lastConditionalExpressionTest
+                ),
                 saveConsequentValue,
                 saveAlernativeValue
               )
             ),
-            createGetMemoTrackingValue("lastConditionalExpressionResult")
+            createGetMemoTrackingValue(
+              MemoValueNames.lastConditionalExpressionResult
+            )
           ]
         },
         {},
@@ -257,177 +288,68 @@ const operations: Operations = {
       };
     }
   },
-  objectExpression: {
-    exec: (args, astArgs, ctx: ExecContext, logData: any) => {
-      var obj = {};
-      var methodProperties = {};
-
-      for (var i = 0; i < args.properties.length; i++) {
-        var property = args.properties[i];
-
-        var propertyType = property.type[0];
-        var propertyKey = property.key[0];
-
-        if (propertyType === "ObjectProperty") {
-          var propertyValue = property.value[0];
-          var propertyValueT = property.value[1];
-
-          obj[propertyKey] = propertyValue;
-
-          ctx.trackObjectPropertyAssignment(
-            obj,
-            propertyKey,
-            ctx.createOperationLog({
-              operation: "objectProperty",
-              args: { propertyValue: [propertyValue, propertyValueT] },
-              result: propertyValue,
-              astArgs: {},
-              loc: logData.loc
-            }),
-            property.key[1]
-          );
-        } else if (propertyType === "ObjectMethod") {
-          var propertyKind = property.kind[0];
-          var fn = property.value[0];
-          if (!methodProperties[propertyKey]) {
-            methodProperties[propertyKey] = {
-              enumerable: true,
-              configurable: true
-            };
-          }
-          if (propertyKind === "method") {
-            obj[propertyKey] = fn;
-          } else {
-            methodProperties[propertyKey][propertyKind] = fn;
-          }
-        }
-      }
-      Object.defineProperties(obj, methodProperties);
-
-      return obj;
-    },
-    traverse(operationLog, charIndex) {
-      return {
-        operationLog: operationLog.args.propertyValue,
-        charIndex: charIndex
-      };
-    },
-    visitor(path) {
-      path.node.properties.forEach(function(prop) {
-        if (prop.key.type === "Identifier") {
-          const loc = prop.key.loc;
-          prop.key = t.stringLiteral(prop.key.name);
-          prop.key.loc = loc;
-          if (!loc) {
-            debugger;
-          }
-        }
-      });
-
-      var properties = path.node.properties.map(function(prop) {
-        var type = ignoredStringLiteral(prop.type);
-        if (prop.type === "ObjectMethod") {
-          // getters/setters or something like this: obj = {fn(){}}
-          var kind = ignoredStringLiteral(prop.kind);
-          kind.ignore = true;
-          return ignoredObjectExpression({
-            type: [type],
-            key: [prop.key],
-            kind: [kind],
-            value: [t.functionExpression(null, prop.params, prop.body)]
-          });
-        } else {
-          return ignoredObjectExpression({
-            type: [type],
-            key: [prop.key, getLastOperationTrackingResultCall()],
-            value: [prop.value, getLastOperationTrackingResultCall()]
-          });
-        }
-      });
-
-      var call = this.createNode!(
-        {
-          properties
-        },
-        null,
-        path.node.loc
-      );
-
-      return call;
-    }
-  },
+  objectExpression: ObjectExpression,
   stringLiteral: {
+    canInferResult: true,
     shorthand: {
-      fnName: "__strLit",
+      fnName: "__str",
       getExec: doOperation => {
         return (value, loc) => {
-          return doOperation(
-            "stringLiteral",
-            {
-              value: [value]
-            },
-            null,
-            loc
-          );
+          return doOperation([value], undefined, loc);
         };
       },
       visitor: (opArgs, astArgs, locAstNode) => {
-        return ignoredCallExpression("__strLit", [opArgs.value[0], locAstNode]);
+        const valueArg = opArgs[0];
+        return ignoredCallExpression("__str", [
+          ignoredArrayExpression(valueArg),
+          locAstNode
+        ]);
       }
     },
+    argNames: ["value"],
     visitor(path) {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
+      const value = path.node.value;
+      // Store on loc so it can be looked up later
+      path.node.loc.value = value;
       return skipPath(
-        this.createNode!(
-          {
-            value: [ignoredStringLiteral(path.node.value)]
-          },
-          {},
-          path.node.loc
-        )
+        this.createNode!([[ignoredStringLiteral(value)]], {}, path.node.loc)
       );
     },
     exec: (args, astArgs, ctx: ExecContext) => {
-      return args.value[0];
+      return args[0][0];
     }
   },
   numericLiteral: {
     shorthand: {
-      fnName: "__numLit",
+      fnName: "__num",
       getExec: doOperation => {
         return (value, loc) => {
-          return doOperation(
-            "numericLiteral",
-            {
-              value: [value]
-            },
-            null,
-            loc
-          );
+          return doOperation([value], undefined, loc);
         };
       },
       visitor: (opArgs, astArgs, locAstNode) => {
-        return ignoredCallExpression("__numLit", [opArgs.value[0], locAstNode]);
+        const valueArg = opArgs[0];
+        return ignoredCallExpression("__num", [
+          ignoredArrayExpression(valueArg),
+          locAstNode
+        ]);
       }
     },
+    argNames: ["value"],
     visitor(path) {
       if (path.parent.type === "ObjectProperty") {
         return;
       }
+      const value = path.node.value;
       return skipPath(
-        this.createNode!(
-          {
-            value: [ignoredNumericLiteral(path.node.value)]
-          },
-          null,
-          path.node.loc
-        )
+        this.createNode!([[ignoredNumericLiteral(value)]], null, path.node.loc)
       );
     },
     exec: (args, astArgs, ctx: ExecContext) => {
-      return args.value[0];
+      return args[0][0];
     }
   },
   unaryExpression: {
@@ -453,17 +375,17 @@ const operations: Operations = {
     }
   },
   arrayExpression: {
-    arrayArguments: ["elements"],
+    argNames: ["element"],
+    argIsArray: [true],
     exec: (args, astArgs, ctx: ExecContext, logData: any) => {
+      const [elementsArg] = args;
       let arr: any[] = [];
-      args.elements.forEach((el, i) => {
+      elementsArg.forEach((el, i) => {
         const [value, trackingValue] = el;
         arr.push(value);
         const nameTrackingValue = ctx.createOperationLog({
           operation: ctx.operationTypes.arrayIndex,
-          args: {},
           result: i,
-          astArgs: {},
           loc: logData.loc
         });
         ctx.trackObjectPropertyAssignment(
@@ -477,20 +399,22 @@ const operations: Operations = {
     },
     visitor(path) {
       return this.createNode!(
-        {
-          elements: path.node.elements.map(el =>
+        [
+          path.node.elements.map(el =>
             ignoredArrayExpression([el, getLastOperationTrackingResultCall()])
           )
-        },
+        ],
         null,
         path.node.loc
       );
     }
   },
   returnStatement: {
+    argNames: ["returnValue"],
     exec: (args, astArgs, ctx: ExecContext, logData) => {
-      ctx.lastReturnStatementResult = [args.returnValue[0], logData.index];
-      return args.returnValue[0];
+      const [returnValueArg] = args;
+      ctx.lastReturnStatementResult = [returnValueArg[0], logData.index];
+      return returnValueArg[0];
     },
     traverse(operationLog, charIndex) {
       return {
@@ -500,57 +424,48 @@ const operations: Operations = {
     },
     visitor(path) {
       path.node.argument = this.createNode!(
-        {
-          returnValue: ignoredArrayExpression([
-            path.node.argument,
-            getLastOperationTrackingResultCall()
-          ])
-        },
+        [[path.node.argument, getLastOperationTrackingResultCall()]],
         {},
         path.node.loc
       );
     }
   },
   identifier: {
+    argNames: ["value"],
     shorthand: {
       fnName: "__ident",
       getExec: doOperation => {
         return (value, loc) => {
-          return doOperation(
-            "identifier",
-            {
-              value
-            },
-            null,
-            loc
-          );
+          return doOperation([value], undefined, loc);
         };
       },
       visitor: (opArgs, astArgs, locAstNode) => {
         if (astArgs && astArgs["isArguments"]) {
-          // __ident doesn't take astArgs
+          // __ident shorthand doesn't support astArgs
           return null;
         }
-        return ignoredCallExpression("__ident", [opArgs.value, locAstNode]);
+        return ignoredCallExpression("__ident", [
+          ignoredArrayExpression(opArgs[0]),
+          locAstNode
+        ]);
       }
     },
     exec: (args, astArgs, ctx: ExecContext, logData) => {
+      const [valueArg, allFnArgTrackingValuesArg] = args;
       if (
         astArgs &&
         astArgs.isArguments &&
-        !ctx.objectHasPropertyTrackingData(args.value[0])
+        !ctx.objectHasPropertyTrackingData(valueArg[0])
       ) {
-        if (args.allFnArgTrackingValues[0]) {
-          args.allFnArgTrackingValues[0].forEach((trackingValue, i) => {
+        if (allFnArgTrackingValuesArg[0]) {
+          allFnArgTrackingValuesArg[0].forEach((trackingValue, i) => {
             ctx.trackObjectPropertyAssignment(
-              args.value[0],
+              valueArg[0],
               i,
               trackingValue,
               ctx.createOperationLog({
                 operation: ctx.operationTypes.arrayIndex,
-                args: {},
                 result: i,
-                astArgs: {},
                 loc: logData.loc
               })
             );
@@ -559,14 +474,9 @@ const operations: Operations = {
           console.log("no tracking values for arguments object");
         }
       }
-      return args.value[0];
+      return valueArg[0];
     },
-    traverse(operationLog, charIndex) {
-      return {
-        operationLog: operationLog.args.value,
-        charIndex: charIndex
-      };
-    },
+    traverse: identifyTraverseFunction,
     visitor(path) {
       if (shouldSkipIdentifier(path)) {
         return;
@@ -579,9 +489,7 @@ const operations: Operations = {
       let trackingIdentiferLookup;
       const binding = path.scope.getBinding(path.node.name);
       if (binding && ["var", "let", "const", "param"].includes(binding.kind)) {
-        trackingIdentiferLookup = ignoredIdentifier(
-          getTrackingVarName(path.node.name)
-        );
+        trackingIdentiferLookup = getTrackingIdentifier(path.node.name);
       } else {
         // If the value has been declared as a var then we know the
         // tracking var also exists,
@@ -591,14 +499,11 @@ const operations: Operations = {
       }
 
       let astArgs: any = null;
-      const args: any = {
-        value: ignoredArrayExpression([node, trackingIdentiferLookup])
-      };
+      const args: any = [[node, trackingIdentiferLookup]];
+
       if (node.name === "arguments") {
         astArgs = { isArguments: ignoreNode(t.booleanLiteral(true)) };
-        args.allFnArgTrackingValues = ignoredArrayExpression([
-          ignoredIdentifier("__allFnArgTrackingValues")
-        ]);
+        args.push([ignoredIdentifier("__allArgTV")]);
       }
 
       return skipPath(this.createNode!(args, astArgs, path.node.loc));
@@ -652,39 +557,20 @@ const operations: Operations = {
   },
   assignmentExpression: AssignmentExpression,
   objectAssign: {
-    traverse(operationLog, charIndex) {
-      return {
-        operationLog: operationLog.args.value,
-        charIndex
-      };
-    }
+    traverse: identifyTraverseFunction
   },
-  arraySlice: {
-    traverse(operationLog, charIndex) {
-      return {
-        operationLog: operationLog.args.value,
-        charIndex
-      };
-    }
-  },
+  arraySlice: { traverse: identifyTraverseFunction },
   arrayConcat: {
-    traverse(operationLog, charIndex) {
-      return {
-        operationLog: operationLog.args.value,
-        charIndex
-      };
-    }
+    traverse: identifyTraverseFunction
   }
 };
 
 function eachArgumentInObject(args, operationName, fn) {
+  if (!args) {
+    return;
+  }
   const operation = operations[operationName];
   const isObjectExpression = operationName === OperationTypes.objectExpression;
-
-  let arrayArguments: any[] = [];
-  if (operation && operation.arrayArguments) {
-    arrayArguments = operation.arrayArguments;
-  }
 
   if (isObjectExpression) {
     // todo: this is an objexpression property not an obj expression itself, should be clarified
@@ -694,13 +580,7 @@ function eachArgumentInObject(args, operationName, fn) {
     fn(args.key, "key", newValue => (args.key = newValue));
   } else {
     Object.keys(args).forEach(key => {
-      if (arrayArguments.includes(key)) {
-        args[key].forEach((a, i) => {
-          fn(a, "element" + i, newValue => (args[key][i] = newValue));
-        });
-      } else {
-        fn(args[key], key, newValue => (args[key] = newValue));
-      }
+      fn(args[key], key, newValue => (args[key] = newValue));
     });
   }
 }
@@ -733,9 +613,6 @@ Object.keys(operations).forEach(opName => {
     );
     return operation;
   };
-  if (!operation.arrayArguments) {
-    operation.arrayArguments = [];
-  }
   operation.getArgumentsArray = function(operationLog) {
     var ret: any[] = [];
     eachArgument(operationLog, (arg, argName, updateValue) => {

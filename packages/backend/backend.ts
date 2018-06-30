@@ -1,4 +1,9 @@
-import { babelPlugin, LevelDBLogServer } from "@fromjs/core";
+import {
+  babelPlugin,
+  LevelDBLogServer,
+  HtmlToOperationLogMapping,
+  LocStore
+} from "@fromjs/core";
 import { traverse } from "./src/traverse";
 import StackFrameResolver, {
   ResolvedStackFrame
@@ -14,10 +19,9 @@ import * as WebSocket from "ws";
 import * as http from "http";
 import { createProxy } from "./backend.createProxy";
 import { BackendOptions } from "./BackendOptions";
-import { HtmlToOperationLogMapping } from "@fromjs/core";
 import { template } from "lodash";
 import * as ui from "@fromjs/ui";
-import { LocStore } from "./LocStore";
+
 import * as getFolderSize from "get-folder-size";
 import * as responseTime from "response-time";
 
@@ -311,8 +315,11 @@ function setupUI(options, app, wss, getProxy) {
 }
 
 function setupBackend(options: BackendOptions, app, wss, getProxy) {
-  const logServer = new LevelDBLogServer(options.getTrackingDataDirectory());
   const locStore = new LocStore(options.getLocStorePath());
+  const logServer = new LevelDBLogServer(
+    options.getTrackingDataDirectory(),
+    locStore
+  );
 
   app.get("/jsFiles/compileInBrowser.js", (req, res) => {
     const code = fs

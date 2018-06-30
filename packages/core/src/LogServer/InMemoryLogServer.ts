@@ -1,5 +1,6 @@
 import OperationLog from "../helperFunctions/OperationLog";
 import { LogServer } from "./LogServer";
+import { LocStore } from "../LocStore";
 
 interface LogsObject {
   [key: string]: OperationLog;
@@ -7,6 +8,9 @@ interface LogsObject {
 
 export default class InMemoryLogServer extends LogServer {
   _storedLogs: LogsObject = {};
+  constructor(locStore: LocStore) {
+    super(locStore);
+  }
   storeLog(log) {
     this._storedLogs[log.index] = log;
   }

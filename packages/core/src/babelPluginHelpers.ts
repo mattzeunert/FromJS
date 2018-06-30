@@ -62,14 +62,33 @@ export function ignoredNumericLiteral(number) {
   return ignoreNode(t.numericLiteral(number));
 }
 
+const canBeIdentifierRegExp = /^[a-z0-9A-Z]+$/;
+const objectIdCache = {};
+function getObjectId(name) {
+  // Cache here for improved compilation performance
+  // Not caching at the ignoredIdentifier/IgnoredStringLiteral level because
+  // sometimes the result is modified to add a .loc (which isn't needed right
+  // now I think but if we have sourcemaps in the future it will be needed)
+  if (!objectIdCache[name]) {
+    if (canBeIdentifierRegExp.test(name)) {
+      objectIdCache[name] = ignoredIdentifier(name);
+    } else {
+      objectIdCache[name] = ignoredStringLiteral(name);
+    }
+  }
+  return objectIdCache[name];
+}
+
+export function ignoredArrayExpressionIfArray(p) {
+  return p.length !== undefined ? ignoredArrayExpression(p) : p;
+}
+
 export function ignoredObjectExpression(props) {
   const properties = Object.keys(props).map(propKey => {
     return ignoreNode(
       t.objectProperty(
-        ignoredStringLiteral(propKey),
-        props[propKey].length !== undefined
-          ? ignoredArrayExpression(props[propKey])
-          : props[propKey]
+        getObjectId(propKey),
+        ignoredArrayExpressionIfArray(props[propKey])
       )
     );
   });
@@ -93,27 +112,10 @@ function getLocObjectASTNode(loc) {
   const locId = createLoc(loc);
 
   return ignoredStringLiteral(locId);
+}
 
-  // Using JSON.parse instead of creating object directly because
-  // it speeds up overall Babel compile time by a third, and reduces file size
-  // by 30%
-  // return skipPath(
-  //   t.callExpression(
-  //     t.memberExpression(t.identifier("JSON"), t.identifier("parse")),
-  //     [t.stringLiteral(JSON.stringify(loc))]
-  //   )
-  // );
-
-  // function getASTNode(location) {
-  //   return ignoredObjectExpression({
-  //     line: ignoredNumericLiteral(location.line),
-  //     column: ignoredNumericLiteral(location.column)
-  //   });
-  // }
-  // return ignoredObjectExpression({
-  //   start: getASTNode(loc.start),
-  //   end: getASTNode(loc.end)
-  // });
+export function getBabelTypes() {
+  return t;
 }
 
 let noLocCount = 0;
@@ -127,6 +129,10 @@ export function createOperation(
   if (!loc && VERIFY) {
     noLocCount++;
     console.log("no loc for", opType, noLocCount);
+  }
+
+  if ("type" in opArgs) {
+    throw Error("should not put node into createOp, use array or obj");
   }
 
   let locAstNode;
@@ -144,8 +150,13 @@ export function createOperation(
   }
 
   const args = [
-    ignoredStringLiteral(opType),
-    ignoredObjectExpression(opArgs),
+    Array.isArray(opArgs)
+      ? ignoredArrayExpression(
+          opArgs.map(a => {
+            return Array.isArray(a) ? ignoredArrayExpression(a) : a;
+          })
+        )
+      : ignoredObjectExpression(opArgs),
     astArgs !== null
       ? skipPath(ignoredObjectExpression(astArgs))
       : t.nullLiteral()
@@ -153,7 +164,7 @@ export function createOperation(
   if (loc && !SKIP_TRACKING) {
     args.push(locAstNode);
   }
-  var call = ignoredCallExpression(FunctionNames.doOperation, args);
+  var call = ignoredCallExpression("__" + opType, args);
   call.skipKeys = {
     callee: true
   };
@@ -193,11 +204,15 @@ export function getTrackingVarName(identifierName) {
   return identifierName + "___tv";
 }
 
+export function getTrackingIdentifier(identifierName) {
+  return ignoredIdentifier(getTrackingVarName(identifierName));
+}
+
 export function trackingIdentifierIfExists(identifierName) {
   var trackingIdentifierName = getTrackingVarName(identifierName);
   return runIfIdentifierExists(
     trackingIdentifierName,
-    ignoredIdentifier(trackingIdentifierName)
+    getTrackingIdentifier(identifierName)
   );
 }
 
@@ -244,7 +259,7 @@ export function runIfIdentifierExists(identifierName, thenNode) {
 }
 
 export function createSetMemoValue(key, value, trackingValue) {
-  return ignoredCallExpression("__setMemoValue", [
+  return ignoredCallExpression(FunctionNames.setMemoValue, [
     ignoredStringLiteral(key),
     value,
     trackingValue
@@ -253,19 +268,25 @@ export function createSetMemoValue(key, value, trackingValue) {
 
 export function createGetMemoArray(key) {
   return skipPath(
-    ignoredCallExpression("__getMemoArray", [ignoredStringLiteral(key)])
+    ignoredCallExpression(FunctionNames.getMemoArray, [
+      ignoredStringLiteral(key)
+    ])
   );
 }
 
 export function createGetMemoValue(key) {
   return skipPath(
-    ignoredCallExpression("__getMemoValue", [ignoredStringLiteral(key)])
+    ignoredCallExpression(FunctionNames.getMemoValue, [
+      ignoredStringLiteral(key)
+    ])
   );
 }
 
 export function createGetMemoTrackingValue(key) {
   return skipPath(
-    ignoredCallExpression("__getMemoTrackingValue", [ignoredStringLiteral(key)])
+    ignoredCallExpression(FunctionNames.getMemoTrackingValue, [
+      ignoredStringLiteral(key)
+    ])
   );
 }
 

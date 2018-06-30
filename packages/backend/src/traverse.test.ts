@@ -45,7 +45,6 @@ test("Can track concatenation of 'a' and 'b' in an add function", async () => {
     "returnStatement", // return
     "binaryExpression", // +
     "identifier", // arg1
-    "functionArgument", // (arg1)
     "stringLiteral" // "a"
   ]);
 });
@@ -317,7 +316,6 @@ it("Can traverse arguments for a function expression (rather than a function dec
     "callExpression",
     "returnStatement",
     "identifier",
-    "functionArgument",
     "stringLiteral"
   ]);
 });
