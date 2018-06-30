@@ -210,9 +210,11 @@ export function getTrackingIdentifier(identifierName) {
 
 export function trackingIdentifierIfExists(identifierName) {
   var trackingIdentifierName = getTrackingVarName(identifierName);
-  return runIfIdentifierExists(
-    trackingIdentifierName,
-    getTrackingIdentifier(identifierName)
+  return skipPath(
+    runIfIdentifierExists(
+      trackingIdentifierName,
+      getTrackingIdentifier(identifierName)
+    )
   );
 }
 
