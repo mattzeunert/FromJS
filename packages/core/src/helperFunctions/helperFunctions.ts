@@ -6,6 +6,7 @@ import KnownValues from "./KnownValues";
 import { ExecContext } from "./ExecContext";
 import operations from "../operations";
 import { SKIP_TRACKING, VERIFY, KEEP_LOGS_IN_MEMORY } from "../config";
+import { start } from "repl";
 
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
@@ -38,6 +39,39 @@ declare var __FUNCTION_NAMES__,
   let fetch = knownValues.getValue("fetch");
   let then = knownValues.getValue("Promise.prototype.then");
 
+  const perfStats = {
+    totalLogCount: 0,
+    logDataBytesSent: 0
+  };
+
+  window["__fromJSGetPerfStats"] = function getPerfStats() {
+    sendLogsToServer(); // update perf data
+    return perfStats;
+  };
+
+  const startTime = new Date();
+  setTimeout(checkDone, 200);
+  function checkDone() {
+    const done = document.querySelector(".todo-list li");
+    if (done) {
+      const doneTime = new Date();
+      const perfInfo = window["__fromJSGetPerfStats"]();
+      console.log("#####################################");
+      console.log("#####################################");
+      console.log("#####################################");
+      console.log("#####################################");
+      console.log("#####################################");
+      console.log("#####################################");
+      console.log("DONE", {
+        totalLogCount: perfInfo.totalLogCount / 1000 + "k",
+        logDataSent: perfInfo.logDataBytesSent / 1024 / 1024 + "mb",
+        timeTaken: (doneTime.valueOf() - startTime.valueOf()) / 1000 + "s"
+      });
+    } else {
+      setTimeout(checkDone, 200);
+    }
+  }
+
   function postToBE(endpoint, data) {
     const body = JSON.stringify(data);
     if (endpoint === "/storeLogs") {
@@ -48,8 +82,9 @@ declare var __FUNCTION_NAMES__,
         body.length / 1024 / 1024,
         "Mb"
       );
+      perfStats.totalLogCount += data.logs.length;
+      perfStats.logDataBytesSent += body.length;
     }
-
     const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
       method: "POST",
       headers: new Headers({
