@@ -33,32 +33,27 @@ declare var __FUNCTION_NAMES__,
   let fetch = knownValues.getValue("fetch");
   let then = knownValues.getValue("Promise.prototype.then");
 
-  // window["__fromJSGetPerfStats"] = function getPerfStats() {
-  //   sendLogsToServer(); // update perf data
-  //   return perfStats;
-  // };
-
-  const startTime = new Date();
-  setTimeout(checkDone, 200);
-  function checkDone() {
-    const done = document.querySelector(".todo-list li");
-    if (done) {
-      const doneTime = new Date();
-      console.log("#####################################");
-      console.log("#####################################");
-      console.log("#####################################");
-      console.log("#####################################");
-      console.log("#####################################");
-      console.log("#####################################");
-      console.log(
-        "DONE",
-        "timeTaken: " + (doneTime.valueOf() - startTime.valueOf()) / 1000 + "s"
-      );
-      worker.postMessage({ showDoneMessage: true });
-    } else {
-      setTimeout(checkDone, 200);
-    }
-  }
+  // const startTime = new Date();
+  // setTimeout(checkDone, 200);
+  // function checkDone() {
+  //   const done = document.querySelector(".todo-list li");
+  //   if (done) {
+  //     const doneTime = new Date();
+  //     console.log("#####################################");
+  //     console.log("#####################################");
+  //     console.log("#####################################");
+  //     console.log("#####################################");
+  //     console.log("#####################################");
+  //     console.log("#####################################");
+  //     console.log(
+  //       "DONE",
+  //       "timeTaken: " + (doneTime.valueOf() - startTime.valueOf()) / 1000 + "s"
+  //     );
+  //     worker.postMessage({ showDoneMessage: true });
+  //   } else {
+  //     setTimeout(checkDone, 200);
+  //   }
+  // }
 
   function postToBE(endpoint, data, statsCallback = function(size) {}) {
     const stringifyStart = new Date();
