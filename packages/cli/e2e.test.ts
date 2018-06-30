@@ -123,6 +123,9 @@ describe("E2E", () => {
 
   afterAll(async () => {
     await browser.close();
+    await killPort(backendPort);
+    await killPort(proxyPort);
+    await killPort(webServerPort);
   });
 
   let command;
