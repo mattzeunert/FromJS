@@ -118,7 +118,7 @@ export default <any>{
       }
     } else if (assignmentType === "Identifier") {
       const [currentValueArg, newValueArg, argumentArg] = args;
-      ret = argumentArg[0];
+      ret = newValueArg[0];
     } else {
       throw Error("unknown: " + assignmentType);
     }
