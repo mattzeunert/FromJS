@@ -18,7 +18,8 @@ import {
   skipPath,
   initForBabel as initForBabelPH,
   getTrackingIdentifier,
-  safelyGetVariableTrackingValue
+  safelyGetVariableTrackingValue,
+  addLoc
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import { ExecContext } from "./helperFunctions/ExecContext";
@@ -357,22 +358,46 @@ const operations: Operations = {
     exec: (args, astArgs, ctx: ExecContext) => {
       if (astArgs.operator === "-") {
         return -args.argument[0];
+      } else if (astArgs.operator === "delete") {
+        const obj = args.object[0];
+        const propName = args.propName[0];
+        const ret = delete obj[propName];
+        ctx.trackObjectPropertyAssignment(obj, propName, null, null);
+        return ret;
       } else {
         throw Error("unknown unary expression operator");
       }
     },
     visitor(path) {
+      let args;
       if (path.node.operator === "-") {
-        return this.createNode!(
-          {
-            argument: [path.node.argument, getLastOperationTrackingResultCall()]
-          },
-          {
-            operator: ignoredStringLiteral(path.node.operator)
-          },
-          path.node.loc
-        );
+        args = {
+          argument: [path.node.argument, getLastOperationTrackingResultCall()]
+        };
+      } else if (path.node.operator === "delete") {
+        let propName;
+        if (path.node.argument.computed === true) {
+          propName = path.node.argument.property;
+        } else {
+          propName = addLoc(
+            this.t.stringLiteral(path.node.argument.property.name),
+            path.node.argument.property.loc
+          );
+        }
+        args = {
+          object: [path.node.argument.object, null],
+          propName: [propName, null]
+        };
+      } else {
+        return;
       }
+      return this.createNode!(
+        args,
+        {
+          operator: ignoredStringLiteral(path.node.operator)
+        },
+        path.node.loc
+      );
     }
   },
   arrayExpression: {

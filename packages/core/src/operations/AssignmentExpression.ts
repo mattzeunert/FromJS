@@ -155,7 +155,6 @@ export default <any>{
         property = path.node.left.property;
       } else {
         property = this.t.stringLiteral(path.node.left.property.name);
-        property.note = "assexp";
         property.loc = path.node.left.property.loc;
       }
 

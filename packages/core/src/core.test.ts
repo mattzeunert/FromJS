@@ -49,6 +49,44 @@ test("Does not break obj.val -=", async () => {
   expect(normal).toBe(3);
 });
 
+describe("delete expression", () => {
+  test("Does not break delete expression", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = {val: 5}
+      delete obj.val
+      return obj.val
+    `);
+
+    expect(normal).toBe(undefined);
+  });
+  test("Does not break delete expression with computed property name", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = {val: 5}
+      delete obj["val"]
+      return obj.val
+    `);
+
+    expect(normal).toBe(undefined);
+  });
+  test("delete operation returns true if property can be deleted", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = {val: 5}
+      return delete obj["val"]
+    `);
+
+    expect(normal).toBe(true);
+  });
+  test("delete operation returns false if property can't be deleted", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = {val: 5}
+      Object.freeze(obj)
+      return delete obj["val"]
+    `);
+
+    expect(normal).toBe(false);
+  });
+});
+
 describe("UnaryExpression", () => {
   test("Can handle ++ unary expresion", done => {
     instrumentAndRun(`
