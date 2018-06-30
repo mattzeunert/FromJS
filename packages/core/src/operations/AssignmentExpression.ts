@@ -96,9 +96,11 @@ export default <any>{
         propNameT
       );
 
-      if (obj instanceof HTMLElement && propName === "innerHTML") {
+      const objIsHTMLElement =
+        typeof HTMLElement !== "undefined" && obj instanceof HTMLElement;
+      if (objIsHTMLElement && propName === "innerHTML") {
         mapInnerHTMLAssignment(obj, argumentArg, "assignInnerHTML", 0);
-      } else if (obj instanceof HTMLElement && propName === "textContent") {
+      } else if (objIsHTMLElement && propName === "textContent") {
         if (obj.nodeType === Node.TEXT_NODE) {
           addElOrigin(obj, "textContent", {
             trackingValue: argumentArg[1]
