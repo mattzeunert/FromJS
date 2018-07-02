@@ -1,3 +1,9 @@
+@import "./const";
+
+a {
+  color: $lightBlue1;
+}
+
 .chart {
   /* height: 1500px; */
   height: 600px;
@@ -211,24 +217,26 @@ path {
   padding: 10px;
 }
 
+.blue-button {
+  padding: 3px 6px;
+  margin-left: 6px;
+  cursor: pointer;
+  border: none;
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: bold;
+  background: #236fb1;
+  color: white;
+  outline: none;
+  &:hover {
+    background: #4f33ac;
+  }
+}
+
 .app-header {
   background: #15054e;
   color: white;
   padding: 15px;
-  button {
-    padding: 3px 6px;
-    margin-left: 6px;
-    cursor: pointer;
-    border: none;
-    border-radius: 2px;
-    font-size: 12px;
-    font-weight: bold;
-    background: #236fb1;
-    color: white;
-    &:hover {
-      background: #4f33ac;
-    }
-  }
 }
 .app-content {
   flex-grow: 1;

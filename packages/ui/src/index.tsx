@@ -107,6 +107,7 @@ let App = props => {
         <div style={{ float: "right" }}>
           {location.href.includes("?debug") && (
             <button
+              className="blue-button"
               onClick={() =>
                 appState.set("debugMode", !appState.get("debugMode"))
               }
@@ -115,6 +116,7 @@ let App = props => {
             </button>
           )}
           <button
+            className="blue-button"
             onClick={() => {
               api.setEnableInstrumentation(!props.enableInstrumentation);
             }}

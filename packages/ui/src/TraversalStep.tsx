@@ -172,10 +172,11 @@ let TraversalStep = class TraversalStep extends React.Component<
             {this.state.isHovering ? fileName : getFileNameFromPath(fileName)}
           </span>
           <button
+            className="blue-button"
             style={{ float: "right" }}
             onClick={() => this.setState({ isExpanded: !isExpanded })}
           >
-            {isExpanded ? "-" : "+"}
+            {isExpanded ? "Hide arguments" : "Arguments"}
           </button>
         </div>
         <div className="step__body">

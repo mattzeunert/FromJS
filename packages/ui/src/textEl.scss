@@ -1,3 +1,5 @@
+@import "./const";
+
 .fromjs-value {
   padding: 10px;
 
@@ -22,9 +24,9 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
 }
 
 .fromjs-highlighted-character {
-  color: #0088ff;
+  color: $lightBlue1;
   font-weight: bold;
-  border-bottom: 2px solid #0088ff;
+  border-bottom: 2px solid $lightBlue1;
 }
 
 .fromjs-value__content {
