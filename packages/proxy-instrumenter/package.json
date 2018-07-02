@@ -3,6 +3,9 @@
   "version": "2.0.3",
   "main": "./dist/ProxyInstrumenter.js",
   "types": "./dist/ProxyInstrumenter.d.ts",
+  "repository":
+    "https://github.com/mattzeunert/FromJS/tree/master/packages/proxy-instrumenter",
+  "author": "Matt Zeunert <matt@mostlystatic.com>",
   "license": "MIT",
   "dependencies": {
     "@types/node": "^10.1.3",

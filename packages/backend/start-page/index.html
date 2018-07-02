@@ -1,12 +1,25 @@
-<p>This is a demo app. You can play around with it before opening a normal web page.</p>
-
 <style>
+  body,
+  input {
+    font-family: Arial;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0
+  }
+
   #app {
     padding: 10px;
-    font-size: 20px;
-    margin-top: 10px;
-    border: 1px solid #eee;
-    font-family: monospace;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    background: #eee;
+    line-height: 1.5em;
+    height: 100vh;
   }
 
   pre {
@@ -14,15 +27,22 @@
     border: 1px solid #eee;
     padding: 10px;
   }
+
+  input {
+    font-size: 13px;
+    padding: 4px;
+    margin-left: 4px;
+  }
+
+  #greeting {
+    padding-top: 20px;
+    padding-bottom: 10px;
+    font-size: 25;
+  }
 </style>
 
 
 
 <div id="app"></div>
 
-<p>
-  This is the source code for this page:
-</p>
-
-<pre>APP_JS_CODE</pre>
 <script src="app.js"></script>

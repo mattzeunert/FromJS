@@ -176,14 +176,6 @@ function setupUI(options, app, wss, getProxy) {
       });
   });
 
-  app.get("/start", (req, res) => {
-    let html = fs.readFileSync(startPageDir + "/index.html").toString();
-    const appJSCode = fs.readFileSync(startPageDir + "/app.js").toString();
-    const escapedAppJSCode = template("<%- code %>")({ code: appJSCode });
-    html = html.replace("APP_JS_CODE", escapedAppJSCode);
-    res.send(html);
-  });
-
   app.use(express.static(uiDir));
   app.use("/start", express.static(startPageDir));
 

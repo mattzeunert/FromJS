@@ -100,7 +100,7 @@ export default function initDomInspectionUI() {
     });
     toggleInspectDomButton.setAttribute(
       "style",
-      "position: fixed;z-index: 100000000; bottom: 0;right:0;padding: 10px;background: black; color: white;font-family: Arial;cursor:pointer;"
+      "position: fixed;z-index: 100000000; bottom: 0;right:0;padding: 10px;background: #236fb1; color: white;font-family: Arial;cursor:pointer;font-size: 14px;"
     );
     global["document"]["body"].appendChild(toggleInspectDomButton);
   }

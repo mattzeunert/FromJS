@@ -1,3 +1,9 @@
+@import "./const";
+
+a {
+  color: $lightBlue1;
+}
+
 .chart {
   /* height: 1500px; */
   height: 600px;
@@ -12,7 +18,7 @@ body {
 * {
   box-sizing: border-box;
   font-family: Arial, sans-serif;
-  -webkit-font-smoothing: antialias;
+  -webkit-font-smoothing: antialiased;
 }
 
 .node-name {
@@ -166,8 +172,10 @@ path {
 }
 
 .app {
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
   .app__inspector {
-    float: left;
     width: 100%;
     padding: 10px;
   }
@@ -179,40 +187,78 @@ path {
   &.app--isInspectingDemoApp {
     .app__inspector {
       width: 60%;
+      float: left;
     }
     .app__demo {
-      display: block;
+      display: flex;
       width: 40%;
       iframe {
         width: 100%;
-        height: 500px;
-        border: 2px solid #ddd;
+        height: 150px;
+        border: none;
       }
     }
   }
 }
 
 .welcome {
-  border: 2px solid #eee;
+  margin-top: 0px;
+  max-width: 800px;
+  background: white;
+  display: flex;
+  .app__demo & {
+    background: #fafafa;
+    border-left: 2px solid #ccc;
+  }
+  flex-direction: column;
+  width: 100%;
+}
+.welcome-content {
   padding: 10px;
-  margin: 10px;
+}
+
+.blue-button {
+  padding: 3px 6px;
+  margin-left: 6px;
+  cursor: pointer;
+  border: none;
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: bold;
+  background: #236fb1;
+  color: white;
+  outline: none;
+  &:hover {
+    background: #4f33ac;
+  }
 }
 
 .app-header {
   background: #15054e;
   color: white;
-  padding: 10px;
+  padding: 15px;
+}
+.app-content {
+  flex-grow: 1;
+  display: flex;
 }
 
 .load-demo-app {
-  background: #236fb1;
-  color: white;
-  padding: 10px;
-  border: none;
-  font-size: 14px;
   cursor: pointer;
-  &:hover {
-    background: #15054e;
+  &:not(.load-demo-app--hide) {
+    background: #236fb1;
+    color: white;
+    padding: 10px;
+    border: none;
+    font-size: 14px;
+    &:hover {
+      background: #15054e;
+    }
+  }
+  &.load-demo-app--hide {
+    border: none;
+    color: #236fb1;
+    padding: 0;
   }
 }
 

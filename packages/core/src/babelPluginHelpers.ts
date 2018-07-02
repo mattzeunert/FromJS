@@ -47,11 +47,11 @@ export function ignoredArrayExpression(items) {
 }
 
 export function ignoredStringLiteral(str) {
-  return ignoreNode(t.stringLiteral(str));
+  return skipPath(t.stringLiteral(str));
 }
 
 export function ignoredIdentifier(name) {
-  return ignoreNode(t.identifier(name));
+  return skipPath(t.identifier(name));
 }
 
 export function ignoredCallExpression(identifier, args) {
@@ -59,7 +59,7 @@ export function ignoredCallExpression(identifier, args) {
 }
 
 export function ignoredNumericLiteral(number) {
-  return ignoreNode(t.numericLiteral(number));
+  return skipPath(t.numericLiteral(number));
 }
 
 const canBeIdentifierRegExp = /^[a-z0-9A-Z]+$/;
@@ -210,9 +210,11 @@ export function getTrackingIdentifier(identifierName) {
 
 export function trackingIdentifierIfExists(identifierName) {
   var trackingIdentifierName = getTrackingVarName(identifierName);
-  return runIfIdentifierExists(
-    trackingIdentifierName,
-    getTrackingIdentifier(identifierName)
+  return skipPath(
+    runIfIdentifierExists(
+      trackingIdentifierName,
+      getTrackingIdentifier(identifierName)
+    )
   );
 }
 
@@ -292,3 +294,16 @@ export function createGetMemoTrackingValue(key) {
 
 export const getLastOpValueCall = () =>
   ignoredCallExpression(FunctionNames.getLastOperationValueResult, []);
+
+export const safelyGetVariableTrackingValue = (identifierName, scope) => {
+  const binding = scope.getBinding(identifierName);
+  if (binding && ["var", "let", "const", "param"].includes(binding.kind)) {
+    return getTrackingIdentifier(identifierName);
+  } else {
+    // If the value has been declared as a var then we know the
+    // tracking var also exists,
+    // otherwise we have to confirm it exists at runtime before
+    // trying to access it
+    return trackingIdentifierIfExists(identifierName);
+  }
+};

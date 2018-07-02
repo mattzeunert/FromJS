@@ -49,6 +49,51 @@ test("Does not break obj.val -=", async () => {
   expect(normal).toBe(3);
 });
 
+describe("delete expression", () => {
+  test("Does not break delete expression", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = {val: 5}
+      delete obj.val
+      return obj.val
+    `);
+
+    expect(normal).toBe(undefined);
+  });
+  test("Does not break delete expression with computed property name", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = {val: 5}
+      delete obj["val"]
+      return obj.val
+    `);
+
+    expect(normal).toBe(undefined);
+  });
+  test("delete operation returns true if property can be deleted", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = {val: 5}
+      return delete obj["val"]
+    `);
+
+    expect(normal).toBe(true);
+  });
+  test("delete operation returns false if property can't be deleted", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = {val: 5}
+      Object.freeze(obj)
+      return delete obj["val"]
+    `);
+
+    expect(normal).toBe(false);
+  });
+  test("Doesn't break when deleting key from boolean", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return delete false["key"]
+    `);
+
+    expect(normal).toBe(true);
+  });
+});
+
 describe("UnaryExpression", () => {
   test("Can handle ++ unary expresion", done => {
     instrumentAndRun(`
@@ -294,6 +339,26 @@ test("Tracks object property assignments", done => {
     expect(normal).toBe(5);
     done();
   });
+});
+
+test("Object property assignment supports all operators", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    var obj = { val1: 10, val2: 10 }
+    obj.val1 += 1
+    obj.val1 -= 1
+    obj.val1 *= 5
+    obj.val1 /= 5
+    obj.val1 %= 4
+    obj.val1 **= 2
+    obj.val2 <<= 1
+    obj.val2 >>= 1
+    obj.val2 >>>= 1
+    obj.val2 &= 0b11
+    obj.val2 |= 0b111
+    obj.val2 ^= 0b1111
+    return obj.val1 + obj.val2	
+  `);
+  expect(normal).toBe(12);
 });
 
 test("Tracks object property assignments with computed properties", done => {

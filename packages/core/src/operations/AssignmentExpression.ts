@@ -56,25 +56,52 @@ export default <any>{
       });
 
       var argument = argumentArg[0];
+      let newValue;
       switch (operator) {
         case "=":
-          ret = obj[propName] = argument;
+          newValue = argument;
           break;
         case "+=":
-          ret = obj[propName] = obj[propName] + argument;
+          newValue = obj[propName] + argument;
           break;
         case "-=":
-          ret = obj[propName] = obj[propName] - argument;
+          newValue = obj[propName] - argument;
+          break;
+        case "*=":
+          newValue = obj[propName] * argument;
+          break;
+        case "/=":
+          newValue = obj[propName] / argument;
           break;
         case "|=":
-          ret = obj[propName] = obj[propName] |= argument;
+          newValue = obj[propName] | argument;
+          break;
+        case "%=":
+          newValue = obj[propName] % argument;
           break;
         case "&=":
-          ret = obj[propName] = obj[propName] &= argument;
+          newValue = obj[propName] & argument;
+          break;
+        case "**=":
+          newValue = obj[propName] ** argument;
+          break;
+        case "<<=":
+          newValue = obj[propName] << argument;
+          break;
+        case ">>=":
+          newValue = obj[propName] >> argument;
+          break;
+        case ">>>=":
+          newValue = obj[propName] >>> argument;
+          break;
+        case "^=":
+          newValue = obj[propName] ^ argument;
           break;
         default:
           throw Error("unknown operator " + operator);
       }
+      obj[propName] = newValue;
+      ret = newValue;
 
       ctx.trackObjectPropertyAssignment(
         obj,
@@ -96,9 +123,11 @@ export default <any>{
         propNameT
       );
 
-      if (obj instanceof HTMLElement && propName === "innerHTML") {
+      const objIsHTMLElement =
+        typeof HTMLElement !== "undefined" && obj instanceof HTMLElement;
+      if (objIsHTMLElement && propName === "innerHTML") {
         mapInnerHTMLAssignment(obj, argumentArg, "assignInnerHTML", 0);
-      } else if (obj instanceof HTMLElement && propName === "textContent") {
+      } else if (objIsHTMLElement && propName === "textContent") {
         if (obj.nodeType === Node.TEXT_NODE) {
           addElOrigin(obj, "textContent", {
             trackingValue: argumentArg[1]
@@ -116,7 +145,7 @@ export default <any>{
       }
     } else if (assignmentType === "Identifier") {
       const [currentValueArg, newValueArg, argumentArg] = args;
-      ret = argumentArg[0];
+      ret = newValueArg[0];
     } else {
       throw Error("unknown: " + assignmentType);
     }
@@ -153,7 +182,6 @@ export default <any>{
         property = path.node.left.property;
       } else {
         property = this.t.stringLiteral(path.node.left.property.name);
-        property.note = "assexp";
         property.loc = path.node.left.property.loc;
       }
 

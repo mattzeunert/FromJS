@@ -12,6 +12,8 @@ const containerDiv = document.querySelector("#container");
 const nameInput = document.querySelector("#name");
 const greetingDiv = document.querySelector("#greeting");
 
+greetingDiv.setAttribute("style", "font-family: cursive; color: #942424;");
+
 nameInput.addEventListener("keydown", updateGreeting);
 
 updateGreeting();

@@ -89,48 +89,52 @@ declare var __FUNCTION_NAMES__,
   }
 
   let logQueue = [];
-  window["__debugFromJSLogQueue"] = () => logQueue;
+  global["__debugFromJSLogQueue"] = () => logQueue;
   let evalScriptQueue = [];
   let worker;
-  function sendLogsToServer() {
-    if (!worker) {
-      function workerCode() {
-        self["perfStats"] = {
-          totalLogCount: 0,
-          logDataBytesSent: 0
-        };
-        onmessage = function(e) {
-          if (e.data.logs) {
-            self["perfStats"].totalLogCount += e.data.logs.length;
-            postToBE("/storeLogs", e.data, function({ bodyLength }) {
-              self["perfStats"].logDataBytesSent += bodyLength;
-            });
-          } else if (e.data.showDoneMessage) {
-            const perfInfo = self["perfStats"];
-            console.log("DONE", {
-              totalLogCount: perfInfo.totalLogCount / 1000 + "k",
-              logDataSent: perfInfo.logDataBytesSent / 1024 / 1024 + "mb"
-            });
-          }
-        };
-      }
-      worker = new Worker(
-        URL.createObjectURL(
-          new Blob([
-            postToBE +
-              ";var accessToken = '" +
-              accessToken +
-              "'" +
-              ";(" +
-              workerCode +
-              ")()"
-          ])
-        )
-      );
+  function initWorker() {
+    function workerCode() {
+      self["perfStats"] = {
+        totalLogCount: 0,
+        logDataBytesSent: 0
+      };
+      onmessage = function(e) {
+        if (e.data.logs) {
+          self["perfStats"].totalLogCount += e.data.logs.length;
+          postToBE("/storeLogs", e.data, function({ bodyLength }) {
+            self["perfStats"].logDataBytesSent += bodyLength;
+          });
+        } else if (e.data.showDoneMessage) {
+          const perfInfo = self["perfStats"];
+          console.log("DONE", {
+            totalLogCount: perfInfo.totalLogCount / 1000 + "k",
+            logDataSent: perfInfo.logDataBytesSent / 1024 / 1024 + "mb"
+          });
+        }
+      };
     }
-
+    worker = new Worker(
+      URL.createObjectURL(
+        new Blob([
+          postToBE +
+            ";var accessToken = '" +
+            accessToken +
+            "'" +
+            ";(" +
+            workerCode +
+            ")()"
+        ])
+      )
+    );
+  }
+  function sendLogsToServer() {
+    const environmentSupportsWorker = typeof Worker !== "undefined";
     if (logQueue.length === 0 && evalScriptQueue.length == 0) {
       return;
+    }
+
+    if (!worker && environmentSupportsWorker) {
+      initWorker();
     }
 
     const data = {
@@ -138,12 +142,17 @@ declare var __FUNCTION_NAMES__,
       evalScripts: evalScriptQueue
     };
 
-    // Doing this means the data will be cloned, but it seems to be
-    // reasonably fast anyway
-    // Creating the json and making the request in the main thread is super slow!
-    worker.postMessage(data);
-
-    // postToBE("/storeLogs", data);
+    if (environmentSupportsWorker) {
+      // Doing this means the data will be cloned, but it seems to be
+      // reasonably fast anyway
+      // Creating the json and making the request in the main thread is super slow!
+      worker.postMessage(data);
+    } else {
+      console.log(
+        "Can't create worker (maybe already inside a web worker?), will send request in normal thread"
+      );
+      postToBE("/storeLogs", data);
+    }
 
     logQueue = [];
     evalScriptQueue = [];
@@ -171,8 +180,8 @@ declare var __FUNCTION_NAMES__,
     if (KEEP_LOGS_IN_MEMORY) {
       // Normally we just store the numbers, but it's useful for
       // debugging to be able to view the log object
-      window["__debugAllLogs"] = window["__debugAllLogs"] || {};
-      window["__debugAllLogs"][log.index] = log;
+      global["__debugAllLogs"] = global["__debugAllLogs"] || {};
+      global["__debugAllLogs"][log.index] = log;
     }
 
     return log.index;
@@ -293,7 +302,7 @@ declare var __FUNCTION_NAMES__,
   }
 
   const objTrackingMap = new WeakMap();
-  window["__debugObjTrackingMap"] = objTrackingMap;
+  global["__debugObjTrackingMap"] = objTrackingMap;
   function trackObjectPropertyAssignment(
     obj,
     propName,
@@ -342,7 +351,7 @@ declare var __FUNCTION_NAMES__,
     }
     return trackingValues.value;
   }
-  window[
+  global[
     "getObjectPropertyTrackingValue"
   ] = getObjectPropertyValueTrackingValue;
 
@@ -354,7 +363,7 @@ declare var __FUNCTION_NAMES__,
     return trackingValues.name;
   }
 
-  window[
+  global[
     FunctionNames.getObjectPropertyNameTrackingValue
   ] = getObjectPropertyNameTrackingValue;
 

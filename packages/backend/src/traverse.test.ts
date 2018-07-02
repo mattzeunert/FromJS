@@ -64,6 +64,24 @@ describe("Assignment Expressions", () => {
       "stringLiteral"
     ]);
   });
+  test("Can track used return values of assignment expressions (to variables)", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      var str = "a"
+      debugger
+      return (str += "b")
+    `);
+
+    expect(normal).toBe("ab");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("a");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t2LastStep.operationLog.result.primitive).toBe("b");
+  });
   test("Can traverse += operation for object assignments", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
     var obj = { a: "a" }
@@ -857,6 +875,18 @@ describe("String.prototype.split", () => {
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t1LastStep.charIndex).toBe(8);
+  });
+  it("Can traverse string split result array when called without a separator", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return String.prototype.split.apply("ab", [])[0]
+      `);
+
+    expect(normal).toBe("ab");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(1);
   });
   it("Can traverse string split result when passing in an object with a Symbol.split function ", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`

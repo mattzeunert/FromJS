@@ -1,6 +1,5 @@
 import * as request from "request";
 import * as waitUntil from "wait-until";
-import * as fs from "fs";
 import * as Proxy from "http-mitm-proxy";
 
 ////////////////////////
@@ -266,7 +265,11 @@ class ProxyInstrumenter {
 
   start() {
     var port = this.port;
-    this.proxy.listen({ port: port, sslCaDir: this.certDirectory });
+    this.proxy.listen({
+      port: port,
+      sslCaDir: this.certDirectory,
+      silent: true
+    });
     // Was having issues in CI, so make sure to wait for proxy to be ready
     return new Promise(resolve => {
       waitUntil()

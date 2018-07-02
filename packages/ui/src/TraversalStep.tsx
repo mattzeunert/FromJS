@@ -172,10 +172,11 @@ let TraversalStep = class TraversalStep extends React.Component<
             {this.state.isHovering ? fileName : getFileNameFromPath(fileName)}
           </span>
           <button
+            className="blue-button"
             style={{ float: "right" }}
             onClick={() => this.setState({ isExpanded: !isExpanded })}
           >
-            {isExpanded ? "-" : "+"}
+            {isExpanded ? "Hide arguments" : "Arguments"}
           </button>
         </div>
         <div className="step__body">
@@ -210,6 +211,7 @@ let TraversalStep = class TraversalStep extends React.Component<
               <div className="step__arguments__title">
                 Inspect input/output values:
               </div>
+              {this.getAllArgs().length === 0 && <div>(No arguments)</div>}
               {this.getAllArgs().map(({ name, value }) => {
                 value = value && new OperationLog(value);
                 const canInspect = !!value;
@@ -237,14 +239,16 @@ let TraversalStep = class TraversalStep extends React.Component<
                   </div>
                 );
               })}
-              <div>
-                <button
-                  style={{ float: "right" }}
-                  onClick={() => this.setState({ showTree: !showTree })}
-                >
-                  Show Tree
-                </button>
-              </div>
+              {debugMode && (
+                <div>
+                  <button
+                    style={{ float: "right" }}
+                    onClick={() => this.setState({ showTree: !showTree })}
+                  >
+                    Show Tree
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

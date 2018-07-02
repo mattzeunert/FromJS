@@ -17,7 +17,9 @@ import {
   ignoredObjectExpression,
   skipPath,
   initForBabel as initForBabelPH,
-  getTrackingIdentifier
+  getTrackingIdentifier,
+  safelyGetVariableTrackingValue,
+  addLoc
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import { ExecContext } from "./helperFunctions/ExecContext";
@@ -356,22 +358,48 @@ const operations: Operations = {
     exec: (args, astArgs, ctx: ExecContext) => {
       if (astArgs.operator === "-") {
         return -args.argument[0];
+      } else if (astArgs.operator === "delete") {
+        const obj = args.object[0];
+        const propName = args.propName[0];
+        const ret = delete obj[propName];
+        if (typeof obj === "object") {
+          ctx.trackObjectPropertyAssignment(obj, propName, null, null);
+        }
+        return ret;
       } else {
         throw Error("unknown unary expression operator");
       }
     },
     visitor(path) {
+      let args;
       if (path.node.operator === "-") {
-        return this.createNode!(
-          {
-            argument: [path.node.argument, getLastOperationTrackingResultCall()]
-          },
-          {
-            operator: ignoredStringLiteral(path.node.operator)
-          },
-          path.node.loc
-        );
+        args = {
+          argument: [path.node.argument, getLastOperationTrackingResultCall()]
+        };
+      } else if (path.node.operator === "delete") {
+        let propName;
+        if (path.node.argument.computed === true) {
+          propName = path.node.argument.property;
+        } else {
+          propName = addLoc(
+            this.t.stringLiteral(path.node.argument.property.name),
+            path.node.argument.property.loc
+          );
+        }
+        args = {
+          object: [path.node.argument.object, null],
+          propName: [propName, null]
+        };
+      } else {
+        return;
       }
+      return this.createNode!(
+        args,
+        {
+          operator: ignoredStringLiteral(path.node.operator)
+        },
+        path.node.loc
+      );
     }
   },
   arrayExpression: {
@@ -486,17 +514,10 @@ const operations: Operations = {
 
       let node = path.node;
 
-      let trackingIdentiferLookup;
-      const binding = path.scope.getBinding(path.node.name);
-      if (binding && ["var", "let", "const", "param"].includes(binding.kind)) {
-        trackingIdentiferLookup = getTrackingIdentifier(path.node.name);
-      } else {
-        // If the value has been declared as a var then we know the
-        // tracking var also exists,
-        // otherwise we have to confirm it exists at runtime before
-        // trying to access it
-        trackingIdentiferLookup = trackingIdentifierIfExists(path.node.name);
-      }
+      let trackingIdentiferLookup = safelyGetVariableTrackingValue(
+        path.node.name,
+        path.scope
+      );
 
       let astArgs: any = null;
       const args: any = [[node, trackingIdentiferLookup]];
@@ -519,8 +540,9 @@ const operations: Operations = {
   },
   splitResult: {
     traverse(operationLog: OperationLog, charIndex) {
-      const originalString = operationLog.args.string.result.primitive;
-      const separator = operationLog.args.separator.result.primitive || "";
+      const { string, separator: separatorArg } = operationLog.args;
+      const originalString = string.result.primitive;
+      const separator = (separatorArg && separatorArg.result.primitive) || "";
 
       console.log(
         "TODO: actually capture the indices where the string came from at runtime"

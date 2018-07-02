@@ -35,35 +35,23 @@ window["showSteps"] = function(logId, charIndex) {
 let App = props => {
   const hasInspectorData = props.hasInspectorData;
 
-  const expandWelcome = !props.collapseGetStartedIfHasData || !hasInspectorData;
-  console.log({ hasInspectorData, expandWelcome });
-  const welcome = (
+  const expandWelcome = !hasInspectorData;
+  const welcome = (props.isInspectingDemoApp || !hasInspectorData) && (
     <div
       className="welcome"
       style={{
-        marginTop: expandWelcome ? 0 : 10,
-        opacity: expandWelcome ? 1 : 0.75,
-        maxWidth: expandWelcome ? 800 : 200
+        maxWidth: 800
       }}
     >
-      <h3
-        style={{
-          marginTop: 5,
-          marginBottom: 10,
-          fontSize: expandWelcome ? "" : 12
-        }}
-      >
-        Get Started{!expandWelcome && (
-          <button
-            style={{ marginLeft: 10 }}
-            onClick={() => actions.setCollapseGetStartedIfHasData(false)}
-          >
-            Show
-          </button>
-        )}
-      </h3>
-
-      {expandWelcome && (
+      <div className="welcome-content">
+        <h3
+          style={{
+            marginTop: 5,
+            marginBottom: 10
+          }}
+        >
+          Get Started
+        </h3>
         <div>
           <p>
             To inspect any website open a new tab in this browser and load it.{" "}
@@ -87,7 +75,9 @@ let App = props => {
           </p>
 
           <button
-            className="load-demo-app"
+            className={cx("load-demo-app", {
+              "load-demo-app--hide": props.isInspectingDemoApp
+            })}
             onClick={() =>
               actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
             }
@@ -95,6 +85,14 @@ let App = props => {
             {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
           </button>
         </div>
+      </div>
+      {props.isInspectingDemoApp && (
+        <div
+          style={{ margin: 10 }}
+          dangerouslySetInnerHTML={{
+            __html: `<iframe src="http://localhost:${location.port}/start/" />`
+          }}
+        />
       )}
     </div>
   );
@@ -107,14 +105,18 @@ let App = props => {
       <div className="app-header">
         FromJS Dataflow Inspector
         <div style={{ float: "right" }}>
+          {location.href.includes("?debug") && (
+            <button
+              className="blue-button"
+              onClick={() =>
+                appState.set("debugMode", !appState.get("debugMode"))
+              }
+            >
+              Toggle Debug Mode
+            </button>
+          )}
           <button
-            onClick={() =>
-              appState.set("debugMode", !appState.get("debugMode"))
-            }
-          >
-            Toggle Debug Mode
-          </button>
-          <button
+            className="blue-button"
             onClick={() => {
               api.setEnableInstrumentation(!props.enableInstrumentation);
             }}
@@ -123,25 +125,15 @@ let App = props => {
           </button>
         </div>
       </div>
-      <div style={{ margin: 5, overflow: "hidden" }}>
+      <div className="app-content">
         <div className="app__inspector">
+          {!props.isInspectingDemoApp && welcome}
           <DomInspector />
           <TraversalSteps />
         </div>
 
-        <div className="app__demo">
-          {props.isInspectingDemoApp && (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: `<iframe src="http://localhost:${
-                  location.port
-                }/start/" />`
-              }}
-            />
-          )}
-        </div>
+        <div className="app__demo">{props.isInspectingDemoApp && welcome}</div>
       </div>
-      {welcome}
     </div>
   );
 };
