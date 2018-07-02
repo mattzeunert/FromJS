@@ -362,7 +362,9 @@ const operations: Operations = {
         const obj = args.object[0];
         const propName = args.propName[0];
         const ret = delete obj[propName];
-        ctx.trackObjectPropertyAssignment(obj, propName, null, null);
+        if (typeof obj === "object") {
+          ctx.trackObjectPropertyAssignment(obj, propName, null, null);
+        }
         return ret;
       } else {
         throw Error("unknown unary expression operator");

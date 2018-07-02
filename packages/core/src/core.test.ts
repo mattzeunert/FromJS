@@ -85,6 +85,13 @@ describe("delete expression", () => {
 
     expect(normal).toBe(false);
   });
+  test("Doesn't break when deleting key from boolean", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return delete false["key"]
+    `);
+
+    expect(normal).toBe(true);
+  });
 });
 
 describe("UnaryExpression", () => {
