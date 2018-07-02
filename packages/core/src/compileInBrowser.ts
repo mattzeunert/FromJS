@@ -2,9 +2,12 @@ import babelPlugin from "./babelPlugin";
 import handleEvalScript from "./handleEvalScript";
 import getBabelOptions, { getAndResetLocs } from "./getBabelOptions";
 
+var Babel = window["Babel"];
+delete window["__core-js_shared__"]; // Added by babel standalone, but breaks some lodash tests
+
 window["__fromJSEval"] = function(code) {
   function compile(code, url, done) {
-    const babelResult = window["Babel"].transform(
+    const babelResult = Babel.transform(
       code,
       getBabelOptions(babelPlugin, {}, url)
     );
