@@ -237,14 +237,16 @@ let TraversalStep = class TraversalStep extends React.Component<
                   </div>
                 );
               })}
-              <div>
-                <button
-                  style={{ float: "right" }}
-                  onClick={() => this.setState({ showTree: !showTree })}
-                >
-                  Show Tree
-                </button>
-              </div>
+              {debugMode && (
+                <div>
+                  <button
+                    style={{ float: "right" }}
+                    onClick={() => this.setState({ showTree: !showTree })}
+                  >
+                    Show Tree
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
