@@ -2,6 +2,9 @@
   "name": "@fromjs/backend",
   "version": "2.0.3",
   "main": "./dist/backend.js",
+  "repository":
+    "https://github.com/mattzeunert/FromJS/tree/master/packages/backend",
+  "author": "Matt Zeunert <matt@mostlystatic.com>",
   "types": "./dist/backend.d.ts",
   "license": "MIT",
   "dependencies": {
