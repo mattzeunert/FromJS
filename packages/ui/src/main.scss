@@ -201,7 +201,20 @@ path {
 .app-header {
   background: #15054e;
   color: white;
-  padding: 10px;
+  padding: 15px;
+  button {
+    padding: 3px 6px;
+    margin-left: 6px;
+    border: none;
+    border-radius: 2px;
+    font-size: 12px;
+    font-weight: bold;
+    background: #236fb1;
+    color: white;
+    &:hover {
+      background: #4f33ac;
+    }
+  }
 }
 
 .load-demo-app {
