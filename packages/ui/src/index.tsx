@@ -36,8 +36,7 @@ let App = props => {
   const hasInspectorData = props.hasInspectorData;
 
   const expandWelcome = !props.collapseGetStartedIfHasData || !hasInspectorData;
-  console.log({ hasInspectorData, expandWelcome });
-  const welcome = (
+  const welcome = (props.isInspectingDemoApp || !hasInspectorData) && (
     <div
       className="welcome"
       style={{
@@ -126,6 +125,7 @@ let App = props => {
         </div>
       </div>
       <div style={{ margin: 5, overflow: "hidden" }}>
+        {!hasInspectorData && welcome}
         <div className="app__inspector">
           <DomInspector />
           <TraversalSteps />
@@ -143,7 +143,7 @@ let App = props => {
           )}
         </div>
       </div>
-      {welcome}
+      {hasInspectorData && welcome}
     </div>
   );
 };
