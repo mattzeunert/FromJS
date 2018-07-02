@@ -876,6 +876,18 @@ describe("String.prototype.split", () => {
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t1LastStep.charIndex).toBe(8);
   });
+  it("Can traverse string split result array when called without a separator", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        return String.prototype.split.apply("ab", [])[0]
+      `);
+
+    expect(normal).toBe("ab");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.charIndex).toBe(1);
+  });
   it("Can traverse string split result when passing in an object with a Symbol.split function ", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       const separator = {

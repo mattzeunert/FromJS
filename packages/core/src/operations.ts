@@ -540,8 +540,9 @@ const operations: Operations = {
   },
   splitResult: {
     traverse(operationLog: OperationLog, charIndex) {
-      const originalString = operationLog.args.string.result.primitive;
-      const separator = operationLog.args.separator.result.primitive || "";
+      const { string, separator: separatorArg } = operationLog.args;
+      const originalString = string.result.primitive;
+      const separator = (separatorArg && separatorArg.result.primitive) || "";
 
       console.log(
         "TODO: actually capture the indices where the string came from at runtime"
