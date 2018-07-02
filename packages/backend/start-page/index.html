@@ -1,12 +1,20 @@
-<p>This is a demo app. You can play around with it before opening a normal web page.</p>
+<p>This is a demo app. Click the "Enable DOM Inspector" button and select an element in the gray (JS-rendered) area.</p>
 
 <style>
+  body,
+  input {
+    font-family: Arial;
+
+    -webkit-font-smoothing: antialiased;
+  }
+
   #app {
     padding: 10px;
-    font-size: 20px;
+    font-size: 16px;
     margin-top: 10px;
-    border: 1px solid #eee;
-    font-family: monospace;
+    border: 2px solid #ccc;
+    background: #eee;
+    line-height: 1.5em;
   }
 
   pre {
@@ -14,15 +22,22 @@
     border: 1px solid #eee;
     padding: 10px;
   }
+
+  input {
+    font-size: 13px;
+    padding: 4px;
+    margin-left: 4px;
+  }
+
+  #greeting {
+    padding-top: 20px;
+    padding-bottom: 10px;
+    font-size: 25;
+  }
 </style>
 
 
 
 <div id="app"></div>
 
-<p>
-  This is the source code for this page:
-</p>
-
-<pre>APP_JS_CODE</pre>
 <script src="app.js"></script>

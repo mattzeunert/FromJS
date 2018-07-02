@@ -185,7 +185,7 @@ path {
       width: 40%;
       iframe {
         width: 100%;
-        height: 500px;
+        height: 200px;
         border: 2px solid #ddd;
       }
     }
@@ -195,7 +195,9 @@ path {
 .welcome {
   border: 2px solid #eee;
   padding: 10px;
-  margin: 10px;
+  margin-bottom: 10px;
+}
+.welcome-content {
 }
 
 .app-header {
@@ -219,14 +221,21 @@ path {
 }
 
 .load-demo-app {
-  background: #236fb1;
-  color: white;
-  padding: 10px;
-  border: none;
-  font-size: 14px;
   cursor: pointer;
-  &:hover {
-    background: #15054e;
+  &:not(.load-demo-app--hide) {
+    background: #236fb1;
+    color: white;
+    padding: 10px;
+    border: none;
+    font-size: 14px;
+    &:hover {
+      background: #15054e;
+    }
+  }
+  &.load-demo-app--hide {
+    border: none;
+    color: #236fb1;
+    padding: 0;
   }
 }
 

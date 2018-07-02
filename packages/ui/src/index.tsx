@@ -35,66 +35,67 @@ window["showSteps"] = function(logId, charIndex) {
 let App = props => {
   const hasInspectorData = props.hasInspectorData;
 
-  const expandWelcome = !props.collapseGetStartedIfHasData || !hasInspectorData;
+  const expandWelcome = !hasInspectorData;
   const welcome = (props.isInspectingDemoApp || !hasInspectorData) && (
     <div
       className="welcome"
       style={{
-        marginTop: expandWelcome ? 0 : 10,
-        opacity: expandWelcome ? 1 : 0.75,
-        maxWidth: expandWelcome ? 800 : 200
+        marginTop: 0,
+        maxWidth: 800
       }}
     >
       <h3
         style={{
           marginTop: 5,
-          marginBottom: 10,
-          fontSize: expandWelcome ? "" : 12
+          marginBottom: 10
         }}
       >
-        Get Started{!expandWelcome && (
-          <button
-            style={{ marginLeft: 10 }}
-            onClick={() => actions.setCollapseGetStartedIfHasData(false)}
-          >
-            Show
-          </button>
-        )}
+        Get Started
       </h3>
+      <div>
+        <p>
+          To inspect any website open a new tab in this browser and load it.{" "}
+          <a href="http://todomvc.com/examples/backbone/" target="_blank">
+            Try it!
+          </a>
+        </p>
+        <p>
+          To select the value you want to inspect:<br /> 1) Click "Enable DOM
+          Inspector" and then select an element <br />2) Use{" "}
+          <code>fromJSInspect(value)</code>
+          in your source code
+        </p>
+        <p>
+          After selecting a value this page will show its dataflow information.
+        </p>
+        <p>
+          Ask questions and report bugs{" "}
+          <a href="https://github.com/mattzeunert/FromJS/issues">on Github</a>.
+        </p>
 
-      {expandWelcome && (
-        <div>
-          <p>
-            To inspect any website open a new tab in this browser and load it.{" "}
-            <a href="http://todomvc.com/examples/backbone/" target="_blank">
-              Try it!
-            </a>
-          </p>
-          <p>
-            To select the value you want to inspect:<br /> 1) Click "Enable DOM
-            Inspector" and then select an element <br />2) Use{" "}
-            <code>fromJSInspect(value)</code>
-            in your source code
-          </p>
-          <p>
-            After selecting a value this page will show its dataflow
-            information.
-          </p>
-          <p>
-            Ask questions and report bugs{" "}
-            <a href="https://github.com/mattzeunert/FromJS/issues">on Github</a>.
-          </p>
+        <button
+          className={cx("load-demo-app", {
+            "load-demo-app--hide": props.isInspectingDemoApp
+          })}
+          onClick={() =>
+            actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
+          }
+        >
+          {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
+        </button>
+        <br />
+        <br />
 
-          <button
-            className="load-demo-app"
-            onClick={() =>
-              actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
-            }
-          >
-            {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
-          </button>
-        </div>
-      )}
+        {props.isInspectingDemoApp && (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: `<iframe src="http://localhost:${
+                location.port
+              }/start/" />`
+            }}
+          />
+        )}
+      </div>
     </div>
   );
   return (
@@ -125,25 +126,14 @@ let App = props => {
         </div>
       </div>
       <div style={{ margin: 5, overflow: "hidden" }}>
-        {!hasInspectorData && welcome}
+        {!props.isInspectingDemoApp && welcome}
         <div className="app__inspector">
           <DomInspector />
           <TraversalSteps />
         </div>
 
-        <div className="app__demo">
-          {props.isInspectingDemoApp && (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: `<iframe src="http://localhost:${
-                  location.port
-                }/start/" />`
-              }}
-            />
-          )}
-        </div>
+        <div className="app__demo">{props.isInspectingDemoApp && welcome}</div>
       </div>
-      {hasInspectorData && welcome}
     </div>
   );
 };
