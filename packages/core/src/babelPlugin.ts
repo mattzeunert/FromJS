@@ -206,8 +206,6 @@ function plugin(babel) {
     },
 
     ForInStatement(path) {
-      if (path.node.ignore) return;
-
       let varName;
       let isNewVariable;
       if (path.node.left.type === "VariableDeclaration") {

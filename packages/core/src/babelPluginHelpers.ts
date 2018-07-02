@@ -47,11 +47,11 @@ export function ignoredArrayExpression(items) {
 }
 
 export function ignoredStringLiteral(str) {
-  return ignoreNode(t.stringLiteral(str));
+  return skipPath(t.stringLiteral(str));
 }
 
 export function ignoredIdentifier(name) {
-  return ignoreNode(t.identifier(name));
+  return skipPath(t.identifier(name));
 }
 
 export function ignoredCallExpression(identifier, args) {
@@ -59,7 +59,7 @@ export function ignoredCallExpression(identifier, args) {
 }
 
 export function ignoredNumericLiteral(number) {
-  return ignoreNode(t.numericLiteral(number));
+  return skipPath(t.numericLiteral(number));
 }
 
 const canBeIdentifierRegExp = /^[a-z0-9A-Z]+$/;
