@@ -211,6 +211,7 @@ let TraversalStep = class TraversalStep extends React.Component<
               <div className="step__arguments__title">
                 Inspect input/output values:
               </div>
+              {this.getAllArgs().length === 0 && <div>(No arguments)</div>}
               {this.getAllArgs().map(({ name, value }) => {
                 value = value && new OperationLog(value);
                 const canInspect = !!value;

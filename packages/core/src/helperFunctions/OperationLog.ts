@@ -132,7 +132,7 @@ class SerializedValue implements SerializedValueData {
     }
     let str = "[" + this.type + "]";
     if (this.keys && this.keys.length > 0) {
-      str += " {" + this.keys.join(", ") + "}";
+      str += " {" + this.keys.filter(k => k !== "__elOrigin").join(", ") + "}";
     }
     return str;
   }
