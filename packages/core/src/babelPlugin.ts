@@ -26,9 +26,21 @@ import {
 import helperCodeLoaded from "../helperFunctions";
 
 import * as t from "@babel/types";
+import { VERIFY } from "./config";
 initForBabel(t);
 
-var helperCode = helperCodeLoaded
+var helperCode = `
+  (function(){
+    var global = Function("return this")();
+    if (!global.__fromJSConfig) {
+      global.__fromJSConfig = {
+        VERIFY: ${VERIFY}
+      }
+    }
+  })();
+`;
+
+helperCode += helperCodeLoaded
   .toString()
   .replace("__FUNCTION_NAMES__", JSON.stringify(FunctionNames));
 helperCode = helperCode.replace(

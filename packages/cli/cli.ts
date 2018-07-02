@@ -3,7 +3,6 @@ import Backend from "@fromjs/backend";
 import * as process from "process";
 import { BackendOptions } from "@fromjs/backend";
 import * as chromeLauncher from "chrome-launcher";
-import { exec } from "child_process";
 
 const list = val => val.split(",");
 
