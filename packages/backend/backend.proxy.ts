@@ -46,6 +46,13 @@ startProxy({
     if (dontTrack.some(dt => url.includes(dt))) {
       return false;
     }
+    if (
+      url.includes("product_registry_impl_module.js") &&
+      url.includes("chrome-devtools-frontend")
+    ) {
+      // External file loaded by Chrome DevTools when opened
+      return false;
+    }
     return port !== bePort || path.startsWith("/start");
   },
   rewriteHtml: html => {
