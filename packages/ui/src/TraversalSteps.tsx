@@ -71,6 +71,8 @@ let TraversalSteps = class TraversalSteps extends React.Component<
       };
     }
 
+    const showOriginStep = steps.length > 1 || !this.props.collapseDomInspector;
+
     return (
       <div style={{ opacity: this.props.isTraversing ? 0.5 : 1 }}>
         <div
@@ -98,13 +100,13 @@ let TraversalSteps = class TraversalSteps extends React.Component<
         </div>
         <div className="named-step-container">
           <div className="title">Origin of selected character:</div>
-          {steps.length > 1 && (
+          {showOriginStep && (
             <TraversalStep
               key={steps[steps.length - 1].operationLog.index}
               step={steps[steps.length - 1]}
             />
           )}
-          {steps.length === 1 && (
+          {!showOriginStep && (
             <div style={{ opacity: 0.5 }}>
               (same as above, only one step is available)
             </div>
