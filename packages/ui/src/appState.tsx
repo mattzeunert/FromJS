@@ -10,7 +10,7 @@ var appState = new Baobab({
   showFullDataFlow: false,
   enableInstrumentation: window["enableInstrumentation"],
   apiRequestsInProgress: [],
-  collapseGetStartedIfHasData: true,
+  collapseGetStartedIfHasData: true, // not used anymore i think
   hasInProgressRequest: {
     traverse: monkey({
       cursors: {

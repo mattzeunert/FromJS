@@ -40,62 +40,60 @@ let App = props => {
     <div
       className="welcome"
       style={{
-        marginTop: 0,
         maxWidth: 800
       }}
     >
-      <h3
-        style={{
-          marginTop: 5,
-          marginBottom: 10
-        }}
-      >
-        Get Started
-      </h3>
-      <div>
-        <p>
-          To inspect any website open a new tab in this browser and load it.{" "}
-          <a href="http://todomvc.com/examples/backbone/" target="_blank">
-            Try it!
-          </a>
-        </p>
-        <p>
-          To select the value you want to inspect:<br /> 1) Click "Enable DOM
-          Inspector" and then select an element <br />2) Use{" "}
-          <code>fromJSInspect(value)</code>
-          in your source code
-        </p>
-        <p>
-          After selecting a value this page will show its dataflow information.
-        </p>
-        <p>
-          Ask questions and report bugs{" "}
-          <a href="https://github.com/mattzeunert/FromJS/issues">on Github</a>.
-        </p>
-
-        <button
-          className={cx("load-demo-app", {
-            "load-demo-app--hide": props.isInspectingDemoApp
-          })}
-          onClick={() =>
-            actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
-          }
+      <div className="welcome-content">
+        <h3
+          style={{
+            marginTop: 5,
+            marginBottom: 10
+          }}
         >
-          {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
-        </button>
-        <br />
-        <br />
+          Get Started
+        </h3>
+        <div>
+          <p>
+            To inspect any website open a new tab in this browser and load it.{" "}
+            <a href="http://todomvc.com/examples/backbone/" target="_blank">
+              Try it!
+            </a>
+          </p>
+          <p>
+            To select the value you want to inspect:<br /> 1) Click "Enable DOM
+            Inspector" and then select an element <br />2) Use{" "}
+            <code>fromJSInspect(value)</code>
+            in your source code
+          </p>
+          <p>
+            After selecting a value this page will show its dataflow
+            information.
+          </p>
+          <p>
+            Ask questions and report bugs{" "}
+            <a href="https://github.com/mattzeunert/FromJS/issues">on Github</a>.
+          </p>
 
-        {props.isInspectingDemoApp && (
-          <div
-            dangerouslySetInnerHTML={{
-              __html: `<iframe src="http://localhost:${
-                location.port
-              }/start/" />`
-            }}
-          />
-        )}
+          <button
+            className={cx("load-demo-app", {
+              "load-demo-app--hide": props.isInspectingDemoApp
+            })}
+            onClick={() =>
+              actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
+            }
+          >
+            {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
+          </button>
+        </div>
       </div>
+      {props.isInspectingDemoApp && (
+        <div
+          style={{ margin: 10 }}
+          dangerouslySetInnerHTML={{
+            __html: `<iframe src="http://localhost:${location.port}/start/" />`
+          }}
+        />
+      )}
     </div>
   );
   return (
@@ -125,9 +123,9 @@ let App = props => {
           </button>
         </div>
       </div>
-      <div style={{ margin: 5, overflow: "hidden" }}>
-        {!props.isInspectingDemoApp && welcome}
+      <div className="app-content">
         <div className="app__inspector">
+          {!props.isInspectingDemoApp && welcome}
           <DomInspector />
           <TraversalSteps />
         </div>

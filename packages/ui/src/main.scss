@@ -12,7 +12,7 @@ body {
 * {
   box-sizing: border-box;
   font-family: Arial, sans-serif;
-  -webkit-font-smoothing: antialias;
+  -webkit-font-smoothing: antialiased;
 }
 
 .node-name {
@@ -166,8 +166,10 @@ path {
 }
 
 .app {
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
   .app__inspector {
-    float: left;
     width: 100%;
     padding: 10px;
   }
@@ -179,25 +181,34 @@ path {
   &.app--isInspectingDemoApp {
     .app__inspector {
       width: 60%;
+      float: left;
     }
     .app__demo {
-      display: block;
+      display: flex;
       width: 40%;
       iframe {
         width: 100%;
-        height: 200px;
-        border: 2px solid #ddd;
+        height: 150px;
+        border: none;
       }
     }
   }
 }
 
 .welcome {
-  border: 2px solid #eee;
-  padding: 10px;
-  margin-bottom: 10px;
+  margin-top: 0px;
+  max-width: 800px;
+  background: white;
+  display: flex;
+  .app__demo & {
+    background: #fafafa;
+    border-left: 2px solid #ccc;
+  }
+  flex-direction: column;
+  width: 100%;
 }
 .welcome-content {
+  padding: 10px;
 }
 
 .app-header {
@@ -218,6 +229,10 @@ path {
       background: #4f33ac;
     }
   }
+}
+.app-content {
+  flex-grow: 1;
+  display: flex;
 }
 
 .load-demo-app {

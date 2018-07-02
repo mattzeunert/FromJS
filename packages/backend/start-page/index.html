@@ -1,20 +1,25 @@
-<p>This is a demo app. Click the "Enable DOM Inspector" button and select an element in the gray (JS-rendered) area.</p>
-
 <style>
   body,
   input {
     font-family: Arial;
-
     -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0
   }
 
   #app {
     padding: 10px;
     font-size: 16px;
-    margin-top: 10px;
     border: 2px solid #ccc;
     background: #eee;
     line-height: 1.5em;
+    height: 100vh;
   }
 
   pre {
