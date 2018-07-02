@@ -21,8 +21,8 @@ export interface ExecContext {
   trackObjectPropertyAssignment(
     object: any,
     propertyName: string | number,
-    valueTrackingValue: number | OperationLog,
-    nameTrackingValue?: number | OperationLog
+    valueTrackingValue: null | number | OperationLog,
+    nameTrackingValue?: null | number | OperationLog
   );
   lastReturnStatementResult: any;
   objectHasPropertyTrackingData: (obj: any) => boolean;
