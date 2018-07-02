@@ -56,25 +56,52 @@ export default <any>{
       });
 
       var argument = argumentArg[0];
+      let newValue;
       switch (operator) {
         case "=":
-          ret = obj[propName] = argument;
+          newValue = argument;
           break;
         case "+=":
-          ret = obj[propName] = obj[propName] + argument;
+          newValue = obj[propName] + argument;
           break;
         case "-=":
-          ret = obj[propName] = obj[propName] - argument;
+          newValue = obj[propName] - argument;
+          break;
+        case "*=":
+          newValue = obj[propName] * argument;
+          break;
+        case "/=":
+          newValue = obj[propName] / argument;
           break;
         case "|=":
-          ret = obj[propName] = obj[propName] |= argument;
+          newValue = obj[propName] | argument;
+          break;
+        case "%=":
+          newValue = obj[propName] % argument;
           break;
         case "&=":
-          ret = obj[propName] = obj[propName] &= argument;
+          newValue = obj[propName] & argument;
+          break;
+        case "**=":
+          newValue = obj[propName] ** argument;
+          break;
+        case "<<=":
+          newValue = obj[propName] << argument;
+          break;
+        case ">>=":
+          newValue = obj[propName] >> argument;
+          break;
+        case ">>>=":
+          newValue = obj[propName] >>> argument;
+          break;
+        case "^=":
+          newValue = obj[propName] ^ argument;
           break;
         default:
           throw Error("unknown operator " + operator);
       }
+      obj[propName] = newValue;
+      ret = newValue;
 
       ctx.trackObjectPropertyAssignment(
         obj,

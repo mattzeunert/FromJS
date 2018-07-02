@@ -334,6 +334,26 @@ test("Tracks object property assignments", done => {
   });
 });
 
+test("Object property assignment supports all operators", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    var obj = { val1: 10, val2: 10 }
+    obj.val1 += 1
+    obj.val1 -= 1
+    obj.val1 *= 5
+    obj.val1 /= 5
+    obj.val1 %= 4
+    obj.val1 **= 2
+    obj.val2 <<= 1
+    obj.val2 >>= 1
+    obj.val2 >>>= 1
+    obj.val2 &= 0b11
+    obj.val2 |= 0b111
+    obj.val2 ^= 0b1111
+    return obj.val1 + obj.val2	
+  `);
+  expect(normal).toBe(12);
+});
+
 test("Tracks object property assignments with computed properties", done => {
   instrumentAndRun(`
     var obj = {}
