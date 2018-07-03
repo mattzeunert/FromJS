@@ -93,7 +93,9 @@ function sendLogsToServer() {
     // Doing this means the data will be cloned, but it seems to be
     // reasonably fast anyway
     // Creating the json and making the request in the main thread is super slow!
+    console.time("postMessage");
     worker.postMessage(data);
+    console.timeEnd("postMessage");
   } else {
     consoleLog(
       "Can't create worker (maybe already inside a web worker?), will send request in normal thread"
