@@ -107,17 +107,18 @@ describe("E2E", () => {
       "/tmp/fromjs-e2e"
     ]);
 
-    // command.stdout.on("data", function(data) {
-    //   console.log("CLI out", data.toString());
-    // });
+    command.stdout.on("data", function(data) {
+      console.log("CLI out", data.toString());
+    });
 
-    // command.stderr.on("data", function(data) {
-    //   console.log("CLI err", data.toString());
-    // });
+    command.stderr.on("data", function(data) {
+      console.log("CLI err", data.toString());
+    });
 
     await waitForProxyReady(command);
 
     browser = await puppeteer.launch({
+      dumpio: true,
       args: [
         "--proxy-server=127.0.0.1:" + proxyPort,
         // To make it work in CI:
@@ -136,12 +137,14 @@ describe("E2E", () => {
     await killPort(webServerPort);
   });
 
+  const inspectorUrl = "http://localhost:" + backendPort + "/";
+
   let command;
   it(
     "Can load the start page",
     async () => {
       const page = await createPage();
-      await page.goto("http://localhost:" + backendPort + "/");
+      await page.goto(inspectorUrl);
       await page.waitForSelector(".load-demo-app");
 
       await await page.evaluate(() =>
@@ -157,7 +160,7 @@ describe("E2E", () => {
 
       await page.close();
     },
-    30000
+    40000
   );
 
   it(
@@ -230,7 +233,46 @@ describe("E2E", () => {
       res = await inspectDomCharAndTraverse(html.indexOf("textContent"));
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("textContent");
+
+      await page.close();
     },
-    20000
+    30000
+  );
+
+  it(
+    "Can inspect backbone todomvc and select an element by clicking on it",
+    async () => {
+      const inspectorPage = await createPage();
+      await inspectorPage.goto(inspectorUrl);
+
+      // Load inspected page
+      const page = await createPage();
+      await page.goto("http://localhost:8000/examples/backbone/");
+      await page.waitForSelector(".todo-list li", { timeout: 60000 });
+
+      // Select label for inspection
+      await page.waitForSelector("#fromjs-inspect-dom-button");
+      await page.click("#fromjs-inspect-dom-button");
+      await page.waitForFunction(
+        "document.querySelector('#fromjs-inspect-dom-button').innerText.includes('Disable')"
+      );
+      await page.click(".todo-list li label");
+
+      // Todo name should come from local storage
+      await inspectorPage.waitForFunction(() =>
+        document.body.innerHTML.includes("localStorage.getItem")
+      );
+
+      // label tag name should be string literal in eval
+      // (although: we could do source mapping here again to find the origin of the eval code)
+      await inspectorPage.click(".fromjs-value__content [data-key='1']");
+      await inspectorPage.waitForFunction(() =>
+        document.body.innerHTML.includes("eval")
+      );
+
+      await page.close();
+      await inspectorPage.close();
+    },
+    90000
   );
 });

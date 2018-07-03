@@ -102,6 +102,7 @@ export default function initDomInspectionUI() {
       "style",
       "position: fixed;z-index: 100000000; bottom: 0;right:0;padding: 10px;background: #236fb1; color: white;font-family: Arial;cursor:pointer;font-size: 14px;"
     );
+    toggleInspectDomButton.setAttribute("id", "fromjs-inspect-dom-button");
     global["document"]["body"].appendChild(toggleInspectDomButton);
   }
 

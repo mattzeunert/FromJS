@@ -107,6 +107,7 @@ export class TextEl extends React.Component<any, any> {
       return (
         <span
           className={className}
+          data-key={key}
           onClick={onClick}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
@@ -120,20 +121,21 @@ export class TextEl extends React.Component<any, any> {
       var els = [];
       for (let index = 0; index < val.length; index++) {
         var char = val[index];
+        const charIndex = index + indexOffset;
 
         els.push(
           getValueSpan(
             char,
             "",
-            index + indexOffset,
+            charIndex,
             () => {
-              self.props.onCharacterClick(index + indexOffset);
+              self.props.onCharacterClick(charIndex);
             },
             () => {
               if (!self.props.onCharacterHover) {
                 return;
               }
-              self.props.onCharacterHover(index + indexOffset);
+              self.props.onCharacterHover(charIndex);
             },
             () => {
               if (!self.props.onCharacterHover) {

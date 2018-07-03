@@ -23,6 +23,10 @@ I usually run all of these commands:
 
 `VERIFY=true` enables sanity check on collected data and points out when tracking data is missing
 
+### Running E2E tests
+
+You need to run the [web server for the test cases]( git clone git@github.com:mattzeunert/fromjs-test-cases.git) locally, check the CI config for details.
+
 ## Debugging
 
 Add `?debug` to the inspector URL to get a button to enter debug mode. Debug mode for example
