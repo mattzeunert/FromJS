@@ -355,10 +355,20 @@ class ProxyInstrumenter {
               console.log(getUrl(ctx), "size", sizeInMb, "MB");
             }
 
-            this.urlCache[getUrl(ctx)] = {
-              body: responseBody,
-              headers: ctx.serverToProxyResponse.headers
-            };
+            const contentType =
+              ctx.serverToProxyResponse.headers["content-type"];
+            const isHtml = contentType && contentType.includes("text/html");
+
+            if (!isHtml) {
+              // don't cache html since the transformations fromjs does on it tend to be simpler...
+              // however this is fromjs specific
+              // having a shouldCache option would be good if proxy instrumenter
+              // should be useful independenly
+              this.cacheUrl(getUrl(ctx), {
+                body: responseBody,
+                headers: ctx.serverToProxyResponse.headers
+              });
+            }
           }
 
           ctx.proxyToClientResponse.end(new Buffer(responseBody));
@@ -367,6 +377,10 @@ class ProxyInstrumenter {
         resolve({ body, ctx, sendResponse });
       });
     });
+  }
+
+  cacheUrl(url, cacheData) {
+    this.urlCache[url] = cacheData;
   }
 
   instrumentForEval(code) {
@@ -379,20 +393,20 @@ class ProxyInstrumenter {
         code,
         compile,
         ({ url, instrumentedCode, code, map }) => {
-          this.urlCache[url] = {
+          this.cacheUrl(url, {
             headers: {},
             body: instrumentedCode
-          };
+          });
 
-          this.urlCache[url + "?dontprocess"] = {
+          this.cacheUrl(url + "?dontprocess", {
             headers: {},
             body: code
-          };
+          });
 
-          this.urlCache[url + ".map"] = {
+          this.cacheUrl(url + ".map", {
             headers: {},
             body: map
-          };
+          });
           resolve({
             instrumentedCode
           });
@@ -402,18 +416,18 @@ class ProxyInstrumenter {
   }
 
   registerEvalScript({ url, code, instrumentedCode, map, locs }) {
-    this.urlCache[url] = {
+    this.cacheUrl(url, {
       headers: {},
       body: instrumentedCode
-    };
-    this.urlCache[url + "?dontprocess"] = {
+    });
+    this.cacheUrl(url + "?dontprocess", {
       headers: {},
       body: code
-    };
-    this.urlCache[url + ".map"] = {
+    });
+    this.cacheUrl(url + ".map", {
       headers: {},
       body: JSON.stringify(map)
-    };
+    });
     this.onRegisterEvalScript({ url, code, instrumentedCode, map, locs });
   }
 
