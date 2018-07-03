@@ -20,8 +20,8 @@ export class LogServer {
     );
   }
   loadLog(log, fn, maxDepth = Number.POSITIVE_INFINITY, currentDepth = 0) {
-    // console.count("load")
     let logIndex;
+
     if (typeof log === "number") {
       logIndex = log;
     } else {
