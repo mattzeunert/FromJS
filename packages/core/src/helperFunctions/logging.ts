@@ -11,18 +11,18 @@ export function initLogging(kv: KnownValues) {
   knownValues = kv;
 }
 
-export function consoleLog(...args) {
+export function consoleLog(this: any, ...args) {
   return knownValues.getValue("console.log").apply(this, arguments);
 }
 
-export function consoleCount(...args) {
+export function consoleCount(this: any, ...args) {
   return knownValues.getValue("console.count").apply(this, arguments);
 }
 
-export function consoleWarn(...args) {
+export function consoleWarn(this: any, ...args) {
   return knownValues.getValue("console.warn").apply(this, arguments);
 }
 
-export function consoleError(...args) {
+export function consoleError(this: any, ...args) {
   return knownValues.getValue("console.error").apply(this, arguments);
 }
