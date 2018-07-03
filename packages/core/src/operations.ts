@@ -439,6 +439,10 @@ const operations: Operations = {
   },
   returnStatement: {
     argNames: ["returnValue"],
+    canInferResult: function(args) {
+      // return statement will always return returned value
+      return !!args[0];
+    },
     exec: (args, astArgs, ctx: ExecContext, logData) => {
       const [returnValueArg] = args;
       ctx.lastReturnStatementResult = [returnValueArg[0], logData.index];

@@ -146,26 +146,32 @@ export class LogServer {
     });
   }
 
-  _getLogResult(log) {
+  _getLogResult(log: OperationLog) {
     return new Promise(resolve => {
+      const tryGetResult = parentIndex => {
+        // notes:
+        // - we can't use getLog because the parent operation could also be an identifier
+        // - we can't use loadlog because it will possibly load the current log again somewhere
+        // in the history (not sure if that's possible, but i was getting some kind of inifinite loop)
+        this._getLogAndLoadLocData(parentIndex, (err, parentLog) => {
+          if (err) {
+            throw err;
+          }
+          if (parentLog._result === undefined) {
+            this._getLogResult(parentLog).then(resolve);
+          } else {
+            resolve(parentLog._result);
+          }
+        });
+      };
+
       if (log._result === undefined) {
         if (log.operation === "identifier") {
-          // notes:
-          // - we can't use getLog because the parent operation could also be an identifier
-          // - we can't use loadlog because it will possibly load the current log again somewhere
-          // in the history (not sure if that's possible, but i was getting some kind of inifinite loop)
-          this._getLogAndLoadLocData(log.args.value, (err, parentLog) => {
-            if (err) {
-              throw err;
-            }
-            if (parentLog._result === undefined) {
-              this._getLogResult(parentLog).then(resolve);
-            } else {
-              resolve(parentLog._result);
-            }
-          });
+          tryGetResult(log.args.value);
+        } else if (log.operation === "returnStatement") {
+          tryGetResult(log.args.returnValue);
         } else {
-          throw "no res";
+          throw "no res... possibly because of MINIMIZA_LOG_DATA";
         }
       } else {
         resolve(log._result);
