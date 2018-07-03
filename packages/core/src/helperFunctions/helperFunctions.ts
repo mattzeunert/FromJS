@@ -26,27 +26,27 @@ initLogging(knownValues);
 // overwritten (e.g. NewRelic instrumentation does it)
 let fetch = knownValues.getValue("fetch");
 
-// const startTime = new Date();
-// setTimeout(checkDone, 200);
-// function checkDone() {
-//   const done = document.querySelector(".todo-list li");
-//   if (done) {
-//     const doneTime = new Date();
-//     consoleLog("#####################################");
-//     consoleLog("#####################################");
-//     consoleLog("#####################################");
-//     consoleLog("#####################################");
-//     consoleLog("#####################################");
-//     consoleLog("#####################################");
-//     consoleLog(
-//       "DONE",
-//       "timeTaken: " + (doneTime.valueOf() - startTime.valueOf()) / 1000 + "s"
-//     );
-//     worker.postMessage({ showDoneMessage: true });
-//   } else {
-//     setTimeout(checkDone, 200);
-//   }
-// }
+const startTime = new Date();
+setTimeout(checkDone, 200);
+function checkDone() {
+  const done = document.querySelector(".todo-list li");
+  if (done) {
+    const doneTime = new Date();
+    consoleLog("#####################################");
+    consoleLog("#####################################");
+    consoleLog("#####################################");
+    consoleLog("#####################################");
+    consoleLog("#####################################");
+    consoleLog("#####################################");
+    consoleLog(
+      "DONE",
+      "timeTaken: " + (doneTime.valueOf() - startTime.valueOf()) / 1000 + "s"
+    );
+    worker.postMessage({ showDoneMessage: true });
+  } else {
+    setTimeout(checkDone, 200);
+  }
+}
 
 function postToBE(endpoint, data, statsCallback = function(stats) {}) {
   const stringifyStart = new Date();
