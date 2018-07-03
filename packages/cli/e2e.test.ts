@@ -85,6 +85,14 @@ async function inspectDomCharAndTraverse(charIndex) {
 describe("E2E", () => {
   let browser;
 
+  async function createPage() {
+    const page = await browser.newPage();
+    page.on("pageerror", function(err) {
+      console.log("Page error: " + err.toString());
+    });
+    return page;
+  }
+
   beforeAll(async () => {
     await killPort(backendPort);
     await killPort(proxyPort);
@@ -132,10 +140,7 @@ describe("E2E", () => {
   it(
     "Can load the start page",
     async () => {
-      const page = await browser.newPage();
-      page.on("pageerror", function(err) {
-        console.log("Page error: " + err.toString());
-      });
+      const page = await createPage();
       await page.goto("http://localhost:" + backendPort + "/");
       await page.waitForSelector(".load-demo-app");
 
@@ -158,10 +163,7 @@ describe("E2E", () => {
   it(
     "Does DOM to JS tracking",
     async () => {
-      const page = await browser.newPage();
-      page.on("pageerror", function(err) {
-        console.log("Page error: " + err.toString());
-      });
+      const page = await createPage();
       await page.goto("http://localhost:" + webServerPort + "/test");
       const testResult = await (await page.waitForFunction(
         'window["testResult"]'
