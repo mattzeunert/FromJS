@@ -214,20 +214,28 @@ OperationLog.createAtRuntime = function(
 
   if (Array.isArray(args)) {
     const newArgs: any[] = [];
-    args.forEach((arg, i) => {
+
+    for (var i = 0; i < args.length; i++) {
+      const arg = args[i];
       if (
         op["argIsArray"] &&
         invokeIfFunction(op["argIsArray"]![i], arguments[0])
       ) {
         const a: any[] = [];
-        arg.forEach((arrayArg, arrayArgIndex) => {
+        for (
+          var arrayArgIndex = 0;
+          arrayArgIndex < arg.length;
+          arrayArgIndex++
+        ) {
+          const arrayArg = arg[arrayArgIndex];
           a.push(arrayArg[1]);
-        });
+        }
+
         newArgs.push(a);
       } else {
         newArgs.push(arg[1]);
       }
-    });
+    }
 
     args = newArgs;
 
