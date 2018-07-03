@@ -123,13 +123,14 @@ export function createOperation(
   opType,
   opArgs,
   astArgs = null,
-  loc = null,
+  locArg = null,
   shorthand: any = null
 ) {
-  if (!loc && VERIFY) {
+  if (!locArg && VERIFY) {
     noLocCount++;
     console.log("no loc for", opType, noLocCount);
   }
+  const loc: any = locArg || {};
 
   if ("type" in opArgs) {
     throw Error("should not put node into createOp, use array or obj");
