@@ -103,7 +103,13 @@ let App = props => {
       })}
     >
       <div className="app-header">
-        FromJS Dataflow Inspector
+        <a
+          href="https://github.com/mattzeunert/FromJS"
+          style={{ color: "white", textDecoration: "none" }}
+          target="_blank"
+        >
+          FromJS Dataflow Inspector
+        </a>
         <div style={{ float: "right" }}>
           {location.href.includes("?debug") && (
             <button
