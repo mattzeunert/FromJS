@@ -8,6 +8,7 @@ import operations from "../operations";
 import { SKIP_TRACKING, VERIFY, KEEP_LOGS_IN_MEMORY } from "../config";
 import * as FunctionNames from "../FunctionNames";
 import { initLogging, consoleCount, consoleLog } from "./logging";
+import { getStoreLogsWorker } from "./storeLogsWorker";
 
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
@@ -57,29 +58,14 @@ declare var __FUNCTION_NAMES__,
   //   }
   // }
 
-  function postToBE(
-    endpoint,
-    data,
-    statsCallback = function(size) {},
-    logFn = consoleLog /* log fn arg because this can run in both normal page and web worker*/
-  ) {
+  function postToBE(endpoint, data, statsCallback = function(stats) {}) {
     const stringifyStart = new Date();
     const body = JSON.stringify(data);
     const stringifyEnd = new Date();
     if (endpoint === "/storeLogs") {
-      logFn(
-        "Saving logs: ",
-        data.logs.length,
-        "Size: ",
-        body.length / 1024 / 1024,
-        "Mb",
-        "Stringify took " +
-          (stringifyEnd.valueOf() - stringifyStart.valueOf()) +
-          "ms"
-      );
-
       statsCallback({
-        bodyLength: body.length
+        bodyLength: body.length,
+        stringifyTime: stringifyEnd.valueOf() - stringifyStart.valueOf()
       });
     }
     const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
@@ -98,52 +84,14 @@ declare var __FUNCTION_NAMES__,
   let logQueue = [];
   global["__debugFromJSLogQueue"] = () => logQueue;
   let evalScriptQueue = [];
-  let worker;
-  function initWorker() {
-    function workerCode() {
-      self["perfStats"] = {
-        totalLogCount: 0,
-        logDataBytesSent: 0
-      };
-      onmessage = function(e) {
-        if (e.data.logs) {
-          self["perfStats"].totalLogCount += e.data.logs.length;
-          postToBE("/storeLogs", e.data, function({ bodyLength }) {
-            self["perfStats"].logDataBytesSent += bodyLength;
-          });
-        } else if (e.data.showDoneMessage) {
-          const perfInfo = self["perfStats"];
-          // note: console.log is fine here because we're inside the web worker
-          // which doesn't contain inspected page code overwriting console.log
-          console.log("DONE", {
-            totalLogCount: perfInfo.totalLogCount / 1000 + "k",
-            logDataSent: perfInfo.logDataBytesSent / 1024 / 1024 + "mb"
-          });
-        }
-      };
-    }
-    worker = new Worker(
-      URL.createObjectURL(
-        new Blob([
-          postToBE +
-            ";var accessToken = '" +
-            accessToken +
-            "'" +
-            ";(" +
-            workerCode +
-            ")()"
-        ])
-      )
-    );
-  }
+  let worker: Worker | null = getStoreLogsWorker({
+    postToBE,
+    accessToken
+  });
+
   function sendLogsToServer() {
-    const environmentSupportsWorker = typeof Worker !== "undefined";
     if (logQueue.length === 0 && evalScriptQueue.length == 0) {
       return;
-    }
-
-    if (!worker && environmentSupportsWorker) {
-      initWorker();
     }
 
     const data = {
@@ -151,7 +99,7 @@ declare var __FUNCTION_NAMES__,
       evalScripts: evalScriptQueue
     };
 
-    if (environmentSupportsWorker) {
+    if (worker) {
       // Doing this means the data will be cloned, but it seems to be
       // reasonably fast anyway
       // Creating the json and making the request in the main thread is super slow!
