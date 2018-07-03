@@ -17,6 +17,7 @@ import { VERIFY } from "../config";
 import { doOperation, getLastMemberExpressionObject } from "../FunctionNames";
 import OperationLog from "../helperFunctions/OperationLog";
 import * as cloneRegExp from "clone-regexp";
+import { consoleLog, consoleError } from "../helperFunctions/logging";
 
 function countGroupsInRegExp(re) {
   // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
@@ -188,7 +189,7 @@ const specialValuesForPostprocessing = {
     }
     let regExp = fnArgValues[0];
     if (!(regExp instanceof RegExp)) {
-      console.log("non regexp match param, is this possible?");
+      consoleLog("non regexp match param, is this possible?");
       return;
     }
 
@@ -645,7 +646,7 @@ const specialValuesForPostprocessing = {
   }) => {
     const position = fnArgValues[0].toLowerCase();
     if (position !== "afterbegin") {
-      console.log("Not tracking insertAdjacentHTML at", position);
+      consoleLog("Not tracking insertAdjacentHTML at", position);
       return;
     }
 
@@ -742,7 +743,7 @@ class ValueMapV2 {
         part.toIndexInOriginal
       );
     });
-    console.log({ originalString, newString });
+    consoleLog({ originalString, newString });
   }
 }
 
@@ -783,7 +784,7 @@ const CallExpression = <any>{
       const argArray = fnArgValues[1] || [];
       if (!("length" in argArray)) {
         // hmm can this even happen in a program that's not already broken?
-        console.log("can this even happen?");
+        consoleLog("can this even happen?");
         fnArgsAtInvocation = [];
       } else {
         fnArgsAtInvocation = [];
@@ -816,7 +817,7 @@ const CallExpression = <any>{
         ret = ret.returnValue;
       } else {
         if (isNewFunctionCall) {
-          console.log("can't instrument new Function() code");
+          consoleLog("can't instrument new Function() code");
         }
         let thisValue = null; // overwritten inside new()
         ret = new (Function.prototype.bind.apply(fnArg[0], [
@@ -889,7 +890,7 @@ const CallExpression = <any>{
           fn === ctx.knownValues.getValue("String.prototype.replace") &&
           VERIFY
         ) {
-          console.log("unhandled string replace call");
+          consoleLog("unhandled string replace call");
         }
         const fnIsEval = fn === eval;
         if (fnIsEval) {
@@ -897,7 +898,7 @@ const CallExpression = <any>{
             fn = ctx.global["__fromJSEval"];
           } else {
             if (!ctx.global.__forTestsDontShowCantEvalLog) {
-              console.log("Calling eval but can't instrument code");
+              consoleLog("Calling eval but can't instrument code");
             }
           }
         }
@@ -1098,7 +1099,7 @@ const CallExpression = <any>{
               getSpecialCaseArgs()
             );
           } catch (err) {
-            console.error("post procressing error", fnKnownValue, err);
+            consoleError("post procressing error", fnKnownValue, err);
             debugger;
           }
         } else {

@@ -1,3 +1,5 @@
+import { consoleLog } from "../../helperFunctions/logging";
+
 export default function addElOrigin(el, what, origin) {
   const {
     action,
@@ -38,7 +40,7 @@ export default function addElOrigin(el, what, origin) {
     });
   } else {
     if (!("trackingValue" in origin)) {
-      console.log("no tracking value in addelorigin");
+      consoleLog("no tracking value in addelorigin");
     }
     el.__elOrigin[what] = {
       action,

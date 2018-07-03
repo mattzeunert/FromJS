@@ -7,6 +7,7 @@ import { ExecContext } from "./ExecContext";
 import operations from "../operations";
 import { SKIP_TRACKING, VERIFY, KEEP_LOGS_IN_MEMORY } from "../config";
 import * as FunctionNames from "../FunctionNames";
+import { initLogging, consoleCount, consoleLog } from "./logging";
 
 declare var __FUNCTION_NAMES__,
   __OPERATION_TYPES__,
@@ -28,10 +29,11 @@ declare var __FUNCTION_NAMES__,
 
   let knownValues = new KnownValues();
 
+  initLogging(knownValues);
+
   // Make sure to use native methods in case browser methods get
   // overwritten (e.g. NewRelic instrumentation does it)
   let fetch = knownValues.getValue("fetch");
-  let then = knownValues.getValue("Promise.prototype.then");
 
   // const startTime = new Date();
   // setTimeout(checkDone, 200);
@@ -39,13 +41,13 @@ declare var __FUNCTION_NAMES__,
   //   const done = document.querySelector(".todo-list li");
   //   if (done) {
   //     const doneTime = new Date();
-  //     console.log("#####################################");
-  //     console.log("#####################################");
-  //     console.log("#####################################");
-  //     console.log("#####################################");
-  //     console.log("#####################################");
-  //     console.log("#####################################");
-  //     console.log(
+  //     consoleLog("#####################################");
+  //     consoleLog("#####################################");
+  //     consoleLog("#####################################");
+  //     consoleLog("#####################################");
+  //     consoleLog("#####################################");
+  //     consoleLog("#####################################");
+  //     consoleLog(
   //       "DONE",
   //       "timeTaken: " + (doneTime.valueOf() - startTime.valueOf()) / 1000 + "s"
   //     );
@@ -55,12 +57,17 @@ declare var __FUNCTION_NAMES__,
   //   }
   // }
 
-  function postToBE(endpoint, data, statsCallback = function(size) {}) {
+  function postToBE(
+    endpoint,
+    data,
+    statsCallback = function(size) {},
+    logFn = consoleLog /* log fn arg because this can run in both normal page and web worker*/
+  ) {
     const stringifyStart = new Date();
     const body = JSON.stringify(data);
     const stringifyEnd = new Date();
     if (endpoint === "/storeLogs") {
-      console.log(
+      logFn(
         "Saving logs: ",
         data.logs.length,
         "Size: ",
@@ -106,6 +113,8 @@ declare var __FUNCTION_NAMES__,
           });
         } else if (e.data.showDoneMessage) {
           const perfInfo = self["perfStats"];
+          // note: console.log is fine here because we're inside the web worker
+          // which doesn't contain inspected page code overwriting console.log
           console.log("DONE", {
             totalLogCount: perfInfo.totalLogCount / 1000 + "k",
             logDataSent: perfInfo.logDataBytesSent / 1024 / 1024 + "mb"
@@ -148,7 +157,7 @@ declare var __FUNCTION_NAMES__,
       // Creating the json and making the request in the main thread is super slow!
       worker.postMessage(data);
     } else {
-      console.log(
+      consoleLog(
         "Can't create worker (maybe already inside a web worker?), will send request in normal thread"
       );
       postToBE("/storeLogs", data);
@@ -230,7 +239,7 @@ declare var __FUNCTION_NAMES__,
       // TODO: return some kind of tracking value here ("untracked argument")
       // ideally also include a loc
       if (VERIFY) {
-        console.log("no arg tracking info...");
+        consoleLog("no arg tracking info...");
       }
       return undefined;
     }
@@ -268,7 +277,7 @@ declare var __FUNCTION_NAMES__,
       logId = value;
     } else if (value instanceof Node) {
       const mapping = getHtmlNodeOperationLogMapping(value);
-      console.log({ mapping });
+      consoleLog({ mapping });
       postToBE("/inspectDOM", { ...mapping, charIndex });
     } else {
       if (charIndex) {
@@ -285,7 +294,7 @@ declare var __FUNCTION_NAMES__,
     if (VERIFY) {
       try {
         if (parseFloat(propName) > 200) {
-          console.log(
+          consoleLog(
             "tracking array index greater than 200...1) perf issue, 2) possibly some kind of infinite loop"
           );
         }
@@ -310,10 +319,8 @@ declare var __FUNCTION_NAMES__,
     propertyNameTrackingValue = null
   ) {
     if (!propertyNameTrackingValue && VERIFY) {
-      // debugger;
-      console.count("no propertyNameTrackingValue");
+      consoleCount("no propertyNameTrackingValue");
     }
-    // console.log("trackObjectPropertyAssignment", obj, propName, trackingValue)
     var objectPropertyTrackingInfo = objTrackingMap.get(obj);
     if (!objectPropertyTrackingInfo) {
       objectPropertyTrackingInfo = {};
@@ -380,7 +387,6 @@ declare var __FUNCTION_NAMES__,
 
   const memoValues = {};
   global[functionNames.setMemoValue] = function(key, value, trackingValue) {
-    // console.log("setmemovalue", value)
     memoValues[key] = { value, trackingValue };
     setLastOpTrackingResult(trackingValue);
     validateTrackingValue(trackingValue);

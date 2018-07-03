@@ -108,7 +108,6 @@ export default function initDomInspectionUI() {
   if (global["document"]) {
     const interval = setInterval(function() {
       // Wait for HTML body
-      console.log(global["document"]["body"]);
       if (global["document"]["body"]) {
         clearInterval(interval);
         init();

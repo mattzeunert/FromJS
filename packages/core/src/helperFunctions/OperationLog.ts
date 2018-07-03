@@ -2,6 +2,7 @@ import KnownValues from "./KnownValues";
 import { VERIFY } from "../config";
 import operations from "../operations";
 import invokeIfFunction from "../invokeIfFunction";
+import { consoleLog } from "./logging";
 
 var global = Function("return this")();
 
@@ -207,7 +208,7 @@ OperationLog.createAtRuntime = function(
   knownValues
 ): OperationLogInterface {
   if (VERIFY && !loc) {
-    console.log("no loc at runtime for operation", operation);
+    consoleLog("no loc at runtime for operation", operation);
   }
   const op = operations[operation];
 

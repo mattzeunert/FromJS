@@ -17,6 +17,7 @@ import traverseStringConcat from "../traverseStringConcat";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import addElOrigin from "./domHelpers/addElOrigin";
 import * as MemoValueNames from "../MemoValueNames";
+import { consoleLog } from "../helperFunctions/logging";
 
 export default <any>{
   argNames: log => {
@@ -140,7 +141,7 @@ export default <any>{
             });
           }
         } else {
-          console.log("do i need to handle this? can this even happen?");
+          consoleLog("do i need to handle this? can this even happen?");
         }
       }
     } else if (assignmentType === "Identifier") {
