@@ -67,7 +67,7 @@ interface Operations {
     exec?: any;
     // Sometimes (e.g. for string literals) we know the op result
     // at compile time and can look it up for analysis later
-    canInferResult?: boolean | ((args: any) => boolean);
+    canInferResult?: boolean | ((args: any, extraArgs: any) => boolean);
     getArgumentsArray?: any;
     shorthand?: Shorthand;
     traverse?: (
@@ -81,6 +81,10 @@ interface Operations {
 const operations: Operations = {
   memberExpression: {
     argNames: ["object", "propName"],
+    canInferResult: function(args, extraArgs) {
+      // identifier will always return same value as var value
+      return !!extraArgs.propertyValue;
+    },
     shorthand: {
       fnName: "__mEx",
       getExec: doOperation => {

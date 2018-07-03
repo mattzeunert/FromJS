@@ -166,10 +166,13 @@ export class LogServer {
       };
 
       if (log._result === undefined) {
+        // TODO: move this to operations.ts
         if (log.operation === "identifier") {
           tryGetResult(log.args.value);
         } else if (log.operation === "returnStatement") {
           tryGetResult(log.args.returnValue);
+        } else if (log.operation === "memberExpression") {
+          tryGetResult(log.extraArgs.propertyValue);
         } else {
           throw "no res... possibly because of MINIMIZA_LOG_DATA";
         }

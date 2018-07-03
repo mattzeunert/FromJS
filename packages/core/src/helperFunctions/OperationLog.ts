@@ -267,7 +267,7 @@ OperationLog.createAtRuntime = function(
     if (typeof opCanInfer === "boolean") {
       canInfer = opCanInfer;
     } else if (typeof opCanInfer === "function" && args) {
-      canInfer = opCanInfer(args);
+      canInfer = opCanInfer(args, extraArgs);
     }
   }
   if (canInfer) {
