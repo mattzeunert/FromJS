@@ -1,5 +1,5 @@
 import KnownValues from "./KnownValues";
-import { VERIFY } from "../config";
+import { VERIFY, MINIMIZE_LOG_DATA_SIZE } from "../config";
 import operations from "../operations";
 import invokeIfFunction from "../invokeIfFunction";
 import { consoleLog } from "./logging";
@@ -261,8 +261,17 @@ OperationLog.createAtRuntime = function(
   }
 
   let _result;
-  if (op && op.canInferResult) {
-    // args can be inferred on BE by checking the AST loc data
+  let canInfer = false;
+  if (MINIMIZE_LOG_DATA_SIZE) {
+    let opCanInfer = op && op.canInferResult;
+    if (typeof opCanInfer === "boolean") {
+      canInfer = opCanInfer;
+    } else if (typeof opCanInfer === "function" && args) {
+      canInfer = opCanInfer(args);
+    }
+  }
+  if (canInfer) {
+    // args can be inferred on BE by checking the AST loc data, or by checking argument values
   } else {
     _result = serializeValue(result, knownValues);
   }

@@ -67,7 +67,7 @@ interface Operations {
     exec?: any;
     // Sometimes (e.g. for string literals) we know the op result
     // at compile time and can look it up for analysis later
-    canInferResult?: boolean;
+    canInferResult?: boolean | ((args: any) => boolean);
     getArgumentsArray?: any;
     shorthand?: Shorthand;
     traverse?: (
@@ -460,6 +460,10 @@ const operations: Operations = {
   },
   identifier: {
     argNames: ["value"],
+    canInferResult: function(args) {
+      // identifier will always return same value as var value
+      return !!args[0];
+    },
     shorthand: {
       fnName: "__ident",
       getExec: doOperation => {

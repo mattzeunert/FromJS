@@ -164,7 +164,7 @@ class StackFrameResolver {
         this._nonProxyGps
           .pinpoint(frameObject)
           .then(pinpointedFrameObject => {
-            this._nonProxyGps
+            return this._nonProxyGps
               ._get(frameObject.fileName)
               .then(unSourcemappedCode => {
                 let smUrl = _findSourceMappingURL(unSourcemappedCode);
@@ -175,21 +175,20 @@ class StackFrameResolver {
                     .join("/");
                   smUrl = basePath + "/" + smUrl;
                 }
+                return this._nonProxyGps.sourceMapConsumerCache[smUrl].then(
+                  function(smConsumer) {
+                    const sourcesIndex = smConsumer.sources.indexOf(
+                      pinpointedFrameObject.fileName
+                    );
+                    const code = smConsumer.sourcesContent[sourcesIndex];
 
-                this._nonProxyGps.sourceMapConsumerCache[smUrl].then(function(
-                  smConsumer
-                ) {
-                  const sourcesIndex = smConsumer.sources.indexOf(
-                    pinpointedFrameObject.fileName
-                  );
-                  const code = smConsumer.sourcesContent[sourcesIndex];
-
-                  pinpointedFrameObject.code = getSourceCodeObject(
-                    pinpointedFrameObject,
-                    code
-                  );
-                  resolve(pinpointedFrameObject);
-                });
+                    pinpointedFrameObject.code = getSourceCodeObject(
+                      pinpointedFrameObject,
+                      code
+                    );
+                    resolve(pinpointedFrameObject);
+                  }
+                );
               });
           })
           .catch(err => {

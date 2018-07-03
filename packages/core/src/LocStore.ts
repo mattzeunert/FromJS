@@ -31,7 +31,7 @@ export class LocStore {
         console.log(err);
         return;
       }
-      callback(JSON.parse(value));
+      callback(JSON.parse(value.toString()));
     });
   }
 }

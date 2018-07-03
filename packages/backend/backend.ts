@@ -50,7 +50,7 @@ function ensureDirectoriesExist(options: BackendOptions) {
   });
 }
 
-const LOG_PERF = false;
+const LOG_PERF = true;
 const DELETE_EXISTING_LOGS_AT_START = false;
 
 export default class Backend {
@@ -407,6 +407,9 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
     const finishRequest = async function finishRequest() {
       let steps;
       try {
+        if (LOG_PERF) {
+          console.time("Traverse " + logId);
+        }
         steps = await traverse(
           {
             operationLog: logId,
@@ -415,6 +418,9 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
           [],
           logServer
         );
+        if (LOG_PERF) {
+          console.timeEnd("Traverse " + logId);
+        }
       } catch (err) {
         res.status(500);
         res.end(

@@ -1,6 +1,9 @@
 import operations, { eachArgument } from "../operations";
 import invokeIfFunction from "../invokeIfFunction";
 import { LocStore } from "../LocStore";
+import { MINIMIZE_LOG_DATA_SIZE } from "../config";
+import OperationLog from "../helperFunctions/OperationLog";
+
 export class LogServer {
   _locStore: LocStore;
   constructor(locStore) {
@@ -45,58 +48,44 @@ export class LogServer {
       }
 
       this._loadDataFromLoc(log).then(() => {
-        if (Array.isArray(log.args)) {
-          const args = log.args;
-          const op = operations[log.operation];
-
-          let argNames = invokeIfFunction(op.argNames, [log]);
-          let argIsArray = invokeIfFunction(op.argIsArray, [log]);
-
-          const newArgs = {}; // todo: don't do this here, do this when looking up the log on BE
-          argNames.forEach((argName, i) => {
-            const isArray = argIsArray && argIsArray[i];
-            if (isArray) {
-              args[i].forEach((arrayArg, argIndex) => {
-                newArgs[argName + argIndex] = arrayArg;
-              });
-            } else {
-              newArgs[argName] = args[i];
-            }
-          });
-          log.args = newArgs;
-        }
-
-        if (currentDepth < maxDepth) {
-          updateEachOperationArgument(
-            log,
-            (log, update) => {
-              if (!log) {
-                update(log);
-              } else {
-                this.loadLog(
-                  log,
-                  (err, l) => {
-                    if (err) {
-                      fn(err);
-                      return;
-                    }
-                    update(l);
-                  },
-                  maxDepth,
-                  currentDepth + 1
-                );
-              }
-            },
-            () => fn(null, log)
-          );
-        } else {
-          fn(null, log);
-        }
+        this._resolveLogArrayArgs(log);
+        this._loadDataFromArguments(log).then(() => {
+          if (currentDepth < maxDepth) {
+            updateEachOperationArgument(
+              log,
+              (log, update) => {
+                if (!log) {
+                  update(log);
+                } else {
+                  this.loadLog(
+                    log,
+                    (err, l) => {
+                      if (err) {
+                        fn(err);
+                        return;
+                      }
+                      update(l);
+                    },
+                    maxDepth,
+                    currentDepth + 1
+                  );
+                }
+              },
+              () => fn(null, log)
+            );
+          } else {
+            fn(null, log);
+          }
+        });
       });
     });
   }
-  _loadDataFromLoc(log) {
+
+  _loadDataFromLoc(log: OperationLog) {
     return new Promise(resolve => {
+      if (!MINIMIZE_LOG_DATA_SIZE) {
+        resolve();
+      }
       if (log.operation === "stringLiteral") {
         this._locStore.getLoc(log.loc, loc => {
           log._result = loc.value;
@@ -107,6 +96,83 @@ export class LogServer {
       }
     });
   }
+
+  _resolveLogArrayArgs(log) {
+    if (Array.isArray(log.args)) {
+      const args = log.args;
+      const op = operations[log.operation];
+
+      let argNames = invokeIfFunction(op.argNames, [log]);
+      let argIsArray = invokeIfFunction(op.argIsArray, [log]);
+
+      const newArgs = {}; // todo: don't do this here, do this when looking up the log on BE
+      argNames.forEach((argName, i) => {
+        const isArray = argIsArray && argIsArray[i];
+        if (isArray) {
+          args[i].forEach((arrayArg, argIndex) => {
+            newArgs[argName + argIndex] = arrayArg;
+          });
+        } else {
+          newArgs[argName] = args[i];
+        }
+      });
+      log.args = newArgs;
+    }
+  }
+
+  _loadDataFromArguments(log) {
+    return new Promise(resolve => {
+      if (log._result === undefined) {
+        this._getLogResult(log).then(res => {
+          log._result = res;
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    });
+  }
+
+  _getLogAndLoadLocData(logIndex, cb) {
+    this.getLog(logIndex, (err, log) => {
+      if (err) {
+        cb(err);
+      } else {
+        this._loadDataFromLoc(log).then(() => {
+          this._resolveLogArrayArgs(log);
+          cb(null, log);
+        });
+      }
+    });
+  }
+
+  _getLogResult(log) {
+    return new Promise(resolve => {
+      if (log._result === undefined) {
+        if (log.operation === "identifier") {
+          // notes:
+          // - we can't use getLog because the parent operation could also be an identifier
+          // - we can't use loadlog because it will possibly load the current log again somewhere
+          // in the history (not sure if that's possible, but i was getting some kind of inifinite loop)
+          this._getLogAndLoadLocData(log.args.value, (err, parentLog) => {
+            if (err) {
+              throw err;
+            }
+            if (parentLog._result === undefined) {
+              this._getLogResult(parentLog).then(resolve);
+            } else {
+              resolve(parentLog._result);
+            }
+          });
+        } else {
+          throw "no res";
+        }
+      } else {
+        resolve(log._result);
+      }
+    });
+  }
+
   async loadLogAwaitable(log, maxDepth) {
     return new Promise((resolve, reject) => {
       this.loadLog(

@@ -16,7 +16,9 @@ export async function traverse(
     let { operationLog, charIndex } = step;
 
     try {
+      console.time("loadlog");
       operationLog = await server.loadLogAwaitable(operationLog, 5);
+      console.timeEnd("loadlog");
     } catch (err) {
       reject(err);
     }
