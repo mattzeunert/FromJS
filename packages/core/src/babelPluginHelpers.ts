@@ -308,3 +308,7 @@ export const safelyGetVariableTrackingValue = (identifierName, scope) => {
     return trackingIdentifierIfExists(identifierName);
   }
 };
+
+export const getGetGlobalCall = () => {
+  return ignoredCallExpression(FunctionNames.getGlobal, []);
+};

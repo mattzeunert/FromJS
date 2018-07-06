@@ -170,6 +170,10 @@ if (KEEP_LOGS_IN_MEMORY) {
   };
 }
 
+global[FunctionNames.getGlobal] = function() {
+  return global;
+};
+
 var argTrackingInfo = null;
 
 global[FunctionNames.getFunctionArgTrackingInfo] = function getArgTrackingInfo(

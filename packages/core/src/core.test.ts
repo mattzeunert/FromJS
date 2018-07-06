@@ -92,6 +92,15 @@ describe("delete expression", () => {
 
     expect(normal).toBe(true);
   });
+  test("Doesn't break deleting from global scope", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      abcd = "abcd";
+      delete abcd;
+      return global.abcd
+    `);
+
+    expect(normal).toBe(undefined);
+  });
 });
 
 describe("UnaryExpression", () => {

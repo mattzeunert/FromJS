@@ -19,7 +19,8 @@ import {
   initForBabel as initForBabelPH,
   getTrackingIdentifier,
   safelyGetVariableTrackingValue,
-  addLoc
+  addLoc,
+  getGetGlobalCall
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import { ExecContext } from "./helperFunctions/ExecContext";
@@ -382,16 +383,29 @@ const operations: Operations = {
         };
       } else if (path.node.operator === "delete") {
         let propName;
-        if (path.node.argument.computed === true) {
-          propName = path.node.argument.property;
+        const arg = path.node.argument;
+        let object;
+        if (arg.type === "MemberExpression") {
+          object = arg.object;
+          if (arg.computed === true) {
+            propName = arg.property;
+          } else {
+            propName = addLoc(
+              this.t.stringLiteral(arg.property.name),
+              arg.property.loc
+            );
+          }
+        } else if (arg.type === "Identifier") {
+          // Deleting a global like this: delete someGlobal
+          propName = addLoc(ignoredStringLiteral(arg.name), arg.loc);
+          object = getGetGlobalCall();
         } else {
-          propName = addLoc(
-            this.t.stringLiteral(path.node.argument.property.name),
-            path.node.argument.property.loc
-          );
+          console.log("unknown delete argument type: " + arg.type);
+          return;
         }
+
         args = {
-          object: [path.node.argument.object, null],
+          object: [object, null],
           propName: [propName, null]
         };
       } else {
