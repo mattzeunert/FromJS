@@ -198,11 +198,16 @@ describe("E2E", () => {
       expect(res.operationLog.result.primitive).toBe("createComment");
 
       // setAttribute
-      res = await inspectDomCharAndTraverse(html.indexOf("setAttribute"));
+      const spanHtml = '<span attr="setAttribute">abc<b>innerHTML</b></span>';
+      // Calculate indices withhin because attr="setAttribute" is also used by cloned node later on
+      const spanIndex = html.indexOf(spanHtml);
+      const attrNameIndex = spanIndex + spanHtml.indexOf("attr=");
+      const attrValueIndex = spanIndex + spanHtml.indexOf("setAttribute");
+      res = await inspectDomCharAndTraverse(attrValueIndex);
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("setAttribute");
 
-      res = await inspectDomCharAndTraverse(html.indexOf("attr="));
+      res = await inspectDomCharAndTraverse(attrNameIndex);
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("attr");
 
@@ -233,6 +238,32 @@ describe("E2E", () => {
       res = await inspectDomCharAndTraverse(html.indexOf("textContent"));
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("textContent");
+
+      // cloneNode
+      const clonedSpanHtml =
+        '<span attr="setAttribute">cloneNode<!--createComment-->createTextNode</span>';
+      const clonedSpanIndex = html.indexOf(clonedSpanHtml);
+      const clonedSpanAttributeIndex =
+        clonedSpanIndex + clonedSpanHtml.indexOf("attr=");
+      const clonedTextIndex =
+        clonedSpanIndex + clonedSpanHtml.indexOf("createTextNode");
+      const clonedCommentIndex =
+        clonedSpanIndex + clonedSpanHtml.indexOf("createComment");
+      res = await inspectDomCharAndTraverse(clonedSpanIndex);
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("span");
+
+      res = await inspectDomCharAndTraverse(clonedSpanAttributeIndex);
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("attr");
+
+      res = await inspectDomCharAndTraverse(clonedTextIndex);
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("createTextNode");
+
+      res = await inspectDomCharAndTraverse(clonedCommentIndex);
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("createComment");
 
       await page.close();
     },

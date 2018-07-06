@@ -19,6 +19,12 @@ app.appendChild(comment);
 const textNode = document.createTextNode("createTextNode");
 app.appendChild(textNode);
 
+const clonedSpan = span.cloneNode();
+clonedSpan.innerHTML = "cloneNode";
+clonedSpan.appendChild(comment.cloneNode());
+clonedSpan.appendChild(textNode.cloneNode());
+app.appendChild(clonedSpan);
+
 app.insertAdjacentHTML(
   "afterbegin",
   "<div>insertAdjacentHTML1</div><div>insertAdjacentHTML2</div>"

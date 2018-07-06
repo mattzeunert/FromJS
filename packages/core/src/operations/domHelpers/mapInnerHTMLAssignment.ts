@@ -1,4 +1,7 @@
-import addElOrigin from "./addElOrigin";
+import addElOrigin, {
+  addElAttributeValueOrigin,
+  addElAttributeNameOrigin
+} from "./addElOrigin";
 import { normalizeHtml, normalizeHtmlAttribute } from "./normalize";
 import { consoleWarn } from "../../helperFunctions/logging";
 
@@ -338,7 +341,7 @@ export default function mapInnerHTMLAssignment(
             offsetAtCharIndex.push(lastOffset); // map the "'" after the attribute value
           }
 
-          addElOrigin(child, "attribute_" + attr.name + "_name", {
+          addElAttributeNameOrigin(child, attr.name, {
             action: actionName,
             trackingValue: assignedInnerHTML[1],
             value: serializedHtml,
@@ -348,7 +351,7 @@ export default function mapInnerHTMLAssignment(
             error: error
           });
 
-          addElOrigin(child, "attribute_" + attr.name + "_value", {
+          addElAttributeValueOrigin(child, attr.name, {
             action: actionName,
             trackingValue: assignedInnerHTML[1],
             value: serializedHtml,
@@ -366,8 +369,6 @@ export default function mapInnerHTMLAssignment(
             whitespaceBeforeAttributeInSerializedHtml.length + attrStr.length;
           forDebuggingProcessedHtml +=
             whitespaceBeforeAttributeInSerializedHtml + attrStr;
-
-          var attrPropName = "attribute_" + attr.name;
         }
 
         var openingTagEnd = ">";

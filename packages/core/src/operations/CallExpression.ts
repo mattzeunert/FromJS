@@ -10,14 +10,22 @@ import HtmlToOperationLogMapping from "../helperFunctions/HtmlToOperationLogMapp
 import * as OperationTypes from "../OperationTypes";
 import { ExecContext } from "../helperFunctions/ExecContext";
 import addElOrigin, {
-  addOriginInfoToCreatedElement
+  addOriginInfoToCreatedElement,
+  addElAttributeNameOrigin,
+  addElAttributeValueOrigin,
+  getElAttributeNameOrigin,
+  getElAttributeValueOrigin
 } from "./domHelpers/addElOrigin";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import { VERIFY } from "../config";
 import { doOperation, getLastMemberExpressionObject } from "../FunctionNames";
 import OperationLog from "../helperFunctions/OperationLog";
 import * as cloneRegExp from "clone-regexp";
-import { consoleLog, consoleError } from "../helperFunctions/logging";
+import {
+  consoleLog,
+  consoleError,
+  consoleWarn
+} from "../helperFunctions/logging";
 import {
   regExpContainsNestedGroup,
   countGroupsInRegExp
@@ -639,13 +647,47 @@ const specialValuesForPostprocessing = {
       trackingValue: fnArgs[0]
     });
   },
+  "HTMLElement.prototype.cloneNode": ({ ret, object, fnArgs, fnArgValues }) => {
+    const sourceNode = object;
+    if (sourceNode.__elOrigin) {
+      if (sourceNode.nodeType === Node.ELEMENT_NODE) {
+        ["openingTagStart", "openingTagEnd", "closingTag"].forEach(
+          originName => {
+            if (sourceNode.__elOrigin[originName]) {
+              addElOrigin(ret, originName, sourceNode.__elOrigin[originName]);
+            }
+          }
+        );
+
+        for (var i = 0; i < sourceNode.attributes.length; i++) {
+          const attr = sourceNode.attributes[i];
+          addElAttributeNameOrigin(
+            ret,
+            attr.name,
+            getElAttributeNameOrigin(sourceNode, attr.name)
+          );
+          addElAttributeValueOrigin(
+            ret,
+            attr.name,
+            getElAttributeValueOrigin(sourceNode, attr.name)
+          );
+        }
+      } else if (sourceNode.nodeType === Node.TEXT_NODE) {
+        addElOrigin(ret, "textValue", sourceNode.__elOrigin.textValue);
+      } else if (sourceNode.nodeType === Node.COMMENT_NODE) {
+        addElOrigin(ret, "textValue", sourceNode.__elOrigin.textValue);
+      } else {
+        consoleWarn("unhandled cloneNode");
+      }
+    }
+  },
   "HTMLElement.prototype.setAttribute": ({ object, fnArgs, fnArgValues }) => {
     const [attrNameArg, attrValueArg] = fnArgs;
     let attrName = fnArgValues[0];
-    addElOrigin(object, "attribute_" + attrName + "_name", {
+    addElAttributeNameOrigin(object, attrName, {
       trackingValue: attrNameArg
     });
-    addElOrigin(object, "attribute_" + attrName + "_value", {
+    addElAttributeValueOrigin(object, attrName, {
       trackingValue: attrValueArg
     });
   },

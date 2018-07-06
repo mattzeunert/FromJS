@@ -57,6 +57,10 @@ export function addOriginInfoToCreatedElement(
   tagNameTrackingValue,
   action
 ) {
+  if (typeof tagNameTrackingValue !== "number") {
+    debugger;
+    throw Error("tag name tracking value should be number");
+  }
   const origin = {
     trackingValue: tagNameTrackingValue,
     value: el.tagName,
@@ -65,4 +69,18 @@ export function addOriginInfoToCreatedElement(
   addElOrigin(el, "openingTagStart", origin);
   addElOrigin(el, "openingTagEnd", origin);
   addElOrigin(el, "closingTag", origin);
+}
+
+export function addElAttributeNameOrigin(el, attrName, origin) {
+  addElOrigin(el, "attribute_" + attrName + "_name", origin);
+}
+export function addElAttributeValueOrigin(el, attrName, origin) {
+  addElOrigin(el, "attribute_" + attrName + "_value", origin);
+}
+
+export function getElAttributeNameOrigin(el, attrName) {
+  return el.__elOrigin["attribute_" + attrName + "_name"];
+}
+export function getElAttributeValueOrigin(el, attrName) {
+  return el.__elOrigin["attribute_" + attrName + "_value"];
 }
