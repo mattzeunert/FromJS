@@ -24,7 +24,7 @@ interface InstrumentAndRunResult {
   normal?: any;
 }
 
-export function instrumentAndRun(code) {
+export function instrumentAndRun(code, outsideArgs = {}) {
   return new Promise<InstrumentAndRunResult>(resolve => {
     code = `getTrackingAndNormalValue((function(){ ${code} })())`;
 

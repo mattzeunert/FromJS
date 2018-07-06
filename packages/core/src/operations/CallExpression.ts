@@ -18,11 +18,10 @@ import { doOperation, getLastMemberExpressionObject } from "../FunctionNames";
 import OperationLog from "../helperFunctions/OperationLog";
 import * as cloneRegExp from "clone-regexp";
 import { consoleLog, consoleError } from "../helperFunctions/logging";
-
-function countGroupsInRegExp(re) {
-  // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
-  return new RegExp(re.toString() + "|").exec("")!.length;
-}
+import {
+  regExpContainsNestedGroup,
+  countGroupsInRegExp
+} from "../regExpHelpers";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -235,7 +234,11 @@ const specialValuesForPostprocessing = {
         // cut down match against which we do indexOf(), since we know
         // a single location can't get double matched
         // (maybe it could with nested regexp groups but let's not worry about that for now)
-        let charsToRemove = indexOffset + matchString.length;
+        let charsToRemove = 0;
+        if (!regExpContainsNestedGroup(regExp)) {
+          // nested groups means there can be repetition
+          charsToRemove = indexOffset + matchString.length;
+        }
         charsRemovedFromFullMatch += charsToRemove;
         fullMatchRemaining = fullMatchRemaining.slice(charsToRemove);
       }
@@ -1083,6 +1086,7 @@ const CallExpression = <any>{
 
         const lastReturnStatementResultBeforeCall =
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+
         ret = fn.apply(object, fnArgValuesForApply);
         ctx.argTrackingInfo = null;
         const lastReturnStatementResultAfterCall =
