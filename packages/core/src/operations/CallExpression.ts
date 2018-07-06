@@ -222,6 +222,10 @@ const specialValuesForPostprocessing = {
 
       for (var i = 1; i < matches[0].length; i++) {
         let matchString = matches[0][i];
+        if (matchString === undefined) {
+          newMatches.push(undefined);
+          continue;
+        }
         // This can be inaccurate but better than nothing
         let indexOffset = fullMatchRemaining.indexOf(matchString);
         if (indexOffset === -1) {
@@ -245,9 +249,12 @@ const specialValuesForPostprocessing = {
       matches = newMatches;
     }
 
+    if (matches.length < ret.length) {
+      debugger;
+    }
     ret.forEach((item, i) => {
-      if (!matches[i]) {
-        debugger;
+      if (matches[i] === undefined) {
+        return;
       }
       ctx.trackObjectPropertyAssignment(
         ret,
