@@ -667,16 +667,17 @@ const specialValuesForPostprocessing = {
 
           for (var i = 0; i < sourceNode.attributes.length; i++) {
             const attr = sourceNode.attributes[i];
-            addElAttributeNameOrigin(
-              cloneResult,
-              attr.name,
-              getElAttributeNameOrigin(sourceNode, attr.name)
+            const nameOrigin = getElAttributeNameOrigin(sourceNode, attr.name);
+            const valueOrigin = getElAttributeValueOrigin(
+              sourceNode,
+              attr.name
             );
-            addElAttributeValueOrigin(
-              cloneResult,
-              attr.name,
-              getElAttributeValueOrigin(sourceNode, attr.name)
-            );
+            if (nameOrigin) {
+              addElAttributeNameOrigin(cloneResult, attr.name, nameOrigin);
+            }
+            if (valueOrigin) {
+              addElAttributeValueOrigin(cloneResult, attr.name, valueOrigin);
+            }
           }
         } else if (sourceNode.nodeType === Node.TEXT_NODE) {
           addElOrigin(
