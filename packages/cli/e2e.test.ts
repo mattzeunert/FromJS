@@ -73,7 +73,13 @@ function traverse(firstStep) {
 }
 
 async function inspectDomCharAndTraverse(charIndex) {
+  if (charIndex === -1) {
+    throw Error("char index is -1");
+  }
   const firstStep = await inspectDomChar(charIndex);
+  if (typeof firstStep === "string") {
+    throw Error("Seems like no tracking data ");
+  }
   const steps = (await traverse(firstStep))["steps"];
   const lastStep = steps[steps.length - 1];
   return {
@@ -241,7 +247,7 @@ describe("E2E", () => {
 
       // cloneNode
       const clonedSpanHtml =
-        '<span attr="setAttribute">cloneNode<!--createComment-->createTextNode</span>';
+        '<span attr="setAttribute">cloneNode<!--createComment-->createTextNode<div><div>deepClonedContent</div></div></span>';
       const clonedSpanIndex = html.indexOf(clonedSpanHtml);
       const clonedSpanAttributeIndex =
         clonedSpanIndex + clonedSpanHtml.indexOf("attr=");
@@ -249,6 +255,9 @@ describe("E2E", () => {
         clonedSpanIndex + clonedSpanHtml.indexOf("createTextNode");
       const clonedCommentIndex =
         clonedSpanIndex + clonedSpanHtml.indexOf("createComment");
+      const deepClonedContentIndex =
+        clonedSpanIndex + clonedSpanHtml.indexOf("deepClonedContent");
+
       res = await inspectDomCharAndTraverse(clonedSpanIndex);
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("span");
@@ -264,6 +273,12 @@ describe("E2E", () => {
       res = await inspectDomCharAndTraverse(clonedCommentIndex);
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("createComment");
+
+      res = await inspectDomCharAndTraverse(deepClonedContentIndex);
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe(
+        "<div>deepClonedContent</div>"
+      );
 
       await page.close();
     },
