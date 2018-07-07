@@ -19,6 +19,10 @@ app.appendChild(comment);
 const textNode = document.createTextNode("createTextNode");
 app.appendChild(textNode);
 
+const textNodeWithTextAssignment = document.createTextNode("");
+textNodeWithTextAssignment.nodeValue = "nodeNodeValueAssignment";
+app.appendChild(textNodeWithTextAssignment);
+
 const nodeForDeepCloning = document.createElement("div");
 nodeForDeepCloning.innerHTML = "<div>deepClonedContent</div>";
 const clonedSpan = span.cloneNode();

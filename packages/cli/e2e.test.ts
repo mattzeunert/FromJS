@@ -294,6 +294,14 @@ describe("E2E", () => {
         "<div>deepClonedContent</div>"
       );
 
+      // .text or .textContent on a text node
+      console.log(html);
+      res = await inspectDomCharAndTraverse(
+        html.indexOf("nodeNodeValueAssignment")
+      );
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("nodeNodeValueAssignment");
+
       await page.close();
     },
     30000

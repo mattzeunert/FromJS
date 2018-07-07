@@ -124,13 +124,15 @@ export default <any>{
         propNameT
       );
 
-      const objIsHTMLElement =
-        typeof HTMLElement !== "undefined" && obj instanceof HTMLElement;
-      if (objIsHTMLElement && propName === "innerHTML") {
+      const objIsHTMLNode = typeof Node !== "undefined" && obj instanceof Node;
+      if (objIsHTMLNode && propName === "innerHTML") {
         mapInnerHTMLAssignment(obj, argumentArg, "assignInnerHTML", 0);
-      } else if (objIsHTMLElement && propName === "textContent") {
+      } else if (
+        objIsHTMLNode &&
+        ["text", "textContent", "nodeValue"].includes(propName)
+      ) {
         if (obj.nodeType === Node.TEXT_NODE) {
-          addElOrigin(obj, "textContent", {
+          addElOrigin(obj, "textValue", {
             trackingValue: argumentArg[1]
           });
         } else if (obj.nodeType === Node.ELEMENT_NODE) {
@@ -153,6 +155,7 @@ export default <any>{
     return ret;
   },
   traverse(operationLog, charIndex) {
+    debugger;
     const { operator } = operationLog.astArgs;
     if (operator === "=") {
       return {

@@ -126,6 +126,8 @@ const operations: Operations = {
         const elOrigin =
           object.childNodes[0] && object.childNodes[0]["__elOrigin"];
         if (elOrigin && elOrigin.textValue) {
+          // TODO: this trackingvalue should really be created when doing the el origin
+          // mapping logic...
           trackingValue = ctx.createOperationLog({
             operation: OperationTypes.htmlAdapter,
             runtimeArgs: elOrigin.textValue,
