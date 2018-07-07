@@ -203,6 +203,11 @@ describe("E2E", () => {
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("createComment");
 
+      // Initial page html
+      res = await inspectDomCharAndTraverse(html.indexOf("InitialPageHtml"));
+      expect(res.operationLog.operation).toBe("initialPageHtml");
+      expect(res.operationLog.result.primitive).toContain(`<div id="app"`);
+
       // setAttribute
       const spanHtml = '<span attr="setAttribute">abc<b>innerHTML</b></span>';
       // Calculate indices withhin because attr="setAttribute" is also used by cloned node later on

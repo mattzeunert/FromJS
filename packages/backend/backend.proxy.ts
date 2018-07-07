@@ -56,8 +56,14 @@ startProxy({
     return port !== bePort || path.startsWith("/start");
   },
   rewriteHtml: html => {
+    // Not using an HTML parser because it's easy (espcially getting the indices), but
+    // it's also less accurate
+
     return (
-      `<script src="http://localhost:${bePort}/jsFiles/babel-standalone.js"></script>
+      `<script>window.__fromJSInitialPageHtml = decodeURI("${encodeURI(
+        html
+      )}")</script>
+      <script src="http://localhost:${bePort}/jsFiles/babel-standalone.js"></script>
       <script src="http://localhost:${bePort}/jsFiles/compileInBrowser.js"></script>
       ` + html
     );

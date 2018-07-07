@@ -47,7 +47,11 @@ helperCode += "/* HELPER_FUNCTIONS_END */ ";
 // I got some babel-generator "cannot read property 'type' of undefined" errors
 // when prepending the code itself, so just prepend a single eval call expression
 helperCode =
-  `var global = Function("return this")();
+  `
+  if (typeof __fromJSMaybeMapInitialPageHTML !== "undefined") {
+    __fromJSMaybeMapInitialPageHTML()
+  }
+  var global = Function("return this")();
 if (!global.__didInitializeDataFlowTracking) {` +
   "eval(`" +
   helperCode.replace(/\\/g, "\\\\").replace(/`/g, "\\`") +

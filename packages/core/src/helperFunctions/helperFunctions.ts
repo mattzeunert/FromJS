@@ -10,6 +10,7 @@ import * as FunctionNames from "../FunctionNames";
 import { initLogging, consoleCount, consoleLog } from "./logging";
 import { getStoreLogsWorker } from "./storeLogsWorker";
 import * as OperationTypes from "../OperationTypes";
+import mapInnerHTMLAssignment from "../operations/domHelpers/mapInnerHTMLAssignment";
 
 const accessToken = "ACCESS_TOKEN_PLACEHOLDER";
 
@@ -486,3 +487,43 @@ global[
   validateTrackingValue(lastOpTrackingResult);
   return lastOpTrackingResult;
 };
+
+global["__fromJSMaybeMapInitialPageHTML"] = function() {
+  if (!global["__fromJSInitialPageHtml"]) {
+    return;
+  }
+  if (global["__fromJSDidMapInitialPageHTML"]) {
+    return;
+  }
+
+  const initialPageHtml = global["__fromJSInitialPageHtml"];
+
+  if (document.body) {
+    const initialHtmlTrackingValue = createOperationLog({
+      operation: OperationTypes.initialPageHtml,
+      index: getOperationIndex(),
+      args: {},
+      result: initialPageHtml
+    });
+
+    var headEtcRemovedCharCount = initialPageHtml.indexOf("<body");
+    if (headEtcRemovedCharCount == -1) {
+      headEtcRemovedCharCount = 0;
+    }
+    var bodyEndIndex = initialPageHtml.indexOf("</body");
+    if (bodyEndIndex === -1) {
+      bodyEndIndex = initialPageHtml.length;
+    }
+
+    mapInnerHTMLAssignment(
+      document.body,
+      [initialPageHtml, initialHtmlTrackingValue],
+      "initial page html",
+      -headEtcRemovedCharCount,
+      bodyEndIndex
+    );
+    global["__fromJSDidMapInitialPageHTML"] = true;
+  }
+};
+
+global["__fromJSMaybeMapInitialPageHTML"]();

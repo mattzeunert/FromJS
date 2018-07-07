@@ -43,17 +43,19 @@ let TraversalStep = class TraversalStep extends React.Component<
     };
 
     const { step } = props;
-    resolveStackFrame(step.operationLog)
-      .then(r => {
-        // console.log("got stackframe", r);
-        this.setState({
-          stackFrame: r
-        });
-        // console.log("done resolve stack frame", r);
-        // document.querySelector("#step-code-" + i).innerHTML =
-        //   r.code.line.text;
-      })
-      .catch(err => "yolo");
+    if (step.operationLog.operation !== "initialPageHtml") {
+      resolveStackFrame(step.operationLog)
+        .then(r => {
+          // console.log("got stackframe", r);
+          this.setState({
+            stackFrame: r
+          });
+          // console.log("done resolve stack frame", r);
+          // document.querySelector("#step-code-" + i).innerHTML =
+          //   r.code.line.text;
+        })
+        .catch(err => "yolo");
+    }
   }
 
   getAllArgs() {
