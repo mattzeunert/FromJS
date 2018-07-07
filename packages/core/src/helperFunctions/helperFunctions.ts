@@ -507,6 +507,8 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
     });
 
     var headEtcRemovedCharCount = initialPageHtml.indexOf("<body");
+    headEtcRemovedCharCount +=
+      initialPageHtml.slice(headEtcRemovedCharCount).indexOf(">") + 1;
     if (headEtcRemovedCharCount == -1) {
       headEtcRemovedCharCount = 0;
     }

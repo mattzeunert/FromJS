@@ -208,6 +208,15 @@ describe("E2E", () => {
       expect(res.operationLog.operation).toBe("initialPageHtml");
       expect(res.operationLog.result.primitive).toContain(`<div id="app"`);
 
+      // Values read from script tags in initial html
+      res = await inspectDomCharAndTraverse(html.indexOf("scriptTagContent"));
+      expect(res.operationLog.operation).toBe("initialPageHtml");
+      expect(res.operationLog.result.primitive).toContain(`<div id="app"`);
+      const fullPageHtml = require("fs")
+        .readFileSync(__dirname + "/test/index.html")
+        .toString();
+      expect(res.charIndex).toBe(fullPageHtml.indexOf("scriptTagContent"));
+
       // setAttribute
       const spanHtml = '<span attr="setAttribute">abc<b>innerHTML</b></span>';
       // Calculate indices withhin because attr="setAttribute" is also used by cloned node later on

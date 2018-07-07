@@ -30,6 +30,7 @@ import ObjectExpression from "./operations/ObjectExpression";
 import AssignmentExpression from "./operations/AssignmentExpression";
 import traverseStringConcat from "./traverseStringConcat";
 import * as MemoValueNames from "./MemoValueNames";
+import { traverseDomOrigin } from "./traverseDomOrigin";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -114,6 +115,26 @@ const operations: Operations = {
         propertyName
       );
 
+      if (
+        !trackingValue &&
+        typeof HTMLScriptElement !== "undefined" &&
+        object instanceof HTMLScriptElement &&
+        ["text", "textContent", "innerHTML"].includes(propertyName)
+      ) {
+        // Handle people putting e.g. templates into script tags
+
+        const elOrigin =
+          object.childNodes[0] && object.childNodes[0]["__elOrigin"];
+        if (elOrigin && elOrigin.textValue) {
+          trackingValue = ctx.createOperationLog({
+            operation: OperationTypes.htmlAdapter,
+            runtimeArgs: elOrigin.textValue,
+            args: {
+              html: [null, elOrigin.textValue.trackingValue]
+            }
+          });
+        }
+      }
       logData.extraArgs = {
         propertyValue: [ret, trackingValue]
       };
@@ -610,6 +631,14 @@ const operations: Operations = {
   arraySlice: { traverse: identifyTraverseFunction },
   arrayConcat: {
     traverse: identifyTraverseFunction
+  },
+  htmlAdapter: {
+    traverse: (operationLog, charIndex) => {
+      return {
+        operationLog: operationLog.args.html,
+        charIndex: traverseDomOrigin(operationLog.runtimeArgs, charIndex)
+      };
+    }
   }
 };
 

@@ -33,6 +33,11 @@ app.insertAdjacentHTML(
   "<div>insertAdjacentHTML1</div><div>insertAdjacentHTML2</div>"
 );
 
+const scriptTagContent = document.querySelector("#dataTag").textContent;
+const dataDiv = document.createElement("div");
+dataDiv.innerHTML = scriptTagContent;
+app.appendChild(dataDiv);
+
 fromJSInspect(app);
 
 window.testResult = __getHtmlNodeOperationLogMapping(app);

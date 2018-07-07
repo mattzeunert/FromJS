@@ -8,6 +8,7 @@ import handleEvalScript from "./src/handleEvalScript";
 import { compileSync } from "./src/compile";
 import HtmlToOperationLogMapping from "./src/helperFunctions/HtmlToOperationLogMapping";
 import { LocStore } from "./src/LocStore";
+import { traverseDomOrigin } from "./src/traverseDomOrigin";
 
 export {
   babelPlugin,
@@ -19,5 +20,6 @@ export {
   handleEvalScript,
   compileSync,
   HtmlToOperationLogMapping,
-  LocStore
+  LocStore,
+  traverseDomOrigin
 };

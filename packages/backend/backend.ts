@@ -2,7 +2,8 @@ import {
   babelPlugin,
   LevelDBLogServer,
   HtmlToOperationLogMapping,
-  LocStore
+  LocStore,
+  traverseDomOrigin
 } from "@fromjs/core";
 import { traverse } from "./src/traverse";
 import StackFrameResolver, {
@@ -269,23 +270,10 @@ function setupUI(options, app, wss, getProxy) {
 
     const origin = mappingResult.origin;
 
-    let offset = 0;
-    if (
-      origin.offsetAtCharIndex &&
-      origin.offsetAtCharIndex[mappingResult.charIndex]
-    ) {
-      offset = origin.offsetAtCharIndex[mappingResult.charIndex];
-    }
-    let charIndex =
-      mappingResult.charIndex +
-      origin.inputValuesCharacterIndex[0] -
-      origin.extraCharsAdded +
-      offset;
-
     res.end(
       JSON.stringify({
-        logId: mappingResult.origin.trackingValue,
-        charIndex
+        logId: origin.trackingValue,
+        charIndex: traverseDomOrigin(origin, mappingResult.charIndex)
       })
     );
   });
