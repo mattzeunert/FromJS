@@ -107,7 +107,7 @@ describe("E2E", () => {
     command = spawn(__dirname + "/bin/fromjs", [
       "--port",
       backendPort.toString(),
-      "--shouldOpenBrowser",
+      "--openBrowser",
       "no",
       "--sessionDirectory",
       "/tmp/fromjs-e2e"

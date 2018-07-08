@@ -30,7 +30,7 @@ if (!maxOldSpaceSizeArg) {
     "FromJS (launched CLI process with too low memory limit)";
 } else {
   commander
-    .option("--shouldOpenBrowser <shouldOpen>", "yes|no|only", "yes")
+    .option("--openBrowser <shouldOpen>", "yes|no|only", "yes")
     .option("-p, --port <port>", "Server port", 7000)
     .option(
       "-s, --sessionDirectory <sessionDirectory>",
@@ -69,13 +69,13 @@ if (!maxOldSpaceSizeArg) {
     sessionDirectory: commander.sessionDirectory,
     disableDefaultBlockList: !!commander.disableDefaultBlockList,
     onReady: async function() {
-      if (commander.shouldOpenBrowser === "yes") {
+      if (commander.openBrowser === "yes") {
         openBrowser();
       }
     }
   });
 
-  if (commander.shouldOpenBrowser === "only") {
+  if (commander.openBrowser === "only") {
     process["titl" + "e"] = "FromJS - CLI (browser only)";
     console.log("Only opening browser with proxy port set to", proxyPort);
     openBrowser();
