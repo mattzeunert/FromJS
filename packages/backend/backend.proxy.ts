@@ -21,10 +21,17 @@ const {
   proxyPort,
   certDirectory,
   dontTrack,
-  block
+  block,
+  disableDefaultBlockList
 } = options;
 
 process.title = "FromJS - Proxy (" + proxyPort + ")";
+
+let defaultBlockList = [
+  "inspectlet.com", // does a whole bunch of stuff that really slows page execution down
+  "google-analytics.com",
+  "newrelic.com" // overwrites some native functions used directly in FromJS (shouldn't be done ideally, but for now blocking is easier)
+];
 
 startProxy({
   babelPluginOptions: {
@@ -38,6 +45,16 @@ startProxy({
   verbose: false,
   shouldBlock: ({ url }) => {
     if (block.some(dt => url.includes(dt))) {
+      return true;
+    }
+    if (
+      !disableDefaultBlockList &&
+      defaultBlockList.some(dt => url.includes(dt))
+    ) {
+      console.log(
+        url +
+          " blocked because it's on the default block list. You can disable this by passing in --disableDefaultBlockList"
+      );
       return true;
     }
     return false;

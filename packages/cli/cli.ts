@@ -49,6 +49,10 @@ if (!maxOldSpaceSizeArg) {
       list,
       []
     )
+    .option(
+      "--disableDefaultBlockList",
+      "Disable blocking JS files from analytics providers etc"
+    )
     .version(require("../package.json").version)
     .parse(process.argv);
 
@@ -63,6 +67,7 @@ if (!maxOldSpaceSizeArg) {
     dontTrack: commander.dontTrack,
     block: commander.block,
     sessionDirectory: commander.sessionDirectory,
+    disableDefaultBlockList: !!commander.disableDefaultBlockList,
     onReady: async function() {
       if (commander.shouldOpenBrowser === "yes") {
         openBrowser();
