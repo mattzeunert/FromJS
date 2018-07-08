@@ -29,6 +29,7 @@ export default function initDomInspectionUI() {
       }
     } else if (e.type === "mouseleave") {
       previewedElement = null;
+      removeHighlight("previewed");
     }
 
     e.preventDefault();
@@ -48,6 +49,10 @@ export default function initDomInspectionUI() {
     let marker = getMarkerElementFromHighlightReason(highlightReason);
 
     const color = highlightReason === "selected" ? "#236fb1" : "#3a94e2";
+    const backgroundColor =
+      highlightReason === "selected"
+        ? "rgba(35, 111, 177, .1)"
+        : "rgba(41, 132, 205, .06)";
     const zIndex = highlightReason === "selected" ? 10000001 : 10000000;
     const boxTop = rect.top + document.body.scrollTop; // note: this won't work well if inside another scrollable element
     marker.setAttribute(
@@ -65,7 +70,9 @@ export default function initDomInspectionUI() {
         rect.height +
         "px;width: " +
         rect.width +
-        "px; background: rgba(35, 111, 177, .1);"
+        "px; background: " +
+        backgroundColor +
+        ";"
     );
   }
 
