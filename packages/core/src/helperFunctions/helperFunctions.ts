@@ -499,6 +499,8 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
   const initialPageHtml = global["__fromJSInitialPageHtml"];
 
   if (document.body) {
+    // If there's not head tag these items are put in the body and would
+    // otherwise affect mapping, so remove them before we do the mapping
     document
       .querySelectorAll("[data-fromjs-remove-before-initial-html-mapping]")
       .forEach(el => el.remove());

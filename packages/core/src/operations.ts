@@ -31,6 +31,7 @@ import AssignmentExpression from "./operations/AssignmentExpression";
 import traverseStringConcat from "./traverseStringConcat";
 import * as MemoValueNames from "./MemoValueNames";
 import { traverseDomOrigin } from "./traverseDomOrigin";
+import { VERIFY } from "./config";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -548,7 +549,9 @@ const operations: Operations = {
             );
           });
         } else {
-          console.log("no tracking values for arguments object");
+          if (VERIFY) {
+            console.log("no tracking values for arguments object");
+          }
         }
       }
       return valueArg[0];
