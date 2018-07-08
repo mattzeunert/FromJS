@@ -72,20 +72,30 @@ function traverse(firstStep) {
   });
 }
 
-async function inspectDomCharAndTraverse(charIndex) {
-  if (charIndex === -1) {
-    throw Error("char index is -1");
+async function inspectDomCharAndTraverse(charIndex, isSecondTry = false) {
+  try {
+    if (charIndex === -1) {
+      throw Error("char index is -1");
+    }
+    const firstStep = await inspectDomChar(charIndex);
+    if (typeof firstStep === "string") {
+      console.log(firstStep);
+      throw Error("Seems like no tracking data ");
+    }
+    const steps = (await traverse(firstStep))["steps"];
+    const lastStep = steps[steps.length - 1];
+    return {
+      charIndex: lastStep.charIndex,
+      operationLog: new OperationLog(lastStep.operationLog)
+    };
+  } catch (err) {
+    if (isSecondTry) {
+      throw err;
+    } else {
+      await setTimeoutPromise(2000);
+      return await inspectDomCharAndTraverse(charIndex, true);
+    }
   }
-  const firstStep = await inspectDomChar(charIndex);
-  if (typeof firstStep === "string") {
-    throw Error("Seems like no tracking data ");
-  }
-  const steps = (await traverse(firstStep))["steps"];
-  const lastStep = steps[steps.length - 1];
-  return {
-    charIndex: lastStep.charIndex,
-    operationLog: new OperationLog(lastStep.operationLog)
-  };
 }
 
 describe("E2E", () => {
@@ -173,7 +183,9 @@ describe("E2E", () => {
     "Does DOM to JS tracking",
     async () => {
       const page = await createPage();
-      await page.goto("http://localhost:" + webServerPort + "/test");
+      await page.goto(
+        "http://localhost:" + webServerPort + "/tests/domTracking"
+      );
       const testResult = await (await page.waitForFunction(
         'window["testResult"]'
       )).jsonValue();
@@ -182,14 +194,8 @@ describe("E2E", () => {
 
       // createElement
 
-      let res;
-      try {
-        res = await inspectDomCharAndTraverse(html.indexOf("span"));
-      } catch (err) {
-        console.log("Looks like inspected page hasn't sent all data to BE yet");
-        await setTimeoutPromise(2000);
-        res = await inspectDomCharAndTraverse(html.indexOf("span"));
-      }
+      let res = await inspectDomCharAndTraverse(html.indexOf("span"));
+
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("span");
 
@@ -213,7 +219,7 @@ describe("E2E", () => {
       expect(res.operationLog.operation).toBe("initialPageHtml");
       expect(res.operationLog.result.primitive).toContain(`<div id="app"`);
       const fullPageHtml = require("fs")
-        .readFileSync(__dirname + "/test/index.html")
+        .readFileSync(__dirname + "/tests/domTracking/index.html")
         .toString();
       expect(res.charIndex).toBe(fullPageHtml.indexOf("scriptTagContent"));
 
@@ -343,4 +349,32 @@ describe("E2E", () => {
     },
     90000
   );
+
+  it("Doesn't try to process initial page HTML too late if no script tags in body", async () => {
+    // I had this problem because normally a script tag in the body triggers setting
+    // initialPageHtml elOrigin
+
+    const page = await createPage();
+    await page.goto(
+      "http://localhost:" + webServerPort + "/tests/bodyWithoutScriptTags"
+    );
+    const testResult = await (await page.waitForFunction(
+      'window["testResult"]'
+    )).jsonValue();
+
+    const html = testResult.parts.map(p => p[0]).join("");
+
+    let res = await inspectDomCharAndTraverse(html.indexOf("setByInnerHTML"));
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("setByInnerHTML");
+
+    res = await inspectDomCharAndTraverse(html.indexOf("realInitialPageHtml"));
+    expect(res.operationLog.operation).toBe("initialPageHtml");
+    expect(res.operationLog.result.primitive).toContain("realInitialPageHtml");
+
+    const fullPageHtml = require("fs")
+      .readFileSync(__dirname + "/tests/bodyWithoutScriptTags/index.html")
+      .toString();
+    expect(res.charIndex).toBe(fullPageHtml.indexOf("realInitialPageHtml"));
+  });
 });

@@ -70,28 +70,51 @@ startProxy({
       // External file loaded by Chrome DevTools when opened
       return false;
     }
-    return port !== bePort || path.startsWith("/start");
+    return (
+      port !== bePort ||
+      path.startsWith("/start") ||
+      path.startsWith("/fromJSInternal")
+    );
   },
   rewriteHtml: html => {
+    const originalHtml = html;
     // Not accurate because there could be an attribute attribute value like ">", should work
     // most of the time
     const openingBodyTag = html.match(/<body.*>/);
     const openingHeadTag = html.match(/<head.*>/);
+    let bodyStartIndex;
+    if (openingBodyTag) {
+      bodyStartIndex =
+        html.search(openingBodyTag[0]) + openingBodyTag[0].length;
+    }
 
     let insertionIndex = 0;
     if (openingHeadTag) {
       insertionIndex =
         html.search(openingHeadTag[0]) + openingHeadTag[0].length;
     } else if (openingBodyTag) {
-      insertionIndex =
-        html.search(openingBodyTag[0]) + openingBodyTag[0].length;
+      insertionIndex = bodyStartIndex;
+    }
+
+    if (openingBodyTag) {
+      const hasScriptTagInBody = html.slice(bodyStartIndex).includes("<script");
+      if (!hasScriptTagInBody) {
+        // insert script tag just so that HTML origin mapping is done
+        const closingBodyTagIndex = html.search(/<\/body/);
+        if (closingBodyTagIndex !== -1) {
+          html =
+            html.slice(0, closingBodyTagIndex) +
+            `<script data-fromjs-remove-before-initial-html-mapping src="http://localhost:${bePort}/fromJSInternal/empty.js"></script>` +
+            html.slice(closingBodyTagIndex);
+        }
+      }
     }
 
     // Note: we don't want to have any empty text between the text, since that won't be removed
     // alongside the data-fromjs-remove-before-initial-html-mapping tags!
     var insertedHtml =
       `<script data-fromjs-remove-before-initial-html-mapping>window.__fromJSInitialPageHtml = decodeURI("${encodeURI(
-        html
+        originalHtml
       )}")</script>` +
       `<script src="http://localhost:${bePort}/jsFiles/babel-standalone.js" data-fromjs-remove-before-initial-html-mapping></script>` +
       `<script src="http://localhost:${bePort}/jsFiles/compileInBrowser.js" data-fromjs-remove-before-initial-html-mapping></script>`;

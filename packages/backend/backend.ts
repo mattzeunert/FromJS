@@ -36,6 +36,8 @@ let coreDir = require
   .split("/")
   .slice(0, -1)
   .join("/");
+let fromJSInternalDir = path.resolve(__dirname + "/../fromJSInternal");
+
 let startPageDir = path.resolve(__dirname + "/../start-page");
 
 function ensureDirectoriesExist(options: BackendOptions) {
@@ -178,6 +180,8 @@ function setupUI(options, app, wss, getProxy) {
   });
 
   app.use(express.static(uiDir));
+  console.log({ fromJSInternalDir });
+  app.use("/fromJSInternal", express.static(fromJSInternalDir));
   app.use("/start", express.static(startPageDir));
 
   function getDomToInspectMessage(charIndex?) {
