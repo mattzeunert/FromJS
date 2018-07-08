@@ -507,6 +507,9 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
       operation: OperationTypes.initialPageHtml,
       index: getOperationIndex(),
       args: {},
+      runtimeArgs: {
+        url: location.href
+      },
       result: initialPageHtml
     });
 

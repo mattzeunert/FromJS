@@ -43,7 +43,7 @@ let TraversalStep = class TraversalStep extends React.Component<
     };
 
     const { step } = props;
-    if (step.operationLog.operation !== "initialPageHtml") {
+    if (this.needsToLoadLocation(step.operationLog)) {
       resolveStackFrame(step.operationLog)
         .then(r => {
           // console.log("got stackframe", r);
@@ -56,6 +56,10 @@ let TraversalStep = class TraversalStep extends React.Component<
         })
         .catch(err => "yolo");
     }
+  }
+
+  needsToLoadLocation(operationLog) {
+    return operationLog.operation !== "initialPageHtml";
   }
 
   getAllArgs() {
@@ -84,26 +88,31 @@ let TraversalStep = class TraversalStep extends React.Component<
       isExpanded = true;
     }
 
-    try {
-      if (stackFrame) {
-        const { previousLines, nextLines } = stackFrame.code;
-        code = stackFrame.code.line.text;
-        fileName = stackFrame.fileName.replace("?dontprocess", "");
-        lineNumber = stackFrame.lineNumber;
-        columnNumber = stackFrame.columnNumber;
-        if (previousLines.length > 0) {
-          previousLine = previousLines[previousLines.length - 1].text;
+    if (this.needsToLoadLocation(operationLog)) {
+      try {
+        if (stackFrame) {
+          const { previousLines, nextLines } = stackFrame.code;
+          code = stackFrame.code.line.text;
+          fileName = stackFrame.fileName.replace("?dontprocess", "");
+          lineNumber = stackFrame.lineNumber;
+          columnNumber = stackFrame.columnNumber;
+          if (previousLines.length > 0) {
+            previousLine = previousLines[previousLines.length - 1].text;
+          }
+          if (nextLines.length > 0) {
+            nextLine = nextLines[0].text;
+          }
+        } else {
+          code = "(Loading...)";
+          fileName = "(Loading...)";
         }
-        if (nextLines.length > 0) {
-          nextLine = nextLines[0].text;
-        }
-      } else {
-        code = "(Loading...)";
-        fileName = "(Loading...)";
+      } catch (err) {
+        code = "(error)";
+        fileName = "(error)";
       }
-    } catch (err) {
-      code = "(error)";
-      fileName = "(error)";
+    } else {
+      code = "";
+      fileName = operationLog.runtimeArgs.url;
     }
 
     function prepareText(text) {
@@ -158,6 +167,12 @@ let TraversalStep = class TraversalStep extends React.Component<
     if (operationTypeDetail) {
       operationTypeDetail = "(" + operationTypeDetail + ")";
     }
+
+    let shortFileName = getFileNameFromPath(fileName);
+    if (shortFileName.length === 0) {
+      // Commonly happens for HTML path that ends with /
+      shortFileName = fileName;
+    }
     return (
       <div
         className="step"
@@ -171,7 +186,7 @@ let TraversalStep = class TraversalStep extends React.Component<
             {operationTypeDetail}
           </div>
           <span style={{ fontSize: "12px", marginTop: 3, float: "left" }}>
-            {this.state.isHovering ? fileName : getFileNameFromPath(fileName)}
+            {this.state.isHovering ? fileName : shortFileName}
           </span>
           <button
             className="blue-button"
