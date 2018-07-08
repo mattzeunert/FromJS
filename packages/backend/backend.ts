@@ -438,6 +438,11 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
     });
   });
 
+  app.get("/viewFullCode/:url", (req, res) => {
+    const url = decodeURIComponent(req.params.url);
+    res.end(resolver.getFullSourceCode(url));
+  });
+
   app.post("/prettify", (req, res) => {
     res.end(
       JSON.stringify({

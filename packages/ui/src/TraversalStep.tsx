@@ -88,6 +88,7 @@ let TraversalStep = class TraversalStep extends React.Component<
       isExpanded = true;
     }
 
+    let hasResolvedFrame = false;
     if (this.needsToLoadLocation(operationLog)) {
       try {
         if (stackFrame) {
@@ -102,6 +103,7 @@ let TraversalStep = class TraversalStep extends React.Component<
           if (nextLines.length > 0) {
             nextLine = nextLines[0].text;
           }
+          hasResolvedFrame = true;
         } else {
           code = "(Loading...)";
           fileName = "(Loading...)";
@@ -173,6 +175,7 @@ let TraversalStep = class TraversalStep extends React.Component<
       // Commonly happens for HTML path that ends with /
       shortFileName = fileName;
     }
+    const fileNameLabel = this.state.isHovering ? fileName : shortFileName;
     return (
       <div
         className="step"
@@ -186,7 +189,16 @@ let TraversalStep = class TraversalStep extends React.Component<
             {operationTypeDetail}
           </div>
           <span style={{ fontSize: "12px", marginTop: 3, float: "left" }}>
-            {this.state.isHovering ? fileName : shortFileName}
+            {hasResolvedFrame ? (
+              <a
+                target="_blank"
+                href={"/viewFullCode/" + encodeURIComponent(fileName)}
+              >
+                {fileNameLabel}
+              </a>
+            ) : (
+              fileNameLabel
+            )}
           </span>
           <button
             className="blue-button"
