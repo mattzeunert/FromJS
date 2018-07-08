@@ -499,6 +499,10 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
   const initialPageHtml = global["__fromJSInitialPageHtml"];
 
   if (document.body) {
+    document
+      .querySelectorAll("[data-fromjs-remove-before-initial-html-mapping]")
+      .forEach(el => el.remove());
+
     const initialHtmlTrackingValue = createOperationLog({
       operation: OperationTypes.initialPageHtml,
       index: getOperationIndex(),

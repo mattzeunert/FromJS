@@ -56,16 +56,31 @@ startProxy({
     return port !== bePort || path.startsWith("/start");
   },
   rewriteHtml: html => {
-    // Not using an HTML parser because it's easy (espcially getting the indices), but
-    // it's also less accurate
+    // Not accurate because there could be an attribute attribute value like ">", should work
+    // most of the time
+    const openingBodyTag = html.match(/<body.*>/);
+    const openingHeadTag = html.match(/<head.*>/);
+
+    let insertionIndex = 0;
+    if (openingHeadTag) {
+      insertionIndex =
+        html.search(openingHeadTag[0]) + openingHeadTag[0].length;
+    } else if (openingBodyTag) {
+      insertionIndex =
+        html.search(openingBodyTag[0]) + openingBodyTag[0].length;
+    }
+
+    // Note: we don't want to have any empty text between the text, since that won't be removed
+    // alongside the data-fromjs-remove-before-initial-html-mapping tags!
+    var insertedHtml =
+      `<script data-fromjs-remove-before-initial-html-mapping>window.__fromJSInitialPageHtml = decodeURI("${encodeURI(
+        html
+      )}")</script>` +
+      `<script src="http://localhost:${bePort}/jsFiles/babel-standalone.js" data-fromjs-remove-before-initial-html-mapping></script>` +
+      `<script src="http://localhost:${bePort}/jsFiles/compileInBrowser.js" data-fromjs-remove-before-initial-html-mapping></script>`;
 
     return (
-      `<script>window.__fromJSInitialPageHtml = decodeURI("${encodeURI(
-        html
-      )}")</script>
-      <script src="http://localhost:${bePort}/jsFiles/babel-standalone.js"></script>
-      <script src="http://localhost:${bePort}/jsFiles/compileInBrowser.js"></script>
-      ` + html
+      html.slice(0, insertionIndex) + insertedHtml + html.slice(insertionIndex)
     );
   },
   onCompilationComplete: (response: any) => {
