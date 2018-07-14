@@ -76,6 +76,23 @@ let TraversalSteps = class TraversalSteps extends React.Component<
 
     return (
       <div style={{ opacity: this.props.isTraversing ? 0.5 : 1 }}>
+        <ItemWithTitle>
+          <div>Origin of selected character:</div>
+          <div>
+            {showOriginStep && (
+              <TraversalStep
+                key={steps[steps.length - 1].operationLog.index}
+                step={steps[steps.length - 1]}
+              />
+            )}
+            {!showOriginStep && (
+              <div style={{ opacity: 0.5 }}>
+                (same as above, only one step is available)
+              </div>
+            )}
+          </div>
+        </ItemWithTitle>
+
         <div
           className={cx("named-step-container", {
             "named-step-container--collapsed": !this.props.collapseDomInspector
@@ -99,23 +116,6 @@ let TraversalSteps = class TraversalSteps extends React.Component<
             <TraversalStep key={steps[0].operationLog.index} step={steps[0]} />
           )}
         </div>
-        <ItemWithTitle>
-          <div>Origin of selected character:</div>
-          <div>
-            {showOriginStep && (
-              <TraversalStep
-                key={steps[steps.length - 1].operationLog.index}
-                step={steps[steps.length - 1]}
-              />
-            )}
-            {!showOriginStep && (
-              <div style={{ opacity: 0.5 }}>
-                (same as above, only one step is available)
-              </div>
-            )}
-          </div>
-        </ItemWithTitle>
-
         {/* <hr />
         <hr />
         <div>Relevant code:</div>
