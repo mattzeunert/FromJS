@@ -166,10 +166,6 @@ let TraversalStep = class TraversalStep extends React.Component<
       console.log(err);
     }
 
-    if (operationTypeDetail) {
-      operationTypeDetail = "(" + operationTypeDetail + ")";
-    }
-
     let shortFileName = getFileNameFromPath(fileName);
     if (shortFileName.length === 0) {
       // Commonly happens for HTML path that ends with /
@@ -186,7 +182,9 @@ let TraversalStep = class TraversalStep extends React.Component<
           <div className="step__operation-type">
             {operationLog.operation[0].toUpperCase() +
               operationLog.operation.slice(1)}{" "}
-            {operationTypeDetail}
+            <span className="step__operation-type-detail">
+              {operationTypeDetail}
+            </span>
           </div>
           <span style={{ fontSize: "12px", marginTop: 3, float: "left" }}>
             {hasResolvedFrame ? (

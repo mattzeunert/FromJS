@@ -2,16 +2,12 @@ import { branch, root } from "baobab-react/higher-order";
 import * as React from "react";
 import TraversalStep from "./TraversalStep";
 import * as cx from "classnames";
-import {
-  enableShowFullDataFlow,
-  disableShowFullDataFlow,
-  collapseDomInspector
-} from "./actions";
+import { enableShowFullDataFlow, disableShowFullDataFlow } from "./actions";
+import ItemWithTitle from "./ItemWithTitle";
 
 type TraversalStepsProps = {
   steps?: any[];
   inspectionTarget?: any;
-  collapseDomInspector?: boolean;
   showFullDataFlow?: boolean;
   isTraversing?: boolean;
 };
@@ -71,11 +67,28 @@ let TraversalSteps = class TraversalSteps extends React.Component<
       };
     }
 
-    const showOriginStep = steps.length > 1 || !this.props.collapseDomInspector;
+    const showOriginStep = steps.length > 1;
 
     return (
       <div style={{ opacity: this.props.isTraversing ? 0.5 : 1 }}>
-        <div
+        <ItemWithTitle>
+          <div>Origin of selected character:</div>
+          <div>
+            {showOriginStep && (
+              <TraversalStep
+                key={steps[steps.length - 1].operationLog.index}
+                step={steps[steps.length - 1]}
+              />
+            )}
+            {!showOriginStep && (
+              <div style={{ opacity: 0.5 }}>
+                (same as above, only one step is available)
+              </div>
+            )}
+          </div>
+        </ItemWithTitle>
+
+        {/* <div
           className={cx("named-step-container", {
             "named-step-container--collapsed": !this.props.collapseDomInspector
           })}
@@ -97,21 +110,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<
           {this.props.collapseDomInspector && (
             <TraversalStep key={steps[0].operationLog.index} step={steps[0]} />
           )}
-        </div>
-        <div className="named-step-container">
-          <div className="title">Origin of selected character:</div>
-          {showOriginStep && (
-            <TraversalStep
-              key={steps[steps.length - 1].operationLog.index}
-              step={steps[steps.length - 1]}
-            />
-          )}
-          {!showOriginStep && (
-            <div style={{ opacity: 0.5 }}>
-              (same as above, only one step is available)
-            </div>
-          )}
-        </div>
+        </div> */}
         {/* <hr />
         <hr />
         <div>Relevant code:</div>
@@ -161,7 +160,6 @@ TraversalSteps = branch(
     debugMode: ["debugMode"],
     steps: ["steps"],
     inspectionTarget: ["inspectionTarget"],
-    collapseDomInspector: ["collapseDomInspector"],
     showFullDataFlow: ["showFullDataFlow"],
     isTraversing: ["hasInProgressRequest", "traverse"]
   },
