@@ -139,7 +139,7 @@ path {
 .step__header {
   width: 100%;
   font-family: Arial;
-  background: $lightBlue2;
+  background: var(--lightBlue2);
   overflow: hidden;
   padding: 5px;
   border-bottom: 1px solid #eee;
@@ -265,7 +265,7 @@ path {
 .named-step-container {
   padding: 10px;
   .title {
-    background: $lightBlue2;
+    background: var(--lightBlue2);
     border: 1px solid #ddd;
     border-bottom: none;
     margin-bottom: 0;
@@ -287,8 +287,8 @@ path {
   border: 14px solid transparent;
   width: 0;
   height: 0;
-  border-bottom-color: $lightBlue2;
-  border-left-color: $lightBlue2;
+  border-bottom-color: var(--lightBlue2);
+  border-left-color: var(--lightBlue2);
   display: inline-block;
   margin-bottom: -9px;
   svg {
@@ -311,7 +311,7 @@ path {
 .named-step-container__title-border-cover {
   position: relative;
   > div {
-    background: aliceblue;
+    background: var(--lightBlue2);
     height: 1px;
     position: absolute;
     width: calc(100% + 38px);
