@@ -139,7 +139,7 @@ path {
 .step__header {
   width: 100%;
   font-family: Arial;
-  background: aliceblue;
+  background: $lightBlue2;
   overflow: hidden;
   padding: 5px;
   border-bottom: 1px solid #eee;
@@ -263,12 +263,42 @@ path {
 }
 
 .named-step-container {
-  border: 1px solid #999;
   padding: 10px;
-  margin-bottom: 10px;
+  .title {
+    background: $lightBlue2;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    margin-bottom: 0;
+    display: inline-block;
+    border-right: none;
+    padding: 5px;
+  }
+  .step {
+  }
   &--collapsed {
     .title {
       margin-bottom: 0;
+    }
+  }
+}
+.named-step-container__title-corner {
+  position: relative;
+  background: transparent;
+  border: 14px solid transparent;
+  width: 0;
+  height: 0;
+  border-bottom-color: $lightBlue2;
+  border-left-color: $lightBlue2;
+  display: inline-block;
+  margin-bottom: -9px;
+  svg {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    top: -15px;
+    left: -14px;
+    line {
+      stroke: #ddd;
     }
   }
 }
@@ -276,4 +306,16 @@ path {
 .title {
   margin-bottom: 10px;
   color: #15054e;
+}
+
+.named-step-container__title-border-cover {
+  position: relative;
+  > div {
+    background: aliceblue;
+    height: 1px;
+    position: absolute;
+    width: calc(100% + 38px);
+    left: -5px;
+    top: 5px;
+  }
 }
