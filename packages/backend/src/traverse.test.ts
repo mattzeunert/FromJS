@@ -808,6 +808,43 @@ describe("String.prototype.match", () => {
     const t2LastStep = t2[t2.length - 1];
     expect(t2LastStep.charIndex).toBe(4);
   });
+
+  it("Works when some match groups don't have a match", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const arr = "ac".match(/(a)(b)?(c)/)
+        return arr[3]
+      `);
+
+    expect(normal).toBe("c");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t2LastStep.charIndex).toBe(1);
+  });
+
+  it("Works somewhat when using nested groups in a non global regex", async () => {
+    // Easier to construct here than escaping it in the string
+    const re = /^\s*([\s\S]+?)\s+in\s+([\s\S]+?)(?:\s+as\s+([\s\S]+?))?(?:\s+track\s+by\s+([\s\S]+?))?\s*$/;
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+        // Example based on angular todomvc
+        const str = "todo in todos | filter:statusFilter track by $index"
+        const re = outsideArgs.re
+        const arr = str.match(re);
+
+        return arr[0]
+      `,
+      { re }
+    );
+
+    expect(normal).toBe("todo in todos | filter:statusFilter track by $index");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 2 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t2LastStep.charIndex).toBe(2);
+  });
 });
 
 describe("Array.prototype.reduce", () => {

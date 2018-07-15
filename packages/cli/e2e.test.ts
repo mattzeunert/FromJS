@@ -72,18 +72,42 @@ function traverse(firstStep) {
   });
 }
 
-async function inspectDomCharAndTraverse(charIndex) {
-  const firstStep = await inspectDomChar(charIndex);
-  const steps = (await traverse(firstStep))["steps"];
-  const lastStep = steps[steps.length - 1];
-  return {
-    charIndex: lastStep.charIndex,
-    operationLog: new OperationLog(lastStep.operationLog)
-  };
+async function inspectDomCharAndTraverse(charIndex, isSecondTry = false) {
+  try {
+    if (charIndex === -1) {
+      throw Error("char index is -1");
+    }
+    const firstStep = await inspectDomChar(charIndex);
+    if (typeof firstStep === "string") {
+      console.log(firstStep);
+      throw Error("Seems like no tracking data ");
+    }
+    const steps = (await traverse(firstStep))["steps"];
+    const lastStep = steps[steps.length - 1];
+    return {
+      charIndex: lastStep.charIndex,
+      operationLog: new OperationLog(lastStep.operationLog)
+    };
+  } catch (err) {
+    if (isSecondTry) {
+      throw err;
+    } else {
+      await setTimeoutPromise(2000);
+      return await inspectDomCharAndTraverse(charIndex, true);
+    }
+  }
 }
 
 describe("E2E", () => {
   let browser;
+
+  async function createPage() {
+    const page = await browser.newPage();
+    page.on("pageerror", function(err) {
+      console.log("Page error: " + err.toString());
+    });
+    return page;
+  }
 
   beforeAll(async () => {
     await killPort(backendPort);
@@ -93,23 +117,24 @@ describe("E2E", () => {
     command = spawn(__dirname + "/bin/fromjs", [
       "--port",
       backendPort.toString(),
-      "--shouldOpenBrowser",
+      "--openBrowser",
       "no",
       "--sessionDirectory",
       "/tmp/fromjs-e2e"
     ]);
 
-    // command.stdout.on("data", function(data) {
-    //   console.log("CLI out", data.toString());
-    // });
+    command.stdout.on("data", function(data) {
+      console.log("CLI out", data.toString());
+    });
 
-    // command.stderr.on("data", function(data) {
-    //   console.log("CLI err", data.toString());
-    // });
+    command.stderr.on("data", function(data) {
+      console.log("CLI err", data.toString());
+    });
 
     await waitForProxyReady(command);
 
     browser = await puppeteer.launch({
+      dumpio: true,
       args: [
         "--proxy-server=127.0.0.1:" + proxyPort,
         // To make it work in CI:
@@ -128,15 +153,14 @@ describe("E2E", () => {
     await killPort(webServerPort);
   });
 
+  const inspectorUrl = "http://localhost:" + backendPort + "/";
+
   let command;
   it(
     "Can load the start page",
     async () => {
-      const page = await browser.newPage();
-      page.on("pageerror", function(err) {
-        console.log("Page error: " + err.toString());
-      });
-      await page.goto("http://localhost:" + backendPort + "/");
+      const page = await createPage();
+      await page.goto(inspectorUrl);
       await page.waitForSelector(".load-demo-app");
 
       await await page.evaluate(() =>
@@ -152,17 +176,16 @@ describe("E2E", () => {
 
       await page.close();
     },
-    30000
+    40000
   );
 
   it(
     "Does DOM to JS tracking",
     async () => {
-      const page = await browser.newPage();
-      page.on("pageerror", function(err) {
-        console.log("Page error: " + err.toString());
-      });
-      await page.goto("http://localhost:" + webServerPort + "/test");
+      const page = await createPage();
+      await page.goto(
+        "http://localhost:" + webServerPort + "/tests/domTracking"
+      );
       const testResult = await (await page.waitForFunction(
         'window["testResult"]'
       )).jsonValue();
@@ -171,14 +194,8 @@ describe("E2E", () => {
 
       // createElement
 
-      let res;
-      try {
-        res = await inspectDomCharAndTraverse(html.indexOf("span"));
-      } catch (err) {
-        console.log("Looks like inspected page hasn't sent all data to BE yet");
-        await setTimeoutPromise(2000);
-        res = await inspectDomCharAndTraverse(html.indexOf("span"));
-      }
+      let res = await inspectDomCharAndTraverse(html.indexOf("span"));
+
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("span");
 
@@ -192,12 +209,31 @@ describe("E2E", () => {
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("createComment");
 
+      // Initial page html
+      res = await inspectDomCharAndTraverse(html.indexOf("InitialPageHtml"));
+      expect(res.operationLog.operation).toBe("initialPageHtml");
+      expect(res.operationLog.result.primitive).toContain(`<div id="app"`);
+
+      // Values read from script tags in initial html
+      res = await inspectDomCharAndTraverse(html.indexOf("scriptTagContent"));
+      expect(res.operationLog.operation).toBe("initialPageHtml");
+      expect(res.operationLog.result.primitive).toContain(`<div id="app"`);
+      const fullPageHtml = require("fs")
+        .readFileSync(__dirname + "/tests/domTracking/index.html")
+        .toString();
+      expect(res.charIndex).toBe(fullPageHtml.indexOf("scriptTagContent"));
+
       // setAttribute
-      res = await inspectDomCharAndTraverse(html.indexOf("setAttribute"));
+      const spanHtml = '<span attr="setAttribute">abc<b>innerHTML</b></span>';
+      // Calculate indices withhin because attr="setAttribute" is also used by cloned node later on
+      const spanIndex = html.indexOf(spanHtml);
+      const attrNameIndex = spanIndex + spanHtml.indexOf("attr=");
+      const attrValueIndex = spanIndex + spanHtml.indexOf("setAttribute");
+      res = await inspectDomCharAndTraverse(attrValueIndex);
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("setAttribute");
 
-      res = await inspectDomCharAndTraverse(html.indexOf("attr="));
+      res = await inspectDomCharAndTraverse(attrNameIndex);
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("attr");
 
@@ -228,7 +264,117 @@ describe("E2E", () => {
       res = await inspectDomCharAndTraverse(html.indexOf("textContent"));
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("textContent");
+
+      // cloneNode
+      const clonedSpanHtml =
+        '<span attr="setAttribute">cloneNode<!--createComment-->createTextNode<div><div>deepClonedContent</div></div></span>';
+      const clonedSpanIndex = html.indexOf(clonedSpanHtml);
+      const clonedSpanAttributeIndex =
+        clonedSpanIndex + clonedSpanHtml.indexOf("attr=");
+      const clonedTextIndex =
+        clonedSpanIndex + clonedSpanHtml.indexOf("createTextNode");
+      const clonedCommentIndex =
+        clonedSpanIndex + clonedSpanHtml.indexOf("createComment");
+      const deepClonedContentIndex =
+        clonedSpanIndex + clonedSpanHtml.indexOf("deepClonedContent");
+
+      res = await inspectDomCharAndTraverse(clonedSpanIndex);
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("span");
+
+      res = await inspectDomCharAndTraverse(clonedSpanAttributeIndex);
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("attr");
+
+      res = await inspectDomCharAndTraverse(clonedTextIndex);
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("createTextNode");
+
+      res = await inspectDomCharAndTraverse(clonedCommentIndex);
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("createComment");
+
+      res = await inspectDomCharAndTraverse(deepClonedContentIndex);
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe(
+        "<div>deepClonedContent</div>"
+      );
+
+      // .text or .textContent on a text node
+      console.log(html);
+      res = await inspectDomCharAndTraverse(
+        html.indexOf("nodeNodeValueAssignment")
+      );
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("nodeNodeValueAssignment");
+
+      await page.close();
     },
-    20000
+    30000
   );
+
+  it(
+    "Can inspect backbone todomvc and select an element by clicking on it",
+    async () => {
+      const inspectorPage = await createPage();
+      await inspectorPage.goto(inspectorUrl);
+
+      // Load inspected page
+      const page = await createPage();
+      await page.goto("http://localhost:8000/examples/backbone/");
+      await page.waitForSelector(".todo-list li", { timeout: 60000 });
+
+      // Select label for inspection
+      await page.waitForSelector("#fromjs-inspect-dom-button");
+      await page.click("#fromjs-inspect-dom-button");
+      await page.waitForFunction(
+        "document.querySelector('#fromjs-inspect-dom-button').innerText.includes('Disable')"
+      );
+      await page.click(".todo-list li label");
+
+      // Todo name should come from local storage
+      await inspectorPage.waitForFunction(() =>
+        document.body.innerHTML.includes("localStorage.getItem")
+      );
+
+      // label tag name should be string literal in eval
+      // (although: we could do source mapping here again to find the origin of the eval code)
+      await inspectorPage.click(".fromjs-value__content [data-key='1']");
+      await inspectorPage.waitForFunction(() =>
+        document.body.innerHTML.includes("eval")
+      );
+
+      await page.close();
+      await inspectorPage.close();
+    },
+    90000
+  );
+
+  it("Doesn't try to process initial page HTML too late if no script tags in body", async () => {
+    // I had this problem because normally a script tag in the body triggers setting
+    // initialPageHtml elOrigin
+
+    const page = await createPage();
+    await page.goto(
+      "http://localhost:" + webServerPort + "/tests/bodyWithoutScriptTags"
+    );
+    const testResult = await (await page.waitForFunction(
+      'window["testResult"]'
+    )).jsonValue();
+
+    const html = testResult.parts.map(p => p[0]).join("");
+
+    let res = await inspectDomCharAndTraverse(html.indexOf("setByInnerHTML"));
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("setByInnerHTML");
+
+    res = await inspectDomCharAndTraverse(html.indexOf("realInitialPageHtml"));
+    expect(res.operationLog.operation).toBe("initialPageHtml");
+    expect(res.operationLog.result.primitive).toContain("realInitialPageHtml");
+
+    const fullPageHtml = require("fs")
+      .readFileSync(__dirname + "/tests/bodyWithoutScriptTags/index.html")
+      .toString();
+    expect(res.charIndex).toBe(fullPageHtml.indexOf("realInitialPageHtml"));
+  });
 });

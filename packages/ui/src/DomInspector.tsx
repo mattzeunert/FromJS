@@ -1,41 +1,40 @@
 import * as React from "react";
 import { branch, root } from "baobab-react/higher-order";
-import { selectInspectedDomCharIndex, expandDomInspector } from "./actions";
+import { selectInspectedDomCharIndex, selectAndTraverse } from "./actions";
 import { TextEl } from "./TextEl";
 import * as cx from "classnames";
+import "./InspectedString.scss";
 
 let DomInspector = class DomInspector extends React.Component<any, any> {
   render() {
-    if (!this.props.domToInspect) {
+    const { inspectedString } = this.props;
+    if (!inspectedString) {
       return null;
     }
     return (
-      <div>
-        <div
-          className={cx("named-step-container", {
-            "named-step-container--collapsed": this.props.collapseDomInspector
-          })}
-        >
+      <div className="inspected-string">
+        <div>
           <div className="title">
-            Inspected DOM HTML{this.props.collapseDomInspector ? (
-              <button onClick={() => expandDomInspector()}>
-                Show inspected Element
-              </button>
-            ) : (
-              " (click a character to view its origin)"
-            )}
+            Inspected DOM HTML (click a character to view its origin)
           </div>
-          {!this.props.collapseDomInspector && (
-            <div style={{ border: "1px solid #ddd" }}>
-              <TextEl
-                highlightedCharacterIndex={this.props.domToInspect.charIndex}
-                onCharacterClick={charIndex => {
+
+          <div style={{ border: "1px solid #ddd", borderTop: "none" }}>
+            <TextEl
+              highlightedCharacterIndex={this.props.inspectedString.charIndex}
+              onCharacterClick={charIndex => {
+                if (this.props.inspectedString.type === "dom") {
                   selectInspectedDomCharIndex(charIndex);
-                }}
-                text={this.props.domToInspect.outerHTML}
-              />
-            </div>
-          )}
+                } else {
+                  selectAndTraverse(
+                    this.props.inspectedString.logIndex,
+                    charIndex,
+                    "traversalStep"
+                  );
+                }
+              }}
+              text={this.props.inspectedString.text}
+            />
+          </div>
         </div>
       </div>
     );
@@ -43,8 +42,7 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
 };
 DomInspector = branch(
   {
-    domToInspect: ["domToInspect"],
-    collapseDomInspector: ["collapseDomInspector"]
+    inspectedString: ["inspectedString"]
   },
   DomInspector
 );

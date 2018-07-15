@@ -29,6 +29,7 @@ export default function initDomInspectionUI() {
       }
     } else if (e.type === "mouseleave") {
       previewedElement = null;
+      removeHighlight("previewed");
     }
 
     e.preventDefault();
@@ -47,8 +48,13 @@ export default function initDomInspectionUI() {
     const rect = element.getBoundingClientRect();
     let marker = getMarkerElementFromHighlightReason(highlightReason);
 
-    const color = highlightReason === "selected" ? "blue" : "green";
+    const color = highlightReason === "selected" ? "#236fb1" : "#3a94e2";
+    const backgroundColor =
+      highlightReason === "selected"
+        ? "rgba(35, 111, 177, .1)"
+        : "rgba(41, 132, 205, .06)";
     const zIndex = highlightReason === "selected" ? 10000001 : 10000000;
+    const boxTop = rect.top + document.body.scrollTop; // note: this won't work well if inside another scrollable element
     marker.setAttribute(
       "style",
       "position: absolute; display: block; z-index: " +
@@ -59,12 +65,14 @@ export default function initDomInspectionUI() {
         "left: " +
         rect.left +
         "px;top: " +
-        rect.top +
+        boxTop +
         "px;height: " +
         rect.height +
         "px;width: " +
         rect.width +
-        "px;"
+        "px; background: " +
+        backgroundColor +
+        ";"
     );
   }
 
@@ -102,13 +110,13 @@ export default function initDomInspectionUI() {
       "style",
       "position: fixed;z-index: 100000000; bottom: 0;right:0;padding: 10px;background: #236fb1; color: white;font-family: Arial;cursor:pointer;font-size: 14px;"
     );
+    toggleInspectDomButton.setAttribute("id", "fromjs-inspect-dom-button");
     global["document"]["body"].appendChild(toggleInspectDomButton);
   }
 
   if (global["document"]) {
     const interval = setInterval(function() {
       // Wait for HTML body
-      console.log(global["document"]["body"]);
       if (global["document"]["body"]) {
         clearInterval(interval);
         init();

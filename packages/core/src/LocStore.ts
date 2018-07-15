@@ -1,11 +1,14 @@
 import * as levelup from "levelup";
 import * as leveldown from "leveldown";
+import { cacheLevelDBGet } from "./cacheLevelDBGet";
 
 export class LocStore {
   db: any;
+  _cachedGet: any;
 
   constructor(storePath: string) {
     this.db = levelup(leveldown(storePath));
+    this._cachedGet = cacheLevelDBGet(this.db);
   }
 
   write(locs, callback) {
@@ -26,12 +29,12 @@ export class LocStore {
   }
 
   getLoc(loc, callback) {
-    this.db.get(loc, (err, value) => {
+    this._cachedGet(loc, (err, value) => {
       if (err) {
         console.log(err);
         return;
       }
-      callback(JSON.parse(value));
+      callback(JSON.parse(value.toString()));
     });
   }
 }

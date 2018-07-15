@@ -7,7 +7,7 @@ import * as chromeLauncher from "chrome-launcher";
 const list = val => val.split(",");
 
 const maxOldSpaceSizeArg = process.execArgv.find(arg =>
-  arg.includes("--max-old-space-size")
+  arg.includes("--max_old_space_size")
 );
 const inspectArg = process.execArgv.find(arg => arg.includes("--inspect"));
 
@@ -15,7 +15,7 @@ if (!maxOldSpaceSizeArg) {
   // Analysis etc can sometimes use lots of memory, so raise the memory threshold
   const fork = require("child_process").fork;
   const execArgv = process.execArgv;
-  execArgv.push("--max-old-space-size=8000");
+  execArgv.push("--max_old_space_size=8000");
   if (inspectArg) {
     // set new port because otherwise it'll say port already in use
     execArgv.push("--inspect=36689");
@@ -30,7 +30,7 @@ if (!maxOldSpaceSizeArg) {
     "FromJS (launched CLI process with too low memory limit)";
 } else {
   commander
-    .option("--shouldOpenBrowser <shouldOpen>", "yes|no|only", "yes")
+    .option("--openBrowser <shouldOpen>", "yes|no|only", "yes")
     .option("-p, --port <port>", "Server port", 7000)
     .option(
       "-s, --sessionDirectory <sessionDirectory>",
@@ -49,6 +49,10 @@ if (!maxOldSpaceSizeArg) {
       list,
       []
     )
+    .option(
+      "--disableDefaultBlockList",
+      "Disable blocking JS files from analytics providers etc"
+    )
     .version(require("../package.json").version)
     .parse(process.argv);
 
@@ -63,14 +67,15 @@ if (!maxOldSpaceSizeArg) {
     dontTrack: commander.dontTrack,
     block: commander.block,
     sessionDirectory: commander.sessionDirectory,
+    disableDefaultBlockList: !!commander.disableDefaultBlockList,
     onReady: async function() {
-      if (commander.shouldOpenBrowser === "yes") {
+      if (commander.openBrowser === "yes") {
         openBrowser();
       }
     }
   });
 
-  if (commander.shouldOpenBrowser === "only") {
+  if (commander.openBrowser === "only") {
     process["titl" + "e"] = "FromJS - CLI (browser only)";
     console.log("Only opening browser with proxy port set to", proxyPort);
     openBrowser();

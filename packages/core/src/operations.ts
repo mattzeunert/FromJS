@@ -19,7 +19,8 @@ import {
   initForBabel as initForBabelPH,
   getTrackingIdentifier,
   safelyGetVariableTrackingValue,
-  addLoc
+  addLoc,
+  getGetGlobalCall
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import { ExecContext } from "./helperFunctions/ExecContext";
@@ -29,6 +30,8 @@ import ObjectExpression from "./operations/ObjectExpression";
 import AssignmentExpression from "./operations/AssignmentExpression";
 import traverseStringConcat from "./traverseStringConcat";
 import * as MemoValueNames from "./MemoValueNames";
+import { traverseDomOrigin } from "./traverseDomOrigin";
+import { VERIFY } from "./config";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -67,7 +70,7 @@ interface Operations {
     exec?: any;
     // Sometimes (e.g. for string literals) we know the op result
     // at compile time and can look it up for analysis later
-    canInferResult?: boolean;
+    canInferResult?: boolean | ((args: any, extraArgs: any) => boolean);
     getArgumentsArray?: any;
     shorthand?: Shorthand;
     traverse?: (
@@ -81,6 +84,10 @@ interface Operations {
 const operations: Operations = {
   memberExpression: {
     argNames: ["object", "propName"],
+    canInferResult: function(args, extraArgs) {
+      // identifier will always return same value as var value
+      return !!extraArgs.propertyValue;
+    },
     shorthand: {
       fnName: "__mEx",
       getExec: doOperation => {
@@ -109,6 +116,28 @@ const operations: Operations = {
         propertyName
       );
 
+      if (
+        !trackingValue &&
+        typeof HTMLScriptElement !== "undefined" &&
+        object instanceof HTMLScriptElement &&
+        ["text", "textContent", "innerHTML"].includes(propertyName)
+      ) {
+        // Handle people putting e.g. templates into script tags
+
+        const elOrigin =
+          object.childNodes[0] && object.childNodes[0]["__elOrigin"];
+        if (elOrigin && elOrigin.textValue) {
+          // TODO: this trackingvalue should really be created when doing the el origin
+          // mapping logic...
+          trackingValue = ctx.createOperationLog({
+            operation: OperationTypes.htmlAdapter,
+            runtimeArgs: elOrigin.textValue,
+            args: {
+              html: [null, elOrigin.textValue.trackingValue]
+            }
+          });
+        }
+      }
       logData.extraArgs = {
         propertyValue: [ret, trackingValue]
       };
@@ -378,16 +407,29 @@ const operations: Operations = {
         };
       } else if (path.node.operator === "delete") {
         let propName;
-        if (path.node.argument.computed === true) {
-          propName = path.node.argument.property;
+        const arg = path.node.argument;
+        let object;
+        if (arg.type === "MemberExpression") {
+          object = arg.object;
+          if (arg.computed === true) {
+            propName = arg.property;
+          } else {
+            propName = addLoc(
+              this.t.stringLiteral(arg.property.name),
+              arg.property.loc
+            );
+          }
+        } else if (arg.type === "Identifier") {
+          // Deleting a global like this: delete someGlobal
+          propName = addLoc(ignoredStringLiteral(arg.name), arg.loc);
+          object = getGetGlobalCall();
         } else {
-          propName = addLoc(
-            this.t.stringLiteral(path.node.argument.property.name),
-            path.node.argument.property.loc
-          );
+          console.log("unknown delete argument type: " + arg.type);
+          return;
         }
+
         args = {
-          object: [path.node.argument.object, null],
+          object: [object, null],
           propName: [propName, null]
         };
       } else {
@@ -439,6 +481,10 @@ const operations: Operations = {
   },
   returnStatement: {
     argNames: ["returnValue"],
+    canInferResult: function(args) {
+      // return statement will always return returned value
+      return !!args[0];
+    },
     exec: (args, astArgs, ctx: ExecContext, logData) => {
       const [returnValueArg] = args;
       ctx.lastReturnStatementResult = [returnValueArg[0], logData.index];
@@ -460,6 +506,10 @@ const operations: Operations = {
   },
   identifier: {
     argNames: ["value"],
+    canInferResult: function(args) {
+      // identifier will always return same value as var value
+      return !!args[0];
+    },
     shorthand: {
       fnName: "__ident",
       getExec: doOperation => {
@@ -499,7 +549,9 @@ const operations: Operations = {
             );
           });
         } else {
-          console.log("no tracking values for arguments object");
+          if (VERIFY) {
+            console.log("no tracking values for arguments object");
+          }
         }
       }
       return valueArg[0];
@@ -584,6 +636,14 @@ const operations: Operations = {
   arraySlice: { traverse: identifyTraverseFunction },
   arrayConcat: {
     traverse: identifyTraverseFunction
+  },
+  htmlAdapter: {
+    traverse: (operationLog, charIndex) => {
+      return {
+        operationLog: operationLog.args.html,
+        charIndex: traverseDomOrigin(operationLog.runtimeArgs, charIndex)
+      };
+    }
   }
 };
 

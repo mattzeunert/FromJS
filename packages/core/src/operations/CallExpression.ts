@@ -10,18 +10,26 @@ import HtmlToOperationLogMapping from "../helperFunctions/HtmlToOperationLogMapp
 import * as OperationTypes from "../OperationTypes";
 import { ExecContext } from "../helperFunctions/ExecContext";
 import addElOrigin, {
-  addOriginInfoToCreatedElement
+  addOriginInfoToCreatedElement,
+  addElAttributeNameOrigin,
+  addElAttributeValueOrigin,
+  getElAttributeNameOrigin,
+  getElAttributeValueOrigin
 } from "./domHelpers/addElOrigin";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import { VERIFY } from "../config";
 import { doOperation, getLastMemberExpressionObject } from "../FunctionNames";
 import OperationLog from "../helperFunctions/OperationLog";
 import * as cloneRegExp from "clone-regexp";
-
-function countGroupsInRegExp(re) {
-  // http://stackoverflow.com/questions/16046620/regex-to-count-the-number-of-capturing-groups-in-a-regex
-  return new RegExp(re.toString() + "|").exec("")!.length;
-}
+import {
+  consoleLog,
+  consoleError,
+  consoleWarn
+} from "../helperFunctions/logging";
+import {
+  regExpContainsNestedGroup,
+  countGroupsInRegExp
+} from "../regExpHelpers";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -188,7 +196,7 @@ const specialValuesForPostprocessing = {
     }
     let regExp = fnArgValues[0];
     if (!(regExp instanceof RegExp)) {
-      console.log("non regexp match param, is this possible?");
+      consoleLog("non regexp match param, is this possible?");
       return;
     }
 
@@ -222,6 +230,10 @@ const specialValuesForPostprocessing = {
 
       for (var i = 1; i < matches[0].length; i++) {
         let matchString = matches[0][i];
+        if (matchString === undefined) {
+          newMatches.push(undefined);
+          continue;
+        }
         // This can be inaccurate but better than nothing
         let indexOffset = fullMatchRemaining.indexOf(matchString);
         if (indexOffset === -1) {
@@ -234,16 +246,23 @@ const specialValuesForPostprocessing = {
         // cut down match against which we do indexOf(), since we know
         // a single location can't get double matched
         // (maybe it could with nested regexp groups but let's not worry about that for now)
-        let charsToRemove = indexOffset + matchString.length;
+        let charsToRemove = 0;
+        if (!regExpContainsNestedGroup(regExp)) {
+          // nested groups means there can be repetition
+          charsToRemove = indexOffset + matchString.length;
+        }
         charsRemovedFromFullMatch += charsToRemove;
         fullMatchRemaining = fullMatchRemaining.slice(charsToRemove);
       }
       matches = newMatches;
     }
 
+    if (matches.length < ret.length) {
+      debugger;
+    }
     ret.forEach((item, i) => {
-      if (!matches[i]) {
-        debugger;
+      if (matches[i] === undefined) {
+        return;
       }
       ctx.trackObjectPropertyAssignment(
         ret,
@@ -628,13 +647,70 @@ const specialValuesForPostprocessing = {
       trackingValue: fnArgs[0]
     });
   },
+  "HTMLElement.prototype.cloneNode": ({ ret, object, fnArgs, fnArgValues }) => {
+    const isDeep = !!fnArgValues[0];
+    processClonedNode(ret, object);
+    function processClonedNode(cloneResult, sourceNode) {
+      if (sourceNode.__elOrigin) {
+        if (sourceNode.nodeType === Node.ELEMENT_NODE) {
+          ["openingTagStart", "openingTagEnd", "closingTag"].forEach(
+            originName => {
+              if (sourceNode.__elOrigin[originName]) {
+                addElOrigin(
+                  cloneResult,
+                  originName,
+                  sourceNode.__elOrigin[originName]
+                );
+              }
+            }
+          );
+
+          for (var i = 0; i < sourceNode.attributes.length; i++) {
+            const attr = sourceNode.attributes[i];
+            const nameOrigin = getElAttributeNameOrigin(sourceNode, attr.name);
+            const valueOrigin = getElAttributeValueOrigin(
+              sourceNode,
+              attr.name
+            );
+            if (nameOrigin) {
+              addElAttributeNameOrigin(cloneResult, attr.name, nameOrigin);
+            }
+            if (valueOrigin) {
+              addElAttributeValueOrigin(cloneResult, attr.name, valueOrigin);
+            }
+          }
+        } else if (sourceNode.nodeType === Node.TEXT_NODE) {
+          addElOrigin(
+            cloneResult,
+            "textValue",
+            sourceNode.__elOrigin.textValue
+          );
+        } else if (sourceNode.nodeType === Node.COMMENT_NODE) {
+          addElOrigin(
+            cloneResult,
+            "textValue",
+            sourceNode.__elOrigin.textValue
+          );
+        } else {
+          consoleWarn("unhandled cloneNode");
+        }
+      }
+      if (sourceNode.nodeType === Node.ELEMENT_NODE) {
+        if (isDeep) {
+          sourceNode.childNodes.forEach((childNode, i) => {
+            processClonedNode(cloneResult.childNodes[i], childNode);
+          });
+        }
+      }
+    }
+  },
   "HTMLElement.prototype.setAttribute": ({ object, fnArgs, fnArgValues }) => {
     const [attrNameArg, attrValueArg] = fnArgs;
     let attrName = fnArgValues[0];
-    addElOrigin(object, "attribute_" + attrName + "_name", {
+    addElAttributeNameOrigin(object, attrName, {
       trackingValue: attrNameArg
     });
-    addElOrigin(object, "attribute_" + attrName + "_value", {
+    addElAttributeValueOrigin(object, attrName, {
       trackingValue: attrValueArg
     });
   },
@@ -645,7 +721,7 @@ const specialValuesForPostprocessing = {
   }) => {
     const position = fnArgValues[0].toLowerCase();
     if (position !== "afterbegin") {
-      console.log("Not tracking insertAdjacentHTML at", position);
+      consoleLog("Not tracking insertAdjacentHTML at", position);
       return;
     }
 
@@ -742,7 +818,7 @@ class ValueMapV2 {
         part.toIndexInOriginal
       );
     });
-    console.log({ originalString, newString });
+    consoleLog({ originalString, newString });
   }
 }
 
@@ -783,7 +859,7 @@ const CallExpression = <any>{
       const argArray = fnArgValues[1] || [];
       if (!("length" in argArray)) {
         // hmm can this even happen in a program that's not already broken?
-        console.log("can this even happen?");
+        consoleLog("can this even happen?");
         fnArgsAtInvocation = [];
       } else {
         fnArgsAtInvocation = [];
@@ -816,7 +892,7 @@ const CallExpression = <any>{
         ret = ret.returnValue;
       } else {
         if (isNewFunctionCall) {
-          console.log("can't instrument new Function() code");
+          consoleLog("can't instrument new Function() code");
         }
         let thisValue = null; // overwritten inside new()
         ret = new (Function.prototype.bind.apply(fnArg[0], [
@@ -889,7 +965,7 @@ const CallExpression = <any>{
           fn === ctx.knownValues.getValue("String.prototype.replace") &&
           VERIFY
         ) {
-          console.log("unhandled string replace call");
+          consoleLog("unhandled string replace call");
         }
         const fnIsEval = fn === eval;
         if (fnIsEval) {
@@ -897,7 +973,7 @@ const CallExpression = <any>{
             fn = ctx.global["__fromJSEval"];
           } else {
             if (!ctx.global.__forTestsDontShowCantEvalLog) {
-              console.log("Calling eval but can't instrument code");
+              consoleLog("Calling eval but can't instrument code");
             }
           }
         }
@@ -1082,6 +1158,7 @@ const CallExpression = <any>{
 
         const lastReturnStatementResultBeforeCall =
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+
         ret = fn.apply(object, fnArgValuesForApply);
         ctx.argTrackingInfo = null;
         const lastReturnStatementResultAfterCall =
@@ -1098,7 +1175,7 @@ const CallExpression = <any>{
               getSpecialCaseArgs()
             );
           } catch (err) {
-            console.error("post procressing error", fnKnownValue, err);
+            consoleError("post procressing error", fnKnownValue, err);
             debugger;
           }
         } else {

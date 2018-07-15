@@ -43,17 +43,23 @@ let TraversalStep = class TraversalStep extends React.Component<
     };
 
     const { step } = props;
-    resolveStackFrame(step.operationLog)
-      .then(r => {
-        // console.log("got stackframe", r);
-        this.setState({
-          stackFrame: r
-        });
-        // console.log("done resolve stack frame", r);
-        // document.querySelector("#step-code-" + i).innerHTML =
-        //   r.code.line.text;
-      })
-      .catch(err => "yolo");
+    if (this.needsToLoadLocation(step.operationLog)) {
+      resolveStackFrame(step.operationLog)
+        .then(r => {
+          // console.log("got stackframe", r);
+          this.setState({
+            stackFrame: r
+          });
+          // console.log("done resolve stack frame", r);
+          // document.querySelector("#step-code-" + i).innerHTML =
+          //   r.code.line.text;
+        })
+        .catch(err => "yolo");
+    }
+  }
+
+  needsToLoadLocation(operationLog) {
+    return operationLog.operation !== "initialPageHtml";
   }
 
   getAllArgs() {
@@ -82,26 +88,33 @@ let TraversalStep = class TraversalStep extends React.Component<
       isExpanded = true;
     }
 
-    try {
-      if (stackFrame) {
-        const { previousLines, nextLines } = stackFrame.code;
-        code = stackFrame.code.line.text;
-        fileName = stackFrame.fileName.replace("?dontprocess", "");
-        lineNumber = stackFrame.lineNumber;
-        columnNumber = stackFrame.columnNumber;
-        if (previousLines.length > 0) {
-          previousLine = previousLines[previousLines.length - 1].text;
+    let hasResolvedFrame = false;
+    if (this.needsToLoadLocation(operationLog)) {
+      try {
+        if (stackFrame) {
+          const { previousLines, nextLines } = stackFrame.code;
+          code = stackFrame.code.line.text;
+          fileName = stackFrame.fileName.replace("?dontprocess", "");
+          lineNumber = stackFrame.lineNumber;
+          columnNumber = stackFrame.columnNumber;
+          if (previousLines.length > 0) {
+            previousLine = previousLines[previousLines.length - 1].text;
+          }
+          if (nextLines.length > 0) {
+            nextLine = nextLines[0].text;
+          }
+          hasResolvedFrame = true;
+        } else {
+          code = "(Loading...)";
+          fileName = "(Loading...)";
         }
-        if (nextLines.length > 0) {
-          nextLine = nextLines[0].text;
-        }
-      } else {
-        code = "(Loading...)";
-        fileName = "(Loading...)";
+      } catch (err) {
+        code = "(error)";
+        fileName = "(error)";
       }
-    } catch (err) {
-      code = "(error)";
-      fileName = "(error)";
+    } else {
+      code = "";
+      fileName = operationLog.runtimeArgs.url;
     }
 
     function prepareText(text) {
@@ -153,9 +166,12 @@ let TraversalStep = class TraversalStep extends React.Component<
       console.log(err);
     }
 
-    if (operationTypeDetail) {
-      operationTypeDetail = "(" + operationTypeDetail + ")";
+    let shortFileName = getFileNameFromPath(fileName);
+    if (shortFileName.length === 0) {
+      // Commonly happens for HTML path that ends with /
+      shortFileName = fileName;
     }
+    const fileNameLabel = this.state.isHovering ? fileName : shortFileName;
     return (
       <div
         className="step"
@@ -166,10 +182,21 @@ let TraversalStep = class TraversalStep extends React.Component<
           <div className="step__operation-type">
             {operationLog.operation[0].toUpperCase() +
               operationLog.operation.slice(1)}{" "}
-            {operationTypeDetail}
+            <span className="step__operation-type-detail">
+              {operationTypeDetail}
+            </span>
           </div>
           <span style={{ fontSize: "12px", marginTop: 3, float: "left" }}>
-            {this.state.isHovering ? fileName : getFileNameFromPath(fileName)}
+            {hasResolvedFrame ? (
+              <a
+                target="_blank"
+                href={"/viewFullCode/" + encodeURIComponent(fileName)}
+              >
+                {fileNameLabel}
+              </a>
+            ) : (
+              fileNameLabel
+            )}
           </span>
           <button
             className="blue-button"

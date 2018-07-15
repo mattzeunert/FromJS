@@ -17,6 +17,7 @@ import traverseStringConcat from "../traverseStringConcat";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import addElOrigin from "./domHelpers/addElOrigin";
 import * as MemoValueNames from "../MemoValueNames";
+import { consoleLog } from "../helperFunctions/logging";
 
 export default <any>{
   argNames: log => {
@@ -123,13 +124,15 @@ export default <any>{
         propNameT
       );
 
-      const objIsHTMLElement =
-        typeof HTMLElement !== "undefined" && obj instanceof HTMLElement;
-      if (objIsHTMLElement && propName === "innerHTML") {
+      const objIsHTMLNode = typeof Node !== "undefined" && obj instanceof Node;
+      if (objIsHTMLNode && propName === "innerHTML") {
         mapInnerHTMLAssignment(obj, argumentArg, "assignInnerHTML", 0);
-      } else if (objIsHTMLElement && propName === "textContent") {
+      } else if (
+        objIsHTMLNode &&
+        ["text", "textContent", "nodeValue"].includes(propName)
+      ) {
         if (obj.nodeType === Node.TEXT_NODE) {
-          addElOrigin(obj, "textContent", {
+          addElOrigin(obj, "textValue", {
             trackingValue: argumentArg[1]
           });
         } else if (obj.nodeType === Node.ELEMENT_NODE) {
@@ -140,7 +143,7 @@ export default <any>{
             });
           }
         } else {
-          console.log("do i need to handle this? can this even happen?");
+          consoleLog("do i need to handle this? can this even happen?");
         }
       }
     } else if (assignmentType === "Identifier") {
@@ -152,6 +155,7 @@ export default <any>{
     return ret;
   },
   traverse(operationLog, charIndex) {
+    debugger;
     const { operator } = operationLog.astArgs;
     if (operator === "=") {
       return {

@@ -7,6 +7,7 @@ export class BackendOptions {
   onReady: () => void;
   dontTrack: any[];
   block: any[];
+  disableDefaultBlockList: boolean;
 
   constructor({
     bePort,
@@ -14,7 +15,8 @@ export class BackendOptions {
     sessionDirectory,
     onReady,
     dontTrack,
-    block
+    block,
+    disableDefaultBlockList
   }) {
     this.bePort = bePort;
     this.proxyPort = proxyPort;
@@ -22,6 +24,7 @@ export class BackendOptions {
     this.onReady = onReady;
     this.dontTrack = dontTrack;
     this.block = block;
+    this.disableDefaultBlockList = disableDefaultBlockList;
   }
 
   getCertDirectory() {

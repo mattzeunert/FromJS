@@ -40,22 +40,23 @@ var helperCode = `
   })();
 `;
 
-helperCode += helperCodeLoaded
-  .toString()
-  .replace("__FUNCTION_NAMES__", JSON.stringify(FunctionNames));
-helperCode = helperCode.replace(
-  "__OPERATION_TYPES__",
-  JSON.stringify(OperationTypes)
-);
+helperCode += helperCodeLoaded.toString();
 
 helperCode += "/* HELPER_FUNCTIONS_END */ ";
 
 // I got some babel-generator "cannot read property 'type' of undefined" errors
 // when prepending the code itself, so just prepend a single eval call expression
 helperCode =
+  `
+  if (typeof __fromJSMaybeMapInitialPageHTML !== "undefined") {
+    __fromJSMaybeMapInitialPageHTML()
+  }
+  var global = Function("return this")();
+if (!global.__didInitializeDataFlowTracking) {` +
   "eval(`" +
   helperCode.replace(/\\/g, "\\\\").replace(/`/g, "\\`") +
-  "\n//# sourceURL=/helperFns.js`)";
+  "\n//# sourceURL=/helperFns.js`)" +
+  "}";
 helperCode += "// aaaaa"; // this seems to help with debugging/evaling the code... not sure why...just take it out if the tests dont break
 
 function plugin(babel) {

@@ -1,7 +1,8 @@
 import KnownValues from "./KnownValues";
-import { VERIFY } from "../config";
+import { VERIFY, MINIMIZE_LOG_DATA_SIZE } from "../config";
 import operations from "../operations";
 import invokeIfFunction from "../invokeIfFunction";
+import { consoleLog } from "./logging";
 
 var global = Function("return this")();
 
@@ -207,26 +208,34 @@ OperationLog.createAtRuntime = function(
   knownValues
 ): OperationLogInterface {
   if (VERIFY && !loc) {
-    console.log("no loc at runtime for operation", operation);
+    consoleLog("no loc at runtime for operation", operation);
   }
   const op = operations[operation];
 
   if (Array.isArray(args)) {
     const newArgs: any[] = [];
-    args.forEach((arg, i) => {
+
+    for (var i = 0; i < args.length; i++) {
+      const arg = args[i];
       if (
         op["argIsArray"] &&
         invokeIfFunction(op["argIsArray"]![i], arguments[0])
       ) {
         const a: any[] = [];
-        arg.forEach((arrayArg, arrayArgIndex) => {
+        for (
+          var arrayArgIndex = 0;
+          arrayArgIndex < arg.length;
+          arrayArgIndex++
+        ) {
+          const arrayArg = arg[arrayArgIndex];
           a.push(arrayArg[1]);
-        });
+        }
+
         newArgs.push(a);
       } else {
         newArgs.push(arg[1]);
       }
-    });
+    }
 
     args = newArgs;
 
@@ -260,8 +269,17 @@ OperationLog.createAtRuntime = function(
   }
 
   let _result;
-  if (op && op.canInferResult) {
-    // args can be inferred on BE by checking the AST loc data
+  let canInfer = false;
+  if (MINIMIZE_LOG_DATA_SIZE) {
+    let opCanInfer = op && op.canInferResult;
+    if (typeof opCanInfer === "boolean") {
+      canInfer = opCanInfer;
+    } else if (typeof opCanInfer === "function" && args) {
+      canInfer = opCanInfer(args, extraArgs);
+    }
+  }
+  if (canInfer) {
+    // args can be inferred on BE by checking the AST loc data, or by checking argument values
   } else {
     _result = serializeValue(result, knownValues);
   }

@@ -18,10 +18,11 @@ function traverse() {
 }
 
 export function selectAndTraverse(logId, charIndex, origin?) {
-  appState.set("inspectionTarget", { logId, charIndex });
   if (origin === "traversalStep") {
-    appState.set("collapseDomInspector", true);
+    // this is bad! need to clean up how the state works at some point
+    appState.set("domToInspect", null);
   }
+  appState.set("inspectionTarget", { logId, charIndex });
   traverse();
 }
 
@@ -30,21 +31,11 @@ export function selectInspectedDomCharIndex(charIndex) {
   inspectDomChar(charIndex).then(({ logId, charIndex }) => {
     if (logId) {
       appState.set("inspectionTarget", { logId, charIndex });
-      appState.set("collapseDomInspector", false);
       traverse();
     } else {
       appState.set("inspectionTarget", null);
-      appState.set("collapseDomInspector", true);
     }
   });
-}
-
-export function expandDomInspector() {
-  appState.set("collapseDomInspector", false);
-}
-
-export function collapseDomInspector() {
-  appState.set("collapseDomInspector", true);
 }
 
 export function setIsInspectingDemoApp(isInspecting) {

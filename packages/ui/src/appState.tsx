@@ -32,6 +32,30 @@ var appState = new Baobab({
         (inspectionTarget && inspectionTarget.logId)
       );
     }
+  }),
+  // TODO: this should probably be top level state (and then we can implement undo/redo)
+  inspectedString: monkey({
+    cursors: {
+      domToInspect: ["domToInspect"],
+      steps: ["steps"]
+    },
+    get: function({ domToInspect, steps }) {
+      if (domToInspect) {
+        return {
+          text: domToInspect.outerHTML,
+          charIndex: domToInspect.charIndex,
+          type: "dom"
+        };
+      } else if (steps.length > 0) {
+        return {
+          text: steps[0].operationLog.result.primitive + "",
+          charIndex: steps[0].charIndex,
+          logIndex: steps[0].operationLog.index,
+          type: "js"
+        };
+      }
+      return null;
+    }
   })
 });
 window["appState"] = appState;

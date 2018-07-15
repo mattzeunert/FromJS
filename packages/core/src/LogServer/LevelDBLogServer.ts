@@ -3,14 +3,18 @@ import * as leveldown from "leveldown";
 import OperationLog from "../helperFunctions/OperationLog";
 import { LogServer } from "./LogServer";
 import { LocStore } from "../LocStore";
+import { cacheLevelDBGet } from "../cacheLevelDBGet";
 
 export default class LevelDBLogServer extends LogServer {
   db: any;
   levelDownDb: any;
+  _getCached: any;
+
   constructor(dbPath: string, locStore: LocStore) {
     super(locStore);
     this.levelDownDb = leveldown(dbPath);
     this.db = levelup(this.levelDownDb);
+    this._getCached = cacheLevelDBGet(this.db);
   }
   storeLog(log: OperationLog) {
     this.db.put(log.index.toString(), JSON.stringify(log), function(err) {
@@ -35,17 +39,19 @@ export default class LevelDBLogServer extends LogServer {
       callback();
     });
   }
+
   getLog(
     index: number | string,
     fn: (err: any, log: OperationLog | null) => void
   ) {
-    this.db.get(index.toString(), function(err, value) {
+    this._getCached(index.toString(), (err, value) => {
       if (err) {
         fn(err, null);
         return;
       }
-      value = JSON.parse(value.toString());
-      fn(null, new OperationLog(value));
+      value = JSON.parse(value);
+      const ret = new OperationLog(value);
+      fn(null, ret);
     });
   }
 }

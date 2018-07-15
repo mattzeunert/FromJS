@@ -114,15 +114,16 @@
     lodash "^4.17.5"
     to-fast-properties "^2.0.0"
 
-"@fromjs/core@^0.1.7":
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/@fromjs/core/-/core-0.1.7.tgz#561d4354a2e850654f60f29b863ae0ad24d696ab"
+"@fromjs/core@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@fromjs/core/-/core-2.0.4.tgz#ea257c6a1f4132e29e4ad7d969bb47bbecd8a4ce"
   dependencies:
     "@babel/core" "^7.0.0-beta.40"
     "@types/jest" "^23.0.0"
     "@types/node" "^10.3.2"
     awesome-typescript-loader "^4.0.1"
     babylon "^6.18.0"
+    clone-regexp "^2.1.0"
     jest "^22.4.2"
     leveldown "^4.0.1"
     levelup "^3.0.1"
@@ -131,9 +132,9 @@
     typescript "^2.7.2"
     webpack "^4.5.0"
 
-"@fromjs/proxy-instrumenter@^0.1.7":
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/@fromjs/proxy-instrumenter/-/proxy-instrumenter-0.1.7.tgz#385c4dab2b4543d457e9d11fd4e50c68316d15af"
+"@fromjs/proxy-instrumenter@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@fromjs/proxy-instrumenter/-/proxy-instrumenter-2.0.4.tgz#4a543fcae31140e3d9a93ddb60329dda65e02150"
   dependencies:
     "@types/node" "^10.1.3"
     http-mitm-proxy "^0.6.1"
@@ -142,12 +143,12 @@
     ts-node "^5.0.1"
     wait-until "^0.0.2"
 
-"@fromjs/ui@^0.1.7":
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/@fromjs/ui/-/ui-0.1.7.tgz#3a3db809fa7240760cbc44e92fa9f5f6f1dc7f6d"
+"@fromjs/ui@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@fromjs/ui/-/ui-2.0.4.tgz#d244c76680baec6561207fd7f53aa810920e82d3"
   dependencies:
     "@babel/standalone" "^7.0.0-beta.42"
-    "@fromjs/core" "^0.1.7"
+    "@fromjs/core" "^2.0.4"
     "@types/react" "^16.3.14"
     awesome-typescript-loader "^4.0.1"
     baobab "^2.5.2"
@@ -1676,6 +1677,12 @@ cliui@^4.0.0:
 clone-buffer@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/clone-buffer/-/clone-buffer-1.0.0.tgz#e3e25b207ac4e701af721e2cb5a16792cac3dc58"
+
+clone-regexp@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/clone-regexp/-/clone-regexp-2.1.0.tgz#d17b9ff55840b2cb2d84eab618bc4f8d2af4b631"
+  dependencies:
+    is-regexp "^2.0.0"
 
 clone-response@1.0.2:
   version "1.0.2"
@@ -3358,6 +3365,10 @@ is-regex@^1.0.4:
   dependencies:
     has "^1.0.1"
 
+is-regexp@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/is-regexp/-/is-regexp-2.0.0.tgz#d669511d64a620c7a8dffa9a1e00710f9275ace0"
+
 is-retry-allowed@^1.0.0, is-retry-allowed@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/is-retry-allowed/-/is-retry-allowed-1.1.0.tgz#11a060568b67339444033d0125a61a20d564fb34"
@@ -4141,7 +4152,7 @@ lowercase-keys@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/lowercase-keys/-/lowercase-keys-1.0.1.tgz#6f9e30b47084d971a7c820ff15a6c5167b74c26f"
 
-lru-cache@^4.0.1, lru-cache@^4.1.1:
+lru-cache@^4.0.1, lru-cache@^4.1.1, lru-cache@^4.1.3:
   version "4.1.3"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-4.1.3.tgz#a1175cf3496dfc8436c156c334b4955992bce69c"
   dependencies:

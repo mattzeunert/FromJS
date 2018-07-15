@@ -1,5 +1,9 @@
-import addElOrigin from "./addElOrigin";
+import addElOrigin, {
+  addElAttributeValueOrigin,
+  addElAttributeNameOrigin
+} from "./addElOrigin";
 import { normalizeHtml, normalizeHtmlAttribute } from "./normalize";
+import { consoleWarn } from "../../helperFunctions/logging";
 
 var htmlEntityRegex = /^\&[#a-zA-Z0-9]+\;/;
 var whitespaceRegex = /^[\s]+/;
@@ -48,34 +52,6 @@ export default function mapInnerHTMLAssignment(
 
   function getCharOffsetInAssignedHTML() {
     return charOffsetInSerializedHtml - charsAddedInSerializedHtml;
-  }
-
-  function validateMapping(mostRecentOrigin) {
-    /*
-            if (!config.validateHtmlMapping) {
-              return
-            }
-            var step = {
-              originObject: mostRecentOrigin,
-              characterIndex: charOffsetInSerializedHtml - 1
-            }
-
-            goUpForDebugging(step, function (newStep) {
-              if (assignedString[newStep.characterIndex] !== serializedHtml[charOffsetInSerializedHtml - 1]) {
-                // This doesn't necessarily mean anything is going wrong.
-                // For example, you'll get this warning every time you assign an
-                // attribute like this: <a checked>
-                // because it'll be changed into: <a checked="">
-                // and then we compare the last char of the attribute,
-                // which will be 'd' in the assigned string and '"' in
-                // the serialized string
-                // however, I don't think there's ever a reason for this to be
-                // called repeatedly. That would indicate a offset problem that
-                // gets carried through the rest of the assigned string
-                console.warn("strings don't match", assignedString[newStep.characterIndex], serializedHtml[charOffsetInSerializedHtml - 1])
-              }
-            })
-            */
   }
 
   // get offsets by looking at how the assigned value compares to the serialized value
@@ -202,8 +178,6 @@ export default function mapInnerHTMLAssignment(
         charsAddedInSerializedHtml += extraCharsAddedHere;
         charOffsetInSerializedHtml += text.length;
         forDebuggingProcessedHtml += text;
-
-        // validateMapping(child.__elOrigin.textValue)
       } else if (isCommentNode) {
         addElOrigin(child, "commentStart", {
           action: actionName,
@@ -246,8 +220,6 @@ export default function mapInnerHTMLAssignment(
         charOffsetInSerializedHtml += openingTagStart.length;
         forDebuggingProcessedHtml += openingTagStart;
 
-        // validateMapping(child.__elOrigin.openingTagStart)
-
         for (var i = 0; i < child.attributes.length; i++) {
           let extraCharsAddedHere = 0;
           var attr = child.attributes[i];
@@ -269,7 +241,7 @@ export default function mapInnerHTMLAssignment(
           } else {
             // something broke, but better to show a broken result than nothing at all
             if (config.validateHtmlMapping) {
-              console.warn(
+              consoleWarn(
                 "no whitespace found at start of",
                 assignedValueFromAttrStartOnwards
               );
@@ -309,7 +281,7 @@ export default function mapInnerHTMLAssignment(
 
           if (!equalsSignIsNextNonWhitespaceCharacter) {
             if (attr.textContent !== "") {
-              console.warn("empty text content");
+              consoleWarn("empty text content");
               // debugger
             }
             // value of attribute is omitted in original html
@@ -354,7 +326,7 @@ export default function mapInnerHTMLAssignment(
               // specifically this was happening on StackOverflow, probably because we don't
               // support tables yet (turn <table> into <table><tbody>),
               // but once that is supported this might just fix itself
-              console.warn("No offsets for attribute mapping");
+              consoleWarn("No offsets for attribute mapping");
               for (let ii = 0; ii < textAfterAssignment.length; ii++) {
                 offsetAtCharIndex.push(-extraCharsAddedHere);
               }
@@ -369,7 +341,7 @@ export default function mapInnerHTMLAssignment(
             offsetAtCharIndex.push(lastOffset); // map the "'" after the attribute value
           }
 
-          addElOrigin(child, "attribute_" + attr.name + "_name", {
+          addElAttributeNameOrigin(child, attr.name, {
             action: actionName,
             trackingValue: assignedInnerHTML[1],
             value: serializedHtml,
@@ -379,7 +351,7 @@ export default function mapInnerHTMLAssignment(
             error: error
           });
 
-          addElOrigin(child, "attribute_" + attr.name + "_value", {
+          addElAttributeValueOrigin(child, attr.name, {
             action: actionName,
             trackingValue: assignedInnerHTML[1],
             value: serializedHtml,
@@ -397,9 +369,6 @@ export default function mapInnerHTMLAssignment(
             whitespaceBeforeAttributeInSerializedHtml.length + attrStr.length;
           forDebuggingProcessedHtml +=
             whitespaceBeforeAttributeInSerializedHtml + attrStr;
-
-          var attrPropName = "attribute_" + attr.name;
-          // validateMapping(child.__elOrigin[attrPropName])
         }
 
         var openingTagEnd = ">";
@@ -454,8 +423,6 @@ export default function mapInnerHTMLAssignment(
         charOffsetInSerializedHtml += openingTagEnd.length;
         forDebuggingProcessedHtml += openingTagEnd;
 
-        // validateMapping(child.__elOrigin.openingTagEnd)
-
         if (child.tagName === "IFRAME") {
           forDebuggingProcessedHtml += child.outerHTML;
           charOffsetInSerializedHtml += child.outerHTML.length;
@@ -479,7 +446,7 @@ export default function mapInnerHTMLAssignment(
       } else {
         throw "not handled";
       }
-      // console.log("processed", forDebuggingProcessedHtml, assignedInnerHTML.toString().toLowerCase().replace(/\"/g, "'") === forDebuggingProcessedHtml.toLowerCase())
+      // consoleLog("processed", forDebuggingProcessedHtml, assignedInnerHTML.toString().toLowerCase().replace(/\"/g, "'") === forDebuggingProcessedHtml.toLowerCase())
     });
   }
 }

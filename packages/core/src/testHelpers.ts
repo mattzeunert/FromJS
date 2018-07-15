@@ -24,12 +24,13 @@ interface InstrumentAndRunResult {
   normal?: any;
 }
 
-export function instrumentAndRun(code) {
+export function instrumentAndRun(code, outsideArgs = {}) {
   return new Promise<InstrumentAndRunResult>(resolve => {
     code = `getTrackingAndNormalValue((function(){ ${code} })())`;
 
     compile(code).then((compileResult: CompilationResult) => {
       var code = compileResult.code;
+      const relevantCode = code.split("* HELPER_FUNCTIONS_END */")[1];
 
       server._locStore.write(compileResult.locs, function() {
         /* don't bother waiting since store is sync */
@@ -40,7 +41,7 @@ export function instrumentAndRun(code) {
       var result: InstrumentAndRunResult = eval(code);
 
       delete global["__didInitializeDataFlowTracking"];
-      result.code = code.split("* HELPER_FUNCTIONS_END */")[1]; // only the interesting code
+      result.code = relevantCode; // only the interesting code
 
       if (result.tracking) {
         server.loadLog(

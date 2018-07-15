@@ -38,7 +38,11 @@ export default class KnownValues {
       "Promise.prototype.then": Promise.prototype.then,
       "Promise.prototype.catch": Promise.prototype.catch,
       "Function.prototype.call": Function.prototype.call,
-      "Function.prototype.apply": Function.prototype.apply
+      "Function.prototype.apply": Function.prototype.apply,
+      "console.log": console.log,
+      "console.warn": console.warn,
+      "console.count": console.count,
+      "console.error": console.error
     });
 
     if (global["localStorage"]) {
@@ -65,7 +69,8 @@ export default class KnownValues {
         "HTMLElement.prototype.setAttribute":
           HTMLElement.prototype.setAttribute,
         "HTMLElement.prototype.insertAdjacentHTML":
-          HTMLElement.prototype.insertAdjacentHTML
+          HTMLElement.prototype.insertAdjacentHTML,
+        "HTMLElement.prototype.cloneNode": HTMLElement.prototype.cloneNode
       });
     }
 

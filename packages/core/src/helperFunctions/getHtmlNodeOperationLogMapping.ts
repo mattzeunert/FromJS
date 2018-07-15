@@ -1,4 +1,5 @@
 import HtmlToOperationLogMapping from "./HtmlToOperationLogMapping";
+import { consoleLog } from "./logging";
 
 function tagTypeHasClosingTag(tagName) {
   return document.createElement(tagName).outerHTML.indexOf("></") !== -1;
@@ -44,7 +45,7 @@ function getNodeHtmlParts(node: Node) {
     parts.push([node.textContent, origin.textValue]);
     parts.push(["-->", origin.commentEnd]);
   } else {
-    console.log("TODO unknown node type");
+    consoleLog("TODO unknown node type");
   }
   return parts;
 }

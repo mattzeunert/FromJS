@@ -2,7 +2,8 @@ import {
   babelPlugin,
   LevelDBLogServer,
   HtmlToOperationLogMapping,
-  LocStore
+  LocStore,
+  traverseDomOrigin
 } from "@fromjs/core";
 import { traverse } from "./src/traverse";
 import StackFrameResolver, {
@@ -35,6 +36,8 @@ let coreDir = require
   .split("/")
   .slice(0, -1)
   .join("/");
+let fromJSInternalDir = path.resolve(__dirname + "/../fromJSInternal");
+
 let startPageDir = path.resolve(__dirname + "/../start-page");
 
 function ensureDirectoriesExist(options: BackendOptions) {
@@ -50,7 +53,7 @@ function ensureDirectoriesExist(options: BackendOptions) {
   });
 }
 
-const LOG_PERF = false;
+const LOG_PERF = true;
 const DELETE_EXISTING_LOGS_AT_START = false;
 
 export default class Backend {
@@ -177,6 +180,8 @@ function setupUI(options, app, wss, getProxy) {
   });
 
   app.use(express.static(uiDir));
+  console.log({ fromJSInternalDir });
+  app.use("/fromJSInternal", express.static(fromJSInternalDir));
   app.use("/start", express.static(startPageDir));
 
   function getDomToInspectMessage(charIndex?) {
@@ -269,23 +274,10 @@ function setupUI(options, app, wss, getProxy) {
 
     const origin = mappingResult.origin;
 
-    let offset = 0;
-    if (
-      origin.offsetAtCharIndex &&
-      origin.offsetAtCharIndex[mappingResult.charIndex]
-    ) {
-      offset = origin.offsetAtCharIndex[mappingResult.charIndex];
-    }
-    let charIndex =
-      mappingResult.charIndex +
-      origin.inputValuesCharacterIndex[0] -
-      origin.extraCharsAdded +
-      offset;
-
     res.end(
       JSON.stringify({
-        logId: mappingResult.origin.trackingValue,
-        charIndex
+        logId: origin.trackingValue,
+        charIndex: traverseDomOrigin(origin, mappingResult.charIndex)
       })
     );
   });
@@ -407,6 +399,9 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
     const finishRequest = async function finishRequest() {
       let steps;
       try {
+        if (LOG_PERF) {
+          console.time("Traverse " + logId);
+        }
         steps = await traverse(
           {
             operationLog: logId,
@@ -415,6 +410,9 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
           [],
           logServer
         );
+        if (LOG_PERF) {
+          console.timeEnd("Traverse " + logId);
+        }
       } catch (err) {
         res.status(500);
         res.end(
@@ -438,6 +436,11 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
         res.end(JSON.stringify(rr, null, 4));
       });
     });
+  });
+
+  app.get("/viewFullCode/:url", (req, res) => {
+    const url = decodeURIComponent(req.params.url);
+    res.end(resolver.getFullSourceCode(url));
   });
 
   app.post("/prettify", (req, res) => {

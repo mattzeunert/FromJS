@@ -18,65 +18,12 @@ export interface ResolvedStackFrame {
   fileName: string;
 }
 
-function getSourceCodeObject(frameObject, code) {
-  function makeLine(fullLine, focusColumn) {
-    try {
-      var text = fullLine;
-      var firstCharIndex = 0;
-      var lastCharIndex = fullLine.length;
-      if (fullLine.length > 300) {
-        firstCharIndex = focusColumn - 100;
-        if (firstCharIndex < 0) {
-          firstCharIndex = 0;
-        }
-        lastCharIndex = firstCharIndex + 200;
-        text = fullLine.slice(firstCharIndex, lastCharIndex);
-      }
-      return {
-        length: fullLine.length,
-        firstCharIndex,
-        lastCharIndex,
-        text
-      };
-    } catch (err) {
-      return {
-        text: err.toString()
-      };
-    }
-  }
-
-  var lines = code.split("\n");
-
-  if (!lines[frameObject.lineNumber - 1]) {
-    console.log(
-      "line doesn't exist - maybe because the frame being mapped is inside init.js and doesn't map anywhere?"
-    );
-  }
-
-  const NUMBER_OF_LINES_TO_LOAD = 20;
-
-  return {
-    line: makeLine(lines[frameObject.lineNumber - 1], frameObject.columnNumber),
-    previousLines: lines
-      .slice(
-        Math.max(frameObject.lineNumber - 1 - NUMBER_OF_LINES_TO_LOAD, 0),
-        frameObject.lineNumber - 1
-      )
-      .map(l => makeLine(l, 0)),
-    nextLines: lines
-      .slice(
-        frameObject.lineNumber,
-        frameObject.lineNumber + 1 + NUMBER_OF_LINES_TO_LOAD
-      )
-      .map(l => makeLine(l, 0))
-  };
-}
-
 class StackFrameResolver {
   _cache = {};
   _gps: any = null;
   _nonProxyGps: any = null;
   _proxyPort: number | null = null;
+  _sourceObjectUrlCache = {};
 
   constructor({ proxyPort }) {
     this._proxyPort = proxyPort;
@@ -118,12 +65,86 @@ class StackFrameResolver {
 
   resolveSourceCode(frameObject) {
     return this._fetchCode(frameObject).then(code => {
-      return getSourceCodeObject(frameObject, code);
+      return this.getSourceCodeObject(frameObject, code);
     });
   }
 
   _fetchCode(frameObject) {
     return this._gps._get(frameObject.fileName);
+  }
+
+  getSourceCodeObject(frameObject, code) {
+    function makeLine(fullLine, focusColumn) {
+      try {
+        var text = fullLine;
+        var firstCharIndex = 0;
+        var lastCharIndex = fullLine.length;
+        if (fullLine.length > 300) {
+          firstCharIndex = focusColumn - 100;
+          if (firstCharIndex < 0) {
+            firstCharIndex = 0;
+          }
+          lastCharIndex = firstCharIndex + 200;
+          text = fullLine.slice(firstCharIndex, lastCharIndex);
+        }
+        return {
+          length: fullLine.length,
+          firstCharIndex,
+          lastCharIndex,
+          text
+        };
+      } catch (err) {
+        return {
+          text: err.toString()
+        };
+      }
+    }
+
+    // Make it possible to look up full source code
+    // Easy to do it this way but pretty inelegant because
+    // - it duplicates the cache data (though probably not taking much extra space)
+    // - it only works if you first resolve a frame
+    this._sourceObjectUrlCache[frameObject.fileName] = code;
+
+    var lines = code.split("\n");
+
+    if (!lines[frameObject.lineNumber - 1]) {
+      console.log(
+        "line doesn't exist - maybe because the frame being mapped is inside init.js and doesn't map anywhere?"
+      );
+    }
+
+    const NUMBER_OF_LINES_TO_LOAD = 20;
+
+    return {
+      line: makeLine(
+        lines[frameObject.lineNumber - 1],
+        frameObject.columnNumber
+      ),
+      previousLines: lines
+        .slice(
+          Math.max(frameObject.lineNumber - 1 - NUMBER_OF_LINES_TO_LOAD, 0),
+          frameObject.lineNumber - 1
+        )
+        .map(l => makeLine(l, 0)),
+      nextLines: lines
+        .slice(
+          frameObject.lineNumber,
+          frameObject.lineNumber + 1 + NUMBER_OF_LINES_TO_LOAD
+        )
+        .map(l => makeLine(l, 0))
+    };
+  }
+
+  getFullSourceCode(url) {
+    let res = this._sourceObjectUrlCache[url];
+    if (res === undefined) {
+      res = this._sourceObjectUrlCache[url + "?dontprocess"];
+    }
+    if (res === undefined) {
+      throw Error("url not found in cache");
+    }
+    return res;
   }
 
   resolveFrameFromLoc(loc) {
@@ -164,7 +185,7 @@ class StackFrameResolver {
         this._nonProxyGps
           .pinpoint(frameObject)
           .then(pinpointedFrameObject => {
-            this._nonProxyGps
+            return this._nonProxyGps
               ._get(frameObject.fileName)
               .then(unSourcemappedCode => {
                 let smUrl = _findSourceMappingURL(unSourcemappedCode);
@@ -175,21 +196,20 @@ class StackFrameResolver {
                     .join("/");
                   smUrl = basePath + "/" + smUrl;
                 }
+                return this._nonProxyGps.sourceMapConsumerCache[smUrl].then(
+                  smConsumer => {
+                    const sourcesIndex = smConsumer.sources.indexOf(
+                      pinpointedFrameObject.fileName
+                    );
+                    const code = smConsumer.sourcesContent[sourcesIndex];
 
-                this._nonProxyGps.sourceMapConsumerCache[smUrl].then(function(
-                  smConsumer
-                ) {
-                  const sourcesIndex = smConsumer.sources.indexOf(
-                    pinpointedFrameObject.fileName
-                  );
-                  const code = smConsumer.sourcesContent[sourcesIndex];
-
-                  pinpointedFrameObject.code = getSourceCodeObject(
-                    pinpointedFrameObject,
-                    code
-                  );
-                  resolve(pinpointedFrameObject);
-                });
+                    pinpointedFrameObject.code = this.getSourceCodeObject(
+                      pinpointedFrameObject,
+                      code
+                    );
+                    resolve(pinpointedFrameObject);
+                  }
+                );
               });
           })
           .catch(err => {
