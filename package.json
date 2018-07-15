@@ -6,6 +6,7 @@
   "author": "Matt Zeunert <matt@mostlystatic.com>",
   "license": "MIT",
   "scripts": {
+    "update-website": "git subtree push  --prefix gh-pages origin gh-pages",
     "compile-core": "cd packages/core;tsc --project tsconfig-core-main.json",
     "compile-core-watch":
       "cd packages/core;tsc --watch --project tsconfig-core-main.json",

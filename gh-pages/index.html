@@ -64,20 +64,27 @@ We recommend moving this block and the preceding CSS link to the HEAD of your HT
 		</div>
 	</div>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-5">
             <h2>What is FromJS?</h2>
             <p>
                 FromJS is a developer tool that helps you understand how a JavaScript app works.
             </p>
             <p>
-                You can select an HTML element to view where its content came from.
+                You can select an HTML element to view where its content came from, or call <code>fromJSInspect</code> in your code.
                 The screenshot shows that the string "Hello" originally came from localStorage.
             <p>
+
+            <h2>Get FromJS</h2>
+            <p>Install from NPM:</p>
+            <pre>sudo npm install -g @fromjs/cli --unsafe-perm</pre>
             <p>
-                Other possible string sources include string literals in the app's JS code, as well
-                as HTML served on the initial page load.
+                
+                Then run <code>fromjs</code> from the command line. This will open a new Chrome instance. Collected data will be stored in <code>./fromjs-session</code>.
             </p>
             <p>
+                Read the <a href="https://github.com/mattzeunert/FromJS/blob/master/README.md">readme</a> to learn more.
+            </p>
+            <!-- <p>
                 <div class="hide-on-desktop-chrome">
                     <h3>See it in action</h3>
                     FromJS only works on Chrome Desktop, but you can <a href="http://localhost:4000/recordings.html">watch some demo videos.</a>
@@ -87,34 +94,30 @@ We recommend moving this block and the preceding CSS link to the HEAD of your HT
                 <span class="desktop-chrome-only">
                     <a href="/react-todomvc" class="btn btn-primary">React TodoMVC Demo</a> <span style="color: #aaa"></span>
                 </span>
-            </p>
+            </p> -->
         </div>
-        <div class="col-md-8">
+        <div class="col-md-7">
                     <iframe class="youtube-embed" width="100%" height="365" src="https://www.youtube.com/embed/jtGikR68y7s" frameborder="0" allowfullscreen></iframe>
         </div>
     </div>
     <br><br>
     <div class="row">
-        <div class="col-md-6">
+            <div class="col-md-6">
             <h2 style="margin-top: 0">Does it work on all websites?</h2>
             <p>
-                Nope, most websites will break if you try to inspect them with FromJS.
-                FromJS uses Babel to add tracking to strings, but this results in a lot of flakiness.
-                A better approach would be to build the tracking into the JavaScript engine.<br/>
-                Non-trivial apps also take a long time to load and use up large amounts of memory.
+                It works reasonably well. Trello is inspectable, and all Lodash test cases pass. Large apps will require a long time to load
+                (1-20 minutes), and be slow to interact with.
             </p>
-            <h2>Chrome Extension</h2>
             <p>
-                Install the <a href="https://chrome.google.com/webstore/detail/fromjs/hjkhdaoomfphjmffaklelpmkllfbjjfd?hl=en">FromJS Chrome Extension</a> to try FromJS yourself.
-                The <a href="https://github.com/mattzeunert/fromjs#chrome-extension">Github readme</a> lists some example sites where FromJS works well.
-
-                <a href="https://chrome.google.com/webstore/detail/fromjs/hjkhdaoomfphjmffaklelpmkllfbjjfd?hl=en">
-                    <img
-                        style="display:block;margin-top: 5px;;"
-                        src="https://developer.chrome.com/webstore/images/ChromeWebStore_BadgeWBorder_v2_206x58.png"></img>
-                </a>
+                There are two types of "not working". The first is when the inspected page fails to load, or takes so long to load that inspecting
+                is not practical.
+                <br> The second is not being able to find the origin of the inspected value.
             </p>
-            
+            <p>
+                Some features don't have much support, e.g. using promises currently means losing origin data (except for some special logic for `fetch` calls). In general things don't work unless support has been added explicitly.
+            </p>
+
+           
 <br>
         </div>
         <div class="col-md-6">
