@@ -4,10 +4,6 @@ node_modules
 /code-preprocessing-test/dist
 /todomvc-master
 /react-compiled
-/gh-pages/playground/fromjs
-/gh-pages/react-todomvc
-/gh-pages/react-todomvc2
-/gh-pages/tree-demo
 .sass-cache
 _site
 .DS_Store
