@@ -90,7 +90,8 @@ if (!maxOldSpaceSizeArg) {
         "--proxy-server=127.0.0.1:" + proxyPort,
         "--ignore-certificate-errors",
         "--test-type", // otherwise getting unsupported command line flag: --ignore-certificate-errors
-        "--user-data-dir=" + backendOptions.getChromeUserDataDirectory()
+        "--user-data-dir=" + backendOptions.getChromeUserDataDirectory(),
+        "--disable-infobars" // disable "controlled by automated test software" message
       ]
     });
     let pages = await browser.pages();
