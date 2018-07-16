@@ -184,57 +184,64 @@ class ProxyInstrumenter {
 
     ctx.use(Proxy.gunzip);
 
-    if (isHtml && shouldInstrument) {
+    const maybeProcessJs = (body, done) => {
+      if (!isDontProcess) {
+        this.processCode(body, url).then(
+          result => {
+            done(result.code);
+          },
+          err => {
+            this.log("process code error", err);
+            this.finishRequest(ctx.requestId);
+            done(body);
+          }
+        );
+      } else {
+        done(body);
+      }
+    };
+
+    if ((isHtml || checkIsJS(ctx)) && shouldInstrument) {
       this.waitForResponseEnd(ctx).then(({ body, ctx, sendResponse }) => {
         const contentType = ctx.serverToProxyResponse.headers["content-type"];
-        if (contentType && !contentType.includes("text/html")) {
-          // not html...
-          sendResponse(body);
-          return;
-        }
 
-        if (this.rewriteHtml) {
-          body = this.rewriteHtml(body);
-        }
-        // Remove integrity hashes, since the browser will prevent loading
-        // the instrumented HTML otherwise
-        body = body.replace(/ integrity="[\S]+"/g, "");
-        sendResponse(body);
-      });
-      callback();
-    } else if (checkIsJS(ctx) && shouldInstrument) {
-      const maybeProcessJs = (body, done) => {
-        if (!isDontProcess) {
-          this.processCode(body, url).then(
-            result => {
-              done(result.code);
-            },
-            err => {
-              this.log("process code error", err);
-              this.finishRequest(ctx.requestId);
-              done(body);
-            }
-          );
+        let resourceType;
+        if (contentType) {
+          if (contentType.includes("text/html")) {
+            resourceType = "html";
+          } else if (
+            contentType.includes("text/javascript") ||
+            contentType.includes("application/javascript")
+          ) {
+            resourceType = "js";
+          } else {
+            // not html or js
+            sendResponse(body);
+            return;
+          }
         } else {
-          done(body);
-        }
-      };
-
-      var mapUrl = url.replace(".js", ".js.map");
-
-      this.waitForResponseEnd(ctx).then(({ body, ctx, sendResponse }) => {
-        var contentTypeHeader =
-          ctx.serverToProxyResponse.headers["content-type"];
-
-        if (contentTypeHeader && contentTypeHeader.includes("text/html")) {
-          this.log("file name looked like js but is text/html", url);
-          sendResponse(this.rewriteHtml(body));
-          return;
+          if (isHtml) {
+            resourceType = "html";
+          } else if (checkIsJS(ctx)) {
+            resourceType = "js";
+          }
         }
 
-        maybeProcessJs(body, responseCode => {
-          sendResponse(responseCode);
-        });
+        if (resourceType === "html") {
+          if (this.rewriteHtml) {
+            body = this.rewriteHtml(body);
+          }
+          // Remove integrity hashes, since the browser will prevent loading
+          // the instrumented HTML otherwise
+          body = body.replace(/ integrity="[\S]+"/g, "");
+          sendResponse(body);
+        } else if (resourceType === "js") {
+          maybeProcessJs(body, responseCode => {
+            sendResponse(responseCode);
+          });
+        } else {
+          throw "???";
+        }
       });
       callback();
     } else if (isMap && shouldInstrument) {

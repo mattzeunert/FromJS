@@ -9,10 +9,12 @@ const proxyPort = port + 1;
 function startServer() {
   const requestHandler = (request, response) => {
     if (request.url.includes("/html")) {
+      response.setHeader("content-type", "text/html");
       response.end(`
         <script src="sth.js" integrity="sha384-473gyfhsfsk" crossorigin="anonymous"></script>
       `);
     } else {
+      response.setHeader("content-type", "application/javascript");
       response.end(`Hi World!`);
     }
   };
