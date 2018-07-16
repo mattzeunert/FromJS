@@ -28,12 +28,12 @@ import * as responseTime from "response-time";
 
 let uiDir = require
   .resolve("@fromjs/ui")
-  .split("/")
+  .split(/[\/\\]/g)
   .slice(0, -1)
   .join("/");
 let coreDir = require
   .resolve("@fromjs/core")
-  .split("/")
+  .split(/[\/\\]/g)
   .slice(0, -1)
   .join("/");
 let fromJSInternalDir = path.resolve(__dirname + "/../fromJSInternal");
