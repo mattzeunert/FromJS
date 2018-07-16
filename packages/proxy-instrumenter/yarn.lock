@@ -269,6 +269,12 @@ lodash@^4.14.0:
   version "4.17.5"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.5.tgz#99a92d65c0272debe8c96b6057bc8fbfa3bed511"
 
+magic-string@^0.25.0:
+  version "0.25.0"
+  resolved "https://registry.yarnpkg.com/magic-string/-/magic-string-0.25.0.tgz#1f3696f9931ff0a1ed4c132250529e19cad6759b"
+  dependencies:
+    sourcemap-codec "^1.4.1"
+
 make-error@^1.1.1:
   version "1.3.4"
   resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.3.4.tgz#19978ed575f9e9545d2ff8c13e33b5d18a67d535"
@@ -319,6 +325,10 @@ optimist@^0.6.1:
   dependencies:
     minimist "~0.0.1"
     wordwrap "~0.0.2"
+
+parse5@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/parse5/-/parse5-5.0.0.tgz#4d02710d44f3c3846197a11e205d4ef17842b81a"
 
 performance-now@^2.1.0:
   version "2.1.0"
@@ -383,6 +393,10 @@ source-map-support@^0.5.3:
 source-map@^0.6.0:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.6.1.tgz#74722af32e9614e9c287a8d0bbde48b5e2f1a263"
+
+sourcemap-codec@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/sourcemap-codec/-/sourcemap-codec-1.4.1.tgz#c8fd92d91889e902a07aee392bdd2c5863958ba2"
 
 sshpk@^1.7.0:
   version "1.13.1"
@@ -463,6 +477,10 @@ verror@1.10.0:
 wait-until@^0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/wait-until/-/wait-until-0.0.2.tgz#7a8abaef5590d970fd44697d436b5761e3eaedbe"
+
+walk-parse5@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/walk-parse5/-/walk-parse5-1.0.0.tgz#732b2dcf685497ab52222d9935f0123bfadebe8b"
 
 wordwrap@~0.0.2:
   version "0.0.3"

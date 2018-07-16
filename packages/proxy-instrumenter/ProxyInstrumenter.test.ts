@@ -13,6 +13,14 @@ function startServer() {
       response.end(`
         <script src="sth.js" integrity="sha384-473gyfhsfsk" crossorigin="anonymous"></script>
       `);
+    } else if (request.url.includes("/inlineScriptTags")) {
+      response.setHeader("content-type", "text/html");
+      response.end(`
+        <script src="a"></script>
+        <script>
+          var a = "Hi"
+        </script>
+      `);
     } else {
       response.setHeader("content-type", "application/javascript");
       response.end(`Hi World!`);
@@ -121,6 +129,18 @@ describe("ProxyInstrumenter", () => {
         accept: "text/html"
       });
       expect(response).toContain("EXTRA_HTML");
+    },
+    10000
+  );
+
+  it(
+    "Instruments inline script tags in HTML",
+    async () => {
+      const response = await makeRequest("/inlineScriptTags", {
+        accept: "text/html"
+      });
+      console.log(response);
+      expect(response).toContain('a = "Hello"');
     },
     10000
   );

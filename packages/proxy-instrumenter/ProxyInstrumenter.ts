@@ -228,13 +228,10 @@ class ProxyInstrumenter {
         }
 
         if (resourceType === "html") {
-          if (this.rewriteHtml) {
-            body = this.rewriteHtml(body);
-          }
-          // Remove integrity hashes, since the browser will prevent loading
-          // the instrumented HTML otherwise
-          body = body.replace(/ integrity="[\S]+"/g, "");
-          sendResponse(body);
+          this.processHtml(body).then(function(html) {
+            body = html;
+            sendResponse(body);
+          });
         } else if (resourceType === "js") {
           maybeProcessJs(body, responseCode => {
             sendResponse(responseCode);
@@ -256,6 +253,72 @@ class ProxyInstrumenter {
       });
       callback();
     }
+  }
+
+  async processHtml(body) {
+    if (this.rewriteHtml) {
+      body = this.rewriteHtml(body);
+    }
+
+    body = await this.compileHtmlInlineScriptTags(body);
+
+    // Remove integrity hashes, since the browser will prevent loading
+    // the instrumented HTML otherwise
+    body = body.replace(/ integrity="[\S]+"/g, "");
+
+    return body;
+  }
+
+  async compileHtmlInlineScriptTags(body) {
+    var MagicString = require("magic-string");
+    var magicHtml = new MagicString(body);
+    const parse5 = require("parse5");
+    const doc = parse5.parse(body, { sourceCodeLocationInfo: true });
+
+    const walk = require("walk-parse5");
+
+    const inlineScriptTags: any[] = [];
+
+    walk(doc, async node => {
+      // Optionally kill traversal
+      if (node.tagName === "script") {
+        if (
+          node.attrs.find(attr => attr.name === "data-fromjs-dont-instrument")
+        ) {
+          return;
+        }
+        const hasSrcAttribute = !!node.attrs.find(attr => attr.name === "src");
+        const typeAttribute = node.attrs.find(attr => attr.name === "type");
+        const typeIsJS =
+          !typeAttribute ||
+          ["application/javascript", "text/javascript"].includes(
+            typeAttribute.value
+          );
+        const isInlineScriptTag = !hasSrcAttribute && typeIsJS;
+        if (isInlineScriptTag) {
+          inlineScriptTags.push(node);
+        }
+      }
+    });
+
+    await Promise.all(
+      inlineScriptTags.map(async node => {
+        const code = node.childNodes[0].value;
+        const compRes = <any>await this.instrumentForEval(code);
+        node.compiledCode = compRes.instrumentedCode;
+      })
+    );
+
+    inlineScriptTags.forEach(node => {
+      const textLoc = node.childNodes[0].sourceCodeLocation;
+      magicHtml.overwrite(
+        textLoc.startOffset,
+        textLoc.endOffset,
+        node.compiledCode
+      );
+    });
+
+    return magicHtml.toString();
   }
 
   setEnableInstrumentation(enable) {

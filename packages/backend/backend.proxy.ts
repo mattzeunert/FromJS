@@ -113,7 +113,7 @@ startProxy({
     // Note: we don't want to have any empty text between the text, since that won't be removed
     // alongside the data-fromjs-remove-before-initial-html-mapping tags!
     var insertedHtml =
-      `<script data-fromjs-remove-before-initial-html-mapping>window.__fromJSInitialPageHtml = decodeURI("${encodeURI(
+      `<script data-fromjs-dont-instrument data-fromjs-remove-before-initial-html-mapping>window.__fromJSInitialPageHtml = decodeURI("${encodeURI(
         originalHtml
       )}")</script>` +
       `<script src="http://localhost:${bePort}/jsFiles/babel-standalone.js" data-fromjs-remove-before-initial-html-mapping></script>` +
