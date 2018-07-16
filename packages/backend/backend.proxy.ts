@@ -80,8 +80,8 @@ startProxy({
     const originalHtml = html;
     // Not accurate because there could be an attribute attribute value like ">", should work
     // most of the time
-    const openingBodyTag = html.match(/<body.*>/);
-    const openingHeadTag = html.match(/<head.*>/);
+    const openingBodyTag = html.match(/<body.*?>/);
+    const openingHeadTag = html.match(/<head.*?>/);
     let bodyStartIndex;
     if (openingBodyTag) {
       bodyStartIndex =
