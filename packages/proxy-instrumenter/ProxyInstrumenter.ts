@@ -184,57 +184,61 @@ class ProxyInstrumenter {
 
     ctx.use(Proxy.gunzip);
 
-    if (isHtml && shouldInstrument) {
+    const maybeProcessJs = (body, done) => {
+      if (!isDontProcess) {
+        this.processCode(body, url).then(
+          result => {
+            done(result.code);
+          },
+          err => {
+            this.log("process code error", err);
+            this.finishRequest(ctx.requestId);
+            done(body);
+          }
+        );
+      } else {
+        done(body);
+      }
+    };
+
+    if ((isHtml || checkIsJS(ctx)) && shouldInstrument) {
       this.waitForResponseEnd(ctx).then(({ body, ctx, sendResponse }) => {
         const contentType = ctx.serverToProxyResponse.headers["content-type"];
-        if (contentType && !contentType.includes("text/html")) {
-          // not html...
-          sendResponse(body);
-          return;
-        }
 
-        if (this.rewriteHtml) {
-          body = this.rewriteHtml(body);
-        }
-        // Remove integrity hashes, since the browser will prevent loading
-        // the instrumented HTML otherwise
-        body = body.replace(/ integrity="[\S]+"/g, "");
-        sendResponse(body);
-      });
-      callback();
-    } else if (checkIsJS(ctx) && shouldInstrument) {
-      const maybeProcessJs = (body, done) => {
-        if (!isDontProcess) {
-          this.processCode(body, url).then(
-            result => {
-              done(result.code);
-            },
-            err => {
-              this.log("process code error", err);
-              this.finishRequest(ctx.requestId);
-              done(body);
-            }
-          );
+        let resourceType;
+        if (contentType) {
+          if (contentType.includes("text/html")) {
+            resourceType = "html";
+          } else if (
+            contentType.includes("text/javascript") ||
+            contentType.includes("application/javascript")
+          ) {
+            resourceType = "js";
+          } else {
+            // not html or js
+            sendResponse(body);
+            return;
+          }
         } else {
-          done(body);
-        }
-      };
-
-      var mapUrl = url.replace(".js", ".js.map");
-
-      this.waitForResponseEnd(ctx).then(({ body, ctx, sendResponse }) => {
-        var contentTypeHeader =
-          ctx.serverToProxyResponse.headers["content-type"];
-
-        if (contentTypeHeader && contentTypeHeader.includes("text/html")) {
-          this.log("file name looked like js but is text/html", url);
-          sendResponse(this.rewriteHtml(body));
-          return;
+          if (isHtml) {
+            resourceType = "html";
+          } else if (checkIsJS(ctx)) {
+            resourceType = "js";
+          }
         }
 
-        maybeProcessJs(body, responseCode => {
-          sendResponse(responseCode);
-        });
+        if (resourceType === "html") {
+          this.processHtml(body).then(function(html) {
+            body = html;
+            sendResponse(body);
+          });
+        } else if (resourceType === "js") {
+          maybeProcessJs(body, responseCode => {
+            sendResponse(responseCode);
+          });
+        } else {
+          throw "???";
+        }
       });
       callback();
     } else if (isMap && shouldInstrument) {
@@ -249,6 +253,72 @@ class ProxyInstrumenter {
       });
       callback();
     }
+  }
+
+  async processHtml(body) {
+    if (this.rewriteHtml) {
+      body = this.rewriteHtml(body);
+    }
+
+    body = await this.compileHtmlInlineScriptTags(body);
+
+    // Remove integrity hashes, since the browser will prevent loading
+    // the instrumented HTML otherwise
+    body = body.replace(/ integrity="[\S]+"/g, "");
+
+    return body;
+  }
+
+  async compileHtmlInlineScriptTags(body) {
+    var MagicString = require("magic-string");
+    var magicHtml = new MagicString(body);
+    const parse5 = require("parse5");
+    const doc = parse5.parse(body, { sourceCodeLocationInfo: true });
+
+    const walk = require("walk-parse5");
+
+    const inlineScriptTags: any[] = [];
+
+    walk(doc, async node => {
+      // Optionally kill traversal
+      if (node.tagName === "script") {
+        if (
+          node.attrs.find(attr => attr.name === "data-fromjs-dont-instrument")
+        ) {
+          return;
+        }
+        const hasSrcAttribute = !!node.attrs.find(attr => attr.name === "src");
+        const typeAttribute = node.attrs.find(attr => attr.name === "type");
+        const typeIsJS =
+          !typeAttribute ||
+          ["application/javascript", "text/javascript"].includes(
+            typeAttribute.value
+          );
+        const isInlineScriptTag = !hasSrcAttribute && typeIsJS;
+        if (isInlineScriptTag) {
+          inlineScriptTags.push(node);
+        }
+      }
+    });
+
+    await Promise.all(
+      inlineScriptTags.map(async node => {
+        const code = node.childNodes[0].value;
+        const compRes = <any>await this.instrumentForEval(code);
+        node.compiledCode = compRes.instrumentedCode;
+      })
+    );
+
+    inlineScriptTags.forEach(node => {
+      const textLoc = node.childNodes[0].sourceCodeLocation;
+      magicHtml.overwrite(
+        textLoc.startOffset,
+        textLoc.endOffset,
+        node.compiledCode
+      );
+    });
+
+    return magicHtml.toString();
   }
 
   setEnableInstrumentation(enable) {

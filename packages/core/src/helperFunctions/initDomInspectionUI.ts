@@ -72,7 +72,7 @@ export default function initDomInspectionUI() {
         rect.width +
         "px; background: " +
         backgroundColor +
-        ";"
+        ";margin: 0;padding:0;"
     );
   }
 
@@ -108,7 +108,7 @@ export default function initDomInspectionUI() {
     });
     toggleInspectDomButton.setAttribute(
       "style",
-      "position: fixed;z-index: 100000000; bottom: 0;right:0;padding: 10px;background: #236fb1; color: white;font-family: Arial;cursor:pointer;font-size: 14px;"
+      "position: fixed;z-index: 100000000; bottom: 0;right:0;padding: 10px;background: #236fb1; color: white;font-family: Arial;cursor:pointer;font-size: 14px;margin: 0;width: auto;"
     );
     toggleInspectDomButton.setAttribute("id", "fromjs-inspect-dom-button");
     global["document"]["body"].appendChild(toggleInspectDomButton);
