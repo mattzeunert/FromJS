@@ -2,7 +2,7 @@ import * as commander from "commander";
 import Backend from "@fromjs/backend";
 import * as process from "process";
 import { BackendOptions } from "@fromjs/backend";
-import * as chromeLauncher from "chrome-launcher";
+import * as puppeteer from "puppeteer";
 
 const list = val => val.split(",");
 
@@ -84,14 +84,18 @@ if (!maxOldSpaceSizeArg) {
   }
 
   async function openBrowser() {
-    await chromeLauncher.launch({
-      startingUrl: "http://localhost:" + bePort,
-      chromeFlags: [
+    const browser = await puppeteer.launch({
+      headless: false,
+      args: [
         "--proxy-server=127.0.0.1:" + proxyPort,
         "--ignore-certificate-errors",
         "--test-type", // otherwise getting unsupported command line flag: --ignore-certificate-errors
         "--user-data-dir=" + backendOptions.getChromeUserDataDirectory()
       ]
     });
+    let pages = await browser.pages();
+    const page = pages[0];
+    await page._client.send("Emulation.clearDeviceMetricsOverride");
+    await page.goto("http://localhost:" + bePort);
   }
 }
