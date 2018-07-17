@@ -325,11 +325,11 @@ function plugin(babel) {
         const { accessToken, backendPort } = babelPluginOptions;
         usableHelperCode = helperCode;
         usableHelperCode = usableHelperCode.replace(
-          "ACCESS_TOKEN_PLACEHOLDER",
+          /ACCESS_TOKEN_PLACEHOLDER/g,
           accessToken
         );
         usableHelperCode = usableHelperCode.replace(
-          "BACKEND_PORT_PLACEHOLDER",
+          /BACKEND_PORT_PLACEHOLDER/g,
           backendPort
         );
       } else {

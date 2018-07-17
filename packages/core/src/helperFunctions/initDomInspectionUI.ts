@@ -1,4 +1,6 @@
-export default function initDomInspectionUI() {
+import { inspect } from "util";
+
+export default function initDomInspectionUI(backendPort) {
   if (typeof document === "undefined") {
     return;
   }
@@ -19,6 +21,7 @@ export default function initDomInspectionUI() {
     if (e.type == "click") {
       global["fromJSInspect"](el);
       selectedElement = el;
+      showInspectorUI();
       addHighlight(el, "selected");
     } else if (e.type === "mouseenter") {
       previewedElement = el;
@@ -88,6 +91,7 @@ export default function initDomInspectionUI() {
       document.body.removeEventListener("click", onSelectionEvent, true);
       document.body.removeEventListener("mouseenter", onSelectionEvent, true);
       document.body.removeEventListener("mouseleave", onSelectionEvent, true);
+      hideInspectorUI();
     } else {
       document.body.appendChild(selectedElementMarker);
       document.body.appendChild(previewedElementMarker);
@@ -98,20 +102,79 @@ export default function initDomInspectionUI() {
     showDomInspector = !showDomInspector;
   }
 
+  const inspectorWidth = 700;
+
   function init() {
-    toggleInspectDomButton.innerHTML = "Enable DOM Inspector";
+    toggleInspectDomButton.innerHTML = "Enable Inspector";
     toggleInspectDomButton.addEventListener("click", function() {
       toggleDomInspector();
       toggleInspectDomButton.innerHTML = showDomInspector
-        ? "Disable DOM Inspector"
-        : "Enable DOM Inspector";
+        ? "Disable Inspector"
+        : "Enable Inspector";
     });
     toggleInspectDomButton.setAttribute(
       "style",
       "position: fixed;z-index: 100000000; bottom: 0;right:0;padding: 10px;background: #236fb1; color: white;font-family: Arial;cursor:pointer;font-size: 14px;margin: 0;width: auto;"
     );
     toggleInspectDomButton.setAttribute("id", "fromjs-inspect-dom-button");
-    global["document"]["body"].appendChild(toggleInspectDomButton);
+    const body = global["document"]["body"];
+    body.appendChild(toggleInspectDomButton);
+  }
+
+  let inspectorUI;
+  let isShowingInspectorUI = false;
+  function showInspectorUI() {
+    if (isShowingInspectorUI) {
+      return;
+    }
+    const body = global["document"]["body"];
+    if (!inspectorUI) {
+      inspectorUI = createInspectorUI();
+      body.appendChild(inspectorUI);
+    }
+    inspectorUI.style.display = "block";
+    toggleInspectDomButton.style.right = inspectorWidth + "px";
+    isShowingInspectorUI = true;
+  }
+
+  function hideInspectorUI() {
+    if (!isShowingInspectorUI) {
+      return;
+    }
+    inspectorUI.style.display = "none";
+    toggleInspectDomButton.style.right = "0px";
+    isShowingInspectorUI = false;
+  }
+
+  function createInspectorUI() {
+    const inspectorUI = document.createElement("div");
+    inspectorUI.classList.add("fromjs-inspector-container");
+    const iframe = document.createElement("iframe");
+    iframe.src = "http://localhost:" + backendPort;
+    inspectorUI.appendChild(iframe);
+    const inspectorStyles = document.createElement("style");
+
+    inspectorStyles.textContent = `
+      .fromjs-inspector-container {
+        border-left: 1px solid rgba(0,0,0,0.2);
+        box-sizing: border-box;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: ${inspectorWidth}px;
+        background: white;
+        z-index: 20000000;
+      }
+      .fromjs-inspector-container iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+    `;
+    inspectorUI.appendChild(inspectorStyles);
+
+    return inspectorUI;
   }
 
   if (global["document"]) {

@@ -137,32 +137,3 @@ function handleDomToInspectMessage(message) {
 
   selectInspectedDomCharIndex(message.charIndex);
 }
-
-fetch(backendRoot + "/inspect", {
-  method: "GET",
-  headers: {
-    Accept: "application/json",
-    "Content-Type": "application/json"
-  }
-} as any)
-  .then(res => res.json())
-  .then(r => {
-    const { logToInspect } = r;
-    selectAndTraverse(logToInspect, 0);
-  });
-
-fetch(backendRoot + "/inspectDOM", {
-  method: "GET",
-  headers: {
-    Accept: "application/json",
-    "Content-Type": "application/json"
-  }
-})
-  .then(res => res.json())
-  .then(r => {
-    const { message } = r;
-    if (!message || !message.html) {
-      return;
-    }
-    handleDomToInspectMessage(message);
-  });

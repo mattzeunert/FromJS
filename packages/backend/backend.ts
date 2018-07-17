@@ -161,6 +161,17 @@ export default class Backend {
 }
 
 function setupUI(options, app, wss, getProxy) {
+  wss.on("connection", (ws: WebSocket) => {
+    if (domToInspect) {
+      ws.send(
+        JSON.stringify({
+          type: "inspectDOM",
+          ...getDomToInspectMessage()
+        })
+      );
+    }
+  });
+
   app.get("/", (req, res) => {
     let html = fs.readFileSync(uiDir + "/index.html").toString();
     html = html.replace(/BACKEND_PORT_PLACEHOLDER/g, options.bePort.toString());
@@ -215,9 +226,6 @@ function setupUI(options, app, wss, getProxy) {
   }
 
   let domToInspect = null;
-  app.get("/inspectDOM", (req, res) => {
-    res.end(JSON.stringify(getDomToInspectMessage()));
-  });
   app.post("/inspectDOM", (req, res) => {
     app.verifyToken(req);
 
@@ -241,13 +249,6 @@ function setupUI(options, app, wss, getProxy) {
   });
 
   let logToInspect = null;
-  app.get("/inspect", (req, res) => {
-    res.end(
-      JSON.stringify({
-        logToInspect
-      })
-    );
-  });
   app.post("/inspectDomChar", (req, res) => {
     if (!domToInspect) {
       res.status(500);
