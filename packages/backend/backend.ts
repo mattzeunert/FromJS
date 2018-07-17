@@ -381,7 +381,7 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
         } else {
           const timeout = 250;
           const timeElapsed = timeout * previousAttempts;
-          if (timeElapsed > 2000) {
+          if (timeElapsed > 5000) {
             res.status(500);
             res.end(
               JSON.stringify({

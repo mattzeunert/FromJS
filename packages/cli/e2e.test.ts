@@ -350,6 +350,57 @@ describe("E2E", () => {
     90000
   );
 
+  it(
+    "Can inspect pre-compiled react todomvc and use in-page inspection UI",
+    async () => {
+      // Load inspected page
+      const page = await createPage();
+      await page.goto("http://localhost:8000/react-todomvc-compiled/#/");
+      await page.waitForSelector(".todo-list li", { timeout: 60000 });
+
+      // Select label for inspection
+      await page.waitForSelector("#fromjs-inspect-dom-button");
+      await page.click("#fromjs-inspect-dom-button");
+      await page.waitForFunction(
+        "document.querySelector('#fromjs-inspect-dom-button').innerText.includes('Disable')",
+        { timeout: 60000 }
+      );
+      await page.click(".todo-list li label");
+
+      await waitForInPageInspector(page);
+
+      const childFrames = page.mainFrame().childFrames();
+      const inspectorFrame = childFrames[0];
+
+      // Todo name should come from local storage
+      await inspectorFrame.waitForFunction(() =>
+        document.body.innerHTML.includes("localStorage.getItem")
+      );
+
+      // Origin of label
+      inspectorFrame.click(".fromjs-value__content [data-key='3']");
+      await inspectorFrame.waitForFunction(() =>
+        document.body.innerHTML.includes("StringLiteral")
+      );
+
+      await page.close();
+    },
+    90000
+  );
+
+  async function waitForInPageInspector(page) {
+    while (true) {
+      const inspectorFrame = page
+        .mainFrame()
+        .childFrames()
+        .find(frame => frame.url() && frame.url().includes(backendPort));
+      if (inspectorFrame) {
+        return;
+      }
+      await page.waitFor(100);
+    }
+  }
+
   it("Doesn't try to process initial page HTML too late if no script tags in body", async () => {
     // I had this problem because normally a script tag in the body triggers setting
     // initialPageHtml elOrigin
