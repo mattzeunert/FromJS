@@ -54,7 +54,10 @@ helperCode =
   var global = Function("return this")();
 if (!global.__didInitializeDataFlowTracking) {` +
   "eval(`" +
-  helperCode.replace(/\\/g, "\\\\").replace(/`/g, "\\`") +
+  helperCode
+    .replace(/\\/g, "\\\\")
+    .replace(/`/g, "\\`")
+    .replace(/\$/, "\\$") +
   "\n//# sourceURL=/helperFns.js`)" +
   "}";
 helperCode += "// aaaaa"; // this seems to help with debugging/evaling the code... not sure why...just take it out if the tests dont break
