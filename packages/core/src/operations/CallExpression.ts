@@ -279,11 +279,7 @@ const specialValuesForPostprocessing = {
           },
           loc: logData.loc
         }),
-        ctx.createOperationLog({
-          operation: ctx.operationTypes.arrayIndex,
-          result: i,
-          loc: logData.loc
-        })
+        ctx.createArrayIndexOperationLog(i, logData.loc)
       );
     });
   },
@@ -328,11 +324,7 @@ const specialValuesForPostprocessing = {
           astArgs: {},
           loc: logData.loc
         }),
-        ctx.createOperationLog({
-          operation: ctx.operationTypes.arrayIndex,
-          result: i,
-          loc: logData.loc
-        })
+        ctx.createArrayIndexOperationLog(i, logData.loc)
       );
     });
   },
@@ -344,11 +336,7 @@ const specialValuesForPostprocessing = {
         object,
         arrayIndex,
         arg,
-        ctx.createOperationLog({
-          operation: ctx.operationTypes.arrayIndex,
-          result: arrayIndex,
-          loc: logData.loc
-        })
+        ctx.createArrayIndexOperationLog(arrayIndex, logData.loc)
       );
     });
     return fnArgs[fnArgs.length - 1];
@@ -359,13 +347,10 @@ const specialValuesForPostprocessing = {
         fnArgValues[0],
         key
       );
-      const nameTrackingValue = ctx.createOperationLog({
-        operation: ctx.operationTypes.arrayIndex,
-        args: {},
-        result: i,
-        astArgs: {},
-        loc: logData.loc
-      });
+      const nameTrackingValue = ctx.createArrayIndexOperationLog(
+        i,
+        logData.loc
+      );
       ctx.trackObjectPropertyAssignment(
         ret,
         i,
@@ -564,11 +549,7 @@ const specialValuesForPostprocessing = {
             result: value,
             loc: logData.loc
           }),
-          ctx.createOperationLog({
-            operation: ctx.operationTypes.arrayIndex,
-            result: i,
-            loc: logData.loc
-          })
+          ctx.createArrayIndexOperationLog(i, logData.loc)
         );
       }
 
@@ -596,11 +577,7 @@ const specialValuesForPostprocessing = {
         ret,
         i.toString(),
         mapResultTrackingValues[i],
-        ctx.createOperationLog({
-          operation: ctx.operationTypes.arrayIndex,
-          result: i,
-          loc: logData.loc
-        })
+        ctx.createArrayIndexOperationLog(i, logData.loc)
       );
     });
   },
@@ -615,11 +592,7 @@ const specialValuesForPostprocessing = {
           ret,
           resultArrayIndex,
           ctx.getObjectPropertyTrackingValue(object, originalArrayIndex),
-          ctx.createOperationLog({
-            operation: ctx.operationTypes.arrayIndex,
-            result: resultArrayIndex,
-            loc: logData.loc
-          })
+          ctx.createArrayIndexOperationLog(resultArrayIndex, logData.loc)
         );
 
         resultArrayIndex++;

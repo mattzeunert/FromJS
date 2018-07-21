@@ -453,11 +453,10 @@ const operations: Operations = {
       elementsArg.forEach((el, i) => {
         const [value, trackingValue] = el;
         arr.push(value);
-        const nameTrackingValue = ctx.createOperationLog({
-          operation: ctx.operationTypes.arrayIndex,
-          result: i,
-          loc: logData.loc
-        });
+        const nameTrackingValue = ctx.createArrayIndexOperationLog(
+          i,
+          logData.loc
+        );
         ctx.trackObjectPropertyAssignment(
           arr,
           i.toString(),
@@ -541,11 +540,7 @@ const operations: Operations = {
               valueArg[0],
               i,
               trackingValue,
-              ctx.createOperationLog({
-                operation: ctx.operationTypes.arrayIndex,
-                result: i,
-                loc: logData.loc
-              })
+              ctx.createArrayIndexOperationLog(i, logData.loc)
             );
           });
         } else {

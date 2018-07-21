@@ -328,6 +328,8 @@ global[FunctionNames.getLastMemberExpressionObject] = function() {
   ];
 };
 
+const MAX_TRACKED_ARRAY_INDEX = 10;
+
 var lastReturnStatementResult = null;
 
 const memoValues = {};
@@ -369,6 +371,17 @@ const ctx: ExecContext = {
   createOperationLog: function(args) {
     args.index = getOperationIndex();
     return createOperationLog(args);
+  },
+  createArrayIndexOperationLog(index, loc) {
+    if (index > MAX_TRACKED_ARRAY_INDEX) {
+      // Just too much cost tracking this, and not much value
+      return null;
+    }
+    return ctx.createOperationLog({
+      operation: ctx.operationTypes.arrayIndex,
+      result: index,
+      loc: loc
+    });
   },
   knownValues,
   global,
