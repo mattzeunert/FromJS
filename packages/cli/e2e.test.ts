@@ -8,6 +8,8 @@ const backendPort = 12100;
 const proxyPort = backendPort + 1;
 const webServerPort = proxyPort + 1;
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 function setTimeoutPromise(timeout) {
   return new Promise(resolve => {
     setTimeout(resolve, timeout);
@@ -46,12 +48,16 @@ function inspectDomChar(charIndex) {
   return new Promise(resolve => {
     request.post(
       {
-        url: "http://localhost:" + backendPort + "/inspectDomChar",
+        url: "https://localhost:" + backendPort + "/inspectDomChar",
         json: {
           charIndex
-        }
+        },
+        rejectUnauthorized: false
       },
       function(err, resp, body) {
+        if (err) {
+          throw Error(err);
+        }
         resolve(body);
       }
     );
@@ -62,10 +68,14 @@ function traverse(firstStep) {
   return new Promise(resolve => {
     request.post(
       {
-        url: "http://localhost:" + backendPort + "/traverse",
-        json: firstStep
+        url: "https://localhost:" + backendPort + "/traverse",
+        json: firstStep,
+        rejectUnauthorized: false
       },
       function(err, resp, body) {
+        if (err) {
+          throw Error(err);
+        }
         resolve(body);
       }
     );
@@ -134,6 +144,7 @@ describe("E2E", () => {
     await waitForProxyReady(command);
 
     browser = await puppeteer.launch({
+      ignoreHTTPSErrors: true,
       dumpio: true,
       args: [
         "--proxy-server=127.0.0.1:" + proxyPort,
@@ -153,7 +164,7 @@ describe("E2E", () => {
     await killPort(webServerPort);
   });
 
-  const inspectorUrl = "http://localhost:" + backendPort + "/";
+  const inspectorUrl = "https://localhost:" + backendPort + "/";
 
   let command;
   it(
@@ -301,7 +312,6 @@ describe("E2E", () => {
       );
 
       // .text or .textContent on a text node
-      console.log(html);
       res = await inspectDomCharAndTraverse(
         html.indexOf("nodeNodeValueAssignment")
       );

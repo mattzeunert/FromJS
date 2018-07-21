@@ -59,7 +59,7 @@ function postToBE(endpoint, data, statsCallback = function(stats) {}) {
       stringifyTime: stringifyEnd.valueOf() - stringifyStart.valueOf()
     });
   }
-  const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
+  const p = fetch("https://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
     method: "POST",
     headers: new Headers({
       Accept: "application/json",
@@ -232,7 +232,7 @@ global.fromJSInspect = function(value: any, charIndex: number) {
     }
     logId = argTrackingInfo[0];
   }
-  postToBE("/inspect", {
+  return postToBE("/inspect", {
     logId
   });
 };

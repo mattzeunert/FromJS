@@ -42,6 +42,6 @@ const dataDiv = document.createElement("div");
 dataDiv.innerHTML = scriptTagContent;
 app.appendChild(dataDiv);
 
-fromJSInspect(app);
-
-window.testResult = __getHtmlNodeOperationLogMapping(app);
+fromJSInspect(app).then(() => {
+  window.testResult = __getHtmlNodeOperationLogMapping(app);
+});

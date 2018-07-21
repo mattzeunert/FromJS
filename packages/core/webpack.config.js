@@ -46,7 +46,6 @@ module.exports = {
         code = code.replace(/\$/g, "MARKER_DOLLAR");
         code = `
           let code = \`${code}\`;
-          debugger
           code = code.replace(/MARKER_BACKSLASH/g, "\\\\").replace(/MARKER_BACKTICK/g, "\\\`").replace(/MARKER_DOLLAR/g, "\\$");
           export default code
         `;

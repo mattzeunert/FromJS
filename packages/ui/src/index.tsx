@@ -90,7 +90,7 @@ let App = props => {
         <div
           style={{ margin: 10 }}
           dangerouslySetInnerHTML={{
-            __html: `<iframe src="http://localhost:${location.port}/start/" />`
+            __html: `<iframe src="https://localhost:${location.port}/start/" />`
           }}
         />
       )}

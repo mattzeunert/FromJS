@@ -1,4 +1,5 @@
 import * as path from "path";
+import * as fs from "fs";
 
 export class BackendOptions {
   bePort: number;
@@ -45,5 +46,24 @@ export class BackendOptions {
 
   getChromeUserDataDirectory() {
     return path.resolve(this.sessionDirectory, "chrome");
+  }
+
+  getBackendServerCertDirPath() {
+    return path.resolve(this.sessionDirectory, "be-server-cert");
+  }
+
+  getBackendServerCertPath() {
+    return path.resolve(this.getBackendServerCertDirPath(), "cert.pem");
+  }
+
+  getBackendServerPrivateKeyPath() {
+    return path.resolve(this.getBackendServerCertDirPath(), "key.pem");
+  }
+
+  getBackendServerCertInfo() {
+    return {
+      key: fs.readFileSync(this.getBackendServerPrivateKeyPath()),
+      cert: fs.readFileSync(this.getBackendServerCertPath())
+    };
   }
 }

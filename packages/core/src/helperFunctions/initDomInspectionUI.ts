@@ -150,7 +150,7 @@ export default function initDomInspectionUI(backendPort) {
     const inspectorUI = document.createElement("div");
     inspectorUI.classList.add("fromjs-inspector-container");
     const iframe = document.createElement("iframe");
-    iframe.src = "http://localhost:" + backendPort;
+    iframe.src = "https://localhost:" + backendPort;
     inspectorUI.appendChild(iframe);
     const inspectorStyles = document.createElement("style");
 

@@ -97,6 +97,6 @@ if (!maxOldSpaceSizeArg) {
     let pages = await browser.pages();
     const page = pages[0];
     await page._client.send("Emulation.clearDeviceMetricsOverride");
-    await page.goto("http://localhost:" + bePort);
+    await page.goto("https://localhost:" + bePort);
   }
 }
