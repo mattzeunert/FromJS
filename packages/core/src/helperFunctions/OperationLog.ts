@@ -204,21 +204,12 @@ export default class OperationLog implements OperationLogInterface {
     this.index = index;
   }
 }
-let arrayIndexCount = 0;
-setInterval(() => {
-  if (arrayIndexCount > 0) {
-    console.log({ arrayIndexCount });
-  }
-}, 400);
 OperationLog.createAtRuntime = function(
   { operation, result, args, astArgs, extraArgs, loc, runtimeArgs, index },
   knownValues
 ): OperationLogInterface {
   if (VERIFY && !loc) {
     consoleLog("no loc at runtime for operation", operation);
-  }
-  if (operation === "arrayIndex") {
-    arrayIndexCount++;
   }
   const op = operations[operation];
 
