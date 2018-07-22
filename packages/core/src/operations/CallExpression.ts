@@ -403,11 +403,7 @@ const specialValuesForPostprocessing = {
       });
     });
   },
-  "Array.prototype.shift": ({
-    object,
-
-    ctx
-  }) => {
+  "Array.prototype.shift": ({ object, extraState, ctx }) => {
     // Note: O(n) is not very efficient...
     const array = object;
     for (var i = 0; i < array.length; i++) {
@@ -418,6 +414,8 @@ const specialValuesForPostprocessing = {
         ctx.getObjectPropertyNameTrackingValue(array, i + 1)
       );
     }
+
+    return extraState.shiftedTrackingValue;
   },
   "Array.prototype.slice": ({
     object,
@@ -1141,6 +1139,15 @@ const CallExpression = <any>{
             );
           }
         }
+        if (fnKnownValue === "Array.prototype.shift") {
+          extraState.shiftedTrackingValue = null;
+          if (object && object.length > 0) {
+            extraState.shiftedTrackingValue = ctx.getObjectPropertyTrackingValue(
+              object,
+              0
+            );
+          }
+        }
 
         const lastReturnStatementResultBeforeCall =
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
@@ -1312,6 +1319,11 @@ const CallExpression = <any>{
             charIndex: charIndex + whitespaceAtStart
           };
         case "Array.prototype.pop":
+          return {
+            operationLog: operationLog.extraArgs.returnValue,
+            charIndex
+          };
+        case "Array.prototype.shift":
           return {
             operationLog: operationLog.extraArgs.returnValue,
             charIndex

@@ -988,6 +988,20 @@ describe("Array.prototype.shift", () => {
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t1LastStep.operationLog.result.primitive).toBe("b");
   });
+  it("Traverses return value from arr.shift", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const arr = ["a", "b"]
+      arr.shift()
+      return arr.shift()
+    `);
+
+    expect(normal).toBe("b");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("b");
+  });
 });
 
 describe("Array.prototype.pop", () => {
