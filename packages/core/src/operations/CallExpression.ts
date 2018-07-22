@@ -4,7 +4,8 @@ import {
   ignoredIdentifier,
   ignoredArrayExpression,
   ignoredCallExpression,
-  ignoredArrayExpressionIfArray
+  ignoredArrayExpressionIfArray,
+  skipPath
 } from "../babelPluginHelpers";
 import HtmlToOperationLogMapping from "../helperFunctions/HtmlToOperationLogMapping";
 import * as OperationTypes from "../OperationTypes";
@@ -796,10 +797,10 @@ class ValueMapV2 {
 }
 
 const CallExpression = <any>{
-  argNames: ["function", "context", "arg"],
-  argIsArray: [false, false, true],
+  argNames: ["function", "context", "arg", "evalFn"],
+  argIsArray: [false, false, true, false],
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
-    let [fnArg, context, argList] = args;
+    let [fnArg, context, argList, evalFn] = args;
 
     var fnArgs: any[] = [];
     var fnArgValues: any[] = [];
@@ -943,6 +944,9 @@ const CallExpression = <any>{
         const fnIsEval = fn === eval;
         if (fnIsEval) {
           if (ctx.hasInstrumentationFunction) {
+            if (evalFn) {
+              ctx.global["__fromJSEvalSetEvalFn"](evalFn[0]);
+            }
             fn = ctx.global["__fromJSEval"];
           } else {
             if (!ctx.global.__forTestsDontShowCantEvalLog) {
@@ -1420,6 +1424,20 @@ const CallExpression = <any>{
     });
 
     let contextArg;
+    let evalFn;
+    if (path.node.callee.type === "Identifier") {
+      if (path.node.callee.name === "eval") {
+        // Eval function that can be embedded in code, so that local variables are accessible in eval'd code
+        const evalFnAst = this.babylon.parse(
+          `sth = function(){return eval(arguments[0])}`
+        ).program.body[0].expression.right;
+
+        evalFn = ignoredArrayExpression([
+          skipPath(evalFnAst),
+          this.t.nullLiteral()
+        ]);
+      }
+    }
 
     if (isMemberExpressionCall) {
       contextArg = ignoredCallExpression(getLastMemberExpressionObject, []);
@@ -1438,6 +1456,10 @@ const CallExpression = <any>{
     ];
 
     var fnArgs = [fn, contextArg, args];
+
+    if (evalFn) {
+      fnArgs.push(evalFn);
+    }
 
     const astArgs = {};
     if (isNewExpression) {

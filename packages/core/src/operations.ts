@@ -40,11 +40,12 @@ function identifyTraverseFunction(operationLog, charIndex) {
   };
 }
 
-let t;
+let t, babylon;
 // This file is also imported into helperFunctions, i.e. FE code that can't load
 // Babel dependencies
-export function initForBabel(babelTypes) {
+export function initForBabel(babelTypes, _babylon) {
   t = babelTypes;
+  babylon = _babylon;
   initForBabelPH(babelTypes);
 }
 
@@ -678,6 +679,11 @@ Object.keys(operations).forEach(opName => {
   Object.defineProperty(operation, "t", {
     get() {
       return t;
+    }
+  });
+  Object.defineProperty(operation, "babylon", {
+    get() {
+      return babylon;
     }
   });
   operation.createNode = function(args, astArgs, loc = null) {

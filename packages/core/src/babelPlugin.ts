@@ -27,7 +27,7 @@ import helperCodeLoaded from "../helperFunctions";
 
 import * as t from "@babel/types";
 import { VERIFY } from "./config";
-initForBabel(t);
+initForBabel(t, babylon);
 
 var helperCode = `
   (function(){

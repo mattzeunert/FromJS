@@ -155,7 +155,6 @@ export default <any>{
     return ret;
   },
   traverse(operationLog, charIndex) {
-    debugger;
     const { operator } = operationLog.astArgs;
     if (operator === "=") {
       return {
