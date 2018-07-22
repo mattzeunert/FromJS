@@ -990,6 +990,22 @@ describe("Array.prototype.shift", () => {
   });
 });
 
+describe("Array.prototype.pop", () => {
+  it("Traverses value after retrieving it with arr.pop", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const arr = ["a", "b"]
+      return arr.pop()
+    `);
+
+    expect(normal).toBe("b");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("b");
+  });
+});
+
 describe("String.prototype.substring", () => {
   it("Traverses substring call with indexStart and indexEnd being strings", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`

@@ -342,6 +342,9 @@ const specialValuesForPostprocessing = {
     });
     return fnArgs[fnArgs.length - 1];
   },
+  "Array.prototype.pop": ({ extraState }) => {
+    return extraState.poppedValueTrackingValue;
+  },
   "Object.keys": ({ ctx, logData, fnArgValues, ret, retT }) => {
     ret.forEach((key, i) => {
       const trackingValue = ctx.getObjectPropertyNameTrackingValue(
@@ -1129,6 +1132,16 @@ const CallExpression = <any>{
           });
         }
 
+        if (fnKnownValue === "Array.prototype.pop") {
+          extraState.poppedValueTrackingValue = null;
+          if (object && object.length > 0) {
+            extraState.poppedValueTrackingValue = ctx.getObjectPropertyTrackingValue(
+              object,
+              object.length - 1
+            );
+          }
+        }
+
         const lastReturnStatementResultBeforeCall =
           ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
 
@@ -1297,6 +1310,11 @@ const CallExpression = <any>{
           return {
             operationLog: operationLog.args.context,
             charIndex: charIndex + whitespaceAtStart
+          };
+        case "Array.prototype.pop":
+          return {
+            operationLog: operationLog.extraArgs.returnValue,
+            charIndex
           };
         case "Array.prototype.reduce":
           return {
