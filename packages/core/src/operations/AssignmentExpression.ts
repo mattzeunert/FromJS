@@ -15,7 +15,10 @@ import {
 } from "../babelPluginHelpers";
 import traverseStringConcat from "../traverseStringConcat";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
-import addElOrigin from "./domHelpers/addElOrigin";
+import addElOrigin, {
+  addElAttributeValueOrigin,
+  addElAttributeNameOrigin
+} from "./domHelpers/addElOrigin";
 import * as MemoValueNames from "../MemoValueNames";
 import { consoleLog } from "../helperFunctions/logging";
 
@@ -125,25 +128,34 @@ export default <any>{
       );
 
       const objIsHTMLNode = typeof Node !== "undefined" && obj instanceof Node;
-      if (objIsHTMLNode && propName === "innerHTML") {
-        mapInnerHTMLAssignment(obj, argumentArg, "assignInnerHTML", 0);
-      } else if (
-        objIsHTMLNode &&
-        ["text", "textContent", "nodeValue"].includes(propName)
-      ) {
-        if (obj.nodeType === Node.TEXT_NODE) {
-          addElOrigin(obj, "textValue", {
-            trackingValue: argumentArg[1]
-          });
-        } else if (obj.nodeType === Node.ELEMENT_NODE) {
-          if (obj.childNodes.length > 0) {
-            // can be 0 still if textValue is ""
-            addElOrigin(obj.childNodes[0], "textValue", {
+      if (objIsHTMLNode) {
+        if (propName === "innerHTML") {
+          mapInnerHTMLAssignment(obj, argumentArg, "assignInnerHTML", 0);
+        } else if (["text", "textContent", "nodeValue"].includes(propName)) {
+          if (obj.nodeType === Node.TEXT_NODE) {
+            addElOrigin(obj, "textValue", {
               trackingValue: argumentArg[1]
             });
+          } else if (obj.nodeType === Node.ELEMENT_NODE) {
+            if (obj.childNodes.length > 0) {
+              // can be 0 still if textValue is ""
+              addElOrigin(obj.childNodes[0], "textValue", {
+                trackingValue: argumentArg[1]
+              });
+            }
+          } else {
+            consoleLog("do i need to handle this? can this even happen?");
           }
-        } else {
-          consoleLog("do i need to handle this? can this even happen?");
+        } else if (
+          // This is overly broad (and will track "elOrigins" for arbitraty property names),
+          // but at least it makes sure all attributes are tracked
+          obj.nodeType === Node.ELEMENT_NODE &&
+          typeof propName === "string"
+        ) {
+          addElAttributeValueOrigin(obj, propName, {
+            trackingValue: argumentArg[1]
+          });
+          addElAttributeNameOrigin(obj, propName, { trackingValue: propNameT });
         }
       }
     } else if (assignmentType === "Identifier") {

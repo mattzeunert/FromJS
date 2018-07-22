@@ -271,6 +271,11 @@ describe("E2E", () => {
         "<div>insertAdjacentHTML1</div><div>insertAdjacentHTML2</div>"
       );
 
+      // setting a.href
+      res = await inspectDomCharAndTraverse(html.indexOf("aHref"));
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("aHref");
+
       // textContent
       res = await inspectDomCharAndTraverse(html.indexOf("textContent"));
       expect(res.operationLog.operation).toBe("stringLiteral");

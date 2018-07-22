@@ -37,6 +37,10 @@ app.insertAdjacentHTML(
   "<div>insertAdjacentHTML1</div><div>insertAdjacentHTML2</div>"
 );
 
+const a = document.createElement("a");
+a.href = "aHref";
+app.appendChild(a);
+
 const scriptTagContent = document.querySelector("#dataTag").textContent;
 const dataDiv = document.createElement("div");
 dataDiv.innerHTML = scriptTagContent;
