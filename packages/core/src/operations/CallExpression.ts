@@ -572,7 +572,8 @@ const specialValuesForPostprocessing = {
       }
     });
   },
-  "Array.prototype.map": ({ mapResultTrackingValues, ret, ctx, logData }) => {
+  "Array.prototype.map": ({ extraState, ret, ctx, logData }) => {
+    const { mapResultTrackingValues } = extraState;
     mapResultTrackingValues.forEach((tv, i) => {
       ctx.trackObjectPropertyAssignment(
         ret,
@@ -582,13 +583,13 @@ const specialValuesForPostprocessing = {
       );
     });
   },
-  "Array.prototype.reduce": ({ reduceResultTrackingValue }) => {
-    return reduceResultTrackingValue;
+  "Array.prototype.reduce": ({ extraState }) => {
+    return extraState.reduceResultTrackingValue;
   },
-  "Array.prototype.filter": ({ filterResults, ctx, ret, object, logData }) => {
+  "Array.prototype.filter": ({ extraState, ctx, ret, object, logData }) => {
     let resultArrayIndex = 0;
     object.forEach(function(originalArrayItem, originalArrayIndex) {
-      if (filterResults[originalArrayIndex]) {
+      if (extraState.filterResults[originalArrayIndex]) {
         ctx.trackObjectPropertyAssignment(
           ret,
           resultArrayIndex,
@@ -881,10 +882,7 @@ const CallExpression = <any>{
         loc: logData.loc
       });
     } else {
-      // TODO: move these to an object instead (sth like specialCaseState)
-      let mapResultTrackingValues;
-      let reduceResultTrackingValue;
-      let filterResults;
+      let extraState: any = {};
 
       const fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
       let specialCaseArgs = getSpecialCaseArgs();
@@ -913,9 +911,7 @@ const CallExpression = <any>{
           context,
           ret,
           retT,
-          mapResultTrackingValues,
-          reduceResultTrackingValue,
-          filterResults
+          extraState
         };
         if (functionIsCallOrApply) {
           specialCaseArgs.fn = object;
@@ -1030,7 +1026,7 @@ const CallExpression = <any>{
         }
 
         if (fnKnownValue === "Array.prototype.map") {
-          mapResultTrackingValues = [];
+          extraState.mapResultTrackingValues = [];
           fnArgValuesForApply = fnArgValues.slice();
           const originalMappingFunction = getFnArgForApply(0);
           setFnArgForApply(0, function(this: any, item, index, array) {
@@ -1053,7 +1049,7 @@ const CallExpression = <any>{
               {},
               logData.loc
             );
-            mapResultTrackingValues.push(ctx.lastOpTrackingResult);
+            extraState.mapResultTrackingValues.push(ctx.lastOpTrackingResult);
 
             return ret;
           });
@@ -1061,11 +1057,11 @@ const CallExpression = <any>{
 
         if (fnKnownValue === "Array.prototype.reduce") {
           if (fnArgs.length > 1) {
-            reduceResultTrackingValue = fnArgs[1];
+            extraState.reduceResultTrackingValue = fnArgs[1];
           } else {
             // "If no initial value is supplied, the first element in the array will be used."
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
-            reduceResultTrackingValue = ctx.getObjectPropertyTrackingValue(
+            extraState.reduceResultTrackingValue = ctx.getObjectPropertyTrackingValue(
               object,
               0
             );
@@ -1091,7 +1087,7 @@ const CallExpression = <any>{
                 [originalReduceFunction, null],
                 [this, null],
                 [
-                  [previousRet, reduceResultTrackingValue],
+                  [previousRet, extraState.reduceResultTrackingValue],
                   [param, paramTrackingValue],
                   [currentIndex, null],
                   [array, null]
@@ -1100,14 +1096,14 @@ const CallExpression = <any>{
               {},
               logData.loc
             );
-            reduceResultTrackingValue = ctx.lastOpTrackingResult;
+            extraState.reduceResultTrackingValue = ctx.lastOpTrackingResult;
 
             return ret;
           });
         }
 
         if (fnKnownValue === "Array.prototype.filter") {
-          filterResults = [];
+          extraState.filterResults = [];
 
           const originalFilterFunction = getFnArgForApply(0);
 
@@ -1127,7 +1123,7 @@ const CallExpression = <any>{
               logData.loc
             );
 
-            filterResults.push(ret);
+            extraState.filterResults.push(ret);
 
             return ret;
           });

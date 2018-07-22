@@ -676,7 +676,6 @@ describe("eval/new Function", () => {
     } else {
       ret = eval;
     }
-    console.log({ ret });
     return ret;
   }
   beforeEach(() => {

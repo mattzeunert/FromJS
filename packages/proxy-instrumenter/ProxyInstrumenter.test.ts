@@ -139,7 +139,6 @@ describe("ProxyInstrumenter", () => {
       const response = await makeRequest("/inlineScriptTags", {
         accept: "text/html"
       });
-      console.log(response);
       expect(response).toContain('a = "Hello"');
     },
     10000
