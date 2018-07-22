@@ -1020,6 +1020,23 @@ describe("Array.prototype.pop", () => {
   });
 });
 
+describe("Array.prototype.unshift", () => {
+  it("Traverses value inserted with array.unshift", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const arr = ["c"]
+      arr.unshift("a","b")
+      return arr[1]
+    `);
+
+    expect(normal).toBe("b");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("b");
+  });
+});
+
 describe("String.prototype.substring", () => {
   it("Traverses substring call with indexStart and indexEnd being strings", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`

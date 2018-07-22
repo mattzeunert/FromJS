@@ -417,6 +417,32 @@ const specialValuesForPostprocessing = {
 
     return extraState.shiftedTrackingValue;
   },
+  "Array.prototype.unshift": ({
+    object,
+    extraState,
+    ctx,
+    retT,
+    fnArgs,
+    fnArgValues
+  }) => {
+    // Note: O(n) is not very efficient...
+    const array = object;
+    const unshiftedItems = fnArgValues[0];
+    for (let i = unshiftedItems.length; i < array.length; i++) {
+      ctx.trackObjectPropertyAssignment(
+        array,
+        i.toString(),
+        ctx.getObjectPropertyTrackingValue(array, i - unshiftedItems.length),
+        ctx.getObjectPropertyNameTrackingValue(array, i - unshiftedItems.length)
+      );
+    }
+
+    for (let i = 0; i <= unshiftedItems.length; i++) {
+      ctx.trackObjectPropertyAssignment(array, i, fnArgs[i], null);
+    }
+
+    return extraState.shiftedTrackingValue;
+  },
   "Array.prototype.slice": ({
     object,
 
