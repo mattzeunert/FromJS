@@ -1,5 +1,3 @@
-import { inspect } from "util";
-
 export default function initDomInspectionUI(backendPort) {
   if (typeof document === "undefined") {
     return;
@@ -57,7 +55,8 @@ export default function initDomInspectionUI(backendPort) {
         ? "rgba(35, 111, 177, .1)"
         : "rgba(41, 132, 205, .06)";
     const zIndex = highlightReason === "selected" ? 10000001 : 10000000;
-    const boxTop = rect.top + document.body.scrollTop; // note: this won't work well if inside another scrollable element
+    const boxTop =
+      rect.top + document.body.scrollTop + document.documentElement.scrollTop; // note: this won't work well if inside another scrollable element
     marker.setAttribute(
       "style",
       "position: absolute; display: block; z-index: " +
