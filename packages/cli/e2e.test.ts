@@ -276,6 +276,11 @@ describe("E2E", () => {
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("aHref");
 
+      // DOMParser parseFromString
+      res = await inspectDomCharAndTraverse(html.indexOf("DOMParser"));
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("<div>DOMParser</div>");
+
       // textContent
       res = await inspectDomCharAndTraverse(html.indexOf("textContent"));
       expect(res.operationLog.operation).toBe("stringLiteral");

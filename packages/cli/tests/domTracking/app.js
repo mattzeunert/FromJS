@@ -41,6 +41,11 @@ const a = document.createElement("a");
 a.href = "aHref";
 app.appendChild(a);
 
+const htmlToParse = "<div>DOMParser</div>";
+const domParser = new DOMParser();
+const parsedDoc = domParser.parseFromString(htmlToParse, "text/html");
+app.appendChild(parsedDoc.body.children[0]);
+
 const scriptTagContent = document.querySelector("#dataTag").textContent;
 const dataDiv = document.createElement("div");
 dataDiv.innerHTML = scriptTagContent;

@@ -72,7 +72,9 @@ export default class KnownValues {
           HTMLElement.prototype.setAttribute,
         "HTMLElement.prototype.insertAdjacentHTML":
           HTMLElement.prototype.insertAdjacentHTML,
-        "HTMLElement.prototype.cloneNode": HTMLElement.prototype.cloneNode
+        "HTMLElement.prototype.cloneNode": HTMLElement.prototype.cloneNode,
+        "DOMParser.prototype.parseFromString":
+          DOMParser.prototype.parseFromString
       });
     }
 

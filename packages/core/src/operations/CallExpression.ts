@@ -31,6 +31,7 @@ import {
   regExpContainsNestedGroup,
   countGroupsInRegExp
 } from "../regExpHelpers";
+import { mapPageHtml } from "../mapPageHtml";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -744,6 +745,14 @@ const specialValuesForPostprocessing = {
       undefined,
       childNodesBefore
     );
+  },
+  "DOMParser.prototype.parseFromString": ({ fnArgValues, fnArgs, ret }) => {
+    const html = fnArgValues[0];
+    const htmlArg = [html, fnArgs[0]];
+
+    const doc = ret;
+
+    mapPageHtml(doc, html, fnArgs[0], "parseFromString");
   }
 };
 

@@ -32,6 +32,7 @@ import traverseStringConcat from "./traverseStringConcat";
 import * as MemoValueNames from "./MemoValueNames";
 import { traverseDomOrigin } from "./traverseDomOrigin";
 import { VERIFY } from "./config";
+import { getElAttributeValueOrigin } from "./operations/domHelpers/addElOrigin";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -117,26 +118,73 @@ const operations: Operations = {
         propertyName
       );
 
+      const isInBrowser = typeof HTMLElement !== "undefined";
       if (
+        isInBrowser &&
         !trackingValue &&
-        typeof HTMLScriptElement !== "undefined" &&
-        object instanceof HTMLScriptElement &&
-        ["text", "textContent", "innerHTML"].includes(propertyName)
+        object instanceof Node &&
+        typeof propertyName !== "symbol"
       ) {
-        // Handle people putting e.g. templates into script tags
+        if (
+          typeof HTMLScriptElement !== "undefined" &&
+          object instanceof HTMLScriptElement &&
+          ["text", "textContent", "innerHTML"].includes(propertyName)
+        ) {
+          // Handle people putting e.g. templates into script tags
 
-        const elOrigin =
-          object.childNodes[0] && object.childNodes[0]["__elOrigin"];
-        if (elOrigin && elOrigin.textValue) {
-          // TODO: this trackingvalue should really be created when doing the el origin
-          // mapping logic...
-          trackingValue = ctx.createOperationLog({
-            operation: OperationTypes.htmlAdapter,
-            runtimeArgs: elOrigin.textValue,
-            args: {
-              html: [null, elOrigin.textValue.trackingValue]
+          const elOrigin =
+            object.childNodes[0] && object.childNodes[0]["__elOrigin"];
+          if (elOrigin && elOrigin.textValue) {
+            // TODO: this trackingvalue should really be created when doing the el origin
+            // mapping logic...
+            trackingValue = ctx.createOperationLog({
+              operation: OperationTypes.htmlAdapter,
+              runtimeArgs: elOrigin.textValue,
+              args: {
+                html: [null, elOrigin.textValue.trackingValue]
+              }
+            });
+          }
+        } else if (
+          object instanceof HTMLElement &&
+          object.getAttribute(propertyName) !== null &&
+          // A bit icky, but it seems like a reasonable decision
+          // Normally we want to see where a value was set, e.g. as part of some html
+          // But input values lose that relationship when the user interacts with them (e.g. types
+          // into text field) so the value attribute from DOM mapping may be different from
+          // the actual property value
+          // So while sometimes the value from the HTML might give a better origin we'll always
+          // stop traversal at el.value instead
+          propertyName !== "value"
+        ) {
+          if (object["__elOrigin"]) {
+            const origin = getElAttributeValueOrigin(object, propertyName);
+            if (origin) {
+              trackingValue = ctx.createOperationLog({
+                operation: OperationTypes.htmlAdapter,
+                runtimeArgs: origin,
+                args: {
+                  html: [null, origin.trackingValue]
+                }
+              });
             }
-          });
+          }
+        } else if (
+          object.nodeType === Node.TEXT_NODE &&
+          ["textContent", "nodeValue"].includes(propertyName)
+        ) {
+          if (object["__elOrigin"]) {
+            const origin = object["__elOrigin"].textValue;
+            if (origin) {
+              trackingValue = ctx.createOperationLog({
+                operation: OperationTypes.htmlAdapter,
+                runtimeArgs: origin,
+                args: {
+                  html: [null, origin.trackingValue]
+                }
+              });
+            }
+          }
         }
       }
       logData.extraArgs = {

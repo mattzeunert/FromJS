@@ -10,6 +10,7 @@ import * as FunctionNames from "../FunctionNames";
 import { initLogging, consoleCount, consoleLog } from "./logging";
 import { getStoreLogsWorker } from "./storeLogsWorker";
 import * as OperationTypes from "../OperationTypes";
+import { mapPageHtml } from "../mapPageHtml";
 import mapInnerHTMLAssignment from "../operations/domHelpers/mapInnerHTMLAssignment";
 
 const accessToken = "ACCESS_TOKEN_PLACEHOLDER";
@@ -30,6 +31,9 @@ let fetch = knownValues.getValue("fetch");
 const startTime = new Date();
 setTimeout(checkDone, 200);
 function checkDone() {
+  if (typeof document === "undefined") {
+    return;
+  }
   const done = document.querySelector(".todo-list li");
   if (done) {
     const doneTime = new Date();
@@ -528,24 +532,13 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
       result: initialPageHtml
     });
 
-    var headEtcRemovedCharCount = initialPageHtml.indexOf("<body");
-    headEtcRemovedCharCount +=
-      initialPageHtml.slice(headEtcRemovedCharCount).indexOf(">") + 1;
-    if (headEtcRemovedCharCount == -1) {
-      headEtcRemovedCharCount = 0;
-    }
-    var bodyEndIndex = initialPageHtml.indexOf("</body");
-    if (bodyEndIndex === -1) {
-      bodyEndIndex = initialPageHtml.length;
-    }
-
-    mapInnerHTMLAssignment(
-      document.body,
-      [initialPageHtml, initialHtmlTrackingValue],
-      "initial page html",
-      -headEtcRemovedCharCount,
-      bodyEndIndex
+    mapPageHtml(
+      document,
+      initialPageHtml,
+      initialHtmlTrackingValue,
+      "initial page html"
     );
+
     global["__fromJSDidMapInitialPageHTML"] = true;
   }
 };
