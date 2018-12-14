@@ -37,11 +37,20 @@ app.insertAdjacentHTML(
   "<div>insertAdjacentHTML1</div><div>insertAdjacentHTML2</div>"
 );
 
+const a = document.createElement("a");
+a.href = "aHref";
+app.appendChild(a);
+
+const htmlToParse = "<div>DOMParser</div>";
+const domParser = new DOMParser();
+const parsedDoc = domParser.parseFromString(htmlToParse, "text/html");
+app.appendChild(parsedDoc.body.children[0]);
+
 const scriptTagContent = document.querySelector("#dataTag").textContent;
 const dataDiv = document.createElement("div");
 dataDiv.innerHTML = scriptTagContent;
 app.appendChild(dataDiv);
 
-fromJSInspect(app);
-
-window.testResult = __getHtmlNodeOperationLogMapping(app);
+fromJSInspect(app).then(() => {
+  window.testResult = __getHtmlNodeOperationLogMapping(app);
+});

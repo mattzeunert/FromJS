@@ -15,6 +15,7 @@ export default class KnownValues {
       "String.prototype.match": String.prototype.match,
       "String.prototype.split": String.prototype.split,
       "Array.prototype.push": Array.prototype.push,
+      "Array.prototype.pop": Array.prototype.pop,
       "Array.prototype.join": Array.prototype.join,
       "Array.prototype.slice": Array.prototype.slice,
       "Array.prototype.map": Array.prototype.map,
@@ -22,6 +23,7 @@ export default class KnownValues {
       "Array.prototype.reduce": Array.prototype.reduce,
       "Array.prototype.concat": Array.prototype.concat,
       "Array.prototype.shift": Array.prototype.shift,
+      "Array.prototype.unshift": Array.prototype.unshift,
       "JSON.parse": JSON.parse,
       "Object.keys": Object.keys,
       "Object.assign": Object.assign,
@@ -70,7 +72,9 @@ export default class KnownValues {
           HTMLElement.prototype.setAttribute,
         "HTMLElement.prototype.insertAdjacentHTML":
           HTMLElement.prototype.insertAdjacentHTML,
-        "HTMLElement.prototype.cloneNode": HTMLElement.prototype.cloneNode
+        "HTMLElement.prototype.cloneNode": HTMLElement.prototype.cloneNode,
+        "DOMParser.prototype.parseFromString":
+          DOMParser.prototype.parseFromString
       });
     }
 

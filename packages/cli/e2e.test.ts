@@ -8,6 +8,8 @@ const backendPort = 12100;
 const proxyPort = backendPort + 1;
 const webServerPort = proxyPort + 1;
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 function setTimeoutPromise(timeout) {
   return new Promise(resolve => {
     setTimeout(resolve, timeout);
@@ -46,12 +48,16 @@ function inspectDomChar(charIndex) {
   return new Promise(resolve => {
     request.post(
       {
-        url: "http://localhost:" + backendPort + "/inspectDomChar",
+        url: "https://localhost:" + backendPort + "/inspectDomChar",
         json: {
           charIndex
-        }
+        },
+        rejectUnauthorized: false
       },
       function(err, resp, body) {
+        if (err) {
+          throw Error(err);
+        }
         resolve(body);
       }
     );
@@ -62,10 +68,14 @@ function traverse(firstStep) {
   return new Promise(resolve => {
     request.post(
       {
-        url: "http://localhost:" + backendPort + "/traverse",
-        json: firstStep
+        url: "https://localhost:" + backendPort + "/traverse",
+        json: firstStep,
+        rejectUnauthorized: false
       },
       function(err, resp, body) {
+        if (err) {
+          throw Error(err);
+        }
         resolve(body);
       }
     );
@@ -134,6 +144,7 @@ describe("E2E", () => {
     await waitForProxyReady(command);
 
     browser = await puppeteer.launch({
+      ignoreHTTPSErrors: true,
       dumpio: true,
       args: [
         "--proxy-server=127.0.0.1:" + proxyPort,
@@ -153,7 +164,7 @@ describe("E2E", () => {
     await killPort(webServerPort);
   });
 
-  const inspectorUrl = "http://localhost:" + backendPort + "/";
+  const inspectorUrl = "https://localhost:" + backendPort + "/";
 
   let command;
   it(
@@ -260,6 +271,16 @@ describe("E2E", () => {
         "<div>insertAdjacentHTML1</div><div>insertAdjacentHTML2</div>"
       );
 
+      // setting a.href
+      res = await inspectDomCharAndTraverse(html.indexOf("aHref"));
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("aHref");
+
+      // DOMParser parseFromString
+      res = await inspectDomCharAndTraverse(html.indexOf("DOMParser"));
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("<div>DOMParser</div>");
+
       // textContent
       res = await inspectDomCharAndTraverse(html.indexOf("textContent"));
       expect(res.operationLog.operation).toBe("stringLiteral");
@@ -301,7 +322,6 @@ describe("E2E", () => {
       );
 
       // .text or .textContent on a text node
-      console.log(html);
       res = await inspectDomCharAndTraverse(
         html.indexOf("nodeNodeValueAssignment")
       );
@@ -349,6 +369,57 @@ describe("E2E", () => {
     },
     90000
   );
+
+  it(
+    "Can inspect pre-compiled react todomvc and use in-page inspection UI",
+    async () => {
+      // Load inspected page
+      const page = await createPage();
+      await page.goto("http://localhost:8000/react-todomvc-compiled/#/");
+      await page.waitForSelector(".todo-list li", { timeout: 60000 });
+
+      // Select label for inspection
+      await page.waitForSelector("#fromjs-inspect-dom-button");
+      await page.click("#fromjs-inspect-dom-button");
+      await page.waitForFunction(
+        "document.querySelector('#fromjs-inspect-dom-button').innerText.includes('Disable')",
+        { timeout: 60000 }
+      );
+      await page.click(".todo-list li label");
+
+      await waitForInPageInspector(page);
+
+      const childFrames = page.mainFrame().childFrames();
+      const inspectorFrame = childFrames[0];
+
+      // Todo name should come from local storage
+      await inspectorFrame.waitForFunction(() =>
+        document.body.innerHTML.includes("localStorage.getItem")
+      );
+
+      // Origin of label
+      inspectorFrame.click(".fromjs-value__content [data-key='3']");
+      await inspectorFrame.waitForFunction(() =>
+        document.body.innerHTML.includes("StringLiteral")
+      );
+
+      await page.close();
+    },
+    90000
+  );
+
+  async function waitForInPageInspector(page) {
+    while (true) {
+      const inspectorFrame = page
+        .mainFrame()
+        .childFrames()
+        .find(frame => frame.url() && frame.url().includes(backendPort));
+      if (inspectorFrame) {
+        return;
+      }
+      await page.waitFor(100);
+    }
+  }
 
   it("Doesn't try to process initial page HTML too late if no script tags in body", async () => {
     // I had this problem because normally a script tag in the body triggers setting

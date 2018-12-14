@@ -70,7 +70,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<
     return (
       <div style={{ opacity: this.props.isTraversing ? 0.5 : 1 }}>
         <ItemWithTitle>
-          <div>Origin of selected character:</div>
+          <div>Character origin</div>
           <div>
             <TraversalStep
               key={steps[steps.length - 1].operationLog.index}
