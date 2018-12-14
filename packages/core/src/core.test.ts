@@ -1089,14 +1089,30 @@ it("Doesn't break when calling .apply with no args", async () => {
   expect(normal).toBe("a");
 });
 
-it("Doesn't break when using ES6 features like classes", async () => {
-  const { normal, tracking, code } = await instrumentAndRun(`
-    class A {
-      fn() {
-        return "sth"
+describe("Doesn't break when using ES6+ features", () => {
+  it("Doesn't break with classes", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      class A {
+        fn() {
+          return "sth"
+        }
       }
+      return new A().fn()
+    `);
+    expect(normal).toBe("sth");
+  });
+  it("", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    function f({a,b}){
     }
-    return new A().fn()
-  `);
-  expect(normal).toBe("sth");
+    
+    const {a} = {a:4}
+    
+    const [c] = [1]
+    
+    [a = true, b] = []
+    return 5
+    `);
+    expect(normal).toBe(5);
+  });
 });

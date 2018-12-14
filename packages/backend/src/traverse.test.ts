@@ -1122,3 +1122,45 @@ describe("String.prototype.toString", () => {
     expect(t1LastStep.charIndex).toBe(1);
   });
 });
+
+async function traverseAndGetLastStep(operationLog, charIndex) {
+  var t1 = await traverse({ operationLog, charIndex });
+  const t1LastStep = t1[t1.length - 1];
+  return t1LastStep;
+}
+
+// describe("Can handle object destructuring in function parameters", () => {
+//   it("Object destructuring with default parameters", async () => {
+//     const { normal, tracking, code } = await instrumentAndRun(`
+//     function concat({a="Hello ",b}){
+//       return a + b
+//     }
+
+//     return concat({b: "World"})
+//   `);
+//     expect(normal).toBe("Hello World");
+
+//     let step;
+//     step = await traverseAndGetLastStep(tracking, 1);
+//     console.log(step);
+//     expect(step.operationLog.operation).toBe("stringLiteral");
+
+//     step = await traverseAndGetLastStep(tracking, 6);
+//     expect(step.operationLog.operation).toBe("stringLiteral");
+//   });
+//   it("Object destructuring with default params depending on other params", async () => {
+//     const { normal, tracking, code } = await instrumentAndRun(`
+//     function fn({a,b=a + "_"}){
+//       return b
+//     }
+
+//     return fn({a: "z"})
+//   `);
+//     expect(normal).toBe("z_");
+
+//     let step;
+//     step = await traverseAndGetLastStep(tracking, 0);
+//     expect(step.operationLog.result.primitive).toBe("z");
+//     expect(step.operationLog.operation).toBe("stringLiteral");
+//   });
+// });

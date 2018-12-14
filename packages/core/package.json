@@ -15,7 +15,7 @@
     "@babel/core": "^7.2.0",
     "@babel/parser": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
-    "@types/jest": "^23.0.0",
+    "@types/jest": "^23.3.10",
     "@types/node": "^10.3.2",
     "awesome-typescript-loader": "^4.0.1",
     "clone-regexp": "^2.1.0",
