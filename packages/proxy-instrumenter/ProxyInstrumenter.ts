@@ -121,6 +121,9 @@ class ProxyInstrumenter {
     var url = requestInfo.url;
     ctx.requestId = url + "_" + Math.random();
 
+    // allow self-signed certificates
+    ctx.proxyToServerRequestOptions.rejectUnauthorized = false;
+
     if (!this.enableInstrumenation || requestInfo.method !== "GET") {
       this.preventBrowserCaching(ctx);
       callback();

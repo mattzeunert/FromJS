@@ -104,7 +104,7 @@ startProxy({
         if (closingBodyTagIndex !== -1) {
           html =
             html.slice(0, closingBodyTagIndex) +
-            `<script data-fromjs-remove-before-initial-html-mapping src="http://localhost:${bePort}/fromJSInternal/empty.js"></script>` +
+            `<script data-fromjs-remove-before-initial-html-mapping src="https://localhost:${bePort}/fromJSInternal/empty.js"></script>` +
             html.slice(closingBodyTagIndex);
         }
       }
@@ -116,8 +116,8 @@ startProxy({
       `<script data-fromjs-dont-instrument data-fromjs-remove-before-initial-html-mapping>window.__fromJSInitialPageHtml = decodeURI("${encodeURI(
         originalHtml
       )}")</script>` +
-      `<script src="http://localhost:${bePort}/jsFiles/babel-standalone.js" data-fromjs-remove-before-initial-html-mapping></script>` +
-      `<script src="http://localhost:${bePort}/jsFiles/compileInBrowser.js" data-fromjs-remove-before-initial-html-mapping></script>`;
+      `<script src="https://localhost:${bePort}/jsFiles/babel-standalone.js" data-fromjs-remove-before-initial-html-mapping></script>` +
+      `<script src="https://localhost:${bePort}/jsFiles/compileInBrowser.js" data-fromjs-remove-before-initial-html-mapping></script>`;
 
     return (
       html.slice(0, insertionIndex) + insertedHtml + html.slice(insertionIndex)

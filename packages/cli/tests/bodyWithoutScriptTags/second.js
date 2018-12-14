@@ -1,2 +1,3 @@
-fromJSInspect(document.body);
-window.testResult = __getHtmlNodeOperationLogMapping(document.body);
+fromJSInspect(document.body).then(() => {
+  window.testResult = __getHtmlNodeOperationLogMapping(document.body);
+});

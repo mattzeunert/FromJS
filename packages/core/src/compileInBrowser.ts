@@ -5,6 +5,22 @@ import getBabelOptions, { getAndResetLocs } from "./getBabelOptions";
 var Babel = window["Babel"];
 delete window["__core-js_shared__"]; // Added by babel standalone, but breaks some lodash tests
 
+let evalFn;
+window["__fromJSEvalSetEvalFn"] = function(fn) {
+  evalFn = fn;
+};
+
+function getEvalFn() {
+  let ret;
+  if (evalFn) {
+    ret = evalFn;
+    evalFn = null;
+  } else {
+    ret = eval;
+  }
+  return ret;
+}
+
 window["__fromJSEval"] = function(code) {
   function compile(code, url, done) {
     const babelResult = Babel.transform(
@@ -20,7 +36,7 @@ window["__fromJSEval"] = function(code) {
   handleEvalScript(code, compile, evalScript => {
     returnValue = {
       evalScript,
-      returnValue: eval(evalScript.instrumentedCode)
+      returnValue: getEvalFn().call(this, evalScript.instrumentedCode)
     };
   });
 

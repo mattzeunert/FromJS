@@ -660,11 +660,31 @@ describe("eval/new Function", () => {
     let compiledCode = compilationResult.code;
     server._locStore.write(compilationResult.locs, function() {});
     return {
-      returnValue: eval(compiledCode),
+      returnValue: getEvalFn().call(this, compiledCode),
       evalScript: []
     };
   }
-  afterEach(() => delete global["__fromJSEval"]);
+  let evalFn;
+  function setEvalFn(fn) {
+    evalFn = fn;
+  }
+  function getEvalFn() {
+    let ret;
+    if (evalFn) {
+      ret = evalFn;
+      evalFn = null;
+    } else {
+      ret = eval;
+    }
+    return ret;
+  }
+  beforeEach(() => {
+    global["__fromJSEvalSetEvalFn"] = setEvalFn;
+  });
+  afterEach(() => {
+    delete global["__fromJSEval"];
+    delete global["__fromJSEvalSetEvalFn"];
+  });
   it("Doesn't break when no compilation function __fromJSEval is available", async () => {
     global["__forTestsDontShowCantEvalLog"] = true;
     const { normal, tracking, code } = await instrumentAndRun(`
@@ -694,6 +714,51 @@ describe("eval/new Function", () => {
     const callExpression = tracking;
     const returnValue = callExpression.extraArgs.returnValue;
     expect(returnValue.args.returnValue.operation).toBe("binaryExpression");
+  });
+  it("Allows access to local scope variables when calling a function called `eval`", async () => {
+    global["__fromJSEval"] = __fromJSEval;
+
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const localValue = 99
+      debugger;
+      const ret = eval("localValue")
+      return ret
+    `);
+    expect(normal).toBe(99);
+  });
+  // Don't support apply/call right now...
+  // Ideally they (and also eval if it has another name) should be supported, but it's
+  // harder to predict at compile time, and we don't want to create the eval function for every single
+  // function call
+  // it("Allows access to local scope variables when calling a function called `eval` with call", async () => {
+  //   global["__fromJSEval"] = __fromJSEval;
+
+  //   const { normal, tracking, code } = await instrumentAndRun(`
+  //     const localValue = 99
+  //     const ret = eval.call(null, "localValue")
+  //     return ret
+  //   `);
+  //   expect(normal).toBe(99);
+  // });
+  // it("Allows access to local scope variables when calling a function called `eval` with apply", async () => {
+  //   global["__fromJSEval"] = __fromJSEval;
+
+  //   const { normal, tracking, code } = await instrumentAndRun(`
+  //     const localValue = 99
+  //     const ret = eval.apply(null, ["localValue"])
+  //     return ret
+  //   `);
+  //   expect(normal).toBe(99);
+  // });
+  it("Does not break local function called `eval`", async () => {
+    global["__fromJSEval"] = __fromJSEval;
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function eval() {
+        return 11
+      }
+      return eval()
+    `);
+    expect(normal).toBe(11);
   });
 });
 

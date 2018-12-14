@@ -10,6 +10,7 @@ import * as FunctionNames from "../FunctionNames";
 import { initLogging, consoleCount, consoleLog } from "./logging";
 import { getStoreLogsWorker } from "./storeLogsWorker";
 import * as OperationTypes from "../OperationTypes";
+import { mapPageHtml } from "../mapPageHtml";
 import mapInnerHTMLAssignment from "../operations/domHelpers/mapInnerHTMLAssignment";
 
 const accessToken = "ACCESS_TOKEN_PLACEHOLDER";
@@ -30,6 +31,9 @@ let fetch = knownValues.getValue("fetch");
 const startTime = new Date();
 setTimeout(checkDone, 200);
 function checkDone() {
+  if (typeof document === "undefined") {
+    return;
+  }
   const done = document.querySelector(".todo-list li");
   if (done) {
     const doneTime = new Date();
@@ -59,7 +63,7 @@ function postToBE(endpoint, data, statsCallback = function(stats) {}) {
       stringifyTime: stringifyEnd.valueOf() - stringifyStart.valueOf()
     });
   }
-  const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
+  const p = fetch("https://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
     method: "POST",
     headers: new Headers({
       Accept: "application/json",
@@ -211,7 +215,7 @@ global.inspect = function(value) {
   };
 };
 
-initDomInspectionUI();
+initDomInspectionUI("BACKEND_PORT_PLACEHOLDER");
 
 global["__getHtmlNodeOperationLogMapping"] = getHtmlNodeOperationLogMapping;
 
@@ -232,7 +236,7 @@ global.fromJSInspect = function(value: any, charIndex: number) {
     }
     logId = argTrackingInfo[0];
   }
-  postToBE("/inspect", {
+  return postToBE("/inspect", {
     logId
   });
 };
@@ -328,6 +332,8 @@ global[FunctionNames.getLastMemberExpressionObject] = function() {
   ];
 };
 
+const MAX_TRACKED_ARRAY_INDEX = 10;
+
 var lastReturnStatementResult = null;
 
 const memoValues = {};
@@ -369,6 +375,17 @@ const ctx: ExecContext = {
   createOperationLog: function(args) {
     args.index = getOperationIndex();
     return createOperationLog(args);
+  },
+  createArrayIndexOperationLog(index, loc) {
+    if (index > MAX_TRACKED_ARRAY_INDEX) {
+      // Just too much cost tracking this, and not much value
+      return null;
+    }
+    return ctx.createOperationLog({
+      operation: ctx.operationTypes.arrayIndex,
+      result: index,
+      loc: loc
+    });
   },
   knownValues,
   global,
@@ -515,24 +532,13 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
       result: initialPageHtml
     });
 
-    var headEtcRemovedCharCount = initialPageHtml.indexOf("<body");
-    headEtcRemovedCharCount +=
-      initialPageHtml.slice(headEtcRemovedCharCount).indexOf(">") + 1;
-    if (headEtcRemovedCharCount == -1) {
-      headEtcRemovedCharCount = 0;
-    }
-    var bodyEndIndex = initialPageHtml.indexOf("</body");
-    if (bodyEndIndex === -1) {
-      bodyEndIndex = initialPageHtml.length;
-    }
-
-    mapInnerHTMLAssignment(
-      document.body,
-      [initialPageHtml, initialHtmlTrackingValue],
-      "initial page html",
-      -headEtcRemovedCharCount,
-      bodyEndIndex
+    mapPageHtml(
+      document,
+      initialPageHtml,
+      initialHtmlTrackingValue,
+      "initial page html"
     );
+
     global["__fromJSDidMapInitialPageHTML"] = true;
   }
 };
