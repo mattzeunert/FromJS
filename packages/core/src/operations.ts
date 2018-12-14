@@ -20,7 +20,8 @@ import {
   getTrackingIdentifier,
   safelyGetVariableTrackingValue,
   addLoc,
-  getGetGlobalCall
+  getGetGlobalCall,
+  getTrackingVarName
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import { ExecContext } from "./helperFunctions/ExecContext";
@@ -366,6 +367,21 @@ const operations: Operations = {
         operationLog: operationLog.args.propertyValue,
         charIndex: charIndex
       };
+    }
+  },
+  classDeclaration: {
+    visitor(path) {
+      // doesn't seem to have binding.kind, so can't just ignore it in
+      // safelyGetVariableTrackingValue -> make sure tracking var exists
+      path.insertAfter(
+        skipPath(
+          t.variableDeclaration("var", [
+            t.variableDeclarator(
+              t.identifier(getTrackingVarName(path.node.id.name))
+            )
+          ])
+        )
+      );
     }
   },
   objectExpression: ObjectExpression,
@@ -772,7 +788,8 @@ export function shouldSkipIdentifier(path) {
       "ContinueStatement",
       "BreakStatement",
       "ClassMethod",
-      "ClassProperty"
+      "ClassProperty",
+      "ClassDeclaration"
     ].includes(path.parent.type)
   ) {
     return true;

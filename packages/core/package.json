@@ -12,11 +12,12 @@
     "webpack-watch": "npm run webpack-helperFunctions; webpack --watch"
   },
   "dependencies": {
-    "@babel/core": "^7.0.0-beta.40",
+    "@babel/core": "^7.2.0",
+    "@babel/parser": "^7.2.0",
+    "@babel/preset-env": "^7.2.0",
     "@types/jest": "^23.0.0",
     "@types/node": "^10.3.2",
     "awesome-typescript-loader": "^4.0.1",
-    "babylon": "^6.18.0",
     "clone-regexp": "^2.1.0",
     "jest": "^22.4.2",
     "leveldown": "^4.0.1",

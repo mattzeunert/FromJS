@@ -2,7 +2,7 @@ import * as FunctionNames from "./FunctionNames";
 import * as babel from "@babel/core";
 import * as OperationTypes from "./OperationTypes";
 // import * as fs from "fs";
-import * as babylon from "babylon";
+import * as babylon from "@babel/parser";
 import operations, { shouldSkipIdentifier, initForBabel } from "./operations";
 import {
   ignoreNode,
@@ -287,7 +287,13 @@ function plugin(babel) {
           if (!ret.loc) {
             // debugger;
           }
-          path.replaceWith(ret);
+          try {
+            path.replaceWith(ret);
+          } catch (err) {
+            // for easier debugging
+            debugger;
+            operation.visitor.call(operation, path);
+          }
         }
       };
     }

@@ -1088,3 +1088,15 @@ it("Doesn't break when calling .apply with no args", async () => {
   `);
   expect(normal).toBe("a");
 });
+
+it("Doesn't break when using ES6 features like classes", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    class A {
+      fn() {
+        return "sth"
+      }
+    }
+    return new A().fn()
+  `);
+  expect(normal).toBe("sth");
+});

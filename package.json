@@ -24,12 +24,14 @@
     "compile-all-watch": "echo \"doing sequential non watch compile first to prepare\";npm run compile-all;npm run compile-core-watch & npm run compile-proxy-instrumenter-watch & npm run compile-backend-watch & npm run compile-cli-watch"
   },
   "dependencies": {
+    "@babel/core": "^7.2.0",
     "jest": "^23.1.0",
     "lerna": "^2.10.1",
     "prettier": "^1.12.1",
     "typescript": "^2.8.1"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.2.0",
     "error-stack-parser": "^2.0.1",
     "stacktrace-gps": "^3.0.2",
     "tslint": "^5.10.0"
