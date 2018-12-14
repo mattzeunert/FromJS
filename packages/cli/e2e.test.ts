@@ -48,7 +48,7 @@ function inspectDomChar(charIndex) {
   return new Promise(resolve => {
     request.post(
       {
-        url: "https://localhost:" + backendPort + "/inspectDomChar",
+        url: "http://localhost:" + backendPort + "/inspectDomChar",
         json: {
           charIndex
         },
@@ -68,7 +68,7 @@ function traverse(firstStep) {
   return new Promise(resolve => {
     request.post(
       {
-        url: "https://localhost:" + backendPort + "/traverse",
+        url: "http://localhost:" + backendPort + "/traverse",
         json: firstStep,
         rejectUnauthorized: false
       },

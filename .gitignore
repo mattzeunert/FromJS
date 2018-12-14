@@ -11,6 +11,7 @@ dist
 packages/proxy-instrumenter/ca
 packages/core/dist/helperFunctions.js
 packages/ui/dist
+fromjs-test-cases
 
 packages/core/dist
 packages/core/helperFunctions.ts
