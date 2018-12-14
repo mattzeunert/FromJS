@@ -149,11 +149,12 @@ export default function initDomInspectionUI(backendPort) {
     const inspectorUI = document.createElement("div");
     inspectorUI.classList.add("fromjs-inspector-container");
     const iframe = document.createElement("iframe");
-    iframe.src = "https://localhost:" + backendPort;
+    iframe.src = "http://localhost:" + backendPort;
     inspectorUI.appendChild(iframe);
     const inspectorStyles = document.createElement("style");
 
-    inspectorStyles.textContent = `
+    inspectorStyles.textContent =
+      `
       .fromjs-inspector-container {
         border-left: 1px solid rgba(0,0,0,0.2);
         box-sizing: border-box;
@@ -161,7 +162,9 @@ export default function initDomInspectionUI(backendPort) {
         top: 0;
         right: 0;
         bottom: 0;
-        width: ${inspectorWidth}px;
+        width: ` +
+      inspectorWidth +
+      `px;
         background: white;
         z-index: 20000000;
       }

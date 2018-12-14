@@ -4,7 +4,7 @@ import { debounce } from "lodash";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
 
 let backendPort = window["backendPort"];
-let backendRoot = "https://localhost:" + backendPort;
+let backendRoot = "http://localhost:" + backendPort;
 const resolveStackFrameCache = {};
 export function resolveStackFrame(operationLog) {
   if (resolveStackFrameCache[operationLog.index]) {
@@ -117,7 +117,7 @@ export function setEnableInstrumentation(enableInstrumentation) {
   return callApi("setEnableInstrumentation", { enableInstrumentation });
 }
 
-var exampleSocket = new WebSocket("wss://127.0.0.1:" + backendPort);
+var exampleSocket = new WebSocket("ws://127.0.0.1:" + backendPort);
 
 exampleSocket.onmessage = function(event) {
   console.log("websocket onmessage", event.data);

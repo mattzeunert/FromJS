@@ -63,7 +63,7 @@ function postToBE(endpoint, data, statsCallback = function(stats) {}) {
       stringifyTime: stringifyEnd.valueOf() - stringifyStart.valueOf()
     });
   }
-  const p = fetch("https://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
+  const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
     method: "POST",
     headers: new Headers({
       Accept: "application/json",

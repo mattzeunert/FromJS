@@ -10,6 +10,8 @@ This is how you use it: open any web page, select an element with the DOM inspec
 
 ## Getting started
 
+[**Note: Currently FromJS only works using Node 9 or below**](https://github.com/joeferner/node-http-mitm-proxy/issues/165)
+
 Install FromJS:
 
 Yarn: `sudo yarn global add @fromjs/cli`  

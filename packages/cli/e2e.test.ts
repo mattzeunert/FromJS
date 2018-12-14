@@ -164,249 +164,229 @@ describe("E2E", () => {
     await killPort(webServerPort);
   });
 
-  const inspectorUrl = "https://localhost:" + backendPort + "/";
+  const inspectorUrl = "http://localhost:" + backendPort + "/";
 
   let command;
-  it(
-    "Can load the start page",
-    async () => {
-      const page = await createPage();
-      await page.goto(inspectorUrl);
-      await page.waitForSelector(".load-demo-app");
+  it("Can load the start page", async () => {
+    const page = await createPage();
+    await page.goto(inspectorUrl);
+    await page.waitForSelector(".load-demo-app");
 
-      await await page.evaluate(() =>
-        (<HTMLElement>document.querySelector(".load-demo-app")).click()
-      );
+    await await page.evaluate(() =>
+      (<HTMLElement>document.querySelector(".load-demo-app")).click()
+    );
 
-      await page.waitForSelector(".step");
+    await page.waitForSelector(".step");
 
-      const text = await page.evaluate(
-        () => document.querySelectorAll(".step")[0]["innerText"]
-      );
-      expect(text).toContain("HTMLInputElement.value");
+    const text = await page.evaluate(
+      () => document.querySelectorAll(".step")[0]["innerText"]
+    );
+    expect(text).toContain("HTMLInputElement.value");
 
-      await page.close();
-    },
-    40000
-  );
+    await page.close();
+  }, 40000);
 
-  it(
-    "Does DOM to JS tracking",
-    async () => {
-      const page = await createPage();
-      await page.goto(
-        "http://localhost:" + webServerPort + "/tests/domTracking"
-      );
-      const testResult = await (await page.waitForFunction(
-        'window["testResult"]'
-      )).jsonValue();
+  it("Does DOM to JS tracking", async () => {
+    const page = await createPage();
+    await page.goto("http://localhost:" + webServerPort + "/tests/domTracking");
+    const testResult = await (await page.waitForFunction(
+      'window["testResult"]'
+    )).jsonValue();
 
-      const html = testResult.parts.map(p => p[0]).join("");
+    const html = testResult.parts.map(p => p[0]).join("");
 
-      // createElement
+    // createElement
 
-      let res = await inspectDomCharAndTraverse(html.indexOf("span"));
+    let res = await inspectDomCharAndTraverse(html.indexOf("span"));
 
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("span");
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("span");
 
-      // createTextNode
-      res = await inspectDomCharAndTraverse(html.indexOf("createTextNode"));
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("createTextNode");
+    // createTextNode
+    res = await inspectDomCharAndTraverse(html.indexOf("createTextNode"));
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("createTextNode");
 
-      // createComment
-      res = await inspectDomCharAndTraverse(html.indexOf("createComment"));
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("createComment");
+    // createComment
+    res = await inspectDomCharAndTraverse(html.indexOf("createComment"));
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("createComment");
 
-      // Initial page html
-      res = await inspectDomCharAndTraverse(html.indexOf("InitialPageHtml"));
-      expect(res.operationLog.operation).toBe("initialPageHtml");
-      expect(res.operationLog.result.primitive).toContain(`<div id="app"`);
+    // Initial page html
+    res = await inspectDomCharAndTraverse(html.indexOf("InitialPageHtml"));
+    expect(res.operationLog.operation).toBe("initialPageHtml");
+    expect(res.operationLog.result.primitive).toContain(`<div id="app"`);
 
-      // Values read from script tags in initial html
-      res = await inspectDomCharAndTraverse(html.indexOf("scriptTagContent"));
-      expect(res.operationLog.operation).toBe("initialPageHtml");
-      expect(res.operationLog.result.primitive).toContain(`<div id="app"`);
-      const fullPageHtml = require("fs")
-        .readFileSync(__dirname + "/tests/domTracking/index.html")
-        .toString();
-      expect(res.charIndex).toBe(fullPageHtml.indexOf("scriptTagContent"));
+    // Values read from script tags in initial html
+    res = await inspectDomCharAndTraverse(html.indexOf("scriptTagContent"));
+    expect(res.operationLog.operation).toBe("initialPageHtml");
+    expect(res.operationLog.result.primitive).toContain(`<div id="app"`);
+    const fullPageHtml = require("fs")
+      .readFileSync(__dirname + "/tests/domTracking/index.html")
+      .toString();
+    expect(res.charIndex).toBe(fullPageHtml.indexOf("scriptTagContent"));
 
-      // setAttribute
-      const spanHtml = '<span attr="setAttribute">abc<b>innerHTML</b></span>';
-      // Calculate indices withhin because attr="setAttribute" is also used by cloned node later on
-      const spanIndex = html.indexOf(spanHtml);
-      const attrNameIndex = spanIndex + spanHtml.indexOf("attr=");
-      const attrValueIndex = spanIndex + spanHtml.indexOf("setAttribute");
-      res = await inspectDomCharAndTraverse(attrValueIndex);
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("setAttribute");
+    // setAttribute
+    const spanHtml = '<span attr="setAttribute">abc<b>innerHTML</b></span>';
+    // Calculate indices withhin because attr="setAttribute" is also used by cloned node later on
+    const spanIndex = html.indexOf(spanHtml);
+    const attrNameIndex = spanIndex + spanHtml.indexOf("attr=");
+    const attrValueIndex = spanIndex + spanHtml.indexOf("setAttribute");
+    res = await inspectDomCharAndTraverse(attrValueIndex);
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("setAttribute");
 
-      res = await inspectDomCharAndTraverse(attrNameIndex);
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("attr");
+    res = await inspectDomCharAndTraverse(attrNameIndex);
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("attr");
 
-      // innerHTML
-      res = await inspectDomCharAndTraverse(html.indexOf("<b>"));
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("abc<b>innerHTML</b>");
+    // innerHTML
+    res = await inspectDomCharAndTraverse(html.indexOf("<b>"));
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("abc<b>innerHTML</b>");
 
-      // Comment in innerHTML
-      res = await inspectDomCharAndTraverse(
-        html.indexOf("<!-- COMMENT_IN_INNERTHML -->")
-      );
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe(
-        "<!-- COMMENT_IN_INNERTHML -->"
-      );
+    // Comment in innerHTML
+    res = await inspectDomCharAndTraverse(
+      html.indexOf("<!-- COMMENT_IN_INNERTHML -->")
+    );
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe(
+      "<!-- COMMENT_IN_INNERTHML -->"
+    );
 
-      // insertAjacentHTML
-      res = await inspectDomCharAndTraverse(
-        html.indexOf("insertAdjacentHTML2")
-      );
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe(
-        "<div>insertAdjacentHTML1</div><div>insertAdjacentHTML2</div>"
-      );
+    // insertAjacentHTML
+    res = await inspectDomCharAndTraverse(html.indexOf("insertAdjacentHTML2"));
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe(
+      "<div>insertAdjacentHTML1</div><div>insertAdjacentHTML2</div>"
+    );
 
-      // setting a.href
-      res = await inspectDomCharAndTraverse(html.indexOf("aHref"));
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("aHref");
+    // setting a.href
+    res = await inspectDomCharAndTraverse(html.indexOf("aHref"));
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("aHref");
 
-      // DOMParser parseFromString
-      res = await inspectDomCharAndTraverse(html.indexOf("DOMParser"));
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("<div>DOMParser</div>");
+    // DOMParser parseFromString
+    res = await inspectDomCharAndTraverse(html.indexOf("DOMParser"));
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("<div>DOMParser</div>");
 
-      // textContent
-      res = await inspectDomCharAndTraverse(html.indexOf("textContent"));
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("textContent");
+    // textContent
+    res = await inspectDomCharAndTraverse(html.indexOf("textContent"));
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("textContent");
 
-      // cloneNode
-      const clonedSpanHtml =
-        '<span attr="setAttribute">cloneNode<!--createComment-->createTextNode<div><div>deepClonedContent</div></div></span>';
-      const clonedSpanIndex = html.indexOf(clonedSpanHtml);
-      const clonedSpanAttributeIndex =
-        clonedSpanIndex + clonedSpanHtml.indexOf("attr=");
-      const clonedTextIndex =
-        clonedSpanIndex + clonedSpanHtml.indexOf("createTextNode");
-      const clonedCommentIndex =
-        clonedSpanIndex + clonedSpanHtml.indexOf("createComment");
-      const deepClonedContentIndex =
-        clonedSpanIndex + clonedSpanHtml.indexOf("deepClonedContent");
+    // cloneNode
+    const clonedSpanHtml =
+      '<span attr="setAttribute">cloneNode<!--createComment-->createTextNode<div><div>deepClonedContent</div></div></span>';
+    const clonedSpanIndex = html.indexOf(clonedSpanHtml);
+    const clonedSpanAttributeIndex =
+      clonedSpanIndex + clonedSpanHtml.indexOf("attr=");
+    const clonedTextIndex =
+      clonedSpanIndex + clonedSpanHtml.indexOf("createTextNode");
+    const clonedCommentIndex =
+      clonedSpanIndex + clonedSpanHtml.indexOf("createComment");
+    const deepClonedContentIndex =
+      clonedSpanIndex + clonedSpanHtml.indexOf("deepClonedContent");
 
-      res = await inspectDomCharAndTraverse(clonedSpanIndex);
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("span");
+    res = await inspectDomCharAndTraverse(clonedSpanIndex);
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("span");
 
-      res = await inspectDomCharAndTraverse(clonedSpanAttributeIndex);
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("attr");
+    res = await inspectDomCharAndTraverse(clonedSpanAttributeIndex);
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("attr");
 
-      res = await inspectDomCharAndTraverse(clonedTextIndex);
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("createTextNode");
+    res = await inspectDomCharAndTraverse(clonedTextIndex);
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("createTextNode");
 
-      res = await inspectDomCharAndTraverse(clonedCommentIndex);
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("createComment");
+    res = await inspectDomCharAndTraverse(clonedCommentIndex);
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("createComment");
 
-      res = await inspectDomCharAndTraverse(deepClonedContentIndex);
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe(
-        "<div>deepClonedContent</div>"
-      );
+    res = await inspectDomCharAndTraverse(deepClonedContentIndex);
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe(
+      "<div>deepClonedContent</div>"
+    );
 
-      // .text or .textContent on a text node
-      res = await inspectDomCharAndTraverse(
-        html.indexOf("nodeNodeValueAssignment")
-      );
-      expect(res.operationLog.operation).toBe("stringLiteral");
-      expect(res.operationLog.result.primitive).toBe("nodeNodeValueAssignment");
+    // .text or .textContent on a text node
+    res = await inspectDomCharAndTraverse(
+      html.indexOf("nodeNodeValueAssignment")
+    );
+    expect(res.operationLog.operation).toBe("stringLiteral");
+    expect(res.operationLog.result.primitive).toBe("nodeNodeValueAssignment");
 
-      await page.close();
-    },
-    30000
-  );
+    await page.close();
+  }, 30000);
 
-  it(
-    "Can inspect backbone todomvc and select an element by clicking on it",
-    async () => {
-      const inspectorPage = await createPage();
-      await inspectorPage.goto(inspectorUrl);
+  it("Can inspect backbone todomvc and select an element by clicking on it", async () => {
+    const inspectorPage = await createPage();
+    await inspectorPage.goto(inspectorUrl);
 
-      // Load inspected page
-      const page = await createPage();
-      await page.goto("http://localhost:8000/examples/backbone/");
-      await page.waitForSelector(".todo-list li", { timeout: 60000 });
+    // Load inspected page
+    const page = await createPage();
+    await page.goto("http://localhost:8000/examples/backbone/");
+    await page.waitForSelector(".todo-list li", { timeout: 60000 });
 
-      // Select label for inspection
-      await page.waitForSelector("#fromjs-inspect-dom-button");
-      await page.click("#fromjs-inspect-dom-button");
-      await page.waitForFunction(
-        "document.querySelector('#fromjs-inspect-dom-button').innerText.includes('Disable')"
-      );
-      await page.click(".todo-list li label");
+    // Select label for inspection
+    await page.waitForSelector("#fromjs-inspect-dom-button");
+    await page.click("#fromjs-inspect-dom-button");
+    await page.waitForFunction(
+      "document.querySelector('#fromjs-inspect-dom-button').innerText.includes('Disable')"
+    );
+    await page.click(".todo-list li label");
 
-      // Todo name should come from local storage
-      await inspectorPage.waitForFunction(() =>
-        document.body.innerHTML.includes("localStorage.getItem")
-      );
+    // Todo name should come from local storage
+    await inspectorPage.waitForFunction(() =>
+      document.body.innerHTML.includes("localStorage.getItem")
+    );
 
-      // label tag name should be string literal in eval
-      // (although: we could do source mapping here again to find the origin of the eval code)
-      await inspectorPage.click(".fromjs-value__content [data-key='1']");
-      await inspectorPage.waitForFunction(() =>
-        document.body.innerHTML.includes("eval")
-      );
+    // label tag name should be string literal in eval
+    // (although: we could do source mapping here again to find the origin of the eval code)
+    await inspectorPage.click(".fromjs-value__content [data-key='1']");
+    await inspectorPage.waitForFunction(() =>
+      document.body.innerHTML.includes("eval")
+    );
 
-      await page.close();
-      await inspectorPage.close();
-    },
-    90000
-  );
+    await page.close();
+    await inspectorPage.close();
+  }, 90000);
 
-  it(
-    "Can inspect pre-compiled react todomvc and use in-page inspection UI",
-    async () => {
-      // Load inspected page
-      const page = await createPage();
-      await page.goto("http://localhost:8000/react-todomvc-compiled/#/");
-      await page.waitForSelector(".todo-list li", { timeout: 60000 });
+  it("Can inspect pre-compiled react todomvc and use in-page inspection UI", async () => {
+    // Load inspected page
+    const page = await createPage();
+    await page.goto("http://localhost:8000/react-todomvc-compiled/#/");
+    await page.waitForSelector(".todo-list li", { timeout: 60000 });
 
-      // Select label for inspection
-      await page.waitForSelector("#fromjs-inspect-dom-button");
-      await page.click("#fromjs-inspect-dom-button");
-      await page.waitForFunction(
-        "document.querySelector('#fromjs-inspect-dom-button').innerText.includes('Disable')",
-        { timeout: 60000 }
-      );
-      await page.click(".todo-list li label");
+    // Select label for inspection
+    await page.waitForSelector("#fromjs-inspect-dom-button");
+    await page.click("#fromjs-inspect-dom-button");
+    await page.waitForFunction(
+      "document.querySelector('#fromjs-inspect-dom-button').innerText.includes('Disable')",
+      { timeout: 60000 }
+    );
+    await page.click(".todo-list li label");
 
-      await waitForInPageInspector(page);
+    await waitForInPageInspector(page);
 
-      const childFrames = page.mainFrame().childFrames();
-      const inspectorFrame = childFrames[0];
+    const childFrames = page.mainFrame().childFrames();
+    const inspectorFrame = childFrames[0];
 
-      // Todo name should come from local storage
-      await inspectorFrame.waitForFunction(() =>
-        document.body.innerHTML.includes("localStorage.getItem")
-      );
+    // Todo name should come from local storage
+    await inspectorFrame.waitForFunction(() =>
+      document.body.innerHTML.includes("localStorage.getItem")
+    );
 
-      // Origin of label
-      inspectorFrame.click(".fromjs-value__content [data-key='3']");
-      await inspectorFrame.waitForFunction(() =>
-        document.body.innerHTML.includes("StringLiteral")
-      );
+    // Origin of label
+    inspectorFrame.click(".fromjs-value__content [data-key='3']");
+    await inspectorFrame.waitForFunction(() =>
+      document.body.innerHTML.includes("StringLiteral")
+    );
 
-      await page.close();
-    },
-    90000
-  );
+    await page.close();
+  }, 90000);
 
   async function waitForInPageInspector(page) {
     while (true) {

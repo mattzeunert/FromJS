@@ -60,9 +60,10 @@ let App = props => {
             </a>
           </p>
           <p>
-            To select the value you want to inspect:<br /> 1) Click "Enable DOM
-            Inspector" and then select an element <br />2) Use{" "}
-            <code>fromJSInspect(value)</code>
+            To select the value you want to inspect:
+            <br /> 1) Click "Enable DOM Inspector" and then select an element{" "}
+            <br />
+            2) Use <code>fromJSInspect(value)</code>
             in your source code
           </p>
           <p>
@@ -71,7 +72,8 @@ let App = props => {
           </p>
           <p>
             Ask questions and report bugs{" "}
-            <a href="https://github.com/mattzeunert/FromJS/issues">on Github</a>.
+            <a href="https://github.com/mattzeunert/FromJS/issues">on Github</a>
+            .
           </p>
 
           <button
@@ -90,7 +92,7 @@ let App = props => {
         <div
           style={{ margin: 10 }}
           dangerouslySetInnerHTML={{
-            __html: `<iframe src="https://localhost:${location.port}/start/" />`
+            __html: `<iframe src="http://localhost:${location.port}/start/" />`
           }}
         />
       )}

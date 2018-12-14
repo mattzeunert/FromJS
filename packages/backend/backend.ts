@@ -131,8 +131,8 @@ export default class Backend {
       createBackendCerts(options);
     }
 
-    const https = require("https");
-    const server = https.createServer(options.getBackendServerCertInfo(), app);
+    const http = require("http");
+    const server = http.createServer(app);
 
     const wss = new WebSocket.Server({
       server
@@ -190,7 +190,9 @@ export default class Backend {
 }
 
 function setupUI(options, app, wss, getProxy) {
+  console.log("setupui");
   wss.on("connection", (ws: WebSocket) => {
+    console.log("On ws connection");
     if (domToInspect) {
       ws.send(
         JSON.stringify({
@@ -367,7 +369,7 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
     logServer.storeLogs(req.body.logs, function() {
       const timePassed = new Date().valueOf() - startTime.valueOf();
       const timePer1000 =
-        Math.round(timePassed / req.body.logs.length * 1000 * 10) / 10;
+        Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
       if (LOG_PERF) {
         console.log(
           "storing logs took " +

@@ -91,12 +91,13 @@ if (!maxOldSpaceSizeArg) {
         "--ignore-certificate-errors",
         "--test-type", // otherwise getting unsupported command line flag: --ignore-certificate-errors
         "--user-data-dir=" + backendOptions.getChromeUserDataDirectory(),
-        "--disable-infobars" // disable "controlled by automated test software" message
+        "--disable-infobars", // disable "controlled by automated test software" message,
+        "--allow-running-insecure-content"
       ]
     });
     let pages = await browser.pages();
     const page = pages[0];
     await page._client.send("Emulation.clearDeviceMetricsOverride");
-    await page.goto("https://localhost:" + bePort);
+    await page.goto("http://localhost:" + bePort);
   }
 }
