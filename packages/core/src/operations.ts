@@ -789,7 +789,9 @@ export function shouldSkipIdentifier(path) {
       "BreakStatement",
       "ClassMethod",
       "ClassProperty",
-      "ClassDeclaration"
+      "ClassDeclaration",
+      "AssignmentPattern",
+      "ArrayPattern"
     ].includes(path.parent.type)
   ) {
     return true;

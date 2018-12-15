@@ -1133,6 +1133,7 @@ async function traverseAndGetLastStep(operationLog, charIndex) {
 //   it("Object destructuring with default parameters", async () => {
 //     const { normal, tracking, code } = await instrumentAndRun(`
 //     function concat({a="Hello ",b}){
+//       console.log("aaa", a___tv)
 //       return a + b
 //     }
 

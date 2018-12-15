@@ -332,6 +332,19 @@ global[FunctionNames.getLastMemberExpressionObject] = function() {
   ];
 };
 
+global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
+  let logData: any = {
+    operation: "emptyTrackingInfo",
+    args: {},
+    runtimeArgs: { type },
+    astArgs: {},
+    loc,
+    index: getOperationIndex()
+  };
+
+  return createOperationLog(logData);
+};
+
 const MAX_TRACKED_ARRAY_INDEX = 10;
 
 var lastReturnStatementResult = null;

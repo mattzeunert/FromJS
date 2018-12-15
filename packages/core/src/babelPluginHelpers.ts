@@ -102,7 +102,7 @@ export function skipPath(node) {
   return node;
 }
 
-function getLocObjectASTNode(loc) {
+export function getLocObjectASTNode(loc) {
   const DISABLE_LOC_FOR_DEBUGGING = false || SKIP_TRACKING;
   if (DISABLE_LOC_FOR_DEBUGGING) {
     return ignoreNode(t.nullLiteral());

@@ -244,8 +244,15 @@ export default <any>{
         [path.node, getLastOperationTrackingResultCall()],
         createGetMemoArray(MemoValueNames.lastAssignmentExpressionArgument)
       ];
+    } else if (path.node.left.type === "ObjectPattern") {
+      console.log(
+        "assignment expression with objectpattern - not handled right now"
+      );
+      return;
     } else {
-      throw Error("unhandled assignmentexpression node.left type");
+      throw Error(
+        "unhandled assignmentexpression node.left type " + path.node.left.type
+      );
     }
 
     const operation = this.createNode!(

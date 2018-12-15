@@ -1101,13 +1101,29 @@ describe("Doesn't break when using ES6+ features", () => {
     `);
     expect(normal).toBe("sth");
   });
-  it("sadfds", async () => {
+  it("Doesn't break when there are destructured variables", async () => {
+    debugger;
     const { normal, tracking, code } = await instrumentAndRun(`
-    function f({a,b}){}
-    const {a} = {a:4}
-    const [c] = [1]
+    function f({a:x,b:y}){return x+y}
+    f({a:1,b:2});
+    function f2({a,b}){return a+b}
+    f2({a:1,b:2});
+    let {a:aaa} = {a:4}
+    aaa+=1;
+    let [c, d=5] = [1]
+    c= c-1
+    d = d-1
+    function f3([a,b]) {
+      return a + b
+    }
+    f3([4,5])
+    let m,n;
+    ({m,n=3} = {});
+    m += n;
+
     
-    const [x = true, y] = []
+    let [x = true, y] = []
+    x = x && y
     return 5
     `);
     expect(normal).toBe(5);
