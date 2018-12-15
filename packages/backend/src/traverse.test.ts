@@ -1165,3 +1165,22 @@ async function traverseAndGetLastStep(operationLog, charIndex) {
 //     expect(step.operationLog.operation).toBe("stringLiteral");
 //   });
 // });
+
+it("Supports arrow functions", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      const concat = (a,b) => {return a + b};
+      
+      return concat("Hello ", "World")
+    `);
+  expect(normal).toBe("Hello World");
+
+  let step;
+  step = await traverseAndGetLastStep(tracking, 1);
+  console.log(step);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.charIndex).toBe(1);
+
+  step = await traverseAndGetLastStep(tracking, 6);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.charIndex).toBe(0);
+});

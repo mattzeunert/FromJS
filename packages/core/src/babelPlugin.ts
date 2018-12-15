@@ -131,6 +131,12 @@ function plugin(babel) {
 
     const d = t.variableDeclaration("var", declarators);
     skipPath(d);
+    if (path.node.body.type !== "BlockStatement") {
+      // arrow function
+      path.node.body = ignoreNode(
+        t.blockStatement([ignoreNode(t.returnStatement(path.node.body))])
+      );
+    }
     path.node.body.body.unshift(d);
     path.node.ignore = true; // I'm not sure why it would re-enter the functiondecl/expr, but it has happened before
   }
@@ -141,6 +147,10 @@ function plugin(babel) {
     },
 
     FunctionExpression(path) {
+      handleFunction(path);
+    },
+
+    ArrowFunctionExpression(path) {
       handleFunction(path);
     },
 
@@ -176,7 +186,7 @@ function plugin(babel) {
     },
 
     VariableDeclaration(path) {
-      if (path.parent.type === "ForInStatement") {
+      if (["ForInStatement", "ForOfStatement"].includes(path.parent.type)) {
         return;
       }
       var originalDeclarations = path.node.declarations;

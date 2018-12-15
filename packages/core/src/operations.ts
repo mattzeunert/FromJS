@@ -776,6 +776,7 @@ export function shouldSkipIdentifier(path) {
   if (
     [
       "FunctionDeclaration",
+      "ArrowFunctionExpression",
       "MemberExpression",
       "ObjectProperty",
       "CatchClause",

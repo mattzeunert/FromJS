@@ -1102,7 +1102,6 @@ describe("Doesn't break when using ES6+ features", () => {
     expect(normal).toBe("sth");
   });
   it("Doesn't break when there are destructured variables", async () => {
-    debugger;
     const { normal, tracking, code } = await instrumentAndRun(`
     function f({a:x,b:y}){return x+y}
     f({a:1,b:2});
@@ -1125,6 +1124,24 @@ describe("Doesn't break when using ES6+ features", () => {
     let [x = true, y] = []
     x = x && y
     return 5
+    `);
+    expect(normal).toBe(5);
+  });
+
+  it("Does't break when encountering a for of statement", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    const arr = []
+    for (const elem of arr) {}
+    return 5
+    `);
+    expect(normal).toBe(5);
+  });
+
+  it("Does't break when encountering an arrow function", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    const square = a => a * a;
+    const add = (a,b) => a + b;
+    return add(square(2), 1);
     `);
     expect(normal).toBe(5);
   });
