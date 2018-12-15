@@ -5,7 +5,8 @@ import {
   ignoredArrayExpression,
   ignoredCallExpression,
   ignoredArrayExpressionIfArray,
-  skipPath
+  skipPath,
+  ignoredNumericLiteral
 } from "../babelPluginHelpers";
 import HtmlToOperationLogMapping from "../helperFunctions/HtmlToOperationLogMapping";
 import * as OperationTypes from "../OperationTypes";
@@ -838,6 +839,7 @@ const CallExpression = <any>{
   argIsArray: [false, false, true, false],
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
     let [fnArg, context, argList, evalFn] = args;
+    // console.log({ x: 9, astArgs, argList });
 
     var fnArgs: any[] = [];
     var fnArgValues: any[] = [];
@@ -846,8 +848,23 @@ const CallExpression = <any>{
 
     for (var i = 0; i < argList.length; i++) {
       const arg = argList[i];
-      fnArgValues.push(arg[0]);
-      fnArgs.push(arg[1]);
+      if (
+        astArgs.spreadArgumentIndices &&
+        astArgs.spreadArgumentIndices.includes(i)
+      ) {
+        const argumentArray = arg[0];
+        argumentArray.forEach(argument => {
+          fnArgValues.push(argument);
+          fnArgs.push(ctx.getEmptyTrackingInfo("spreadArgument", logData.loc));
+        });
+      } else {
+        fnArgValues.push(arg[0]);
+        fnArgs.push(arg[1]);
+      }
+
+      // if (arg[1] && typeof arg[1] !== "number") {
+      //   debugger;
+      // }
     }
 
     var object = context[0];
@@ -1477,8 +1494,17 @@ const CallExpression = <any>{
 
     var isMemberExpressionCall = callee.type === "MemberExpression";
 
+    const astArgs: any = {};
+
     var args: any[] = [];
-    path.node.arguments.forEach(arg => {
+    path.node.arguments.forEach((arg, i) => {
+      if (arg.type === "SpreadElement") {
+        if (!astArgs.spreadArgumentIndices) {
+          astArgs.spreadArgumentIndices = [];
+        }
+        astArgs.spreadArgumentIndices.push(ignoredNumericLiteral(i));
+        arg = arg.argument;
+      }
       args.push(
         ignoredArrayExpression([arg, getLastOperationTrackingResultCall()])
       );
@@ -1522,7 +1548,6 @@ const CallExpression = <any>{
       fnArgs.push(evalFn);
     }
 
-    const astArgs = {};
     if (isNewExpression) {
       astArgs["isNewExpression"] = ignoreNode(this.t.booleanLiteral(true));
     }

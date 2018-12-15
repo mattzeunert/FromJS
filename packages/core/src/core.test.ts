@@ -1241,6 +1241,19 @@ describe("Doesn't break when using ES6+ features", () => {
     expect(normal).toBe("abxy");
   });
 
+  it("Doesn't break spread parameter arguments", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function add(a, b, c, d) {
+        return a + b + c + d
+      }
+      const nums1 = [1,2]
+      const nums2 = [3,4]
+      return add(...nums1, ...nums2)
+  `);
+
+    expect(normal).toBe(10);
+  });
+
   describe("Doesn't break when using default parameter values", () => {
     it("Function declaration", async () => {
       const { normal, tracking, code } = await instrumentAndRun(`

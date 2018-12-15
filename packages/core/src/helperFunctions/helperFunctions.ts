@@ -387,12 +387,6 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
     )
   );
 
-  console.log(
-    global[FunctionNames.getEmptyTrackingInfo](
-      "arrayPatternExpansion_rest",
-      loc
-    )
-  );
   restResult.forEach(r => {
     resultArr.push(r);
   });
@@ -462,6 +456,9 @@ const ctx: ExecContext = {
   },
   objectHasPropertyTrackingData(obj) {
     return !!objTrackingMap.get(obj);
+  },
+  getEmptyTrackingInfo(type, loc) {
+    return global[FunctionNames.getEmptyTrackingInfo](type, loc);
   },
   get lastOpTrackingResult() {
     return lastOpTrackingResult;
