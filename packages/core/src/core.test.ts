@@ -1192,6 +1192,7 @@ describe("Doesn't break when using ES6+ features", () => {
       let sum =0
       let key, value
       for ([key, value] of Object.entries({a: 1, b: 2})) {
+        console.log("ktv", key___tv)
         sum += value + key.length
       }
       return sum
@@ -1212,5 +1213,16 @@ describe("Doesn't break when using ES6+ features", () => {
       return v1 + v2 + v3 + v4 + v5
     `);
     expect(normal).toBe(7);
+  });
+
+  it("Doesn't break rest parameter code", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const [a, ...b] = [1,2,3,4,5]
+      const {c, ...d} = {x: 6}
+
+      return b.length  + d.x
+    `);
+
+    expect(normal).toBe(10);
   });
 });

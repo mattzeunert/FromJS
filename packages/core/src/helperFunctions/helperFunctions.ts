@@ -344,22 +344,50 @@ global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
 
   return createOperationLog(logData);
 };
-global[FunctionNames.expandArrayForArrayPattern] = function(arr, loc, type) {
+global[FunctionNames.expandArrayForArrayPattern] = function(
+  arr,
+  loc,
+  type,
+  namedParamCount
+) {
   if (type === "forOf") {
     return arr.map(val => {
       return global[FunctionNames.expandArrayForArrayPattern](
         val,
         loc,
-        "forOf_element"
+        "forOf_element",
+        namedParamCount
       );
     });
   }
   const resultArr = [];
-  arr.forEach(value => {
-    resultArr.push(value);
-    resultArr.push(
-      global[FunctionNames.getEmptyTrackingInfo]("arrayPatternExpansion", loc)
-    );
+  const restResult = [];
+  arr.forEach((value, i) => {
+    if (i < namedParamCount) {
+      resultArr.push(value);
+      resultArr.push(
+        global[FunctionNames.getEmptyTrackingInfo]("arrayPatternExpansion", loc)
+      );
+    } else {
+      restResult.push(value);
+    }
+  });
+
+  resultArr.push(
+    global[FunctionNames.getEmptyTrackingInfo](
+      "arrayPatternExpansion_rest",
+      loc
+    )
+  );
+
+  console.log(
+    global[FunctionNames.getEmptyTrackingInfo](
+      "arrayPatternExpansion_rest",
+      loc
+    )
+  );
+  restResult.forEach(r => {
+    resultArr.push(r);
   });
   return resultArr;
 };
