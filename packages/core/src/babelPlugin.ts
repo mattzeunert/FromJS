@@ -341,6 +341,28 @@ function plugin(babel) {
             ignoredStringLiteral("forOf")
           ]
         );
+      } else if (
+        path.parentPath.parentPath.node.type === "VariableDeclaration"
+      ) {
+        const declarator = path.parentPath.node;
+        declarator.init = ignoredCallExpression(
+          FunctionNames.expandArrayForArrayPattern,
+          [
+            declarator.init,
+            getLocObjectASTNode(declarator.loc),
+            ignoredStringLiteral("variableDeclarationInit")
+          ]
+        );
+      } else if (path.parentPath.node.type === "AssignmentExpression") {
+        const assignmentExpression = path.parentPath.node;
+        assignmentExpression.right = ignoredCallExpression(
+          FunctionNames.expandArrayForArrayPattern,
+          [
+            assignmentExpression.right,
+            getLocObjectASTNode(assignmentExpression.loc),
+            ignoredStringLiteral("assignmentExpressionRight")
+          ]
+        );
       }
 
       const arrayPattern = path.node;

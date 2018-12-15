@@ -249,6 +249,11 @@ export default <any>{
         "assignment expression with objectpattern - not handled right now"
       );
       return;
+    } else if (path.node.left.type === "ArrayPattern") {
+      console.log(
+        "assignment expression with arraypattern - not handled right now"
+      );
+      return;
     } else {
       throw Error(
         "unhandled assignmentexpression node.left type " + path.node.left.type

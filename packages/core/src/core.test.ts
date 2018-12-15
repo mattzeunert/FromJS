@@ -1184,4 +1184,19 @@ describe("Doesn't break when using ES6+ features", () => {
     `);
     expect(normal).toBe(5);
   });
+
+  it("Doesn't break code that destructures arrays", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function getFirst([v]) {
+        return v
+      }
+
+      const [v1, v2] = [1,2]
+      let v3, v4;
+      ([v3, v4] = [1,2]);
+      let v5 = getFirst([1])
+      return v1 + v2 + v3 + v4 + v5
+    `);
+    expect(normal).toBe(7);
+  });
 });
