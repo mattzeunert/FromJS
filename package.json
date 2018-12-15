@@ -29,7 +29,7 @@
     "jest": "^23.1.0",
     "lerna": "^2.10.1",
     "prettier": "^1.12.1",
-    "typescript": "^2.8.1"
+    "typescript": "^3.2.2"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.2.0",
