@@ -223,6 +223,11 @@ const operations: Operations = {
         return;
       }
 
+      if (path.node.object.type === "Super") {
+        // we can't super into a function so let's not try
+        return;
+      }
+
       // todo: dedupe this code
       var property;
       if (path.node.computed === true) {

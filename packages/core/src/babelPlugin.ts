@@ -154,6 +154,10 @@ function plugin(babel) {
       handleFunction(path);
     },
 
+    ClassMethod(path) {
+      handleFunction(path)
+    }
+
     ObjectPattern(path) {
       // debugger;
       const newProperties: any[] = [];

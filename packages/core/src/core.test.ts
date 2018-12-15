@@ -1140,9 +1140,24 @@ describe("Doesn't break when using ES6+ features", () => {
   it("Does't break when encountering an arrow function", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
     const square = a => a * a;
-    const add = (a,b) => a + b;
+    const add = (a,b) => {return a + b};
     return add(square(2), 1);
     `);
     expect(normal).toBe(5);
+  });
+
+  it("Does't break when calling a function on super", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      class Parent {
+        square(x) { return x * x}
+      }
+      class Child extends Parent {
+        getSquare(n) {
+          return super.square(n)
+        }   
+      }
+      return new Child().getSquare(3)
+    `);
+    expect(normal).toBe(9);
   });
 });
