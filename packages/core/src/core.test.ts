@@ -1225,4 +1225,47 @@ describe("Doesn't break when using ES6+ features", () => {
 
     expect(normal).toBe(10);
   });
+
+  it("Doesn't break for of loops destructuring a map", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      let m = new Map();
+      m.set("a", "b")
+      m.set("x", "y")
+      let res = ""
+      for (const [key, value] of m) {
+        res += key + value
+      }
+      return res   
+  `);
+
+    expect(normal).toBe("abxy");
+  });
+
+  describe("Doesn't break when using default parameter values", () => {
+    it("Function declaration", async () => {
+      const { normal, tracking, code } = await instrumentAndRun(`
+      function add(a, b=1) {
+        return a+b
+      }
+  
+      return add(4)
+    `);
+
+      expect(normal).toBe(5);
+    });
+
+    it("class method", async () => {
+      const { normal, tracking, code } = await instrumentAndRun(`
+      class Adder {
+        add(a, b=1) {
+          return a+b
+        }
+      }
+  
+      return new Adder().add(4)
+    `);
+
+      expect(normal).toBe(5);
+    });
+  });
 });

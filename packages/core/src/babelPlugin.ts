@@ -107,6 +107,17 @@ function plugin(babel) {
             )
           );
         });
+      } else if (param.type === "AssignmentPattern") {
+        let varName = param.left.name;
+        declarators.push(
+          t.variableDeclarator(
+            addLoc(getTrackingIdentifier(varName), param.loc),
+            ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+              ignoredStringLiteral("arrayPatternInFunction"),
+              getLocObjectASTNode(param.loc)
+            ])
+          )
+        );
       } else {
         declarators.push(
           t.variableDeclarator(

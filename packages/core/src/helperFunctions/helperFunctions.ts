@@ -350,6 +350,13 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
   type,
   namedParamCount
 ) {
+  if (arr instanceof Map) {
+    const map = arr;
+    arr = [];
+    for (const [key, value] of map) {
+      arr.push([key, value]);
+    }
+  }
   if (type === "forOf") {
     return arr.map(val => {
       return global[FunctionNames.expandArrayForArrayPattern](
