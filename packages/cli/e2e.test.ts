@@ -1,8 +1,16 @@
 const { spawn } = require("child_process");
 const puppeteer = require("puppeteer");
-const killPort = require("kill-port");
+const kp = require("kill-port");
 const request = require("request");
 import { OperationLog } from "@fromjs/core";
+
+async function killPort(portNum) {
+  try {
+    await kp(portNum);
+  } catch (err) {
+    console.log("Continuing after killPort error", err);
+  }
+}
 
 const backendPort = 12100;
 const proxyPort = backendPort + 1;
