@@ -1160,4 +1160,28 @@ describe("Doesn't break when using ES6+ features", () => {
     `);
     expect(normal).toBe(9);
   });
+
+  it("Doesn't break when using array destructuring in a for of statement", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      let sum =0
+      for (const [key, value] of Object.entries({a: 1, b: 2})) {
+        console.log({key, value})
+        sum += value + key.length
+      }
+      return sum
+    `);
+    expect(normal).toBe(5);
+  });
+
+  it("Doesn't break when using array destructuring in a for of statement with variables pre-defined", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      let sum =0
+      let key, value
+      for ([key, value] of Object.entries({a: 1, b: 2})) {
+        sum += value + key.length
+      }
+      return sum
+    `);
+    expect(normal).toBe(5);
+  });
 });

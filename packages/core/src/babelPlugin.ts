@@ -155,8 +155,8 @@ function plugin(babel) {
     },
 
     ClassMethod(path) {
-      handleFunction(path)
-    }
+      handleFunction(path);
+    },
 
     ObjectPattern(path) {
       // debugger;
@@ -189,6 +189,20 @@ function plugin(babel) {
       path.node.properties = newProperties;
     },
 
+    // ForOfStatement(path) {
+    //   const variableDeclarator = path.node.left.declarations[0];
+    //   if (variableDeclarator.id.type === "ArrayPattern") {
+    //     path.node.right = ignoredCallExpression(
+    //       FunctionNames.expandArrayForArrayPattern,
+    //       [
+    //         path.node.right,
+    //         getLocObjectASTNode(path.node.loc),
+    //         ignoredStringLiteral("forOf")
+    //       ]
+    //     );
+    //   }
+    // },
+
     VariableDeclaration(path) {
       if (["ForInStatement", "ForOfStatement"].includes(path.parent.type)) {
         return;
@@ -203,27 +217,7 @@ function plugin(babel) {
         }
 
         if (decl.id.type === "ArrayPattern") {
-          decl.id.elements.forEach(elem => {
-            let varName;
-            if (elem.type === "Identifier") {
-              varName = elem.name;
-            } else if (elem.type === "AssignmentPattern") {
-              varName = elem.left.name;
-            } else {
-              throw Error("array pattern elem type");
-            }
-            newDeclarations.push(
-              t.variableDeclarator(
-                addLoc(getTrackingIdentifier(varName), elem.loc),
-                skipPath(
-                  ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
-                    ignoredStringLiteral("arrayPatternInVarDeclaration"),
-                    getLocObjectASTNode(elem.loc)
-                  ])
-                )
-              )
-            );
-          });
+          // declaration are inserted into pattern already
         } else if (decl.id.type === "ObjectPattern") {
           // declarations are inserted into object pattern already
         } else {
@@ -319,6 +313,62 @@ function plugin(babel) {
         ])
       );
       path.node.body.body.push(trackingVarDec);
+    },
+
+    ArrayPattern(path) {
+      const isForOfStatementWithVarDeclaration =
+        path.parentPath.node.type === "VariableDeclarator" &&
+        path.parentPath.parentPath.parentPath.node.type === "ForOfStatement";
+      const isForOfStatementWithoutVarDeclaration =
+        path.parentPath.node.type === "ForOfStatement";
+
+      if (
+        isForOfStatementWithVarDeclaration ||
+        isForOfStatementWithoutVarDeclaration
+      ) {
+        let forOfStatement;
+        if (isForOfStatementWithVarDeclaration) {
+          forOfStatement = path.parentPath.parentPath.parentPath.node;
+        } else if (isForOfStatementWithoutVarDeclaration) {
+          forOfStatement = path.parentPath.node;
+        }
+
+        forOfStatement.right = ignoredCallExpression(
+          FunctionNames.expandArrayForArrayPattern,
+          [
+            forOfStatement.right,
+            getLocObjectASTNode(forOfStatement.loc),
+            ignoredStringLiteral("forOf")
+          ]
+        );
+      }
+
+      const arrayPattern = path.node;
+      const newElements: any[] = [];
+      arrayPattern.elements.forEach(elem => {
+        let varName;
+        if (elem.type === "Identifier") {
+          varName = elem.name;
+        } else if (elem.type === "AssignmentPattern") {
+          varName = elem.left.name;
+        } else {
+          throw Error("array pattern elem type");
+        }
+        newElements.push(elem);
+        newElements.push(addLoc(getTrackingIdentifier(varName), elem.loc));
+        // newDeclarations.push(
+        //   t.variableDeclarator(
+        //     ,
+        //     skipPath(
+        //       ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+        //         ignoredStringLiteral("arrayPatternInVarDeclaration"),
+        //         getLocObjectASTNode(elem.loc)
+        //       ])
+        //     )
+        //   )
+        // );
+      });
+      arrayPattern.elements = newElements;
     },
 
     ForInStatement(path) {

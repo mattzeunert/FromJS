@@ -344,6 +344,25 @@ global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
 
   return createOperationLog(logData);
 };
+global[FunctionNames.expandArrayForArrayPattern] = function(arr, loc, type) {
+  if (type === "forOf") {
+    return arr.map(val => {
+      return global[FunctionNames.expandArrayForArrayPattern](
+        val,
+        loc,
+        "forOf_element"
+      );
+    });
+  }
+  const resultArr = [];
+  arr.forEach(value => {
+    resultArr.push(value);
+    resultArr.push(
+      global[FunctionNames.getEmptyTrackingInfo]("arrayPatternExpansion", loc)
+    );
+  });
+  return resultArr;
+};
 
 const MAX_TRACKED_ARRAY_INDEX = 10;
 
