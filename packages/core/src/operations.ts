@@ -694,6 +694,7 @@ const operations: Operations = {
       };
     }
   },
+  arrayIndex: {},
   assignmentExpression: AssignmentExpression,
   objectAssign: {
     traverse: identifyTraverseFunction
@@ -785,6 +786,7 @@ export function shouldSkipIdentifier(path) {
       "MemberExpression",
       "ObjectProperty",
       "CatchClause",
+      "ForOfStatement",
       "ForInStatement",
       "IfStatement",
       "ForStatement",

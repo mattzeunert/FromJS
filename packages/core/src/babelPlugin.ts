@@ -189,19 +189,28 @@ function plugin(babel) {
       path.node.properties = newProperties;
     },
 
-    // ForOfStatement(path) {
-    //   const variableDeclarator = path.node.left.declarations[0];
-    //   if (variableDeclarator.id.type === "ArrayPattern") {
-    //     path.node.right = ignoredCallExpression(
-    //       FunctionNames.expandArrayForArrayPattern,
-    //       [
-    //         path.node.right,
-    //         getLocObjectASTNode(path.node.loc),
-    //         ignoredStringLiteral("forOf")
-    //       ]
-    //     );
-    //   }
-    // },
+    ForOfStatement(path) {
+      if (path.node.left.type === "VariableDeclaration") {
+        const variableDeclarator = path.node.left.declarations[0];
+        if (variableDeclarator.id.type === "Identifier") {
+          path.node.body.body.unshift(
+            skipPath(
+              t.variableDeclaration("var", [
+                t.variableDeclarator(
+                  ignoredIdentifier(
+                    getTrackingVarName(variableDeclarator.id.name)
+                  ),
+                  ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+                    ignoredStringLiteral("forOfVariable"),
+                    getLocObjectASTNode(variableDeclarator.loc)
+                  ])
+                )
+              ])
+            )
+          );
+        }
+      }
+    },
 
     VariableDeclaration(path) {
       if (["ForInStatement", "ForOfStatement"].includes(path.parent.type)) {

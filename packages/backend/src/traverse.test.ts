@@ -1176,7 +1176,6 @@ it("Supports arrow functions", async () => {
 
   let step;
   step = await traverseAndGetLastStep(tracking, 1);
-  console.log(step);
   expect(step.operationLog.operation).toBe("stringLiteral");
   expect(step.charIndex).toBe(1);
 

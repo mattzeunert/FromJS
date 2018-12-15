@@ -298,6 +298,7 @@ export const getLastOpValueCall = () =>
 
 export const safelyGetVariableTrackingValue = (identifierName, scope) => {
   const binding = scope.getBinding(identifierName);
+
   if (binding && ["var", "let", "const", "param"].includes(binding.kind)) {
     return getTrackingIdentifier(identifierName);
   } else {

@@ -1089,6 +1089,19 @@ it("Doesn't break when calling .apply with no args", async () => {
   expect(normal).toBe("a");
 });
 
+it("Does't break when encountering a for in statement", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+  
+  const arr = [1,2,3]
+  let res = ""
+  for (const sth in arr) {
+    res += sth
+  }
+  return res
+  `);
+  expect(normal).toBe("012");
+});
+
 describe("Doesn't break when using ES6+ features", () => {
   it("Doesn't break with classes", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
@@ -1130,11 +1143,12 @@ describe("Doesn't break when using ES6+ features", () => {
 
   it("Does't break when encountering a for of statement", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
-    const arr = []
-    for (const elem of arr) {}
-    return 5
+    const arr = [4]
+    for (const elem of arr) {
+      return elem
+    }
     `);
-    expect(normal).toBe(5);
+    expect(normal).toBe(4);
   });
 
   it("Does't break when encountering an arrow function", async () => {
