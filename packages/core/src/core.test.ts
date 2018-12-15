@@ -1101,16 +1101,13 @@ describe("Doesn't break when using ES6+ features", () => {
     `);
     expect(normal).toBe("sth");
   });
-  it("", async () => {
+  it("sadfds", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
-    function f({a,b}){
-    }
-    
+    function f({a,b}){}
     const {a} = {a:4}
-    
     const [c] = [1]
     
-    [a = true, b] = []
+    const [x = true, y] = []
     return 5
     `);
     expect(normal).toBe(5);

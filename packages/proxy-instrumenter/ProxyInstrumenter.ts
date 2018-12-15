@@ -543,7 +543,7 @@ class ProxyInstrumenter {
 
   requestProcessCode(body, url, babelPluginOptions) {
     return new Promise(resolve => {
-      const RUN_IN_SAME_PROCESS = true;
+      const RUN_IN_SAME_PROCESS = false;
 
       if (body.length > 1024 * 500) {
         console.time(url);
