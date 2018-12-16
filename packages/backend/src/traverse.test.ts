@@ -178,9 +178,28 @@ describe("Array.prototype.splice", () => {
 
     expect(normal).toBe("23");
     let step = await traverseAndGetLastStep(tracking, 0);
-    console.log(step);
     expect(step.operationLog.operation).toBe("numericLiteral");
     step = await traverseAndGetLastStep(tracking, 1);
+    expect(step.operationLog.operation).toBe("numericLiteral");
+  });
+});
+
+describe("Object.entries", () => {
+  test("Return value of Object.entries is tracked", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const entries = Object.entries({a:"A",b:"B"})
+        return entries[0][0] + entries[0][1] + entries[1][0] + entries[1][1]
+      `);
+
+    expect(normal).toBe("aAbB");
+    let step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("a");
+    step = await traverseAndGetLastStep(tracking, 3);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("B");
   });
 });
 

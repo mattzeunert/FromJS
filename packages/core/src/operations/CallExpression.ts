@@ -366,6 +366,17 @@ const specialValuesForPostprocessing = {
     });
     return retT;
   },
+  "Object.entries": ({ ctx, logData, fnArgValues, ret, retT }) => {
+    const obj = fnArgValues[0];
+    ret.forEach((entryArr, i) => {
+      const [key, value] = entryArr;
+      const valueTv = ctx.getObjectPropertyTrackingValue(obj, key);
+      const keyTv = ctx.getObjectPropertyNameTrackingValue(obj, key);
+      ctx.trackObjectPropertyAssignment(entryArr, 1, valueTv);
+      ctx.trackObjectPropertyAssignment(entryArr, 0, keyTv);
+    });
+    return retT;
+  },
   "Object.assign": ({ ctx, logData, fnArgValues }) => {
     ctx = <ExecContext>ctx;
     const target = fnArgValues[0];
