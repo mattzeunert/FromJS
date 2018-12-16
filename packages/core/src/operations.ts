@@ -708,6 +708,7 @@ const operations: Operations = {
     traverse: identifyTraverseFunction
   },
   arraySlice: { traverse: identifyTraverseFunction },
+  arraySplice: { traverse: identifyTraverseFunction },
   arrayConcat: {
     traverse: identifyTraverseFunction
   },

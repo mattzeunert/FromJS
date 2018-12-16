@@ -18,6 +18,7 @@ export default class KnownValues {
       "Array.prototype.pop": Array.prototype.pop,
       "Array.prototype.join": Array.prototype.join,
       "Array.prototype.slice": Array.prototype.slice,
+      "Array.prototype.splice": Array.prototype.splice,
       "Array.prototype.map": Array.prototype.map,
       "Array.prototype.filter": Array.prototype.filter,
       "Array.prototype.reduce": Array.prototype.reduce,

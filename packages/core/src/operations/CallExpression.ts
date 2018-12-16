@@ -509,6 +509,54 @@ const specialValuesForPostprocessing = {
       );
     });
   },
+  "Array.prototype.splice": ({ object, ctx, logData, fnArgValues, ret }) => {
+    ctx = <ExecContext>ctx;
+    const resultArray = ret;
+    const inputArray = object;
+
+    let startIndex, deleteCount;
+    if (fnArgValues.length >= 2) {
+      startIndex = fnArgValues[0];
+      deleteCount = fnArgValues[1];
+    }
+
+    resultArray.forEach((value, i) => {
+      const originalIndex = i + startIndex;
+      const tv = ctx.getObjectPropertyTrackingValue(
+        inputArray,
+        originalIndex.toString()
+      );
+
+      ctx.trackObjectPropertyAssignment(
+        resultArray,
+        i.toString(),
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.arraySplice,
+          args: {
+            value: [null, tv],
+            call: [null, logData.index]
+          },
+          result: value,
+          astArgs: {},
+          loc: logData.loc
+        })
+      );
+    });
+
+    // if (fnArgValues.length === 0) {
+    //   startIndex = 0;
+    //   endIndex = resultArray.length;
+    // } else {
+    //   startIndex = fnArgValues[0];
+    //   if (startIndex < 0) {
+    //     startIndex = inputArray.length + startIndex;
+    //   }
+    //   endIndex = fnArgValues[0];
+    //   if (endIndex < 0) {
+    //     endIndex = inputArray.length + endIndex;
+    //   }
+    // }
+  },
   "Array.prototype.join": ({
     object,
     fnArgs,

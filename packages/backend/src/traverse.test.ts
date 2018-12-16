@@ -1,9 +1,15 @@
 import { testHelpers } from "@fromjs/core";
 const { instrumentAndRun, server } = testHelpers;
-import { traverse as _traverse } from "./traverse";
+import { traverse as _traverse, TraversalStep } from "./traverse";
 
-const traverse = function(firstStep) {
-  return _traverse.call(null, firstStep, [], server);
+const traverse = async function(firstStep) {
+  const steps: TraversalStep[] = (await _traverse.call(
+    null,
+    firstStep,
+    [],
+    server
+  )) as any;
+  return steps;
 };
 
 function getStepTypeList(traversalResult) {
@@ -161,6 +167,21 @@ test("Can traverse String.prototype.slice", async () => {
     "identifier",
     "stringLiteral"
   ]);
+});
+
+describe("Array.prototype.splice", () => {
+  test("Can traverse Array.prototype.splice return value", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = [1,2,3,4]
+        return arr.splice(1,2).join("")
+      `);
+
+    expect(normal).toBe("23");
+    let step = await traverseAndGetLastStep(tracking, 0);
+    console.log(step);
+    expect(step.operationLog.operation).toBe("numericLiteral");
+    step = await traverseAndGetLastStep(tracking, 1);
+  });
 });
 
 test("Traverse str[n] character access", async () => {
@@ -1135,7 +1156,7 @@ describe("String.prototype.toString", () => {
 });
 
 async function traverseAndGetLastStep(operationLog, charIndex) {
-  var t1 = await traverse({ operationLog, charIndex });
+  var t1: any = await traverse({ operationLog, charIndex });
   const t1LastStep = t1[t1.length - 1];
   return t1LastStep;
 }

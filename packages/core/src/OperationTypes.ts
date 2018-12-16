@@ -30,5 +30,6 @@ export const arrayPattern = "arrayPattern";
 // of the history of "b"... although technically the slice is part of the array history
 export const objectAssign = "objectAssign";
 export const arraySlice = "arraySlice";
+export const arraySplice = "arraySplice";
 export const arrayConcat = "arrayConcat";
 export const matchResult = "matchResult";
