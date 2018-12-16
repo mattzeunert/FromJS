@@ -36,7 +36,7 @@ export function instrumentAndRun(code, outsideArgs = {}) {
         /* don't bother waiting since store is sync */
       });
 
-      // console.log(code.split("* HELPER_FUNCTIONS_END */")[1]);
+      console.log(code.split("* HELPER_FUNCTIONS_END */")[1]);
       const __storeLog = server.storeLog.bind(server);
       var result: InstrumentAndRunResult = eval(code);
 

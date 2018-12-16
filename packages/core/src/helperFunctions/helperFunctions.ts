@@ -380,6 +380,10 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
     }
   });
 
+  while (namedParamCount > resultArr.length / 2) {
+    resultArr.push(undefined);
+  }
+
   resultArr.push(
     global[FunctionNames.getEmptyTrackingInfo](
       "arrayPatternExpansion_rest",

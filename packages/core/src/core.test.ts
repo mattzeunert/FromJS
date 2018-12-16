@@ -1102,6 +1102,14 @@ it("Does't break when encountering a for in statement", async () => {
   expect(normal).toBe("012");
 });
 
+it("Does't break array destructuring with fewer named arguments than the total", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    const [one, two] = ["one"].splice(0, 2)
+    return one + two
+  `);
+  expect(normal).toBe("oneundefined");
+});
+
 describe("Doesn't break when using ES6+ features", () => {
   it("Doesn't break with classes", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
