@@ -119,7 +119,6 @@ class ProxyInstrumenter {
       method: ctx.clientToProxyRequest.method.toUpperCase()
     };
     var url = requestInfo.url;
-    console.log("onrequest", requestInfo.url);
     ctx.requestId = url + "_" + Math.random();
 
     // allow self-signed certificates
@@ -403,7 +402,7 @@ class ProxyInstrumenter {
 
         var body = buffer.toString();
         var msElapsed = new Date().valueOf() - jsFetchStartTime.valueOf();
-        var speed = Math.round((buffer.byteLength / msElapsed / 1000) * 1000);
+        var speed = Math.round(buffer.byteLength / msElapsed / 1000 * 1000);
         if (!this.silent && this.verbose) {
           this.log(
             "JS ResponseEnd",
@@ -424,7 +423,7 @@ class ProxyInstrumenter {
             console.log("EMPTY RESPONSE", getUrl(ctx));
           } else {
             const sizeInMb =
-              Math.round((responseBody.length / 1024 / 1024) * 1000) / 1000;
+              Math.round(responseBody.length / 1024 / 1024 * 1000) / 1000;
             if (sizeInMb > 1) {
               console.log(getUrl(ctx), "size", sizeInMb, "MB");
             }

@@ -7,21 +7,28 @@
   "license": "MIT",
   "scripts": {
     "compile-core": "cd packages/core;tsc --project tsconfig-core-main.json",
-    "compile-core-watch": "cd packages/core;tsc --watch --project tsconfig-core-main.json",
+    "compile-core-watch":
+      "cd packages/core;tsc --watch --project tsconfig-core-main.json",
     "compile-proxy-instrumenter": "cd packages/proxy-instrumenter;tsc",
-    "compile-proxy-instrumenter-watch": "cd packages/proxy-instrumenter;tsc --watch",
+    "compile-proxy-instrumenter-watch":
+      "cd packages/proxy-instrumenter;tsc --watch",
     "compile-backend": "cd packages/backend;tsc",
     "compile-backend-watch": "cd packages/backend;tsc --watch",
     "compile-cli": "cd packages/cli;tsc",
     "compile-cli-watch": "cd packages/cli;tsc --watch",
     "test": "jest",
     "test-watch": "jest --config=jest.config.dev.js --watch",
-    "test-debug": "node --inspect=36654 ./node_modules/.bin/jest --config=jest.config.dev.js --runInBand --watch",
-    "cli": "VERIFY=true nodemon --max_old_space_size=8000 --ignore logs.json --ignore fromjs-session packages/cli/dist/cli.js -- --openBrowser no",
-    "cli-debug": "VERIFY=true nodemon --max_old_space_size=8000 --inspect --ignore logs.json --ignore fromjs-session packages/cli/dist/cli.js -- --openBrowser no",
+    "test-debug":
+      "node --inspect=36654 ./node_modules/.bin/jest --config=jest.config.dev.js --runInBand",
+    "cli":
+      "VERIFY=true nodemon --max_old_space_size=8000 --ignore logs.json --ignore fromjs-session packages/cli/dist/cli.js -- --openBrowser no",
+    "cli-debug":
+      "VERIFY=true nodemon --max_old_space_size=8000 --inspect --ignore logs.json --ignore fromjs-session packages/cli/dist/cli.js -- --openBrowser no",
     "cli-browser": "`node packages/cli/dist/cli.js --openBrowser only`",
-    "compile-all": "npm run compile-core;npm run compile-proxy-instrumenter; npm run compile-backend; npm run compile-cli",
-    "compile-all-watch": "echo \"doing sequential non watch compile first to prepare\";npm run compile-all;npm run compile-core-watch & npm run compile-proxy-instrumenter-watch & npm run compile-backend-watch & npm run compile-cli-watch"
+    "compile-all":
+      "npm run compile-core;npm run compile-proxy-instrumenter; npm run compile-backend; npm run compile-cli",
+    "compile-all-watch":
+      "echo \"doing sequential non watch compile first to prepare\";npm run compile-all;npm run compile-core-watch & npm run compile-proxy-instrumenter-watch & npm run compile-backend-watch & npm run compile-cli-watch"
   },
   "dependencies": {
     "@babel/core": "^7.2.0",

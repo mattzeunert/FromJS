@@ -720,7 +720,6 @@ describe("eval/new Function", () => {
 
     const { normal, tracking, code } = await instrumentAndRun(`
       const localValue = 99
-      debugger;
       const ret = eval("localValue")
       return ret
     `);
@@ -808,19 +807,9 @@ describe("with statement", () => {
 });
 
 describe("localStorage", () => {
-  beforeEach(() => {
-    global.localStorage = {
-      prop: "hi",
-      getItem() {
-        return "hi";
-      }
-    };
-  });
-  afterEach(() => {
-    delete global.localStorage;
-  });
   it("Tracks a localStorage value accessed using localStorage.prop", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
+        localStorage.setItem("prop", "hi")
         return localStorage.prop
       `);
     expect(normal).toBe("hi");
@@ -828,6 +817,7 @@ describe("localStorage", () => {
   });
   it("Tracks a localStorage value accessed using localStorage.getItem('prop')", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
+        localStorage.setItem("prop", "hi")
         return localStorage.getItem("prop")
       `);
     expect(normal).toBe("hi");

@@ -55,7 +55,6 @@ export default class KnownValues {
         "localStorage.getItem": global.localStorage.getItem
       });
     }
-
     if (global["fetch"]) {
       Object.assign(this._knownValues, {
         fetch: fetch,
