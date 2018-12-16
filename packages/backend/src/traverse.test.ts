@@ -1183,3 +1183,23 @@ it("Supports arrow functions", async () => {
   expect(step.operationLog.operation).toBe("stringLiteral");
   expect(step.charIndex).toBe(0);
 });
+
+describe("Array destructuring", () => {
+  it("Works for a basic example", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const [one, two] = ["one", "two"]
+      
+      return one + two
+    `);
+    expect(normal).toBe("onetwo");
+
+    let step;
+    step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+
+    step = await traverseAndGetLastStep(tracking, 3);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+  });
+});

@@ -694,6 +694,14 @@ const operations: Operations = {
       };
     }
   },
+  arrayPattern: {
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.value,
+        charIndex
+      };
+    }
+  },
   arrayIndex: {},
   assignmentExpression: AssignmentExpression,
   objectAssign: {

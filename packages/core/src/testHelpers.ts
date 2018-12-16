@@ -43,7 +43,6 @@ export function instrumentAndRun(code, outsideArgs = {}) {
       delete global["__didInitializeDataFlowTracking"];
       result.code = relevantCode; // only the interesting code
 
-      debugger;
       if (result.tracking) {
         server.loadLog(
           result.tracking,

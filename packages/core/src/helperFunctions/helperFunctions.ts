@@ -372,8 +372,17 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
   arr.forEach((value, i) => {
     if (i < namedParamCount) {
       resultArr.push(value);
+      const trackingValue = ctx.getObjectPropertyTrackingValue(arr, i);
       resultArr.push(
-        global[FunctionNames.getEmptyTrackingInfo]("arrayPatternExpansion", loc)
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.arrayPattern,
+          args: {
+            value: [value, trackingValue]
+          },
+          astArgs: {},
+          result: value,
+          loc: loc
+        })
       );
     } else {
       restResult.push(value);
