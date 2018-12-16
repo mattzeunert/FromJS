@@ -970,6 +970,17 @@ describe("String.prototype.split", () => {
 
     expect(normal).toBe(123);
   });
+  it("Can traverse if split argument is a regular expression", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return "a|b".split(/|/)[2]
+    `);
+
+    expect(normal).toBe("b");
+    const step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(2);
+    expect(step.operationLog.result.primitive).toBe("a|b");
+  });
 });
 
 describe("Array.prototype.shift", () => {
