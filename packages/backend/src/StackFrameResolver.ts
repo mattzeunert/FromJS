@@ -65,7 +65,7 @@ class StackFrameResolver {
     return ajax.bind(this);
   }
 
-  resolveSourceCode(frameObject, options = {}) {
+  resolveSourceCode(frameObject, options = { prettify: false }) {
     const { prettify } = options;
     return this._fetchCode(frameObject).then(async code => {
       if (prettify) {

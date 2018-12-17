@@ -5735,10 +5735,9 @@ pretty-bytes@^4.0.2:
   resolved "https://registry.yarnpkg.com/pretty-bytes/-/pretty-bytes-4.0.2.tgz#b2bf82e7350d65c6c33aa95aaa5a4f6327f61cd9"
   integrity sha1-sr+C5zUNZcbDOqlaqlpPYyf2HNk=
 
-pretty-fast@^0.2.3:
+"pretty-fast@git://github.com/mattzeunert/pretty-fast.git#ac060723ef72883ef7b161b942c6260b5cb17739":
   version "0.2.3"
-  resolved "https://registry.yarnpkg.com/pretty-fast/-/pretty-fast-0.2.3.tgz#c07c8a7bc0f3a0555be86258ea7f315b1b42b2da"
-  integrity sha512-9ZP1mQQ0hiMeNvJFcPJYyczPiZiqaLDGNGrsw2oQQKFfQHrS2f5WLoCnApzWysoL+DSwnXtZrzSY/N3n5/HAeg==
+  resolved "git://github.com/mattzeunert/pretty-fast.git#ac060723ef72883ef7b161b942c6260b5cb17739"
   dependencies:
     acorn "~5.2.1"
     optimist "~0.6.0"
