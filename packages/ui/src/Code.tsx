@@ -5,6 +5,7 @@ import "./Code.scss";
 interface CodeProps {
   resolvedStackFrame: any;
   traversalStep: any;
+  highlighNthCharAfterColumn: any;
 }
 
 interface CodeState {
@@ -30,7 +31,7 @@ export default class Code extends React.Component<CodeProps, CodeState> {
 
     var barSpan = <span className="fromjs-stack__code-column" />;
 
-    var highlighNthCharAfterColumn = null;
+    var highlighNthCharAfterColumn = this.props.highlighNthCharAfterColumn;
 
     var highlightClass = "fromjs-highlighted-character";
     var hasHighlight = highlighNthCharAfterColumn !== null;

@@ -20,7 +20,14 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
             character to view its origin)
           </div>
 
-          <div style={{ margin: -10, fontFamily: "monospace" }}>
+          <div
+            style={{
+              margin: -10,
+              marginTop: 0,
+              fontFamily: "monospace",
+              fontSize: 16
+            }}
+          >
             <TextEl
               highlightedCharacterIndex={charIndex}
               onCharacterClick={charIndex => {
