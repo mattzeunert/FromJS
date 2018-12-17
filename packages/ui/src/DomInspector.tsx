@@ -18,7 +18,7 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
             Inspected DOM HTML (click a character to view its origin)
           </div>
 
-          <div style={{ border: "1px solid #ddd", borderTop: "none" }}>
+          <div style={{ margin: -10, fontFamily: "monospace" }}>
             <TextEl
               highlightedCharacterIndex={this.props.inspectedString.charIndex}
               onCharacterClick={charIndex => {
