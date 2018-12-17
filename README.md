@@ -1,6 +1,14 @@
 # FromJS [![Build Status](https://circleci.com/gh/mattzeunert/FromJS/tree/master.svg?style=shield&circle-token=f6f134d69e7755b89c1ac418e6d3f84df593d9a1)](https://circleci.com/gh/mattzeunert/FromJS/tree/master)
 
-FromJS is dynamic dataflow analysis tool. You can use it to discover code and understand JavaScript apps.
+FromJS is dynamic data-flow analysis tool for JavaScript code. It can tell you where each bit of content on a web page came from.
+
+Some content might have been loaded using `fetch`, some might have been stored in `localStorage`, and some might have been hard-coded in the JavaScript.
+
+(todo: zoomed in screenshot showing origin of some JSON response data)
+
+(todo further down: 5 gifs/mp4s showing examples)
+
+---
 
 FromJS is in currently. If you find any issues (you probably will) please report them on Github.
 
