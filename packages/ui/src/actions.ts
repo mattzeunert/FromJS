@@ -42,12 +42,12 @@ export function setIsInspectingDemoApp(isInspecting) {
   appState.set("isInspectingDemoApp", isInspecting);
 }
 
-export function enableShowFullDataFlow() {
-  appState.set("showFullDataFlow", true);
+export function toggleShowFullDataFlow(showFullDataFlow) {
+  appState.set("showFullDataFlow", showFullDataFlow);
 }
 
-export function disableShowFullDataFlow() {
-  appState.set("showFullDataFlow", false);
+export function toggleShowDOMStep(showDOMStep) {
+  appState.set("showDOMStep", showDOMStep);
 }
 
 export function setCollapseGetStartedIfHasData(collapse) {

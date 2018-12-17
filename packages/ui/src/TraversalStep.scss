@@ -31,3 +31,20 @@
 .step__operation-type-detail {
   font-weight: normal;
 }
+
+.step__visible-steps-button {
+  &:before {
+    content: "⮕ ";
+  }
+  &:hover {
+    color: #15054e;
+  }
+  width: 100%;
+  cursor: pointer;
+  display: block;
+  border: none;
+  font-size: 16px;
+  padding: 5px;
+  text-align: left;
+  color: #236fb1;
+}

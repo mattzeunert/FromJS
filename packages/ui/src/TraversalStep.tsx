@@ -238,14 +238,14 @@ let TraversalStep = class TraversalStep extends React.Component<
               <div className="step__arguments__title">
                 Inspect input/output values:
               </div>
-              <pre>
+              {/* <pre>
                 Runtime args:
                 {JSON.stringify(
                   this.props.step.operationLog.runtimeArgs,
                   null,
                   4
                 )}
-              </pre>
+              </pre> */}
               {this.getAllArgs().length === 0 && <div>(No arguments)</div>}
               {this.getAllArgs().map(({ name, value }) => {
                 value = value && new OperationLog(value);

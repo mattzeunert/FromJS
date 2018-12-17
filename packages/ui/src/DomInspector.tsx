@@ -11,25 +11,23 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
     if (!inspectedString) {
       return null;
     }
+    const { type, logIndex, charIndex } = inspectedString;
     return (
       <div className="inspected-string">
         <div>
           <div className="title">
-            Inspected DOM HTML (click a character to view its origin)
+            {type === "dom" ? "Inspected DOM HTML" : "Inspected value"} (click a
+            character to view its origin)
           </div>
 
           <div style={{ margin: -10, fontFamily: "monospace" }}>
             <TextEl
-              highlightedCharacterIndex={this.props.inspectedString.charIndex}
+              highlightedCharacterIndex={charIndex}
               onCharacterClick={charIndex => {
-                if (this.props.inspectedString.type === "dom") {
+                if (type === "dom") {
                   selectInspectedDomCharIndex(charIndex);
                 } else {
-                  selectAndTraverse(
-                    this.props.inspectedString.logIndex,
-                    charIndex,
-                    "traversalStep"
-                  );
+                  selectAndTraverse(logIndex, charIndex, "traversalStep");
                 }
               }}
               text={this.props.inspectedString.text}
