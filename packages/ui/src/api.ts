@@ -11,7 +11,9 @@ export function resolveStackFrame(operationLog) {
     return Promise.resolve(resolveStackFrameCache[operationLog.index]);
   }
   return callApi(
-    "resolveStackFrame/" + operationLog.loc,
+    "resolveStackFrame/" +
+      operationLog.loc +
+      (appState.get("prettifyIfNoSourceMap") ? "/prettify" : ""),
     {},
     { method: "GET" }
   ).then(res => {

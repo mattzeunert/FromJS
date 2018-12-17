@@ -106,7 +106,7 @@ class ProxyInstrumenter {
 
   log(...args) {
     args.unshift("[PROXY]");
-    console.log.apply(console, args);
+    console.log.apply(console, args as any);
   }
 
   onRequest(ctx, callback) {

@@ -131,6 +131,17 @@ let App = props => {
           >
             {props.enableInstrumentation ? "Disable" : "Enable"} tracking
           </button>
+
+          <button
+            className="blue-button"
+            onClick={() => {
+              actions.setPrettifyIfNoSourceMap(!props.prettifyIfNoSourceMap);
+            }}
+          >
+            {props.prettifyIfNoSourceMap
+              ? "Don't prettify"
+              : "Prettify if no source map"}
+          </button>
         </div>
       </div>
       <div className="app-content">
@@ -151,7 +162,8 @@ App = branch(
     isInspectingDemoApp: ["isInspectingDemoApp"],
     hasInspectorData: ["hasInspectorData"],
     enableInstrumentation: ["enableInstrumentation"],
-    collapseGetStartedIfHasData: ["collapseGetStartedIfHasData"]
+    collapseGetStartedIfHasData: ["collapseGetStartedIfHasData"],
+    prettifyIfNoSourceMap: ["prettifyIfNoSourceMap"]
   },
   App
 );

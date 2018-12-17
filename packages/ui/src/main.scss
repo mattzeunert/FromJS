@@ -17,8 +17,12 @@ body {
 
 * {
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+
   -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: Arial, sans-serif;
 }
 
 .node-name {

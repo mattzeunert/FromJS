@@ -53,3 +53,8 @@ export function disableShowFullDataFlow() {
 export function setCollapseGetStartedIfHasData(collapse) {
   appState.set("collapseGetStartedIfHasData", collapse);
 }
+
+export function setPrettifyIfNoSourceMap(prettify) {
+  appState.set("prettifyIfNoSourceMap", prettify);
+  console.log("todo: update exisitng code now");
+}
