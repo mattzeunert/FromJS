@@ -103,13 +103,24 @@ export default function initDomInspectionUI(backendPort) {
 
   const inspectorWidth = 700;
 
+  function updateToggleInspectDomButton() {
+    let title;
+    if (showDomInspector) {
+      if (isShowingInspectorUI) {
+        title = "Disable Inspector";
+      } else {
+        title = "Click to select DOM element";
+      }
+    } else {
+      title = "Enable Inspector";
+    }
+    toggleInspectDomButton.innerHTML = title;
+  }
   function init() {
     toggleInspectDomButton.innerHTML = "Enable Inspector";
     toggleInspectDomButton.addEventListener("click", function() {
       toggleDomInspector();
-      toggleInspectDomButton.innerHTML = showDomInspector
-        ? "Disable Inspector"
-        : "Enable Inspector";
+      updateToggleInspectDomButton();
     });
     toggleInspectDomButton.setAttribute(
       "style",
@@ -134,6 +145,7 @@ export default function initDomInspectionUI(backendPort) {
     inspectorUI.style.display = "block";
     toggleInspectDomButton.style.right = inspectorWidth + "px";
     isShowingInspectorUI = true;
+    updateToggleInspectDomButton();
   }
 
   function hideInspectorUI() {
@@ -143,6 +155,7 @@ export default function initDomInspectionUI(backendPort) {
     inspectorUI.style.display = "none";
     toggleInspectDomButton.style.right = "0px";
     isShowingInspectorUI = false;
+    updateToggleInspectDomButton();
   }
 
   function createInspectorUI() {
