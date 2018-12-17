@@ -45,6 +45,7 @@ var cache = {};
 async function prettifyAndMapFrameObject(code, frameObject) {
   var pretty = cache[code];
   if (!pretty) {
+    let unprettifiedCode = code;
     var { code, map } = prettyFast(code, {
       indent: "  ",
       url: "meaningless.js",
@@ -55,7 +56,7 @@ async function prettifyAndMapFrameObject(code, frameObject) {
       code,
       consumer: await new sourceMap.SourceMapConsumer(map.toString())
     };
-    cache[code] = pretty;
+    cache[unprettifiedCode] = pretty;
   }
 
   var generatedPosition = pretty.consumer.generatedPositionFor({
