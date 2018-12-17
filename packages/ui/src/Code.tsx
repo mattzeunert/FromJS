@@ -46,18 +46,18 @@ export default class Code extends React.Component<CodeProps, CodeState> {
       columnNumber + highlighNthCharAfterColumn - lineFirstCharIndex
     );
 
-    const truncate = this.state.surroundingLineCount < 2;
+    const truncate = this.state.surroundingLineCount < 4;
 
     // If strings are too long and would hide highlighted content truncate them
     var strBeforeBar = frame.code.line.text.substr(
       0,
       columnNumber - lineFirstCharIndex
     );
-    if (strBeforeBar.length > 50 && truncate) {
+    if (strBeforeBar.length > 40 && truncate) {
       strBeforeBar =
         strBeforeBar.substr(0, 10) +
         "..." +
-        strBeforeBar.substr(strBeforeBar.length - 20);
+        strBeforeBar.substr(strBeforeBar.length - 25);
     }
     if (strBetweenBarAndHighlight.length > 50 && truncate) {
       strBetweenBarAndHighlight =

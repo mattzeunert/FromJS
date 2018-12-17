@@ -13,7 +13,7 @@ export function createProxy(params: CreateProxyWrapperArgs) {
 
     // If debugging parent process allow debuggign child process as well
     if (process.execArgv.join(",").includes("--inspect")) {
-      process.execArgv.push("--inspect=" + 9223);
+      process.execArgv.push("--inspect=" + 19223);
     }
 
     const child = fork(__dirname + "/backend.proxy.js", [
