@@ -34,7 +34,7 @@ import * as MemoValueNames from "./MemoValueNames";
 import { traverseDomOrigin } from "./traverseDomOrigin";
 import { VERIFY } from "./config";
 import { getElAttributeValueOrigin } from "./operations/domHelpers/addElOrigin";
-import { safelyReadProperty } from "./util";
+import { safelyReadProperty, nullOnError } from "./util";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -149,7 +149,8 @@ const operations: Operations = {
           }
         } else if (
           object instanceof HTMLElement &&
-          object.getAttribute(propertyName) !== null &&
+          // object.getAttribute() is illegal invocation on youtube somehow
+          nullOnError(() => object.getAttribute(propertyName)) !== null &&
           // A bit icky, but it seems like a reasonable decision
           // Normally we want to see where a value was set, e.g. as part of some html
           // But input values lose that relationship when the user interacts with them (e.g. types

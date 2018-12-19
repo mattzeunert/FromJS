@@ -11,3 +11,12 @@ export function safelyReadProperty(obj, propertyName) {
     return null;
   }
 }
+
+export function nullOnError(fn) {
+  try {
+    return fn();
+  } catch (err) {
+    console.log("using null on error");
+    return null;
+  }
+}
