@@ -552,6 +552,7 @@ function plugin(babel) {
     exit: function(path) {
       const babelPluginOptions = plugin["babelPluginOptions"];
       let usableHelperCode;
+
       if (babelPluginOptions) {
         const { accessToken, backendPort } = babelPluginOptions;
         usableHelperCode = helperCode;

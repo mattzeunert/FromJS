@@ -1,3 +1,5 @@
+const inspectorWidth = "40vw";
+
 export default function initDomInspectionUI(backendPort) {
   if (typeof document === "undefined") {
     return;
@@ -10,6 +12,10 @@ export default function initDomInspectionUI(backendPort) {
   let previewedElement = null;
   const previewedElementMarker = document.createElement("div");
 
+  window["onFromJSInspect"] = function() {
+    showInspectorUI();
+  };
+
   function onSelectionEvent(e) {
     const el = e.target;
     if (el === toggleInspectDomButton) {
@@ -19,6 +25,7 @@ export default function initDomInspectionUI(backendPort) {
     if (e.type == "click") {
       global["fromJSInspect"](el);
       selectedElement = el;
+      console.log("click");
       showInspectorUI();
       addHighlight(el, "selected");
     } else if (e.type === "mouseenter") {
@@ -101,8 +108,6 @@ export default function initDomInspectionUI(backendPort) {
     showDomInspector = !showDomInspector;
   }
 
-  const inspectorWidth = 700;
-
   function updateToggleInspectDomButton() {
     let title;
     if (showDomInspector) {
@@ -117,6 +122,7 @@ export default function initDomInspectionUI(backendPort) {
     toggleInspectDomButton.innerHTML = title;
   }
   function init() {
+    console.log("init");
     toggleInspectDomButton.innerHTML = "Enable Inspector";
     toggleInspectDomButton.addEventListener("click", function() {
       toggleDomInspector();
@@ -133,17 +139,18 @@ export default function initDomInspectionUI(backendPort) {
 
   let inspectorUI;
   let isShowingInspectorUI = false;
+
+  inspectorUI = createInspectorUI();
+  document.body.appendChild(inspectorUI);
   function showInspectorUI() {
+    console.log("show inspecotr ui", { isShowingInspectorUI });
     if (isShowingInspectorUI) {
       return;
     }
+    document.body.classList.add("showing-fromjs-inspector");
     const body = global["document"]["body"];
-    if (!inspectorUI) {
-      inspectorUI = createInspectorUI();
-      body.appendChild(inspectorUI);
-    }
     inspectorUI.style.display = "block";
-    toggleInspectDomButton.style.right = inspectorWidth + "px";
+    toggleInspectDomButton.style.right = inspectorWidth;
     isShowingInspectorUI = true;
     updateToggleInspectDomButton();
   }
@@ -152,6 +159,7 @@ export default function initDomInspectionUI(backendPort) {
     if (!isShowingInspectorUI) {
       return;
     }
+    document.body.classList.remove("showing-fromjs-inspector");
     inspectorUI.style.display = "none";
     toggleInspectDomButton.style.right = "0px";
     isShowingInspectorUI = false;
@@ -159,6 +167,7 @@ export default function initDomInspectionUI(backendPort) {
   }
 
   function createInspectorUI() {
+    console.info("creating iframe");
     const inspectorUI = document.createElement("div");
     inspectorUI.classList.add("fromjs-inspector-container");
     const iframe = document.createElement("iframe");
@@ -168,6 +177,11 @@ export default function initDomInspectionUI(backendPort) {
 
     inspectorStyles.textContent =
       `
+      body.showing-fromjs-inspector {
+         margin-right: ` +
+      inspectorWidth +
+      `;
+      }
       .fromjs-inspector-container {
         border-left: 1px solid rgba(0,0,0,0.2);
         box-sizing: border-box;
@@ -177,12 +191,14 @@ export default function initDomInspectionUI(backendPort) {
         bottom: 0;
         width: ` +
       inspectorWidth +
-      `px;
+      `;
         background: white;
         z-index: 20000000;
       }
       .fromjs-inspector-container iframe {
-        width: 100%;
+        width: ` +
+      inspectorWidth +
+      `;
         height: 100%;
         border: none;
       }

@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "outDir": "./asdfdss",
+    "sourceMap": false,
+    "noImplicitAny": false,
+    "module": "commonjs",
+    "target": "es5",
+    "jsx": "react",
+    "noImplicitUseStrict": true
+  }
+}

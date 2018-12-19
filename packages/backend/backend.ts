@@ -200,6 +200,14 @@ function setupUI(options, app, wss, getProxy) {
           ...getDomToInspectMessage()
         })
       );
+    } else if (logToInspect) {
+      broadcast(
+        wss,
+        JSON.stringify({
+          type: "inspectOperationLog",
+          operationLogId: logToInspect
+        })
+      );
     }
   });
 

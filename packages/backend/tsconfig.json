@@ -6,5 +6,6 @@
     "outDir": "./dist",
     "strict": true,
     "noImplicitAny": false
-  }
+  },
+  "exclude": ["./start-page/*", "./dist"]
 }

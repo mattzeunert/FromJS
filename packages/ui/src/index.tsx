@@ -80,9 +80,9 @@ let App = props => {
             className={cx("load-demo-app", {
               "load-demo-app--hide": props.isInspectingDemoApp
             })}
-            onClick={() =>
-              actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
-            }
+            // onClick={() =>
+            //   actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
+            // }
           >
             {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
           </button>

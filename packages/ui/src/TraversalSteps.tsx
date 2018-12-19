@@ -22,6 +22,10 @@ let TraversalSteps = class TraversalSteps extends React.Component<
       return <div>No tracking data available</div>;
     }
 
+    if (!this.props.inspectedString) {
+      return <div>no inspected string</div>;
+    }
+
     const inspectedStringType = this.props.inspectedString.type;
     let stepsToShow = [];
     let steps = this.props.steps;

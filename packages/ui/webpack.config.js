@@ -5,6 +5,10 @@ module.exports = {
     path: __dirname + "/dist"
   },
 
+  performance: { hints: false },
+
+  mode: "production",
+
   optimization: {
     minimize: false
   },

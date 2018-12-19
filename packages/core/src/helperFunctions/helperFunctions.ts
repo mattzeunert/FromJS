@@ -236,6 +236,9 @@ global.fromJSInspect = function(value: any, charIndex: number) {
     }
     logId = argTrackingInfo[0];
   }
+  if (window["onFromJSInspect"]) {
+    window["onFromJSInspect"]();
+  }
   return postToBE("/inspect", {
     logId
   });

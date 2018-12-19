@@ -124,6 +124,7 @@ var exampleSocket = new WebSocket("ws://127.0.0.1:" + backendPort);
 exampleSocket.onmessage = function(event) {
   console.log("websocket onmessage", event.data);
   const message = JSON.parse(event.data);
+
   if (message.type === "inspectOperationLog") {
     selectAndTraverse(message.operationLogId, 0);
   } else if (message.type === "inspectDOM") {
