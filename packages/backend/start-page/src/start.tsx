@@ -21,8 +21,7 @@ class App extends React.Component {
         <h2>Tips</h2>
         <p>
           Instead of using the DOM inspector you can also use the{" "}
-          <code>fromJSInspect</code>
-          function. For example, you can run
+          <code>fromJSInspect</code> function. For example, you can run{" "}
           <code>fromJSInspect(document.querySelector("#app"))</code> in the
           console.
         </p>
@@ -41,22 +40,50 @@ class App extends React.Component {
           `fromjs-session` directory after using FromJS to save disk space.
         </p>
         <h2>Some fun things to inspect</h2>
-        <Form />
-        <Fetch />
+        <Fun />
+        <h2>Issue Tracker</h2>
+        <p>
+          You can ask questions and report bugs{" "}
+          <a href="https://github.com/mattzeunert/FromJS/issues">on Github</a>
+          .
+        </p>
       </div>
     );
   }
 }
 
-class Form extends React.Component {
-  render() {
-    return <div>form</div>;
-  }
-}
+class Fun extends React.Component<{}, { ip: string; name: string }> {
+  state = {
+    ip: "Loading...",
+    name: "Someone"
+  };
 
-class Fetch extends React.Component {
+  componentDidMount() {
+    fetch("https://api.ipify.org?format=json")
+      .then(r => r.json())
+      .then(data => {
+        this.setState({ ip: data.ip });
+      });
+  }
+
   render() {
-    return <div>fetch</div>;
+    return (
+      <div>
+        <div>
+          Name:{" "}
+          <input
+            type="text"
+            value={this.state.name}
+            onChange={e => {
+              this.setState({ name: e.target.value });
+            }}
+          />
+        </div>
+        <div>
+          {this.state.name}, your IP address is: {this.state.ip}
+        </div>
+      </div>
+    );
   }
 }
 
