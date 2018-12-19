@@ -138,9 +138,11 @@ export default function initDomInspectionUI(backendPort) {
   }
 
   let inspectorUI;
-  let isShowingInspectorUI = false;
+  let isShowingInspectorUI = true;
 
   inspectorUI = createInspectorUI();
+  hideInspectorUI();
+
   document.body.appendChild(inspectorUI);
   function showInspectorUI() {
     console.log("show inspecotr ui", { isShowingInspectorUI });

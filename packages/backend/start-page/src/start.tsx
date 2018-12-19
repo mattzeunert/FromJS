@@ -48,11 +48,6 @@ class App extends React.Component {
   }
 }
 
-var href = location.href;
-var str = "Current URL: " + href;
-// console.log("urllllllxxxx", { str, tv: eval("str___tv") });
-window["fromJSInspect"](str);
-
 class Form extends React.Component {
   render() {
     return <div>form</div>;
