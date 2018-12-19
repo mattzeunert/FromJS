@@ -1054,7 +1054,7 @@ const CallExpression = <any>{
       const fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
       let specialCaseArgs = getSpecialCaseArgs();
 
-      function getSpecialCaseArgs(): SpecialCaseArgs {
+      function getSpecialCaseArgs(): SpecialCaseArgs | void {
         if (!fnKnownValue) {
           return;
         }
