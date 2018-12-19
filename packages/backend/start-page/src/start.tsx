@@ -30,7 +30,7 @@ class App extends React.Component {
           If you control the code of the site your're inspecting you can also
           just pass a value into `fromJSInspect`. Or use it when eval'ing code:
         </p>
-        <pre>{`__fromJSEval(\`
+        <pre>{`fromJSEval(\`
     var href = location.href;
     var str = "Current URL: " + href;
     fromJSInspect(str);

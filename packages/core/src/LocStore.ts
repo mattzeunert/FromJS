@@ -31,8 +31,7 @@ export class LocStore {
   getLoc(loc, callback) {
     this._cachedGet(loc, (err, value) => {
       if (err) {
-        console.log(err);
-        return;
+        throw err;
       }
       callback(JSON.parse(value.toString()));
     });
