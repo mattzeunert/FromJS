@@ -26,6 +26,10 @@ export async function traverse(
       operationLog // overwrite numeric operation log with object
     });
 
+    if (steps.length > 2000) {
+      throw Error("Too many steps");
+    }
+
     // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
 
     const operation = operations[operationLog.operation];
@@ -34,6 +38,17 @@ export async function traverse(
         nextStep = operation.traverse(operationLog, charIndex);
       } catch (err) {
         console.log("traverse err", operationLog.operation, err);
+      }
+    }
+
+    if (nextStep && typeof nextStep.operationLog === "number") {
+      try {
+        nextStep.operationLog = await server.loadLogAwaitable(
+          nextStep.operationLog,
+          5
+        );
+      } catch (err) {
+        reject(err);
       }
     }
 

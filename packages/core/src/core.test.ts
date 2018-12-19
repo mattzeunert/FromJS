@@ -1177,7 +1177,6 @@ describe("Doesn't break when using ES6+ features", () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       let sum =0
       for (const [key, value] of Object.entries({a: 1, b: 2})) {
-        console.log({key, value})
         sum += value + key.length
       }
       return sum
@@ -1190,7 +1189,6 @@ describe("Doesn't break when using ES6+ features", () => {
       let sum =0
       let key, value
       for ([key, value] of Object.entries({a: 1, b: 2})) {
-        console.log("ktv", key___tv)
         sum += value + key.length
       }
       return sum

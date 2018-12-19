@@ -38,6 +38,40 @@ function getFnArg(args, index) {
   return args[2][index];
 }
 
+interface SpecialCaseArgs {
+  ctx: ExecContext;
+  object: any;
+  fnArgs: any[];
+  logData: any;
+  fnArgValues: any[];
+  ret: any;
+  extraTrackingValues: any;
+  runtimeArgs: any;
+}
+
+type TraverseObjectCallBack = (
+  keyPath: string,
+  value: any,
+  key: string,
+  obj: any
+) => void;
+
+function traverseObject(
+  traversedObject,
+  fn: TraverseObjectCallBack,
+  keyPath: any[] = []
+) {
+  if (traversedObject === null) {
+    return;
+  }
+  Object.entries(traversedObject).forEach(([key, value]) => {
+    fn([...keyPath, key].join("."), value, key, traversedObject);
+    if (typeof value === "object") {
+      traverseObject(value, fn, [...keyPath, key]);
+    }
+  });
+}
+
 const specialCases = {
   "String.prototype.replace": ({
     ctx,
@@ -132,18 +166,6 @@ const specialCases = {
   }) => {
     const parsed = fn.call(JSON, fnArgValues[0]);
     var ret, retT;
-
-    function traverseObject(obj, fn, keyPath: any[] = []) {
-      if (obj === null) {
-        return;
-      }
-      Object.entries(obj).forEach(([key, value]) => {
-        fn([...keyPath, key].join("."), value, key, obj);
-        if (typeof value === "object") {
-          traverseObject(value, fn, [...keyPath, key]);
-        }
-      });
-    }
 
     traverseObject(parsed, (keyPath, value, key, obj) => {
       const trackingValue = ctx.createOperationLog({
@@ -813,6 +835,38 @@ const specialValuesForPostprocessing = {
     const doc = ret;
 
     mapPageHtml(doc, html, fnArgs[0], "parseFromString");
+  },
+  "JSON.stringify": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    runtimeArgs,
+    extraTrackingValues
+  }: SpecialCaseArgs) => {
+    const stringifiedObject = fnArgValues[0];
+    const jsonIndexToTrackingValue = {};
+    runtimeArgs.jsonIndexToTrackingValue = jsonIndexToTrackingValue;
+    const jsonString = ret;
+    traverseObject(
+      stringifiedObject,
+      (keyPath, value, key, traversedObject) => {
+        const jsonKeyIndex = ret.indexOf('"' + key + '"') + "'".length;
+        jsonIndexToTrackingValue[
+          jsonKeyIndex
+        ] = ctx.getObjectPropertyNameTrackingValue(traversedObject, key);
+        let jsonValueIndex = jsonKeyIndex + '"":'.length + key.length;
+        if (jsonString[jsonValueIndex] === '"') {
+          jsonValueIndex++;
+        }
+
+        jsonIndexToTrackingValue[
+          jsonValueIndex
+        ] = ctx.getObjectPropertyTrackingValue(traversedObject, key);
+      }
+    );
   }
 };
 
@@ -963,6 +1017,7 @@ const CallExpression = <any>{
     ctx.argTrackingInfo = fnArgsAtInvocation;
 
     const extraTrackingValues: any = {};
+    const runtimeArgs: any = {};
 
     var ret;
     let retT: any = null;
@@ -999,7 +1054,7 @@ const CallExpression = <any>{
       const fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
       let specialCaseArgs = getSpecialCaseArgs();
 
-      function getSpecialCaseArgs() {
+      function getSpecialCaseArgs(): SpecialCaseArgs {
         if (!fnKnownValue) {
           return;
         }
@@ -1023,7 +1078,8 @@ const CallExpression = <any>{
           context,
           ret,
           retT,
-          extraState
+          extraState,
+          runtimeArgs
         };
         if (functionIsCallOrApply) {
           specialCaseArgs.fn = object;
@@ -1318,6 +1374,9 @@ const CallExpression = <any>{
     }
     extraTrackingValues.returnValue = [ret, retT]; // pick up value from returnStatement
 
+    if (Object.keys(runtimeArgs).length > 0) {
+      logData.runtimeArgs = runtimeArgs;
+    }
     logData.extraArgs = extraTrackingValues;
 
     return ret;
@@ -1471,6 +1530,7 @@ const CallExpression = <any>{
             charIndex: match.charIndex,
             operationLog: match.origin
           };
+
         case "String.prototype.replace":
           // I'm not 100% confident about this code, but it works for now
 
@@ -1535,6 +1595,32 @@ const CallExpression = <any>{
               index++;
             }
           }
+
+        case "JSON.stringify":
+          const { jsonIndexToTrackingValue } = operationLog.runtimeArgs;
+          // not efficient, but it works
+          let closestLoc: any = null;
+          Object.entries(jsonIndexToTrackingValue).forEach(
+            ([index, tv]: any) => {
+              index = parseFloat(index);
+
+              if (
+                charIndex - index >= 0 &&
+                (!closestLoc || closestLoc.index - index < charIndex - index)
+              ) {
+                closestLoc = { index, tv };
+              }
+            }
+          );
+
+          if (!closestLoc) {
+            return null;
+          }
+
+          return {
+            operationLog: closestLoc.tv,
+            charIndex: charIndex - closestLoc.index
+          };
         default:
           return {
             operationLog: operationLog.extraArgs.returnValue,

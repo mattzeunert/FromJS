@@ -376,6 +376,54 @@ describe("JSON.parse", () => {
   });
 });
 
+describe("JSON.stringify", () => {
+  it("Can traverse JSON.stringify result", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var obj = {greeting: "Hello ", name: {first: "w", last: "orld"}}
+        var str = JSON.stringify(obj, null, 4);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("Hello")
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("Hello ");
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("orld")
+    );
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("orld");
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("first")
+    );
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("first");
+  });
+
+  it("Can traverse JSON.stringify result that's not prettified", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var obj = {greeting: "Hello ", name: {first: "w", last: "orld"}}
+        var str = JSON.stringify(obj);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("orld") + 2
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(2);
+    expect(lastStep.operationLog.result.primitive).toBe("orld");
+  });
+});
+
 it("Can traverse arguments for a function expression (rather than a function declaration)", async () => {
   const { normal, tracking, code } = await instrumentAndRun(`
     var fn = function(a) {
