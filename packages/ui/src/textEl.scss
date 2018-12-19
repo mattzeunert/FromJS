@@ -23,15 +23,30 @@ body:not(.fromjsIsMobile) .fromjs-value__whitespace-character:hover {
   background: #9ad0ff;
 }
 
-.fromjs-highlighted-character {
+.fromjs-value__content .fromjs-highlighted-character {
   color: $lightBlue1;
   font-weight: bold;
-  border-bottom: 2px solid $lightBlue1;
+
+  opacity: 1;
+  position: relative;
+  &:before {
+    content: "";
+    height: 2px;
+    width: 10px;
+    background: $lightBlue1;
+    left: 0;
+    display: inline-block;
+    position: absolute;
+    bottom: 0px;
+  }
 }
 
 .fromjs-value__content {
   max-height: 112px;
   overflow: auto;
+}
+.fromjs-value__content span {
+  opacity: 0.7;
 }
 
 .fromjs-value__whitespace-character.fromjs-highlighted-character {

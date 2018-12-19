@@ -17,8 +17,12 @@ body {
 
 * {
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+
   -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: Arial, sans-serif;
 }
 
 .node-name {
@@ -263,7 +267,6 @@ path {
 }
 
 .named-step-container {
-  padding: 10px;
   padding-top: 20px;
   .title {
     background: var(--lightBlue2);
@@ -273,6 +276,7 @@ path {
     display: inline-block;
     border-right: none;
     padding: 5px;
+    opacity: 0.75;
   }
   .step {
   }

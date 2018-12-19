@@ -25,6 +25,7 @@ export interface ExecContext {
     valueTrackingValue: null | number | OperationLog,
     nameTrackingValue?: null | number | OperationLog
   );
+  getEmptyTrackingInfo(type: string, loc: any): number;
   lastReturnStatementResult: any;
   objectHasPropertyTrackingData: (obj: any) => boolean;
   readonly lastOpTrackingResultWithoutResetting;

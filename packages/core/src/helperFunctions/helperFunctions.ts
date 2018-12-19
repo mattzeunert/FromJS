@@ -332,6 +332,81 @@ global[FunctionNames.getLastMemberExpressionObject] = function() {
   ];
 };
 
+// I think I'm duplicated untrackedValue here...
+global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
+  let logData: any = {
+    operation: "emptyTrackingInfo",
+    args: {},
+    runtimeArgs: { type },
+    astArgs: {},
+    loc,
+    index: getOperationIndex()
+  };
+
+  return createOperationLog(logData);
+};
+global[FunctionNames.expandArrayForArrayPattern] = function(
+  arr,
+  loc,
+  type,
+  namedParamCount
+) {
+  if (arr instanceof Map) {
+    const map = arr;
+    arr = [];
+    for (const [key, value] of map) {
+      arr.push([key, value]);
+    }
+  }
+  if (type === "forOf") {
+    return arr.map(val => {
+      return global[FunctionNames.expandArrayForArrayPattern](
+        val,
+        loc,
+        "forOf_element",
+        namedParamCount
+      );
+    });
+  }
+  const resultArr = [];
+  const restResult = [];
+  arr.forEach((value, i) => {
+    if (i < namedParamCount) {
+      resultArr.push(value);
+      const trackingValue = ctx.getObjectPropertyTrackingValue(arr, i);
+      resultArr.push(
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.arrayPattern,
+          args: {
+            value: [value, trackingValue]
+          },
+          astArgs: {},
+          result: value,
+          loc: loc
+        })
+      );
+    } else {
+      restResult.push(value);
+    }
+  });
+
+  while (namedParamCount > resultArr.length / 2) {
+    resultArr.push(undefined);
+  }
+
+  resultArr.push(
+    global[FunctionNames.getEmptyTrackingInfo](
+      "arrayPatternExpansion_rest",
+      loc
+    )
+  );
+
+  restResult.forEach(r => {
+    resultArr.push(r);
+  });
+  return resultArr;
+};
+
 const MAX_TRACKED_ARRAY_INDEX = 10;
 
 var lastReturnStatementResult = null;
@@ -395,6 +470,9 @@ const ctx: ExecContext = {
   },
   objectHasPropertyTrackingData(obj) {
     return !!objTrackingMap.get(obj);
+  },
+  getEmptyTrackingInfo(type, loc) {
+    return global[FunctionNames.getEmptyTrackingInfo](type, loc);
   },
   get lastOpTrackingResult() {
     return lastOpTrackingResult;

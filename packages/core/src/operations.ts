@@ -20,7 +20,8 @@ import {
   getTrackingIdentifier,
   safelyGetVariableTrackingValue,
   addLoc,
-  getGetGlobalCall
+  getGetGlobalCall,
+  getTrackingVarName
 } from "./babelPluginHelpers";
 import OperationLog from "./helperFunctions/OperationLog";
 import { ExecContext } from "./helperFunctions/ExecContext";
@@ -33,6 +34,7 @@ import * as MemoValueNames from "./MemoValueNames";
 import { traverseDomOrigin } from "./traverseDomOrigin";
 import { VERIFY } from "./config";
 import { getElAttributeValueOrigin } from "./operations/domHelpers/addElOrigin";
+import { safelyReadProperty, nullOnError } from "./util";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -147,7 +149,8 @@ const operations: Operations = {
           }
         } else if (
           object instanceof HTMLElement &&
-          object.getAttribute(propertyName) !== null &&
+          // object.getAttribute() is illegal invocation on youtube somehow
+          nullOnError(() => object.getAttribute(propertyName)) !== null &&
           // A bit icky, but it seems like a reasonable decision
           // Normally we want to see where a value was set, e.g. as part of some html
           // But input values lose that relationship when the user interacts with them (e.g. types
@@ -170,7 +173,7 @@ const operations: Operations = {
             }
           }
         } else if (
-          object.nodeType === Node.TEXT_NODE &&
+          safelyReadProperty(object, "nodeType") === Node.TEXT_NODE &&
           ["textContent", "nodeValue"].includes(propertyName)
         ) {
           if (object["__elOrigin"]) {
@@ -219,6 +222,11 @@ const operations: Operations = {
         return;
       }
       if (path.parent.type === "UpdateExpression") {
+        return;
+      }
+
+      if (path.node.object.type === "Super") {
+        // we can't super into a function so let's not try
         return;
       }
 
@@ -366,6 +374,21 @@ const operations: Operations = {
         operationLog: operationLog.args.propertyValue,
         charIndex: charIndex
       };
+    }
+  },
+  classDeclaration: {
+    visitor(path) {
+      // doesn't seem to have binding.kind, so can't just ignore it in
+      // safelyGetVariableTrackingValue -> make sure tracking var exists
+      path.insertAfter(
+        skipPath(
+          t.variableDeclaration("var", [
+            t.variableDeclarator(
+              t.identifier(getTrackingVarName(path.node.id.name))
+            )
+          ])
+        )
+      );
     }
   },
   objectExpression: ObjectExpression,
@@ -673,11 +696,21 @@ const operations: Operations = {
       };
     }
   },
+  arrayPattern: {
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.value,
+        charIndex
+      };
+    }
+  },
+  arrayIndex: {},
   assignmentExpression: AssignmentExpression,
   objectAssign: {
     traverse: identifyTraverseFunction
   },
   arraySlice: { traverse: identifyTraverseFunction },
+  arraySplice: { traverse: identifyTraverseFunction },
   arrayConcat: {
     traverse: identifyTraverseFunction
   },
@@ -760,9 +793,11 @@ export function shouldSkipIdentifier(path) {
   if (
     [
       "FunctionDeclaration",
+      "ArrowFunctionExpression",
       "MemberExpression",
       "ObjectProperty",
       "CatchClause",
+      "ForOfStatement",
       "ForInStatement",
       "IfStatement",
       "ForStatement",
@@ -772,7 +807,10 @@ export function shouldSkipIdentifier(path) {
       "ContinueStatement",
       "BreakStatement",
       "ClassMethod",
-      "ClassProperty"
+      "ClassProperty",
+      "ClassDeclaration",
+      "AssignmentPattern",
+      "ArrayPattern"
     ].includes(path.parent.type)
   ) {
     return true;

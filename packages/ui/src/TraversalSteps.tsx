@@ -2,7 +2,7 @@ import { branch, root } from "baobab-react/higher-order";
 import * as React from "react";
 import TraversalStep from "./TraversalStep";
 import * as cx from "classnames";
-import { enableShowFullDataFlow, disableShowFullDataFlow } from "./actions";
+import { toggleShowFullDataFlow, toggleShowDOMStep } from "./actions";
 import ItemWithTitle from "./ItemWithTitle";
 
 type TraversalStepsProps = {
@@ -10,6 +10,8 @@ type TraversalStepsProps = {
   inspectionTarget?: any;
   showFullDataFlow?: boolean;
   isTraversing?: boolean;
+  inspectedString?: any;
+  showDOMStep?: boolean;
 };
 let TraversalSteps = class TraversalSteps extends React.Component<
   TraversalStepsProps,
@@ -19,6 +21,8 @@ let TraversalSteps = class TraversalSteps extends React.Component<
     if (!this.props.inspectionTarget || !this.props.inspectionTarget.logId) {
       return <div>No tracking data available</div>;
     }
+
+    const inspectedStringType = this.props.inspectedString.type;
     let stepsToShow = [];
     let steps = this.props.steps;
     if (!steps.length) {
@@ -68,9 +72,9 @@ let TraversalSteps = class TraversalSteps extends React.Component<
     }
 
     return (
-      <div style={{ opacity: this.props.isTraversing ? 0.5 : 1 }}>
+      <div style={{ opacity: this.props.isTraversing ? 0.5 : 1, padding: 10 }}>
         <ItemWithTitle>
-          <div>Character origin</div>
+          <div>Value origin</div>
           <div>
             <TraversalStep
               key={steps[steps.length - 1].operationLog.index}
@@ -78,7 +82,6 @@ let TraversalSteps = class TraversalSteps extends React.Component<
             />
           </div>
         </ItemWithTitle>
-
         {/* <div
           className={cx("named-step-container", {
             "named-step-container--collapsed": !this.props.collapseDomInspector
@@ -110,29 +113,55 @@ let TraversalSteps = class TraversalSteps extends React.Component<
         ))
         } */}
         <div style={{ height: 10 }} />
+
+        {inspectedStringType === "dom" &&
+          !this.props.showDOMStep &&
+          !this.props.showFullDataFlow && (
+            <button
+              className="step__visible-steps-button"
+              onClick={() => {
+                toggleShowDOMStep(true);
+              }}
+            >
+              Show DOM transition step
+            </button>
+          )}
+        {!this.props.showFullDataFlow &&
+          !this.props.showDOMStep && (
+            <button
+              onClick={() => toggleShowFullDataFlow(true)}
+              className="step__visible-steps-button"
+            >
+              Show full data flow ({steps.length} steps)
+            </button>
+          )}
+        {this.props.showDOMStep && <TraversalStep step={stepsToShow[0]} />}
+
+        {(this.props.showFullDataFlow || this.props.showDOMStep) && (
+          <button
+            className="step__visible-steps-button"
+            style={{ marginTop: 10, marginBottom: 10 }}
+            onClick={() => {
+              toggleShowFullDataFlow(false);
+              toggleShowDOMStep(false);
+            }}
+          >
+            Show less
+          </button>
+        )}
+
         {this.props.showFullDataFlow && (
           <div
             className="title"
             style={{
               cursor: "pointer"
             }}
-            onClick={() => disableShowFullDataFlow()}
           >
-            Full data flow – the story of how the inspected string was
+            Full data flow – the story of how the selected string was
             constructed:
           </div>
         )}
-        {!this.props.showFullDataFlow && (
-          <button
-            onClick={() => enableShowFullDataFlow()}
-            style={{
-              fontSize: 14,
-              cursor: "pointer"
-            }}
-          >
-            Show full data flow ({steps.length} steps)
-          </button>
-        )}
+
         {this.props.showFullDataFlow &&
           stepsToShow
             .map(step => (
@@ -151,7 +180,9 @@ TraversalSteps = branch(
     debugMode: ["debugMode"],
     steps: ["steps"],
     inspectionTarget: ["inspectionTarget"],
+    inspectedString: ["inspectedString"],
     showFullDataFlow: ["showFullDataFlow"],
+    showDOMStep: ["showDOMStep"],
     isTraversing: ["hasInProgressRequest", "traverse"]
   },
   TraversalSteps

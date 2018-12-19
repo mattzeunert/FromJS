@@ -720,7 +720,6 @@ describe("eval/new Function", () => {
 
     const { normal, tracking, code } = await instrumentAndRun(`
       const localValue = 99
-      debugger;
       const ret = eval("localValue")
       return ret
     `);
@@ -808,19 +807,9 @@ describe("with statement", () => {
 });
 
 describe("localStorage", () => {
-  beforeEach(() => {
-    global.localStorage = {
-      prop: "hi",
-      getItem() {
-        return "hi";
-      }
-    };
-  });
-  afterEach(() => {
-    delete global.localStorage;
-  });
   it("Tracks a localStorage value accessed using localStorage.prop", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
+        localStorage.setItem("prop", "hi")
         return localStorage.prop
       `);
     expect(normal).toBe("hi");
@@ -828,6 +817,7 @@ describe("localStorage", () => {
   });
   it("Tracks a localStorage value accessed using localStorage.getItem('prop')", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
+        localStorage.setItem("prop", "hi")
         return localStorage.getItem("prop")
       `);
     expect(normal).toBe("hi");
@@ -1087,4 +1077,204 @@ it("Doesn't break when calling .apply with no args", async () => {
     return fn.apply(ctx)
   `);
   expect(normal).toBe("a");
+});
+
+it("Does't break when encountering a for in statement", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+  
+  const arr = [1,2,3]
+  let res = ""
+  for (const sth in arr) {
+    res += sth
+  }
+  return res
+  `);
+  expect(normal).toBe("012");
+});
+
+it("Does't break array destructuring with fewer named arguments than the total", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    const [one, two] = ["one"].splice(0, 2)
+    return one + two
+  `);
+  expect(normal).toBe("oneundefined");
+});
+
+describe("Doesn't break when using ES6+ features", () => {
+  it("Doesn't break with classes", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      class A {
+        fn() {
+          return "sth"
+        }
+      }
+      return new A().fn()
+    `);
+    expect(normal).toBe("sth");
+  });
+  it("Doesn't break when there are destructured variables", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    function f({a:x,b:y}){return x+y}
+    f({a:1,b:2});
+    function f2({a,b}){return a+b}
+    f2({a:1,b:2});
+    let {a:aaa} = {a:4}
+    aaa+=1;
+    let [c, d=5] = [1]
+    c= c-1
+    d = d-1
+    function f3([a,b]) {
+      return a + b
+    }
+    f3([4,5])
+    let m,n;
+    ({m,n=3} = {});
+    m += n;
+
+    
+    let [x = true, y] = []
+    x = x && y
+    return 5
+    `);
+    expect(normal).toBe(5);
+  });
+
+  it("Does't break when encountering a for of statement", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    const arr = [4]
+    for (const elem of arr) {
+      return elem
+    }
+    `);
+    expect(normal).toBe(4);
+  });
+
+  it("Does't break when encountering an arrow function", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    const square = a => a * a;
+    const add = (a,b) => {return a + b};
+    return add(square(2), 1);
+    `);
+    expect(normal).toBe(5);
+  });
+
+  it("Does't break when calling a function on super", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      class Parent {
+        square(x) { return x * x}
+      }
+      class Child extends Parent {
+        getSquare(n) {
+          return super.square(n)
+        }   
+      }
+      return new Child().getSquare(3)
+    `);
+    expect(normal).toBe(9);
+  });
+
+  it("Doesn't break when using array destructuring in a for of statement", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      let sum =0
+      for (const [key, value] of Object.entries({a: 1, b: 2})) {
+        sum += value + key.length
+      }
+      return sum
+    `);
+    expect(normal).toBe(5);
+  });
+
+  it("Doesn't break when using array destructuring in a for of statement with variables pre-defined", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      let sum =0
+      let key, value
+      for ([key, value] of Object.entries({a: 1, b: 2})) {
+        sum += value + key.length
+      }
+      return sum
+    `);
+    expect(normal).toBe(5);
+  });
+
+  it("Doesn't break code that destructures arrays", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function getFirst([v]) {
+        return v
+      }
+
+      const [v1, v2] = [1,2]
+      let v3, v4;
+      ([v3, v4] = [1,2]);
+      let v5 = getFirst([1])
+      return v1 + v2 + v3 + v4 + v5
+    `);
+    expect(normal).toBe(7);
+  });
+
+  it("Doesn't break rest parameter code", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const [a, ...b] = [1,2,3,4,5]
+      const {c, ...d} = {x: 6}
+
+      return b.length  + d.x
+    `);
+
+    expect(normal).toBe(10);
+  });
+
+  it("Doesn't break for of loops destructuring a map", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      let m = new Map();
+      m.set("a", "b")
+      m.set("x", "y")
+      let res = ""
+      for (const [key, value] of m) {
+        res += key + value
+      }
+      return res   
+  `);
+
+    expect(normal).toBe("abxy");
+  });
+
+  it("Doesn't break spread parameter arguments", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function add(a, b, c, d) {
+        return a + b + c + d
+      }
+      const nums1 = [1,2]
+      const nums2 = [3,4]
+      return add(...nums1, ...nums2)
+  `);
+
+    expect(normal).toBe(10);
+  });
+
+  describe("Doesn't break when using default parameter values", () => {
+    it("Function declaration", async () => {
+      const { normal, tracking, code } = await instrumentAndRun(`
+      function add(a, b=1) {
+        return a+b
+      }
+  
+      return add(4)
+    `);
+
+      expect(normal).toBe(5);
+    });
+
+    it("class method", async () => {
+      const { normal, tracking, code } = await instrumentAndRun(`
+      class Adder {
+        add(a, b=1) {
+          return a+b
+        }
+      }
+  
+      return new Adder().add(4)
+    `);
+
+      expect(normal).toBe(5);
+    });
+  });
 });

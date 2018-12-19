@@ -369,7 +369,7 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
     logServer.storeLogs(req.body.logs, function() {
       const timePassed = new Date().valueOf() - startTime.valueOf();
       const timePer1000 =
-        Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
+        Math.round(timePassed / req.body.logs.length * 1000 * 10) / 10;
       if (LOG_PERF) {
         console.log(
           "storing logs took " +
@@ -461,11 +461,13 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
 
   const resolver = new StackFrameResolver({ proxyPort: options.proxyPort });
 
-  app.get("/resolveStackFrame/:loc", (req, res) => {
+  app.get("/resolveStackFrame/:loc/:prettify?", (req, res) => {
     locStore.getLoc(req.params.loc, loc => {
-      resolver.resolveFrameFromLoc(loc).then(rr => {
-        res.end(JSON.stringify(rr, null, 4));
-      });
+      resolver
+        .resolveFrameFromLoc(loc, req.params.prettify === "prettify")
+        .then(rr => {
+          res.end(JSON.stringify(rr, null, 4));
+        });
     });
   });
 

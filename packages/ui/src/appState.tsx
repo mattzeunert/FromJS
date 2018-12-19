@@ -8,6 +8,8 @@ var appState = new Baobab({
   collapseDomInspector: true,
   isInspectingDemoApp: false,
   showFullDataFlow: false,
+  showDOMStep: false,
+  prettifyIfNoSourceMap: false,
   enableInstrumentation: window["enableInstrumentation"],
   apiRequestsInProgress: [],
   collapseGetStartedIfHasData: true, // not used anymore i think

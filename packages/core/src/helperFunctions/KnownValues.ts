@@ -18,6 +18,7 @@ export default class KnownValues {
       "Array.prototype.pop": Array.prototype.pop,
       "Array.prototype.join": Array.prototype.join,
       "Array.prototype.slice": Array.prototype.slice,
+      "Array.prototype.splice": Array.prototype.splice,
       "Array.prototype.map": Array.prototype.map,
       "Array.prototype.filter": Array.prototype.filter,
       "Array.prototype.reduce": Array.prototype.reduce,
@@ -25,8 +26,10 @@ export default class KnownValues {
       "Array.prototype.shift": Array.prototype.shift,
       "Array.prototype.unshift": Array.prototype.unshift,
       "JSON.parse": JSON.parse,
+      "JSON.stringify": JSON.stringify,
       "Object.keys": Object.keys,
       "Object.assign": Object.assign,
+      "Object.entries": Object.entries,
       "Number.prototype.toString": Number.prototype.toString,
       "Boolean.prototype.toString": Boolean.prototype.toString,
       "Object.prototype.toString": Object.prototype.toString,
@@ -53,7 +56,6 @@ export default class KnownValues {
         "localStorage.getItem": global.localStorage.getItem
       });
     }
-
     if (global["fetch"]) {
       Object.assign(this._knownValues, {
         fetch: fetch,

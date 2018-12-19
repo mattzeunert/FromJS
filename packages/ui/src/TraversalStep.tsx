@@ -28,6 +28,30 @@ type TraversalStepState = {
   isHovering: boolean;
 };
 
+// two chars in a string literal can map to one char in the actual string value (i.e. if there's an escape sequence like
+// "\n" that becomes one new line character)
+// doesn't work for explicit unicode escapes like \u0020 right now
+function adjustColumnForEscapeSequences(line, columnNumber) {
+  for (var i = 0; i < columnNumber; i++) {
+    if (line[i] === "\\") {
+      var charAfter = line[i + 1];
+      if (charAfter === "n") {
+        columnNumber++;
+      }
+      if (charAfter === "t") {
+        columnNumber++;
+      }
+      if (charAfter === '"') {
+        columnNumber++;
+      }
+      if (charAfter === "'") {
+        columnNumber++;
+      }
+    }
+  }
+  return columnNumber;
+}
+
 let TraversalStep = class TraversalStep extends React.Component<
   TraversalStepProps,
   TraversalStepState
@@ -83,10 +107,10 @@ let TraversalStep = class TraversalStep extends React.Component<
     let fileName, columnNumber, lineNumber;
     let previousLine, nextLine;
 
-    if (operationLog.result.type === "object") {
-      // the user probably cares about the arguments
-      isExpanded = true;
-    }
+    // if (operationLog.result.type === "object") {
+    //   // the user probably cares about the arguments
+    //   isExpanded = true;
+    // }
 
     let hasResolvedFrame = false;
     if (this.needsToLoadLocation(operationLog)) {
@@ -166,6 +190,17 @@ let TraversalStep = class TraversalStep extends React.Component<
       console.log(err);
     }
 
+    let highlighNthCharAfterColumn = null;
+    if (
+      this.state.stackFrame &&
+      step.operationLog.operation === "stringLiteral"
+    ) {
+      highlighNthCharAfterColumn = adjustColumnForEscapeSequences(
+        this.state.stackFrame.code.line.text,
+        step.charIndex + "'".length
+      );
+    }
+
     let shortFileName = getFileNameFromPath(fileName);
     if (shortFileName.length === 0) {
       // Commonly happens for HTML path that ends with /
@@ -238,6 +273,14 @@ let TraversalStep = class TraversalStep extends React.Component<
               <div className="step__arguments__title">
                 Inspect input/output values:
               </div>
+              {/* <pre>
+                Runtime args:
+                {JSON.stringify(
+                  this.props.step.operationLog.runtimeArgs,
+                  null,
+                  4
+                )}
+              </pre> */}
               {this.getAllArgs().length === 0 && <div>(No arguments)</div>}
               {this.getAllArgs().map(({ name, value }) => {
                 value = value && new OperationLog(value);
@@ -283,6 +326,7 @@ let TraversalStep = class TraversalStep extends React.Component<
             <Code
               resolvedStackFrame={this.state.stackFrame}
               traversalStep={step}
+              highlighNthCharAfterColumn={highlighNthCharAfterColumn}
             />
           )}
           <div style={{ borderTop: "1px dotted rgb(221, 221, 221)" }}>

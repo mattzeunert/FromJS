@@ -167,6 +167,7 @@ export default class OperationLog implements OperationLogInterface {
     const resultIsSerializedValueObject =
       !["string", "boolean", "number"].includes(typeof this._result) &&
       this._result !== null &&
+      this._result &&
       "type" in <any>this._result;
 
     let sv: SerializedValueData;

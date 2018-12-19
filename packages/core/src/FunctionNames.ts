@@ -10,3 +10,5 @@ export const getMemoArray = "__getMA";
 export const getLastMemberExpressionObject = "getLMEO";
 export const getObjectPropertyNameTrackingValue = "getOPNTV";
 export const getGlobal = "__getGlobal";
+export const getEmptyTrackingInfo = "__emptyTracking";
+export const expandArrayForArrayPattern = "__expandForArrayPattern";

@@ -5,7 +5,8 @@ import {
   ignoredArrayExpression,
   ignoredCallExpression,
   ignoredArrayExpressionIfArray,
-  skipPath
+  skipPath,
+  ignoredNumericLiteral
 } from "../babelPluginHelpers";
 import HtmlToOperationLogMapping from "../helperFunctions/HtmlToOperationLogMapping";
 import * as OperationTypes from "../OperationTypes";
@@ -32,9 +33,44 @@ import {
   countGroupsInRegExp
 } from "../regExpHelpers";
 import { mapPageHtml } from "../mapPageHtml";
+import { safelyReadProperty } from "../util";
 
 function getFnArg(args, index) {
   return args[2][index];
+}
+
+interface SpecialCaseArgs {
+  ctx: ExecContext;
+  object: any;
+  fnArgs: any[];
+  logData: any;
+  fnArgValues: any[];
+  ret: any;
+  extraTrackingValues: any;
+  runtimeArgs: any;
+}
+
+type TraverseObjectCallBack = (
+  keyPath: string,
+  value: any,
+  key: string,
+  obj: any
+) => void;
+
+function traverseObject(
+  traversedObject,
+  fn: TraverseObjectCallBack,
+  keyPath: any[] = []
+) {
+  if (traversedObject === null) {
+    return;
+  }
+  Object.entries(traversedObject).forEach(([key, value]) => {
+    fn([...keyPath, key].join("."), value, key, traversedObject);
+    if (typeof value === "object") {
+      traverseObject(value, fn, [...keyPath, key]);
+    }
+  });
 }
 
 const specialCases = {
@@ -131,18 +167,6 @@ const specialCases = {
   }) => {
     const parsed = fn.call(JSON, fnArgValues[0]);
     var ret, retT;
-
-    function traverseObject(obj, fn, keyPath: any[] = []) {
-      if (obj === null) {
-        return;
-      }
-      Object.entries(obj).forEach(([key, value]) => {
-        fn([...keyPath, key].join("."), value, key, obj);
-        if (typeof value === "object") {
-          traverseObject(value, fn, [...keyPath, key]);
-        }
-      });
-    }
 
     traverseObject(parsed, (keyPath, value, key, obj) => {
       const trackingValue = ctx.createOperationLog({
@@ -365,6 +389,17 @@ const specialValuesForPostprocessing = {
     });
     return retT;
   },
+  "Object.entries": ({ ctx, logData, fnArgValues, ret, retT }) => {
+    const obj = fnArgValues[0];
+    ret.forEach((entryArr, i) => {
+      const [key, value] = entryArr;
+      const valueTv = ctx.getObjectPropertyTrackingValue(obj, key);
+      const keyTv = ctx.getObjectPropertyNameTrackingValue(obj, key);
+      ctx.trackObjectPropertyAssignment(entryArr, 1, valueTv);
+      ctx.trackObjectPropertyAssignment(entryArr, 0, keyTv);
+    });
+    return retT;
+  },
   "Object.assign": ({ ctx, logData, fnArgValues }) => {
     ctx = <ExecContext>ctx;
     const target = fnArgValues[0];
@@ -507,6 +542,54 @@ const specialValuesForPostprocessing = {
         )
       );
     });
+  },
+  "Array.prototype.splice": ({ object, ctx, logData, fnArgValues, ret }) => {
+    ctx = <ExecContext>ctx;
+    const resultArray = ret;
+    const inputArray = object;
+
+    let startIndex, deleteCount;
+    if (fnArgValues.length >= 2) {
+      startIndex = fnArgValues[0];
+      deleteCount = fnArgValues[1];
+    }
+
+    resultArray.forEach((value, i) => {
+      const originalIndex = i + startIndex;
+      const tv = ctx.getObjectPropertyTrackingValue(
+        inputArray,
+        originalIndex.toString()
+      );
+
+      ctx.trackObjectPropertyAssignment(
+        resultArray,
+        i.toString(),
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.arraySplice,
+          args: {
+            value: [null, tv],
+            call: [null, logData.index]
+          },
+          result: value,
+          astArgs: {},
+          loc: logData.loc
+        })
+      );
+    });
+
+    // if (fnArgValues.length === 0) {
+    //   startIndex = 0;
+    //   endIndex = resultArray.length;
+    // } else {
+    //   startIndex = fnArgValues[0];
+    //   if (startIndex < 0) {
+    //     startIndex = inputArray.length + startIndex;
+    //   }
+    //   endIndex = fnArgValues[0];
+    //   if (endIndex < 0) {
+    //     endIndex = inputArray.length + endIndex;
+    //   }
+    // }
   },
   "Array.prototype.join": ({
     object,
@@ -655,7 +738,7 @@ const specialValuesForPostprocessing = {
     processClonedNode(ret, object);
     function processClonedNode(cloneResult, sourceNode) {
       if (sourceNode.__elOrigin) {
-        if (sourceNode.nodeType === Node.ELEMENT_NODE) {
+        if (safelyReadProperty(sourceNode, "nodeType") === Node.ELEMENT_NODE) {
           ["openingTagStart", "openingTagEnd", "closingTag"].forEach(
             originName => {
               if (sourceNode.__elOrigin[originName]) {
@@ -682,13 +765,17 @@ const specialValuesForPostprocessing = {
               addElAttributeValueOrigin(cloneResult, attr.name, valueOrigin);
             }
           }
-        } else if (sourceNode.nodeType === Node.TEXT_NODE) {
+        } else if (
+          safelyReadProperty(sourceNode, "nodeType") === Node.TEXT_NODE
+        ) {
           addElOrigin(
             cloneResult,
             "textValue",
             sourceNode.__elOrigin.textValue
           );
-        } else if (sourceNode.nodeType === Node.COMMENT_NODE) {
+        } else if (
+          safelyReadProperty(sourceNode, "nodeType") === Node.COMMENT_NODE
+        ) {
           addElOrigin(
             cloneResult,
             "textValue",
@@ -698,7 +785,7 @@ const specialValuesForPostprocessing = {
           consoleWarn("unhandled cloneNode");
         }
       }
-      if (sourceNode.nodeType === Node.ELEMENT_NODE) {
+      if (safelyReadProperty(sourceNode, "nodeType") === Node.ELEMENT_NODE) {
         if (isDeep) {
           sourceNode.childNodes.forEach((childNode, i) => {
             processClonedNode(cloneResult.childNodes[i], childNode);
@@ -753,6 +840,38 @@ const specialValuesForPostprocessing = {
     const doc = ret;
 
     mapPageHtml(doc, html, fnArgs[0], "parseFromString");
+  },
+  "JSON.stringify": ({
+    object,
+    fnArgs,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    runtimeArgs,
+    extraTrackingValues
+  }: SpecialCaseArgs) => {
+    const stringifiedObject = fnArgValues[0];
+    const jsonIndexToTrackingValue = {};
+    runtimeArgs.jsonIndexToTrackingValue = jsonIndexToTrackingValue;
+    const jsonString = ret;
+    traverseObject(
+      stringifiedObject,
+      (keyPath, value, key, traversedObject) => {
+        const jsonKeyIndex = ret.indexOf('"' + key + '"') + "'".length;
+        jsonIndexToTrackingValue[
+          jsonKeyIndex
+        ] = ctx.getObjectPropertyNameTrackingValue(traversedObject, key);
+        let jsonValueIndex = jsonKeyIndex + '"":'.length + key.length;
+        if (jsonString[jsonValueIndex] === '"') {
+          jsonValueIndex++;
+        }
+
+        jsonIndexToTrackingValue[
+          jsonValueIndex
+        ] = ctx.getObjectPropertyTrackingValue(traversedObject, key);
+      }
+    );
   }
 };
 
@@ -838,6 +957,7 @@ const CallExpression = <any>{
   argIsArray: [false, false, true, false],
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
     let [fnArg, context, argList, evalFn] = args;
+    // console.log({ x: 9, astArgs, argList });
 
     var fnArgs: any[] = [];
     var fnArgValues: any[] = [];
@@ -846,8 +966,23 @@ const CallExpression = <any>{
 
     for (var i = 0; i < argList.length; i++) {
       const arg = argList[i];
-      fnArgValues.push(arg[0]);
-      fnArgs.push(arg[1]);
+      if (
+        astArgs.spreadArgumentIndices &&
+        astArgs.spreadArgumentIndices.includes(i)
+      ) {
+        const argumentArray = arg[0];
+        argumentArray.forEach(argument => {
+          fnArgValues.push(argument);
+          fnArgs.push(ctx.getEmptyTrackingInfo("spreadArgument", logData.loc));
+        });
+      } else {
+        fnArgValues.push(arg[0]);
+        fnArgs.push(arg[1]);
+      }
+
+      // if (arg[1] && typeof arg[1] !== "number") {
+      //   debugger;
+      // }
     }
 
     var object = context[0];
@@ -887,6 +1022,7 @@ const CallExpression = <any>{
     ctx.argTrackingInfo = fnArgsAtInvocation;
 
     const extraTrackingValues: any = {};
+    const runtimeArgs: any = {};
 
     var ret;
     let retT: any = null;
@@ -923,7 +1059,7 @@ const CallExpression = <any>{
       const fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
       let specialCaseArgs = getSpecialCaseArgs();
 
-      function getSpecialCaseArgs() {
+      function getSpecialCaseArgs(): SpecialCaseArgs | void {
         if (!fnKnownValue) {
           return;
         }
@@ -947,7 +1083,8 @@ const CallExpression = <any>{
           context,
           ret,
           retT,
-          extraState
+          extraState,
+          runtimeArgs
         };
         if (functionIsCallOrApply) {
           specialCaseArgs.fn = object;
@@ -1242,6 +1379,9 @@ const CallExpression = <any>{
     }
     extraTrackingValues.returnValue = [ret, retT]; // pick up value from returnStatement
 
+    if (Object.keys(runtimeArgs).length > 0) {
+      logData.runtimeArgs = runtimeArgs;
+    }
     logData.extraArgs = extraTrackingValues;
 
     return ret;
@@ -1395,6 +1535,7 @@ const CallExpression = <any>{
             charIndex: match.charIndex,
             operationLog: match.origin
           };
+
         case "String.prototype.replace":
           // I'm not 100% confident about this code, but it works for now
 
@@ -1459,6 +1600,32 @@ const CallExpression = <any>{
               index++;
             }
           }
+
+        case "JSON.stringify":
+          const { jsonIndexToTrackingValue } = operationLog.runtimeArgs;
+          // not efficient, but it works
+          let closestLoc: any = null;
+          Object.entries(jsonIndexToTrackingValue).forEach(
+            ([index, tv]: any) => {
+              index = parseFloat(index);
+
+              if (
+                charIndex - index >= 0 &&
+                (!closestLoc || closestLoc.index - index < charIndex - index)
+              ) {
+                closestLoc = { index, tv };
+              }
+            }
+          );
+
+          if (!closestLoc) {
+            return null;
+          }
+
+          return {
+            operationLog: closestLoc.tv,
+            charIndex: charIndex - closestLoc.index
+          };
         default:
           return {
             operationLog: operationLog.extraArgs.returnValue,
@@ -1477,8 +1644,17 @@ const CallExpression = <any>{
 
     var isMemberExpressionCall = callee.type === "MemberExpression";
 
+    const astArgs: any = {};
+
     var args: any[] = [];
-    path.node.arguments.forEach(arg => {
+    path.node.arguments.forEach((arg, i) => {
+      if (arg.type === "SpreadElement") {
+        if (!astArgs.spreadArgumentIndices) {
+          astArgs.spreadArgumentIndices = [];
+        }
+        astArgs.spreadArgumentIndices.push(ignoredNumericLiteral(i));
+        arg = arg.argument;
+      }
       args.push(
         ignoredArrayExpression([arg, getLastOperationTrackingResultCall()])
       );
@@ -1522,7 +1698,6 @@ const CallExpression = <any>{
       fnArgs.push(evalFn);
     }
 
-    const astArgs = {};
     if (isNewExpression) {
       astArgs["isNewExpression"] = ignoreNode(this.t.booleanLiteral(true));
     }

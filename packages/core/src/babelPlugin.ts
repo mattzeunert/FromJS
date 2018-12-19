@@ -2,7 +2,7 @@ import * as FunctionNames from "./FunctionNames";
 import * as babel from "@babel/core";
 import * as OperationTypes from "./OperationTypes";
 // import * as fs from "fs";
-import * as babylon from "babylon";
+import * as babylon from "@babel/parser";
 import operations, { shouldSkipIdentifier, initForBabel } from "./operations";
 import {
   ignoreNode,
@@ -20,7 +20,8 @@ import {
   getTrackingVarName,
   addLoc,
   skipPath,
-  getTrackingIdentifier
+  getTrackingIdentifier,
+  getLocObjectASTNode
 } from "./babelPluginHelpers";
 
 import helperCodeLoaded from "../helperFunctions";
@@ -68,15 +69,66 @@ function plugin(babel) {
   function handleFunction(path) {
     const declarators: any[] = [];
     path.node.params.forEach((param, i) => {
-      declarators.push(
-        t.variableDeclarator(
-          addLoc(getTrackingIdentifier(param.name), param.loc),
-          t.callExpression(
-            t.identifier(FunctionNames.getFunctionArgTrackingInfo),
-            [t.numericLiteral(i)]
+      if (param.type === "ObjectPattern") {
+        // do nothing for now, logic is in objectpattern visitor
+        // for (var n = 0; n < param.properties.length; n++) {
+        //   const prop = param.properties[n];
+        //   declarators.push(
+        //     t.variableDeclarator(
+        //       addLoc(
+        //         getTrackingIdentifier(
+        //           prop.value ? prop.value.name : prop.key.name
+        //         ),
+        //         prop.loc
+        //       ),
+        //       t.nullLiteral()
+        //     )
+        //   );
+        // }
+      } else if (param.type === "ArrayPattern") {
+        param.elements.forEach(elem => {
+          let varName;
+          if (elem.type === "Identifier") {
+            varName = elem.name;
+          } else if (elem.type === "AssignmentPattern") {
+            varName = elem.left.name;
+          } else if (elem.type === "RestParameter") {
+            varName = elem.argument.name;
+          } else {
+            throw Error("aaa unknown array pattern elem type " + elem.type);
+          }
+          declarators.push(
+            t.variableDeclarator(
+              addLoc(getTrackingIdentifier(varName), param.loc),
+              ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+                ignoredStringLiteral("arrayPatternInFunction"),
+                getLocObjectASTNode(elem.loc)
+              ])
+            )
+          );
+        });
+      } else if (param.type === "AssignmentPattern") {
+        let varName = param.left.name;
+        declarators.push(
+          t.variableDeclarator(
+            addLoc(getTrackingIdentifier(varName), param.loc),
+            ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+              ignoredStringLiteral("arrayPatternInFunction"),
+              getLocObjectASTNode(param.loc)
+            ])
           )
-        )
-      );
+        );
+      } else {
+        declarators.push(
+          t.variableDeclarator(
+            addLoc(getTrackingIdentifier(param.name), param.loc),
+            t.callExpression(
+              t.identifier(FunctionNames.getFunctionArgTrackingInfo),
+              [t.numericLiteral(i)]
+            )
+          )
+        );
+      }
     });
 
     // keep whole list in case the function uses `arguments` object
@@ -92,6 +144,12 @@ function plugin(babel) {
 
     const d = t.variableDeclaration("var", declarators);
     skipPath(d);
+    if (path.node.body.type !== "BlockStatement") {
+      // arrow function
+      path.node.body = ignoreNode(
+        t.blockStatement([ignoreNode(t.returnStatement(path.node.body))])
+      );
+    }
     path.node.body.body.unshift(d);
     path.node.ignore = true; // I'm not sure why it would re-enter the functiondecl/expr, but it has happened before
   }
@@ -105,30 +163,103 @@ function plugin(babel) {
       handleFunction(path);
     },
 
+    ArrowFunctionExpression(path) {
+      handleFunction(path);
+    },
+
+    ClassMethod(path) {
+      handleFunction(path);
+    },
+
+    ObjectPattern(path) {
+      // debugger;
+      const newProperties: any[] = [];
+      path.node.properties.forEach(prop => {
+        let varName;
+        if (prop.value && prop.value.type === "Identifier") {
+          varName = prop.value.name;
+        } else if (prop.value && prop.value.type === "AssignmentPattern") {
+          varName = prop.value.left.name;
+        } else if (prop.type === "RestElement") {
+          varName = prop.argument.name;
+        } else {
+          varName = prop.key.name;
+        }
+
+        newProperties.push(
+          skipPath(
+            t.ObjectProperty(
+              ignoreNode(getTrackingIdentifier(varName)),
+              t.assignmentPattern(
+                getTrackingIdentifier(varName),
+                ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+                  ignoredStringLiteral("objectPattern"),
+                  getLocObjectASTNode(prop.loc)
+                ])
+              )
+            )
+          )
+        );
+        newProperties.push(prop);
+      });
+      path.node.properties = newProperties;
+    },
+
+    ForOfStatement(path) {
+      if (path.node.left.type === "VariableDeclaration") {
+        const variableDeclarator = path.node.left.declarations[0];
+        if (variableDeclarator.id.type === "Identifier") {
+          path.node.body.body.unshift(
+            skipPath(
+              t.variableDeclaration("var", [
+                t.variableDeclarator(
+                  ignoredIdentifier(
+                    getTrackingVarName(variableDeclarator.id.name)
+                  ),
+                  ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+                    ignoredStringLiteral("forOfVariable"),
+                    getLocObjectASTNode(variableDeclarator.loc)
+                  ])
+                )
+              ])
+            )
+          );
+        }
+      }
+    },
+
     VariableDeclaration(path) {
-      if (path.parent.type === "ForInStatement") {
+      if (["ForInStatement", "ForOfStatement"].includes(path.parent.type)) {
         return;
       }
       var originalDeclarations = path.node.declarations;
       var newDeclarations: any[] = [];
+
       originalDeclarations.forEach(function(decl) {
         newDeclarations.push(decl);
         if (!decl.init) {
           decl.init = addLoc(ignoredIdentifier("undefined"), decl.loc);
         }
 
-        newDeclarations.push(
-          t.variableDeclarator(
-            addLoc(getTrackingIdentifier(decl.id.name), decl.id.loc),
-            skipPath(
-              t.callExpression(
-                t.identifier(FunctionNames.getLastOperationTrackingResult),
-                []
+        if (decl.id.type === "ArrayPattern") {
+          // declaration are inserted into pattern already
+        } else if (decl.id.type === "ObjectPattern") {
+          // declarations are inserted into object pattern already
+        } else {
+          newDeclarations.push(
+            t.variableDeclarator(
+              addLoc(getTrackingIdentifier(decl.id.name), decl.id.loc),
+              skipPath(
+                t.callExpression(
+                  t.identifier(FunctionNames.getLastOperationTrackingResult),
+                  []
+                )
               )
             )
-          )
-        );
+          );
+        }
       });
+
       path.node.declarations = newDeclarations;
     },
 
@@ -209,6 +340,99 @@ function plugin(babel) {
       path.node.body.body.push(trackingVarDec);
     },
 
+    ArrayPattern(path) {
+      const isForOfStatementWithVarDeclaration =
+        path.parentPath.node.type === "VariableDeclarator" &&
+        path.parentPath.parentPath.parentPath.node.type === "ForOfStatement";
+      const isForOfStatementWithoutVarDeclaration =
+        path.parentPath.node.type === "ForOfStatement";
+
+      const namedParamCount = path.node.elements.filter(
+        el => el.type !== "RestElement"
+      ).length;
+
+      if (
+        isForOfStatementWithVarDeclaration ||
+        isForOfStatementWithoutVarDeclaration
+      ) {
+        let forOfStatement;
+        if (isForOfStatementWithVarDeclaration) {
+          forOfStatement = path.parentPath.parentPath.parentPath.node;
+        } else if (isForOfStatementWithoutVarDeclaration) {
+          forOfStatement = path.parentPath.node;
+        }
+
+        forOfStatement.right = ignoredCallExpression(
+          FunctionNames.expandArrayForArrayPattern,
+          [
+            forOfStatement.right,
+            getLocObjectASTNode(forOfStatement.loc),
+            ignoredStringLiteral("forOf"),
+            ignoredNumericLiteral(namedParamCount)
+          ]
+        );
+      } else if (
+        path.parentPath.parentPath.node.type === "VariableDeclaration"
+      ) {
+        const declarator = path.parentPath.node;
+        declarator.init = ignoredCallExpression(
+          FunctionNames.expandArrayForArrayPattern,
+          [
+            declarator.init,
+            getLocObjectASTNode(declarator.loc),
+            ignoredStringLiteral("variableDeclarationInit"),
+            ignoredNumericLiteral(namedParamCount)
+          ]
+        );
+      } else if (path.parentPath.node.type === "AssignmentExpression") {
+        const assignmentExpression = path.parentPath.node;
+        assignmentExpression.right = ignoredCallExpression(
+          FunctionNames.expandArrayForArrayPattern,
+          [
+            assignmentExpression.right,
+            getLocObjectASTNode(assignmentExpression.loc),
+            ignoredStringLiteral("assignmentExpressionRight"),
+            ignoredNumericLiteral(namedParamCount)
+          ]
+        );
+      }
+
+      const arrayPattern = path.node;
+      const newElements: any[] = [];
+      arrayPattern.elements.forEach(elem => {
+        let varName;
+        if (elem.type === "Identifier") {
+          varName = elem.name;
+        } else if (elem.type === "AssignmentPattern") {
+          varName = elem.left.name;
+        } else if (elem.type === "RestElement") {
+          varName = elem.argument.name;
+        } else {
+          throw Error("array pattern elem type " + elem.type);
+        }
+        if (elem.type !== "RestElement") {
+          newElements.push(elem);
+          newElements.push(addLoc(getTrackingIdentifier(varName), elem.loc));
+        } else {
+          // Rest element must be last element
+          newElements.push(addLoc(getTrackingIdentifier(varName), elem.loc));
+          newElements.push(elem);
+        }
+        // newDeclarations.push(
+        //   t.variableDeclarator(
+        //     ,
+        //     skipPath(
+        //       ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+        //         ignoredStringLiteral("arrayPatternInVarDeclaration"),
+        //         getLocObjectASTNode(elem.loc)
+        //       ])
+        //     )
+        //   )
+        // );
+      });
+      arrayPattern.elements = newElements;
+    },
+
     ForInStatement(path) {
       let varName;
       let isNewVariable;
@@ -287,7 +511,14 @@ function plugin(babel) {
           if (!ret.loc) {
             // debugger;
           }
-          path.replaceWith(ret);
+          try {
+            path.replaceWith(ret);
+          } catch (err) {
+            // for easier debugging
+            debugger;
+            operation.visitor.call(operation, path);
+            throw err;
+          }
         }
       };
     }

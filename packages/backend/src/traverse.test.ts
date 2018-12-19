@@ -1,9 +1,15 @@
 import { testHelpers } from "@fromjs/core";
 const { instrumentAndRun, server } = testHelpers;
-import { traverse as _traverse } from "./traverse";
+import { traverse as _traverse, TraversalStep } from "./traverse";
 
-const traverse = function(firstStep) {
-  return _traverse.call(null, firstStep, [], server);
+const traverse = async function(firstStep) {
+  const steps: TraversalStep[] = (await _traverse.call(
+    null,
+    firstStep,
+    [],
+    server
+  )) as any;
+  return steps;
 };
 
 function getStepTypeList(traversalResult) {
@@ -161,6 +167,40 @@ test("Can traverse String.prototype.slice", async () => {
     "identifier",
     "stringLiteral"
   ]);
+});
+
+describe("Array.prototype.splice", () => {
+  test("Can traverse Array.prototype.splice return value", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = [1,2,3,4]
+        return arr.splice(1,2).join("")
+      `);
+
+    expect(normal).toBe("23");
+    let step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("numericLiteral");
+    step = await traverseAndGetLastStep(tracking, 1);
+    expect(step.operationLog.operation).toBe("numericLiteral");
+  });
+});
+
+describe("Object.entries", () => {
+  test("Return value of Object.entries is tracked", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const entries = Object.entries({a:"A",b:"B"})
+        return entries[0][0] + entries[0][1] + entries[1][0] + entries[1][1]
+      `);
+
+    expect(normal).toBe("aAbB");
+    let step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("a");
+    step = await traverseAndGetLastStep(tracking, 3);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("B");
+  });
 });
 
 test("Traverse str[n] character access", async () => {
@@ -333,6 +373,54 @@ describe("JSON.parse", () => {
     expect(lastStep.operationLog.operation).toBe("stringLiteral");
     expect(lastStep.charIndex).toBe(2);
     expect(getStepTypeList(t)).toContain("jsonParseResult");
+  });
+});
+
+describe("JSON.stringify", () => {
+  it("Can traverse JSON.stringify result", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var obj = {greeting: "Hello ", name: {first: "w", last: "orld"}}
+        var str = JSON.stringify(obj, null, 4);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("Hello")
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("Hello ");
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("orld")
+    );
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("orld");
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("first")
+    );
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("first");
+  });
+
+  it("Can traverse JSON.stringify result that's not prettified", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var obj = {greeting: "Hello ", name: {first: "w", last: "orld"}}
+        var str = JSON.stringify(obj);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("orld") + 2
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(2);
+    expect(lastStep.operationLog.result.primitive).toBe("orld");
   });
 });
 
@@ -970,6 +1058,17 @@ describe("String.prototype.split", () => {
 
     expect(normal).toBe(123);
   });
+  it("Can traverse if split argument is a regular expression", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return "a|b".split(/|/)[2]
+    `);
+
+    expect(normal).toBe("b");
+    const step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(2);
+    expect(step.operationLog.result.primitive).toBe("a|b");
+  });
 });
 
 describe("Array.prototype.shift", () => {
@@ -1120,5 +1219,86 @@ describe("String.prototype.toString", () => {
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t1LastStep.charIndex).toBe(1);
+  });
+});
+
+async function traverseAndGetLastStep(operationLog, charIndex) {
+  var t1: any = await traverse({ operationLog, charIndex });
+  const t1LastStep = t1[t1.length - 1];
+  return t1LastStep;
+}
+
+// describe("Can handle object destructuring in function parameters", () => {
+//   it("Object destructuring with default parameters", async () => {
+//     const { normal, tracking, code } = await instrumentAndRun(`
+//     function concat({a="Hello ",b}){
+//       console.log("aaa", a___tv)
+//       return a + b
+//     }
+
+//     return concat({b: "World"})
+//   `);
+//     expect(normal).toBe("Hello World");
+
+//     let step;
+//     step = await traverseAndGetLastStep(tracking, 1);
+//     console.log(step);
+//     expect(step.operationLog.operation).toBe("stringLiteral");
+
+//     step = await traverseAndGetLastStep(tracking, 6);
+//     expect(step.operationLog.operation).toBe("stringLiteral");
+//   });
+//   it("Object destructuring with default params depending on other params", async () => {
+//     const { normal, tracking, code } = await instrumentAndRun(`
+//     function fn({a,b=a + "_"}){
+//       return b
+//     }
+
+//     return fn({a: "z"})
+//   `);
+//     expect(normal).toBe("z_");
+
+//     let step;
+//     step = await traverseAndGetLastStep(tracking, 0);
+//     expect(step.operationLog.result.primitive).toBe("z");
+//     expect(step.operationLog.operation).toBe("stringLiteral");
+//   });
+// });
+
+it("Supports arrow functions", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      const concat = (a,b) => {return a + b};
+      
+      return concat("Hello ", "World")
+    `);
+  expect(normal).toBe("Hello World");
+
+  let step;
+  step = await traverseAndGetLastStep(tracking, 1);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.charIndex).toBe(1);
+
+  step = await traverseAndGetLastStep(tracking, 6);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.charIndex).toBe(0);
+});
+
+describe("Array destructuring", () => {
+  it("Works for a basic example", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const [one, two] = ["one", "two"]
+      
+      return one + two
+    `);
+    expect(normal).toBe("onetwo");
+
+    let step;
+    step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+
+    step = await traverseAndGetLastStep(tracking, 3);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
   });
 });

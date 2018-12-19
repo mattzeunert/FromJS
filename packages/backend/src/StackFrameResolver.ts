@@ -1,3 +1,5 @@
+import { prettifyAndMapFrameObject } from "./prettify";
+
 var StackTraceGPS = require("stacktrace-gps");
 var ErrorStackParser = require("error-stack-parser");
 var request = require("request");
@@ -63,8 +65,17 @@ class StackFrameResolver {
     return ajax.bind(this);
   }
 
-  resolveSourceCode(frameObject) {
-    return this._fetchCode(frameObject).then(code => {
+  resolveSourceCode(frameObject, options = { prettify: false }) {
+    const { prettify } = options;
+    return this._fetchCode(frameObject).then(async code => {
+      if (prettify) {
+        const {
+          formatted,
+          mappedFrameObject
+        } = await prettifyAndMapFrameObject(code, frameObject);
+        frameObject = mappedFrameObject;
+        code = formatted;
+      }
       return this.getSourceCodeObject(frameObject, code);
     });
   }
@@ -147,7 +158,7 @@ class StackFrameResolver {
     return res;
   }
 
-  resolveFrameFromLoc(loc) {
+  resolveFrameFromLoc(loc, prettifyIfNoSourceMap) {
     const frameObject: any = {};
     frameObject.fileName = loc.url + "?dontprocess";
     frameObject.lineNumber = loc.start.line;
@@ -174,7 +185,9 @@ class StackFrameResolver {
       // sourcemap uses sourcescontent instead of URL refs
 
       const finishWithoutSourceMaps = () => {
-        return this.resolveSourceCode(frameObject).then(code => {
+        return this.resolveSourceCode(frameObject, {
+          prettify: prettifyIfNoSourceMap
+        }).then(code => {
           frameObject.code = code;
           // frameObject.__debugOnly_FrameString = frameString;
           resolve(frameObject);

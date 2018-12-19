@@ -146,7 +146,7 @@ export default function mapInnerHTMLAssignment(
       children: children
     });
 
-    var childNodesToProcess = [].slice.call(el.childNodes);
+    var childNodesToProcess: any[] = [].slice.call(el.childNodes);
     childNodesToProcess = childNodesToProcess.filter(function(childNode) {
       var shouldIgnore = nodesToIgnore.indexOf(childNode) !== -1;
       return !shouldIgnore;
