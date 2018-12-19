@@ -21,6 +21,7 @@ import addElOrigin, {
 } from "./domHelpers/addElOrigin";
 import * as MemoValueNames from "../MemoValueNames";
 import { consoleLog } from "../helperFunctions/logging";
+import { safelyReadProperty } from "../util";
 
 export default <any>{
   argNames: log => {
@@ -149,7 +150,7 @@ export default <any>{
         } else if (
           // This is overly broad (and will track "elOrigins" for arbitraty property names),
           // but at least it makes sure all attributes are tracked
-          obj.nodeType === Node.ELEMENT_NODE &&
+          safelyReadProperty(obj, "nodeType") === Node.ELEMENT_NODE &&
           typeof propName === "string"
         ) {
           addElAttributeValueOrigin(obj, propName, {

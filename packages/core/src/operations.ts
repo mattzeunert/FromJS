@@ -34,6 +34,7 @@ import * as MemoValueNames from "./MemoValueNames";
 import { traverseDomOrigin } from "./traverseDomOrigin";
 import { VERIFY } from "./config";
 import { getElAttributeValueOrigin } from "./operations/domHelpers/addElOrigin";
+import { safelyReadProperty } from "./util";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -171,7 +172,7 @@ const operations: Operations = {
             }
           }
         } else if (
-          object.nodeType === Node.TEXT_NODE &&
+          safelyReadProperty(object, "nodeType") === Node.TEXT_NODE &&
           ["textContent", "nodeValue"].includes(propertyName)
         ) {
           if (object["__elOrigin"]) {

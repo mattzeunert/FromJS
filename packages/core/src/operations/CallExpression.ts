@@ -33,6 +33,7 @@ import {
   countGroupsInRegExp
 } from "../regExpHelpers";
 import { mapPageHtml } from "../mapPageHtml";
+import { safelyReadProperty } from "../util";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -737,7 +738,7 @@ const specialValuesForPostprocessing = {
     processClonedNode(ret, object);
     function processClonedNode(cloneResult, sourceNode) {
       if (sourceNode.__elOrigin) {
-        if (sourceNode.nodeType === Node.ELEMENT_NODE) {
+        if (safelyReadProperty(sourceNode, "nodeType") === Node.ELEMENT_NODE) {
           ["openingTagStart", "openingTagEnd", "closingTag"].forEach(
             originName => {
               if (sourceNode.__elOrigin[originName]) {
@@ -764,13 +765,17 @@ const specialValuesForPostprocessing = {
               addElAttributeValueOrigin(cloneResult, attr.name, valueOrigin);
             }
           }
-        } else if (sourceNode.nodeType === Node.TEXT_NODE) {
+        } else if (
+          safelyReadProperty(sourceNode, "nodeType") === Node.TEXT_NODE
+        ) {
           addElOrigin(
             cloneResult,
             "textValue",
             sourceNode.__elOrigin.textValue
           );
-        } else if (sourceNode.nodeType === Node.COMMENT_NODE) {
+        } else if (
+          safelyReadProperty(sourceNode, "nodeType") === Node.COMMENT_NODE
+        ) {
           addElOrigin(
             cloneResult,
             "textValue",
@@ -780,7 +785,7 @@ const specialValuesForPostprocessing = {
           consoleWarn("unhandled cloneNode");
         }
       }
-      if (sourceNode.nodeType === Node.ELEMENT_NODE) {
+      if (safelyReadProperty(sourceNode, "nodeType") === Node.ELEMENT_NODE) {
         if (isDeep) {
           sourceNode.childNodes.forEach((childNode, i) => {
             processClonedNode(cloneResult.childNodes[i], childNode);
