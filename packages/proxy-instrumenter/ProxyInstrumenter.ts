@@ -91,6 +91,12 @@ class ProxyInstrumenter {
       console.error("[PROXY]" + errorKind + " on " + url + ":", err);
     });
 
+    this.proxy.onResponse((ctx, callback) => {
+      // Don't block loading Worker from blob url, babel from localhost, etc
+      delete ctx.serverToProxyResponse.headers["content-security-policy"];
+      callback();
+    });
+
     this.proxy.onRequest(this.onRequest.bind(this));
 
     this.proxy.onResponseEnd((ctx, callback) => {

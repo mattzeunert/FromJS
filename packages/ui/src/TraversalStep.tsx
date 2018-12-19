@@ -107,10 +107,10 @@ let TraversalStep = class TraversalStep extends React.Component<
     let fileName, columnNumber, lineNumber;
     let previousLine, nextLine;
 
-    if (operationLog.result.type === "object") {
-      // the user probably cares about the arguments
-      isExpanded = true;
-    }
+    // if (operationLog.result.type === "object") {
+    //   // the user probably cares about the arguments
+    //   isExpanded = true;
+    // }
 
     let hasResolvedFrame = false;
     if (this.needsToLoadLocation(operationLog)) {
