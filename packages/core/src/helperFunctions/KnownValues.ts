@@ -76,7 +76,14 @@ export default class KnownValues {
           HTMLElement.prototype.insertAdjacentHTML,
         "HTMLElement.prototype.cloneNode": HTMLElement.prototype.cloneNode,
         "DOMParser.prototype.parseFromString":
-          DOMParser.prototype.parseFromString
+          DOMParser.prototype.parseFromString,
+        // Added this as a special case to make reading value in React work,
+        // React gets the getter from the property descriptor and then
+        // runs getter.call() to get the input element's value
+        HTMLInputElementValueGetter: Object.getOwnPropertyDescriptor(
+          HTMLInputElement.prototype,
+          "value"
+        )!.get
       });
     }
 

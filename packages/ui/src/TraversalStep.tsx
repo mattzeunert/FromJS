@@ -169,7 +169,13 @@ let TraversalStep = class TraversalStep extends React.Component<
         }
       } else if (operationLog.operation === "callExpression") {
         const knownValue = operationLog.args.function.result.knownValue;
-        if (knownValue) {
+        if (
+          (knownValue === "Function.prototype.call" ||
+            knownValue === "Function.prototype.apply") &&
+          operationLog.args.context.result.knownValue
+        ) {
+          operationTypeDetail = operationLog.args.context.result.knownValue;
+        } else if (knownValue) {
           operationTypeDetail = knownValue;
         }
       } else if (operationLog.operation === "memberExpression") {
@@ -285,6 +291,7 @@ let TraversalStep = class TraversalStep extends React.Component<
               {this.getAllArgs().map(({ name, value }) => {
                 value = value && new OperationLog(value);
                 const canInspect = !!value;
+
                 return (
                   <div
                     className={cx("step__argument", {
