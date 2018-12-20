@@ -1302,3 +1302,23 @@ describe("Array destructuring", () => {
     expect(step.charIndex).toBe(0);
   });
 });
+
+describe("getters/setters", () => {
+  it("It can traverse member expression result that came from a getter", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const obj = {}
+      Object.defineProperty(obj, "test", {
+        get: function() {
+          return "Hello"
+        }
+      })
+      
+      return obj.test
+    `);
+    expect(normal).toBe("Hello");
+
+    let step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+  });
+});

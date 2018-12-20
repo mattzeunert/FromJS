@@ -501,12 +501,19 @@ const ctx: ExecContext = {
   },
   get lastOperationType() {
     return lastOperationType;
+  },
+  countOperations(fn) {
+    let before = opExecCount;
+    fn();
+    return opExecCount - before;
   }
 };
 
 var lastOpValueResult = null;
 var lastOpTrackingResult = null;
 let lastOpTrackingResultWithoutResetting = null;
+
+let opExecCount = 0;
 
 function makeDoOperation(opName: string) {
   const opExec = operationsExec[opName];
@@ -523,6 +530,7 @@ function makeDoOperation(opName: string) {
     };
 
     var ret = opExec(objArgs, astArgs, ctx, logData);
+    opExecCount++;
 
     logData.result = ret;
     trackingValue = createOperationLog(logData);

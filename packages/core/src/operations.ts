@@ -113,12 +113,23 @@ const operations: Operations = {
       var object = objectArg[0];
       var objectT = objectArg[1];
       var propertyName = propNameArg[0];
-      ret = object[propertyName];
+      let execCount = ctx.countOperations(() => {
+        ret = object[propertyName];
+      });
 
-      let trackingValue = ctx.getObjectPropertyTrackingValue(
-        object,
-        propertyName
-      );
+      // could execs instead of using Object.getOwnPropertyDescriptor
+      // because counting is probably faster
+      const isGetter = execCount > 0;
+
+      let trackingValue;
+      if (isGetter) {
+        trackingValue = ctx.lastOpTrackingResult;
+      } else {
+        trackingValue = ctx.getObjectPropertyTrackingValue(
+          object,
+          propertyName
+        );
+      }
 
       const isInBrowser = typeof HTMLElement !== "undefined";
       if (
