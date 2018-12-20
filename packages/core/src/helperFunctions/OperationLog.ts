@@ -124,6 +124,9 @@ class SerializedValue implements SerializedValueData {
   }
 
   getTruncatedUIString() {
+    if (this.knownValue) {
+      return this.knownValue;
+    }
     if (["string", "null", "number", "boolean"].includes(this.type)) {
       let ret = this.primitive + "";
       if (ret.length > 200) {
