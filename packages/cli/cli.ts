@@ -7,7 +7,7 @@ import * as puppeteer from "puppeteer";
 const list = val => val.split(",");
 
 if (process.version.startsWith("v11") || process.version.startsWith("v10")) {
-  throw Error("Newer node version not support, please use node 8")
+  throw Error("Newer node version not support, please use node 8");
 }
 
 const maxOldSpaceSizeArg = process.execArgv.find(arg =>
@@ -96,7 +96,7 @@ if (!maxOldSpaceSizeArg) {
         "--test-type", // otherwise getting unsupported command line flag: --ignore-certificate-errors
         "--user-data-dir=" + backendOptions.getChromeUserDataDirectory(),
         "--disable-infobars", // disable "controlled by automated test software" message,
-        "--allow-running-insecure-content"
+        "--allow-running-insecure-content" // load http inspector UI on https pages
       ]
     });
     let pages = await browser.pages();
