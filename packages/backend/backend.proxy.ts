@@ -34,8 +34,6 @@ let defaultBlockList = [
   "intercom.com"
 ];
 
-console.log("proxyport", proxyPort);
-
 startProxy({
   babelPluginOptions: {
     accessToken,

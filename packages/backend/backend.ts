@@ -25,6 +25,7 @@ import * as ui from "@fromjs/ui";
 
 import * as getFolderSize from "get-folder-size";
 import * as responseTime from "response-time";
+import { config } from "@fromjs/core";
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -78,8 +79,8 @@ function createBackendCerts(options: BackendOptions) {
   );
 }
 
-const LOG_PERF = true;
 const DELETE_EXISTING_LOGS_AT_START = false;
+const LOG_PERF = config.LOG_PERF;
 
 export default class Backend {
   constructor(options: BackendOptions) {
@@ -93,7 +94,14 @@ export default class Backend {
     ensureDirectoriesExist(options);
 
     getFolderSize(options.sessionDirectory, (err, size) => {
-      console.log("Session size: ", (size / 1024 / 1024).toFixed(2) + " MB");
+      console.log(
+        "Session size: ",
+        (size / 1024 / 1024).toFixed(2) +
+          " MB" +
+          " (" +
+          path.resolve(options.sessionDirectory) +
+          ")"
+      );
     });
 
     let sessionConfig;
@@ -190,9 +198,8 @@ export default class Backend {
 }
 
 function setupUI(options, app, wss, getProxy) {
-  console.log("setupui");
   wss.on("connection", (ws: WebSocket) => {
-    console.log("On ws connection");
+    // console.log("On ws connection");
     if (domToInspect) {
       ws.send(
         JSON.stringify({

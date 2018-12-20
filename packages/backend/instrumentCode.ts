@@ -15,6 +15,7 @@ function instrumentCode() {
   // var envInitCode = fs
   //   .readFileSync(analysisDirectory + "/init.js", "utf-8")
   //   .toString();
+  const startTime = new Date();
 
   return function processCode(code, url, babelPluginOptions) {
     // not an elegant solution, but it works

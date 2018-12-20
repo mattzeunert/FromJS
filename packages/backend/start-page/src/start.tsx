@@ -7,7 +7,7 @@ class App extends React.Component {
       <div>
         <h1>Get started with FromJS</h1>
         <ol>
-          <li>Click enable DOM inspector in the bottom right corner</li>
+          <li>Click "Enable DOM inspector" in the bottom right corner</li>
           <li>Click on an element somewhere on this page</li>
           <li>A sidebar will pop up with analysis information</li>
         </ol>

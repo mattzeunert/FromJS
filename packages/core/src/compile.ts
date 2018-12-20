@@ -7,6 +7,9 @@ export interface CompilationResult {
   map: any;
   code: string;
   locs: any;
+  timeTakenMs: number;
+  sizeBefore: number;
+  sizeAfter: number;
 }
 
 var sourceMapRegex = /\/\/#[\W]*sourceMappingURL=.*$/;
@@ -39,6 +42,8 @@ export default function transform(code, extraBabelOptions = {}) {
 }
 
 export function compileSync(code, extraBabelOptions = {}, url = "/no_url.js") {
+  const sizeBefore = code.length;
+  const startTime = new Date();
   code = removeSourceMapIfAny(code);
   const babelResult = babel.transform(
     code,
@@ -47,6 +52,9 @@ export function compileSync(code, extraBabelOptions = {}, url = "/no_url.js") {
   return <CompilationResult>{
     map: babelResult.map,
     code: babelResult.code + "\n//# sourceMappingURL=" + url + ".map",
-    locs: getAndResetLocs()
+    locs: getAndResetLocs(),
+    timeTakenMs: new Date().valueOf() - startTime.valueOf(),
+    sizeAfter: babelResult.code.length,
+    sizeBefore
   };
 }

@@ -11,6 +11,7 @@
     "http-mitm-proxy": "^0.6.1",
     "magic-string": "^0.25.0",
     "parse5": "^5.0.0",
+    "pretty-bytes": "^5.1.0",
     "request": "^2.83.0",
     "threads": "^0.10.1",
     "ts-node": "^5.0.1",
