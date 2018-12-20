@@ -821,7 +821,8 @@ export function shouldSkipIdentifier(path) {
       "ClassProperty",
       "ClassDeclaration",
       "AssignmentPattern",
-      "ArrayPattern"
+      "ArrayPattern",
+      "RestElement"
     ].includes(path.parent.type)
   ) {
     return true;

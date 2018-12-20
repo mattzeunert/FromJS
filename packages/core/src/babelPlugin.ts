@@ -118,6 +118,17 @@ function plugin(babel) {
             ])
           )
         );
+      } else if (param.type === "RestElement") {
+        let varName = param.argument.name;
+        declarators.push(
+          t.variableDeclarator(
+            addLoc(getTrackingIdentifier(varName), param.loc),
+            ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+              ignoredStringLiteral("restElement"),
+              getLocObjectASTNode(param.loc)
+            ])
+          )
+        );
       } else {
         declarators.push(
           t.variableDeclarator(

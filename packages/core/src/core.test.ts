@@ -1277,4 +1277,16 @@ describe("Doesn't break when using ES6+ features", () => {
       expect(normal).toBe(5);
     });
   });
+
+  it("Doesn't break function that have rest parameters", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function add(...args) {
+        return args[1]
+      }
+
+      return add(1,2,3)
+    `);
+
+    expect(normal).toBe(2);
+  });
 });

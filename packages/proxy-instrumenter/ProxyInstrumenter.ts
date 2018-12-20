@@ -543,7 +543,7 @@ class ProxyInstrumenter {
 
   requestProcessCode(body, url, babelPluginOptions) {
     return new Promise(resolve => {
-      const RUN_IN_SAME_PROCESS = false;
+      const RUN_IN_SAME_PROCESS = true;
 
       if (RUN_IN_SAME_PROCESS) {
         console.log("Running compilation in proxy process for debugging");
