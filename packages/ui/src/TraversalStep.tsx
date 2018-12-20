@@ -290,6 +290,15 @@ let TraversalStep = class TraversalStep extends React.Component<
               {this.getAllArgs().length === 0 && <div>(No arguments)</div>}
               {this.getAllArgs().map(({ name, value }) => {
                 value = value && new OperationLog(value);
+
+                if (
+                  value.operation === "callExpression" &&
+                  value.args.function.result.knownValue === "fetch"
+                ) {
+                  // show user the URL right away since that saves them one click
+                  value = value.args.arg0;
+                }
+
                 const canInspect = !!value;
 
                 return (

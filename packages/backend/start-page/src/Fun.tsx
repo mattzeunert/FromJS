@@ -7,7 +7,7 @@ export class Fun extends React.Component<{}, { ip: string; name: string }> {
   };
 
   componentDidMount() {
-    fetch("https://api.ipify.org?format=json")
+    fetch("https://api.ipify.org/?format=json")
       .then(r => r.json())
       .then(data => {
         this.setState({ ip: data.ip });
