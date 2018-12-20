@@ -7,13 +7,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1.0,width=device-width" />
     <link rel="shortcut icon" href="/favicon.ico" />
-    <meta property="og:title" content="{{page.title}}" />
+    <meta property="og:title" content="{{ page.title }}" />
     {% if page.og_image %}
-    <meta property="og:image" content="{{page.og_image}}" />
+    <meta property="og:image" content="{{ page.og_image }}" />
     {% endif %} {% if page.og_description %}
-    <meta property="og:description" content="{{page.og_description}}" />
+    <meta property="og:description" content="{{ page.og_description }}" />
     {% endif %} {% if page.rel_canonical %}
-    <link rel="canonical" href="{{page.rel_canonical}}" />
+    <link rel="canonical" href="{{ page.rel_canonical }}" />
     {% endif %}
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:creator" content="@mattzeunert" />
@@ -82,7 +82,7 @@
           -->
         </div>
       </div>
-      <nav class="navbar navbar-default" style="margin-bottom: 30px">
+      <!-- <nav class="navbar navbar-default" style="margin-bottom: 30px">
         <div class="container">
           <ul class="nav navbar-nav">
             <li><a href="/recordings.html">Demo Videos</a></li>
@@ -98,7 +98,7 @@
             </li>
           </ul>
         </div>
-      </nav>
+      </nav> -->
 
       {{ content }} <br />
     </div>
