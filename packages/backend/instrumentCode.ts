@@ -3,7 +3,7 @@ import { compileSync } from "@fromjs/core";
 
 Error.stackTraceLimit = Infinity;
 
-var babel = require("babel-core");
+var babel = require("@babel/core");
 var path = require("path");
 var fs = require("fs");
 
@@ -15,6 +15,7 @@ function instrumentCode() {
   // var envInitCode = fs
   //   .readFileSync(analysisDirectory + "/init.js", "utf-8")
   //   .toString();
+  const startTime = new Date();
 
   return function processCode(code, url, babelPluginOptions) {
     // not an elegant solution, but it works

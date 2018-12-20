@@ -23,3 +23,5 @@ export const KEEP_LOGS_IN_MEMORY = false;
 export const EXPLICIT_NAMES = false;
 
 export const MINIMIZE_LOG_DATA_SIZE = true;
+
+export const LOG_PERF = false;

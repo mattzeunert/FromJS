@@ -1,6 +1,7 @@
 import * as request from "request";
 import * as waitUntil from "wait-until";
 import * as Proxy from "http-mitm-proxy";
+import * as prettyBytes from "pretty-bytes";
 
 ////////////////////////
 
@@ -428,12 +429,6 @@ class ProxyInstrumenter {
             // console.log(body, responseBody);
             console.log("EMPTY RESPONSE", getUrl(ctx));
           } else {
-            const sizeInMb =
-              Math.round(responseBody.length / 1024 / 1024 * 1000) / 1000;
-            if (sizeInMb > 1) {
-              console.log(getUrl(ctx), "size", sizeInMb, "MB");
-            }
-
             const contentType =
               ctx.serverToProxyResponse.headers["content-type"];
             const isHtml = contentType && contentType.includes("text/html");
@@ -550,10 +545,6 @@ class ProxyInstrumenter {
     return new Promise(resolve => {
       const RUN_IN_SAME_PROCESS = false;
 
-      if (body.length > 1024 * 500) {
-        console.time(url);
-      }
-
       if (RUN_IN_SAME_PROCESS) {
         console.log("Running compilation in proxy process for debugging");
         var compile = require(this.instrumenterFilePath);
@@ -565,9 +556,6 @@ class ProxyInstrumenter {
           .send({ body, url, babelPluginOptions })
           .on("message", function(response) {
             resolve(response);
-            if (body.length > 1024 * 500) {
-              console.timeEnd(url);
-            }
             compilerProcess.kill();
           })
           .on("error", error => {
@@ -590,7 +578,23 @@ class ProxyInstrumenter {
     }
     return this.requestProcessCode(body, url, this.babelPluginOptions).then(
       response => {
-        var { code, map, locs } = <any>response;
+        var {
+          code,
+          map,
+          locs,
+          timeTakenMs,
+          sizeBefore,
+          sizeAfter
+        } = <any>response;
+
+        if (timeTakenMs > 2000) {
+          const sizeBeforeString = prettyBytes(sizeBefore);
+          const sizeAfterString = prettyBytes(sizeAfter);
+          console.log(
+            `Instrumenting ${url} took ${timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
+          );
+        }
+
         if (this.onCompilationComplete) {
           this.onCompilationComplete(response);
         }

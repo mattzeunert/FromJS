@@ -1,3 +1,5 @@
+const inspectorWidth = "50vw";
+
 export default function initDomInspectionUI(backendPort) {
   if (typeof document === "undefined") {
     return;
@@ -9,6 +11,10 @@ export default function initDomInspectionUI(backendPort) {
   const selectedElementMarker = document.createElement("div");
   let previewedElement = null;
   const previewedElementMarker = document.createElement("div");
+
+  window["onFromJSInspect"] = function() {
+    showInspectorUI();
+  };
 
   function onSelectionEvent(e) {
     const el = e.target;
@@ -101,8 +107,6 @@ export default function initDomInspectionUI(backendPort) {
     showDomInspector = !showDomInspector;
   }
 
-  const inspectorWidth = 700;
-
   function updateToggleInspectDomButton() {
     let title;
     if (showDomInspector) {
@@ -117,6 +121,10 @@ export default function initDomInspectionUI(backendPort) {
     toggleInspectDomButton.innerHTML = title;
   }
   function init() {
+    inspectorUI = createInspectorUI();
+    hideInspectorUI();
+    document.body.appendChild(inspectorUI);
+
     toggleInspectDomButton.innerHTML = "Enable Inspector";
     toggleInspectDomButton.addEventListener("click", function() {
       toggleDomInspector();
@@ -132,18 +140,16 @@ export default function initDomInspectionUI(backendPort) {
   }
 
   let inspectorUI;
-  let isShowingInspectorUI = false;
+  let isShowingInspectorUI = true;
+
   function showInspectorUI() {
     if (isShowingInspectorUI) {
       return;
     }
+    document.body.classList.add("showing-fromjs-inspector");
     const body = global["document"]["body"];
-    if (!inspectorUI) {
-      inspectorUI = createInspectorUI();
-      body.appendChild(inspectorUI);
-    }
     inspectorUI.style.display = "block";
-    toggleInspectDomButton.style.right = inspectorWidth + "px";
+    toggleInspectDomButton.style.right = inspectorWidth;
     isShowingInspectorUI = true;
     updateToggleInspectDomButton();
   }
@@ -152,6 +158,7 @@ export default function initDomInspectionUI(backendPort) {
     if (!isShowingInspectorUI) {
       return;
     }
+    document.body.classList.remove("showing-fromjs-inspector");
     inspectorUI.style.display = "none";
     toggleInspectDomButton.style.right = "0px";
     isShowingInspectorUI = false;
@@ -168,6 +175,11 @@ export default function initDomInspectionUI(backendPort) {
 
     inspectorStyles.textContent =
       `
+      body.showing-fromjs-inspector {
+         margin-right: ` +
+      inspectorWidth +
+      `;
+      }
       .fromjs-inspector-container {
         border-left: 1px solid rgba(0,0,0,0.2);
         box-sizing: border-box;
@@ -177,12 +189,14 @@ export default function initDomInspectionUI(backendPort) {
         bottom: 0;
         width: ` +
       inspectorWidth +
-      `px;
+      `;
         background: white;
         z-index: 20000000;
       }
       .fromjs-inspector-container iframe {
-        width: 100%;
+        width: ` +
+      inspectorWidth +
+      `;
         height: 100%;
         border: none;
       }

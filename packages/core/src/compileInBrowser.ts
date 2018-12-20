@@ -21,6 +21,14 @@ function getEvalFn() {
   return ret;
 }
 
+window["fromJSEval"] = function(code) {
+  return window["__callExpression"](
+    [[eval, null], [undefined, null], [[code]]],
+    {},
+    null
+  );
+};
+
 window["__fromJSEval"] = function(code) {
   function compile(code, url, done) {
     const babelResult = Babel.transform(

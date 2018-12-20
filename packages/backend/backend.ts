@@ -1,30 +1,23 @@
 import {
-  babelPlugin,
   LevelDBLogServer,
   HtmlToOperationLogMapping,
   LocStore,
   traverseDomOrigin
 } from "@fromjs/core";
 import { traverse } from "./src/traverse";
-import StackFrameResolver, {
-  ResolvedStackFrame
-} from "./src/StackFrameResolver";
+import StackFrameResolver from "./src/StackFrameResolver";
 import * as fs from "fs";
-import * as prettier from "prettier";
-import * as Babel from "babel-core";
 import * as crypto from "crypto";
 import * as path from "path";
 import * as express from "express";
 import * as bodyParser from "body-parser";
 import * as WebSocket from "ws";
-import * as http from "http";
 import { createProxy } from "./backend.createProxy";
 import { BackendOptions } from "./BackendOptions";
-import { template } from "lodash";
-import * as ui from "@fromjs/ui";
 
 import * as getFolderSize from "get-folder-size";
 import * as responseTime from "response-time";
+import { config } from "@fromjs/core";
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -78,8 +71,8 @@ function createBackendCerts(options: BackendOptions) {
   );
 }
 
-const LOG_PERF = true;
 const DELETE_EXISTING_LOGS_AT_START = false;
+const LOG_PERF = config.LOG_PERF;
 
 export default class Backend {
   constructor(options: BackendOptions) {
@@ -93,7 +86,14 @@ export default class Backend {
     ensureDirectoriesExist(options);
 
     getFolderSize(options.sessionDirectory, (err, size) => {
-      console.log("Session size: ", (size / 1024 / 1024).toFixed(2) + " MB");
+      console.log(
+        "Session size: ",
+        (size / 1024 / 1024).toFixed(2) +
+          " MB" +
+          " (" +
+          path.resolve(options.sessionDirectory) +
+          ")"
+      );
     });
 
     let sessionConfig;
@@ -190,14 +190,21 @@ export default class Backend {
 }
 
 function setupUI(options, app, wss, getProxy) {
-  console.log("setupui");
   wss.on("connection", (ws: WebSocket) => {
-    console.log("On ws connection");
+    // console.log("On ws connection");
     if (domToInspect) {
       ws.send(
         JSON.stringify({
           type: "inspectDOM",
           ...getDomToInspectMessage()
+        })
+      );
+    } else if (logToInspect) {
+      broadcast(
+        wss,
+        JSON.stringify({
+          type: "inspectOperationLog",
+          operationLogId: logToInspect
         })
       );
     }
@@ -474,14 +481,6 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
   app.get("/viewFullCode/:url", (req, res) => {
     const url = decodeURIComponent(req.params.url);
     res.end(resolver.getFullSourceCode(url));
-  });
-
-  app.post("/prettify", (req, res) => {
-    res.end(
-      JSON.stringify({
-        code: prettier.format(req.body.code, { parser: "babylon" })
-      })
-    );
   });
 
   app.post("/instrument", (req, res) => {

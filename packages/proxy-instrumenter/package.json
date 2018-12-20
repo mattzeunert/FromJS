@@ -1,6 +1,6 @@
 {
   "name": "@fromjs/proxy-instrumenter",
-  "version": "2.0.6",
+  "version": "2.1.0",
   "main": "./dist/ProxyInstrumenter.js",
   "types": "./dist/ProxyInstrumenter.d.ts",
   "repository": "https://github.com/mattzeunert/FromJS/tree/master/packages/proxy-instrumenter",
@@ -11,11 +11,14 @@
     "http-mitm-proxy": "^0.6.1",
     "magic-string": "^0.25.0",
     "parse5": "^5.0.0",
+    "pretty-bytes": "^5.1.0",
     "request": "^2.83.0",
     "threads": "^0.10.1",
-    "ts-node": "^5.0.1",
     "wait-until": "^0.0.2",
     "walk-parse5": "^1.0.0"
+  },
+  "devDependencies": {
+    "ts-node": "^5.0.1"
   },
   "publishConfig": {
     "access": "public"

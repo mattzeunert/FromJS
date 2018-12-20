@@ -25,6 +25,7 @@
     "cli-debug":
       "VERIFY=true nodemon --max_old_space_size=8000 --inspect=36655 --ignore logs.json --ignore fromjs-session packages/cli/dist/cli.js -- --openBrowser no",
     "cli-browser": "`node packages/cli/dist/cli.js --openBrowser only`",
+    "cli-like-published": "node packages/cli/dist/cli.js",
     "compile-all":
       "npm run compile-core;npm run compile-proxy-instrumenter; npm run compile-backend; npm run compile-cli",
     "compile-all-watch":
@@ -34,7 +35,7 @@
     "@babel/core": "^7.2.0",
     "@types/jest": "^23.3.10",
     "jest": "^23.6.0",
-    "lerna": "^2.10.1",
+    "lerna": "^3.6.0",
     "prettier": "^1.12.1",
     "typescript": "^3.2.2"
   },

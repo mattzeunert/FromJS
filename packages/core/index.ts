@@ -9,6 +9,7 @@ import { compileSync } from "./src/compile";
 import HtmlToOperationLogMapping from "./src/helperFunctions/HtmlToOperationLogMapping";
 import { LocStore } from "./src/LocStore";
 import { traverseDomOrigin } from "./src/traverseDomOrigin";
+import * as config from "./src/config";
 
 export {
   babelPlugin,
@@ -21,5 +22,6 @@ export {
   compileSync,
   HtmlToOperationLogMapping,
   LocStore,
-  traverseDomOrigin
+  traverseDomOrigin,
+  config
 };

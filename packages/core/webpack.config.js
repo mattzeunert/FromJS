@@ -36,6 +36,10 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js", ".json"]
   },
 
+  performance: { hints: false },
+
+  mode: "production",
+
   plugins: [
     new AfterEmitPlugin(function() {
       setTimeout(function() {

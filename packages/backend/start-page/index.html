@@ -1,48 +1,58 @@
-<style>
-  body,
-  input {
-    font-family: Arial;
-    -webkit-font-smoothing: antialiased;
-  }
+<!DOCTYPE html>
+  <head>
+    <title>Welcome to FromJS</title>
+  </head>
+  <body>
+    <link rel="stylesheet" href="./bootstrap.css"></link>
+    <style>
+      body,
+      input {
+        font-family: Arial;
+        -webkit-font-smoothing: antialiased;
+      }
 
-  * {
-    box-sizing: border-box;
-  }
+      * {
+        box-sizing: border-box;
+      }
 
-  body {
-    margin: 0
-  }
+      #app {
+        max-width: 600px;
+        margin: auto;
+        margin-top: 40px;
+      }
+      #app li {
+        line-height: 1.5em;
+      }
 
-  #app {
-    padding: 10px;
-    font-size: 16px;
-    border: 2px solid #ccc;
-    background: #eee;
-    line-height: 1.5em;
-    height: 100vh;
-  }
-
-  pre {
-    background: #fafafa;
-    border: 1px solid #eee;
-    padding: 10px;
-  }
-
-  input {
-    font-size: 13px;
-    padding: 4px;
-    margin-left: 4px;
-  }
-
-  #greeting {
-    padding-top: 20px;
-    padding-bottom: 10px;
-    font-size: 25;
-  }
-</style>
+      body {
+        margin: 10px;;
+      }
 
 
+      pre {
+        background: #fafafa;
+        border: 1px solid #eee;
+        padding: 10px;
+      }
 
-<div id="app"></div>
+      input {
+        font-size: 13px;
+        padding: 4px;
+        margin-left: 4px;
+      }
 
-<script src="app.js"></script>
+      #greeting {
+        padding-top: 20px;
+        padding-bottom: 10px;
+        font-size: 25;
+      }
+    </style>
+
+    <div id="app">
+      <p>Loading...</p>
+      <p>This might be slow. Most other pages you load will be even slower.</p>
+    </div>
+
+    <script src="dist/bundle.js"></script>
+  </body>
+</html>

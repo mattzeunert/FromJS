@@ -8,7 +8,7 @@ import { consoleWarn } from "../../helperFunctions/logging";
 var htmlEntityRegex = /^\&[#a-zA-Z0-9]+\;/;
 var whitespaceRegex = /^[\s]+/;
 var tagEndRegex = /^(\s+)\/?>/;
-var twoQuoteSignsRegex = /^['"]{2}/;
+// var twoQuoteSignsRegex = /^['"]{2}/;
 
 const config = {
   validateHtmlMapping: true
@@ -156,7 +156,6 @@ export default function mapInnerHTMLAssignment(
       var isTextNode = child.nodeType === 3;
       var isCommentNode = child.nodeType === 8;
       var isElementNode = child.nodeType === 1;
-      var isIframe = child;
 
       if (isTextNode) {
         var text = child.textContent;
