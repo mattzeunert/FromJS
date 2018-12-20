@@ -2734,11 +2734,6 @@ readdirp@^2.0.0:
     micromatch "^3.1.10"
     readable-stream "^2.0.2"
 
-recat@^0.0.0:
-  version "0.0.0"
-  resolved "https://registry.yarnpkg.com/recat/-/recat-0.0.0.tgz#8a3ec58da9be57155316e849cf95c6a23c278804"
-  integrity sha1-ij7Fjam+VxVTFuhJz5XGojwniAQ=
-
 regex-not@^1.0.0, regex-not@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/regex-not/-/regex-not-1.0.2.tgz#1f4ece27e00b0b65e0247a6810e6a85d83a5752c"

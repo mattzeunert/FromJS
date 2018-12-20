@@ -1,6 +1,5 @@
 import * as babel from "@babel/core";
 import plugin from "./babelPlugin";
-import * as prettier from "prettier";
 import getBabelOptions, { getAndResetLocs } from "./getBabelOptions";
 
 export interface CompilationResult {

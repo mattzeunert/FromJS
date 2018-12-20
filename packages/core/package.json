@@ -17,7 +17,6 @@
     "@babel/preset-env": "^7.2.0",
     "@types/jest": "^23.3.10",
     "@types/node": "^10.3.2",
-    "awesome-typescript-loader": "^4.0.1",
     "clone-regexp": "^2.1.0",
     "jest": "^22.4.2",
     "leveldown": "^4.0.1",
@@ -28,9 +27,7 @@
     "webpack": "^4.5.0",
     "webpack-cli": "^3.1.2"
   },
-  "devDependencies": {
-    "line-column": "^1.0.2"
-  },
+  "devDependencies": {},
   "publishConfig": {
     "access": "public"
   }
