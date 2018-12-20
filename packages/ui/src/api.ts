@@ -122,7 +122,7 @@ export function setEnableInstrumentation(enableInstrumentation) {
 var exampleSocket = new WebSocket("ws://127.0.0.1:" + backendPort);
 
 exampleSocket.onmessage = function(event) {
-  console.log("websocket onmessage", event.data);
+  // console.log("websocket onmessage", event.data);
   const message = JSON.parse(event.data);
 
   if (message.type === "inspectOperationLog") {

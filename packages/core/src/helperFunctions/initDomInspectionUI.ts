@@ -25,7 +25,6 @@ export default function initDomInspectionUI(backendPort) {
     if (e.type == "click") {
       global["fromJSInspect"](el);
       selectedElement = el;
-      console.log("click");
       showInspectorUI();
       addHighlight(el, "selected");
     } else if (e.type === "mouseenter") {
@@ -144,7 +143,6 @@ export default function initDomInspectionUI(backendPort) {
   let isShowingInspectorUI = true;
 
   function showInspectorUI() {
-    console.log("show inspecotr ui", { isShowingInspectorUI });
     if (isShowingInspectorUI) {
       return;
     }
@@ -168,7 +166,6 @@ export default function initDomInspectionUI(backendPort) {
   }
 
   function createInspectorUI() {
-    console.info("creating iframe");
     const inspectorUI = document.createElement("div");
     inspectorUI.classList.add("fromjs-inspector-container");
     const iframe = document.createElement("iframe");
