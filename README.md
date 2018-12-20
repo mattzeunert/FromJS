@@ -73,3 +73,7 @@ Key libraries used:
 ## Contribute
 
 Check out the [Contributing.md](https://github.com/mattzeunert/FromJS/blob/master/CONTRIBUTING.md) file.
+
+## Supported by
+
+[![DebugBear - front-end code and performance monitoring](https://user-images.githubusercontent.com/1303660/50282301-3da7aa00-044a-11e9-9756-820b2ed01f95.png)](https://www.debugbear.com)
