@@ -36,68 +36,73 @@ let App = props => {
   const hasInspectorData = props.hasInspectorData;
 
   const expandWelcome = !hasInspectorData;
-  const welcome = (props.isInspectingDemoApp || !hasInspectorData) && (
-    <div
-      className="welcome"
-      style={{
-        maxWidth: 800
-      }}
-    >
-      <div className="welcome-content">
-        <h3
-          style={{
-            marginTop: 5,
-            marginBottom: 10
-          }}
-        >
-          Get Started
-        </h3>
-        <div>
-          <p>
-            To inspect any website open a new tab in this browser and load it.{" "}
-            <a href="http://todomvc.com/examples/backbone/" target="_blank">
-              Try it!
-            </a>
-          </p>
-          <p>
-            To select the value you want to inspect:
-            <br /> 1) Click "Enable DOM Inspector" and then select an element{" "}
-            <br />
-            2) Use <code>fromJSInspect(value)</code>
-            in your source code
-          </p>
-          <p>
-            After selecting a value this page will show its dataflow
-            information.
-          </p>
-          <p>
-            Ask questions and report bugs{" "}
-            <a href="https://github.com/mattzeunert/FromJS/issues">on Github</a>
-            .
-          </p>
-
-          <button
-            className={cx("load-demo-app", {
-              "load-demo-app--hide": props.isInspectingDemoApp
-            })}
-            // onClick={() =>
-            //   actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
-            // }
+  const welcome = false &&
+    (props.isInspectingDemoApp || !hasInspectorData) && (
+      <div
+        className="welcome"
+        style={{
+          maxWidth: 800
+        }}
+      >
+        <div className="welcome-content">
+          <h3
+            style={{
+              marginTop: 5,
+              marginBottom: 10
+            }}
           >
-            {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
-          </button>
+            Get Started
+          </h3>
+          <div>
+            <p>
+              To inspect any website open a new tab in this browser and load it.{" "}
+              <a href="http://todomvc.com/examples/backbone/" target="_blank">
+                Try it!
+              </a>
+            </p>
+            <p>
+              To select the value you want to inspect:
+              <br /> 1) Click "Enable DOM Inspector" and then select an element{" "}
+              <br />
+              2) Use <code>fromJSInspect(value)</code>
+              in your source code
+            </p>
+            <p>
+              After selecting a value this page will show its dataflow
+              information.
+            </p>
+            <p>
+              Ask questions and report bugs{" "}
+              <a href="https://github.com/mattzeunert/FromJS/issues">
+                on Github
+              </a>
+              .
+            </p>
+
+            <button
+              className={cx("load-demo-app", {
+                "load-demo-app--hide": props.isInspectingDemoApp
+              })}
+              // onClick={() =>
+              //   actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
+              // }
+            >
+              {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
+            </button>
+          </div>
         </div>
+        {props.isInspectingDemoApp && (
+          <div
+            style={{ margin: 10 }}
+            dangerouslySetInnerHTML={{
+              __html: `<iframe src="http://localhost:${
+                location.port
+              }/start/" />`
+            }}
+          />
+        )}
       </div>
-      {props.isInspectingDemoApp && (
-        <div
-          style={{ margin: 10 }}
-          dangerouslySetInnerHTML={{
-            __html: `<iframe src="http://localhost:${location.port}/start/" />`
-          }}
-        />
-      )}
-    </div>
-  );
+    );
   return (
     <div
       className={cx("app", {

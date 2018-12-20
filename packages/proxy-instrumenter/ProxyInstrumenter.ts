@@ -591,7 +591,7 @@ class ProxyInstrumenter {
           const sizeBeforeString = prettyBytes(sizeBefore);
           const sizeAfterString = prettyBytes(sizeAfter);
           console.log(
-            `Compile ${url} took ${timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
+            `Instrumenting ${url} took ${timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
           );
         }
 

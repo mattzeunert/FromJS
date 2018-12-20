@@ -31,13 +31,9 @@ By default this will launch a web server on [localhost:7000](http://localhost:70
 
 Loading pages will be slow! For large apps expect it to take several minutes. It will be faster once the page's JS files are cached. Maybe try something simple like [Backbone TodoMVC](http://todomvc.com/examples/backbone/) to get started.
 
-## Security
-
-Chrome runs with HTTPS certificate checking disabled! That means it's possible for someone else to intercept the page content. Don't open sensitive pages or enter login details!
-
-The safer alternative is to install a root certificate. I'll work on fixing that soon.
-
 ## The page inspector UI
+
+TODO:
 
 * explain dataflow concept / what the steps mean
 * can select characters
@@ -54,7 +50,7 @@ var greeting = "Hello world!"
 fromJSInspect(greeting)
 ```
 
-You can also inspect DOM elements:
+Or you can inspect DOM elements:
 
 ```
 fromJSInspect(document.querySelector("#app"))
