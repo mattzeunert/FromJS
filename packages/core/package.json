@@ -1,6 +1,6 @@
 {
   "name": "@fromjs/core",
-  "version": "2.0.6",
+  "version": "2.1.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "repository": "https://github.com/mattzeunert/FromJS/tree/master/packages/core",
@@ -27,7 +27,6 @@
     "webpack": "^4.5.0",
     "webpack-cli": "^3.1.2"
   },
-  "devDependencies": {},
   "publishConfig": {
     "access": "public"
   }
