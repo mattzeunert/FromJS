@@ -8,7 +8,10 @@ async function killPort(portNum) {
   try {
     await kp(portNum);
   } catch (err) {
-    console.log("Continuing after killPort error", err.message);
+    console.log(
+      "Continuing after killPort error",
+      err.message.slice(0, 200) + "..."
+    );
   }
 }
 

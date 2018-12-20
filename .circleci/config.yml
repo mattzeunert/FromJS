@@ -46,6 +46,8 @@ jobs:
 
       - run: cd packages/ui;npm run webpack-build;cd ../..
 
+      - run: cd packages/backend;npm run webpack-build;cd ../..
+
       - run: npm run compile-all
 
       - run: yarn test -- --testPathIgnorePatterns e2e
