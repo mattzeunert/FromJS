@@ -3,7 +3,7 @@ import { compileSync } from "@fromjs/core";
 
 Error.stackTraceLimit = Infinity;
 
-var babel = require("babel-core");
+var babel = require("@babel/core");
 var path = require("path");
 var fs = require("fs");
 

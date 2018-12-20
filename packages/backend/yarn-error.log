@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/local/bin/node /Users/mattzeunert/.npm-packages/bin/yarn
+  /usr/local/bin/node /Users/mattzeunert/.npm-packages/bin/yarn add @babel/core
 
 PATH: 
   /Users/mattzeunert/google-cloud-sdk/bin:/Users/mattzeunert/.npm-packages/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
@@ -8,13 +8,13 @@ Yarn version:
   1.12.3
 
 Node version: 
-  11.4.0
+  8.14.0
 
 Platform: 
   darwin x64
 
 Trace: 
-  Error: ENOENT: no such file or directory, lstat '/Users/mattzeunert/Documents/GitHub/FromJS/packages/backend/node_modules/@fromjs/proxy-instrumenter/node_modules/request/node_modules'
+  Error: ENOENT: no such file or directory, lstat '/Users/mattzeunert/Documents/GitHub/FromJS/packages/backend/node_modules/@fromjs/core/node_modules/chalk/index.js.flow'
 
 npm manifest: 
   {
@@ -56,6 +56,7 @@ npm manifest:
       "stacktrace-gps": "^3.0.2",
       "ts-loader": "^5.3.1",
       "ts-node": "^5.0.1",
+      "typescript": "^3.2.2",
       "webpack": "^4.28.0",
       "ws": "^5.2.0"
     },
@@ -3488,6 +3489,11 @@ Lockfile:
     version "0.0.6"
     resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
     integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
+  
+  typescript@^3.2.2:
+    version "3.2.2"
+    resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.2.2.tgz#fe8101c46aa123f8353523ebdcf5730c2ae493e5"
+    integrity sha512-VCj5UiSyHBjwfYacmDuc/NOk4QQixbE+Wn7MFJuS0nRuPQbof132Pw4u53dm264O8LPc2MVsc7RJNml5szurkg==
   
   union-value@^1.0.0:
     version "1.0.0"
