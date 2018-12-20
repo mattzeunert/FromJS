@@ -13,12 +13,16 @@ module.exports = {
   mode: "development",
 
   resolve: {
-    extensions: [".ts", ".tsx", ".js", ".json"],
-    modules: ["../node_modules"]
+    extensions: [".ts", ".tsx", ".js", ".json"]
   },
 
   module: {
-    rules: [{ test: /\.tsx?$/, loader: "ts-loader" }]
+    rules: [
+      {
+        test: /\.tsx?$/,
+        loader: "ts-loader"
+      }
+    ]
   },
 
   externals: {}

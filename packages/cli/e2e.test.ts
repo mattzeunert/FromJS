@@ -8,7 +8,7 @@ async function killPort(portNum) {
   try {
     await kp(portNum);
   } catch (err) {
-    console.log("Continuing after killPort error", err);
+    console.log("Continuing after killPort error", err.message);
   }
 }
 
@@ -179,6 +179,8 @@ describe("E2E", () => {
     "Can load the start page",
     async () => {
       const page = await createPage();
+
+      await page.waitFor(2000);
       await page.goto("http://localhost:" + backendPort + "/start");
       await page.waitForSelector("#fromjs-inspect-dom-button");
       await page.waitForSelector("h1");
