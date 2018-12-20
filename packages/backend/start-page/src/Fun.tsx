@@ -16,7 +16,7 @@ export class Fun extends React.Component<{}, { ip: string; name: string }> {
 
   render() {
     return (
-      <div data-test-fun-things>
+      <div data-test-fun-things style={{ paddingBottom: 20 }}>
         <div>
           Name:{" "}
           <input
