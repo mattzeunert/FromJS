@@ -6,7 +6,12 @@ class App extends React.Component {
     return (
       <div>
         <h1>Get started with FromJS</h1>
-        <ol>
+        <ol
+          style={{
+            paddingTop: 40,
+            paddingBottom: 10
+          }}
+        >
           <li>Click "Enable DOM inspector" in the bottom right corner</li>
           <li>Click on an element somewhere on this page</li>
           <li>A sidebar will pop up with analysis information</li>
@@ -80,7 +85,7 @@ class Fun extends React.Component<{}, { ip: string; name: string }> {
           />
         </div>
         <div>
-          {this.state.name}, your IP address is: {this.state.ip}
+          Hi {this.state.name}, your IP address is: {this.state.ip}
         </div>
       </div>
     );

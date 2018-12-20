@@ -1,4 +1,4 @@
-const inspectorWidth = "40vw";
+const inspectorWidth = "50vw";
 
 export default function initDomInspectionUI(backendPort) {
   if (typeof document === "undefined") {
