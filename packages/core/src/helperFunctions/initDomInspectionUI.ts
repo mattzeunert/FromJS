@@ -122,7 +122,10 @@ export default function initDomInspectionUI(backendPort) {
     toggleInspectDomButton.innerHTML = title;
   }
   function init() {
-    console.log("init");
+    inspectorUI = createInspectorUI();
+    hideInspectorUI();
+    document.body.appendChild(inspectorUI);
+
     toggleInspectDomButton.innerHTML = "Enable Inspector";
     toggleInspectDomButton.addEventListener("click", function() {
       toggleDomInspector();
@@ -140,10 +143,6 @@ export default function initDomInspectionUI(backendPort) {
   let inspectorUI;
   let isShowingInspectorUI = true;
 
-  inspectorUI = createInspectorUI();
-  hideInspectorUI();
-
-  document.body.appendChild(inspectorUI);
   function showInspectorUI() {
     console.log("show inspecotr ui", { isShowingInspectorUI });
     if (isShowingInspectorUI) {

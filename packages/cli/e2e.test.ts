@@ -179,19 +179,19 @@ describe("E2E", () => {
     "Can load the start page",
     async () => {
       const page = await createPage();
-      await page.goto(inspectorUrl);
-      await page.waitForSelector(".load-demo-app");
+      await page.goto("http://localhost:" + backendPort + "/start");
+      await page.waitForSelector("#fromjs-inspect-dom-button");
+      await page.waitForSelector("h1");
+      await page.click("#fromjs-inspect-dom-button");
+      await page.click("h1");
 
-      await await page.evaluate(() =>
-        (<HTMLElement>document.querySelector(".load-demo-app")).click()
-      );
+      const inspector = await waitForInPageInspector(page);
+      await inspector.waitForSelector(".step");
 
-      await page.waitForSelector(".step");
-
-      const text = await page.evaluate(
+      const text = await inspector.evaluate(
         () => document.querySelectorAll(".step")[0]["innerText"]
       );
-      expect(text).toContain("HTMLInputElement.value");
+      expect(text).toContain("StringLiteral");
 
       await page.close();
     },
@@ -344,9 +344,6 @@ describe("E2E", () => {
   it(
     "Can inspect backbone todomvc and select an element by clicking on it",
     async () => {
-      const inspectorPage = await createPage();
-      await inspectorPage.goto(inspectorUrl);
-
       // Load inspected page
       const page = await createPage();
       await page.goto("http://localhost:8000/examples/backbone/");
@@ -359,6 +356,8 @@ describe("E2E", () => {
         "document.querySelector('#fromjs-inspect-dom-button').innerText.includes('Click')"
       );
       await page.click(".todo-list li label");
+
+      const inspectorPage = await waitForInPageInspector(page);
 
       // Todo name should come from local storage
       await inspectorPage.waitForFunction(() =>
@@ -373,7 +372,6 @@ describe("E2E", () => {
       );
 
       await page.close();
-      await inspectorPage.close();
     },
     90000
   );
@@ -395,10 +393,7 @@ describe("E2E", () => {
       );
       await page.click(".todo-list li label");
 
-      await waitForInPageInspector(page);
-
-      const childFrames = page.mainFrame().childFrames();
-      const inspectorFrame = childFrames[0];
+      const inspectorFrame = await waitForInPageInspector(page);
 
       // Todo name should come from local storage
       await inspectorFrame.waitForFunction(() =>
@@ -423,10 +418,13 @@ describe("E2E", () => {
         .childFrames()
         .find(frame => frame.url() && frame.url().includes(backendPort));
       if (inspectorFrame) {
-        return;
+        break;
       }
       await page.waitFor(100);
     }
+    const childFrames = page.mainFrame().childFrames();
+    const inspectorFrame = childFrames[0];
+    return inspectorFrame;
   }
 
   it("Doesn't try to process initial page HTML too late if no script tags in body", async () => {
