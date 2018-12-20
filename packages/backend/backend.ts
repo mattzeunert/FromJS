@@ -1,27 +1,19 @@
 import {
-  babelPlugin,
   LevelDBLogServer,
   HtmlToOperationLogMapping,
   LocStore,
   traverseDomOrigin
 } from "@fromjs/core";
 import { traverse } from "./src/traverse";
-import StackFrameResolver, {
-  ResolvedStackFrame
-} from "./src/StackFrameResolver";
+import StackFrameResolver from "./src/StackFrameResolver";
 import * as fs from "fs";
-import * as prettier from "prettier";
-import * as Babel from "babel-core";
 import * as crypto from "crypto";
 import * as path from "path";
 import * as express from "express";
 import * as bodyParser from "body-parser";
 import * as WebSocket from "ws";
-import * as http from "http";
 import { createProxy } from "./backend.createProxy";
 import { BackendOptions } from "./BackendOptions";
-import { template } from "lodash";
-import * as ui from "@fromjs/ui";
 
 import * as getFolderSize from "get-folder-size";
 import * as responseTime from "response-time";
@@ -489,14 +481,6 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
   app.get("/viewFullCode/:url", (req, res) => {
     const url = decodeURIComponent(req.params.url);
     res.end(resolver.getFullSourceCode(url));
-  });
-
-  app.post("/prettify", (req, res) => {
-    res.end(
-      JSON.stringify({
-        code: prettier.format(req.body.code, { parser: "babylon" })
-      })
-    );
   });
 
   app.post("/instrument", (req, res) => {
