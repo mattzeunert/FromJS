@@ -1289,4 +1289,15 @@ describe("Doesn't break when using ES6+ features", () => {
 
     expect(normal).toBe(2);
   });
+
+  it("Doesn't for of loops without a body block", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      let ret
+      const list = ["a", "b"]
+      for (const item of list) ret = item
+      return ret
+    `);
+
+    expect(normal).toBe("b");
+  });
 });

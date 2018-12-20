@@ -220,6 +220,11 @@ function plugin(babel) {
       if (path.node.left.type === "VariableDeclaration") {
         const variableDeclarator = path.node.left.declarations[0];
         if (variableDeclarator.id.type === "Identifier") {
+          if (!path.node.body.body) {
+            path.node.body = ignoreNode(
+              babel.types.blockStatement([path.node.body])
+            );
+          }
           path.node.body.body.unshift(
             skipPath(
               t.variableDeclaration("var", [
