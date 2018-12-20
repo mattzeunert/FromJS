@@ -16,10 +16,11 @@ export class Fun extends React.Component<{}, { ip: string; name: string }> {
 
   render() {
     return (
-      <div>
+      <div data-test-fun-things>
         <div>
           Name:{" "}
           <input
+            data-test-name-input
             type="text"
             value={this.state.name}
             onChange={e => {

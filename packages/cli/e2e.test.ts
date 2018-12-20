@@ -177,26 +177,48 @@ describe("E2E", () => {
 
   const inspectorUrl = "http://localhost:" + backendPort + "/";
 
+  async function getLastStepHtml(inspectorPage) {
+    return inspectorPage.evaluate(
+      () => document.querySelectorAll(".step")[0]["innerText"]
+    );
+  }
+
   let command;
   it(
     "Can load the start page",
     async () => {
       const page = await createPage();
 
-      await page.waitFor(2000);
       await page.goto("http://localhost:" + backendPort + "/start");
       await page.waitForSelector("#fromjs-inspect-dom-button");
       await page.waitForSelector("h1");
+
+      await page.type("[data-test-name-input]", "A");
+      await page.waitForFunction(() =>
+        document.body.innerHTML.includes("Hi SomeoneA")
+      );
+
       await page.click("#fromjs-inspect-dom-button");
       await page.click("h1");
 
       const inspector = await waitForInPageInspector(page);
       await inspector.waitForSelector(".step");
-
-      const text = await inspector.evaluate(
-        () => document.querySelectorAll(".step")[0]["innerText"]
-      );
+      const text = await getLastStepHtml(inspector);
       expect(text).toContain("StringLiteral");
+
+      await page.evaluate(() =>
+        document
+          .querySelector("[data-test-fun-things] > div:nth-child(2)")!
+          ["click"]()
+      );
+
+      await inspector.waitForFunction(() =>
+        document.body.innerText.includes("SomeoneA")
+      );
+      await inspector.click("[data-key='11']");
+      await inspector.waitForFunction(() =>
+        document.body.innerText.includes("HTMLInputElementValueGetter")
+      );
 
       await page.close();
     },
