@@ -481,6 +481,12 @@ function plugin(babel) {
         path.scope.generateUidIdentifier("__forInRightVal")
       );
 
+      // insertBefore causes this ForInStatement to be visited again
+      // if a block body is introduced for the parent (e.g. if the parent
+      // was a single-statement if statement before)
+      // Prevent processing this ForInStatement twice
+      path.node.ignore = true;
+
       path.insertBefore(
         ignoreNode(
           t.variableDeclaration("let", [

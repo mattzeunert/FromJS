@@ -1362,7 +1362,7 @@ it("Doesn't break if a for in loop creates a variable with the same name as one 
     }
   `,
     {},
-    { logCode: true }
+    { logCode: false }
   );
 
   expect(normal).toBe("0");
@@ -1377,7 +1377,7 @@ it("Doesn't break if a for of loop creates a variable with the same name as one 
     }
   `,
     {},
-    { logCode: true }
+    { logCode: false }
   );
 
   expect(normal).toBe("a");
@@ -1394,8 +1394,25 @@ it("Doesn't break catch clause if a variable has the same name as one in the par
     }
   `,
     {},
-    { logCode: true }
+    { logCode: false }
   );
 
   expect(normal).toBe("msg");
+});
+
+it("Doesn't break for of loop variables when inside bodyless if", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    const o= 1;
+    const a = ["_"]
+    if (true)
+      for(const o in a) {
+        return o
+      }
+  `,
+    {},
+    { logCode: false }
+  );
+
+  expect(normal).toBe("0");
 });
