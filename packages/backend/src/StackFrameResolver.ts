@@ -54,6 +54,7 @@ class StackFrameResolver {
           function(err, res, body) {
             if (err) {
               console.error("request source maping error", err, url);
+              reject(err);
             } else {
               resolve(body);
             }

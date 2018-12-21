@@ -1158,8 +1158,9 @@ describe("Doesn't break when using ES6+ features", () => {
     expect(normal).toBe(5);
   });
 
-  it("Does't break when calling a function on super", async () => {
-    const { normal, tracking, code } = await instrumentAndRun(`
+  describe("Does't break when calling a function on super", () => {
+    it("Call method on super", async () => {
+      const { normal, tracking, code } = await instrumentAndRun(`
       class Parent {
         square(x) { return x * x}
       }
@@ -1170,7 +1171,35 @@ describe("Doesn't break when using ES6+ features", () => {
       }
       return new Child().getSquare(3)
     `);
-    expect(normal).toBe(9);
+      expect(normal).toBe(9);
+    });
+
+    it("Call super constructor", async () => {
+      const { normal, tracking, code } = await instrumentAndRun(
+        `
+      class Parent {
+        constructor(num) {
+          this.num = num
+        }
+
+        getNum() {
+          return this.num
+        }
+      }
+      class Child extends Parent {
+        constructor(num) {
+          super(num);
+        }
+      }
+
+      return new Child(4).getNum()
+    `,
+        {},
+        { logCode: true }
+      );
+
+      expect(normal).toBe(4);
+    });
   });
 
   it("Doesn't break when using array destructuring in a for of statement", async () => {

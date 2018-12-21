@@ -1662,8 +1662,14 @@ const CallExpression = <any>{
 
     let contextArg;
     let evalFn;
-    if (path.node.callee.type === "Identifier") {
-      if (path.node.callee.name === "eval") {
+    const calleeType = path.node.callee.type;
+    if (calleeType === "Super") {
+      // Prevent syntax error: super' keyword unexpected here
+      return;
+    }
+    if (calleeType === "Identifier") {
+      const functionIdentifier = path.node.callee.name;
+      if (functionIdentifier === "eval") {
         // Eval function that can be embedded in code, so that local variables are accessible in eval'd code
         const evalFnAst = this.babylon.parse(
           `sth = function(){return eval(arguments[0])}`
