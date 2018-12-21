@@ -162,7 +162,7 @@ describe("E2E", () => {
         // To make it work in CI:
         "--no-sandbox"
       ],
-      headless: false
+      headless: true
     });
 
     await startWebServer();
@@ -457,9 +457,12 @@ describe("E2E", () => {
       await inspector.click("[data-test-argument='URL'");
 
       await inspector.waitFor(() => {
-        return document
-          .querySelector("[data-test-highlighted-line]")!
-          ["innerHTML"].includes("oReq.open");
+        return (
+          document.querySelector("[data-test-highlighted-line]") &&
+          document
+            .querySelector("[data-test-highlighted-line]")!
+            ["innerHTML"].includes("oReq.open")
+        );
       });
 
       await page.close();
