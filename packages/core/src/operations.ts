@@ -554,7 +554,10 @@ const operations: Operations = {
     visitor(path) {
       const elements: any[] = [];
       path.node.elements.forEach(el => {
-        if (el.type === "SpreadElement") {
+        if (
+          el /* check for el because it can be null if array has empty elements like [1,,3] */ &&
+          el.type === "SpreadElement"
+        ) {
           elements.push(
             t.spreadElement(
               ignoredCallExpression(FunctionNames.expandArrayForSpreadElement, [

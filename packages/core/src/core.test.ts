@@ -1416,3 +1416,16 @@ it("Doesn't break for of loop variables when inside bodyless if", async () => {
 
   expect(normal).toBe("0");
 });
+
+it("Doesn't break if array element are empty", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    const arr = [,1]
+    return arr[1]
+  `,
+    {},
+    { logCode: false }
+  );
+
+  expect(normal).toBe(1);
+});
