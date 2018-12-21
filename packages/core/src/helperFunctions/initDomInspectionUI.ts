@@ -29,7 +29,14 @@ export default function initDomInspectionUI(backendPort) {
       addHighlight(el, "selected");
     } else if (e.type === "mouseenter") {
       previewedElement = el;
-      if (previewedElement !== selectedElement) {
+      const inspectorContainer = document.querySelector(
+        ".fromjs-inspector-container"
+      );
+      const isHoveringOverInspector =
+        inspectorContainer &&
+        (previewedElement === inspectorContainer ||
+          inspectorContainer.contains(previewedElement));
+      if (previewedElement !== selectedElement && !isHoveringOverInspector) {
         addHighlight(el, "previewed");
       } else {
         removeHighlight("previewed");
