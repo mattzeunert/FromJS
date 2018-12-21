@@ -3292,9 +3292,9 @@ stackframe@^1.0.3, stackframe@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/stackframe/-/stackframe-1.0.4.tgz#357b24a992f9427cba6b545d96a14ed2cbca187b"
 
-stacktrace-gps@^3.0.2:
+"stacktrace-gps@git://github.com/mattzeunert/stacktrace-gps.git#4aa6d2a6c65b7f137caaef85044d7a3717fb72e6":
   version "3.0.2"
-  resolved "https://registry.yarnpkg.com/stacktrace-gps/-/stacktrace-gps-3.0.2.tgz#33f8baa4467323ab2bd1816efa279942ba431ccc"
+  resolved "git://github.com/mattzeunert/stacktrace-gps.git#4aa6d2a6c65b7f137caaef85044d7a3717fb72e6"
   dependencies:
     source-map "0.5.6"
     stackframe "^1.0.4"
