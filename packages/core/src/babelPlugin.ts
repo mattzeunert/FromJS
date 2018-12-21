@@ -94,6 +94,8 @@ function plugin(babel) {
             varName = elem.left.name;
           } else if (elem.type === "RestParameter") {
             varName = elem.argument.name;
+          } else if (elem.type === "ObjectPattern") {
+            // will be processed in ObjectPattern visitor
           } else {
             throw Error("aaa unknown array pattern elem type " + elem.type);
           }
@@ -423,6 +425,8 @@ function plugin(babel) {
           varName = elem.left.name;
         } else if (elem.type === "RestElement") {
           varName = elem.argument.name;
+        } else if (elem.type === "ObjectPattern") {
+          // will be processed in ObjectPattern visitor
         } else {
           throw Error("array pattern elem type " + elem.type);
         }

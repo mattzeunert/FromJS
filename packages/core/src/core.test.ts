@@ -1313,4 +1313,13 @@ describe("Doesn't break when using ES6+ features", () => {
 
     expect(normal).toBe("a");
   });
+
+  it("Doesn't break object patterns inside array patterns", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const concat = ([{a,b}]) => a + b
+      return concat([{a: "x",b:"y"}])
+    `);
+
+    expect(normal).toBe("xy");
+  });
 });
