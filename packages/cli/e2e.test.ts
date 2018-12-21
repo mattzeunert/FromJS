@@ -162,7 +162,7 @@ describe("E2E", () => {
         // To make it work in CI:
         "--no-sandbox"
       ],
-      headless: true
+      headless: false
     });
 
     await startWebServer();
