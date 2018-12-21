@@ -221,6 +221,11 @@ function plugin(babel) {
     ForOfStatement(path) {
       if (path.node.left.type === "VariableDeclaration") {
         const variableDeclarator = path.node.left.declarations[0];
+        let varKind = "let";
+        if (path.node.left.kind === "var") {
+          // should leak into parent scope
+          varKind = "var";
+        }
         if (variableDeclarator.id.type === "Identifier") {
           if (!path.node.body.body) {
             path.node.body = ignoreNode(
@@ -229,7 +234,7 @@ function plugin(babel) {
           }
           path.node.body.body.unshift(
             skipPath(
-              t.variableDeclaration("let", [
+              t.variableDeclaration(varKind, [
                 t.variableDeclarator(
                   ignoredIdentifier(
                     getTrackingVarName(variableDeclarator.id.name)
@@ -456,8 +461,14 @@ function plugin(babel) {
     ForInStatement(path) {
       let varName;
       let isNewVariable;
+      let varKind = "let";
       if (path.node.left.type === "VariableDeclaration") {
-        varName = path.node.left.declarations[0].id.name;
+        const variableDeclaration = path.node.left;
+        varName = variableDeclaration.declarations[0].id.name;
+        if (variableDeclaration.kind === "var") {
+          // should leak into outer scope
+          varKind = "var";
+        }
         isNewVariable = true;
       } else if (path.node.left.type === "Identifier") {
         varName = path.node.left.name;
@@ -517,7 +528,7 @@ function plugin(babel) {
         var declaration = ignoreNode(
           // Note: this needs to be let or else there could be conflict with
           // a var from parent scope
-          t.variableDeclaration("let", [
+          t.variableDeclaration(varKind, [
             t.variableDeclarator(ignoredIdentifier(getTrackingVarName(varName)))
           ])
         );

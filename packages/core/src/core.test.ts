@@ -1368,6 +1368,32 @@ it("Doesn't break if a for in loop creates a variable with the same name as one 
   expect(normal).toBe("0");
 });
 
+it("Doesn't break accessing a variable outside a for in loop if it creates a variable with var", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    for (var a in ["a", "b", "c"]) {}
+    return a
+  `,
+    {},
+    { logCode: true }
+  );
+
+  expect(normal).toBe("2");
+});
+
+it("Doesn't break accessing a variable outside a for of loop if it creates a variable with var", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    for (var a of ["a", "b", "c"]) {}
+    return a
+  `,
+    {},
+    { logCode: true }
+  );
+
+  expect(normal).toBe("c");
+});
+
 it("Doesn't break if a for of loop creates a variable with the same name as one in the parent scope", async () => {
   const { normal, tracking, code } = await instrumentAndRun(
     `
