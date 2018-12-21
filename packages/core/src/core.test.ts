@@ -1290,7 +1290,7 @@ describe("Doesn't break when using ES6+ features", () => {
     expect(normal).toBe(2);
   });
 
-  it("Doesn't for of loops without a body block", async () => {
+  it("Doesn't break for of loops without a body block", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       let ret
       const list = ["a", "b"]
@@ -1299,5 +1299,18 @@ describe("Doesn't break when using ES6+ features", () => {
     `);
 
     expect(normal).toBe("b");
+  });
+
+  it("Doesn't break class expressions", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const C = class CC {
+        getA() {
+          return "a"
+        }
+      }
+      return new C().getA();
+    `);
+
+    expect(normal).toBe("a");
   });
 });

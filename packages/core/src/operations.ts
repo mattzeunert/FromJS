@@ -820,6 +820,7 @@ export function shouldSkipIdentifier(path) {
       "ClassMethod",
       "ClassProperty",
       "ClassDeclaration",
+      "ClassExpression",
       "AssignmentPattern",
       "ArrayPattern",
       "RestElement"
