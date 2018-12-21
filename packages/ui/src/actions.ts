@@ -56,5 +56,5 @@ export function setCollapseGetStartedIfHasData(collapse) {
 
 export function setPrettifyIfNoSourceMap(prettify) {
   appState.set("prettifyIfNoSourceMap", prettify);
-  console.log("todo: update exisitng code now");
+  window["forceUpdateInspector"]();
 }

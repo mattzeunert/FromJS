@@ -1195,7 +1195,7 @@ describe("Doesn't break when using ES6+ features", () => {
       return new Child(4).getNum()
     `,
         {},
-        { logCode: true }
+        { logCode: false }
       );
 
       expect(normal).toBe(4);

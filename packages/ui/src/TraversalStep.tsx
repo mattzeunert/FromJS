@@ -292,6 +292,7 @@ let TraversalStep = class TraversalStep extends React.Component<
                 value = value && new OperationLog(value);
 
                 if (
+                  value &&
                   value.operation === "callExpression" &&
                   value.args.function.result.knownValue === "fetch"
                 ) {

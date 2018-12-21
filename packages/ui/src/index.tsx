@@ -32,134 +32,154 @@ window["showSteps"] = function(logId, charIndex) {
   actions.selectAndTraverse(logId, charIndex);
 };
 
-let App = props => {
-  const hasInspectorData = props.hasInspectorData;
+let App = class extends React.Component<any, any> {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isForceUpdating: false
+    };
+    window["forceUpdateInspector"] = () => {
+      this.setState({ isForceUpdating: true });
+    };
+  }
+  render() {
+    const { props } = this;
+    const hasInspectorData = props.hasInspectorData;
 
-  const expandWelcome = !hasInspectorData;
-  const welcome = false &&
-    (props.isInspectingDemoApp || !hasInspectorData) && (
+    if (this.state.isForceUpdating) {
+      this.setState({ isForceUpdating: false });
+      return null;
+    }
+
+    const expandWelcome = !hasInspectorData;
+    const welcome = false &&
+      (props.isInspectingDemoApp || !hasInspectorData) && (
+        <div
+          className="welcome"
+          style={{
+            maxWidth: 800
+          }}
+        >
+          <div className="welcome-content">
+            <h3
+              style={{
+                marginTop: 5,
+                marginBottom: 10
+              }}
+            >
+              Get Started
+            </h3>
+            <div>
+              <p>
+                To inspect any website open a new tab in this browser and load
+                it.{" "}
+                <a href="http://todomvc.com/examples/backbone/" target="_blank">
+                  Try it!
+                </a>
+              </p>
+              <p>
+                To select the value you want to inspect:
+                <br /> 1) Click "Enable DOM Inspector" and then select an
+                element <br />
+                2) Use <code>fromJSInspect(value)</code>
+                in your source code
+              </p>
+              <p>
+                After selecting a value this page will show its dataflow
+                information.
+              </p>
+              <p>
+                Ask questions and report bugs{" "}
+                <a href="https://github.com/mattzeunert/FromJS/issues">
+                  on Github
+                </a>
+                .
+              </p>
+
+              <button
+                className={cx("load-demo-app", {
+                  "load-demo-app--hide": props.isInspectingDemoApp
+                })}
+                // onClick={() =>
+                //   actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
+                // }
+              >
+                {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
+              </button>
+            </div>
+          </div>
+          {props.isInspectingDemoApp && (
+            <div
+              style={{ margin: 10 }}
+              dangerouslySetInnerHTML={{
+                __html: `<iframe src="http://localhost:${
+                  location.port
+                }/start/" />`
+              }}
+            />
+          )}
+        </div>
+      );
+    return (
       <div
-        className="welcome"
-        style={{
-          maxWidth: 800
-        }}
+        className={cx("app", {
+          "app--isInspectingDemoApp": props.isInspectingDemoApp
+        })}
       >
-        <div className="welcome-content">
-          <h3
-            style={{
-              marginTop: 5,
-              marginBottom: 10
-            }}
+        <div className="app-header">
+          <a
+            href="https://github.com/mattzeunert/FromJS"
+            style={{ color: "white", textDecoration: "none" }}
+            target="_blank"
           >
-            Get Started
-          </h3>
-          <div>
-            <p>
-              To inspect any website open a new tab in this browser and load it.{" "}
-              <a href="http://todomvc.com/examples/backbone/" target="_blank">
-                Try it!
-              </a>
-            </p>
-            <p>
-              To select the value you want to inspect:
-              <br /> 1) Click "Enable DOM Inspector" and then select an element{" "}
-              <br />
-              2) Use <code>fromJSInspect(value)</code>
-              in your source code
-            </p>
-            <p>
-              After selecting a value this page will show its dataflow
-              information.
-            </p>
-            <p>
-              Ask questions and report bugs{" "}
-              <a href="https://github.com/mattzeunert/FromJS/issues">
-                on Github
-              </a>
-              .
-            </p>
+            FromJS Dataflow Inspector
+          </a>
+          <div style={{ float: "right" }}>
+            {location.href.includes("?debug") && (
+              <button
+                className="blue-button"
+                onClick={() =>
+                  appState.set("debugMode", !appState.get("debugMode"))
+                }
+              >
+                Toggle Debug Mode
+              </button>
+            )}
+            <button
+              className="blue-button"
+              onClick={() => {
+                api.setEnableInstrumentation(!props.enableInstrumentation);
+              }}
+            >
+              {props.enableInstrumentation ? "Disable" : "Enable"} tracking
+            </button>
 
             <button
-              className={cx("load-demo-app", {
-                "load-demo-app--hide": props.isInspectingDemoApp
-              })}
-              // onClick={() =>
-              //   actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
-              // }
+              className="blue-button"
+              onClick={() => {
+                actions.setPrettifyIfNoSourceMap(!props.prettifyIfNoSourceMap);
+              }}
             >
-              {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
+              {props.prettifyIfNoSourceMap
+                ? "Don't prettify"
+                : "Prettify if no source map"}
             </button>
           </div>
         </div>
-        {props.isInspectingDemoApp && (
-          <div
-            style={{ margin: 10 }}
-            dangerouslySetInnerHTML={{
-              __html: `<iframe src="http://localhost:${
-                location.port
-              }/start/" />`
-            }}
-          />
-        )}
+        <div className="app-content">
+          <div className="app__inspector">
+            {!props.isInspectingDemoApp && welcome}
+            <DomInspector />
+            <TraversalSteps />
+          </div>
+
+          <div className="app__demo">
+            {props.isInspectingDemoApp && welcome}
+          </div>
+        </div>
       </div>
     );
-  return (
-    <div
-      className={cx("app", {
-        "app--isInspectingDemoApp": props.isInspectingDemoApp
-      })}
-    >
-      <div className="app-header">
-        <a
-          href="https://github.com/mattzeunert/FromJS"
-          style={{ color: "white", textDecoration: "none" }}
-          target="_blank"
-        >
-          FromJS Dataflow Inspector
-        </a>
-        <div style={{ float: "right" }}>
-          {location.href.includes("?debug") && (
-            <button
-              className="blue-button"
-              onClick={() =>
-                appState.set("debugMode", !appState.get("debugMode"))
-              }
-            >
-              Toggle Debug Mode
-            </button>
-          )}
-          <button
-            className="blue-button"
-            onClick={() => {
-              api.setEnableInstrumentation(!props.enableInstrumentation);
-            }}
-          >
-            {props.enableInstrumentation ? "Disable" : "Enable"} tracking
-          </button>
-
-          <button
-            className="blue-button"
-            onClick={() => {
-              actions.setPrettifyIfNoSourceMap(!props.prettifyIfNoSourceMap);
-            }}
-          >
-            {props.prettifyIfNoSourceMap
-              ? "Don't prettify"
-              : "Prettify if no source map"}
-          </button>
-        </div>
-      </div>
-      <div className="app-content">
-        <div className="app__inspector">
-          {!props.isInspectingDemoApp && welcome}
-          <DomInspector />
-          <TraversalSteps />
-        </div>
-
-        <div className="app__demo">{props.isInspectingDemoApp && welcome}</div>
-      </div>
-    </div>
-  );
+  }
 };
 
 App = branch(

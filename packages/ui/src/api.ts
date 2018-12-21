@@ -7,17 +7,17 @@ let backendPort = window["backendPort"];
 let backendRoot = "http://localhost:" + backendPort;
 const resolveStackFrameCache = {};
 export function resolveStackFrame(operationLog) {
-  if (resolveStackFrameCache[operationLog.index]) {
-    return Promise.resolve(resolveStackFrameCache[operationLog.index]);
+  const prettifyArg = appState.get("prettifyIfNoSourceMap") ? "/prettify" : "";
+  const cacheKey = operationLog.index + prettifyArg;
+  if (resolveStackFrameCache[cacheKey]) {
+    return Promise.resolve(resolveStackFrameCache[cacheKey]);
   }
   return callApi(
-    "resolveStackFrame/" +
-      operationLog.loc +
-      (appState.get("prettifyIfNoSourceMap") ? "/prettify" : ""),
+    "resolveStackFrame/" + operationLog.loc + prettifyArg,
     {},
     { method: "GET" }
   ).then(res => {
-    resolveStackFrameCache[operationLog.index] = res;
+    resolveStackFrameCache[cacheKey] = res;
     return res;
   });
 }
