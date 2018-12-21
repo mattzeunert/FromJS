@@ -136,6 +136,27 @@ const operations: Operations = {
       const isInBrowser = typeof HTMLElement !== "undefined";
       if (
         isInBrowser &&
+        object instanceof XMLHttpRequest &&
+        propertyName === "responseText"
+      ) {
+        trackingValue = ctx.createOperationLog({
+          operation: ctx.operationTypes.XMLHttpRequestResponse,
+          args: {
+            value: [ret],
+            openCall: [
+              "(OpenCall)",
+              ctx.global["__xmlHttpRequests"][object.responseURL]
+            ]
+          },
+          astArgs: {},
+          result: ret,
+          runtimeArgs: {
+            url: object.responseURL
+          },
+          loc: logData.loc
+        });
+      } else if (
+        isInBrowser &&
         !trackingValue &&
         object instanceof Node &&
         typeof propertyName !== "symbol"

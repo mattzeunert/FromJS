@@ -1139,6 +1139,12 @@ const CallExpression = <any>{
               : fnArgValues[0].url;
           ctx.global["__fetches"][url] = logData.index;
         }
+        if (fnKnownValue === "XMLHttpRequest.prototype.open") {
+          ctx.global["__xmlHttpRequests"] =
+            ctx.global["__xmlHttpRequests"] || {};
+          const url = fnArgValues[1];
+          ctx.global["__xmlHttpRequests"][url] = logData.index;
+        }
 
         if (fnKnownValue === "Response.prototype.json") {
           fn = function(this: Response) {

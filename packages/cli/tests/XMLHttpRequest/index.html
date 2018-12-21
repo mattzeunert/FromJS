@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <script>
+      function reqListener() {
+        const respText = this.responseText;
+        const resp = JSON.parse(respText);
+        const ip = resp.ip;
+
+        fromJSInspect(ip);
+      }
+
+      var oReq = new XMLHttpRequest();
+      oReq.addEventListener("load", reqListener);
+      oReq.open("GET", "https://api.ipify.org/?format=json");
+      oReq.send();
+    </script>
+  </body>
+</html>

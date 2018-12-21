@@ -20,7 +20,7 @@ var appState = new Baobab({
       selectionHistory: ["selectionHistory"]
     },
     get: function({ selectionHistory }) {
-      return selectionHistory.length > 2;
+      return selectionHistory.length >= 2;
     }
   }),
   hasInProgressRequest: {

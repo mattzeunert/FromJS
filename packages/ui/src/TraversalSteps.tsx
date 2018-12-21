@@ -131,7 +131,8 @@ let TraversalSteps = class TraversalSteps extends React.Component<
             </button>
           )}
         {!this.props.showFullDataFlow &&
-          !this.props.showDOMStep && (
+          !this.props.showDOMStep &&
+          steps.length > 1 && (
             <button
               onClick={() => toggleShowFullDataFlow(true)}
               className="step__visible-steps-button"

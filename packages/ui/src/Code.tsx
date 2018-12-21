@@ -191,7 +191,7 @@ export default class Code extends React.Component<CodeProps, CodeState> {
               }}
             >
               {getPrevLines()}
-              <div style={{ background: "#fff0f0" }}>
+              <div style={{ background: "#fff0f0" }} data-test-highlighted-line>
                 <LineNumber lineNumber={frame.lineNumber} />
                 <span>{processFrameString(strBeforeBar)}</span>
                 {barSpan}

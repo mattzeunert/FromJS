@@ -191,6 +191,8 @@ let TraversalStep = class TraversalStep extends React.Component<
         }
       } else if (operationLog.operation === "fetchResponse") {
         operationTypeDetail = operationLog.runtimeArgs.url;
+      } else if (operationLog.operation === "XMLHttpRequest.responseText") {
+        operationTypeDetail = operationLog.runtimeArgs.url;
       }
     } catch (err) {
       console.log(err);
@@ -240,6 +242,7 @@ let TraversalStep = class TraversalStep extends React.Component<
             )}
           </span>
           <button
+            data-test-arguments-button
             className="blue-button"
             style={{ float: "right" }}
             onClick={() => this.setState({ isExpanded: !isExpanded })}
@@ -298,12 +301,25 @@ let TraversalStep = class TraversalStep extends React.Component<
                 ) {
                   // show user the URL right away since that saves them one click
                   value = value.args.arg0;
+                  name = "URL";
+                }
+
+                if (
+                  value &&
+                  value.operation === "callExpression" &&
+                  value.args.function.result.knownValue ===
+                    "XMLHttpRequest.prototype.open"
+                ) {
+                  // show user the URL right away since that saves them one click
+                  value = value.args.arg1;
+                  name = "URL";
                 }
 
                 const canInspect = !!value;
 
                 return (
                   <div
+                    data-test-argument={name}
                     className={cx("step__argument", {
                       "step__argument--can-inspect": canInspect
                     })}

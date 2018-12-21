@@ -12,8 +12,14 @@ export default function initDomInspectionUI(backendPort) {
   let previewedElement = null;
   const previewedElementMarker = document.createElement("div");
 
+  let waitForInitResolveFunction;
+  const waitForInit = new Promise(
+    resolve => (waitForInitResolveFunction = resolve)
+  );
   window["onFromJSInspect"] = function() {
-    showInspectorUI();
+    waitForInit.then(() => {
+      showInspectorUI();
+    });
   };
 
   function onSelectionEvent(e) {
@@ -144,10 +150,12 @@ export default function initDomInspectionUI(backendPort) {
     toggleInspectDomButton.setAttribute("id", "fromjs-inspect-dom-button");
     const body = global["document"]["body"];
     body.appendChild(toggleInspectDomButton);
+
+    waitForInitResolveFunction();
   }
 
   let inspectorUI;
-  let isShowingInspectorUI = true;
+  let isShowingInspectorUI = false;
 
   function showInspectorUI() {
     if (isShowingInspectorUI) {

@@ -63,6 +63,11 @@ export default class KnownValues {
         "Response.prototype.text": Response.prototype.text
       });
     }
+    if (global["XMLHttpRequest"]) {
+      Object.assign(this._knownValues, {
+        "XMLHttpRequest.prototype.open": XMLHttpRequest.prototype.open
+      });
+    }
 
     if (global["document"]) {
       const document = global.document;

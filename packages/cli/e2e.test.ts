@@ -178,6 +178,7 @@ describe("E2E", () => {
   const inspectorUrl = "http://localhost:" + backendPort + "/";
 
   async function getLastStepHtml(inspectorPage) {
+    await inspectorPage.waitForSelector(".step");
     return inspectorPage.evaluate(
       () => document.querySelectorAll(".step")[0]["innerText"]
     );
@@ -432,6 +433,34 @@ describe("E2E", () => {
       await inspectorFrame.waitForFunction(() =>
         document.body.innerHTML.includes("StringLiteral")
       );
+
+      await page.close();
+    },
+    90000
+  );
+
+  it(
+    "Can inspect XMLHttpRequest result",
+    async () => {
+      const page = await createPage();
+
+      await page.goto(
+        "http://localhost:" + webServerPort + "/tests/" + "XMLHttpRequest"
+      );
+      const inspector = await waitForInPageInspector(page);
+
+      expect(await getLastStepHtml(inspector)).toContain(
+        "XMLHttpRequest.responseText"
+      );
+
+      await inspector.click("[data-test-arguments-button]");
+      await inspector.click("[data-test-argument='URL'");
+
+      await inspector.waitFor(() => {
+        return document
+          .querySelector("[data-test-highlighted-line]")!
+          ["innerHTML"].includes("oReq.open");
+      });
 
       await page.close();
     },
