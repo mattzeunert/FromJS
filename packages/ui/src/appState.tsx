@@ -1,4 +1,5 @@
 import * as Baobab from "baobab";
+import { setSelection } from "./actions";
 var monkey = Baobab.monkey;
 
 var appState = new Baobab({
@@ -13,6 +14,15 @@ var appState = new Baobab({
   enableInstrumentation: window["enableInstrumentation"],
   apiRequestsInProgress: [],
   collapseGetStartedIfHasData: true, // not used anymore i think
+  selectionHistory: [],
+  canUndoSelection: monkey({
+    cursors: {
+      selectionHistory: ["selectionHistory"]
+    },
+    get: function({ selectionHistory }) {
+      return selectionHistory.length > 2;
+    }
+  }),
   hasInProgressRequest: {
     traverse: monkey({
       cursors: {
@@ -35,7 +45,6 @@ var appState = new Baobab({
       );
     }
   }),
-  // TODO: this should probably be top level state (and then we can implement undo/redo)
   inspectedString: monkey({
     cursors: {
       domToInspect: ["domToInspect"],
