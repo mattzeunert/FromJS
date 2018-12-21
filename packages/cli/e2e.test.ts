@@ -436,11 +436,6 @@ describe("E2E", () => {
       );
 
       await page.close();
-
-      // Shouldn't be needed, but sometimes the BE server is too busy
-      // and handles an inspect request later and that can override
-      // the result that another test has sent and that was already handled
-      await new Promise(resolve => setTimeout(resolve, 5000));
     },
     90000
   );
