@@ -2,7 +2,8 @@
   "name": "@fromjs/cli",
   "version": "2.1.2",
   "main": "index.js",
-  "repository": "https://github.com/mattzeunert/FromJS/tree/master/packages/cli",
+  "repository":
+    "https://github.com/mattzeunert/FromJS/tree/master/packages/cli",
   "author": "Matt Zeunert <matt@mostlystatic.com>",
   "license": "MIT",
   "dependencies": {
@@ -10,7 +11,7 @@
     "@types/node": "^10.1.3",
     "commander": "^2.15.1",
     "opn": "^5.3.0",
-    "puppeteer": "^1.5.0"
+    "puppeteer": "~1.10.0"
   },
   "bin": {
     "fromjs": "bin/fromjs"
