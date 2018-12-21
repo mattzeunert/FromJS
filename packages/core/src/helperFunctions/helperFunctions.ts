@@ -284,6 +284,7 @@ function trackObjectPropertyAssignment(
     typeof propertyValueTrackingValue !== "number" &&
     !!propertyValueTrackingValue
   ) {
+    console.log("Tracking value is not a number:", propertyValueTrackingValue);
     debugger;
   }
   objectPropertyTrackingInfo[getTrackingPropName(propName)] = {
@@ -408,6 +409,11 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
     resultArr.push(r);
   });
   return resultArr;
+};
+global[FunctionNames.expandArrayForSpreadElement] = function(arr) {
+  return arr.map((elem, i) => {
+    return [elem, ctx.getObjectPropertyTrackingValue(arr, i)];
+  });
 };
 
 const MAX_TRACKED_ARRAY_INDEX = 10;

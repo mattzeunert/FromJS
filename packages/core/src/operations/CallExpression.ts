@@ -855,6 +855,10 @@ const specialValuesForPostprocessing = {
     const jsonIndexToTrackingValue = {};
     runtimeArgs.jsonIndexToTrackingValue = jsonIndexToTrackingValue;
     const jsonString = ret;
+    if (!jsonString) {
+      // e.g. return value can be undefined when pass a class into JSON.stringify
+      return;
+    }
     traverseObject(
       stringifiedObject,
       (keyPath, value, key, traversedObject) => {

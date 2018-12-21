@@ -1322,3 +1322,21 @@ describe("getters/setters", () => {
     expect(step.charIndex).toBe(0);
   });
 });
+
+it("Can traverse array expressions that contain array patterns", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      const arr1 = ["x", "y"]
+      const arr2 = ["a", "b", ...arr1]
+      
+      return arr2[3]
+    `,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("y");
+
+  let step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.charIndex).toBe(0);
+});

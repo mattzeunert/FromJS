@@ -23,6 +23,7 @@ import {
   getGetGlobalCall,
   getTrackingVarName
 } from "./babelPluginHelpers";
+
 import OperationLog from "./helperFunctions/OperationLog";
 import { ExecContext } from "./helperFunctions/ExecContext";
 
@@ -35,6 +36,7 @@ import { traverseDomOrigin } from "./traverseDomOrigin";
 import { VERIFY } from "./config";
 import { getElAttributeValueOrigin } from "./operations/domHelpers/addElOrigin";
 import { safelyReadProperty, nullOnError } from "./util";
+import * as FunctionNames from "./FunctionNames";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -550,15 +552,23 @@ const operations: Operations = {
       return arr;
     },
     visitor(path) {
-      return this.createNode!(
-        [
-          path.node.elements.map(el =>
+      const elements: any[] = [];
+      path.node.elements.forEach(el => {
+        if (el.type === "SpreadElement") {
+          elements.push(
+            t.spreadElement(
+              ignoredCallExpression(FunctionNames.expandArrayForSpreadElement, [
+                el.argument
+              ])
+            )
+          );
+        } else {
+          elements.push(
             ignoredArrayExpression([el, getLastOperationTrackingResultCall()])
-          )
-        ],
-        null,
-        path.node.loc
-      );
+          );
+        }
+      });
+      return this.createNode!([elements], null, path.node.loc);
     }
   },
   returnStatement: {
