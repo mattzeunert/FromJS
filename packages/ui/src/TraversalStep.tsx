@@ -10,6 +10,7 @@ import { selectAndTraverse } from "./actions";
 import * as cx from "classnames";
 import "./TraversalStep.scss";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
+import { adjustColumnForEscapeSequences } from "../../core/src/adjustColumnForEscapeSequences";
 
 function getFileNameFromPath(path) {
   const parts = path.split("/");
@@ -27,30 +28,6 @@ type TraversalStepState = {
   isExpanded: boolean;
   isHovering: boolean;
 };
-
-// two chars in a string literal can map to one char in the actual string value (i.e. if there's an escape sequence like
-// "\n" that becomes one new line character)
-// doesn't work for explicit unicode escapes like \u0020 right now
-function adjustColumnForEscapeSequences(line, columnNumber) {
-  for (var i = 0; i < columnNumber; i++) {
-    if (line[i] === "\\") {
-      var charAfter = line[i + 1];
-      if (charAfter === "n") {
-        columnNumber++;
-      }
-      if (charAfter === "t") {
-        columnNumber++;
-      }
-      if (charAfter === '"') {
-        columnNumber++;
-      }
-      if (charAfter === "'") {
-        columnNumber++;
-      }
-    }
-  }
-  return columnNumber;
-}
 
 let TraversalStep = class TraversalStep extends React.Component<
   TraversalStepProps,

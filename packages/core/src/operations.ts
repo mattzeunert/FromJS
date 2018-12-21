@@ -23,6 +23,8 @@ import {
   getGetGlobalCall,
   getTrackingVarName
 } from "./babelPluginHelpers";
+import * as jsonToAst from "json-to-ast";
+import { adjustColumnForEscapeSequences } from "./adjustColumnForEscapeSequences";
 
 import OperationLog from "./helperFunctions/OperationLog";
 import { ExecContext } from "./helperFunctions/ExecContext";
@@ -732,9 +734,49 @@ const operations: Operations = {
       // This traversal method is inaccurate but still useful
       // Ideally we should probably have a JSON parser
       const valueReadFromJson = operationLog.result.primitive;
-      charIndex += operationLog.args.json.result.primitive.indexOf(
-        valueReadFromJson
+      const json = operationLog.args.json.result.primitive;
+      const keyPath = operationLog.runtimeArgs.keyPath;
+
+      function getValueStart(json, keyPath, isKey) {
+        const ast = jsonToAst(json, { loc: true });
+        const keys = keyPath.split(".");
+        return get(ast, keys);
+
+        function get(ast, keyPath) {
+          const key = keyPath.shift();
+
+          ast = ast.children.find(child => child.key.value === key);
+
+          if (keyPath.length === 0) {
+            let ret;
+            if (isKey) {
+              ret = ast.key.loc.start.offset;
+            } else {
+              ret = ast.value.loc.start.offset;
+            }
+            if (json[ret] === '"') {
+              ret++;
+            }
+            return ret;
+          }
+
+          ast = ast.value;
+          return get(ast, keyPath);
+        }
+      }
+
+      const valueStart = getValueStart(
+        json,
+        keyPath,
+        operationLog.runtimeArgs.isKey
       );
+
+      charIndex = adjustColumnForEscapeSequences(
+        json.slice(valueStart),
+        charIndex
+      );
+      charIndex += valueStart;
+
       return {
         operationLog: operationLog.args.json,
         charIndex

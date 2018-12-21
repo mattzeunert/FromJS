@@ -374,6 +374,44 @@ describe("JSON.parse", () => {
     expect(lastStep.charIndex).toBe(2);
     expect(getStepTypeList(t)).toContain("jsonParseResult");
   });
+
+  it("Can handle character mapping if the JSON contains an escaped line break", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = '{"a": "\\\\nHello"}';
+        var obj = JSON.parse(json);
+        return obj.a + "|" + json
+      `);
+
+    const json = normal.split("|")[1];
+
+    var t = await traverse({
+      operationLog: tracking,
+      charIndex: normal.indexOf("l")
+    });
+    var lastStep = t[t.length - 1];
+
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(json.indexOf("l"));
+  });
+
+  it("Can handle character mapping if the JSON contains an unicode escape sequence ", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = '{"a": "\\\\u003cHello"}';
+        var obj = JSON.parse(json);
+        return obj.a + "|" + json
+      `);
+
+    const json = normal.split("|")[1];
+
+    var t = await traverse({
+      operationLog: tracking,
+      charIndex: normal.indexOf("l")
+    });
+    var lastStep = t[t.length - 1];
+
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(json.indexOf("l"));
+  });
 });
 
 describe("JSON.stringify", () => {

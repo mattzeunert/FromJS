@@ -19,6 +19,7 @@
     "@types/node": "^10.3.2",
     "clone-regexp": "^2.1.0",
     "jest": "^22.4.2",
+    "json-to-ast": "^2.0.7",
     "leveldown": "^4.0.1",
     "levelup": "^3.0.1",
     "prettier": "^1.11.1",

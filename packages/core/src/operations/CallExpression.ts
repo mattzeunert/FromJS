@@ -73,6 +73,12 @@ function traverseObject(
   });
 }
 
+function getFullUrl(url) {
+  var a = document.createElement("a");
+  a.href = url;
+  return a.href;
+}
+
 const specialCases = {
   "String.prototype.replace": ({
     ctx,
@@ -176,7 +182,8 @@ const specialCases = {
         },
         result: value,
         runtimeArgs: {
-          keyPath: keyPath
+          keyPath: keyPath,
+          isKey: false
         },
         loc: logData.loc
       });
@@ -187,7 +194,8 @@ const specialCases = {
         },
         result: key,
         runtimeArgs: {
-          keyPath: keyPath
+          keyPath: keyPath,
+          isKey: true
         },
         loc: logData.loc
       });
@@ -1133,16 +1141,18 @@ const CallExpression = <any>{
           // let's pretend we can match the fetch call
           // to the response value via the url
           ctx.global["__fetches"] = ctx.global["__fetches"] || {};
-          const url =
+          let url =
             typeof fnArgValues[0] === "string"
               ? fnArgValues[0]
               : fnArgValues[0].url;
+          url = getFullUrl(url);
           ctx.global["__fetches"][url] = logData.index;
         }
         if (fnKnownValue === "XMLHttpRequest.prototype.open") {
           ctx.global["__xmlHttpRequests"] =
             ctx.global["__xmlHttpRequests"] || {};
-          const url = fnArgValues[1];
+          let url = fnArgValues[1];
+          url = getFullUrl(url);
           ctx.global["__xmlHttpRequests"][url] = logData.index;
         }
 
