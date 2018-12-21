@@ -2,17 +2,7 @@
 
 FromJS is dynamic data-flow analysis tool for JavaScript code. It can tell you where each bit of content on a web page came from.
 
-Some content might have been loaded using `fetch`, some might have been stored in `localStorage`, and some might have been hard-coded in the JavaScript.
-
-(todo: zoomed in screenshot showing origin of some JSON response data)
-
-(todo further down: 5 gifs/mp4s showing examples)
-
----
-
-FromJS is in currently. If you find any issues (you probably will) please report them on Github.
-
-This is how you use it: open any web page, select an element with the DOM inspector, then view the source of the inspected data. The screenshot below shows the the todo item was loaded from localStorage:
+Some content might have been loaded using `fetch`, some might have been stored in `localStorage`, and some might have been hard-coded in the JavaScript code.
 
 ![](https://user-images.githubusercontent.com/1303660/41681222-dc26268e-74cb-11e8-9375-1cd2125d0511.png)
 
@@ -25,19 +15,11 @@ Install FromJS:
 Yarn: `sudo yarn global add @fromjs/cli`  
 NPM: `sudo npm install -g @fromjs/cli --unsafe-perm` [(Why unsafe-perm?)](https://github.com/mattzeunert/FromJS/issues/93)
 
-Run FromJS: `fromjs` - this will open a Chrome browser window
+Run FromJS: `fromjs` - this will open a new Chrome browser window
 
-By default this will launch a web server on [localhost:7000](http://localhost:7000/), a proxy server on port 7001, and store the collected data in `./fromjs-session`.
+By default FromJS will launch a web server on [localhost:7000](http://localhost:7000/), a proxy server on port 7001, and store the collected data in `./fromjs-session`.
 
 Loading pages will be slow! For large apps expect it to take several minutes. It will be faster once the page's JS files are cached. Maybe try something simple like [Backbone TodoMVC](http://todomvc.com/examples/backbone/) to get started.
-
-## The page inspector UI
-
-TODO:
-
-* explain dataflow concept / what the steps mean
-* can select characters
-* view argument list
 
 ## fromJSInspect
 
@@ -58,7 +40,7 @@ fromJSInspect(document.querySelector("#app"))
 
 ## Node
 
-Node isn't currently supported, although if we can figure out how to intercept the JS before it's executed by Node it should be pretty straightforward to implement.
+Analyzing server-side code isn't currently supported, although if we can figure out how to intercept the JS before it's executed by Node it should be pretty straightforward to implement.
 
 ## How it works
 

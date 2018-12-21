@@ -1375,7 +1375,7 @@ it("Doesn't break accessing a variable outside a for in loop if it creates a var
     return a
   `,
     {},
-    { logCode: true }
+    { logCode: false }
   );
 
   expect(normal).toBe("2");
@@ -1388,7 +1388,7 @@ it("Doesn't break accessing a variable outside a for of loop if it creates a var
     return a
   `,
     {},
-    { logCode: true }
+    { logCode: false }
   );
 
   expect(normal).toBe("c");
