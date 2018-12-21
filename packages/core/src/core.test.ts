@@ -1367,3 +1367,35 @@ it("Doesn't break if a for in loop creates a variable with the same name as one 
 
   expect(normal).toBe("0");
 });
+
+it("Doesn't break if a for of loop creates a variable with the same name as one in the parent scope", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    const a = 123;
+    for (const a of ["a", "b", "c"]) {
+      return a
+    }
+  `,
+    {},
+    { logCode: true }
+  );
+
+  expect(normal).toBe("a");
+});
+
+it("Doesn't break catch clause if a variable has the same name as one in the parent scope", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    const err = 123;
+    try {
+      throw Error("msg")
+    } catch (err) {
+      return err.message
+    }
+  `,
+    {},
+    { logCode: true }
+  );
+
+  expect(normal).toBe("msg");
+});

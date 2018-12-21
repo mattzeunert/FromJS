@@ -229,7 +229,7 @@ function plugin(babel) {
           }
           path.node.body.body.unshift(
             skipPath(
-              t.variableDeclaration("var", [
+              t.variableDeclaration("let", [
                 t.variableDeclarator(
                   ignoredIdentifier(
                     getTrackingVarName(variableDeclarator.id.name)
@@ -351,11 +351,11 @@ function plugin(babel) {
       const errName = path.node.param.name;
       // We don't track anything, but this var has to exist to avoid "err___tv is undeclared" errors
       const trackingVarDec = skipPath(
-        t.variableDeclaration("var", [
+        t.variableDeclaration("let", [
           t.variableDeclarator(t.identifier(getTrackingVarName(errName)))
         ])
       );
-      path.node.body.body.push(trackingVarDec);
+      path.node.body.body.unshift(trackingVarDec);
     },
 
     ArrayPattern(path) {
