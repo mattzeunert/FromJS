@@ -46,11 +46,7 @@ Analyzing server-side code isn't currently supported, although if we can figure 
 
 Read about it [here](http://www.mattzeunert.com/2018/05/27/dynamic-dataflow-analysis-for-javascript-how-fromjs-2-works.html).
 
-Key libraries used:
-
-* [Babel](https://babeljs.io/)
-* [node-http-mitm-proxy](https://github.com/joeferner/node-http-mitm-proxy)
-* [LevelDB](https://github.com/google/leveldb)
+Built using [Babel](https://babeljs.io/), [node-http-mitm-proxy](https://github.com/joeferner/node-http-mitm-proxy), and [LevelDB](https://github.com/google/leveldb).
 
 ## Contribute
 
