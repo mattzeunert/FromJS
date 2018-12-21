@@ -9,15 +9,15 @@ function VerifyInstrumentation() {
   return (
     <div
       style={{
-        background: "red",
-        color: "#ca0a0a",
+        background: "#ca0a0a",
+        color: "white",
         padding: 10,
         marginBottom: 10
       }}
     >
-      Code instrumentation doesn't seem to work. Try reloading this page or
-      restarting FromJS. This may also happen if you open the FromJS web server
-      in a browser window that wasn't created by FromJS.
+      Code instrumentation isn't working. Try reloading this page or restarting
+      FromJS. This may also happen if you open the FromJS web server in a
+      browser window that wasn't created by FromJS.
     </div>
   );
 }
