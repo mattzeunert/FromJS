@@ -745,7 +745,12 @@ const operations: Operations = {
         function get(ast, keyPath) {
           const key = keyPath.shift();
 
+          let prevAst = ast;
           ast = ast.children.find(child => child.key.value === key);
+
+          if (!ast) {
+            console.log(prevAst, json);
+          }
 
           if (keyPath.length === 0) {
             let ret;
