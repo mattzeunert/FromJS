@@ -356,11 +356,7 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
   namedParamCount
 ) {
   if (arr instanceof Map) {
-    const map = arr;
-    arr = [];
-    for (const [key, value] of map) {
-      arr.push([key, value]);
-    }
+    arr = Array.from(arr);
   }
   if (type === "forOf") {
     return arr.map(val => {
@@ -411,6 +407,9 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
   return resultArr;
 };
 global[FunctionNames.expandArrayForSpreadElement] = function(arr) {
+  if (arr instanceof Map) {
+    arr = Array.from(arr);
+  }
   return arr.map((elem, i) => {
     return [elem, ctx.getObjectPropertyTrackingValue(arr, i)];
   });

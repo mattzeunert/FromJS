@@ -1429,3 +1429,16 @@ it("Doesn't break if array element are empty", async () => {
 
   expect(normal).toBe(1);
 });
+
+it("Doesn't break array spread elements that consume a Map", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    const arr = [...new Map([["a", 1], ["b", 2]])]
+    return arr[1][1]
+  `,
+    {},
+    { logCode: false }
+  );
+
+  expect(normal).toBe(2);
+});
