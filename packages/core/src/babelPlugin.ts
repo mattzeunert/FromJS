@@ -489,15 +489,6 @@ function plugin(babel) {
         )
       );
 
-      if (isNewVariable) {
-        var declaration = ignoreNode(
-          t.variableDeclaration("var", [
-            t.variableDeclarator(ignoredIdentifier(getTrackingVarName(varName)))
-          ])
-        );
-        body.unshift(declaration);
-      }
-
       path.node.right = forInRightValueIdentifier;
 
       var assignment = ignoreNode(
@@ -515,6 +506,17 @@ function plugin(babel) {
         )
       );
       body.unshift(assignment);
+
+      if (isNewVariable) {
+        var declaration = ignoreNode(
+          // Note: this needs to be let or else there could be conflict with
+          // a var from parent scope
+          t.variableDeclaration("let", [
+            t.variableDeclarator(ignoredIdentifier(getTrackingVarName(varName)))
+          ])
+        );
+        body.unshift(declaration);
+      }
     }
   };
 

@@ -1352,3 +1352,18 @@ describe("Doesn't break when using ES6+ features", () => {
     expect(normal).toBe("xy");
   });
 });
+
+it("Doesn't break if a for in loop creates a variable with the same name as one in the parent scope", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    const a = 123;
+    for (const a in ["a", "b", "c"]) {
+      return a
+    }
+  `,
+    {},
+    { logCode: true }
+  );
+
+  expect(normal).toBe("0");
+});
