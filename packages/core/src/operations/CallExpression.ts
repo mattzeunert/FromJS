@@ -105,11 +105,9 @@ const CallExpression = <any>{
       (fnKnownValue !== "String.prototype.replace" ||
         ["string", "number"].includes(typeof fnArgValues[1]))
     ) {
-      const r = specialCasesWhereWeDontCallTheOriginalFunction[fnKnownValue](
-        getSpecialCaseArgs()
-      );
-      ret = r[0];
-      retT = r[1];
+      [ret, retT] = specialCasesWhereWeDontCallTheOriginalFunction[
+        fnKnownValue
+      ](getSpecialCaseArgs());
     } else {
       if (VERIFY && fnKnownValue === "String.prototype.replace") {
         consoleLog("unhandled string replace call");
@@ -129,7 +127,6 @@ const CallExpression = <any>{
       }
 
       const knownFnProcessor = knownFnProcessors[fnKnownValue];
-
       if (knownFnProcessor) {
         knownFnProcessor(getFnProcessorArgs());
       }
@@ -168,9 +165,7 @@ const CallExpression = <any>{
       }
 
       if (functionIsCallOrApply && fnKnownValue) {
-        let callOrApplyInvocationArgs;
-
-        callOrApplyInvocationArgs = {};
+        let callOrApplyInvocationArgs = {};
         fnArgValuesAtInvocation.forEach((arg, i) => {
           callOrApplyInvocationArgs["arg" + i] = [null, fnArgsAtInvocation[i]];
         });

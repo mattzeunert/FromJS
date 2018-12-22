@@ -125,6 +125,8 @@ let TraversalStep = class TraversalStep extends React.Component<
       return text.slice(0, 15) + "..." + text.slice(-30);
     }
 
+    console.log("Render traversal step");
+
     const str = operationLog.result.primitive + "";
     // const beforeChar = prepareText(str.slice(0, charIndex));
     // const char = str.slice(charIndex, charIndex + 1);
@@ -222,7 +224,10 @@ let TraversalStep = class TraversalStep extends React.Component<
             data-test-arguments-button
             className="blue-button"
             style={{ float: "right" }}
-            onClick={() => this.setState({ isExpanded: !isExpanded })}
+            onClick={() => {
+              console.log("Click expand arguments");
+              this.setState({ isExpanded: !isExpanded });
+            }}
           >
             {isExpanded ? "Hide arguments" : "Arguments"}
           </button>
