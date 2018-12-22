@@ -484,11 +484,15 @@ describe("E2E", () => {
 
       await inspector.waitFor(1000);
       console.log("click arguments button");
-      await inspector.click("[data-test-arguments-button]");
+      await inspector.evaluate(() => {
+        document.querySelector("[data-test-arguments-button]")!["click"]();
+      });
+      // await inspector.click("[data-test-arguments-button]");
       await inspector.waitFor(1000);
       console.log(await inspector.evaluate(() => document.body.innerHTML));
       await inspector.waitFor("[data-test-argument='URL'");
       console.log("clicking URL argument button");
+
       await inspector.click("[data-test-argument='URL'");
 
       await waitForHiglightedLineToContain(inspector, "oReq.open");
