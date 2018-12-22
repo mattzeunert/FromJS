@@ -321,21 +321,36 @@ describe("JSON.parse", () => {
     expect(lastStep.charIndex).toBe(12);
   });
 
-  // it("Can traverse JSON.parse when using key indices", async () => {
-  //   const { normal, tracking, code } = await instrumentAndRun(`
+  it("Can traverse JSON.parse when using keys", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
 
-  //       var json = '{"a":"abc", "b": "bcd"}';
-  //       var obj = JSON.parse(json);
-  //       return obj.b
-  //     `);
+        var json = '{"a":"abc", "b": "bcd"}';
+        var obj = JSON.parse(json);
+        return Object.keys(obj)[1]
+      `);
 
-  //   var t = await traverse({ operationLog: tracking, charIndex: 0 });
-  //   var lastStep = t[t.length - 1];
+    var t = await traverse({ operationLog: tracking, charIndex: 0 });
+    var lastStep = t[t.length - 1];
 
-  //   console.log(lastStep.operationLog);
-  //   expect(lastStep.operationLog.operation).toBe("stringLiteral");
-  //   expect(lastStep.charIndex).toBe(13);
-  // });
+    expect(normal).toBe("b");
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(13);
+  });
+
+  it("Can traverse JSON.parse with JSON containting arrays", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = '{"a": {"b": ["one", "two"]}}';
+        var obj = JSON.parse(json);
+        return obj.a.b[1]
+      `);
+
+    var t = await traverse({ operationLog: tracking, charIndex: 0 });
+    var lastStep = t[t.length - 1];
+
+    expect(normal).toBe("two");
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(21);
+  });
 
   it("Returns the correct character index for longer strings", async () => {
     const text = `{"a": {"b": "Hello"}}`;

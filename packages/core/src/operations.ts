@@ -738,7 +738,6 @@ const operations: Operations = {
       const keyPath = operationLog.runtimeArgs.keyPath;
 
       function getValueStart(json, keyPath, isKey) {
-        console.log("getvaluestart", json);
         const ast = jsonToAst(json, { loc: true });
         const keys = keyPath.split(".");
         return get(ast, keys);
@@ -746,20 +745,27 @@ const operations: Operations = {
         function get(ast, keyPath) {
           const key = keyPath.shift();
 
-          let prevAst = ast;
-          console.log("children", JSON.stringify(ast.children, null, 4));
-          ast = ast.children.find(child => child.key.value === key);
-
-          if (!ast) {
-            console.log("prevAst", JSON.stringify(prevAst, null, 4), json);
-          }
+          ast = ast.children.find((child, i) => {
+            if (child.key) {
+              // object
+              return child.key.value === key;
+            } else {
+              // array
+              return i === parseFloat(key);
+            }
+          });
 
           if (keyPath.length === 0) {
             let ret;
             if (isKey) {
               ret = ast.key.loc.start.offset;
             } else {
-              ret = ast.value.loc.start.offset;
+              if (ast.key) {
+                // object
+                ret = ast.value.loc.start.offset;
+              } else {
+                ret = ast.loc.start.offset;
+              }
             }
             if (json[ret] === '"') {
               ret++;
