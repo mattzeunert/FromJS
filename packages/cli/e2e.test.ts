@@ -493,7 +493,7 @@ describe("E2E", () => {
       await inspector.waitFor("[data-test-argument='URL'");
       console.log("clicking URL argument button");
 
-      await inspector.click("[data-test-argument='URL'");
+      await inspector.click("[data-test-argument='URL']");
 
       await waitForHiglightedLineToContain(inspector, "oReq.open");
 
