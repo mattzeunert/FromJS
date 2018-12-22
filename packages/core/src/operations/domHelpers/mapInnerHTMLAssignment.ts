@@ -140,13 +140,19 @@ export default function mapInnerHTMLAssignment(
   }
 
   function processNewInnerHtml(el) {
-    var children = Array.prototype.slice.apply(el.childNodes, []);
+    var children;
+    if (el.tagName === "TEMPLATE") {
+      children = el.content.childNodes;
+      debugger;
+    } else {
+      children = Array.prototype.slice.apply(el.childNodes, []);
+    }
     addElOrigin(el, "replaceContents", {
       action: actionName,
       children: children
     });
 
-    var childNodesToProcess: any[] = [].slice.call(el.childNodes);
+    var childNodesToProcess: any[] = [].slice.call(children);
     childNodesToProcess = childNodesToProcess.filter(function(childNode) {
       var shouldIgnore = nodesToIgnore.indexOf(childNode) !== -1;
       return !shouldIgnore;
