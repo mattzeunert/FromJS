@@ -34,3 +34,4 @@ export const arrayConcat = "arrayConcat";
 export const matchResult = "matchResult";
 export const fetchResponse = "fetchResponse";
 export const XMLHttpRequestResponse = "XMLHttpRequest.responseText";
+export const styleAssignment = "styleAssignment";

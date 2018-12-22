@@ -354,6 +354,13 @@ describe("E2E", () => {
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("someClass");
 
+      // setting el.style.sth
+      res = await inspectDomCharAndTraverse(
+        html.indexOf("styleWidth") - '">'.length
+      );
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("50px");
+
       // cloneNode
       const clonedSpanHtml =
         '<span attr="setAttribute">cloneNode<!--createComment-->createTextNode<div><div>deepClonedContent</div></div></span>';

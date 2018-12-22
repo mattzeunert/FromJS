@@ -579,6 +579,27 @@ const operations: Operations = {
   arrayConcat: {
     traverse: identifyTraverseFunction
   },
+  styleAssignment: {
+    traverse: (operationLog, charIndex) => {
+      const styleName = operationLog.args.styleName.result.primitive;
+      const styleNamePrefix = '="';
+      const styleNameText = styleNamePrefix + styleName + ": ";
+      if (charIndex < styleNameText.length) {
+        return {
+          operationLog: operationLog.args.styleName,
+          charIndex: Math.min(
+            Math.max(charIndex - styleNamePrefix.length, 0),
+            styleName.length
+          )
+        };
+      } else {
+        return {
+          operationLog: operationLog.args.styleValue,
+          charIndex: charIndex - styleNameText.length
+        };
+      }
+    }
+  },
   htmlAdapter: {
     traverse: (operationLog, charIndex) => {
       return {

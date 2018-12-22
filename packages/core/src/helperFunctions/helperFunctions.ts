@@ -12,6 +12,7 @@ import { getStoreLogsWorker } from "./storeLogsWorker";
 import * as OperationTypes from "../OperationTypes";
 import { mapPageHtml } from "../mapPageHtml";
 import mapInnerHTMLAssignment from "../operations/domHelpers/mapInnerHTMLAssignment";
+import { CreateOperationLogArgs } from "../types";
 
 const accessToken = "ACCESS_TOKEN_PLACEHOLDER";
 
@@ -131,7 +132,7 @@ const storeLog =
   typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog;
 
 let lastOperationType = null;
-function createOperationLog(args) {
+function createOperationLog(args: CreateOperationLogArgs) {
   if (SKIP_TRACKING) {
     return 1111;
   }

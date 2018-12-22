@@ -1,14 +1,29 @@
 import { consoleLog, consoleWarn } from "../../helperFunctions/logging";
 import { safelyReadProperty } from "../../util";
 
-export default function addElOrigin(el, what, origin) {
+// this code is weird because it's been copied from V1
+export default function addElOrigin(
+  el,
+  what,
+  origin: {
+    action?;
+    value?;
+    error?;
+    inputValuesCharacterIndex?;
+    extraCharsAdded?;
+    offsetAtCharIndex?;
+    child?;
+    children?;
+    trackingValue?;
+  }
+) {
   const {
     action,
-    value,
+    // value,
     inputValuesCharacterIndex,
     extraCharsAdded,
     offsetAtCharIndex,
-    error,
+    // error,
     child,
     children,
     trackingValue // aka inputValue
@@ -142,4 +157,13 @@ export function processClonedNode(
       });
     }
   }
+}
+
+export function trackSetElementStyle(element, styleName, trackingValue) {
+  // for now just assume there's only ever one style
+  // for more correct mapping maybe see FromJS v1 code
+  addElAttributeValueOrigin(element, "style", {
+    action: "assignStyle",
+    trackingValue
+  });
 }

@@ -169,14 +169,15 @@ export class TextEl extends React.Component<any, any> {
 
       var highlightedCharLineIndex = valBeforeColumn.split("\n").length;
 
-      var showFromLineIndex = highlightedCharLineIndex - 2;
+      const numberOflinesToShow = this.state.truncateText ? 2 : 10;
+
+      var showFromLineIndex = highlightedCharLineIndex - numberOflinesToShow;
       if (showFromLineIndex < 0) {
         showFromLineIndex = 0;
       }
-      var showToLineIndex = showFromLineIndex + 3;
+      var showToLineIndex = showFromLineIndex + numberOflinesToShow + 1;
 
-      if (!this.state.truncateText) {
-        showFromLineIndex = 0;
+      if (showToLineIndex > lines.length) {
         showToLineIndex = lines.length;
       }
 
@@ -303,11 +304,8 @@ export class TextEl extends React.Component<any, any> {
     el.scrollTop = lineAtTop * lineHeight;
   }
   disableTruncateText() {
-    if (this.props.text.length > 20000) {
-      alert(
-        "Refusing to expand text longer than 20,000 characters. It will just crash your browser."
-      );
-      return;
+    if (!this.state.truncateText) {
+      alert("Not showing more because it might be freeze the UI");
     }
     this.setState({ truncateText: false });
   }
