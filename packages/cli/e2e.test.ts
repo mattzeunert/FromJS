@@ -185,6 +185,31 @@ describe("E2E", () => {
     );
   }
 
+  async function waitForLastHTMLStepToContain(inspectorPage, str) {
+    await inspectorPage.waitForFunction(
+      str => {
+        const lastStep = document.querySelectorAll(".step")[0];
+        console.log(str);
+        return lastStep && lastStep.innerHTML.includes(str);
+      },
+      {},
+      str
+    );
+  }
+
+  async function waitForHiglightedLineToContain(inspector, str) {
+    await inspector.waitFor(
+      str => {
+        const highlightedLine = document.querySelector(
+          "[data-test-highlighted-line]"
+        );
+        return highlightedLine && highlightedLine.innerHTML.includes(str);
+      },
+      {},
+      str
+    );
+  }
+
   let command;
   it(
     "Can load the start page",
@@ -450,21 +475,18 @@ describe("E2E", () => {
       );
       const inspector = await waitForInPageInspector(page);
 
-      expect(await getLastStepHtml(inspector)).toContain(
+      console.log("wait for xmlhttpreq resp text");
+      // note: at first the last html step still shows data from the previous test
+      await waitForLastHTMLStepToContain(
+        inspector,
         "XMLHttpRequest.responseText"
       );
+      console.log("will inspect url arg");
 
       await inspector.click("[data-test-arguments-button]");
       await inspector.click("[data-test-argument='URL'");
 
-      await inspector.waitFor(() => {
-        return (
-          document.querySelector("[data-test-highlighted-line]") &&
-          document
-            .querySelector("[data-test-highlighted-line]")!
-            ["innerHTML"].includes("oReq.open")
-        );
-      });
+      await waitForHiglightedLineToContain(inspector, "oReq.open");
 
       await page.close();
     },
