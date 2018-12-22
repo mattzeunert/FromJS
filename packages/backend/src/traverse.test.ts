@@ -321,21 +321,36 @@ describe("JSON.parse", () => {
     expect(lastStep.charIndex).toBe(12);
   });
 
-  // it("Can traverse JSON.parse when using key indices", async () => {
-  //   const { normal, tracking, code } = await instrumentAndRun(`
+  it("Can traverse JSON.parse when using keys", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
 
-  //       var json = '{"a":"abc", "b": "bcd"}';
-  //       var obj = JSON.parse(json);
-  //       return obj.b
-  //     `);
+        var json = '{"a":"abc", "b": "bcd"}';
+        var obj = JSON.parse(json);
+        return Object.keys(obj)[1]
+      `);
 
-  //   var t = await traverse({ operationLog: tracking, charIndex: 0 });
-  //   var lastStep = t[t.length - 1];
+    var t = await traverse({ operationLog: tracking, charIndex: 0 });
+    var lastStep = t[t.length - 1];
 
-  //   console.log(lastStep.operationLog);
-  //   expect(lastStep.operationLog.operation).toBe("stringLiteral");
-  //   expect(lastStep.charIndex).toBe(13);
-  // });
+    expect(normal).toBe("b");
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(13);
+  });
+
+  it("Can traverse JSON.parse with JSON containting arrays", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = '{"a": {"b": ["one", "two"]}}';
+        var obj = JSON.parse(json);
+        return obj.a.b[1]
+      `);
+
+    var t = await traverse({ operationLog: tracking, charIndex: 0 });
+    var lastStep = t[t.length - 1];
+
+    expect(normal).toBe("two");
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(21);
+  });
 
   it("Returns the correct character index for longer strings", async () => {
     const text = `{"a": {"b": "Hello"}}`;
@@ -374,10 +389,48 @@ describe("JSON.parse", () => {
     expect(lastStep.charIndex).toBe(2);
     expect(getStepTypeList(t)).toContain("jsonParseResult");
   });
+
+  it("Can handle character mapping if the JSON contains an escaped line break", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = '{"a": "\\\\nHello"}';
+        var obj = JSON.parse(json);
+        return obj.a + "|" + json
+      `);
+
+    const json = normal.split("|")[1];
+
+    var t = await traverse({
+      operationLog: tracking,
+      charIndex: normal.indexOf("l")
+    });
+    var lastStep = t[t.length - 1];
+
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(json.indexOf("l"));
+  });
+
+  it("Can handle character mapping if the JSON contains an unicode escape sequence ", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = '{"a": "\\\\u003cHello"}';
+        var obj = JSON.parse(json);
+        return obj.a + "|" + json
+      `);
+
+    const json = normal.split("|")[1];
+
+    var t = await traverse({
+      operationLog: tracking,
+      charIndex: normal.indexOf("l")
+    });
+    var lastStep = t[t.length - 1];
+
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(json.indexOf("l"));
+  });
 });
 
 describe("JSON.stringify", () => {
-  it("Can traverse JSON.stringify result", async () => {
+  it("Can traverse a JSON.stringify result", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         var obj = {greeting: "Hello ", name: {first: "w", last: "orld"}}
         var str = JSON.stringify(obj, null, 4);
@@ -421,6 +474,58 @@ describe("JSON.stringify", () => {
     expect(lastStep.operationLog.operation).toBe("stringLiteral");
     expect(lastStep.charIndex).toBe(2);
     expect(lastStep.operationLog.result.primitive).toBe("orld");
+  });
+
+  it("Can traverse JSON.stringify correctly when looking at keys", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var obj = {greeting: "Hello "};
+        var str = JSON.stringify(obj);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("greeting")
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("greeting");
+  });
+
+  it("Can traverse JSON.stringify result where keys are used multiple times", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var obj = {
+          one: {hello: 123},
+          two: {}
+        }
+        obj.two["he" + "llo"] = 456
+        var str = JSON.stringify(obj);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.lastIndexOf("hello")
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("he");
+  });
+
+  it("Can handle arrays", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["one", "two"]
+        var str = JSON.stringify(arr);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("two")
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("two");
   });
 });
 
@@ -1301,4 +1406,42 @@ describe("Array destructuring", () => {
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.charIndex).toBe(0);
   });
+});
+
+describe("getters/setters", () => {
+  it("It can traverse member expression result that came from a getter", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const obj = {}
+      Object.defineProperty(obj, "test", {
+        get: function() {
+          return "Hello"
+        }
+      })
+      
+      return obj.test
+    `);
+    expect(normal).toBe("Hello");
+
+    let step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+  });
+});
+
+it("Can traverse array expressions that contain array patterns", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      const arr1 = ["x", "y"]
+      const arr2 = ["a", "b", ...arr1]
+      
+      return arr2[3]
+    `,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("y");
+
+  let step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.charIndex).toBe(0);
 });

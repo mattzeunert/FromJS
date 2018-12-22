@@ -20,3 +20,11 @@ export function nullOnError(fn) {
     return null;
   }
 }
+
+export function countObjectKeys(obj) {
+  let count = 0;
+  for (const key in obj) {
+    count++;
+  }
+  return count;
+}

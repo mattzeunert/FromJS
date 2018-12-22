@@ -10,6 +10,7 @@ import { selectAndTraverse } from "./actions";
 import * as cx from "classnames";
 import "./TraversalStep.scss";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
+import { adjustColumnForEscapeSequences } from "../../core/src/adjustColumnForEscapeSequences";
 
 function getFileNameFromPath(path) {
   const parts = path.split("/");
@@ -27,30 +28,6 @@ type TraversalStepState = {
   isExpanded: boolean;
   isHovering: boolean;
 };
-
-// two chars in a string literal can map to one char in the actual string value (i.e. if there's an escape sequence like
-// "\n" that becomes one new line character)
-// doesn't work for explicit unicode escapes like \u0020 right now
-function adjustColumnForEscapeSequences(line, columnNumber) {
-  for (var i = 0; i < columnNumber; i++) {
-    if (line[i] === "\\") {
-      var charAfter = line[i + 1];
-      if (charAfter === "n") {
-        columnNumber++;
-      }
-      if (charAfter === "t") {
-        columnNumber++;
-      }
-      if (charAfter === '"') {
-        columnNumber++;
-      }
-      if (charAfter === "'") {
-        columnNumber++;
-      }
-    }
-  }
-  return columnNumber;
-}
 
 let TraversalStep = class TraversalStep extends React.Component<
   TraversalStepProps,
@@ -148,6 +125,8 @@ let TraversalStep = class TraversalStep extends React.Component<
       return text.slice(0, 15) + "..." + text.slice(-30);
     }
 
+    console.log("Render traversal step");
+
     const str = operationLog.result.primitive + "";
     // const beforeChar = prepareText(str.slice(0, charIndex));
     // const char = str.slice(charIndex, charIndex + 1);
@@ -169,7 +148,13 @@ let TraversalStep = class TraversalStep extends React.Component<
         }
       } else if (operationLog.operation === "callExpression") {
         const knownValue = operationLog.args.function.result.knownValue;
-        if (knownValue) {
+        if (
+          (knownValue === "Function.prototype.call" ||
+            knownValue === "Function.prototype.apply") &&
+          operationLog.args.context.result.knownValue
+        ) {
+          operationTypeDetail = operationLog.args.context.result.knownValue;
+        } else if (knownValue) {
           operationTypeDetail = knownValue;
         }
       } else if (operationLog.operation === "memberExpression") {
@@ -184,6 +169,8 @@ let TraversalStep = class TraversalStep extends React.Component<
             "HTMLInputElement." + operationLog.args.propName.result.primitive;
         }
       } else if (operationLog.operation === "fetchResponse") {
+        operationTypeDetail = operationLog.runtimeArgs.url;
+      } else if (operationLog.operation === "XMLHttpRequest.responseText") {
         operationTypeDetail = operationLog.runtimeArgs.url;
       }
     } catch (err) {
@@ -234,9 +221,13 @@ let TraversalStep = class TraversalStep extends React.Component<
             )}
           </span>
           <button
+            data-test-arguments-button
             className="blue-button"
             style={{ float: "right" }}
-            onClick={() => this.setState({ isExpanded: !isExpanded })}
+            onClick={() => {
+              console.log("Click expand arguments");
+              this.setState({ isExpanded: !isExpanded });
+            }}
           >
             {isExpanded ? "Hide arguments" : "Arguments"}
           </button>
@@ -284,9 +275,33 @@ let TraversalStep = class TraversalStep extends React.Component<
               {this.getAllArgs().length === 0 && <div>(No arguments)</div>}
               {this.getAllArgs().map(({ name, value }) => {
                 value = value && new OperationLog(value);
+
+                if (
+                  value &&
+                  value.operation === "callExpression" &&
+                  value.args.function.result.knownValue === "fetch"
+                ) {
+                  // show user the URL right away since that saves them one click
+                  value = value.args.arg0;
+                  name = "URL";
+                }
+
+                if (
+                  value &&
+                  value.operation === "callExpression" &&
+                  value.args.function.result.knownValue ===
+                    "XMLHttpRequest.prototype.open"
+                ) {
+                  // show user the URL right away since that saves them one click
+                  value = value.args.arg1;
+                  name = "URL";
+                }
+
                 const canInspect = !!value;
+
                 return (
                   <div
+                    data-test-argument={name}
                     className={cx("step__argument", {
                       "step__argument--can-inspect": canInspect
                     })}

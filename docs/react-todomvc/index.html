@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-framework="react">
+	<head><script id='fromjs-initial-html' html-filename='/demos/react-todomvc-compiled/index.html' type='text/template'>%3C!doctype%20html%3E%0A%3Chtml%20lang%3D%22en%22%20data-framework%3D%22react%22%3E%0A%09%3Chead%3E%0A%09%09%3Cmeta%20charset%3D%22utf-8%22%3E%0A%09%09%3Ctitle%3EReact%20%E2%80%A2%20TodoMVC%3C%2Ftitle%3E%0A%09%09%3Clink%20rel%3D%22stylesheet%22%20href%3D%22modules%2Ftodomvc-common%2Fbase.css%22%3E%0A%09%09%3Clink%20rel%3D%22stylesheet%22%20href%3D%22modules%2Ftodomvc-app-css%2Findex.css%22%3E%0A%09%3C%2Fhead%3E%0A%09%3Cbody%3E%0A%0A%09%09%3Cdiv%20style%3D%22background%3A%20white%3B%20padding%3A%205px%3B%20border-radius%3A%202px%3B%20margin-top%3A%2030px%22%3E%0A%09%09%09%3Cp%20style%3D%22margin-top%3A%200%22%3E%0A%09%09%09%09Inspect%20the%20DOM%20to%20see%20where%20the%20data%20you're%20seeing%20come%20from.%0A%09%09%09%09For%20example%2C%20%22Hello%22%20was%20read%20from%20localStorage.%0A%09%09%09%3C%2Fp%3E%0A%09%09%09%3Cp%3E%0A%09%09%09%09Each%20character%20in%20the%20DOM%20HTML%20has%20a%20location%20in%20the%20JS%20code%20where%20the%20character%20was%20first%20loaded.%0A%09%09%09%3C%2Fp%3E%0A%09%09%3C%2Fdiv%3E%0A%09%09%3Csection%20class%3D%22todoapp%22%3E%3C%2Fsection%3E%0A%09%09%3Cfooter%20class%3D%22info%22%3E%0A%09%09%09%3Cp%3EDouble-click%20to%20edit%20a%20todo%3C%2Fp%3E%0A%09%09%09%3Cp%3EReact%20TodoMVC%20Created%20by%20%3Ca%20href%3D%22http%3A%2F%2Fgithub.com%2Fpetehunt%2F%22%3Epetehunt%3C%2Fa%3E%3C%2Fp%3E%0A%09%09%09%3Cp%3ETodoMVC%20and%20FromJS%20are%20unrelated%3C%2Fp%3E%0A%09%09%3C%2Ffooter%3E%0A%0A%09%09%3Cscript%3E%0A%09%09%09if%20(localStorage%5B%22react-todos%22%5D%20%3D%3D%3D%20undefined)%20%7B%0A%09%09%09%09localStorage%5B%22react-todos%22%5D%20%3D%20%60%5B%7B%22id%22%3A%220eec7aa6-6544-4758-abb6-db8c0ff54880%22%2C%22title%22%3A%22Hello%22%2C%22completed%22%3Atrue%7D%2C%7B%22id%22%3A%221dd5cb20-7aeb-4ce0-81c1-8fd8c754c552%22%2C%22title%22%3A%22World%22%2C%22completed%22%3Afalse%7D%5D%60%0A%09%09%09%7D%0A%09%09%09function%20waitFor(condition%2C%20onConditionTrue)%20%7B%0A%09%09%09%09var%20interval%20%3D%20%20setInterval(function()%20%7B%0A%09%09%09%09%09var%20isDone%20%3D%20condition()%0A%09%09%09%09%09if%20(isDone)%20%7B%0A%09%09%09%09%09%09clearInterval(interval)%0A%09%09%09%09%09%09onConditionTrue()%20%20%20%0A%09%09%09%09%09%7D%0A%09%09%09%09%7D%2C%2010)%0A%09%09%09%7D%0A%09%09%09waitFor(function()%7B%0A%09%09%09%09return%20document.querySelectorAll('.fromjs-show-inspector-button').length%20%3E%200%0A%09%09%09%7D%2C%20function()%7B%0A%09%09%09%09document.querySelector('.fromjs-show-inspector-button').click()%0A%09%09%09%09%0A%09%09%09%7D)%0A%09%09%09window.onInspectorReady%20%3D%20function()%7B%0A%09%09%09%09document.querySelector('.todo-list%20label').click()%0A%09%09%09%7D%0A%0A%09%09%3C%2Fscript%3E%0A%09%09%3Cscript%20src%3D%22modules%2Ftodomvc-common%2Fbase.js%22%3E%3C%2Fscript%3E%0A%09%09%3Cscript%20src%3D%22modules%2Freact%2Fdist%2Freact-with-addons.js%22%3E%3C%2Fscript%3E%0A%09%09%3Cscript%20src%3D%22modules%2Fclassnames%2Findex.js%22%3E%3C%2Fscript%3E%0A%09%09%3Cscript%20src%3D%22modules%2Fdirector%2Fbuild%2Fdirector.js%22%3E%3C%2Fscript%3E%0A%0A%09%09%3Cscript%20src%3D%22js%2Futils.js%22%3E%3C%2Fscript%3E%0A%09%09%3Cscript%20src%3D%22js%2FtodoModel.js%22%3E%3C%2Fscript%3E%0A%0A%09%09%3Cscript%20%20src%3D%22js%2FtodoItem.js%22%3E%3C%2Fscript%3E%0A%09%09%3Cscript%20src%3D%22js%2Ffooter.js%22%3E%3C%2Fscript%3E%0A%09%09%3Cscript%20src%3D%22js%2Fapp.js%22%3E%3C%2Fscript%3E%0A%0A%09%3C%2Fbody%3E%0A%3C%2Fhtml%3E%0A</script><script>window.fromJSInternalsRoot="fromjs-internals/"</script><script src="fromjs-internals/from.js" charset="utf-8"></script><script>window.fromJSEnableTracing()</script><link rel="stylesheet" href="fromjs-internals/fromjs.css"/>
+		<meta charset="utf-8">
+		<title>React &#x2022; TodoMVC</title>
+		<link rel="stylesheet" href="modules/todomvc-common/base.css">
+		<link rel="stylesheet" href="modules/todomvc-app-css/index.css">
+	</head>
+	<body>
+
+		<div style="background: white; padding: 5px; border-radius: 2px; margin-top: 30px">
+			<p style="margin-top: 0">
+				Inspect the DOM to see where the data you&apos;re seeing come from.
+				For example, &quot;Hello&quot; was read from localStorage.
+			</p>
+			<p>
+				Each character in the DOM HTML has a location in the JS code where the character was first loaded.
+			</p>
+		</div>
+		<section class="todoapp"></section>
+		<footer class="info">
+			<p>Double-click to edit a todo</p>
+			<p>React TodoMVC Created by <a href="http://github.com/petehunt/">petehunt</a></p>
+			<p>TodoMVC and FromJS are unrelated</p>
+		</footer>
+
+		<script>makeSureInitialHTMLHasBeenProcessed()</script><script>
+	                        var script = originalCreateElement.call(document, "script")
+	                        script.text = decodeURI("%0A%09%09%09if%20(localStorage%5B%22react-todos%22%5D%20===%20undefined)%20%7B%0A%09%09%09%09localStorage%5B%22react-todos%22%5D%20=%20%60%5B%7B%22id%22:%220eec7aa6-6544-4758-abb6-db8c0ff54880%22,%22title%22:%22Hello%22,%22completed%22:true%7D,%7B%22id%22:%221dd5cb20-7aeb-4ce0-81c1-8fd8c754c552%22,%22title%22:%22World%22,%22completed%22:false%7D%5D%60%0A%09%09%09%7D%0A%09%09%09function%20waitFor(condition,%20onConditionTrue)%20%7B%0A%09%09%09%09var%20interval%20=%20%20setInterval(function()%20%7B%0A%09%09%09%09%09var%20isDone%20=%20condition()%0A%09%09%09%09%09if%20(isDone)%20%7B%0A%09%09%09%09%09%09clearInterval(interval)%0A%09%09%09%09%09%09onConditionTrue()%20%20%20%0A%09%09%09%09%09%7D%0A%09%09%09%09%7D,%2010)%0A%09%09%09%7D%0A%09%09%09waitFor(function()%7B%0A%09%09%09%09return%20document.querySelectorAll('.fromjs-show-inspector-button').length%20%3E%200%0A%09%09%09%7D,%20function()%7B%0A%09%09%09%09document.querySelector('.fromjs-show-inspector-button').click()%0A%09%09%09%09%0A%09%09%09%7D)%0A%09%09%09window.onInspectorReady%20=%20function()%7B%0A%09%09%09%09document.querySelector('.todo-list%20label').click()%0A%09%09%09%7D%0A%0A%09%09")
+	                        document.documentElement.appendChild(script)
+	                    </script>
+		<script src="modules/todomvc-common/base.js"></script>
+		<script src="modules/react/dist/react-with-addons.js"></script>
+		<script src="modules/classnames/index.js"></script>
+		<script src="modules/director/build/director.js"></script>
+
+		<script src="js/utils.js"></script>
+		<script src="js/todoModel.js"></script>
+
+		<script src="js/todoItem.js"></script>
+		<script src="js/footer.js"></script>
+		<script src="js/app.js"></script> <script>
+                  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+                  ga('create', 'UA-80477434-1', 'auto');
+                  ga('send', 'pageview');
+                </script>
+
+	</body>
+</html>

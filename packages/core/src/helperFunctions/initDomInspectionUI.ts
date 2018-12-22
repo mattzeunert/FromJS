@@ -6,14 +6,21 @@ export default function initDomInspectionUI(backendPort) {
   }
   var global = Function("return this")();
   let showDomInspector = false;
+  let openedInNewTab = false;
   const toggleInspectDomButton = document.createElement("div");
   let selectedElement = null;
   const selectedElementMarker = document.createElement("div");
   let previewedElement = null;
   const previewedElementMarker = document.createElement("div");
 
+  let waitForInitResolveFunction;
+  const waitForInit = new Promise(
+    resolve => (waitForInitResolveFunction = resolve)
+  );
   window["onFromJSInspect"] = function() {
-    showInspectorUI();
+    waitForInit.then(() => {
+      showInspectorUI();
+    });
   };
 
   function onSelectionEvent(e) {
@@ -29,7 +36,14 @@ export default function initDomInspectionUI(backendPort) {
       addHighlight(el, "selected");
     } else if (e.type === "mouseenter") {
       previewedElement = el;
-      if (previewedElement !== selectedElement) {
+      const inspectorContainer = document.querySelector(
+        ".fromjs-inspector-container"
+      );
+      const isHoveringOverInspector =
+        inspectorContainer &&
+        (previewedElement === inspectorContainer ||
+          inspectorContainer.contains(previewedElement));
+      if (previewedElement !== selectedElement && !isHoveringOverInspector) {
         addHighlight(el, "previewed");
       } else {
         removeHighlight("previewed");
@@ -122,8 +136,8 @@ export default function initDomInspectionUI(backendPort) {
   }
   function init() {
     inspectorUI = createInspectorUI();
-    hideInspectorUI();
     document.body.appendChild(inspectorUI);
+    hideInspectorUI();
 
     toggleInspectDomButton.innerHTML = "Enable Inspector";
     toggleInspectDomButton.addEventListener("click", function() {
@@ -137,13 +151,18 @@ export default function initDomInspectionUI(backendPort) {
     toggleInspectDomButton.setAttribute("id", "fromjs-inspect-dom-button");
     const body = global["document"]["body"];
     body.appendChild(toggleInspectDomButton);
+
+    waitForInitResolveFunction();
   }
 
   let inspectorUI;
-  let isShowingInspectorUI = true;
+  let isShowingInspectorUI = false;
 
   function showInspectorUI() {
     if (isShowingInspectorUI) {
+      return;
+    }
+    if (openedInNewTab) {
       return;
     }
     document.body.classList.add("showing-fromjs-inspector");
@@ -202,6 +221,21 @@ export default function initDomInspectionUI(backendPort) {
       }
     `;
     inspectorUI.appendChild(inspectorStyles);
+
+    // Listen to message from child window
+    window.addEventListener(
+      "message",
+      function(e) {
+        const { data } = e;
+        if (data.type === "openInNewTab") {
+          openedInNewTab = true;
+          hideInspectorUI();
+        }
+      },
+      false
+    );
+
+    isShowingInspectorUI = true;
 
     return inspectorUI;
   }

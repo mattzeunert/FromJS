@@ -94,6 +94,8 @@ function plugin(babel) {
             varName = elem.left.name;
           } else if (elem.type === "RestParameter") {
             varName = elem.argument.name;
+          } else if (elem.type === "ObjectPattern") {
+            // will be processed in ObjectPattern visitor
           } else {
             throw Error("aaa unknown array pattern elem type " + elem.type);
           }
@@ -114,6 +116,17 @@ function plugin(babel) {
             addLoc(getTrackingIdentifier(varName), param.loc),
             ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
               ignoredStringLiteral("arrayPatternInFunction"),
+              getLocObjectASTNode(param.loc)
+            ])
+          )
+        );
+      } else if (param.type === "RestElement") {
+        let varName = param.argument.name;
+        declarators.push(
+          t.variableDeclarator(
+            addLoc(getTrackingIdentifier(varName), param.loc),
+            ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+              ignoredStringLiteral("restElement"),
               getLocObjectASTNode(param.loc)
             ])
           )
@@ -208,10 +221,20 @@ function plugin(babel) {
     ForOfStatement(path) {
       if (path.node.left.type === "VariableDeclaration") {
         const variableDeclarator = path.node.left.declarations[0];
+        let varKind = "let";
+        if (path.node.left.kind === "var") {
+          // should leak into parent scope
+          varKind = "var";
+        }
         if (variableDeclarator.id.type === "Identifier") {
+          if (!path.node.body.body) {
+            path.node.body = ignoreNode(
+              babel.types.blockStatement([path.node.body])
+            );
+          }
           path.node.body.body.unshift(
             skipPath(
-              t.variableDeclaration("var", [
+              t.variableDeclaration(varKind, [
                 t.variableDeclarator(
                   ignoredIdentifier(
                     getTrackingVarName(variableDeclarator.id.name)
@@ -333,11 +356,11 @@ function plugin(babel) {
       const errName = path.node.param.name;
       // We don't track anything, but this var has to exist to avoid "err___tv is undeclared" errors
       const trackingVarDec = skipPath(
-        t.variableDeclaration("var", [
+        t.variableDeclaration("let", [
           t.variableDeclarator(t.identifier(getTrackingVarName(errName)))
         ])
       );
-      path.node.body.body.push(trackingVarDec);
+      path.node.body.body.unshift(trackingVarDec);
     },
 
     ArrayPattern(path) {
@@ -407,6 +430,8 @@ function plugin(babel) {
           varName = elem.left.name;
         } else if (elem.type === "RestElement") {
           varName = elem.argument.name;
+        } else if (elem.type === "ObjectPattern") {
+          // will be processed in ObjectPattern visitor
         } else {
           throw Error("array pattern elem type " + elem.type);
         }
@@ -436,8 +461,14 @@ function plugin(babel) {
     ForInStatement(path) {
       let varName;
       let isNewVariable;
+      let varKind = "let";
       if (path.node.left.type === "VariableDeclaration") {
-        varName = path.node.left.declarations[0].id.name;
+        const variableDeclaration = path.node.left;
+        varName = variableDeclaration.declarations[0].id.name;
+        if (variableDeclaration.kind === "var") {
+          // should leak into outer scope
+          varKind = "var";
+        }
         isNewVariable = true;
       } else if (path.node.left.type === "Identifier") {
         varName = path.node.left.name;
@@ -461,6 +492,12 @@ function plugin(babel) {
         path.scope.generateUidIdentifier("__forInRightVal")
       );
 
+      // insertBefore causes this ForInStatement to be visited again
+      // if a block body is introduced for the parent (e.g. if the parent
+      // was a single-statement if statement before)
+      // Prevent processing this ForInStatement twice
+      path.node.ignore = true;
+
       path.insertBefore(
         ignoreNode(
           t.variableDeclaration("let", [
@@ -468,15 +505,6 @@ function plugin(babel) {
           ])
         )
       );
-
-      if (isNewVariable) {
-        var declaration = ignoreNode(
-          t.variableDeclaration("var", [
-            t.variableDeclarator(ignoredIdentifier(getTrackingVarName(varName)))
-          ])
-        );
-        body.unshift(declaration);
-      }
 
       path.node.right = forInRightValueIdentifier;
 
@@ -495,6 +523,17 @@ function plugin(babel) {
         )
       );
       body.unshift(assignment);
+
+      if (isNewVariable) {
+        var declaration = ignoreNode(
+          // Note: this needs to be let or else there could be conflict with
+          // a var from parent scope
+          t.variableDeclaration(varKind, [
+            t.variableDeclarator(ignoredIdentifier(getTrackingVarName(varName)))
+          ])
+        );
+        body.unshift(declaration);
+      }
     }
   };
 

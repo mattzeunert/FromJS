@@ -7,7 +7,7 @@ export class Fun extends React.Component<{}, { ip: string; name: string }> {
   };
 
   componentDidMount() {
-    fetch("https://api.ipify.org?format=json")
+    fetch("https://api.ipify.org/?format=json")
       .then(r => r.json())
       .then(data => {
         this.setState({ ip: data.ip });
@@ -16,10 +16,11 @@ export class Fun extends React.Component<{}, { ip: string; name: string }> {
 
   render() {
     return (
-      <div>
+      <div data-test-fun-things style={{ paddingBottom: 20 }}>
         <div>
           Name:{" "}
           <input
+            data-test-name-input
             type="text"
             value={this.state.name}
             onChange={e => {

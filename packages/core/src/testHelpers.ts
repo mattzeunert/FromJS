@@ -24,7 +24,12 @@ interface InstrumentAndRunResult {
   normal?: any;
 }
 
-export function instrumentAndRun(code, outsideArgs = {}) {
+export function instrumentAndRun(
+  code,
+  outsideArgs = {},
+  options = { logCode: false }
+) {
+  const { logCode } = options;
   return new Promise<InstrumentAndRunResult>(resolve => {
     code = `getTrackingAndNormalValue((function(){ ${code} })())`;
 
@@ -36,7 +41,9 @@ export function instrumentAndRun(code, outsideArgs = {}) {
         /* don't bother waiting since store is sync */
       });
 
-      // console.log(code.split("* HELPER_FUNCTIONS_END */")[1]);
+      if (logCode) {
+        console.log(code.split("* HELPER_FUNCTIONS_END */")[1]);
+      }
       const __storeLog = server.storeLog.bind(server);
       var result: InstrumentAndRunResult = eval(code);
 

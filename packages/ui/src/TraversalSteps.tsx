@@ -19,7 +19,11 @@ let TraversalSteps = class TraversalSteps extends React.Component<
 > {
   render() {
     if (!this.props.inspectionTarget || !this.props.inspectionTarget.logId) {
-      return <div>No tracking data available</div>;
+      return (
+        <div>
+          No tracking data available (or it's just taking a long time to load)
+        </div>
+      );
     }
 
     if (!this.props.inspectedString) {
@@ -131,7 +135,8 @@ let TraversalSteps = class TraversalSteps extends React.Component<
             </button>
           )}
         {!this.props.showFullDataFlow &&
-          !this.props.showDOMStep && (
+          !this.props.showDOMStep &&
+          steps.length > 1 && (
             <button
               onClick={() => toggleShowFullDataFlow(true)}
               className="step__visible-steps-button"

@@ -10,6 +10,7 @@ import HtmlToOperationLogMapping from "./src/helperFunctions/HtmlToOperationLogM
 import { LocStore } from "./src/LocStore";
 import { traverseDomOrigin } from "./src/traverseDomOrigin";
 import * as config from "./src/config";
+import { adjustColumnForEscapeSequences } from "./src/adjustColumnForEscapeSequences";
 
 export {
   babelPlugin,
@@ -23,5 +24,6 @@ export {
   HtmlToOperationLogMapping,
   LocStore,
   traverseDomOrigin,
-  config
+  config,
+  adjustColumnForEscapeSequences
 };

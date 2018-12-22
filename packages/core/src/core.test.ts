@@ -1158,8 +1158,9 @@ describe("Doesn't break when using ES6+ features", () => {
     expect(normal).toBe(5);
   });
 
-  it("Does't break when calling a function on super", async () => {
-    const { normal, tracking, code } = await instrumentAndRun(`
+  describe("Does't break when calling a function on super", () => {
+    it("Call method on super", async () => {
+      const { normal, tracking, code } = await instrumentAndRun(`
       class Parent {
         square(x) { return x * x}
       }
@@ -1170,7 +1171,35 @@ describe("Doesn't break when using ES6+ features", () => {
       }
       return new Child().getSquare(3)
     `);
-    expect(normal).toBe(9);
+      expect(normal).toBe(9);
+    });
+
+    it("Call super constructor", async () => {
+      const { normal, tracking, code } = await instrumentAndRun(
+        `
+      class Parent {
+        constructor(num) {
+          this.num = num
+        }
+
+        getNum() {
+          return this.num
+        }
+      }
+      class Child extends Parent {
+        constructor(num) {
+          super(num);
+        }
+      }
+
+      return new Child(4).getNum()
+    `,
+        {},
+        { logCode: false }
+      );
+
+      expect(normal).toBe(4);
+    });
   });
 
   it("Doesn't break when using array destructuring in a for of statement", async () => {
@@ -1277,4 +1306,165 @@ describe("Doesn't break when using ES6+ features", () => {
       expect(normal).toBe(5);
     });
   });
+
+  it("Doesn't break function that have rest parameters", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function add(...args) {
+        return args[1]
+      }
+
+      return add(1,2,3)
+    `);
+
+    expect(normal).toBe(2);
+  });
+
+  it("Doesn't break for of loops without a body block", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      let ret
+      const list = ["a", "b"]
+      for (const item of list) ret = item
+      return ret
+    `);
+
+    expect(normal).toBe("b");
+  });
+
+  it("Doesn't break class expressions", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const C = class CC {
+        getA() {
+          return "a"
+        }
+      }
+      return new C().getA();
+    `);
+
+    expect(normal).toBe("a");
+  });
+
+  it("Doesn't break object patterns inside array patterns", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const concat = ([{a,b}]) => a + b
+      return concat([{a: "x",b:"y"}])
+    `);
+
+    expect(normal).toBe("xy");
+  });
+});
+
+it("Doesn't break if a for in loop creates a variable with the same name as one in the parent scope", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    const a = 123;
+    for (const a in ["a", "b", "c"]) {
+      return a
+    }
+  `,
+    {},
+    { logCode: false }
+  );
+
+  expect(normal).toBe("0");
+});
+
+it("Doesn't break accessing a variable outside a for in loop if it creates a variable with var", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    for (var a in ["a", "b", "c"]) {}
+    return a
+  `,
+    {},
+    { logCode: false }
+  );
+
+  expect(normal).toBe("2");
+});
+
+it("Doesn't break accessing a variable outside a for of loop if it creates a variable with var", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    for (var a of ["a", "b", "c"]) {}
+    return a
+  `,
+    {},
+    { logCode: false }
+  );
+
+  expect(normal).toBe("c");
+});
+
+it("Doesn't break if a for of loop creates a variable with the same name as one in the parent scope", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    const a = 123;
+    for (const a of ["a", "b", "c"]) {
+      return a
+    }
+  `,
+    {},
+    { logCode: false }
+  );
+
+  expect(normal).toBe("a");
+});
+
+it("Doesn't break catch clause if a variable has the same name as one in the parent scope", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    const err = 123;
+    try {
+      throw Error("msg")
+    } catch (err) {
+      return err.message
+    }
+  `,
+    {},
+    { logCode: false }
+  );
+
+  expect(normal).toBe("msg");
+});
+
+it("Doesn't break for of loop variables when inside bodyless if", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    const o= 1;
+    const a = ["_"]
+    if (true)
+      for(const o in a) {
+        return o
+      }
+  `,
+    {},
+    { logCode: false }
+  );
+
+  expect(normal).toBe("0");
+});
+
+it("Doesn't break if array element are empty", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    const arr = [,1]
+    return arr[1]
+  `,
+    {},
+    { logCode: false }
+  );
+
+  expect(normal).toBe(1);
+});
+
+it("Doesn't break array spread elements that consume a Map", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    const arr = [...new Map([["a", 1], ["b", 2]])]
+    return arr[1][1]
+  `,
+    {},
+    { logCode: false }
+  );
+
+  expect(normal).toBe(2);
 });

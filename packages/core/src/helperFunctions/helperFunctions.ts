@@ -21,12 +21,12 @@ global.__didInitializeDataFlowTracking = true;
 global.getElementOperationLogMapping = getElementOperationLogMapping;
 
 let knownValues = new KnownValues();
-
-initLogging(knownValues);
-
 // Make sure to use native methods in case browser methods get
 // overwritten (e.g. NewRelic instrumentation does it)
+// (only matters if we're not in the web worker)
 let fetch = knownValues.getValue("fetch");
+
+initLogging(knownValues);
 
 const startTime = new Date();
 setTimeout(checkDone, 200);
@@ -53,34 +53,39 @@ function checkDone() {
   }
 }
 
-function postToBE(endpoint, data, statsCallback = function(stats) {}) {
-  const stringifyStart = new Date();
-  const body = JSON.stringify(data);
-  const stringifyEnd = new Date();
-  if (endpoint === "/storeLogs") {
-    statsCallback({
-      bodyLength: body.length,
-      stringifyTime: stringifyEnd.valueOf() - stringifyStart.valueOf()
-    });
-  }
-  const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
-    method: "POST",
-    headers: new Headers({
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      Authorization: accessToken
-    }),
-    body: body
-  });
+function makePostToBE({ accessToken, fetch }) {
+  return function postToBE(endpoint, data, statsCallback = function(stats) {}) {
+    const stringifyStart = new Date();
+    const body = JSON.stringify(data);
+    const stringifyEnd = new Date();
+    if (endpoint === "/storeLogs") {
+      statsCallback({
+        bodyLength: body.length,
+        stringifyTime: stringifyEnd.valueOf() - stringifyStart.valueOf()
+      });
+    }
 
-  return p;
+    const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
+      method: "POST",
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: accessToken
+      }),
+      body: body
+    });
+
+    return p;
+  };
 }
+
+const postToBE = makePostToBE({ accessToken, fetch });
 
 let logQueue = [];
 global["__debugFromJSLogQueue"] = () => logQueue;
 let evalScriptQueue = [];
 let worker: Worker | null = getStoreLogsWorker({
-  postToBE,
+  makePostToBE,
   accessToken
 });
 
@@ -284,6 +289,7 @@ function trackObjectPropertyAssignment(
     typeof propertyValueTrackingValue !== "number" &&
     !!propertyValueTrackingValue
   ) {
+    console.log("Tracking value is not a number:", propertyValueTrackingValue);
     debugger;
   }
   objectPropertyTrackingInfo[getTrackingPropName(propName)] = {
@@ -355,11 +361,7 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
   namedParamCount
 ) {
   if (arr instanceof Map) {
-    const map = arr;
-    arr = [];
-    for (const [key, value] of map) {
-      arr.push([key, value]);
-    }
+    arr = Array.from(arr);
   }
   if (type === "forOf") {
     return arr.map(val => {
@@ -408,6 +410,14 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
     resultArr.push(r);
   });
   return resultArr;
+};
+global[FunctionNames.expandArrayForSpreadElement] = function(arr) {
+  if (arr instanceof Map) {
+    arr = Array.from(arr);
+  }
+  return arr.map((elem, i) => {
+    return [elem, ctx.getObjectPropertyTrackingValue(arr, i)];
+  });
 };
 
 const MAX_TRACKED_ARRAY_INDEX = 10;
@@ -501,12 +511,19 @@ const ctx: ExecContext = {
   },
   get lastOperationType() {
     return lastOperationType;
+  },
+  countOperations(fn) {
+    let before = opExecCount;
+    fn();
+    return opExecCount - before;
   }
 };
 
 var lastOpValueResult = null;
 var lastOpTrackingResult = null;
 let lastOpTrackingResultWithoutResetting = null;
+
+let opExecCount = 0;
 
 function makeDoOperation(opName: string) {
   const opExec = operationsExec[opName];
@@ -523,6 +540,7 @@ function makeDoOperation(opName: string) {
     };
 
     var ret = opExec(objArgs, astArgs, ctx, logData);
+    opExecCount++;
 
     logData.result = ret;
     trackingValue = createOperationLog(logData);

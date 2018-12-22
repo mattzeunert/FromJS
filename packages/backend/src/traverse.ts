@@ -37,6 +37,7 @@ export async function traverse(
       try {
         nextStep = operation.traverse(operationLog, charIndex);
       } catch (err) {
+        console.log(JSON.stringify(operationLog));
         console.log("traverse err", operationLog.operation, err);
       }
     }

@@ -153,10 +153,14 @@ export default <any>{
           safelyReadProperty(obj, "nodeType") === Node.ELEMENT_NODE &&
           typeof propName === "string"
         ) {
-          addElAttributeValueOrigin(obj, propName, {
+          let attrName = propName;
+          if (attrName === "className") {
+            attrName = "class";
+          }
+          addElAttributeValueOrigin(obj, attrName, {
             trackingValue: argumentArg[1]
           });
-          addElAttributeNameOrigin(obj, propName, { trackingValue: propNameT });
+          addElAttributeNameOrigin(obj, attrName, { trackingValue: propNameT });
         }
       }
     } else if (assignmentType === "Identifier") {

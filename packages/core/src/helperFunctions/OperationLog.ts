@@ -4,6 +4,7 @@ import operations from "../operations";
 import invokeIfFunction from "../invokeIfFunction";
 import { consoleLog } from "./logging";
 import { arrayIndex } from "../OperationTypes";
+import { countObjectKeys } from "../util";
 
 var global = Function("return this")();
 
@@ -124,6 +125,9 @@ class SerializedValue implements SerializedValueData {
   }
 
   getTruncatedUIString() {
+    if (this.knownValue) {
+      return this.knownValue;
+    }
     if (["string", "null", "number", "boolean"].includes(this.type)) {
       let ret = this.primitive + "";
       if (ret.length > 200) {
@@ -213,6 +217,10 @@ OperationLog.createAtRuntime = function(
     consoleLog("no loc at runtime for operation", operation);
   }
   const op = operations[operation];
+
+  if (astArgs && countObjectKeys(astArgs) === 0) {
+    astArgs = undefined;
+  }
 
   if (Array.isArray(args)) {
     const newArgs: any[] = [];

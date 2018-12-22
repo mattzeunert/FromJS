@@ -162,7 +162,8 @@ describe("E2E", () => {
         // To make it work in CI:
         "--no-sandbox"
       ],
-      headless: true
+      headless: !process.env.HEADFUL,
+      devtools: process.env.HEADFUL
     });
 
     await startWebServer();
@@ -177,26 +178,73 @@ describe("E2E", () => {
 
   const inspectorUrl = "http://localhost:" + backendPort + "/";
 
+  async function getLastStepHtml(inspectorPage) {
+    await inspectorPage.waitForSelector(".step");
+    return inspectorPage.evaluate(
+      () => document.querySelectorAll(".step")[0]["innerText"]
+    );
+  }
+
+  async function waitForLastHTMLStepToContain(inspectorPage, str) {
+    await inspectorPage.waitForFunction(
+      str => {
+        const lastStep = document.querySelectorAll(".step")[0];
+        return lastStep && lastStep.innerHTML.includes(str);
+      },
+      {},
+      str
+    );
+  }
+
+  async function waitForHiglightedLineToContain(inspector, str) {
+    await inspector.waitFor(
+      str => {
+        const highlightedLine = document.querySelector(
+          "[data-test-highlighted-line]"
+        );
+        return highlightedLine && highlightedLine.innerHTML.includes(str);
+      },
+      {},
+      str
+    );
+  }
+
   let command;
   it(
     "Can load the start page",
     async () => {
       const page = await createPage();
 
-      await page.waitFor(2000);
       await page.goto("http://localhost:" + backendPort + "/start");
       await page.waitForSelector("#fromjs-inspect-dom-button");
       await page.waitForSelector("h1");
+
+      await page.type("[data-test-name-input]", "A");
+      await page.waitForFunction(() =>
+        document.body.innerHTML.includes("Hi SomeoneA")
+      );
+
       await page.click("#fromjs-inspect-dom-button");
       await page.click("h1");
 
       const inspector = await waitForInPageInspector(page);
       await inspector.waitForSelector(".step");
-
-      const text = await inspector.evaluate(
-        () => document.querySelectorAll(".step")[0]["innerText"]
-      );
+      const text = await getLastStepHtml(inspector);
       expect(text).toContain("StringLiteral");
+
+      await page.evaluate(() =>
+        document
+          .querySelector("[data-test-fun-things] > div:nth-child(2)")!
+          ["click"]()
+      );
+
+      await inspector.waitForFunction(() =>
+        document.body.innerText.includes("SomeoneA")
+      );
+      await inspector.click("[data-key='11']");
+      await inspector.waitForFunction(() =>
+        document.body.innerText.includes("HTMLInputElementValueGetter")
+      );
 
       await page.close();
     },
@@ -298,6 +346,13 @@ describe("E2E", () => {
       res = await inspectDomCharAndTraverse(html.indexOf("textContent"));
       expect(res.operationLog.operation).toBe("stringLiteral");
       expect(res.operationLog.result.primitive).toBe("textContent");
+
+      // textContent
+      res = await inspectDomCharAndTraverse(
+        html.indexOf("className") - '">'.length
+      );
+      expect(res.operationLog.operation).toBe("stringLiteral");
+      expect(res.operationLog.result.primitive).toBe("someClass");
 
       // cloneNode
       const clonedSpanHtml =
@@ -410,6 +465,50 @@ describe("E2E", () => {
       await inspectorFrame.waitForFunction(() =>
         document.body.innerHTML.includes("StringLiteral")
       );
+
+      await page.close();
+    },
+    90000
+  );
+
+  it(
+    "Can inspect XMLHttpRequest result",
+    async () => {
+      const page = await createPage();
+
+      await page.goto(
+        "http://localhost:" + webServerPort + "/tests/" + "XMLHttpRequest"
+      );
+      const inspector = await waitForInPageInspector(page);
+
+      console.log("wait for xmlhttpreq resp text");
+      // note: at first the last html step still shows data from the previous test
+      await waitForLastHTMLStepToContain(
+        inspector,
+        "XMLHttpRequest.responseText"
+      );
+      console.log("will inspect url arg");
+
+      await inspector.waitFor(1000);
+      console.log("click arguments button");
+      await inspector.evaluate(() => {
+        document.querySelector("[data-test-arguments-button]")!["click"]();
+      });
+      // await inspector.click("[data-test-arguments-button]");
+      await inspector.waitFor(1000);
+      console.log(await inspector.evaluate(() => document.body.innerHTML));
+      await inspector.waitFor("[data-test-argument='URL'");
+      console.log("clicking URL argument button");
+
+      // await inspector.click("[data-test-argument='URL']");
+      // console.log(await inspector.evaluate(() => document.body.innerHTML));
+
+      console.log("try manual click");
+      // console.log(await inspector.evaluate(() => document.body.innerHTML));
+      await inspector.evaluate(() => {
+        document.querySelector("[data-test-argument='URL']")!["click"]();
+      });
+      await waitForHiglightedLineToContain(inspector, "oReq.open");
 
       await page.close();
     },

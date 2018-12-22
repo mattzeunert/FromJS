@@ -12,3 +12,4 @@ export const getObjectPropertyNameTrackingValue = "getOPNTV";
 export const getGlobal = "__getGlobal";
 export const getEmptyTrackingInfo = "__emptyTracking";
 export const expandArrayForArrayPattern = "__expandForArrayPattern";
+export const expandArrayForSpreadElement = "__expandArrayForSpreadElement";

@@ -63,6 +63,11 @@ export default class KnownValues {
         "Response.prototype.text": Response.prototype.text
       });
     }
+    if (global["XMLHttpRequest"]) {
+      Object.assign(this._knownValues, {
+        "XMLHttpRequest.prototype.open": XMLHttpRequest.prototype.open
+      });
+    }
 
     if (global["document"]) {
       const document = global.document;
@@ -76,7 +81,14 @@ export default class KnownValues {
           HTMLElement.prototype.insertAdjacentHTML,
         "HTMLElement.prototype.cloneNode": HTMLElement.prototype.cloneNode,
         "DOMParser.prototype.parseFromString":
-          DOMParser.prototype.parseFromString
+          DOMParser.prototype.parseFromString,
+        // Added this as a special case to make reading value in React work,
+        // React gets the getter from the property descriptor and then
+        // runs getter.call() to get the input element's value
+        HTMLInputElementValueGetter: Object.getOwnPropertyDescriptor(
+          HTMLInputElement.prototype,
+          "value"
+        )!.get
       });
     }
 

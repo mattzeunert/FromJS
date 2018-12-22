@@ -1,10 +1,12 @@
-export function getStoreLogsWorker({ postToBE, accessToken }) {
+export function getStoreLogsWorker({ makePostToBE, accessToken }) {
   const environmentSupportsWorker = typeof Worker !== "undefined";
   if (!environmentSupportsWorker) {
     return null;
   }
 
-  function workerCode() {
+  function workerCode({ makePostToBE, accessToken }) {
+    const postToBE = makePostToBE({ fetch, accessToken });
+
     self["perfStats"] = {
       totalLogCount: 0,
       logDataBytesSent: 0
@@ -37,13 +39,14 @@ export function getStoreLogsWorker({ postToBE, accessToken }) {
   return new Worker(
     URL.createObjectURL(
       new Blob([
-        postToBE +
+        "const makePostToBE = " +
+          makePostToBE +
           ";var accessToken = '" +
           accessToken +
           "'" +
           ";(" +
           workerCode +
-          ")()"
+          ")({makePostToBE, accessToken})"
       ])
     )
   );

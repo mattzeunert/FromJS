@@ -1,10 +1,32 @@
 import * as React from "react";
 import { Fun } from "./Fun";
 
+function VerifyInstrumentation() {
+  const works = typeof window["__mEx"] === "function";
+  if (works) {
+    return null;
+  }
+  return (
+    <div
+      style={{
+        background: "#ca0a0a",
+        color: "white",
+        padding: 10,
+        marginBottom: 10
+      }}
+    >
+      Code instrumentation isn't working. Try reloading this page or restarting
+      FromJS. This may also happen if you open the FromJS web server in a
+      browser window that wasn't created by FromJS.
+    </div>
+  );
+}
+
 export class App extends React.Component {
   render() {
     return (
       <div>
+        <VerifyInstrumentation />
         <h1>Get started with FromJS</h1>
         <ol
           style={{

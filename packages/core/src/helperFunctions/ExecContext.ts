@@ -31,4 +31,5 @@ export interface ExecContext {
   readonly lastOpTrackingResultWithoutResetting;
   readonly lastOpTrackingResult: any;
   readonly lastOperationType: string;
+  countOperations(fn: () => any): number;
 }

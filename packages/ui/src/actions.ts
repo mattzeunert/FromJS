@@ -1,7 +1,8 @@
 import appState from "./appState";
 import { inspectDomChar, loadSteps } from "./api";
+import { debounce, last } from "lodash";
 
-function traverse() {
+export function traverse() {
   const inspectionTarget = appState.get("inspectionTarget");
   if (!inspectionTarget || !inspectionTarget.logId) {
     console.log("no inspection target!!");
@@ -15,6 +16,42 @@ function traverse() {
       appState.set("steps", steps);
     });
   }
+}
+
+let isUndoing = false;
+let onSelectionChange = function() {
+  if (isUndoing) {
+    return;
+  }
+  const selectionInfo = {
+    inspectionTarget: appState.get("inspectionTarget"),
+    domToInspect: appState.get("domToInspect")
+  };
+  appState.set("selectionHistory", [
+    ...appState.get("selectionHistory"),
+    selectionInfo
+  ]);
+};
+// debounce to merge inspectiontarget and domtoinspect changes
+onSelectionChange = debounce(onSelectionChange, 20);
+appState.select("inspectionTarget").on(onSelectionChange);
+appState.select("domToInspect").on(onSelectionChange);
+
+export function undoSelection() {
+  let selectionHistory = appState.get("selectionHistory");
+  selectionHistory = selectionHistory.slice(0, -1);
+  let selection = last(selectionHistory);
+  appState.set("selectionHistory", selectionHistory);
+
+  isUndoing = true;
+  setSelection(selection);
+  setTimeout(() => (isUndoing = false), 100);
+}
+
+export function setSelection({ inspectionTarget, domToInspect }) {
+  appState.set("inspectionTarget", inspectionTarget);
+  appState.set("domToInspect", domToInspect);
+  traverse();
 }
 
 export function selectAndTraverse(logId, charIndex, origin?) {
@@ -56,5 +93,5 @@ export function setCollapseGetStartedIfHasData(collapse) {
 
 export function setPrettifyIfNoSourceMap(prettify) {
   appState.set("prettifyIfNoSourceMap", prettify);
-  console.log("todo: update exisitng code now");
+  window["forceUpdateInspector"]();
 }

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <script>
+      function reqListener() {
+        const respText = this.responseText;
+        const resp = JSON.parse(respText);
+        const ip = resp.ip;
+
+        // I had issue with DOM inspection from previous test showing up instead
+        setTimeout(() => {
+          fromJSInspect(ip);
+        }, 2500);
+      }
+
+      var oReq = new XMLHttpRequest();
+      oReq.addEventListener("load", reqListener);
+      oReq.open("GET", "https://api.ipify.org/?format=json");
+      oReq.send();
+    </script>
+  </body>
+</html>
