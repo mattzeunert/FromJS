@@ -29,10 +29,9 @@ const CallExpression = <any>{
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
     let [fnArg, context, argList, evalFn] = args;
 
+    var fn = fnArg[0];
     var fnArgs: any[] = [];
     var fnArgValues: any[] = [];
-
-    var fn = fnArg[0];
 
     for (var i = 0; i < argList.length; i++) {
       const arg = argList[i];
@@ -90,83 +89,46 @@ const CallExpression = <any>{
     const extraTrackingValues: any = {};
     const runtimeArgs: any = {};
 
+    let extraState: any = {};
+
+    const fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
     var ret;
     let retT: any = null;
+
+    function getSpecialCaseArgs(): SpecialCaseArgs {
+      const specialCaseArgs: SpecialCaseArgs = {
+        fn,
+        ctx,
+        object,
+        fnArgs: fnArgsAtInvocation,
+        fnArgValues: fnArgValuesAtInvocation,
+        args,
+        extraTrackingValues,
+        logData,
+        context,
+        ret,
+        retT,
+        extraState,
+        runtimeArgs
+      };
+      if (functionIsCallOrApply) {
+        specialCaseArgs.fn = object;
+        specialCaseArgs.object = fnArgValues[0];
+        specialCaseArgs.context = [fnArgValues[0], fnArgs[0]];
+      }
+
+      return specialCaseArgs;
+    }
+
     if (astArgs.isNewExpression) {
-      const isNewFunctionCall = fn === Function;
-      if (isNewFunctionCall && ctx.hasInstrumentationFunction) {
-        let code = fnArgValues[fnArgValues.length - 1];
-        let generatedFnArguments = fnArgValues.slice(0, -1);
-
-        code =
-          "(function(" + generatedFnArguments.join(",") + ") { " + code + " })";
-        ret = ctx.global["__fromJSEval"](code);
-        ctx.registerEvalScript(ret.evalScript);
-        ret = ret.returnValue;
-      } else {
-        if (isNewFunctionCall) {
-          consoleLog("can't instrument new Function() code");
-        }
-        let thisValue = null; // overwritten inside new()
-        ret = new (Function.prototype.bind.apply(fnArg[0], [
-          thisValue,
-          ...fnArgValues
-        ]))();
-      }
-      retT = ctx.createOperationLog({
-        operation: ctx.operationTypes.newExpressionResult,
-        args: {},
-        result: ret,
-        loc: logData.loc
-      });
+      ({ ret, retT } = handleNewExpression(getSpecialCaseArgs()));
     } else {
-      let extraState: any = {};
-
-      const fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
-      let specialCaseArgs = getSpecialCaseArgs();
-
-      function getSpecialCaseArgs(): SpecialCaseArgs | void {
-        if (!fnKnownValue) {
-          return;
-        }
-
-        if (
-          !specialCases[fnKnownValue] &&
-          !specialValuesForPostprocessing[fnKnownValue]
-        ) {
-          return;
-        }
-
-        const specialCaseArgs = {
-          fn,
-          ctx,
-          object,
-          fnArgs: fnArgsAtInvocation,
-          fnArgValues: fnArgValuesAtInvocation,
-          args,
-          extraTrackingValues,
-          logData,
-          context,
-          ret,
-          retT,
-          extraState,
-          runtimeArgs
-        };
-        if (functionIsCallOrApply) {
-          specialCaseArgs.fn = object;
-          specialCaseArgs.object = fnArgValues[0];
-          specialCaseArgs.context = [fnArgValues[0], fnArgs[0]];
-        }
-
-        return specialCaseArgs;
-      }
-
       if (
         specialCases[fnKnownValue] &&
         (fnKnownValue !== "String.prototype.replace" ||
           ["string", "number"].includes(typeof fnArgValues[1]))
       ) {
-        const r = specialCases[fnKnownValue](specialCaseArgs);
+        const r = specialCases[fnKnownValue](getSpecialCaseArgs());
         ret = r[0];
         retT = r[1];
       } else {
@@ -415,3 +377,41 @@ const CallExpression = <any>{
 };
 
 export default CallExpression;
+
+function handleNewExpression({
+  fn,
+  ctx,
+  fnArgValues,
+  ret,
+  retT,
+  logData
+}: SpecialCaseArgs) {
+  const isNewFunctionCall = fn === Function;
+  if (isNewFunctionCall && ctx.hasInstrumentationFunction) {
+    let code = fnArgValues[fnArgValues.length - 1];
+    let generatedFnArguments = fnArgValues.slice(0, -1);
+    code =
+      "(function(" + generatedFnArguments.join(",") + ") { " + code + " })";
+    ret = ctx.global["__fromJSEval"](code);
+    ctx.registerEvalScript(ret.evalScript);
+    ret = ret.returnValue;
+  } else {
+    if (isNewFunctionCall) {
+      consoleLog(
+        "can't instrument new Function() code because instrumentation function is missing in context"
+      );
+    }
+    let thisValue = null; // overwritten inside new()
+    ret = new (Function.prototype.bind.apply(fn, [
+      thisValue,
+      ...fnArgValues
+    ]))();
+  }
+  retT = ctx.createOperationLog({
+    operation: ctx.operationTypes.newExpressionResult,
+    args: {},
+    result: ret,
+    loc: logData.loc
+  });
+  return { ret, retT };
+}

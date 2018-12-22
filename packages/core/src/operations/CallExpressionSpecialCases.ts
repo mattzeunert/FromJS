@@ -33,7 +33,7 @@ function getFullUrl(url) {
   return a.href;
 }
 
-export interface SpecialCaseArgs {
+export type SpecialCaseArgs = {
   ctx: ExecContext;
   object: any;
   fnArgs: any[];
@@ -42,7 +42,12 @@ export interface SpecialCaseArgs {
   ret: any;
   extraTrackingValues: any;
   runtimeArgs: any;
-}
+  fn: any;
+  retT: any;
+  args: any[];
+  context: any;
+  extraState: any;
+};
 
 type TraverseObjectCallBack = (
   keyPath: string,
