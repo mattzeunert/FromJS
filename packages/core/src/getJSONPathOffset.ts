@@ -1,10 +1,11 @@
 export function getJSONPathOffset(json, initialAst, keyPath, isKey) {
   let ast = initialAst;
-  const keys = keyPath.split(".");
+  const keys = keyPath.slice();
   return get(ast, keys);
 
   function get(ast, keys) {
     const key = keys.shift();
+    let initialAstForDebug = ast;
 
     ast = ast.children.find((child, i) => {
       if (child.key) {
@@ -34,7 +35,13 @@ export function getJSONPathOffset(json, initialAst, keyPath, isKey) {
       return ret;
     }
 
-    ast = ast.value;
-    return get(ast, keys);
+    let nextAst;
+    if (ast.value) {
+      nextAst = ast.value;
+    } else {
+      nextAst = ast;
+    }
+
+    return get(nextAst, keys);
   }
 }
