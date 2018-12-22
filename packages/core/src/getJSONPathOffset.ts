@@ -18,7 +18,6 @@ export function getJSONPathOffset(json, initialAst, keyPath, isKey) {
 
     if (keys.length === 0) {
       let ret;
-      console.log({ ast, isKey, keys, keyPath });
       if (isKey) {
         ret = ast.key.loc.start.offset;
       } else {

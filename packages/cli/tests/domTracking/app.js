@@ -10,8 +10,13 @@ div.textContent = "textContent";
 app.appendChild(div);
 
 const div2 = document.createElement("div");
-div2.innerHTML = "<!-- COMMENT_IN_INNERTHML -->";
+div2.textContent = "className";
+div2.className = "someClass";
 app.appendChild(div2);
+
+const div3 = document.createElement("div");
+div3.innerHTML = "<!-- COMMENT_IN_INNERTHML -->";
+app.appendChild(div3);
 
 const comment = document.createComment("createComment");
 app.appendChild(comment);
