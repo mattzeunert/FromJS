@@ -482,6 +482,7 @@ describe("E2E", () => {
       );
       console.log("will inspect url arg");
 
+      await inspector.waitFor(1000);
       await inspector.click("[data-test-arguments-button]");
       await inspector.waitFor(1000);
       console.log(await inspector.evaluate(() => document.body.innerHTML));
