@@ -22,11 +22,17 @@ import {
   knownFnProcessors,
   FnProcessorArgs
 } from "./CallExpressionSpecialCases";
+import { ValueTrackingValuePair } from "../types";
 
 const CallExpression = <any>{
   argNames: ["function", "context", "arg", "evalFn"],
   argIsArray: [false, false, true, false],
-  exec: (args, astArgs, ctx: ExecContext, logData: any) => {
+  exec: (
+    args: [any, ValueTrackingValuePair, any, any],
+    astArgs,
+    ctx: ExecContext,
+    logData: any
+  ) => {
     let [fnArg, context, argList, evalFn] = args;
 
     var fn = fnArg[0];
@@ -95,30 +101,7 @@ const CallExpression = <any>{
     var ret;
     let retT: any = null;
 
-    function getSpecialCaseArgs(): SpecialCaseArgs {
-      const specialCaseArgs: SpecialCaseArgs = {
-        fn,
-        ctx,
-        object,
-        fnArgs: fnArgsAtInvocation,
-        fnArgValues: fnArgValuesAtInvocation,
-        args,
-        extraTrackingValues,
-        logData,
-        context,
-        ret,
-        retT,
-        extraState,
-        runtimeArgs
-      };
-      if (functionIsCallOrApply) {
-        specialCaseArgs.fn = object;
-        specialCaseArgs.object = fnArgValues[0];
-        specialCaseArgs.context = [fnArgValues[0], fnArgs[0]];
-      }
-
-      return specialCaseArgs;
-    }
+    let fnArgValuesForApply = fnArgValues;
 
     if (astArgs.isNewExpression) {
       ({ ret, retT } = handleNewExpression(getSpecialCaseArgs()));
@@ -152,55 +135,10 @@ const CallExpression = <any>{
           }
         }
 
-        let fnArgValuesForApply = fnArgValues;
-
         const knownFnProcessor = knownFnProcessors[fnKnownValue];
 
         if (knownFnProcessor) {
-          function setFnArgForApply(argIndex, argValue) {
-            if (functionIsApply) {
-              const argList = fnArgValuesForApply[1].slice();
-              argList[argIndex] = argValue;
-            } else if (functionIsCall) {
-              fnArgValuesForApply[argIndex + 1] = argValue;
-            } else {
-              fnArgValuesForApply[argIndex] = argValue;
-            }
-          }
-          function getFnArgForApply(argIndex) {
-            if (functionIsApply) {
-              const argList = fnArgValuesForApply[1];
-              return argList[argIndex];
-            } else if (functionIsCall) {
-              return fnArgValuesForApply[argIndex + 1];
-            } else {
-              return fnArgValuesForApply[argIndex];
-            }
-          }
-
-          function setContext(c) {
-            context = c;
-          }
-          function setArgValuesForApply(vals) {
-            fnArgValuesForApply = vals;
-          }
-          function setFunction(f) {
-            fn = f;
-          }
-          const fnProcessorArgs: FnProcessorArgs = {
-            extraState,
-            setArgValuesForApply,
-            fnArgValues,
-            getFnArgForApply,
-            setFnArgForApply,
-            ctx,
-            setContext,
-            fnArgs,
-            logData,
-            object,
-            setFunction
-          };
-          knownFnProcessor(fnProcessorArgs);
+          knownFnProcessor(getFnProcessorArgs());
         }
 
         const lastReturnStatementResultBeforeCall =
@@ -267,6 +205,79 @@ const CallExpression = <any>{
     logData.extraArgs = extraTrackingValues;
 
     return ret;
+
+    function getSpecialCaseArgs(): SpecialCaseArgs {
+      const specialCaseArgs: SpecialCaseArgs = {
+        fn,
+        ctx,
+        object,
+        fnArgs: fnArgsAtInvocation,
+        fnArgValues: fnArgValuesAtInvocation,
+        args,
+        extraTrackingValues,
+        logData,
+        context,
+        ret,
+        retT,
+        extraState,
+        runtimeArgs
+      };
+      if (functionIsCallOrApply) {
+        specialCaseArgs.fn = object;
+        specialCaseArgs.object = fnArgValues[0];
+        specialCaseArgs.context = [fnArgValues[0], fnArgs[0]];
+      }
+
+      return specialCaseArgs;
+    }
+
+    function getFnProcessorArgs() {
+      function setFnArgForApply(argIndex, argValue) {
+        if (functionIsApply) {
+          const argList = fnArgValuesForApply[1].slice();
+          argList[argIndex] = argValue;
+        } else if (functionIsCall) {
+          fnArgValuesForApply[argIndex + 1] = argValue;
+        } else {
+          fnArgValuesForApply[argIndex] = argValue;
+        }
+      }
+      function getFnArgForApply(argIndex) {
+        if (functionIsApply) {
+          const argList = fnArgValuesForApply[1];
+          return argList[argIndex];
+        } else if (functionIsCall) {
+          return fnArgValuesForApply[argIndex + 1];
+        } else {
+          return fnArgValuesForApply[argIndex];
+        }
+      }
+
+      function setContext(c) {
+        context = c;
+      }
+      function setArgValuesForApply(vals) {
+        fnArgValuesForApply = vals;
+      }
+      function setFunction(f) {
+        fn = f;
+      }
+      const fnProcessorArgs: FnProcessorArgs = {
+        extraState,
+        setArgValuesForApply,
+        fnArgValues,
+        getFnArgForApply,
+        setFnArgForApply,
+        ctx,
+        setContext,
+        fnArgs,
+        logData,
+        object,
+        setFunction
+      };
+
+      return fnProcessorArgs;
+    }
   },
   traverse(operationLog: OperationLog, charIndex) {
     var knownFunction =
