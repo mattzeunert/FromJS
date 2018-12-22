@@ -741,6 +741,11 @@ export const specialValuesForPostprocessing = {
     const isDeep = !!fnArgValues[0];
     processClonedNode(ret, object, { isDeep });
   },
+  "document.importNode": ({ ret, object, fnArgs, fnArgValues }) => {
+    const importedNode = fnArgValues[0];
+    const isDeep = !!fnArgValues[1];
+    processClonedNode(ret, importedNode, { isDeep });
+  },
   "HTMLElement.prototype.setAttribute": ({ object, fnArgs, fnArgValues }) => {
     const [attrNameArg, attrValueArg] = fnArgs;
     let attrName = fnArgValues[0];

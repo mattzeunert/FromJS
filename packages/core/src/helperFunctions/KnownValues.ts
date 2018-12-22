@@ -75,6 +75,7 @@ export default class KnownValues {
         "document.createElement": document.createElement,
         "document.createTextNode": document.createTextNode,
         "document.createComment": document.createComment,
+        "document.importNode": document.importNode,
         "HTMLElement.prototype.setAttribute":
           HTMLElement.prototype.setAttribute,
         "HTMLElement.prototype.insertAdjacentHTML":

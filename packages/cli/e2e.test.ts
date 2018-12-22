@@ -389,6 +389,10 @@ describe("E2E", () => {
         "<div>deepClonedContent</div>"
       );
 
+      // template + importNode
+      res = await inspectDomCharAndTraverse(html.indexOf("TemplateChild2"));
+      expect(res.operationLog.operation).toBe("initialPageHtml");
+
       // .text or .textContent on a text node
       res = await inspectDomCharAndTraverse(
         html.indexOf("nodeNodeValueAssignment")

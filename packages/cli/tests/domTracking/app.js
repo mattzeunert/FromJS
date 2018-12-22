@@ -18,6 +18,10 @@ const div3 = document.createElement("div");
 div3.innerHTML = "<!-- COMMENT_IN_INNERTHML -->";
 app.appendChild(div3);
 
+const tmpl = document.querySelector("#tmpl");
+const node = document.importNode(tmpl.content, true);
+app.appendChild(node);
+
 const comment = document.createComment("createComment");
 app.appendChild(comment);
 
