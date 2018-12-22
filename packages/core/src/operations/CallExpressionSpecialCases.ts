@@ -21,6 +21,7 @@ import addElOrigin, {
 } from "./domHelpers/addElOrigin";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import * as cloneRegExp from "clone-regexp";
+import { doOperation } from "../FunctionNames";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -1088,3 +1089,193 @@ export function traverseKnownFunction({
       };
   }
 }
+
+export interface FnProcessorArgs {
+  extraState: any;
+  setArgValuesForApply: (vals: any) => void;
+  fnArgValues: any[];
+  getFnArgForApply: (argIndex: any) => any;
+  setFnArgForApply: (argIndex: any, argValue: any) => void;
+  ctx: ExecContext;
+  setContext: (c: any) => void;
+  fnArgs: any[];
+  logData: any;
+  object: any;
+  setFunction: any;
+}
+
+export const knownFnProcessors = {
+  "Array.prototype.map": ({
+    extraState,
+    setArgValuesForApply,
+    fnArgValues,
+    getFnArgForApply,
+    setFnArgForApply,
+    ctx,
+    setContext,
+    fnArgs,
+    logData
+  }: FnProcessorArgs) => {
+    extraState.mapResultTrackingValues = [];
+    setArgValuesForApply(fnArgValues.slice());
+    const originalMappingFunction = getFnArgForApply(0);
+    setFnArgForApply(0, function(this: any, item, index, array) {
+      const itemTrackingInfo = ctx.getObjectPropertyTrackingValue(
+        array,
+        index.toString()
+      );
+      if (fnArgValues.length > 1) {
+        setContext([fnArgValues[1], fnArgs[1]]);
+      } else {
+        setContext([this, null]);
+      }
+      const ret = ctx.global[doOperation](
+        "callExpression",
+        [
+          [originalMappingFunction, null],
+          [this, null],
+          [[item, itemTrackingInfo, null], [index, null], [array, null]]
+        ],
+        {},
+        logData.loc
+      );
+      extraState.mapResultTrackingValues.push(ctx.lastOpTrackingResult);
+      return ret;
+    });
+  },
+  "Array.prototype.reduce": ({
+    extraState,
+    getFnArgForApply,
+    setFnArgForApply,
+    ctx,
+    fnArgs,
+    logData,
+    object
+  }: FnProcessorArgs) => {
+    if (fnArgs.length > 1) {
+      extraState.reduceResultTrackingValue = fnArgs[1];
+    } else {
+      // "If no initial value is supplied, the first element in the array will be used."
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
+      extraState.reduceResultTrackingValue = ctx.getObjectPropertyTrackingValue(
+        object,
+        0
+      );
+    }
+    const originalReduceFunction = getFnArgForApply(0);
+    setFnArgForApply(0, function(
+      this: any,
+      previousRet,
+      param,
+      currentIndex,
+      array
+    ) {
+      let paramTrackingValue = ctx.getObjectPropertyTrackingValue(
+        array,
+        currentIndex.toString()
+      );
+      const ret = ctx.global[doOperation](
+        "callExpression",
+        [
+          [originalReduceFunction, null],
+          [this, null],
+          [
+            [previousRet, extraState.reduceResultTrackingValue],
+            [param, paramTrackingValue],
+            [currentIndex, null],
+            [array, null]
+          ]
+        ],
+        {},
+        logData.loc
+      );
+      extraState.reduceResultTrackingValue = ctx.lastOpTrackingResult;
+      return ret;
+    });
+  },
+  "Array.prototype.filter": ({
+    extraState,
+    getFnArgForApply,
+    setFnArgForApply,
+    ctx,
+    logData
+  }: FnProcessorArgs) => {
+    extraState.filterResults = [];
+    const originalFilterFunction = getFnArgForApply(0);
+    setFnArgForApply(0, function(this: any, element, index, array) {
+      const ret = ctx.global[doOperation](
+        "callExpression",
+        [
+          [originalFilterFunction, null],
+          [this, null],
+          [
+            [element, ctx.getObjectPropertyTrackingValue(array, index)],
+            [index, null],
+            [array, null]
+          ]
+        ],
+        {},
+        logData.loc
+      );
+      extraState.filterResults.push(ret);
+      return ret;
+    });
+  },
+  "Array.prototype.pop": ({ extraState, ctx, object }: FnProcessorArgs) => {
+    extraState.poppedValueTrackingValue = null;
+    if (object && object.length > 0) {
+      extraState.poppedValueTrackingValue = ctx.getObjectPropertyTrackingValue(
+        object,
+        object.length - 1
+      );
+    }
+  },
+  "Array.prototype.shift": ({ extraState, ctx, object }: FnProcessorArgs) => {
+    extraState.shiftedTrackingValue = null;
+    if (object && object.length > 0) {
+      extraState.shiftedTrackingValue = ctx.getObjectPropertyTrackingValue(
+        object,
+        0
+      );
+    }
+  },
+  "Response.prototype.json": ({
+    setFunction,
+    ctx,
+    logData
+  }: FnProcessorArgs) => {
+    setFunction(function(this: Response) {
+      const response: Response = this;
+      let then = ctx.knownValues.getValue("Promise.prototype.then");
+      const p = ctx.knownValues
+        .getValue("Response.prototype.text")
+        .apply(response);
+      return then.call(p, function(text) {
+        if (text === '{"ok":true}') {
+          return Promise.resolve(JSON.parse(text));
+        }
+
+        const t = ctx.createOperationLog({
+          operation: ctx.operationTypes.fetchResponse,
+          args: {
+            value: [text],
+            fetchCall: ["(FetchCall)", ctx.global["__fetches"][response.url]]
+          },
+          astArgs: {},
+          result: text,
+          runtimeArgs: {
+            url: response.url
+          },
+          loc: logData.loc
+        });
+
+        const obj = ctx.global[doOperation](
+          "callExpression",
+          [[JSON.parse], [JSON], [[text, t]]],
+          {}
+        );
+        return Promise.resolve(obj);
+      });
+    });
+  }
+};

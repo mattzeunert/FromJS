@@ -18,7 +18,9 @@ import {
   specialValuesForPostprocessing,
   specialCases,
   SpecialCaseArgs,
-  traverseKnownFunction
+  traverseKnownFunction,
+  knownFnProcessors,
+  FnProcessorArgs
 } from "./CallExpressionSpecialCases";
 
 function getFullUrl(url) {
@@ -32,7 +34,6 @@ const CallExpression = <any>{
   argIsArray: [false, false, true, false],
   exec: (args, astArgs, ctx: ExecContext, logData: any) => {
     let [fnArg, context, argList, evalFn] = args;
-    // console.log({ x: 9, astArgs, argList });
 
     var fnArgs: any[] = [];
     var fnArgValues: any[] = [];
@@ -215,78 +216,41 @@ const CallExpression = <any>{
           ctx.global["__xmlHttpRequests"][url] = logData.index;
         }
 
-        if (fnKnownValue === "Response.prototype.json") {
-          fn = function(this: Response) {
-            const response: Response = this;
-            let then = ctx.knownValues.getValue("Promise.prototype.then");
-            const p = ctx.knownValues
-              .getValue("Response.prototype.text")
-              .apply(response);
-            return then.call(p, function(text) {
-              if (text === '{"ok":true}') {
-                return Promise.resolve(JSON.parse(text));
-              }
-
-              const t = ctx.createOperationLog({
-                operation: ctx.operationTypes.fetchResponse,
-                args: {
-                  value: [text],
-                  fetchCall: [
-                    "(FetchCall)",
-                    ctx.global["__fetches"][response.url]
-                  ]
-                },
-                astArgs: {},
-                result: text,
-                runtimeArgs: {
-                  url: response.url
-                },
-                loc: logData.loc
-              });
-
-              const obj = ctx.global[doOperation](
-                "callExpression",
-                [[JSON.parse], [JSON], [[text, t]]],
-                {}
-              );
-              return Promise.resolve(obj);
-            });
-          };
-        }
-
         let fnArgValuesForApply = fnArgValues;
-
-        function setFnArgForApply(argIndex, argValue) {
-          if (functionIsApply) {
-            const argList = fnArgValuesForApply[1].slice();
-            argList[argIndex] = argValue;
-          } else if (functionIsCall) {
-            fnArgValuesForApply[argIndex + 1] = argValue;
-          } else {
-            fnArgValuesForApply[argIndex] = argValue;
-          }
-        }
-        function getFnArgForApply(argIndex) {
-          if (functionIsApply) {
-            const argList = fnArgValuesForApply[1];
-            return argList[argIndex];
-          } else if (functionIsCall) {
-            return fnArgValuesForApply[argIndex + 1];
-          } else {
-            return fnArgValuesForApply[argIndex];
-          }
-        }
-
-        function setContext(c) {
-          context = c;
-        }
-        function setArgValuesForApply(vals) {
-          fnArgValuesForApply = vals;
-        }
 
         const knownFnProcessor = knownFnProcessors[fnKnownValue];
 
         if (knownFnProcessor) {
+          function setFnArgForApply(argIndex, argValue) {
+            if (functionIsApply) {
+              const argList = fnArgValuesForApply[1].slice();
+              argList[argIndex] = argValue;
+            } else if (functionIsCall) {
+              fnArgValuesForApply[argIndex + 1] = argValue;
+            } else {
+              fnArgValuesForApply[argIndex] = argValue;
+            }
+          }
+          function getFnArgForApply(argIndex) {
+            if (functionIsApply) {
+              const argList = fnArgValuesForApply[1];
+              return argList[argIndex];
+            } else if (functionIsCall) {
+              return fnArgValuesForApply[argIndex + 1];
+            } else {
+              return fnArgValuesForApply[argIndex];
+            }
+          }
+
+          function setContext(c) {
+            context = c;
+          }
+          function setArgValuesForApply(vals) {
+            fnArgValuesForApply = vals;
+          }
+          function setFunction(f) {
+            fn = f;
+          }
           const fnProcessorArgs: FnProcessorArgs = {
             extraState,
             setArgValuesForApply,
@@ -297,55 +261,10 @@ const CallExpression = <any>{
             setContext,
             fnArgs,
             logData,
-            object
+            object,
+            setFunction
           };
           knownFnProcessor(fnProcessorArgs);
-        }
-
-        if (fnKnownValue === "Array.prototype.filter") {
-          extraState.filterResults = [];
-
-          const originalFilterFunction = getFnArgForApply(0);
-
-          setFnArgForApply(0, function(this: any, element, index, array) {
-            const ret = ctx.global[doOperation](
-              "callExpression",
-              [
-                [originalFilterFunction, null],
-                [this, null],
-                [
-                  [element, ctx.getObjectPropertyTrackingValue(array, index)],
-                  [index, null],
-                  [array, null]
-                ]
-              ],
-              {},
-              logData.loc
-            );
-
-            extraState.filterResults.push(ret);
-
-            return ret;
-          });
-        }
-
-        if (fnKnownValue === "Array.prototype.pop") {
-          extraState.poppedValueTrackingValue = null;
-          if (object && object.length > 0) {
-            extraState.poppedValueTrackingValue = ctx.getObjectPropertyTrackingValue(
-              object,
-              object.length - 1
-            );
-          }
-        }
-        if (fnKnownValue === "Array.prototype.shift") {
-          extraState.shiftedTrackingValue = null;
-          if (object && object.length > 0) {
-            extraState.shiftedTrackingValue = ctx.getObjectPropertyTrackingValue(
-              object,
-              0
-            );
-          }
         }
 
         const lastReturnStatementResultBeforeCall =
@@ -522,107 +441,3 @@ const CallExpression = <any>{
 };
 
 export default CallExpression;
-
-interface FnProcessorArgs {
-  extraState: any;
-  setArgValuesForApply: (vals: any) => void;
-  fnArgValues: any[];
-  getFnArgForApply: (argIndex: any) => any;
-  setFnArgForApply: (argIndex: any, argValue: any) => void;
-  ctx: ExecContext;
-  setContext: (c: any) => void;
-  fnArgs: any[];
-  logData: any;
-  object: any;
-}
-
-const knownFnProcessors = {
-  "Array.prototype.map": ({
-    extraState,
-    setArgValuesForApply,
-    fnArgValues,
-    getFnArgForApply,
-    setFnArgForApply,
-    ctx,
-    setContext,
-    fnArgs,
-    logData
-  }: FnProcessorArgs) => {
-    extraState.mapResultTrackingValues = [];
-    setArgValuesForApply(fnArgValues.slice());
-    const originalMappingFunction = getFnArgForApply(0);
-    setFnArgForApply(0, function(this: any, item, index, array) {
-      const itemTrackingInfo = ctx.getObjectPropertyTrackingValue(
-        array,
-        index.toString()
-      );
-      if (fnArgValues.length > 1) {
-        setContext([fnArgValues[1], fnArgs[1]]);
-      } else {
-        setContext([this, null]);
-      }
-      const ret = ctx.global[doOperation](
-        "callExpression",
-        [
-          [originalMappingFunction, null],
-          [this, null],
-          [[item, itemTrackingInfo, null], [index, null], [array, null]]
-        ],
-        {},
-        logData.loc
-      );
-      extraState.mapResultTrackingValues.push(ctx.lastOpTrackingResult);
-      return ret;
-    });
-  },
-  "Array.prototype.reduce": ({
-    extraState,
-    getFnArgForApply,
-    setFnArgForApply,
-    ctx,
-    fnArgs,
-    logData,
-    object
-  }: FnProcessorArgs) => {
-    if (fnArgs.length > 1) {
-      extraState.reduceResultTrackingValue = fnArgs[1];
-    } else {
-      // "If no initial value is supplied, the first element in the array will be used."
-      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
-      extraState.reduceResultTrackingValue = ctx.getObjectPropertyTrackingValue(
-        object,
-        0
-      );
-    }
-    const originalReduceFunction = getFnArgForApply(0);
-    setFnArgForApply(0, function(
-      this: any,
-      previousRet,
-      param,
-      currentIndex,
-      array
-    ) {
-      let paramTrackingValue = ctx.getObjectPropertyTrackingValue(
-        array,
-        currentIndex.toString()
-      );
-      const ret = ctx.global[doOperation](
-        "callExpression",
-        [
-          [originalReduceFunction, null],
-          [this, null],
-          [
-            [previousRet, extraState.reduceResultTrackingValue],
-            [param, paramTrackingValue],
-            [currentIndex, null],
-            [array, null]
-          ]
-        ],
-        {},
-        logData.loc
-      );
-      extraState.reduceResultTrackingValue = ctx.lastOpTrackingResult;
-      return ret;
-    });
-  }
-};
