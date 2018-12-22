@@ -17,11 +17,13 @@ import traverseStringConcat from "../traverseStringConcat";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import addElOrigin, {
   addElAttributeValueOrigin,
-  addElAttributeNameOrigin
+  addElAttributeNameOrigin,
+  trackSetElementStyle
 } from "./domHelpers/addElOrigin";
 import * as MemoValueNames from "../MemoValueNames";
 import { consoleLog } from "../helperFunctions/logging";
 import { safelyReadProperty } from "../util";
+import * as OperationTypes from "../OperationTypes";
 
 export default <any>{
   argNames: log => {
@@ -121,9 +123,7 @@ export default <any>{
           astArgs: {
             operator
           },
-          loc: logData.loc,
-          argTrackingValues: [currentValueT, argumentArg[1]],
-          argNames: ["currentValue", "argument"]
+          loc: logData.loc
         }),
         propNameT
       );
@@ -162,6 +162,20 @@ export default <any>{
           });
           addElAttributeNameOrigin(obj, attrName, { trackingValue: propNameT });
         }
+      } else if (obj instanceof CSSStyleDeclaration && obj["__element"]) {
+        trackSetElementStyle(
+          obj["__element"],
+          propName,
+          ctx.createOperationLog({
+            operation: OperationTypes.styleAssignment,
+            loc: logData.loc,
+            args: {
+              styleName: [null, propNameT],
+              styleValue: argumentArg
+            },
+            result: propName + ": " + newValue
+          })
+        );
       }
     } else if (assignmentType === "Identifier") {
       const [currentValueArg, newValueArg, argumentArg] = args;

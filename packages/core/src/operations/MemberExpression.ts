@@ -7,7 +7,10 @@ import {
 } from "../babelPluginHelpers";
 import { ExecContext } from "../helperFunctions/ExecContext";
 import { nullOnError, safelyReadProperty } from "../util";
-import { getElAttributeValueOrigin } from "./domHelpers/addElOrigin";
+import {
+  getElAttributeValueOrigin,
+  trackSetElementStyle
+} from "./domHelpers/addElOrigin";
 import { htmlAdapter } from "../OperationTypes";
 import { ValueTrackingValuePair } from "../types";
 
@@ -78,11 +81,12 @@ export const MemberExpression = <any>{
       object instanceof Node &&
       typeof propertyName !== "symbol"
     ) {
-      trackingValue = getTrackingValueFromDOMNode(
+      trackingValue = getTrackingValueFromDOMNodeAndDoOtherStuff(
         object,
         propertyName,
         trackingValue,
-        ctx
+        ctx,
+        ret
       );
     }
 
@@ -175,11 +179,12 @@ function getAjaxResponseTextTrackingValue(
   return trackingValue;
 }
 
-function getTrackingValueFromDOMNode(
+function getTrackingValueFromDOMNodeAndDoOtherStuff(
   object: Node,
   propertyName: any,
   trackingValue: any,
-  ctx: ExecContext
+  ctx: ExecContext,
+  ret: any
 ) {
   if (
     typeof HTMLScriptElement !== "undefined" &&
@@ -240,6 +245,9 @@ function getTrackingValueFromDOMNode(
         });
       }
     }
+  } else if (propertyName === "style" && ret instanceof CSSStyleDeclaration) {
+    // Keep reference to element so that later on we can set __elOrigin on it
+    ret["__element"] = object;
   }
   return trackingValue;
 }

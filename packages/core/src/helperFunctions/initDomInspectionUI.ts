@@ -206,6 +206,7 @@ export default function initDomInspectionUI(backendPort) {
         top: 0;
         right: 0;
         bottom: 0;
+        height: 100vh;
         width: ` +
       inspectorWidth +
       `;
