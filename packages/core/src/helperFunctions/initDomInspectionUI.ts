@@ -6,6 +6,7 @@ export default function initDomInspectionUI(backendPort) {
   }
   var global = Function("return this")();
   let showDomInspector = false;
+  let openedInNewTab = false;
   const toggleInspectDomButton = document.createElement("div");
   let selectedElement = null;
   const selectedElementMarker = document.createElement("div");
@@ -161,6 +162,9 @@ export default function initDomInspectionUI(backendPort) {
     if (isShowingInspectorUI) {
       return;
     }
+    if (openedInNewTab) {
+      return;
+    }
     document.body.classList.add("showing-fromjs-inspector");
     const body = global["document"]["body"];
     inspectorUI.style.display = "block";
@@ -217,6 +221,19 @@ export default function initDomInspectionUI(backendPort) {
       }
     `;
     inspectorUI.appendChild(inspectorStyles);
+
+    // Listen to message from child window
+    window.addEventListener(
+      "message",
+      function(e) {
+        const { data } = e;
+        if (data.type === "openInNewTab") {
+          openedInNewTab = true;
+          hideInspectorUI();
+        }
+      },
+      false
+    );
 
     isShowingInspectorUI = true;
 

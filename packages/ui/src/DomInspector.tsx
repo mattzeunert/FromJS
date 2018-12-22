@@ -38,6 +38,27 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
                 title="Undo"
               />
             )}
+            {window.parent !== window && (
+              <button
+                style={{
+                  height: 15,
+                  width: 15,
+                  marginLeft: 10,
+                  border: "none",
+                  backgroundSize: "100%",
+                  backgroundImage:
+                    "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAQAAABIkb+zAAABqElEQVR4Ae3bAWYDARCF4QFNVa7QtAiwxXZGICCHSs9QOUJzhkov0GjJBZqbREIaSFIBKGF3f7xd5g0A6/+wAlnLXV8ul8vlcrnc072/+Hds4tzs7N/Ac+qv6MeHn+IMTgkY9nzN4sUAn/N8IcCHfuw0IF55vBTgPx0HxG/HAQ0eAFeOfKcH8Hw9gOfrATxfD+D5QgDP94MUwPPLiRTA882kAJ4vBvB8MYDniwE8XwTg+R0AlOMK+QJA5fzYV8nXA0i+HgDy9QCQrweAfD0A5OsBIB+MA0B+7Hk+B5D8sZkAIMhXAlC+HoDy9QCUrwegfD0A5et/yMoJyNcDyokfQL4KAPL1AJCvB4B8PQDk6wEgXw8A+XpA9XzfVcgXAKrnj8w6AfB3lK8HFDe+RPn6d+Dx1pcgXw+4EGIF8vUAs7iLFcjXAy4E/wT5MsCVJSABCUhAAhKQgARs49yi2/K/HkvP1/UBs1YBZlZ3zw9+bE3+MQZWf/7WGsDcmmzYa8d74Othz5qt6PvCT9L4ky+KvpHFIKYNPsPit4mvmMbAcrlcLpfL5XJX9wer5f8CHBdblgAAAABJRU5ErkJggg==)",
+                  cursor: "pointer"
+                }}
+                onClick={() => {
+                  // Noopener hopefully means the window will open in a new process
+                  // so even if the inspected page is busy the inspector will still be interactive
+                  window.open("/", "_blank", "noopener");
+                  window.parent.postMessage({ type: "openInNewTab" }, "*");
+                }}
+                title="Open in new tab"
+              />
+            )}
           </div>
 
           <div
