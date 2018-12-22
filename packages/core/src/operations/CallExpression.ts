@@ -16,13 +16,14 @@ import OperationLog from "../helperFunctions/OperationLog";
 import { consoleLog, consoleError } from "../helperFunctions/logging";
 import {
   specialValuesForPostprocessing,
-  specialCases,
+  specialCasesWhereWeDontCallTheOriginalFunction,
   SpecialCaseArgs,
   traverseKnownFunction,
   knownFnProcessors,
   FnProcessorArgs
 } from "./CallExpressionSpecialCases";
 import { ValueTrackingValuePair } from "../types";
+import KnownValues from "../helperFunctions/KnownValues";
 
 const CallExpression = <any>{
   argNames: ["function", "context", "arg", "evalFn"],
@@ -73,21 +74,15 @@ const CallExpression = <any>{
       fnArgsAtInvocation = fnArgs.slice(1);
       fnArgValuesAtInvocation = fnArgValues.slice(1);
     } else if (functionIsApply) {
-      const argArray = fnArgValues[1] || [];
-      if (!("length" in argArray)) {
-        // hmm can this even happen in a program that's not already broken?
-        consoleLog("can this even happen?");
-        fnArgsAtInvocation = [];
-      } else {
-        fnArgsAtInvocation = [];
-        fnArgValuesAtInvocation = [];
-        for (let i = 0; i < argArray.length; i++) {
-          fnArgValuesAtInvocation.push(argArray[i]);
-          fnArgsAtInvocation.push(
-            ctx.getObjectPropertyTrackingValue(argArray, i)
-          );
-        }
-      }
+      ({
+        fnArgsAtInvocation,
+        fnArgValuesAtInvocation
+      } = getInvocationArgsForApply(
+        fnArgValues,
+        fnArgsAtInvocation,
+        fnArgValuesAtInvocation,
+        ctx
+      ));
     }
 
     ctx.argTrackingInfo = fnArgsAtInvocation;
@@ -105,101 +100,96 @@ const CallExpression = <any>{
 
     if (astArgs.isNewExpression) {
       ({ ret, retT } = handleNewExpression(getSpecialCaseArgs()));
+    } else if (
+      specialCasesWhereWeDontCallTheOriginalFunction[fnKnownValue] &&
+      (fnKnownValue !== "String.prototype.replace" ||
+        ["string", "number"].includes(typeof fnArgValues[1]))
+    ) {
+      const r = specialCasesWhereWeDontCallTheOriginalFunction[fnKnownValue](
+        getSpecialCaseArgs()
+      );
+      ret = r[0];
+      retT = r[1];
     } else {
-      if (
-        specialCases[fnKnownValue] &&
-        (fnKnownValue !== "String.prototype.replace" ||
-          ["string", "number"].includes(typeof fnArgValues[1]))
-      ) {
-        const r = specialCases[fnKnownValue](getSpecialCaseArgs());
-        ret = r[0];
-        retT = r[1];
-      } else {
-        if (
-          fn === ctx.knownValues.getValue("String.prototype.replace") &&
-          VERIFY
-        ) {
-          consoleLog("unhandled string replace call");
-        }
-        const fnIsEval = fn === eval;
-        if (fnIsEval) {
-          if (ctx.hasInstrumentationFunction) {
-            if (evalFn) {
-              ctx.global["__fromJSEvalSetEvalFn"](evalFn[0]);
-            }
-            fn = ctx.global["__fromJSEval"];
-          } else {
-            if (!ctx.global.__forTestsDontShowCantEvalLog) {
-              consoleLog("Calling eval but can't instrument code");
-            }
+      if (VERIFY && fnKnownValue === "String.prototype.replace") {
+        consoleLog("unhandled string replace call");
+      }
+      const fnIsEval = fn === eval;
+      if (fnIsEval) {
+        if (ctx.hasInstrumentationFunction) {
+          if (evalFn) {
+            ctx.global["__fromJSEvalSetEvalFn"](evalFn[0]);
           }
-        }
-
-        const knownFnProcessor = knownFnProcessors[fnKnownValue];
-
-        if (knownFnProcessor) {
-          knownFnProcessor(getFnProcessorArgs());
-        }
-
-        const lastReturnStatementResultBeforeCall =
-          ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
-
-        ret = fn.apply(object, fnArgValuesForApply);
-        ctx.argTrackingInfo = null;
-        const lastReturnStatementResultAfterCall =
-          ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
-        // Don't pretend to have a tracked return value if an uninstrumented function was called
-        // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
-        if (fnIsEval && ctx.hasInstrumentationFunction) {
-          ctx.registerEvalScript(ret.evalScript);
-          ret = ret.returnValue;
-          retT = ctx.lastOpTrackingResultWithoutResetting;
-        } else if (specialValuesForPostprocessing[fnKnownValue]) {
-          try {
-            retT = specialValuesForPostprocessing[fnKnownValue](
-              getSpecialCaseArgs()
-            );
-          } catch (err) {
-            consoleError("post procressing error", fnKnownValue, err);
-            debugger;
-          }
+          fn = ctx.global["__fromJSEval"];
         } else {
-          if (
-            ctx.lastOperationType === "returnStatement" &&
-            lastReturnStatementResultAfterCall !==
-              lastReturnStatementResultBeforeCall
-          ) {
-            retT =
-              ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+          if (!ctx.global.__forTestsDontShowCantEvalLog) {
+            consoleLog("Calling eval but can't instrument code");
           }
-        }
-
-        if (functionIsCallOrApply && fnKnownValue) {
-          let callOrApplyInvocationArgs;
-
-          callOrApplyInvocationArgs = {};
-          fnArgValuesAtInvocation.forEach((arg, i) => {
-            callOrApplyInvocationArgs["arg" + i] = [
-              null,
-              fnArgsAtInvocation[i]
-            ];
-          });
-
-          extraTrackingValues.call = [
-            null,
-            ctx.createOperationLog({
-              operation: ctx.operationTypes.callExpression,
-              args: callOrApplyInvocationArgs,
-              result: ret,
-              loc: logData.loc
-            })
-          ];
         }
       }
+
+      const knownFnProcessor = knownFnProcessors[fnKnownValue];
+
+      if (knownFnProcessor) {
+        knownFnProcessor(getFnProcessorArgs());
+      }
+
+      const lastReturnStatementResultBeforeCall =
+        ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+
+      ret = fn.apply(object, fnArgValuesForApply);
+      ctx.argTrackingInfo = null;
+      const lastReturnStatementResultAfterCall =
+        ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+      // Don't pretend to have a tracked return value if an uninstrumented function was called
+      // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
+      if (fnIsEval && ctx.hasInstrumentationFunction) {
+        ctx.registerEvalScript(ret.evalScript);
+        ret = ret.returnValue;
+        retT = ctx.lastOpTrackingResultWithoutResetting;
+      } else if (specialValuesForPostprocessing[fnKnownValue]) {
+        try {
+          retT = specialValuesForPostprocessing[fnKnownValue](
+            getSpecialCaseArgs()
+          );
+        } catch (err) {
+          consoleError("post procressing error", fnKnownValue, err);
+          debugger;
+        }
+      } else {
+        if (
+          ctx.lastOperationType === "returnStatement" &&
+          lastReturnStatementResultAfterCall !==
+            lastReturnStatementResultBeforeCall
+        ) {
+          retT =
+            ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+        }
+      }
+
+      if (functionIsCallOrApply && fnKnownValue) {
+        let callOrApplyInvocationArgs;
+
+        callOrApplyInvocationArgs = {};
+        fnArgValuesAtInvocation.forEach((arg, i) => {
+          callOrApplyInvocationArgs["arg" + i] = [null, fnArgsAtInvocation[i]];
+        });
+
+        extraTrackingValues.call = [
+          null,
+          ctx.createOperationLog({
+            operation: ctx.operationTypes.callExpression,
+            args: callOrApplyInvocationArgs,
+            result: ret,
+            loc: logData.loc
+          })
+        ];
+      }
     }
+
     extraTrackingValues.returnValue = [ret, retT]; // pick up value from returnStatement
 
-    if (Object.keys(runtimeArgs).length > 0) {
+    if (countObjectKeys(runtimeArgs) > 0) {
       logData.runtimeArgs = runtimeArgs;
     }
     logData.extraArgs = extraTrackingValues;
@@ -389,6 +379,28 @@ const CallExpression = <any>{
 
 export default CallExpression;
 
+function getInvocationArgsForApply(
+  fnArgValues: any[],
+  fnArgsAtInvocation: any[],
+  fnArgValuesAtInvocation: any[],
+  ctx: ExecContext
+) {
+  const argArray = fnArgValues[1] || [];
+  if (!("length" in argArray)) {
+    // hmm can this even happen in a program that's not already broken?
+    consoleLog("can this even happen?");
+    fnArgsAtInvocation = [];
+  } else {
+    fnArgsAtInvocation = [];
+    fnArgValuesAtInvocation = [];
+    for (let i = 0; i < argArray.length; i++) {
+      fnArgValuesAtInvocation.push(argArray[i]);
+      fnArgsAtInvocation.push(ctx.getObjectPropertyTrackingValue(argArray, i));
+    }
+  }
+  return { fnArgsAtInvocation, fnArgValuesAtInvocation };
+}
+
 function handleNewExpression({
   fn,
   ctx,
@@ -425,4 +437,12 @@ function handleNewExpression({
     loc: logData.loc
   });
   return { ret, retT };
+}
+
+function countObjectKeys(obj) {
+  let count = 0;
+  for (const key in obj) {
+    count++;
+  }
+  return count;
 }

@@ -72,7 +72,7 @@ function traverseObject(
   });
 }
 
-export const specialCases = {
+export const specialCasesWhereWeDontCallTheOriginalFunction = {
   "String.prototype.replace": ({
     ctx,
     object,
