@@ -52,7 +52,7 @@ export type SpecialCaseArgs = {
 };
 
 type TraverseObjectCallBack = (
-  keyPath: string,
+  keyPath: string[],
   value: any,
   key: string,
   obj: any
@@ -67,7 +67,7 @@ function traverseObject(
     return;
   }
   Object.entries(traversedObject).forEach(([key, value]) => {
-    fn([...keyPath, key].join("."), value, key, traversedObject);
+    fn([...keyPath, key], value, key, traversedObject);
     if (typeof value === "object") {
       traverseObject(value, fn, [...keyPath, key]);
     }

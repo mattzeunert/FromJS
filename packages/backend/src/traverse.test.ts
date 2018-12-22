@@ -527,6 +527,35 @@ describe("JSON.stringify", () => {
     expect(lastStep.charIndex).toBe(0);
     expect(lastStep.operationLog.result.primitive).toBe("two");
   });
+
+  it("Can handle nested arrays", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["one", ["two", "three"]]
+        var str = JSON.stringify(arr);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("three")
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("three");
+  });
+
+  it("Doesn't break if property names contain dots", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = {"a.b": "c"}
+        var str = JSON.stringify(arr);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(tracking, normal.indexOf("c"));
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("c");
+  });
 });
 
 it("Can traverse arguments for a function expression (rather than a function declaration)", async () => {

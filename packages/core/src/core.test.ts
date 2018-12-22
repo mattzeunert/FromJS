@@ -580,7 +580,7 @@ describe("JSON.parse", () => {
       const json = propertyValue.args.json;
       const keyPath = propertyValue.runtimeArgs.keyPath;
       expect(json.result.primitive).toBe('{"a": {"b": 5}}');
-      expect(keyPath).toBe("a.b");
+      expect(keyPath).toEqual(["a", "b"]);
 
       done();
     });
