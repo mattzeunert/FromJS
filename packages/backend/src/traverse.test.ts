@@ -430,7 +430,7 @@ describe("JSON.parse", () => {
 });
 
 describe("JSON.stringify", () => {
-  it("Can traverse JSON.stringify result", async () => {
+  it("Can traverse a JSON.stringify result", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         var obj = {greeting: "Hello ", name: {first: "w", last: "orld"}}
         var str = JSON.stringify(obj, null, 4);
@@ -474,6 +474,58 @@ describe("JSON.stringify", () => {
     expect(lastStep.operationLog.operation).toBe("stringLiteral");
     expect(lastStep.charIndex).toBe(2);
     expect(lastStep.operationLog.result.primitive).toBe("orld");
+  });
+
+  it("Can traverse JSON.stringify correctly when looking at keys", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var obj = {greeting: "Hello "};
+        var str = JSON.stringify(obj);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("greeting")
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("greeting");
+  });
+
+  it("Can traverse JSON.stringify result where keys are used multiple times", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var obj = {
+          one: {hello: 123},
+          two: {}
+        }
+        obj.two["he" + "llo"] = 456
+        var str = JSON.stringify(obj);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.lastIndexOf("hello")
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("he");
+  });
+
+  it("Can handle arrays", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["one", "two"]
+        var str = JSON.stringify(arr);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("two")
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("two");
   });
 });
 

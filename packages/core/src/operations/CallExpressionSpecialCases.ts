@@ -22,6 +22,8 @@ import addElOrigin, {
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import * as cloneRegExp from "clone-regexp";
 import { doOperation } from "../FunctionNames";
+import * as jsonToAst from "json-to-ast";
+import { getJSONPathOffset } from "../getJSONPathOffset";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -860,14 +862,25 @@ export const specialValuesForPostprocessing = {
       // e.g. return value can be undefined when pass a class into JSON.stringify
       return;
     }
+
+    const ast = jsonToAst(jsonString);
+
     traverseObject(
       stringifiedObject,
       (keyPath, value, key, traversedObject) => {
-        const jsonKeyIndex = ret.indexOf('"' + key + '"') + "'".length;
-        jsonIndexToTrackingValue[
-          jsonKeyIndex
-        ] = ctx.getObjectPropertyNameTrackingValue(traversedObject, key);
-        let jsonValueIndex = jsonKeyIndex + '"":'.length + key.length;
+        if (!Array.isArray(traversedObject)) {
+          const jsonKeyIndex = getJSONPathOffset(
+            jsonString,
+            ast,
+            keyPath,
+            true
+          );
+          jsonIndexToTrackingValue[
+            jsonKeyIndex
+          ] = ctx.getObjectPropertyNameTrackingValue(traversedObject, key);
+        }
+
+        let jsonValueIndex = getJSONPathOffset(jsonString, ast, keyPath, false);
         if (jsonString[jsonValueIndex] === '"') {
           jsonValueIndex++;
         }

@@ -28,7 +28,7 @@ import { adjustColumnForEscapeSequences } from "./adjustColumnForEscapeSequences
 
 import OperationLog from "./helperFunctions/OperationLog";
 import { ExecContext } from "./helperFunctions/ExecContext";
-
+import { getJSONPathOffset } from "./getJSONPathOffset";
 import CallExpression from "./operations/CallExpression";
 import { MemberExpression } from "./operations/MemberExpression";
 import ObjectExpression from "./operations/ObjectExpression";
@@ -540,49 +540,11 @@ const operations: Operations = {
       const json = operationLog.args.json.result.primitive;
       const keyPath = operationLog.runtimeArgs.keyPath;
 
-      function getValueStart(json, keyPath, isKey) {
-        const ast = jsonToAst(json, { loc: true });
-        const keys = keyPath.split(".");
-        return get(ast, keys);
+      const ast = jsonToAst(json, { loc: true });
 
-        function get(ast, keyPath) {
-          const key = keyPath.shift();
-
-          ast = ast.children.find((child, i) => {
-            if (child.key) {
-              // object
-              return child.key.value === key;
-            } else {
-              // array
-              return i === parseFloat(key);
-            }
-          });
-
-          if (keyPath.length === 0) {
-            let ret;
-            if (isKey) {
-              ret = ast.key.loc.start.offset;
-            } else {
-              if (ast.key) {
-                // object
-                ret = ast.value.loc.start.offset;
-              } else {
-                ret = ast.loc.start.offset;
-              }
-            }
-            if (json[ret] === '"') {
-              ret++;
-            }
-            return ret;
-          }
-
-          ast = ast.value;
-          return get(ast, keyPath);
-        }
-      }
-
-      const valueStart = getValueStart(
+      const valueStart = getJSONPathOffset(
         json,
+        ast,
         keyPath,
         operationLog.runtimeArgs.isKey
       );
