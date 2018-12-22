@@ -277,81 +277,29 @@ const CallExpression = <any>{
           }
         }
 
-        if (fnKnownValue === "Array.prototype.map") {
-          extraState.mapResultTrackingValues = [];
-          fnArgValuesForApply = fnArgValues.slice();
-          const originalMappingFunction = getFnArgForApply(0);
-          setFnArgForApply(0, function(this: any, item, index, array) {
-            const itemTrackingInfo = ctx.getObjectPropertyTrackingValue(
-              array,
-              index.toString()
-            );
-            if (fnArgValues.length > 1) {
-              context = [fnArgValues[1], fnArgs[1]];
-            } else {
-              context = [this, null];
-            }
-            const ret = ctx.global[doOperation](
-              "callExpression",
-              [
-                [originalMappingFunction, null],
-                [this, null],
-                [[item, itemTrackingInfo, null], [index, null], [array, null]]
-              ],
-              {},
-              logData.loc
-            );
-            extraState.mapResultTrackingValues.push(ctx.lastOpTrackingResult);
-
-            return ret;
-          });
+        function setContext(c) {
+          context = c;
+        }
+        function setArgValuesForApply(vals) {
+          fnArgValuesForApply = vals;
         }
 
-        if (fnKnownValue === "Array.prototype.reduce") {
-          if (fnArgs.length > 1) {
-            extraState.reduceResultTrackingValue = fnArgs[1];
-          } else {
-            // "If no initial value is supplied, the first element in the array will be used."
-            // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
-            extraState.reduceResultTrackingValue = ctx.getObjectPropertyTrackingValue(
-              object,
-              0
-            );
-          }
+        const knownFnProcessor = knownFnProcessors[fnKnownValue];
 
-          const originalReduceFunction = getFnArgForApply(0);
-
-          setFnArgForApply(0, function(
-            this: any,
-            previousRet,
-            param,
-            currentIndex,
-            array
-          ) {
-            let paramTrackingValue = ctx.getObjectPropertyTrackingValue(
-              array,
-              currentIndex.toString()
-            );
-
-            const ret = ctx.global[doOperation](
-              "callExpression",
-              [
-                [originalReduceFunction, null],
-                [this, null],
-                [
-                  [previousRet, extraState.reduceResultTrackingValue],
-                  [param, paramTrackingValue],
-                  [currentIndex, null],
-                  [array, null]
-                ]
-              ],
-              {},
-              logData.loc
-            );
-            extraState.reduceResultTrackingValue = ctx.lastOpTrackingResult;
-
-            return ret;
-          });
+        if (knownFnProcessor) {
+          const fnProcessorArgs: FnProcessorArgs = {
+            extraState,
+            setArgValuesForApply,
+            fnArgValues,
+            getFnArgForApply,
+            setFnArgForApply,
+            ctx,
+            setContext,
+            fnArgs,
+            logData,
+            object
+          };
+          knownFnProcessor(fnProcessorArgs);
         }
 
         if (fnKnownValue === "Array.prototype.filter") {
@@ -574,3 +522,107 @@ const CallExpression = <any>{
 };
 
 export default CallExpression;
+
+interface FnProcessorArgs {
+  extraState: any;
+  setArgValuesForApply: (vals: any) => void;
+  fnArgValues: any[];
+  getFnArgForApply: (argIndex: any) => any;
+  setFnArgForApply: (argIndex: any, argValue: any) => void;
+  ctx: ExecContext;
+  setContext: (c: any) => void;
+  fnArgs: any[];
+  logData: any;
+  object: any;
+}
+
+const knownFnProcessors = {
+  "Array.prototype.map": ({
+    extraState,
+    setArgValuesForApply,
+    fnArgValues,
+    getFnArgForApply,
+    setFnArgForApply,
+    ctx,
+    setContext,
+    fnArgs,
+    logData
+  }: FnProcessorArgs) => {
+    extraState.mapResultTrackingValues = [];
+    setArgValuesForApply(fnArgValues.slice());
+    const originalMappingFunction = getFnArgForApply(0);
+    setFnArgForApply(0, function(this: any, item, index, array) {
+      const itemTrackingInfo = ctx.getObjectPropertyTrackingValue(
+        array,
+        index.toString()
+      );
+      if (fnArgValues.length > 1) {
+        setContext([fnArgValues[1], fnArgs[1]]);
+      } else {
+        setContext([this, null]);
+      }
+      const ret = ctx.global[doOperation](
+        "callExpression",
+        [
+          [originalMappingFunction, null],
+          [this, null],
+          [[item, itemTrackingInfo, null], [index, null], [array, null]]
+        ],
+        {},
+        logData.loc
+      );
+      extraState.mapResultTrackingValues.push(ctx.lastOpTrackingResult);
+      return ret;
+    });
+  },
+  "Array.prototype.reduce": ({
+    extraState,
+    getFnArgForApply,
+    setFnArgForApply,
+    ctx,
+    fnArgs,
+    logData,
+    object
+  }: FnProcessorArgs) => {
+    if (fnArgs.length > 1) {
+      extraState.reduceResultTrackingValue = fnArgs[1];
+    } else {
+      // "If no initial value is supplied, the first element in the array will be used."
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
+      extraState.reduceResultTrackingValue = ctx.getObjectPropertyTrackingValue(
+        object,
+        0
+      );
+    }
+    const originalReduceFunction = getFnArgForApply(0);
+    setFnArgForApply(0, function(
+      this: any,
+      previousRet,
+      param,
+      currentIndex,
+      array
+    ) {
+      let paramTrackingValue = ctx.getObjectPropertyTrackingValue(
+        array,
+        currentIndex.toString()
+      );
+      const ret = ctx.global[doOperation](
+        "callExpression",
+        [
+          [originalReduceFunction, null],
+          [this, null],
+          [
+            [previousRet, extraState.reduceResultTrackingValue],
+            [param, paramTrackingValue],
+            [currentIndex, null],
+            [array, null]
+          ]
+        ],
+        {},
+        logData.loc
+      );
+      extraState.reduceResultTrackingValue = ctx.lastOpTrackingResult;
+      return ret;
+    });
+  }
+};

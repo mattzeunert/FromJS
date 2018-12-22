@@ -189,7 +189,6 @@ describe("E2E", () => {
     await inspectorPage.waitForFunction(
       str => {
         const lastStep = document.querySelectorAll(".step")[0];
-        console.log(str);
         return lastStep && lastStep.innerHTML.includes(str);
       },
       {},
