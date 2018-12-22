@@ -1,4 +1,5 @@
-import { consoleLog } from "../../helperFunctions/logging";
+import { consoleLog, consoleWarn } from "../../helperFunctions/logging";
+import { safelyReadProperty } from "../../util";
 
 export default function addElOrigin(el, what, origin) {
   const {
@@ -83,4 +84,52 @@ export function getElAttributeNameOrigin(el, attrName) {
 }
 export function getElAttributeValueOrigin(el, attrName) {
   return el.__elOrigin["attribute_" + attrName + "_value"];
+}
+
+export function processClonedNode(
+  cloneResult,
+  sourceNode,
+  opts: { isDeep: boolean }
+) {
+  const { isDeep } = opts;
+  if (sourceNode.__elOrigin) {
+    if (safelyReadProperty(sourceNode, "nodeType") === Node.ELEMENT_NODE) {
+      ["openingTagStart", "openingTagEnd", "closingTag"].forEach(originName => {
+        if (sourceNode.__elOrigin[originName]) {
+          addElOrigin(
+            cloneResult,
+            originName,
+            sourceNode.__elOrigin[originName]
+          );
+        }
+      });
+
+      for (var i = 0; i < sourceNode.attributes.length; i++) {
+        const attr = sourceNode.attributes[i];
+        const nameOrigin = getElAttributeNameOrigin(sourceNode, attr.name);
+        const valueOrigin = getElAttributeValueOrigin(sourceNode, attr.name);
+        if (nameOrigin) {
+          addElAttributeNameOrigin(cloneResult, attr.name, nameOrigin);
+        }
+        if (valueOrigin) {
+          addElAttributeValueOrigin(cloneResult, attr.name, valueOrigin);
+        }
+      }
+    } else if (safelyReadProperty(sourceNode, "nodeType") === Node.TEXT_NODE) {
+      addElOrigin(cloneResult, "textValue", sourceNode.__elOrigin.textValue);
+    } else if (
+      safelyReadProperty(sourceNode, "nodeType") === Node.COMMENT_NODE
+    ) {
+      addElOrigin(cloneResult, "textValue", sourceNode.__elOrigin.textValue);
+    } else {
+      consoleWarn("unhandled cloneNode");
+    }
+  }
+  if (safelyReadProperty(sourceNode, "nodeType") === Node.ELEMENT_NODE) {
+    if (isDeep) {
+      sourceNode.childNodes.forEach((childNode, i) => {
+        processClonedNode(cloneResult.childNodes[i], childNode, opts);
+      });
+    }
+  }
 }
