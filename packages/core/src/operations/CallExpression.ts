@@ -24,6 +24,7 @@ import {
 } from "./CallExpressionSpecialCases";
 import { ValueTrackingValuePair } from "../types";
 import KnownValues from "../helperFunctions/KnownValues";
+import { countObjectKeys } from "../util";
 
 const CallExpression = <any>{
   argNames: ["function", "context", "arg", "evalFn"],
@@ -432,12 +433,4 @@ function handleNewExpression({
     loc: logData.loc
   });
   return { ret, retT };
-}
-
-function countObjectKeys(obj) {
-  let count = 0;
-  for (const key in obj) {
-    count++;
-  }
-  return count;
 }
