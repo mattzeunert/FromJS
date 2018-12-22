@@ -21,12 +21,12 @@ global.__didInitializeDataFlowTracking = true;
 global.getElementOperationLogMapping = getElementOperationLogMapping;
 
 let knownValues = new KnownValues();
-
-initLogging(knownValues);
-
 // Make sure to use native methods in case browser methods get
 // overwritten (e.g. NewRelic instrumentation does it)
+// (only matters if we're not in the web worker)
 let fetch = knownValues.getValue("fetch");
+
+initLogging(knownValues);
 
 const startTime = new Date();
 setTimeout(checkDone, 200);
@@ -53,34 +53,39 @@ function checkDone() {
   }
 }
 
-function postToBE(endpoint, data, statsCallback = function(stats) {}) {
-  const stringifyStart = new Date();
-  const body = JSON.stringify(data);
-  const stringifyEnd = new Date();
-  if (endpoint === "/storeLogs") {
-    statsCallback({
-      bodyLength: body.length,
-      stringifyTime: stringifyEnd.valueOf() - stringifyStart.valueOf()
-    });
-  }
-  const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
-    method: "POST",
-    headers: new Headers({
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      Authorization: accessToken
-    }),
-    body: body
-  });
+function makePostToBE({ accessToken, fetch }) {
+  return function postToBE(endpoint, data, statsCallback = function(stats) {}) {
+    const stringifyStart = new Date();
+    const body = JSON.stringify(data);
+    const stringifyEnd = new Date();
+    if (endpoint === "/storeLogs") {
+      statsCallback({
+        bodyLength: body.length,
+        stringifyTime: stringifyEnd.valueOf() - stringifyStart.valueOf()
+      });
+    }
 
-  return p;
+    const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
+      method: "POST",
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: accessToken
+      }),
+      body: body
+    });
+
+    return p;
+  };
 }
+
+const postToBE = makePostToBE({ accessToken, fetch });
 
 let logQueue = [];
 global["__debugFromJSLogQueue"] = () => logQueue;
 let evalScriptQueue = [];
 let worker: Worker | null = getStoreLogsWorker({
-  postToBE,
+  makePostToBE,
   accessToken
 });
 
