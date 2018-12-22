@@ -4,111 +4,27 @@ import {
   ignoredIdentifier,
   ignoredArrayExpression,
   ignoredCallExpression,
-  ignoredArrayExpressionIfArray,
   skipPath,
   ignoredNumericLiteral
 } from "../babelPluginHelpers";
-import HtmlToOperationLogMapping from "../helperFunctions/HtmlToOperationLogMapping";
-import * as OperationTypes from "../OperationTypes";
-import { ExecContext } from "../helperFunctions/ExecContext";
 
+import { ExecContext } from "../helperFunctions/ExecContext";
 import { VERIFY } from "../config";
 import { doOperation, getLastMemberExpressionObject } from "../FunctionNames";
 import OperationLog from "../helperFunctions/OperationLog";
 
-import {
-  consoleLog,
-  consoleError,
-  consoleWarn
-} from "../helperFunctions/logging";
-
+import { consoleLog, consoleError } from "../helperFunctions/logging";
 import {
   specialValuesForPostprocessing,
   specialCases,
-  SpecialCaseArgs
+  SpecialCaseArgs,
+  traverseKnownFunction
 } from "./CallExpressionSpecialCases";
 
 function getFullUrl(url) {
   var a = document.createElement("a");
   a.href = url;
   return a.href;
-}
-
-class ValueMapV2 {
-  parts: any[] = [];
-  originalString = "";
-
-  // TODO: clean up mapping, maybe merge with other mapping one used
-  // for thml
-  // also: originalString is confusing (maybe?)
-  constructor(originalString: string) {
-    this.originalString = originalString;
-  }
-
-  push(
-    fromIndexInOriginal,
-    toIndexInOriginal,
-    operationLog,
-    resultString,
-    isPartOfSubject = false
-  ) {
-    this.parts.push({
-      fromIndexInOriginal,
-      toIndexInOriginal,
-      operationLog,
-      resultString,
-      isPartOfSubject
-    });
-  }
-
-  getAtResultIndex(
-    indexInResult,
-    /* hacky arg for encodeuricompoennt */ dontAddBackBasedOnLocationInResultValue = false
-  ) {
-    let resultString = "";
-    let part: any | null = null;
-    for (var i = 0; i < this.parts.length; i++) {
-      part = this.parts[i];
-      resultString += part.resultString;
-      if (resultString.length > indexInResult) {
-        break;
-      }
-    }
-
-    const resultIndexBeforePart =
-      resultString.length - part.resultString.length;
-    let charIndex =
-      (part.isPartOfSubject ? part.fromIndexInOriginal : 0) +
-      (dontAddBackBasedOnLocationInResultValue
-        ? 0
-        : indexInResult - resultIndexBeforePart);
-
-    if (charIndex > part.operationLog.result.primitive.length) {
-      charIndex = part.operationLog.result.primitive.length - 1;
-    }
-
-    let operationLog = part.operationLog;
-    if (operationLog.operation === OperationTypes.stringReplacement) {
-      operationLog = operationLog.args.value;
-    }
-    return {
-      charIndex,
-      operationLog: operationLog
-    };
-  }
-
-  __debugPrint() {
-    let originalString = "";
-    let newString = "";
-    this.parts.forEach(part => {
-      newString += part.resultString;
-      originalString += this.originalString.slice(
-        part.fromIndexInOriginal,
-        part.toIndexInOriginal
-      );
-    });
-    consoleLog({ originalString, newString });
-  }
 }
 
 const CallExpression = <any>{
@@ -138,10 +54,6 @@ const CallExpression = <any>{
         fnArgValues.push(arg[0]);
         fnArgs.push(arg[1]);
       }
-
-      // if (arg[1] && typeof arg[1] !== "number") {
-      //   debugger;
-      // }
     }
 
     var object = context[0];
@@ -576,229 +488,7 @@ const CallExpression = <any>{
     }
 
     if (knownFunction) {
-      switch (knownFunction) {
-        case "String.prototype.toString":
-          return {
-            operationLog: operationLog.args.context,
-            charIndex
-          };
-        case "String.prototype.slice":
-          return {
-            operationLog: operationLog.args.context,
-            charIndex: charIndex + operationLog.args.arg0.result.primitive
-          };
-        case "String.prototype.substr":
-          const { context, arg0: start, arg1: length } = operationLog.args;
-          let startValue = parseFloat(start.result.primitive);
-
-          if (startValue < 0) {
-            startValue = context.result.length + startValue;
-          }
-
-          return {
-            operationLog: context,
-            charIndex: charIndex + startValue
-          };
-        case "String.prototype.substring":
-          const parentStr = operationLog.args.context;
-          let startIndex = parseFloat(operationLog.args.arg0.result.primitive);
-          let endIndex;
-          if (operationLog.args.arg1) {
-            endIndex = parseFloat(operationLog.args.arg1.result.primitive);
-          } else {
-            endIndex = parentStr.result.primitive.length;
-          }
-
-          if (startIndex > endIndex) {
-            let tmp = endIndex;
-            endIndex = startIndex;
-            startIndex = tmp;
-          }
-
-          return {
-            operationLog: parentStr,
-            charIndex: charIndex + startIndex
-          };
-        case "encodeURIComponent":
-          var unencodedString: string = operationLog.args.arg0.result.primitive.toString();
-          var encodedString: string = operationLog.result.primitive!.toString();
-
-          const map = new ValueMapV2(unencodedString);
-
-          for (var i = 0; i < unencodedString.length; i++) {
-            var unencodedChar = unencodedString[i];
-            var encodedChar = encodeURIComponent(unencodedChar);
-            map.push(i, i + 1, operationLog.args.arg0, encodedChar, true);
-          }
-          return map.getAtResultIndex(charIndex, true);
-        case "decodeURIComponent":
-          var encodedString: string = operationLog.args.arg0.result.primitive.toString();
-          var unencodedString: string = operationLog.result.primitive!.toString();
-
-          const m = new ValueMapV2(encodedString);
-
-          let extraCharsTotal = 0;
-          for (var i = 0; i < unencodedString.length; i++) {
-            const unencodedChar = unencodedString[i];
-            const encodedChar = encodeURIComponent(unencodedChar);
-            const extraCharsHere = encodedChar.length - 1;
-            m.push(
-              i + extraCharsTotal,
-              i + extraCharsTotal + extraCharsHere,
-              operationLog.args.arg0,
-              unencodedChar,
-              true
-            );
-            extraCharsTotal += extraCharsHere;
-          }
-          return m.getAtResultIndex(charIndex, true);
-
-        case "String.prototype.trim":
-          let str = operationLog.args.context.result.primitive;
-          let whitespaceAtStart = str.match(/^\s*/)[0].length;
-          return {
-            operationLog: operationLog.args.context,
-            charIndex: charIndex + whitespaceAtStart
-          };
-        case "Array.prototype.pop":
-          return {
-            operationLog: operationLog.extraArgs.returnValue,
-            charIndex
-          };
-        case "Array.prototype.shift":
-          return {
-            operationLog: operationLog.extraArgs.returnValue,
-            charIndex
-          };
-        case "Array.prototype.reduce":
-          return {
-            operationLog: operationLog.extraArgs.returnValue,
-            charIndex: charIndex
-          };
-        case "Array.prototype.join":
-          const parts: any[] = [];
-          let partIndex = 0;
-          let arrayValue;
-          while (
-            ((arrayValue = operationLog.extraArgs["arrayValue" + partIndex]),
-            arrayValue !== undefined)
-          ) {
-            let joinParameter = arrayValue.result.primitive + "";
-            if ([null, undefined].includes(arrayValue.result.primitive)) {
-              joinParameter = "";
-            }
-            parts.push([joinParameter, arrayValue]);
-            parts.push([
-              operationLog.extraArgs.separator.result.primitive + "",
-              operationLog.extraArgs.separator
-            ]);
-            partIndex++;
-          }
-          parts.pop(); // take off last separator
-
-          const mapping = new HtmlToOperationLogMapping(parts);
-          const match = mapping.getOriginAtCharacterIndex(charIndex);
-          return {
-            charIndex: match.charIndex,
-            operationLog: match.origin
-          };
-
-        case "String.prototype.replace":
-          // I'm not 100% confident about this code, but it works for now
-
-          let matchingReplacement = null;
-          let totalCharCountDeltaBeforeMatch = 0;
-
-          const replacements: any[] = [];
-          eachReplacement(operationLog.extraArgs, replacement => {
-            replacements.push(replacement);
-          });
-
-          const subjectOperationLog = operationLog.args.context;
-
-          if (replacements.length === 0) {
-            return {
-              operationLog: subjectOperationLog,
-              charIndex: charIndex
-            };
-          }
-
-          const valueMap = new ValueMapV2(subjectOperationLog.result.primitive);
-
-          let currentIndexInSubjectString = 0;
-          replacements.forEach(replacement => {
-            const { start, end } = replacement.runtimeArgs;
-            let from = currentIndexInSubjectString;
-            let to = start;
-            valueMap.push(
-              from,
-              to,
-              subjectOperationLog,
-              subjectOperationLog.result.primitive.slice(from, to),
-              true
-            );
-
-            valueMap.push(
-              start,
-              end,
-              replacement,
-              replacement.result.primitive
-            );
-            currentIndexInSubjectString = end;
-          });
-          valueMap.push(
-            currentIndexInSubjectString,
-            subjectOperationLog.result.primitive.length,
-            subjectOperationLog,
-            subjectOperationLog.result.primitive.slice(
-              currentIndexInSubjectString
-            ),
-            true
-          );
-
-          // valueMap.__debugPrint()
-
-          return valueMap.getAtResultIndex(charIndex);
-
-          function eachReplacement(extraArgs, callback) {
-            var index = 0;
-            while (extraArgs["replacement" + index]) {
-              callback(extraArgs["replacement" + index]);
-              index++;
-            }
-          }
-
-        case "JSON.stringify":
-          const { jsonIndexToTrackingValue } = operationLog.runtimeArgs;
-          // not efficient, but it works
-          let closestLoc: any = null;
-          Object.entries(jsonIndexToTrackingValue).forEach(
-            ([index, tv]: any) => {
-              index = parseFloat(index);
-
-              if (
-                charIndex - index >= 0 &&
-                (!closestLoc || closestLoc.index - index < charIndex - index)
-              ) {
-                closestLoc = { index, tv };
-              }
-            }
-          );
-
-          if (!closestLoc) {
-            return null;
-          }
-
-          return {
-            operationLog: closestLoc.tv,
-            charIndex: charIndex - closestLoc.index
-          };
-        default:
-          return {
-            operationLog: operationLog.extraArgs.returnValue,
-            charIndex: charIndex
-          };
-      }
+      return traverseKnownFunction({ operationLog, charIndex, knownFunction });
     } else {
       return {
         operationLog: operationLog.extraArgs.returnValue,
