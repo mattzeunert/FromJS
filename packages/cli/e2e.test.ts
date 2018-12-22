@@ -494,7 +494,13 @@ describe("E2E", () => {
       console.log("clicking URL argument button");
 
       await inspector.click("[data-test-argument='URL']");
+      console.log(await inspector.evaluate(() => document.body.innerHTML));
 
+      console.log("try manual click");
+      console.log(await inspector.evaluate(() => document.body.innerHTML));
+      await inspector.evaluate(() => {
+        document.querySelector("[data-test-argument='URL']")!["click"]();
+      });
       await waitForHiglightedLineToContain(inspector, "oReq.open");
 
       await page.close();

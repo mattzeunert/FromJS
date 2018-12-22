@@ -9,6 +9,7 @@ import { ExecContext } from "../helperFunctions/ExecContext";
 import { nullOnError, safelyReadProperty } from "../util";
 import { getElAttributeValueOrigin } from "./domHelpers/addElOrigin";
 import { htmlAdapter } from "../OperationTypes";
+import { ValueTrackingValuePair } from "../types";
 
 export const MemberExpression = <any>{
   argNames: ["object", "propName"],
@@ -31,7 +32,12 @@ export const MemberExpression = <any>{
       ]);
     }
   },
-  exec: (args, astArgs, ctx: ExecContext, logData: any) => {
+  exec: (
+    args: [ValueTrackingValuePair, ValueTrackingValuePair],
+    astArgs: any,
+    ctx: ExecContext,
+    logData: any
+  ) => {
     var ret;
     const [objectArg, propNameArg] = args;
     var object = objectArg[0];
@@ -41,7 +47,7 @@ export const MemberExpression = <any>{
       ret = object[propertyName];
     });
 
-    // could execs instead of using Object.getOwnPropertyDescriptor
+    // count execs instead of using Object.getOwnPropertyDescriptor
     // because counting is probably faster
     const isGetter = execCount > 0;
 
@@ -53,96 +59,33 @@ export const MemberExpression = <any>{
     }
 
     const isInBrowser = typeof HTMLElement !== "undefined";
+
     if (
+      propertyName === "responseText" &&
       isInBrowser &&
-      object instanceof XMLHttpRequest &&
-      propertyName === "responseText"
+      object instanceof XMLHttpRequest
     ) {
-      trackingValue = ctx.createOperationLog({
-        operation: ctx.operationTypes.XMLHttpRequestResponse,
-        args: {
-          value: [ret],
-          openCall: [
-            "(OpenCall)",
-            ctx.global["__xmlHttpRequests"][object.responseURL]
-          ]
-        },
-        astArgs: {},
-        result: ret,
-        runtimeArgs: {
-          url: object.responseURL
-        },
-        loc: logData.loc
-      });
+      trackingValue = getAjaxResponseTextTrackingValue(
+        trackingValue,
+        ctx,
+        ret,
+        object,
+        logData
+      );
     } else if (
-      isInBrowser &&
       !trackingValue &&
+      isInBrowser &&
       object instanceof Node &&
       typeof propertyName !== "symbol"
     ) {
-      if (
-        typeof HTMLScriptElement !== "undefined" &&
-        object instanceof HTMLScriptElement &&
-        ["text", "textContent", "innerHTML"].includes(propertyName)
-      ) {
-        // Handle people putting e.g. templates into script tags
-
-        const elOrigin =
-          object.childNodes[0] && object.childNodes[0]["__elOrigin"];
-        if (elOrigin && elOrigin.textValue) {
-          // TODO: this trackingvalue should really be created when doing the el origin
-          // mapping logic...
-          trackingValue = ctx.createOperationLog({
-            operation: htmlAdapter,
-            runtimeArgs: elOrigin.textValue,
-            args: {
-              html: [null, elOrigin.textValue.trackingValue]
-            }
-          });
-        }
-      } else if (
-        object instanceof HTMLElement &&
-        // object.getAttribute() is illegal invocation on youtube somehow
-        nullOnError(() => object.getAttribute(propertyName)) !== null &&
-        // A bit icky, but it seems like a reasonable decision
-        // Normally we want to see where a value was set, e.g. as part of some html
-        // But input values lose that relationship when the user interacts with them (e.g. types
-        // into text field) so the value attribute from DOM mapping may be different from
-        // the actual property value
-        // So while sometimes the value from the HTML might give a better origin we'll always
-        // stop traversal at el.value instead
-        propertyName !== "value"
-      ) {
-        if (object["__elOrigin"]) {
-          const origin = getElAttributeValueOrigin(object, propertyName);
-          if (origin) {
-            trackingValue = ctx.createOperationLog({
-              operation: htmlAdapter,
-              runtimeArgs: origin,
-              args: {
-                html: [null, origin.trackingValue]
-              }
-            });
-          }
-        }
-      } else if (
-        safelyReadProperty(object, "nodeType") === Node.TEXT_NODE &&
-        ["textContent", "nodeValue"].includes(propertyName)
-      ) {
-        if (object["__elOrigin"]) {
-          const origin = object["__elOrigin"].textValue;
-          if (origin) {
-            trackingValue = ctx.createOperationLog({
-              operation: htmlAdapter,
-              runtimeArgs: origin,
-              args: {
-                html: [null, origin.trackingValue]
-              }
-            });
-          }
-        }
-      }
+      trackingValue = getTrackingValueFromDOMNode(
+        object,
+        propertyName,
+        trackingValue,
+        ctx
+      );
     }
+
     logData.extraArgs = {
       propertyValue: [ret, trackingValue]
     };
@@ -206,3 +149,97 @@ export const MemberExpression = <any>{
     return op;
   }
 };
+function getAjaxResponseTextTrackingValue(
+  trackingValue: any,
+  ctx: ExecContext,
+  ret: any,
+  object: XMLHttpRequest,
+  logData: any
+) {
+  trackingValue = ctx.createOperationLog({
+    operation: ctx.operationTypes.XMLHttpRequestResponse,
+    args: {
+      value: [ret],
+      openCall: [
+        "(OpenCall)",
+        ctx.global["__xmlHttpRequests"][object.responseURL]
+      ]
+    },
+    astArgs: {},
+    result: ret,
+    runtimeArgs: {
+      url: object.responseURL
+    },
+    loc: logData.loc
+  });
+  return trackingValue;
+}
+
+function getTrackingValueFromDOMNode(
+  object: Node,
+  propertyName: any,
+  trackingValue: any,
+  ctx: ExecContext
+) {
+  if (
+    typeof HTMLScriptElement !== "undefined" &&
+    object instanceof HTMLScriptElement &&
+    ["text", "textContent", "innerHTML"].includes(propertyName)
+  ) {
+    // Handle people putting e.g. templates into script tags
+    const elOrigin = object.childNodes[0] && object.childNodes[0]["__elOrigin"];
+    if (elOrigin && elOrigin.textValue) {
+      // TODO: this trackingvalue should really be created when doing the el origin
+      // mapping logic...
+      trackingValue = ctx.createOperationLog({
+        operation: htmlAdapter,
+        runtimeArgs: elOrigin.textValue,
+        args: {
+          html: [null, elOrigin.textValue.trackingValue]
+        }
+      });
+    }
+  } else if (
+    object instanceof HTMLElement &&
+    // object.getAttribute() is illegal invocation on youtube somehow
+    nullOnError(() => object.getAttribute(propertyName)) !== null &&
+    // A bit icky, but it seems like a reasonable decision
+    // Normally we want to see where a value was set, e.g. as part of some html
+    // But input values lose that relationship when the user interacts with them (e.g. types
+    // into text field) so the value attribute from DOM mapping may be different from
+    // the actual property value
+    // So while sometimes the value from the HTML might give a better origin we'll always
+    // stop traversal at el.value instead
+    propertyName !== "value"
+  ) {
+    if (object["__elOrigin"]) {
+      const origin = getElAttributeValueOrigin(object, propertyName);
+      if (origin) {
+        trackingValue = ctx.createOperationLog({
+          operation: htmlAdapter,
+          runtimeArgs: origin,
+          args: {
+            html: [null, origin.trackingValue]
+          }
+        });
+      }
+    }
+  } else if (
+    safelyReadProperty(object, "nodeType") === Node.TEXT_NODE &&
+    ["textContent", "nodeValue"].includes(propertyName)
+  ) {
+    if (object["__elOrigin"]) {
+      const origin = object["__elOrigin"].textValue;
+      if (origin) {
+        trackingValue = ctx.createOperationLog({
+          operation: htmlAdapter,
+          runtimeArgs: origin,
+          args: {
+            html: [null, origin.trackingValue]
+          }
+        });
+      }
+    }
+  }
+  return trackingValue;
+}

@@ -66,13 +66,20 @@ export function callApi(endpoint, data, extraOptions: any = {}) {
     })
     .catch(e => {
       finishRequest();
-      handleError(e.message);
+      console.log(
+        "Request failed:" +
+          " /" +
+          endpoint +
+          " " +
+          JSON.stringify(requestDetails, null, 4)
+      );
+      handleError(e && e.message);
     });
 }
 
 let errorQueue = [];
 const handleError = function handleError(errorMessage) {
-  console.log("handleerror", errorMessage);
+  console.log("Handling API error: ", errorMessage);
   errorQueue.push(errorMessage);
   showErrorAlert();
 };
