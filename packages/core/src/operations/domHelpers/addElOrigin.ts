@@ -80,10 +80,10 @@ export function addElAttributeValueOrigin(el, attrName, origin) {
 }
 
 export function getElAttributeNameOrigin(el, attrName) {
-  return el.__elOrigin["attribute_" + attrName + "_name"];
+  return el.__elOrigin && el.__elOrigin["attribute_" + attrName + "_name"];
 }
 export function getElAttributeValueOrigin(el, attrName) {
-  return el.__elOrigin["attribute_" + attrName + "_value"];
+  return el.__elOrigin && el.__elOrigin["attribute_" + attrName + "_value"];
 }
 
 export function processClonedNode(
@@ -92,40 +92,50 @@ export function processClonedNode(
   opts: { isDeep: boolean }
 ) {
   const { isDeep } = opts;
-  if (sourceNode.__elOrigin) {
-    if (safelyReadProperty(sourceNode, "nodeType") === Node.ELEMENT_NODE) {
-      ["openingTagStart", "openingTagEnd", "closingTag"].forEach(originName => {
-        if (sourceNode.__elOrigin[originName]) {
-          addElOrigin(
-            cloneResult,
-            originName,
-            sourceNode.__elOrigin[originName]
-          );
-        }
-      });
 
-      for (var i = 0; i < sourceNode.attributes.length; i++) {
-        const attr = sourceNode.attributes[i];
-        const nameOrigin = getElAttributeNameOrigin(sourceNode, attr.name);
-        const valueOrigin = getElAttributeValueOrigin(sourceNode, attr.name);
-        if (nameOrigin) {
-          addElAttributeNameOrigin(cloneResult, attr.name, nameOrigin);
-        }
-        if (valueOrigin) {
-          addElAttributeValueOrigin(cloneResult, attr.name, valueOrigin);
-        }
-      }
-    } else if (safelyReadProperty(sourceNode, "nodeType") === Node.TEXT_NODE) {
-      addElOrigin(cloneResult, "textValue", sourceNode.__elOrigin.textValue);
-    } else if (
-      safelyReadProperty(sourceNode, "nodeType") === Node.COMMENT_NODE
-    ) {
-      addElOrigin(cloneResult, "textValue", sourceNode.__elOrigin.textValue);
-    } else {
-      consoleWarn("unhandled cloneNode");
+  const nodeType = safelyReadProperty(sourceNode, "nodeType");
+
+  if (nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+    for (var i = 0; i < sourceNode.childNodes.length; i++) {
+      processClonedNode(
+        cloneResult.childNodes[i],
+        sourceNode.childNodes[i],
+        opts
+      );
     }
+  } else if (nodeType === Node.ELEMENT_NODE) {
+    ["openingTagStart", "openingTagEnd", "closingTag"].forEach(originName => {
+      if (sourceNode.__elOrigin && sourceNode.__elOrigin[originName]) {
+        addElOrigin(cloneResult, originName, sourceNode.__elOrigin[originName]);
+      } else {
+        console.warn("clone element but no __elOrigin");
+      }
+    });
+
+    for (var i = 0; i < sourceNode.attributes.length; i++) {
+      const attr = sourceNode.attributes[i];
+      const nameOrigin = getElAttributeNameOrigin(sourceNode, attr.name);
+      const valueOrigin = getElAttributeValueOrigin(sourceNode, attr.name);
+      if (nameOrigin) {
+        addElAttributeNameOrigin(cloneResult, attr.name, nameOrigin);
+      }
+      if (valueOrigin) {
+        addElAttributeValueOrigin(cloneResult, attr.name, valueOrigin);
+      }
+    }
+  } else if (nodeType === Node.TEXT_NODE) {
+    if (sourceNode.__elOrigin) {
+      addElOrigin(cloneResult, "textValue", sourceNode.__elOrigin.textValue);
+    }
+  } else if (nodeType === Node.COMMENT_NODE) {
+    if (sourceNode.__elOrigin) {
+      addElOrigin(cloneResult, "textValue", sourceNode.__elOrigin.textValue);
+    }
+  } else {
+    consoleWarn("unhandled cloneNode");
   }
-  if (safelyReadProperty(sourceNode, "nodeType") === Node.ELEMENT_NODE) {
+
+  if (nodeType === Node.ELEMENT_NODE) {
     if (isDeep) {
       sourceNode.childNodes.forEach((childNode, i) => {
         processClonedNode(cloneResult.childNodes[i], childNode, opts);

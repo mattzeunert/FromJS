@@ -143,7 +143,6 @@ export default function mapInnerHTMLAssignment(
     var children;
     if (el.tagName === "TEMPLATE") {
       children = el.content.childNodes;
-      debugger;
     } else {
       children = Array.prototype.slice.apply(el.childNodes, []);
     }
