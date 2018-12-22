@@ -27,6 +27,12 @@ function getFnArg(args, index) {
   return args[2][index];
 }
 
+function getFullUrl(url) {
+  var a = document.createElement("a");
+  a.href = url;
+  return a.href;
+}
+
 export interface SpecialCaseArgs {
   ctx: ExecContext;
   object: any;
@@ -1277,5 +1283,25 @@ export const knownFnProcessors = {
         return Promise.resolve(obj);
       });
     });
+  },
+  fetch: ({ ctx, logData, fnArgValues }: FnProcessorArgs) => {
+    // not super accurate but until there's a proper solution
+    // let's pretend we can match the fetch call
+    // to the response value via the url
+    ctx.global["__fetches"] = ctx.global["__fetches"] || {};
+    let url =
+      typeof fnArgValues[0] === "string" ? fnArgValues[0] : fnArgValues[0].url;
+    url = getFullUrl(url);
+    ctx.global["__fetches"][url] = logData.index;
+  },
+  "XMLHttpRequest.prototype.open": ({
+    ctx,
+    logData,
+    fnArgValues
+  }: FnProcessorArgs) => {
+    ctx.global["__xmlHttpRequests"] = ctx.global["__xmlHttpRequests"] || {};
+    let url = fnArgValues[1];
+    url = getFullUrl(url);
+    ctx.global["__xmlHttpRequests"][url] = logData.index;
   }
 };

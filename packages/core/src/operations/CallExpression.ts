@@ -23,12 +23,6 @@ import {
   FnProcessorArgs
 } from "./CallExpressionSpecialCases";
 
-function getFullUrl(url) {
-  var a = document.createElement("a");
-  a.href = url;
-  return a.href;
-}
-
 const CallExpression = <any>{
   argNames: ["function", "context", "arg", "evalFn"],
   argIsArray: [false, false, true, false],
@@ -194,26 +188,6 @@ const CallExpression = <any>{
               consoleLog("Calling eval but can't instrument code");
             }
           }
-        }
-
-        if (fnKnownValue === "fetch") {
-          // not super accurate but until there's a proper solution
-          // let's pretend we can match the fetch call
-          // to the response value via the url
-          ctx.global["__fetches"] = ctx.global["__fetches"] || {};
-          let url =
-            typeof fnArgValues[0] === "string"
-              ? fnArgValues[0]
-              : fnArgValues[0].url;
-          url = getFullUrl(url);
-          ctx.global["__fetches"][url] = logData.index;
-        }
-        if (fnKnownValue === "XMLHttpRequest.prototype.open") {
-          ctx.global["__xmlHttpRequests"] =
-            ctx.global["__xmlHttpRequests"] || {};
-          let url = fnArgValues[1];
-          url = getFullUrl(url);
-          ctx.global["__xmlHttpRequests"][url] = logData.index;
         }
 
         let fnArgValuesForApply = fnArgValues;
