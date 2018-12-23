@@ -27,12 +27,10 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
                 style={{
                   height: 15,
                   width: 15,
-                  marginLeft: 10,
                   border: "none",
                   backgroundSize: "100%",
                   backgroundImage:
-                    "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAQAAABIkb+zAAACWUlEQVR4Ae3YA7AdQRCF4Ylt2+acjgqxU4gKsW3bNgqxbdtOSrFt257Yu/ddTEevvy5ju/6LlVJKCCGEEEIIIYQQQgghBLqrfxsZ6vCvB/AnsAfwJ7AHGLRQfsoaF8WpIQZhAXbhKF3Dc3qGy3QQGzBGt8peKltaFYo1wN8EnYw60BJcJhPkvKLjNJXKUETWAO8TMsXUTbGLjM/zDHN1YZYA7xMoPY2mp2T8H5yk1qmjsgR8nIbKFTJgORkr84TGZ03HEOCekDkJJuMNGYvzUvdLHp4hwCEhFLXGczIMczF7UY6AHxKQgfaR4RtMpmj2A4yupT5CObwgwzzXkMd6AN5+SKA2ZH7LvKJmFgO+JNA6L5cfpplop0tmS6S+CaUzogqGYxseexeBSSqE1QCvZg/qpYuiPAul82EYnfHiaPNU6N8XcAcjfDuT62zoS7fJeJwVXxJ4A26jXeIIyg+pw6E+bng89mIVijUAbzE4U2QVgKyRMJBeedgwhzEAp3QOZQGILnrY0pYpABvt3YRlj45V7ue1bJoj4LAKqayirnjrsuts1kgc38BwZZmu5paAaQwBLAkVXe9xK/GcRvsry1DD7UpD0TgCGBKoq/Mm9GEJYEgIQZucn6Ezx+MIYEjIFBM3nfZgME8AQwKKO255mC4KUwBDwnTHLR14AhgSsiamlw4/oisqBE8AQwKNdNqhi3AGGPRQ1mRL5HSXitlsAfbfbGPSD0d+TZt0U52QK4AhIXvOr29Rl6JGlhjcz8QMCdiCGbr8t/fYQgghhBBCCCGEEEIIIYQQ7wC30XOuMHjaSwAAAABJRU5ErkJggg==)",
-                  cursor: "pointer"
+                    "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAQAAABIkb+zAAACWUlEQVR4Ae3YA7AdQRCF4Ylt2+acjgqxU4gKsW3bNgqxbdtOSrFt257Yu/ddTEevvy5ju/6LlVJKCCGEEEIIIYQQQgghBLqrfxsZ6vCvB/AnsAfwJ7AHGLRQfsoaF8WpIQZhAXbhKF3Dc3qGy3QQGzBGt8peKltaFYo1wN8EnYw60BJcJhPkvKLjNJXKUETWAO8TMsXUTbGLjM/zDHN1YZYA7xMoPY2mp2T8H5yk1qmjsgR8nIbKFTJgORkr84TGZ03HEOCekDkJJuMNGYvzUvdLHp4hwCEhFLXGczIMczF7UY6AHxKQgfaR4RtMpmj2A4yupT5CObwgwzzXkMd6AN5+SKA2ZH7LvKJmFgO+JNA6L5cfpplop0tmS6S+CaUzogqGYxseexeBSSqE1QCvZg/qpYuiPAul82EYnfHiaPNU6N8XcAcjfDuT62zoS7fJeJwVXxJ4A26jXeIIyg+pw6E+bng89mIVijUAbzE4U2QVgKyRMJBeedgwhzEAp3QOZQGILnrY0pYpABvt3YRlj45V7ue1bJoj4LAKqayirnjrsuts1kgc38BwZZmu5paAaQwBLAkVXe9xK/GcRvsry1DD7UpD0TgCGBKoq/Mm9GEJYEgIQZucn6Ezx+MIYEjIFBM3nfZgME8AQwKKO255mC4KUwBDwnTHLR14AhgSsiamlw4/oisqBE8AQwKNdNqhi3AGGPRQ1mRL5HSXitlsAfbfbGPSD0d+TZt0U52QK4AhIXvOr29Rl6JGlhjcz8QMCdiCGbr8t/fYQgghhBBCCCGEEEIIIYQQ7wC30XOuMHjaSwAAAABJRU5ErkJggg==)"
                 }}
                 onClick={() => undoSelection()}
                 title="Undo"
@@ -43,12 +41,10 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
                 style={{
                   height: 15,
                   width: 15,
-                  marginLeft: 10,
                   border: "none",
                   backgroundSize: "100%",
                   backgroundImage:
-                    "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAQAAABIkb+zAAABqElEQVR4Ae3bAWYDARCF4QFNVa7QtAiwxXZGICCHSs9QOUJzhkov0GjJBZqbREIaSFIBKGF3f7xd5g0A6/+wAlnLXV8ul8vlcrnc072/+Hds4tzs7N/Ac+qv6MeHn+IMTgkY9nzN4sUAn/N8IcCHfuw0IF55vBTgPx0HxG/HAQ0eAFeOfKcH8Hw9gOfrATxfD+D5QgDP94MUwPPLiRTA882kAJ4vBvB8MYDniwE8XwTg+R0AlOMK+QJA5fzYV8nXA0i+HgDy9QCQrweAfD0A5OsBIB+MA0B+7Hk+B5D8sZkAIMhXAlC+HoDy9QCUrwegfD0A5et/yMoJyNcDyokfQL4KAPL1AJCvB4B8PQDk6wEgXw8A+XpA9XzfVcgXAKrnj8w6AfB3lK8HFDe+RPn6d+Dx1pcgXw+4EGIF8vUAs7iLFcjXAy4E/wT5MsCVJSABCUhAAhKQgARs49yi2/K/HkvP1/UBs1YBZlZ3zw9+bE3+MQZWf/7WGsDcmmzYa8d74Othz5qt6PvCT9L4ky+KvpHFIKYNPsPit4mvmMbAcrlcLpfL5XJX9wer5f8CHBdblgAAAABJRU5ErkJggg==)",
-                  cursor: "pointer"
+                    "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAQAAABIkb+zAAABqElEQVR4Ae3bAWYDARCF4QFNVa7QtAiwxXZGICCHSs9QOUJzhkov0GjJBZqbREIaSFIBKGF3f7xd5g0A6/+wAlnLXV8ul8vlcrnc072/+Hds4tzs7N/Ac+qv6MeHn+IMTgkY9nzN4sUAn/N8IcCHfuw0IF55vBTgPx0HxG/HAQ0eAFeOfKcH8Hw9gOfrATxfD+D5QgDP94MUwPPLiRTA882kAJ4vBvB8MYDniwE8XwTg+R0AlOMK+QJA5fzYV8nXA0i+HgDy9QCQrweAfD0A5OsBIB+MA0B+7Hk+B5D8sZkAIMhXAlC+HoDy9QCUrwegfD0A5et/yMoJyNcDyokfQL4KAPL1AJCvB4B8PQDk6wEgXw8A+XpA9XzfVcgXAKrnj8w6AfB3lK8HFDe+RPn6d+Dx1pcgXw+4EGIF8vUAs7iLFcjXAy4E/wT5MsCVJSABCUhAAhKQgARs49yi2/K/HkvP1/UBs1YBZlZ3zw9+bE3+MQZWf/7WGsDcmmzYa8d74Othz5qt6PvCT9L4ky+KvpHFIKYNPsPit4mvmMbAcrlcLpfL5XJX9wer5f8CHBdblgAAAABJRU5ErkJggg==)"
                 }}
                 onClick={() => {
                   // Noopener hopefully means the window will open in a new process
@@ -58,6 +54,17 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
                 }}
                 title="Open in new tab"
               />
+            )}
+            {type === "dom" && (
+              <button
+                style={{ fontWeight: "bold", fontSize: 16 }}
+                onClick={() =>
+                  window.parent.postMessage({ type: "inspectParent" }, "*")
+                }
+                title="Select parent DOM element"
+              >
+                ⇧
+              </button>
             )}
           </div>
 

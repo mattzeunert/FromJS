@@ -320,3 +320,14 @@ path {
     top: 5px;
   }
 }
+
+.inspected-string button {
+  border: none;
+  margin-left: 10px;
+  background: transparent;
+  cursor: pointer;
+  color: #777;
+  &:hover {
+    color: #267aba;
+  }
+}
