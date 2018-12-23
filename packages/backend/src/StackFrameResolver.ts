@@ -121,6 +121,20 @@ class StackFrameResolver {
     // - it only works if you first resolve a frame
     this._sourceObjectUrlCache[frameObject.fileName] = code;
 
+    if (
+      code.includes("ENOTFOUND") &&
+      code.includes("fromjs-temporary-url.com:5555")
+    ) {
+      return {
+        line: makeLine(
+          "Failed to fetch source code - this can happen if the server is restarted and you're trying to look at e.g. an eval script",
+          0
+        ),
+        nextLines: [],
+        previousLines: []
+      };
+    }
+
     var lines = code.split("\n");
 
     if (!lines[frameObject.lineNumber - 1]) {
