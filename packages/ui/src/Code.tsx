@@ -16,7 +16,7 @@ export default class Code extends React.Component<CodeProps, CodeState> {
   constructor(props) {
     super(props);
     this.state = {
-      surroundingLineCount: 3
+      surroundingLineCount: 5
     };
   }
   render() {
@@ -179,7 +179,7 @@ export default class Code extends React.Component<CodeProps, CodeState> {
               onClick={() => {
                 const nextSurroundingLineCount = {
                   // 1: 3,
-                  3: 7,
+                  5: 7,
                   7: 20,
                   20: 3
                 };
