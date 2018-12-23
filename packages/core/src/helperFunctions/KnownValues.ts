@@ -25,6 +25,7 @@ export default class KnownValues {
       "Array.prototype.concat": Array.prototype.concat,
       "Array.prototype.shift": Array.prototype.shift,
       "Array.prototype.unshift": Array.prototype.unshift,
+      "Math.round": Math.round,
       "JSON.parse": JSON.parse,
       "JSON.stringify": JSON.stringify,
       "Object.keys": Object.keys,
