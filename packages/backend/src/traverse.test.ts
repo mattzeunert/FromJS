@@ -1474,3 +1474,31 @@ it("Can traverse array expressions that contain array patterns", async () => {
   expect(step.operationLog.operation).toBe("stringLiteral");
   expect(step.charIndex).toBe(0);
 });
+
+describe("Template literals", () => {
+  it("Has basic support", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      "return `a${'b'}c\n${'d'}`",
+      {},
+      { logCode: true }
+    );
+    expect(normal).toBe("abc\nd");
+
+    let step = await traverseAndGetLastStep(tracking, normal.indexOf("b"));
+
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("b");
+    expect(step.charIndex).toBe(0);
+
+    step = await traverseAndGetLastStep(tracking, normal.indexOf("d"));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("d");
+    expect(step.charIndex).toBe(0);
+
+    // step = await traverseAndGetLastStep(tracking, normal.indexOf("c"));
+    // expect(step.operationLog.operation).toBe("templateLiteral");
+    // expect(step.charIndex).toBe(7);
+  });
+
+  // todo: nested template literal
+});

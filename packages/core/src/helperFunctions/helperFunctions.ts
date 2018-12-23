@@ -488,6 +488,9 @@ const ctx: ExecContext = {
   getEmptyTrackingInfo(type, loc) {
     return global[FunctionNames.getEmptyTrackingInfo](type, loc);
   },
+  getCurrentTemplateLiteralTrackingValues() {
+    return getCurrentTemplateLiteralTrackingValues();
+  },
   get lastOpTrackingResult() {
     return lastOpTrackingResult;
   },
@@ -603,6 +606,32 @@ global[
 ] = function getLastOp() {
   validateTrackingValue(lastOpTrackingResult);
   return lastOpTrackingResult;
+};
+
+let currentTemplateLiteralIndex = 1;
+let allTemplateLiteralTrackingValues = {};
+function getCurrentTemplateLiteralTrackingValues() {
+  if (!allTemplateLiteralTrackingValues[currentTemplateLiteralIndex]) {
+    allTemplateLiteralTrackingValues[currentTemplateLiteralIndex] = [];
+  }
+  return allTemplateLiteralTrackingValues[currentTemplateLiteralIndex];
+}
+function resetCurrentTemplateLiteralTrackingValues() {
+  allTemplateLiteralTrackingValues[currentTemplateLiteralIndex] = [];
+}
+global[FunctionNames.saveTemplateLiteralExpressionTrackingValue] = function(
+  expressionValue
+) {
+  getCurrentTemplateLiteralTrackingValues().push({
+    trackingValue: lastOpTrackingResultWithoutResetting,
+    valueLength: (expressionValue + "").length
+  });
+  return expressionValue;
+};
+global[FunctionNames.exitTemplateLiteralAndGetTrackingValues] = function() {
+  const ret = getCurrentTemplateLiteralTrackingValues();
+  resetCurrentTemplateLiteralTrackingValues();
+  return ret;
 };
 
 global["__fromJSMaybeMapInitialPageHTML"] = function() {

@@ -58,7 +58,7 @@ if (!global.__didInitializeDataFlowTracking) {` +
   helperCode
     .replace(/\\/g, "\\\\")
     .replace(/`/g, "\\`")
-    .replace(/\$/, "\\$") +
+    .replace(/\$/g, "\\$") +
   "\n//# sourceURL=/helperFns.js`)" +
   "}";
 helperCode += "// aaaaa"; // this seems to help with debugging/evaling the code... not sure why...just take it out if the tests dont break
