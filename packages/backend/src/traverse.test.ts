@@ -1557,6 +1557,24 @@ it("Can traverse Math.round", async () => {
   expect(step.operationLog.result.primitive).toBe(2.5);
   expect(step.charIndex).toBe(0);
 });
+
+it("Can traverse a Number constructor call", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      return Number(2)
+    `,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe(2);
+
+  let step = await traverseAndGetLastStep(tracking, 0);
+
+  expect(step.operationLog.operation).toBe("numericLiteral");
+  expect(step.operationLog.result.primitive).toBe(2);
+  expect(step.charIndex).toBe(0);
+});
+
 describe("optimistic", () => {
   it("If not optimistic, does not traverse binary expression even if one is a numeric literal and the other isn't", async () => {
     const { normal, tracking, code } = await instrumentAndRun(
