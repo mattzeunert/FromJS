@@ -336,8 +336,6 @@ const operations: Operations = {
         structureParts: ignoredArrayExpression(structure)
       };
 
-      // todo: replace with seq exp where first it calls entertempltlival
-
       path.node.expressions = path.node.expressions.map(expression => {
         return ignoredCallExpression(
           FunctionNames.saveTemplateLiteralExpressionTrackingValue,
@@ -350,17 +348,18 @@ const operations: Operations = {
         literal: ignoredArrayExpression([ignoreNode(path.node), null])
       };
 
-      return this.createNode!(args, astArgs, path.node.loc);
+      return t.sequenceExpression([
+        ignoredCallExpression(FunctionNames.enterTemplateLiteral, []),
+        this.createNode!(args, astArgs, path.node.loc)
+      ]);
     },
     traverse(operationLog, charIndex) {
-      console.log(JSON.stringify(operationLog, null, 4));
+      // console.log(JSON.stringify(operationLog, null, 4));
 
       const structureParts = operationLog.astArgs.structureParts;
       let indexInString = 0;
       let expressionIndex = 0;
-      console.log(operationLog.astArgs.structureParts);
       for (var partIndex = 0; partIndex < structureParts.length; partIndex++) {
-        console.log({ partIndex });
         const structurePart = structureParts[partIndex];
         let indexInStringAfter = indexInString;
         if (structurePart.type === "quasi") {

@@ -1480,7 +1480,7 @@ describe("Template literals", () => {
     const { normal, tracking, code } = await instrumentAndRun(
       "return `a${'b'}c\n${'d'}`",
       {},
-      { logCode: true }
+      { logCode: false }
     );
     expect(normal).toBe("abc\nd");
 
@@ -1500,5 +1500,24 @@ describe("Template literals", () => {
     // expect(step.charIndex).toBe(7);
   });
 
-  // todo: nested template literal
+  it("Can handle nested template literals", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+        function getChar(char) {
+          return ${"`${char}`"}
+        }
+
+        return ${'`${getChar("a")}${getChar("b")}`'}
+      `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ab");
+
+    let step = await traverseAndGetLastStep(tracking, normal.indexOf("b"));
+
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("b");
+    expect(step.charIndex).toBe(0);
+  });
 });
