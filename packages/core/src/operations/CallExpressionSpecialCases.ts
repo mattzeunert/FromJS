@@ -1085,17 +1085,17 @@ export function traverseKnownFunction({
         charIndex
       };
     case "Math.max":
-      let largstValue = Number.NEGATIVE_INFINITY;
-      let largesetOperationLog = null;
+      let largestValue = Number.NEGATIVE_INFINITY;
+      let largestOperationLog = null;
 
       allArgs(operationLog, arg => {
-        if (arg.result.primitive > smallestValue) {
-          largstValue = arg.result.primitive;
-          largesetOperationLog = arg;
+        if (arg.result.primitive > largestOperationLog) {
+          largestValue = arg.result.primitive;
+          largestOperationLog = arg;
         }
       });
       return {
-        operationLog: largesetOperationLog,
+        operationLog: largestOperationLog,
         charIndex
       };
     default:

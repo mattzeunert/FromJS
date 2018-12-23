@@ -40,9 +40,6 @@ export async function traverse(
       throw Error("Too many steps");
     }
 
-    console.log(steps.map(step => step.isOptimistic));
-    // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
-
     const operation = operations[operationLog.operation];
     if (operation && operation.traverse) {
       try {
