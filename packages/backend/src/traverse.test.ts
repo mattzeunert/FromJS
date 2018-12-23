@@ -1640,7 +1640,7 @@ describe("Math.min/max", () => {
       return Math.max(5,2, 10, 4)
     `);
 
-    expect(normal).toBe(5);
+    expect(normal).toBe(10);
 
     const step = await traverseAndGetLastStep(tracking, 0);
     expect(step.operationLog.operation).toBe("numericLiteral");
