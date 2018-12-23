@@ -74,7 +74,7 @@ describe("ProxyInstrumenter", () => {
         }
         return true;
       },
-      handleEvalScript: function(code, compile, callback) {
+      handleEvalScript: function(code, compile, details, callback) {
         const url = "http://example.com/eval.js";
         return compile(code, url, babelResult => {
           const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url;
