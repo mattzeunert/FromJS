@@ -80,7 +80,7 @@ function getObjectId(name) {
 }
 
 export function ignoredArrayExpressionIfArray(p) {
-  return p.length !== undefined ? ignoredArrayExpression(p) : p;
+  return Array.isArray(p) ? ignoredArrayExpression(p) : p;
 }
 
 export function ignoredObjectExpression(props) {

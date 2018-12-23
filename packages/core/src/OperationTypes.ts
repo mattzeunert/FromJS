@@ -24,6 +24,7 @@ export const initialPageHtml = "initialPageHtml";
 export const htmlAdapter = "htmlAdapter";
 export const classDeclaration = "classDeclaration";
 export const arrayPattern = "arrayPattern";
+export const templateLiteral = "templateLiteral";
 // These ones are kind of bad... think about if there's a better way to model this.
 // They exist because if I do `["a", "b"].slice(1,2)` I want the slice call to be part
 // of the history of "b"... although technically the slice is part of the array history

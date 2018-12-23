@@ -11,6 +11,10 @@ export interface ExecContext {
     object: any,
     propertyName: string | number
   ) => number;
+  getCurrentTemplateLiteralTrackingValues: () => {
+    valueLength: number;
+    trackingValue: number;
+  }[];
   lastMemberExpressionResult: [any, any];
   createOperationLog(args: CreateOperationLogArgs): number;
   createArrayIndexOperationLog(index: number, loc: any): number | null;

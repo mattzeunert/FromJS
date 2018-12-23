@@ -40,6 +40,7 @@ import { VERIFY } from "./config";
 import { getElAttributeValueOrigin } from "./operations/domHelpers/addElOrigin";
 import { safelyReadProperty, nullOnError } from "./util";
 import * as FunctionNames from "./FunctionNames";
+import * as sortBy from "lodash/sortBy";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -292,6 +293,108 @@ const operations: Operations = {
     },
     exec: (args, astArgs, ctx: ExecContext) => {
       return args[0][0];
+    }
+  },
+  templateLiteral: {
+    exec: (args, astArgs, ctx: ExecContext, logData) => {
+      console.log("exec template lit", args);
+
+      logData.extraArgs = {};
+      logData.runtimeArgs = {};
+      const expressionValues = ctx.getCurrentTemplateLiteralTrackingValues();
+      expressionValues.forEach((expressionValue, i) => {
+        logData.extraArgs["expression" + i] = [
+          null,
+          expressionValue.trackingValue
+        ];
+        logData.runtimeArgs["expression" + i + "Length"] =
+          expressionValue.valueLength;
+      });
+
+      return args.literal[0];
+    },
+    visitor(path) {
+      let literalParts = [...path.node.expressions, ...path.node.quasis];
+      literalParts = sortBy(literalParts, p => {
+        const start = p.loc.start;
+        return start.line * 10000 + start.column;
+      });
+      const structure: any[] = literalParts.map(part => {
+        if (part.type === "TemplateElement") {
+          return ignoredObjectExpression({
+            type: ignoredStringLiteral("quasi"),
+            // cooked e.g. has escape sequences resolved
+            length: ignoredNumericLiteral(part.value.cooked.length)
+          });
+        } else {
+          return ignoredObjectExpression({
+            type: ignoredStringLiteral("expression")
+          });
+        }
+      });
+      const astArgs = {
+        structureParts: ignoredArrayExpression(structure)
+      };
+
+      // todo: replace with seq exp where first it calls entertempltlival
+
+      path.node.expressions = path.node.expressions.map(expression => {
+        return ignoredCallExpression(
+          FunctionNames.saveTemplateLiteralExpressionTrackingValue,
+          [expression]
+        );
+      });
+
+      const args = {
+        // not sure why i need ignored array exp here?
+        literal: ignoredArrayExpression([ignoreNode(path.node), null])
+      };
+
+      return this.createNode!(args, astArgs, path.node.loc);
+    },
+    traverse(operationLog, charIndex) {
+      console.log(JSON.stringify(operationLog, null, 4));
+
+      const structureParts = operationLog.astArgs.structureParts;
+      let indexInString = 0;
+      let expressionIndex = 0;
+      console.log(operationLog.astArgs.structureParts);
+      for (var partIndex = 0; partIndex < structureParts.length; partIndex++) {
+        console.log({ partIndex });
+        const structurePart = structureParts[partIndex];
+        let indexInStringAfter = indexInString;
+        if (structurePart.type === "quasi") {
+          indexInStringAfter += structurePart.length;
+          if (indexInStringAfter > charIndex) {
+            return {
+              charIndex: charIndex,
+              operationLog: null
+            };
+          }
+        } else {
+          const expressionTrackingValue =
+            operationLog.extraArgs["expression" + expressionIndex];
+          const expressionValueLength =
+            operationLog.runtimeArgs["expression" + expressionIndex + "Length"];
+          expressionIndex++;
+          indexInStringAfter += expressionValueLength;
+
+          console.log({ indexInStringAfter, charIndex });
+          if (indexInStringAfter > charIndex) {
+            return {
+              operationLog: expressionTrackingValue,
+              charIndex: charIndex - indexInString
+            };
+          }
+        }
+
+        indexInString = indexInStringAfter;
+      }
+
+      return {
+        operationLog: null,
+        charIndex
+      };
     }
   },
   unaryExpression: {
