@@ -1,6 +1,6 @@
 function generateEvalUrl(type) {
   return (
-    "http://localhost:11111/" +
+    "http://fromjs-temporary-url.com:5555/" +
     type +
     Math.floor(Math.random() * 1000000000) +
     ".js"

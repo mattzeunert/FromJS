@@ -35,7 +35,10 @@ class StackFrameResolver {
 
   getAjax(type: "proxy" | "normal") {
     const ajax = url => {
-      if (type === "normal" && url.includes(":11111")) {
+      if (
+        type === "normal" &&
+        url.includes("http://fromjs-temporary-url.com:5555")
+      ) {
         // We use this port for eval scripts, which are only available through the proxy
         return this._gps._get(url);
       }
@@ -195,7 +198,9 @@ class StackFrameResolver {
         });
       };
 
-      if (!frameObject.fileName.includes(":11111")) {
+      if (
+        !frameObject.fileName.includes("http://fromjs-temporary-url.com:5555/")
+      ) {
         this._nonProxyGps
           .pinpoint(frameObject)
           .then(pinpointedFrameObject => {
