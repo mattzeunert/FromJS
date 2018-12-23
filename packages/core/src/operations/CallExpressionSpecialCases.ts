@@ -1070,6 +1070,34 @@ export function traverseKnownFunction({
         operationLog: operationLog.args.arg0,
         charIndex
       };
+    case "Math.min":
+      let smallestValue = Number.POSITIVE_INFINITY;
+      let smallestOperationLog = null;
+
+      allArgs(operationLog, arg => {
+        if (arg.result.primitive < smallestValue) {
+          smallestValue = arg.result.primitive;
+          smallestOperationLog = arg;
+        }
+      });
+      return {
+        operationLog: smallestOperationLog,
+        charIndex
+      };
+    case "Math.max":
+      let largstValue = Number.NEGATIVE_INFINITY;
+      let largesetOperationLog = null;
+
+      allArgs(operationLog, arg => {
+        if (arg.result.primitive > smallestValue) {
+          largstValue = arg.result.primitive;
+          largesetOperationLog = arg;
+        }
+      });
+      return {
+        operationLog: largesetOperationLog,
+        charIndex
+      };
     default:
       return {
         operationLog: operationLog.extraArgs.returnValue,
@@ -1287,3 +1315,11 @@ export const knownFnProcessors = {
     ctx.global["__xmlHttpRequests"][url] = logData.index;
   }
 };
+
+function allArgs(operationLog, fn) {
+  let i = 0;
+  while ("arg" + i in operationLog.args) {
+    fn(operationLog.args["arg" + i]);
+    i++;
+  }
+}
