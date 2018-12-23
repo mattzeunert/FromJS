@@ -1089,7 +1089,7 @@ export function traverseKnownFunction({
       let largestOperationLog = null;
 
       allArgs(operationLog, arg => {
-        if (arg.result.primitive > largestOperationLog) {
+        if (arg.result.primitive > largestValue) {
           largestValue = arg.result.primitive;
           largestOperationLog = arg;
         }
