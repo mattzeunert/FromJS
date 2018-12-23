@@ -267,8 +267,11 @@ let TraversalStep = class TraversalStep extends React.Component<
 
           {isExpanded && (
             <div className="step__arguments">
-              <div className="step__arguments__title">
-                Inspect input/output values:
+              <div
+                style={{ paddingLeft: 6 }}
+                className="step__arguments__title"
+              >
+                Inspect arguments:
               </div>
               {/* <pre>
                 Runtime args:
@@ -278,7 +281,9 @@ let TraversalStep = class TraversalStep extends React.Component<
                   4
                 )}
               </pre> */}
-              {this.getAllArgs().length === 0 && <div>(No arguments)</div>}
+              {this.getAllArgs().length === 0 && (
+                <div style={{ padding: 6 }}>(No arguments)</div>
+              )}
               {this.getAllArgs().map(({ name, value }) => {
                 value = value && new OperationLog(value);
 
@@ -330,6 +335,21 @@ let TraversalStep = class TraversalStep extends React.Component<
                   </div>
                 );
               })}
+              {operationLog.astArgs &&
+                Object.keys(operationLog.astArgs).length > 0 && (
+                  <div style={{ padding: 6 }}>
+                    <div className="step__arguments__title">AST info:</div>
+                    {Object.entries(operationLog.astArgs).map(
+                      ([key, value]) => {
+                        return (
+                          <div>
+                            {key}: {value}
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                )}
               {debugMode && (
                 <div>
                   <button
