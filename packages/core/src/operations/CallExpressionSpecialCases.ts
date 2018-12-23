@@ -1055,6 +1055,11 @@ export function traverseKnownFunction({
         operationLog: closestLoc.tv,
         charIndex: charIndex - closestLoc.index
       };
+    case "Number.prototype.toString":
+      return {
+        operationLog: operationLog.args.context,
+        charIndex: charIndex
+      };
     default:
       return {
         operationLog: operationLog.extraArgs.returnValue,

@@ -1517,3 +1517,20 @@ describe("Template literals", () => {
     expect(step.charIndex).toBe(0);
   });
 });
+
+it("Can traverse Number.prototype.toString", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      return (5).toString()
+    `,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("5");
+
+  let step = await traverseAndGetLastStep(tracking, 0);
+
+  expect(step.operationLog.operation).toBe("numericLiteral");
+  expect(step.operationLog.result.primitive).toBe(5);
+  expect(step.charIndex).toBe(0);
+});
