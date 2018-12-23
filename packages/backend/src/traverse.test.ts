@@ -1609,3 +1609,41 @@ describe("optimistic", () => {
     expect(step.isOptimistic).toBe(true);
   });
 });
+
+describe("Math.min/max", () => {
+  it("Can traverse Math.min", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return Math.min(5,2)
+    `);
+
+    expect(normal).toBe(2);
+
+    const step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("numericLiteral");
+    expect(step.operationLog.result.primitive).toBe(2);
+  });
+
+  it("Can traverse Math.max", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return Math.max(5,2)
+    `);
+
+    expect(normal).toBe(5);
+
+    const step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("numericLiteral");
+    expect(step.operationLog.result.primitive).toBe(5);
+  });
+
+  it("Can traverse Math.max called with many arguments", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return Math.max(5,2, 10, 4)
+    `);
+
+    expect(normal).toBe(5);
+
+    const step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("numericLiteral");
+    expect(step.operationLog.result.primitive).toBe(10);
+  });
+});
