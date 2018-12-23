@@ -446,7 +446,8 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
             charIndex: charIndex
           },
           [],
-          logServer
+          logServer,
+          { optimistic: true }
         );
         if (LOG_PERF) {
           console.timeEnd("Traverse " + logId);
