@@ -1647,3 +1647,15 @@ describe("Math.min/max", () => {
     expect(step.operationLog.result.primitive).toBe(10);
   });
 });
+
+it("Can traverse parseFloat", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    return parseFloat("25")
+  `);
+
+  expect(normal).toBe(25);
+
+  const step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.operationLog.result.primitive).toBe("25");
+});
