@@ -41,7 +41,7 @@ window["__fromJSEval"] = function(code) {
 
   let returnValue;
   // handle eval script is sync because compile is sync!
-  handleEvalScript(code, compile, evalScript => {
+  handleEvalScript(code, compile, {}, evalScript => {
     returnValue = {
       evalScript,
       returnValue: getEvalFn().call(this, evalScript.instrumentedCode)

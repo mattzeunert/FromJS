@@ -314,7 +314,9 @@ class ProxyInstrumenter {
     await Promise.all(
       inlineScriptTags.map(async node => {
         const code = node.childNodes[0].value;
-        const compRes = <any>await this.instrumentForEval(code);
+        const compRes = <any>await this.instrumentForEval(code, {
+          type: "scriptTag"
+        });
         node.compiledCode = compRes.instrumentedCode;
       })
     );
@@ -457,7 +459,7 @@ class ProxyInstrumenter {
     this.urlCache[url] = cacheData;
   }
 
-  instrumentForEval(code) {
+  instrumentForEval(code, details) {
     const compile = (code, url, done) => {
       this.processCode(code, url).then(done);
     };
@@ -466,6 +468,7 @@ class ProxyInstrumenter {
       this.handleEvalScript(
         code,
         compile,
+        details,
         ({ url, instrumentedCode, code, map }) => {
           this.cacheUrl(url, {
             headers: {},
