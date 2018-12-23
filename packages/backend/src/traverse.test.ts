@@ -2,12 +2,14 @@ import { testHelpers } from "@fromjs/core";
 const { instrumentAndRun, server } = testHelpers;
 import { traverse as _traverse, TraversalStep } from "./traverse";
 
-const traverse = async function(firstStep) {
+const traverse = async function(firstStep, options = {}) {
+  options = Object.assign({ optimistic: false }, options);
   const steps: TraversalStep[] = (await _traverse.call(
     null,
     firstStep,
     [],
-    server
+    server,
+    options
   )) as any;
   return steps;
 };
@@ -1356,8 +1358,12 @@ describe("String.prototype.toString", () => {
   });
 });
 
-async function traverseAndGetLastStep(operationLog, charIndex) {
-  var t1: any = await traverse({ operationLog, charIndex });
+async function traverseAndGetLastStep(
+  operationLog,
+  charIndex,
+  options = {}
+): Promise<TraversalStep> {
+  var t1: any = await traverse({ operationLog, charIndex }, options);
   const t1LastStep = t1[t1.length - 1];
   return t1LastStep;
 }
@@ -1550,4 +1556,38 @@ it("Can traverse Math.round", async () => {
   expect(step.operationLog.operation).toBe("numericLiteral");
   expect(step.operationLog.result.primitive).toBe(2.5);
   expect(step.charIndex).toBe(0);
+});
+describe("optimistic", () => {
+  it("If not optimistic, does not traverse binary expression even if one is a numeric literal and the other isn't", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+        const complexVal = 0.656
+        return complexVal * 100
+      `,
+      {},
+      { logCode: false }
+    );
+
+    let step = await traverseAndGetLastStep(tracking, 0, false);
+    expect(!!step.isOptimistic).toBe(false);
+
+    expect(step.operationLog.operation).toBe("binaryExpression");
+  });
+  it("If optimistic, does not traverse binary expression even if one is a numeric literal and the other isn't", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+        const complexVal = 0.656
+        return complexVal * 100
+      `,
+      {},
+      { logCode: false }
+    );
+
+    let step = await traverseAndGetLastStep(tracking, 0, { optimistic: true });
+
+    expect(step.operationLog.operation).toBe("numericLiteral");
+    // expect(step.operationLog.operation).toBe(0.656);
+    console.log(JSON.stringify(step, null, 4));
+    expect(step.isOptimistic).toBe(true);
+  });
 });

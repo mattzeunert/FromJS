@@ -85,7 +85,8 @@ interface Operations {
     shorthand?: Shorthand;
     traverse?: (
       operationLog: any,
-      charIndex: number
+      charIndex: number,
+      options?: { optimistic: boolean }
     ) => TraversalStep | undefined;
     t?: any; // babel types
   };
@@ -107,9 +108,14 @@ const operations: Operations = {
         path.node.loc
       );
     },
-    traverse(operationLog, charIndex) {
+    traverse(operationLog, charIndex, options?) {
       const { operator } = operationLog.astArgs;
       const { left, right } = operationLog.args;
+
+      const leftIsNumericLiteral = left.operation === "numericLiteral";
+      const rightIsNumericLiteral = right.operation === "numericLiteral";
+      const numericLiteralCount =
+        (leftIsNumericLiteral ? 1 : 0) + (rightIsNumericLiteral ? 1 : 0);
       if (operator == "+") {
         if (
           typeof left.result.type === "string" &&
@@ -121,6 +127,17 @@ const operations: Operations = {
         }
       } else {
         console.log("todo binexp operator");
+      }
+      console.log({ options, numericLiteralCount });
+      if (options && options.optimistic && numericLiteralCount === 1) {
+        // We can't be quite sure, but probably the user cares about the
+        // more complex value, not the simple hard coded value
+        const complexOperation = leftIsNumericLiteral ? right : left;
+        return {
+          isOptimistic: true,
+          charIndex,
+          operationLog: complexOperation
+        };
       }
       throw "aaa";
     },

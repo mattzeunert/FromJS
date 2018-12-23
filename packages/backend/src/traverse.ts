@@ -3,13 +3,18 @@ import { operations, OperationLog } from "@fromjs/core";
 export interface TraversalStep {
   charIndex: number;
   operationLog: OperationLog;
+  // Optimistic steps are taken when the string value is modified, but
+  // we still feel confident the user is interested in one particular argument
+  isOptimistic?: boolean;
 }
 
 export async function traverse(
   step: TraversalStep,
   steps: TraversalStep[] = [],
-  server
+  server,
+  options: any
 ) {
+  const { optimistic } = options;
   return new Promise(async (resolve, reject) => {
     let nextStep: TraversalStep | null | undefined = null;
 
@@ -21,8 +26,13 @@ export async function traverse(
       reject(err);
     }
 
+    const alreadyHasOptimisticStep = steps.some(st => !!st.isOptimistic);
+
+    const stepIsOptimisitc = step.isOptimistic || alreadyHasOptimisticStep;
+
     steps.push({
       ...step,
+      isOptimistic: stepIsOptimisitc,
       operationLog // overwrite numeric operation log with object
     });
 
@@ -30,12 +40,13 @@ export async function traverse(
       throw Error("Too many steps");
     }
 
+    console.log(steps.map(step => step.isOptimistic));
     // console.log("Traversing", { operationLog, a: operationLog.args, charIndex });
 
     const operation = operations[operationLog.operation];
     if (operation && operation.traverse) {
       try {
-        nextStep = operation.traverse(operationLog, charIndex);
+        nextStep = operation.traverse(operationLog, charIndex, options);
       } catch (err) {
         console.log(JSON.stringify(operationLog));
         console.log("traverse err", operationLog.operation, err);
@@ -58,7 +69,7 @@ export async function traverse(
       nextStep.operationLog &&
       nextStep.operationLog.result.primitive === "";
     if (nextStep && nextStep.operationLog && !hasEmptyStepResult) {
-      traverse(nextStep, steps, server)
+      traverse(nextStep, steps, server, options)
         .then(() => {
           resolve(steps);
         })
