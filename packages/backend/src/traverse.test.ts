@@ -1494,10 +1494,6 @@ describe("Template literals", () => {
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.operationLog.result.primitive).toBe("d");
     expect(step.charIndex).toBe(0);
-
-    // step = await traverseAndGetLastStep(tracking, normal.indexOf("c"));
-    // expect(step.operationLog.operation).toBe("templateLiteral");
-    // expect(step.charIndex).toBe(7);
   });
 
   it("Can handle nested template literals", async () => {
