@@ -1534,3 +1534,20 @@ it("Can traverse Number.prototype.toString", async () => {
   expect(step.operationLog.result.primitive).toBe(5);
   expect(step.charIndex).toBe(0);
 });
+
+it("Can traverse Math.round", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      return Math.round(2.5)
+    `,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe(3);
+
+  let step = await traverseAndGetLastStep(tracking, 0);
+
+  expect(step.operationLog.operation).toBe("numericLiteral");
+  expect(step.operationLog.result.primitive).toBe(2.5);
+  expect(step.charIndex).toBe(0);
+});
