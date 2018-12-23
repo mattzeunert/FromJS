@@ -297,8 +297,6 @@ const operations: Operations = {
   },
   templateLiteral: {
     exec: (args, astArgs, ctx: ExecContext, logData) => {
-      console.log("exec template lit", args);
-
       logData.extraArgs = {};
       logData.runtimeArgs = {};
       const expressionValues = ctx.getCurrentTemplateLiteralTrackingValues();
@@ -354,8 +352,6 @@ const operations: Operations = {
       ]);
     },
     traverse(operationLog, charIndex) {
-      // console.log(JSON.stringify(operationLog, null, 4));
-
       const structureParts = operationLog.astArgs.structureParts;
       let indexInString = 0;
       let expressionIndex = 0;
@@ -378,7 +374,6 @@ const operations: Operations = {
           expressionIndex++;
           indexInStringAfter += expressionValueLength;
 
-          console.log({ indexInStringAfter, charIndex });
           if (indexInStringAfter > charIndex) {
             return {
               operationLog: expressionTrackingValue,

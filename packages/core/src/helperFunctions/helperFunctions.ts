@@ -611,7 +611,6 @@ global[
 let currentTemplateLiteralIndex = 1;
 let allTemplateLiteralTrackingValues = {};
 function getCurrentTemplateLiteralTrackingValues() {
-  console.log("get current", currentTemplateLiteralIndex);
   if (!allTemplateLiteralTrackingValues[currentTemplateLiteralIndex]) {
     allTemplateLiteralTrackingValues[currentTemplateLiteralIndex] = [];
   }
