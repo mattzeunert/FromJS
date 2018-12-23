@@ -160,7 +160,13 @@ let TraversalStep = class TraversalStep extends React.Component<
       } else if (operationLog.operation === "memberExpression") {
         const knownValue = operationLog.args.object.result.knownValue;
         if (knownValue) {
-          operationTypeDetail = knownValue + "[...]";
+          operationTypeDetail =
+            knownValue +
+            '["' +
+            truncate(operationLog.args.propName.result.primitive, {
+              length: 20
+            }) +
+            '"]';
         }
 
         const knownTypes = operationLog.args.object.result.knownTypes || [];
