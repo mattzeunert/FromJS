@@ -1060,6 +1060,11 @@ export function traverseKnownFunction({
         operationLog: operationLog.args.context,
         charIndex: charIndex
       };
+    case "Number":
+      return {
+        operationLog: operationLog.args.arg0,
+        charIndex
+      };
     case "Math.round":
       return {
         operationLog: operationLog.args.arg0,
