@@ -611,6 +611,7 @@ global[
 let currentTemplateLiteralIndex = 1;
 let allTemplateLiteralTrackingValues = {};
 function getCurrentTemplateLiteralTrackingValues() {
+  console.log("get current", currentTemplateLiteralIndex);
   if (!allTemplateLiteralTrackingValues[currentTemplateLiteralIndex]) {
     allTemplateLiteralTrackingValues[currentTemplateLiteralIndex] = [];
   }
@@ -631,7 +632,11 @@ global[FunctionNames.saveTemplateLiteralExpressionTrackingValue] = function(
 global[FunctionNames.exitTemplateLiteralAndGetTrackingValues] = function() {
   const ret = getCurrentTemplateLiteralTrackingValues();
   resetCurrentTemplateLiteralTrackingValues();
+  currentTemplateLiteralIndex--;
   return ret;
+};
+global[FunctionNames.enterTemplateLiteral] = function() {
+  currentTemplateLiteralIndex++;
 };
 
 global["__fromJSMaybeMapInitialPageHTML"] = function() {
