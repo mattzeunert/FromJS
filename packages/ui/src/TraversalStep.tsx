@@ -193,7 +193,13 @@ let TraversalStep = class TraversalStep extends React.Component<
       // Commonly happens for HTML path that ends with /
       shortFileName = fileName;
     }
-    const fileNameLabel = this.state.isHovering ? fileName : shortFileName;
+    let fullFileNameForDisplay = fileName.replace(
+      "http://fromjs-temporary-url.com:5555/",
+      ""
+    );
+    const fileNameLabel = this.state.isHovering
+      ? fullFileNameForDisplay
+      : shortFileName;
     return (
       <div
         className="step"
