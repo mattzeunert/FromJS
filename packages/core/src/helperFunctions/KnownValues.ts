@@ -29,6 +29,7 @@ export default class KnownValues {
       "Math.min": Math.min,
       "Math.max": Math.max,
       Number: Number,
+      parseFloat: parseFloat,
       "JSON.parse": JSON.parse,
       "JSON.stringify": JSON.stringify,
       "Object.keys": Object.keys,
