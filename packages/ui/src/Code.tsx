@@ -47,24 +47,57 @@ export default class Code extends React.Component<CodeProps, CodeState> {
       columnNumber + highlighNthCharAfterColumn - lineFirstCharIndex
     );
 
-    const truncate = this.state.surroundingLineCount < 4;
+    const truncate = this.state.surroundingLineCount < 6;
 
     // If strings are too long and would hide highlighted content truncate them
     var strBeforeBar = frame.code.line.text.substr(
       0,
       columnNumber - lineFirstCharIndex
     );
-    if (strBeforeBar.length > 40 && truncate) {
-      strBeforeBar =
-        strBeforeBar.substr(0, 10) +
-        "..." +
-        strBeforeBar.substr(strBeforeBar.length - 25);
+
+    // 1 char is around 10px wide
+    let truncationSettings = {
+      minLength: 30,
+      charsAtStart: 8,
+      charsBefore: 20,
+      minLengthBarToHighlight: 20
+    };
+    if (document.body.clientWidth > 700) {
+      truncationSettings = {
+        minLength: 40,
+        charsAtStart: 10,
+        charsBefore: 25,
+        minLengthBarToHighlight: 30
+      };
     }
-    if (strBetweenBarAndHighlight.length > 50 && truncate) {
-      strBetweenBarAndHighlight =
-        strBetweenBarAndHighlight.substr(0, 10) +
+    if (document.body.clientWidth > 1000) {
+      truncationSettings = {
+        minLength: 80,
+        charsAtStart: 15,
+        charsBefore: 35,
+        minLengthBarToHighlight: 40
+      };
+    }
+
+    if (strBeforeBar.length > truncationSettings.minLength && truncate) {
+      strBeforeBar =
+        strBeforeBar.substr(0, truncationSettings.charsAtStart) +
         "..." +
-        strBetweenBarAndHighlight.substr(strBetweenBarAndHighlight.length - 20);
+        strBeforeBar.substr(
+          strBeforeBar.length - truncationSettings.charsBefore
+        );
+    }
+    if (
+      strBetweenBarAndHighlight.length >
+        truncationSettings.minLengthBarToHighlight &&
+      truncate
+    ) {
+      strBetweenBarAndHighlight =
+        strBetweenBarAndHighlight.substr(0, truncationSettings.charsAtStart) +
+        "..." +
+        strBetweenBarAndHighlight.substr(
+          strBetweenBarAndHighlight.length - truncationSettings.charsBefore
+        );
     }
 
     interface LineNumberProps {

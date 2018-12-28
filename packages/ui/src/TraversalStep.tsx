@@ -230,17 +230,19 @@ let TraversalStep = class TraversalStep extends React.Component<
               fileNameLabel
             )}
           </span>
-          <button
-            data-test-arguments-button
-            className="blue-button"
-            style={{ height: 21 }}
-            onClick={() => {
-              console.log("Click expand arguments");
-              this.setState({ isExpanded: !isExpanded });
-            }}
-          >
-            {isExpanded ? "Hide" : "Details"}
-          </button>
+          <div style={{ flexGrow: 1, textAlign: "right" }}>
+            <button
+              data-test-arguments-button
+              className="blue-button"
+              style={{ height: 21 }}
+              onClick={() => {
+                console.log("Click expand arguments");
+                this.setState({ isExpanded: !isExpanded });
+              }}
+            >
+              {isExpanded ? "Hide" : "Details"}
+            </button>
+          </div>
         </div>
         <div className="step__body">
           {debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
