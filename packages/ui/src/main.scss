@@ -137,6 +137,7 @@ path {
 }
 
 .step__header {
+  display: flex;
   width: 100%;
   font-family: Arial;
   background: var(--lightBlue2);
