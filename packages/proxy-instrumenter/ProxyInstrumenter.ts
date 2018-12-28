@@ -555,14 +555,25 @@ class ProxyInstrumenter {
       } else {
         var compilerProcess = spawn(this.instrumenterFilePath);
         var path = require("path");
+        const inProgressTimeout = setTimeout(() => {
+          console.log(
+            "Instrumentation in progress: " +
+              url +
+              " (" +
+              prettyBytes(body.length) +
+              ")"
+          );
+        }, 15000);
         compilerProcess
           .send({ body, url, babelPluginOptions })
           .on("message", function(response) {
             resolve(response);
             compilerProcess.kill();
+            clearTimeout(inProgressTimeout);
           })
           .on("error", error => {
             this.log("worker error", error);
+            clearTimeout(inProgressTimeout);
           });
       }
     });
@@ -594,7 +605,7 @@ class ProxyInstrumenter {
           const sizeBeforeString = prettyBytes(sizeBefore);
           const sizeAfterString = prettyBytes(sizeAfter);
           console.log(
-            `Instrumenting ${url} took ${timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
+            `Instrumented ${url} took ${timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
           );
         }
 
