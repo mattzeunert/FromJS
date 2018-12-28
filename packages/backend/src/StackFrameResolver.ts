@@ -80,7 +80,8 @@ class StackFrameResolver {
         frameObject = mappedFrameObject;
         code = formatted;
       }
-      return this.getSourceCodeObject(frameObject, code);
+      frameObject.code = this.getSourceCodeObject(frameObject, code);
+      return frameObject;
     });
   }
 
@@ -205,10 +206,9 @@ class StackFrameResolver {
       const finishWithoutSourceMaps = () => {
         return this.resolveSourceCode(frameObject, {
           prettify: prettifyIfNoSourceMap
-        }).then(code => {
-          frameObject.code = code;
+        }).then(frameObjectWithSourceCode => {
           // frameObject.__debugOnly_FrameString = frameString;
-          resolve(frameObject);
+          resolve(frameObjectWithSourceCode);
         });
       };
 
@@ -273,10 +273,8 @@ class StackFrameResolver {
       gps.pinpoint(frameObject).then(
         newFrame => {
           if (!prettify) {
-            this.resolveSourceCode(newFrame).then(code => {
-              newFrame.code = code;
-              newFrame.__debugOnly_FrameString = frameString;
-              finish(newFrame);
+            this.resolveSourceCode(newFrame).then(newFrameWithSourceCode => {
+              finish(newFrameWithSourceCode);
             });
           } else {
             // this._fetchCode(newFrame).then(code => {

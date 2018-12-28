@@ -57,10 +57,10 @@ export class App extends React.Component {
           just pass a value into `fromJSInspect`. Or use it when eval'ing code:
         </p>
         <pre>{`fromJSEval(\`
-      var href = location.href;
-      var str = "Current URL: " + href;
-      fromJSInspect(str);
-  \`)`}</pre>
+    var href = location.href;
+    var str = "Current URL: " + href;
+    fromJSInspect(str);
+\`)`}</pre>
         <h2>Caveats</h2>
         <p>
           Expect lots of slowness and breaking behavior. Delete the

@@ -6,11 +6,11 @@ module.exports = {
   },
 
   optimization: {
-    minimize: false
+    minimize: true
   },
 
   devtool: "source-map",
-  mode: "development",
+  mode: "production",
 
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".json"]
