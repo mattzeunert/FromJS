@@ -557,11 +557,7 @@ class ProxyInstrumenter {
         var path = require("path");
         const inProgressTimeout = setTimeout(() => {
           console.log(
-            "Instrumentation in progress: " +
-              url +
-              " (" +
-              prettyBytes(body.length) +
-              ")"
+            "Instrumenting: " + url + " (" + prettyBytes(body.length) + ")"
           );
         }, 15000);
         compilerProcess
