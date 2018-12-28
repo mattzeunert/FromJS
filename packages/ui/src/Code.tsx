@@ -67,17 +67,18 @@ export default class Code extends React.Component<CodeProps, CodeState> {
         minLength: 40,
         charsAtStart: 10,
         charsBefore: 25,
-        minLengthBarToHighlight: 30
+        minLengthBarToHighlight: 20
       };
     }
     if (document.body.clientWidth > 1000) {
       truncationSettings = {
-        minLength: 80,
+        minLength: 60,
         charsAtStart: 15,
         charsBefore: 35,
-        minLengthBarToHighlight: 40
+        minLengthBarToHighlight: 20
       };
     }
+    console.log({ truncationSettings });
 
     if (strBeforeBar.length > truncationSettings.minLength && truncate) {
       strBeforeBar =
@@ -99,6 +100,29 @@ export default class Code extends React.Component<CodeProps, CodeState> {
           strBetweenBarAndHighlight.length - truncationSettings.charsBefore
         );
     }
+
+    var highlightIndexInLine = columnNumber + highlighNthCharAfterColumn;
+    var highlightedString = processFrameString(
+      frame.code.line.text.substr(
+        highlightIndexInLine - frame.code.line.firstCharIndex,
+        1
+      )
+    );
+    console.log({ highlightedString });
+    if (frame.code.line.text.length == highlightIndexInLine) {
+      // after last proper char in line, display new line
+      highlightedString = "\u21B5";
+    }
+    if (frame.code.line.text.length < highlightIndexInLine) {
+      // debugger; // shoudn't happen
+    }
+
+    const strAfterBar = frame.code.line.text.substr(
+      columnNumber +
+        highlighNthCharAfterColumn +
+        highlightedString.length -
+        lineFirstCharIndex
+    );
 
     interface LineNumberProps {
       arrow?: string;
@@ -173,25 +197,6 @@ export default class Code extends React.Component<CodeProps, CodeState> {
         );
       });
     }
-
-    var highlightIndexInLine = columnNumber + highlighNthCharAfterColumn;
-    var highlightedString = processFrameString(
-      frame.code.line.text.substr(highlightIndexInLine, 1)
-    );
-    if (frame.code.line.text.length == highlightIndexInLine) {
-      // after last proper char in line, display new line
-      highlightedString = "\u21B5";
-    }
-    if (frame.code.line.text.length < highlightIndexInLine) {
-      // debugger; // shoudn't happen
-    }
-
-    const strAfterBar = frame.code.line.text.substr(
-      columnNumber +
-        highlighNthCharAfterColumn +
-        highlightedString.length -
-        lineFirstCharIndex
-    );
 
     return (
       <div
