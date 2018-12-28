@@ -160,13 +160,20 @@ let TraversalStep = class TraversalStep extends React.Component<
       } else if (operationLog.operation === "memberExpression") {
         const knownValue = operationLog.args.object.result.knownValue;
         if (knownValue) {
-          operationTypeDetail =
-            knownValue +
-            '["' +
-            truncate(operationLog.args.propName.result.primitive, {
-              length: 20
-            }) +
-            '"]';
+          operationTypeDetail = knownValue;
+          const propName = operationLog.args.propName.result.primitive;
+          if (propName.length > 20 || propName.includes(".")) {
+            operationTypeDetail +=
+              '["' +
+              truncate(propName, {
+                length: 20
+              }) +
+              '"]';
+          } else {
+            operationTypeDetail += "." + propName;
+          }
+        } else if (operationLog.opeartion === "emptyTrackingInfo") {
+          operationTypeDetail = operationLog.runtimeArgs.type;
         }
 
         const knownTypes = operationLog.args.object.result.knownTypes || [];
@@ -360,7 +367,7 @@ let TraversalStep = class TraversalStep extends React.Component<
                     )}
                   </div>
                 )}
-              {operationLog.runtimeArgs &&
+              {/* {operationLog.runtimeArgs &&
                 Object.keys(operationLog.runtimeArgs).length > 0 && (
                   <div>
                     <div
@@ -382,7 +389,7 @@ let TraversalStep = class TraversalStep extends React.Component<
                       );
                     })}
                   </div>
-                )}
+                )} */}
 
               {debugMode && (
                 <div>
