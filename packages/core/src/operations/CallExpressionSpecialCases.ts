@@ -404,18 +404,19 @@ export const specialValuesForPostprocessing = {
     });
     return retT;
   },
-  "Object.assign": ({ ctx, logData, fnArgValues }) => {
+  "Object.assign": ({ ctx, logData, fnArgValues, fnArgs }) => {
     ctx = <ExecContext>ctx;
     const target = fnArgValues[0];
     const sources = fnArgValues.slice(1);
-    sources.forEach(source => {
+    sources.forEach((source, sourceIndex) => {
       if (!source || typeof source !== "object") {
         return;
       }
       Object.keys(source).forEach(key => {
         const valueTrackingValue = ctx.createOperationLog({
-          operation: ctx.operationTypes.objectAssign,
+          operation: ctx.operationTypes.objectAssignResult,
           args: {
+            sourceObject: [source, fnArgs[sourceIndex + 1]],
             value: [null, ctx.getObjectPropertyTrackingValue(source, key)],
             call: [null, logData.index]
           },
@@ -424,7 +425,7 @@ export const specialValuesForPostprocessing = {
           loc: logData.loc
         });
         const nameTrackingValue = ctx.createOperationLog({
-          operation: ctx.operationTypes.objectAssign,
+          operation: ctx.operationTypes.objectAssignResult,
           args: {
             value: [null, ctx.getObjectPropertyNameTrackingValue(source, key)],
             call: [null, logData.index]

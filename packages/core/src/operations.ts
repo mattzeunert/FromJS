@@ -685,7 +685,7 @@ const operations: Operations = {
   },
   arrayIndex: {},
   assignmentExpression: AssignmentExpression,
-  objectAssign: {
+  objectAssignResult: {
     traverse: identifyTraverseFunction
   },
   arraySlice: { traverse: identifyTraverseFunction },
