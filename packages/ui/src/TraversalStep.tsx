@@ -203,9 +203,7 @@ let TraversalStep = class TraversalStep extends React.Component<
       "http://fromjs-temporary-url.com:5555/",
       ""
     );
-    const fileNameLabel = this.state.isHovering
-      ? fullFileNameForDisplay
-      : shortFileName;
+    const fileNameLabel = shortFileName;
     return (
       <div
         className="step"
@@ -235,13 +233,13 @@ let TraversalStep = class TraversalStep extends React.Component<
           <button
             data-test-arguments-button
             className="blue-button"
-            style={{ float: "right" }}
+            style={{ height: 21 }}
             onClick={() => {
               console.log("Click expand arguments");
               this.setState({ isExpanded: !isExpanded });
             }}
           >
-            {isExpanded ? "Hide arguments" : "Arguments"}
+            {isExpanded ? "Hide" : "Details"}
           </button>
         </div>
         <div className="step__body">
@@ -273,11 +271,15 @@ let TraversalStep = class TraversalStep extends React.Component<
 
           {isExpanded && (
             <div className="step__arguments">
+              <div data-test-argument={name} className={"step__argument"}>
+                <span className="step__argument-name">Filename:</span>{" "}
+                {fullFileNameForDisplay}
+              </div>
               <div
-                style={{ paddingLeft: 6 }}
+                style={{ paddingLeft: 6, marginTop: 5 }}
                 className="step__arguments__title"
               >
-                Inspect arguments:
+                Inspect operation arguments:
               </div>
               {/* <pre>
                 Runtime args:
@@ -329,7 +331,7 @@ let TraversalStep = class TraversalStep extends React.Component<
                       selectAndTraverse(value.index, 0, "traversalStep");
                     }}
                   >
-                    <span style={{ color: "#b91212" }}>{name}:</span>
+                    <span className="step__argument-name">{name}:</span>
                     &nbsp;
                     <span>
                       {value
