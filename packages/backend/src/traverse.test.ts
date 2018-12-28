@@ -1803,3 +1803,14 @@ it("Can traverse new Date calls", async () => {
   const step = await traverseAndGetLastStep(tracking, 0);
   expect(step.operationLog.operation).toBe("numericLiteral");
 });
+
+it("Can traverse Math.abs", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    return Math.abs(10)
+  `);
+
+  expect(normal).toBe(10);
+
+  const step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("numericLiteral");
+});
