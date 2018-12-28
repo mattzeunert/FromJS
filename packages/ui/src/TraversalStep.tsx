@@ -218,7 +218,7 @@ let TraversalStep = class TraversalStep extends React.Component<
               {operationTypeDetail}
             </span>
           </div>
-          <span style={{ fontSize: "12px", marginTop: 3, float: "left" }}>
+          <span style={{ fontSize: "12px", marginTop: 3 }}>
             {hasResolvedFrame ? (
               <a
                 target="_blank"
