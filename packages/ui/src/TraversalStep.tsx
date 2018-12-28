@@ -360,6 +360,30 @@ let TraversalStep = class TraversalStep extends React.Component<
                     )}
                   </div>
                 )}
+              {operationLog.runtimeArgs &&
+                Object.keys(operationLog.runtimeArgs).length > 0 && (
+                  <div>
+                    <div
+                      className="step__arguments__title"
+                      style={{ paddingLeft: 6 }}
+                    >
+                      Runtime arguments:
+                    </div>
+                    {Object.keys(operationLog.runtimeArgs).map(key => {
+                      const value = operationLog.runtimeArgs[key];
+                      return (
+                        <div
+                          data-test-argument={name}
+                          className={"step__argument"}
+                        >
+                          <span className="step__argument-name">{key}:</span>{" "}
+                          {value}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
               {debugMode && (
                 <div>
                   <button
