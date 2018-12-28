@@ -1500,3 +1500,13 @@ it("Knows all properties of common objects as known values", async () => {
     expect(tracking.result.knownValue).toBe(example.knownValue);
   }
 });
+
+it("Object.assign stores information about the source object", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+      var obj = Object.assign({}, {source: 1})
+      return obj.source
+    `);
+  expect(normal).toBe(1);
+  const objectAssignResult = tracking.extraArgs.propertyValue;
+  expect(objectAssignResult.args.sourceObject.result.keys).toEqual(["source"]);
+});
