@@ -247,12 +247,19 @@ function setupUI(options, app, wss, getProxy) {
     if (charIndex !== undefined) {
       goodDefaultCharIndex = charIndex;
     } else {
-      const charIndexWhereTextFollows = html.search(/>[^<]/) + 1;
+      const charIndexWhereTextFollows = html.search(/>[^<]/);
       if (
         charIndexWhereTextFollows !== -1 &&
         mapping.getOriginAtCharacterIndex(charIndexWhereTextFollows)
       ) {
         goodDefaultCharIndex = charIndexWhereTextFollows;
+        goodDefaultCharIndex++; // the > char
+        const first10Chars = html.slice(
+          goodDefaultCharIndex,
+          goodDefaultCharIndex + 10
+        );
+        const firstNonWhitespaceOffset = first10Chars.search(/\S/);
+        goodDefaultCharIndex += firstNonWhitespaceOffset;
       }
     }
 
