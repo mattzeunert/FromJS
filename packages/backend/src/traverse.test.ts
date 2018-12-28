@@ -636,6 +636,15 @@ describe("JSON.stringify", () => {
 
     expect(lastStep.operationLog.operation).toBe("numericLiteral");
   });
+
+  it("Can handle values that are Symbols", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = {a: Symbol("sth")};
+        var str = JSON.stringify(json);
+        return str
+      `);
+    expect(normal).toBe("{}");
+  });
 });
 
 it("Can traverse arguments for a function expression (rather than a function declaration)", async () => {

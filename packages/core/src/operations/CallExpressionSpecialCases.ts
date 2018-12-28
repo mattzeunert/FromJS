@@ -25,6 +25,7 @@ import * as cloneRegExp from "clone-regexp";
 import { doOperation } from "../FunctionNames";
 import * as jsonToAst from "json-to-ast";
 import { getJSONPathOffset } from "../getJSONPathOffset";
+import * as get from "lodash/get";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -832,6 +833,8 @@ export const specialValuesForPostprocessing = {
       return;
     }
 
+    const objectAfterParse = JSON.parse(jsonString);
+
     if (["boolean", "string", "number"].includes(typeof stringifiedObject)) {
       jsonIndexToTrackingValue[0] = fnArgs[0];
     } else {
@@ -840,7 +843,8 @@ export const specialValuesForPostprocessing = {
       traverseObject(
         stringifiedObject,
         (keyPath, value, key, traversedObject) => {
-          if (value === undefined) {
+          const keyExistsInJSON = get(objectAfterParse, keyPath) !== undefined;
+          if (!keyExistsInJSON) {
             // this property won't be included in the JSON string
             return;
           }
