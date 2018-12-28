@@ -145,7 +145,7 @@ export default <any>{
               });
             }
           } else {
-            consoleLog("do i need to handle this? can this even happen?");
+            // e.g. document fragments etc... should ideally handle this one day
           }
         } else if (
           // This is overly broad (and will track "elOrigins" for arbitraty property names),
