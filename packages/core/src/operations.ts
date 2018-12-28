@@ -645,6 +645,14 @@ const operations: Operations = {
       };
     }
   },
+  execResult: {
+    traverse(operationLog: OperationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.string,
+        charIndex: charIndex + operationLog.runtimeArgs.matchIndex
+      };
+    }
+  },
   jsonParseResult: {
     traverse(operationLog, charIndex) {
       // This traversal method is inaccurate but still useful
