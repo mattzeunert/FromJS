@@ -1792,3 +1792,14 @@ it("Can traverse parseFloat", async () => {
   expect(step.operationLog.operation).toBe("stringLiteral");
   expect(step.operationLog.result.primitive).toBe("25");
 });
+
+it("Can traverse new Date calls", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    return new Date(1234567890123).getTime()
+  `);
+
+  expect(normal).toBe(1234567890123);
+
+  const step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("numericLiteral");
+});
