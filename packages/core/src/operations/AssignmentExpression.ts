@@ -162,7 +162,11 @@ export default <any>{
           });
           addElAttributeNameOrigin(obj, attrName, { trackingValue: propNameT });
         }
-      } else if (obj instanceof CSSStyleDeclaration && obj["__element"]) {
+      } else if (
+        typeof CSSStyleDeclaration !== "undefined" &&
+        obj instanceof CSSStyleDeclaration &&
+        obj["__element"]
+      ) {
         trackSetElementStyle(
           obj["__element"],
           propName,

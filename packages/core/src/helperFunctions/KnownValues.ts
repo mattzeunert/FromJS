@@ -25,20 +25,14 @@ export default class KnownValues {
       "Array.prototype.concat": Array.prototype.concat,
       "Array.prototype.shift": Array.prototype.shift,
       "Array.prototype.unshift": Array.prototype.unshift,
-      "Math.round": Math.round,
-      "Math.min": Math.min,
-      "Math.max": Math.max,
-      Number: Number,
       parseFloat: parseFloat,
       "JSON.parse": JSON.parse,
       "JSON.stringify": JSON.stringify,
       "Object.keys": Object.keys,
       "Object.assign": Object.assign,
       "Object.entries": Object.entries,
-      "Number.prototype.toString": Number.prototype.toString,
       "Boolean.prototype.toString": Boolean.prototype.toString,
       "Object.prototype.toString": Object.prototype.toString,
-      "String.prototype.toString": String.prototype.toString,
       "Date.prototype.getMinutes": Date.prototype.getMinutes,
       "Date.prototype.getHours": Date.prototype.getHours,
       encodeURIComponent: encodeURIComponent,
@@ -53,6 +47,30 @@ export default class KnownValues {
       "console.warn": console.warn,
       "console.count": console.count,
       "console.error": console.error
+    });
+
+    [
+      {
+        obj: String.prototype,
+        name: "String.prototype"
+      },
+      {
+        obj: Number.prototype,
+        name: "Number.prototype"
+      },
+      {
+        obj: Object.prototype,
+        name: "Object.prototype"
+      },
+      {
+        obj: Math,
+        name: "Math"
+      }
+    ].forEach(item => {
+      Object.getOwnPropertyNames(item.obj).forEach(propertyName => {
+        this._knownValues[item.name + "." + propertyName] =
+          item.obj[propertyName];
+      });
     });
 
     if (global["localStorage"]) {
