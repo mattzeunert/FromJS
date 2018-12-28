@@ -611,16 +611,10 @@ export const specialValuesForPostprocessing = {
         i
       );
       if (!arrayValueTrackingValue) {
-        arrayValueTrackingValue = ctx.createOperationLog({
-          operation: ctx.operationTypes.untrackedValue,
-          args: {},
-          astArgs: {},
-          runtimeArgs: {
-            type: "Unknown Array Join Value"
-          },
-          result: object[i],
-          loc: logData.loc
-        });
+        arrayValueTrackingValue = ctx.getEmptyTrackingInfo(
+          "Unknown Array Join Value",
+          logData.loc
+        );
       }
       extraTrackingValues["arrayValue" + i] = [
         null, // not needed, avoid object[i] lookup which may have side effects

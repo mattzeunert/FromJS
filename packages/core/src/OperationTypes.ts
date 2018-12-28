@@ -14,7 +14,6 @@ export const stringReplacement = "stringReplacement";
 export const jsonParseResult = "jsonParseResult";
 export const newExpressionResult = "newExpressionResult";
 export const defaultArrayJoinSeparator = "defaultArrayJoinSeparator";
-export const untrackedValue = "untrackedValue";
 export const arrayIndex = "arrayIndex";
 export const objectProperty = "objectProperty";
 export const unaryExpression = "unaryExpression";

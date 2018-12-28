@@ -342,7 +342,6 @@ global[FunctionNames.getLastMemberExpressionObject] = function() {
   ];
 };
 
-// I think I'm duplicated untrackedValue here...
 global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
   let logData: any = {
     operation: "emptyTrackingInfo",
