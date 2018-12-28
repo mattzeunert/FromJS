@@ -429,6 +429,40 @@ describe("JSON.parse", () => {
     expect(lastStep.operationLog.operation).toBe("stringLiteral");
     expect(lastStep.charIndex).toBe(json.indexOf("l"));
   });
+
+  it("Can handle JSON that just contains a string", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = '"abc"';
+        var str = JSON.parse(json);
+        return str
+      `);
+
+    var t = await traverse({
+      operationLog: tracking,
+      charIndex: normal.indexOf("b")
+    });
+    var lastStep = t[t.length - 1];
+
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe('"abc"'.indexOf("b"));
+  });
+
+  it("Can handle JSON that just contains a number", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = '5';
+        var str = JSON.parse(json);
+        return str
+      `);
+    expect(normal).toBe(5);
+
+    var t = await traverse({
+      operationLog: tracking,
+      charIndex: 0
+    });
+    var lastStep = t[t.length - 1];
+
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+  });
 });
 
 describe("JSON.stringify", () => {
@@ -567,6 +601,39 @@ describe("JSON.stringify", () => {
       `);
 
     var lastStep = await traverseAndGetLastStep(tracking, normal.indexOf("5"));
+    expect(lastStep.operationLog.operation).toBe("numericLiteral");
+  });
+
+  it("Can handle JSON that just contains a string", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = "abc";
+        var str = JSON.stringify(json);
+        return str
+      `);
+
+    expect(normal).toBe('"abc"');
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("abc")
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+  });
+
+  it("Can handle JSON that just contains a number", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = 5;
+        var str = JSON.stringify(json);
+        return str
+      `);
+    expect(normal).toBe("5");
+
+    var t = await traverse({
+      operationLog: tracking,
+      charIndex: 0
+    });
+    var lastStep = t[t.length - 1];
+
     expect(lastStep.operationLog.operation).toBe("numericLiteral");
   });
 });

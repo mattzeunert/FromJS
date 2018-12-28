@@ -656,6 +656,12 @@ const operations: Operations = {
       const valueReadFromJson = operationLog.result.primitive;
       const json = operationLog.args.json.result.primitive;
       const keyPath = operationLog.runtimeArgs.keyPath;
+      if (operationLog.runtimeArgs.isPrimitive) {
+        return {
+          operationLog: operationLog.args.json,
+          charIndex: charIndex + operationLog.runtimeArgs.charIndexAdjustment
+        };
+      }
 
       const ast = jsonToAst(json, { loc: true });
 
