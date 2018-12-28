@@ -428,7 +428,9 @@ function handleNewExpression({
     ]))();
   }
 
-  const newArgs = {};
+  const newArgs = {
+    function: args[0]
+  };
   // args[2] is the arg list
   args[2].forEach((arg, i) => {
     // not sure if this is needed...
