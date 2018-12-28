@@ -1605,7 +1605,6 @@ describe("optimistic", () => {
 
     expect(step.operationLog.operation).toBe("numericLiteral");
     // expect(step.operationLog.operation).toBe(0.656);
-    console.log(JSON.stringify(step, null, 4));
     expect(step.isOptimistic).toBe(true);
   });
 });

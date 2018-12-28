@@ -1468,3 +1468,35 @@ it("Doesn't break array spread elements that consume a Map", async () => {
 
   expect(normal).toBe(2);
 });
+
+it("Knows all properties of common objects as known values", async () => {
+  const examples = [
+    {
+      code: "Math.min",
+      knownValue: "Math.min"
+    },
+    {
+      code: "''.endsWith",
+      knownValue: "String.prototype.endsWith"
+    },
+    {
+      code: "(5).toLocaleString",
+      knownValue: "Number.prototype.toLocaleString"
+    },
+    {
+      code: "({}).propertyIsEnumerable",
+      knownValue: "Object.prototype.propertyIsEnumerable"
+    }
+  ];
+  for (const example of examples) {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      return ${example.code}
+    `,
+      {},
+      { logCode: false }
+    );
+
+    expect(tracking.result.knownValue).toBe(example.knownValue);
+  }
+});

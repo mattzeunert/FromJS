@@ -1060,7 +1060,7 @@ export function traverseKnownFunction({
         operationLog: operationLog.args.context,
         charIndex: charIndex
       };
-    case "Number":
+    case "Number.prototype.constructor":
       return {
         operationLog: operationLog.args.arg0,
         charIndex
