@@ -1174,6 +1174,24 @@ describe("String.prototype.match", () => {
   });
 });
 
+describe("regexp exec", () => {
+  it("can traverse regexp exec results", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const re = /[bd]/g
+        const str = "abcd"
+        re.exec(str)
+        return re.exec(str)[0]
+      `);
+
+    expect(normal).toBe("d");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t2LastStep.charIndex).toBe(3);
+  });
+});
+
 describe("Array.prototype.reduce", () => {
   it("Passes values through to reducer function", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`

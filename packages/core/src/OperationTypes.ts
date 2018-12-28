@@ -32,6 +32,7 @@ export const arraySlice = "arraySlice";
 export const arraySplice = "arraySplice";
 export const arrayConcat = "arrayConcat";
 export const matchResult = "matchResult";
+export const execResult = "execResult";
 export const fetchResponse = "fetchResponse";
 export const XMLHttpRequestResponse = "XMLHttpRequest.responseText";
 export const styleAssignment = "styleAssignment";

@@ -339,6 +339,33 @@ export const specialValuesForPostprocessing = {
       );
     });
   },
+  "RegExp.prototype.exec": ({
+    object,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    context,
+    fnArgs
+  }) => {
+    ctx = <ExecContext>ctx;
+    ctx.trackObjectPropertyAssignment(
+      ret,
+      0,
+      ctx.createOperationLog({
+        operation: ctx.operationTypes.execResult,
+        args: {
+          string: [fnArgValues[0], fnArgs[0]]
+        },
+        result: ret,
+        astArgs: {},
+        runtimeArgs: {
+          matchIndex: ret.index
+        },
+        loc: logData.loc
+      })
+    );
+  },
   "String.prototype.split": ({
     object,
     fnArgs,

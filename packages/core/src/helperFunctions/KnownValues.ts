@@ -63,6 +63,10 @@ export default class KnownValues {
         name: "Object.prototype"
       },
       {
+        obj: RegExp.prototype,
+        name: "RegExp.prototype"
+      },
+      {
         obj: Math,
         name: "Math"
       }
