@@ -26,6 +26,7 @@ export default class KnownValues {
       "Array.prototype.shift": Array.prototype.shift,
       "Array.prototype.unshift": Array.prototype.unshift,
       parseFloat: parseFloat,
+      Date: Date,
       "JSON.parse": JSON.parse,
       "JSON.stringify": JSON.stringify,
       "Object.keys": Object.keys,
@@ -69,6 +70,10 @@ export default class KnownValues {
       {
         obj: Math,
         name: "Math"
+      },
+      {
+        obj: Date.prototype,
+        name: "Date.prototype"
       }
     ].forEach(item => {
       Object.getOwnPropertyNames(item.obj).forEach(propertyName => {
