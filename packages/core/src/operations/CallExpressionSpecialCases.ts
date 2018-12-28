@@ -349,22 +349,48 @@ export const specialValuesForPostprocessing = {
     fnArgs
   }) => {
     ctx = <ExecContext>ctx;
-    ctx.trackObjectPropertyAssignment(
-      ret,
-      0,
-      ctx.createOperationLog({
-        operation: ctx.operationTypes.execResult,
-        args: {
-          string: [fnArgValues[0], fnArgs[0]]
-        },
-        result: ret,
-        astArgs: {},
-        runtimeArgs: {
-          matchIndex: ret.index
-        },
-        loc: logData.loc
-      })
-    );
+    const regExp = object;
+    if (!ret) {
+      return;
+    }
+    if (regExp.global) {
+      ctx.trackObjectPropertyAssignment(
+        ret,
+        0,
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.execResult,
+          args: {
+            string: [fnArgValues[0], fnArgs[0]]
+          },
+          result: ret,
+          astArgs: {},
+          runtimeArgs: {
+            matchIndex: ret.index
+          },
+          loc: logData.loc
+        })
+      );
+    } else {
+      for (var i = 1; i < ret.length + 1; i++) {
+        ctx.trackObjectPropertyAssignment(
+          ret,
+          i,
+          ctx.createOperationLog({
+            operation: ctx.operationTypes.execResult,
+            args: {
+              string: [fnArgValues[0], fnArgs[0]]
+            },
+            result: ret,
+            astArgs: {},
+            runtimeArgs: {
+              // will give false results sometimes, but good enough
+              matchIndex: fnArgValues[0].indexOf(ret[i])
+            },
+            loc: logData.loc
+          })
+        );
+      }
+    }
   },
   "String.prototype.split": ({
     object,
@@ -569,7 +595,14 @@ export const specialValuesForPostprocessing = {
       return ctx.createOperationLog({
         operation: ctx.operationTypes.arraySlice,
         args: {
-          value: [null, valueTv],
+          value: [
+            null,
+            valueTv ||
+              ctx.getEmptyTrackingInfo(
+                "Unknown Array.prototype.slice value",
+                logData.loc
+              )
+          ],
           call: [null, logData.index]
         },
         result: result,

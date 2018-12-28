@@ -1175,12 +1175,26 @@ describe("String.prototype.match", () => {
 });
 
 describe("regexp exec", () => {
-  it("can traverse regexp exec results", async () => {
+  it("can traverse simple regexp exec result", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         const re = /[bd]/g
         const str = "abcd"
         re.exec(str)
         return re.exec(str)[0]
+      `);
+
+    expect(normal).toBe("d");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t2LastStep.charIndex).toBe(3);
+  });
+  it("can traverse regexp exec result with groups", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const re = /a(b)c(d)/
+        const str = "abcd"
+        return re.exec(str)[2]
       `);
 
     expect(normal).toBe("d");
