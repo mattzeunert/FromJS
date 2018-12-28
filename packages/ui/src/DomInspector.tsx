@@ -49,7 +49,10 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
                 onClick={() => {
                   // Noopener hopefully means the window will open in a new process
                   // so even if the inspected page is busy the inspector will still be interactive
-                  window.open("/", "_blank", "noopener");
+                  window.open(
+                    "/",
+                    "_blank" /* "noopener" this breaks sending messages to the window */
+                  );
                   window.parent.postMessage({ type: "openInNewTab" }, "*");
                 }}
                 title="Open in new tab"
