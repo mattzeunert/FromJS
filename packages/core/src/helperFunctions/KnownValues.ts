@@ -95,6 +95,16 @@ export default class KnownValues {
         "XMLHttpRequest.prototype.open": XMLHttpRequest.prototype.open
       });
     }
+    if (global["location"]) {
+      Object.assign(this._knownValues, {
+        location: location
+      });
+    }
+    if (global["history"]) {
+      Object.assign(this._knownValues, {
+        history: history
+      });
+    }
 
     if (global["document"]) {
       const document = global.document;
