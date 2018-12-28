@@ -128,7 +128,6 @@ const operations: Operations = {
       } else {
         console.log("todo binexp operator " + operator);
       }
-      console.log({ options, numericLiteralCount });
       if (options && options.optimistic && numericLiteralCount === 1) {
         // We can't be quite sure, but probably the user cares about the
         // more complex value, not the simple hard coded value

@@ -1103,6 +1103,11 @@ export function traverseKnownFunction({
         operationLog: operationLog.args.arg0,
         charIndex
       };
+    case "String.prototype.constructor":
+      return {
+        operationLog: operationLog.args.arg0,
+        charIndex
+      };
     case "Math.round":
       return {
         operationLog: operationLog.args.arg0,

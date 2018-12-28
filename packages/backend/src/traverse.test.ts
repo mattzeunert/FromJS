@@ -1662,6 +1662,21 @@ it("Can traverse a Number constructor call", async () => {
   expect(step.charIndex).toBe(0);
 });
 
+it("Can traverse String constructor call", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      return String("str")
+    `,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("str");
+
+  let step = await traverseAndGetLastStep(tracking, 0);
+
+  expect(step.operationLog.operation).toBe("stringLiteral");
+});
+
 describe("optimistic", () => {
   it("If not optimistic, does not traverse binary expression even if one is a numeric literal and the other isn't", async () => {
     const { normal, tracking, code } = await instrumentAndRun(
