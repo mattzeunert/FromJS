@@ -167,8 +167,34 @@ export const specialCasesWhereWeDontCallTheOriginalFunction = {
 
     logData
   }) => {
-    const parsed = fn.call(JSON, fnArgValues[0]);
+    const jsonString = fnArgValues[0];
+    const parsed = fn.call(JSON, jsonString);
     var ret, retT;
+
+    ret = parsed;
+
+    if (
+      typeof parsed === "string" ||
+      typeof parsed === "number" ||
+      typeof parsed === "boolean"
+    ) {
+      return [
+        ret,
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.jsonParseResult,
+          args: {
+            json: getFnArg(args, 0)
+          },
+          result: parsed,
+          runtimeArgs: {
+            isPrimitive: true,
+            charIndexAdjustment:
+              typeof parsed === "string" ? 1 /* account for quote sign */ : 0
+          },
+          loc: logData.loc
+        })
+      ];
+    }
 
     traverseObject(parsed, (keyPath, value, key, obj) => {
       const trackingValue = ctx.createOperationLog({
@@ -205,7 +231,6 @@ export const specialCasesWhereWeDontCallTheOriginalFunction = {
 
     retT = null; // could set something here, but what really matters is the properties
 
-    ret = parsed;
     return [ret, retT];
   }
 };
@@ -807,38 +832,47 @@ export const specialValuesForPostprocessing = {
       return;
     }
 
-    const ast = jsonToAst(jsonString);
+    if (["boolean", "string", "number"].includes(typeof stringifiedObject)) {
+      jsonIndexToTrackingValue[0] = fnArgs[0];
+    } else {
+      const ast = jsonToAst(jsonString);
 
-    traverseObject(
-      stringifiedObject,
-      (keyPath, value, key, traversedObject) => {
-        if (value === undefined) {
-          // this property won't be included in the JSON string
-          return;
-        }
+      traverseObject(
+        stringifiedObject,
+        (keyPath, value, key, traversedObject) => {
+          if (value === undefined) {
+            // this property won't be included in the JSON string
+            return;
+          }
 
-        if (!Array.isArray(traversedObject)) {
-          const jsonKeyIndex = getJSONPathOffset(
+          if (!Array.isArray(traversedObject)) {
+            const jsonKeyIndex = getJSONPathOffset(
+              jsonString,
+              ast,
+              keyPath,
+              true
+            );
+            jsonIndexToTrackingValue[
+              jsonKeyIndex
+            ] = ctx.getObjectPropertyNameTrackingValue(traversedObject, key);
+          }
+
+          let jsonValueIndex = getJSONPathOffset(
             jsonString,
             ast,
             keyPath,
-            true
+            false
           );
+          if (jsonString[jsonValueIndex] === '"') {
+            jsonValueIndex++;
+          }
+
           jsonIndexToTrackingValue[
-            jsonKeyIndex
-          ] = ctx.getObjectPropertyNameTrackingValue(traversedObject, key);
+            jsonValueIndex
+          ] = ctx.getObjectPropertyTrackingValue(traversedObject, key);
         }
-
-        let jsonValueIndex = getJSONPathOffset(jsonString, ast, keyPath, false);
-        if (jsonString[jsonValueIndex] === '"') {
-          jsonValueIndex++;
-        }
-
-        jsonIndexToTrackingValue[
-          jsonValueIndex
-        ] = ctx.getObjectPropertyTrackingValue(traversedObject, key);
-      }
-    );
+      );
+    }
   }
 };
 
