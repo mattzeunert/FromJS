@@ -1217,6 +1217,12 @@ export function traverseKnownFunction({
         operationLog: operationLog.args.arg0,
         charIndex
       };
+
+    case "Math.abs":
+      return {
+        operationLog: operationLog.args.arg0,
+        charIndex
+      };
     default:
       return {
         operationLog: operationLog.extraArgs.returnValue,
