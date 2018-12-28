@@ -183,13 +183,26 @@ export class TextEl extends React.Component<any, any> {
 
       var linesToShow = lines.slice(showFromLineIndex, showToLineIndex);
 
+      let truncationConfig = {
+        minLength: 40
+      };
+      if (document.body.clientWidth > 900) {
+        truncationConfig = {
+          minLength: 100
+        };
+      }
+      console.log({ truncationConfig });
+
       function getLineComponent(line, beforeSpan, afterSpan) {
         var valueSpans = [];
         if (line.containsCharIndex(highlightedCharIndex)) {
           var chunks = line.splitAtCharIndex(highlightedCharIndex);
 
           var textBeforeHighlight = chunks[0].text;
-          if (textBeforeHighlight.length > 120 && self.state.truncateText) {
+          if (
+            textBeforeHighlight.length > truncationConfig.minLength &&
+            self.state.truncateText
+          ) {
             var textA = textBeforeHighlight.slice(0, 35);
             var textB = textBeforeHighlight.slice(
               textBeforeHighlight.length - 15
