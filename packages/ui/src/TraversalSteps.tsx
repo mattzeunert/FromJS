@@ -35,7 +35,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<
     let steps = this.props.steps;
     if (!steps.length) {
       if (this.props.isTraversing) {
-        return <div>Loading...</div>;
+        return <div style={{ marginTop: 10 }}>Loading...</div>;
       } else {
         return null;
       }
