@@ -147,10 +147,11 @@ path {
 }
 
 .step__operation-type {
-  float: left;
   font-size: 14px;
   font-weight: bold;
   margin-right: 5px;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .step__body {
