@@ -95,12 +95,12 @@ class StackFrameResolver {
         var text = fullLine;
         var firstCharIndex = 0;
         var lastCharIndex = fullLine.length;
-        if (fullLine.length > 300) {
-          firstCharIndex = focusColumn - 100;
+        if (fullLine.length > 500) {
+          firstCharIndex = focusColumn - 200;
           if (firstCharIndex < 0) {
             firstCharIndex = 0;
           }
-          lastCharIndex = firstCharIndex + 200;
+          lastCharIndex = firstCharIndex + 400;
           text = fullLine.slice(firstCharIndex, lastCharIndex);
         }
         return {

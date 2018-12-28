@@ -564,9 +564,6 @@ const operations: Operations = {
     },
     exec: (args, astArgs, ctx: ExecContext, logData) => {
       const [valueArg, allFnArgTrackingValuesArg] = args;
-      if (valueArg[0] === "Some stuff") {
-        debugger;
-      }
       if (
         astArgs &&
         astArgs.isArguments &&
