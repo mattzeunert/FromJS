@@ -126,7 +126,7 @@ const operations: Operations = {
           console.log("todo");
         }
       } else {
-        console.log("todo binexp operator");
+        console.log("todo binexp operator " + operator);
       }
       console.log({ options, numericLiteralCount });
       if (options && options.optimistic && numericLiteralCount === 1) {

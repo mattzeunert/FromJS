@@ -548,8 +548,8 @@ describe("JSON.stringify", () => {
 
   it("Doesn't break if property names contain dots", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
-        var arr = {"a.b": "c"}
-        var str = JSON.stringify(arr);
+        var obj = {"a.b": "c"}
+        var str = JSON.stringify(obj);
         return str
       `);
 
@@ -557,6 +557,17 @@ describe("JSON.stringify", () => {
     expect(lastStep.operationLog.operation).toBe("stringLiteral");
     expect(lastStep.charIndex).toBe(0);
     expect(lastStep.operationLog.result.primitive).toBe("c");
+  });
+
+  it("Doesn't break if there are undefiend properties", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var obj = {"a": undefined, "b": 5}
+        var str = JSON.stringify(obj);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(tracking, normal.indexOf("5"));
+    expect(lastStep.operationLog.operation).toBe("numericLiteral");
   });
 });
 

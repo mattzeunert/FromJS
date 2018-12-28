@@ -818,6 +818,11 @@ export const specialValuesForPostprocessing = {
     traverseObject(
       stringifiedObject,
       (keyPath, value, key, traversedObject) => {
+        if (value === undefined) {
+          // this property won't be included in the JSON string
+          return;
+        }
+
         if (!Array.isArray(traversedObject)) {
           const jsonKeyIndex = getJSONPathOffset(
             jsonString,
