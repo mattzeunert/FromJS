@@ -259,7 +259,9 @@ const CallExpression = <any>{
         fnArgs,
         logData,
         object,
-        setFunction
+        setFunction,
+        fnArgValuesAtInvocation,
+        fnArgsAtInvocation
       };
 
       return fnProcessorArgs;
@@ -403,7 +405,8 @@ function handleNewExpression({
   fnArgValues,
   ret,
   retT,
-  logData
+  logData,
+  args
 }: SpecialCaseArgs) {
   const isNewFunctionCall = fn === Function;
   if (isNewFunctionCall && ctx.hasInstrumentationFunction) {
@@ -426,9 +429,21 @@ function handleNewExpression({
       ...fnArgValues
     ]))();
   }
+
+  const newArgs = {
+    function: args[0]
+  };
+  // args[2] is the arg list
+  args[2].forEach((arg, i) => {
+    // not sure if this is needed...
+    if (typeof arg[1] === "number") {
+      newArgs["arg" + i] = arg;
+    }
+  });
+
   retT = ctx.createOperationLog({
     operation: ctx.operationTypes.newExpressionResult,
-    args: {},
+    args: newArgs,
     result: ret,
     loc: logData.loc
   });

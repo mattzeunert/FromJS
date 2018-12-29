@@ -85,16 +85,17 @@ export default class Backend {
     }
     ensureDirectoriesExist(options);
 
-    getFolderSize(options.sessionDirectory, (err, size) => {
-      console.log(
-        "Session size: ",
-        (size / 1024 / 1024).toFixed(2) +
-          " MB" +
-          " (" +
-          path.resolve(options.sessionDirectory) +
-          ")"
-      );
-    });
+    // seems like sometimes get-folder-size runs into max call stack size exceeded, so disable it
+    // getFolderSize(options.sessionDirectory, (err, size) => {
+    //   console.log(
+    //     "Session size: ",
+    //     (size / 1024 / 1024).toFixed(2) +
+    //       " MB" +
+    //       " (" +
+    //       path.resolve(options.sessionDirectory) +
+    //       ")"
+    //   );
+    // });
 
     let sessionConfig;
     function saveSessionConfig() {
@@ -247,12 +248,19 @@ function setupUI(options, app, wss, getProxy) {
     if (charIndex !== undefined) {
       goodDefaultCharIndex = charIndex;
     } else {
-      const charIndexWhereTextFollows = html.search(/>[^<]/) + 1;
+      const charIndexWhereTextFollows = html.search(/>[^<]/);
       if (
         charIndexWhereTextFollows !== -1 &&
         mapping.getOriginAtCharacterIndex(charIndexWhereTextFollows)
       ) {
         goodDefaultCharIndex = charIndexWhereTextFollows;
+        goodDefaultCharIndex++; // the > char
+        const first10Chars = html.slice(
+          goodDefaultCharIndex,
+          goodDefaultCharIndex + 10
+        );
+        const firstNonWhitespaceOffset = first10Chars.search(/\S/);
+        goodDefaultCharIndex += firstNonWhitespaceOffset;
       }
     }
 
@@ -446,7 +454,8 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
             charIndex: charIndex
           },
           [],
-          logServer
+          logServer,
+          { optimistic: true }
         );
         if (LOG_PERF) {
           console.timeEnd("Traverse " + logId);

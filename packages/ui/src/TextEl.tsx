@@ -169,18 +169,37 @@ export class TextEl extends React.Component<any, any> {
 
       var highlightedCharLineIndex = valBeforeColumn.split("\n").length;
 
-      var showFromLineIndex = highlightedCharLineIndex - 2;
+      const numberOflinesToShow = this.state.truncateText ? 2 : 10;
+
+      var showFromLineIndex = highlightedCharLineIndex - numberOflinesToShow;
       if (showFromLineIndex < 0) {
         showFromLineIndex = 0;
       }
-      var showToLineIndex = showFromLineIndex + 3;
+      var showToLineIndex = showFromLineIndex + numberOflinesToShow + 1;
 
-      if (!this.state.truncateText) {
-        showFromLineIndex = 0;
+      if (showToLineIndex > lines.length) {
         showToLineIndex = lines.length;
       }
 
       var linesToShow = lines.slice(showFromLineIndex, showToLineIndex);
+
+      let truncationConfig = {
+        minLength: 40,
+        beforeHighlight: 15
+      };
+      if (document.body.clientWidth > 600) {
+        truncationConfig = {
+          minLength: 70,
+          beforeHighlight: 30
+        };
+      }
+      if (document.body.clientWidth > 900) {
+        truncationConfig = {
+          minLength: 100,
+          beforeHighlight: 40
+        };
+      }
+      console.log({ truncationConfig });
 
       function getLineComponent(line, beforeSpan, afterSpan) {
         var valueSpans = [];
@@ -188,8 +207,14 @@ export class TextEl extends React.Component<any, any> {
           var chunks = line.splitAtCharIndex(highlightedCharIndex);
 
           var textBeforeHighlight = chunks[0].text;
-          if (textBeforeHighlight.length > 120 && self.state.truncateText) {
-            var textA = textBeforeHighlight.slice(0, 35);
+          if (
+            textBeforeHighlight.length > truncationConfig.minLength &&
+            self.state.truncateText
+          ) {
+            var textA = textBeforeHighlight.slice(
+              0,
+              truncationConfig.beforeHighlight
+            );
             var textB = textBeforeHighlight.slice(
               textBeforeHighlight.length - 15
             );
@@ -303,11 +328,8 @@ export class TextEl extends React.Component<any, any> {
     el.scrollTop = lineAtTop * lineHeight;
   }
   disableTruncateText() {
-    if (this.props.text.length > 20000) {
-      alert(
-        "Refusing to expand text longer than 20,000 characters. It will just crash your browser."
-      );
-      return;
+    if (!this.state.truncateText) {
+      alert("Not showing more because it might be freeze the UI");
     }
     this.setState({ truncateText: false });
   }

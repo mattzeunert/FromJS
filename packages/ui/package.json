@@ -1,6 +1,6 @@
 {
   "name": "@fromjs/ui",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "main": "empty.js",
   "repository": "https://github.com/mattzeunert/FromJS/tree/master/packages/ui",
   "author": "Matt Zeunert <matt@mostlystatic.com>",
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@babel/standalone": "^7.0.0-beta.42",
-    "@fromjs/core": "^2.1.2",
+    "@fromjs/core": "^2.2.0",
     "@types/react": "^16.3.14",
     "baobab": "^2.5.2",
     "baobab-react": "^3.0.0",

@@ -17,13 +17,15 @@ import addElOrigin, {
   addElAttributeNameOrigin,
   addElAttributeValueOrigin,
   getElAttributeNameOrigin,
-  getElAttributeValueOrigin
+  getElAttributeValueOrigin,
+  processClonedNode
 } from "./domHelpers/addElOrigin";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import * as cloneRegExp from "clone-regexp";
 import { doOperation } from "../FunctionNames";
 import * as jsonToAst from "json-to-ast";
 import { getJSONPathOffset } from "../getJSONPathOffset";
+import * as get from "lodash/get";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -52,7 +54,7 @@ export type SpecialCaseArgs = {
 };
 
 type TraverseObjectCallBack = (
-  keyPath: string,
+  keyPath: string[],
   value: any,
   key: string,
   obj: any
@@ -67,7 +69,7 @@ function traverseObject(
     return;
   }
   Object.entries(traversedObject).forEach(([key, value]) => {
-    fn([...keyPath, key].join("."), value, key, traversedObject);
+    fn([...keyPath, key], value, key, traversedObject);
     if (typeof value === "object") {
       traverseObject(value, fn, [...keyPath, key]);
     }
@@ -166,8 +168,34 @@ export const specialCasesWhereWeDontCallTheOriginalFunction = {
 
     logData
   }) => {
-    const parsed = fn.call(JSON, fnArgValues[0]);
+    const jsonString = fnArgValues[0];
+    const parsed = fn.call(JSON, jsonString);
     var ret, retT;
+
+    ret = parsed;
+
+    if (
+      typeof parsed === "string" ||
+      typeof parsed === "number" ||
+      typeof parsed === "boolean"
+    ) {
+      return [
+        ret,
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.jsonParseResult,
+          args: {
+            json: getFnArg(args, 0)
+          },
+          result: parsed,
+          runtimeArgs: {
+            isPrimitive: true,
+            charIndexAdjustment:
+              typeof parsed === "string" ? 1 /* account for quote sign */ : 0
+          },
+          loc: logData.loc
+        })
+      ];
+    }
 
     traverseObject(parsed, (keyPath, value, key, obj) => {
       const trackingValue = ctx.createOperationLog({
@@ -204,7 +232,6 @@ export const specialCasesWhereWeDontCallTheOriginalFunction = {
 
     retT = null; // could set something here, but what really matters is the properties
 
-    ret = parsed;
     return [ret, retT];
   }
 };
@@ -312,6 +339,59 @@ export const specialValuesForPostprocessing = {
       );
     });
   },
+  "RegExp.prototype.exec": ({
+    object,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    context,
+    fnArgs
+  }) => {
+    ctx = <ExecContext>ctx;
+    const regExp = object;
+    if (!ret) {
+      return;
+    }
+    if (regExp.global) {
+      ctx.trackObjectPropertyAssignment(
+        ret,
+        0,
+        ctx.createOperationLog({
+          operation: ctx.operationTypes.execResult,
+          args: {
+            string: [fnArgValues[0], fnArgs[0]]
+          },
+          result: ret,
+          astArgs: {},
+          runtimeArgs: {
+            matchIndex: ret.index
+          },
+          loc: logData.loc
+        })
+      );
+    } else {
+      for (var i = 1; i < ret.length + 1; i++) {
+        ctx.trackObjectPropertyAssignment(
+          ret,
+          i,
+          ctx.createOperationLog({
+            operation: ctx.operationTypes.execResult,
+            args: {
+              string: [fnArgValues[0], fnArgs[0]]
+            },
+            result: ret,
+            astArgs: {},
+            runtimeArgs: {
+              // will give false results sometimes, but good enough
+              matchIndex: fnArgValues[0].indexOf(ret[i])
+            },
+            loc: logData.loc
+          })
+        );
+      }
+    }
+  },
   "String.prototype.split": ({
     object,
     fnArgs,
@@ -403,18 +483,19 @@ export const specialValuesForPostprocessing = {
     });
     return retT;
   },
-  "Object.assign": ({ ctx, logData, fnArgValues }) => {
+  "Object.assign": ({ ctx, logData, fnArgValues, fnArgs }) => {
     ctx = <ExecContext>ctx;
     const target = fnArgValues[0];
     const sources = fnArgValues.slice(1);
-    sources.forEach(source => {
+    sources.forEach((source, sourceIndex) => {
       if (!source || typeof source !== "object") {
         return;
       }
       Object.keys(source).forEach(key => {
         const valueTrackingValue = ctx.createOperationLog({
-          operation: ctx.operationTypes.objectAssign,
+          operation: ctx.operationTypes.objectAssignResult,
           args: {
+            sourceObject: [source, fnArgs[sourceIndex + 1]],
             value: [null, ctx.getObjectPropertyTrackingValue(source, key)],
             call: [null, logData.index]
           },
@@ -423,7 +504,7 @@ export const specialValuesForPostprocessing = {
           loc: logData.loc
         });
         const nameTrackingValue = ctx.createOperationLog({
-          operation: ctx.operationTypes.objectAssign,
+          operation: ctx.operationTypes.objectAssignResult,
           args: {
             value: [null, ctx.getObjectPropertyNameTrackingValue(source, key)],
             call: [null, logData.index]
@@ -514,7 +595,14 @@ export const specialValuesForPostprocessing = {
       return ctx.createOperationLog({
         operation: ctx.operationTypes.arraySlice,
         args: {
-          value: [null, valueTv],
+          value: [
+            null,
+            valueTv ||
+              ctx.getEmptyTrackingInfo(
+                "Unknown Array.prototype.slice value",
+                logData.loc
+              )
+          ],
           call: [null, logData.index]
         },
         result: result,
@@ -609,16 +697,10 @@ export const specialValuesForPostprocessing = {
         i
       );
       if (!arrayValueTrackingValue) {
-        arrayValueTrackingValue = ctx.createOperationLog({
-          operation: ctx.operationTypes.untrackedValue,
-          args: {},
-          astArgs: {},
-          runtimeArgs: {
-            type: "Unknown Array Join Value"
-          },
-          result: object[i],
-          loc: logData.loc
-        });
+        arrayValueTrackingValue = ctx.getEmptyTrackingInfo(
+          "Unknown Array Join Value",
+          logData.loc
+        );
       }
       extraTrackingValues["arrayValue" + i] = [
         null, // not needed, avoid object[i] lookup which may have side effects
@@ -738,64 +820,12 @@ export const specialValuesForPostprocessing = {
   },
   "HTMLElement.prototype.cloneNode": ({ ret, object, fnArgs, fnArgValues }) => {
     const isDeep = !!fnArgValues[0];
-    processClonedNode(ret, object);
-    function processClonedNode(cloneResult, sourceNode) {
-      if (sourceNode.__elOrigin) {
-        if (safelyReadProperty(sourceNode, "nodeType") === Node.ELEMENT_NODE) {
-          ["openingTagStart", "openingTagEnd", "closingTag"].forEach(
-            originName => {
-              if (sourceNode.__elOrigin[originName]) {
-                addElOrigin(
-                  cloneResult,
-                  originName,
-                  sourceNode.__elOrigin[originName]
-                );
-              }
-            }
-          );
-
-          for (var i = 0; i < sourceNode.attributes.length; i++) {
-            const attr = sourceNode.attributes[i];
-            const nameOrigin = getElAttributeNameOrigin(sourceNode, attr.name);
-            const valueOrigin = getElAttributeValueOrigin(
-              sourceNode,
-              attr.name
-            );
-            if (nameOrigin) {
-              addElAttributeNameOrigin(cloneResult, attr.name, nameOrigin);
-            }
-            if (valueOrigin) {
-              addElAttributeValueOrigin(cloneResult, attr.name, valueOrigin);
-            }
-          }
-        } else if (
-          safelyReadProperty(sourceNode, "nodeType") === Node.TEXT_NODE
-        ) {
-          addElOrigin(
-            cloneResult,
-            "textValue",
-            sourceNode.__elOrigin.textValue
-          );
-        } else if (
-          safelyReadProperty(sourceNode, "nodeType") === Node.COMMENT_NODE
-        ) {
-          addElOrigin(
-            cloneResult,
-            "textValue",
-            sourceNode.__elOrigin.textValue
-          );
-        } else {
-          consoleWarn("unhandled cloneNode");
-        }
-      }
-      if (safelyReadProperty(sourceNode, "nodeType") === Node.ELEMENT_NODE) {
-        if (isDeep) {
-          sourceNode.childNodes.forEach((childNode, i) => {
-            processClonedNode(cloneResult.childNodes[i], childNode);
-          });
-        }
-      }
-    }
+    processClonedNode(ret, object, { isDeep });
+  },
+  "document.importNode": ({ ret, object, fnArgs, fnArgValues }) => {
+    const importedNode = fnArgValues[0];
+    const isDeep = !!fnArgValues[1];
+    processClonedNode(ret, importedNode, { isDeep });
   },
   "HTMLElement.prototype.setAttribute": ({ object, fnArgs, fnArgValues }) => {
     const [attrNameArg, attrValueArg] = fnArgs;
@@ -863,33 +893,50 @@ export const specialValuesForPostprocessing = {
       return;
     }
 
-    const ast = jsonToAst(jsonString);
+    const objectAfterParse = JSON.parse(jsonString);
 
-    traverseObject(
-      stringifiedObject,
-      (keyPath, value, key, traversedObject) => {
-        if (!Array.isArray(traversedObject)) {
-          const jsonKeyIndex = getJSONPathOffset(
+    if (["boolean", "string", "number"].includes(typeof stringifiedObject)) {
+      jsonIndexToTrackingValue[0] = fnArgs[0];
+    } else {
+      const ast = jsonToAst(jsonString);
+
+      traverseObject(
+        stringifiedObject,
+        (keyPath, value, key, traversedObject) => {
+          const keyExistsInJSON = get(objectAfterParse, keyPath) !== undefined;
+          if (!keyExistsInJSON) {
+            // this property won't be included in the JSON string
+            return;
+          }
+
+          if (!Array.isArray(traversedObject)) {
+            const jsonKeyIndex = getJSONPathOffset(
+              jsonString,
+              ast,
+              keyPath,
+              true
+            );
+            jsonIndexToTrackingValue[
+              jsonKeyIndex
+            ] = ctx.getObjectPropertyNameTrackingValue(traversedObject, key);
+          }
+
+          let jsonValueIndex = getJSONPathOffset(
             jsonString,
             ast,
             keyPath,
-            true
+            false
           );
+          if (jsonString[jsonValueIndex] === '"') {
+            jsonValueIndex++;
+          }
+
           jsonIndexToTrackingValue[
-            jsonKeyIndex
-          ] = ctx.getObjectPropertyNameTrackingValue(traversedObject, key);
+            jsonValueIndex
+          ] = ctx.getObjectPropertyTrackingValue(traversedObject, key);
         }
-
-        let jsonValueIndex = getJSONPathOffset(jsonString, ast, keyPath, false);
-        if (jsonString[jsonValueIndex] === '"') {
-          jsonValueIndex++;
-        }
-
-        jsonIndexToTrackingValue[
-          jsonValueIndex
-        ] = ctx.getObjectPropertyTrackingValue(traversedObject, key);
-      }
-    );
+      );
+    }
   }
 };
 
@@ -1106,6 +1153,69 @@ export function traverseKnownFunction({
         operationLog: closestLoc.tv,
         charIndex: charIndex - closestLoc.index
       };
+    case "Number.prototype.toString":
+      return {
+        operationLog: operationLog.args.context,
+        charIndex: charIndex
+      };
+    case "Number.prototype.constructor":
+      return {
+        operationLog: operationLog.args.arg0,
+        charIndex
+      };
+    case "String.prototype.constructor":
+      return {
+        operationLog: operationLog.args.arg0,
+        charIndex
+      };
+    case "Math.round":
+      return {
+        operationLog: operationLog.args.arg0,
+        charIndex
+      };
+    case "Math.min":
+      let smallestValue = Number.POSITIVE_INFINITY;
+      let smallestOperationLog = null;
+
+      allArgs(operationLog, arg => {
+        if (arg.result.primitive < smallestValue) {
+          smallestValue = arg.result.primitive;
+          smallestOperationLog = arg;
+        }
+      });
+      return {
+        operationLog: smallestOperationLog,
+        charIndex
+      };
+    case "Math.max":
+      let largestValue = Number.NEGATIVE_INFINITY;
+      let largestOperationLog = null;
+
+      allArgs(operationLog, arg => {
+        if (arg.result.primitive > largestValue) {
+          largestValue = arg.result.primitive;
+          largestOperationLog = arg;
+        }
+      });
+      return {
+        operationLog: largestOperationLog,
+        charIndex
+      };
+    case "Date.prototype.getTime":
+    case "Date.prototype.valueOf":
+    case "String.prototype.toLowerCase":
+    case "String.prototype.toUpperCase":
+      return {
+        operationLog: operationLog.args.context,
+        charIndex
+      };
+    case "Date.prototype.constructor":
+    case "Math.abs":
+    case "parseFloat":
+      return {
+        operationLog: operationLog.args.arg0,
+        charIndex
+      };
     default:
       return {
         operationLog: operationLog.extraArgs.returnValue,
@@ -1126,6 +1236,8 @@ export interface FnProcessorArgs {
   logData: any;
   object: any;
   setFunction: any;
+  fnArgValuesAtInvocation: any[];
+  fnArgsAtInvocation: any[];
 }
 
 export const knownFnProcessors = {
@@ -1279,6 +1391,7 @@ export const knownFnProcessors = {
           return Promise.resolve(JSON.parse(text));
         }
 
+        console.log(response.url, ctx.global["__fetches"][response.url]);
         const t = ctx.createOperationLog({
           operation: ctx.operationTypes.fetchResponse,
           args: {
@@ -1302,14 +1415,23 @@ export const knownFnProcessors = {
       });
     });
   },
-  fetch: ({ ctx, logData, fnArgValues }: FnProcessorArgs) => {
+  fetch: ({
+    ctx,
+    logData,
+    fnArgValues,
+    fnArgValuesAtInvocation
+  }: FnProcessorArgs) => {
     // not super accurate but until there's a proper solution
     // let's pretend we can match the fetch call
     // to the response value via the url
     ctx.global["__fetches"] = ctx.global["__fetches"] || {};
     let url =
-      typeof fnArgValues[0] === "string" ? fnArgValues[0] : fnArgValues[0].url;
+      typeof fnArgValuesAtInvocation[0] === "string"
+        ? fnArgValuesAtInvocation[0]
+        : fnArgValuesAtInvocation[0].url;
+    console.log({ url, full: getFullUrl(url) });
     url = getFullUrl(url);
+
     ctx.global["__fetches"][url] = logData.index;
   },
   "XMLHttpRequest.prototype.open": ({
@@ -1323,3 +1445,11 @@ export const knownFnProcessors = {
     ctx.global["__xmlHttpRequests"][url] = logData.index;
   }
 };
+
+function allArgs(operationLog, fn) {
+  let i = 0;
+  while ("arg" + i in operationLog.args) {
+    fn(operationLog.args["arg" + i]);
+    i++;
+  }
+}

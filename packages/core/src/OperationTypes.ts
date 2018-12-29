@@ -14,7 +14,6 @@ export const stringReplacement = "stringReplacement";
 export const jsonParseResult = "jsonParseResult";
 export const newExpressionResult = "newExpressionResult";
 export const defaultArrayJoinSeparator = "defaultArrayJoinSeparator";
-export const untrackedValue = "untrackedValue";
 export const arrayIndex = "arrayIndex";
 export const objectProperty = "objectProperty";
 export const unaryExpression = "unaryExpression";
@@ -24,13 +23,16 @@ export const initialPageHtml = "initialPageHtml";
 export const htmlAdapter = "htmlAdapter";
 export const classDeclaration = "classDeclaration";
 export const arrayPattern = "arrayPattern";
+export const templateLiteral = "templateLiteral";
 // These ones are kind of bad... think about if there's a better way to model this.
 // They exist because if I do `["a", "b"].slice(1,2)` I want the slice call to be part
 // of the history of "b"... although technically the slice is part of the array history
-export const objectAssign = "objectAssign";
+export const objectAssignResult = "objectAssignResult";
 export const arraySlice = "arraySlice";
 export const arraySplice = "arraySplice";
 export const arrayConcat = "arrayConcat";
 export const matchResult = "matchResult";
+export const execResult = "execResult";
 export const fetchResponse = "fetchResponse";
 export const XMLHttpRequestResponse = "XMLHttpRequest.responseText";
+export const styleAssignment = "styleAssignment";

@@ -2,12 +2,14 @@ import { testHelpers } from "@fromjs/core";
 const { instrumentAndRun, server } = testHelpers;
 import { traverse as _traverse, TraversalStep } from "./traverse";
 
-const traverse = async function(firstStep) {
+const traverse = async function(firstStep, options = {}) {
+  options = Object.assign({ optimistic: false }, options);
   const steps: TraversalStep[] = (await _traverse.call(
     null,
     firstStep,
     [],
-    server
+    server,
+    options
   )) as any;
   return steps;
 };
@@ -427,6 +429,40 @@ describe("JSON.parse", () => {
     expect(lastStep.operationLog.operation).toBe("stringLiteral");
     expect(lastStep.charIndex).toBe(json.indexOf("l"));
   });
+
+  it("Can handle JSON that just contains a string", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = '"abc"';
+        var str = JSON.parse(json);
+        return str
+      `);
+
+    var t = await traverse({
+      operationLog: tracking,
+      charIndex: normal.indexOf("b")
+    });
+    var lastStep = t[t.length - 1];
+
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe('"abc"'.indexOf("b"));
+  });
+
+  it("Can handle JSON that just contains a number", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = '5';
+        var str = JSON.parse(json);
+        return str
+      `);
+    expect(normal).toBe(5);
+
+    var t = await traverse({
+      operationLog: tracking,
+      charIndex: 0
+    });
+    var lastStep = t[t.length - 1];
+
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+  });
 });
 
 describe("JSON.stringify", () => {
@@ -526,6 +562,88 @@ describe("JSON.stringify", () => {
     expect(lastStep.operationLog.operation).toBe("stringLiteral");
     expect(lastStep.charIndex).toBe(0);
     expect(lastStep.operationLog.result.primitive).toBe("two");
+  });
+
+  it("Can handle nested arrays", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var arr = ["one", ["two", "three"]]
+        var str = JSON.stringify(arr);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("three")
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("three");
+  });
+
+  it("Doesn't break if property names contain dots", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var obj = {"a.b": "c"}
+        var str = JSON.stringify(obj);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(tracking, normal.indexOf("c"));
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+    expect(lastStep.charIndex).toBe(0);
+    expect(lastStep.operationLog.result.primitive).toBe("c");
+  });
+
+  it("Doesn't break if there are undefiend properties", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var obj = {"a": undefined, "b": 5}
+        var str = JSON.stringify(obj);
+        return str
+      `);
+
+    var lastStep = await traverseAndGetLastStep(tracking, normal.indexOf("5"));
+    expect(lastStep.operationLog.operation).toBe("numericLiteral");
+  });
+
+  it("Can handle JSON that just contains a string", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = "abc";
+        var str = JSON.stringify(json);
+        return str
+      `);
+
+    expect(normal).toBe('"abc"');
+
+    var lastStep = await traverseAndGetLastStep(
+      tracking,
+      normal.indexOf("abc")
+    );
+    expect(lastStep.operationLog.operation).toBe("stringLiteral");
+  });
+
+  it("Can handle JSON that just contains a number", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = 5;
+        var str = JSON.stringify(json);
+        return str
+      `);
+    expect(normal).toBe("5");
+
+    var t = await traverse({
+      operationLog: tracking,
+      charIndex: 0
+    });
+    var lastStep = t[t.length - 1];
+
+    expect(lastStep.operationLog.operation).toBe("numericLiteral");
+  });
+
+  it("Can handle values that are Symbols", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        var json = {a: Symbol("sth")};
+        var str = JSON.stringify(json);
+        return str
+      `);
+    expect(normal).toBe("{}");
   });
 });
 
@@ -1056,6 +1174,38 @@ describe("String.prototype.match", () => {
   });
 });
 
+describe("regexp exec", () => {
+  it("can traverse simple regexp exec result", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const re = /[bd]/g
+        const str = "abcd"
+        re.exec(str)
+        return re.exec(str)[0]
+      `);
+
+    expect(normal).toBe("d");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t2LastStep.charIndex).toBe(3);
+  });
+  it("can traverse regexp exec result with groups", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+        const re = /a(b)c(d)/
+        const str = "abcd"
+        return re.exec(str)[2]
+      `);
+
+    expect(normal).toBe("d");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t2LastStep.charIndex).toBe(3);
+  });
+});
+
 describe("Array.prototype.reduce", () => {
   it("Passes values through to reducer function", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
@@ -1327,8 +1477,12 @@ describe("String.prototype.toString", () => {
   });
 });
 
-async function traverseAndGetLastStep(operationLog, charIndex) {
-  var t1: any = await traverse({ operationLog, charIndex });
+async function traverseAndGetLastStep(
+  operationLog,
+  charIndex,
+  options = {}
+): Promise<TraversalStep> {
+  var t1: any = await traverse({ operationLog, charIndex }, options);
   const t1LastStep = t1[t1.length - 1];
   return t1LastStep;
 }
@@ -1444,4 +1598,233 @@ it("Can traverse array expressions that contain array patterns", async () => {
   let step = await traverseAndGetLastStep(tracking, 0);
   expect(step.operationLog.operation).toBe("stringLiteral");
   expect(step.charIndex).toBe(0);
+});
+
+describe("Template literals", () => {
+  it("Has basic support", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      "return `a${'b'}c\n${'d'}`",
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("abc\nd");
+
+    let step = await traverseAndGetLastStep(tracking, normal.indexOf("b"));
+
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("b");
+    expect(step.charIndex).toBe(0);
+
+    step = await traverseAndGetLastStep(tracking, normal.indexOf("d"));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("d");
+    expect(step.charIndex).toBe(0);
+  });
+
+  it("Can handle nested template literals", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+        function getChar(char) {
+          return ${"`${char}`"}
+        }
+
+        return ${'`${getChar("a")}${getChar("b")}`'}
+      `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ab");
+
+    let step = await traverseAndGetLastStep(tracking, normal.indexOf("b"));
+
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("b");
+    expect(step.charIndex).toBe(0);
+  });
+});
+
+it("Can traverse Number.prototype.toString", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      return (5).toString()
+    `,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("5");
+
+  let step = await traverseAndGetLastStep(tracking, 0);
+
+  expect(step.operationLog.operation).toBe("numericLiteral");
+  expect(step.operationLog.result.primitive).toBe(5);
+  expect(step.charIndex).toBe(0);
+});
+
+it("Can traverse Math.round", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      return Math.round(2.5)
+    `,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe(3);
+
+  let step = await traverseAndGetLastStep(tracking, 0);
+
+  expect(step.operationLog.operation).toBe("numericLiteral");
+  expect(step.operationLog.result.primitive).toBe(2.5);
+  expect(step.charIndex).toBe(0);
+});
+
+it("Can traverse a Number constructor call", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      return Number(2)
+    `,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe(2);
+
+  let step = await traverseAndGetLastStep(tracking, 0);
+
+  expect(step.operationLog.operation).toBe("numericLiteral");
+  expect(step.operationLog.result.primitive).toBe(2);
+  expect(step.charIndex).toBe(0);
+});
+
+it("Can traverse String constructor call", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      return String("str")
+    `,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("str");
+
+  let step = await traverseAndGetLastStep(tracking, 0);
+
+  expect(step.operationLog.operation).toBe("stringLiteral");
+});
+
+describe("optimistic", () => {
+  it("If not optimistic, does not traverse binary expression even if one is a numeric literal and the other isn't", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+        const complexVal = 0.656
+        return complexVal * 100
+      `,
+      {},
+      { logCode: false }
+    );
+
+    let step = await traverseAndGetLastStep(tracking, 0, false);
+    expect(!!step.isOptimistic).toBe(false);
+
+    expect(step.operationLog.operation).toBe("binaryExpression");
+  });
+  it("If optimistic, does not traverse binary expression even if one is a numeric literal and the other isn't", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+        const complexVal = 0.656
+        return complexVal * 100
+      `,
+      {},
+      { logCode: false }
+    );
+
+    let step = await traverseAndGetLastStep(tracking, 0, { optimistic: true });
+
+    expect(step.operationLog.operation).toBe("numericLiteral");
+    // expect(step.operationLog.operation).toBe(0.656);
+    expect(step.isOptimistic).toBe(true);
+  });
+});
+
+describe("Math.min/max", () => {
+  it("Can traverse Math.min", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return Math.min(5,2)
+    `);
+
+    expect(normal).toBe(2);
+
+    const step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("numericLiteral");
+    expect(step.operationLog.result.primitive).toBe(2);
+  });
+
+  it("Can traverse Math.max", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return Math.max(5,2)
+    `);
+
+    expect(normal).toBe(5);
+
+    const step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("numericLiteral");
+    expect(step.operationLog.result.primitive).toBe(5);
+  });
+
+  it("Can traverse Math.max called with many arguments", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      return Math.max(5,2, 10, 4)
+    `);
+
+    expect(normal).toBe(10);
+
+    const step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("numericLiteral");
+    expect(step.operationLog.result.primitive).toBe(10);
+  });
+});
+
+it("Can traverse parseFloat", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    return parseFloat("25")
+  `);
+
+  expect(normal).toBe(25);
+
+  const step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.operationLog.result.primitive).toBe("25");
+});
+
+it("Can traverse new Date calls", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    return new Date(1234567890123).getTime()
+  `);
+
+  expect(normal).toBe(1234567890123);
+
+  const step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("numericLiteral");
+});
+
+it("Can traverse Math.abs", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    return Math.abs(10)
+  `);
+
+  expect(normal).toBe(10);
+
+  const step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("numericLiteral");
+});
+
+it("Can traverse String toLowerCase/toUpperCase", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    return "A".toLowerCase() + "b".toUpperCase()
+  `);
+
+  expect(normal).toBe("aB");
+
+  var step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+
+  var step = await traverseAndGetLastStep(tracking, 1);
+  expect(step.operationLog.operation).toBe("stringLiteral");
 });

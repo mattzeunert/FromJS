@@ -160,7 +160,20 @@ let TraversalStep = class TraversalStep extends React.Component<
       } else if (operationLog.operation === "memberExpression") {
         const knownValue = operationLog.args.object.result.knownValue;
         if (knownValue) {
-          operationTypeDetail = knownValue + "[...]";
+          operationTypeDetail = knownValue;
+          const propName = operationLog.args.propName.result.primitive;
+          if (propName.length > 20 || propName.includes(".")) {
+            operationTypeDetail +=
+              '["' +
+              truncate(propName, {
+                length: 20
+              }) +
+              '"]';
+          } else {
+            operationTypeDetail += "." + propName;
+          }
+        } else if (operationLog.opeartion === "emptyTrackingInfo") {
+          operationTypeDetail = operationLog.runtimeArgs.type;
         }
 
         const knownTypes = operationLog.args.object.result.knownTypes || [];
@@ -193,7 +206,11 @@ let TraversalStep = class TraversalStep extends React.Component<
       // Commonly happens for HTML path that ends with /
       shortFileName = fileName;
     }
-    const fileNameLabel = this.state.isHovering ? fileName : shortFileName;
+    let fullFileNameForDisplay = fileName.replace(
+      "http://fromjs-temporary-url.com:5555/",
+      ""
+    );
+    const fileNameLabel = shortFileName;
     return (
       <div
         className="step"
@@ -208,7 +225,7 @@ let TraversalStep = class TraversalStep extends React.Component<
               {operationTypeDetail}
             </span>
           </div>
-          <span style={{ fontSize: "12px", marginTop: 3, float: "left" }}>
+          <span style={{ fontSize: "12px", marginTop: 2 }}>
             {hasResolvedFrame ? (
               <a
                 target="_blank"
@@ -220,17 +237,19 @@ let TraversalStep = class TraversalStep extends React.Component<
               fileNameLabel
             )}
           </span>
-          <button
-            data-test-arguments-button
-            className="blue-button"
-            style={{ float: "right" }}
-            onClick={() => {
-              console.log("Click expand arguments");
-              this.setState({ isExpanded: !isExpanded });
-            }}
-          >
-            {isExpanded ? "Hide arguments" : "Arguments"}
-          </button>
+          <div style={{ flexGrow: 1, textAlign: "right" }}>
+            <button
+              data-test-arguments-button
+              className="blue-button"
+              style={{ height: 21 }}
+              onClick={() => {
+                console.log("Click expand arguments");
+                this.setState({ isExpanded: !isExpanded });
+              }}
+            >
+              {isExpanded ? "Hide" : "Details"}
+            </button>
+          </div>
         </div>
         <div className="step__body">
           {debugMode && fileName + ":" + lineNumber + ":" + columnNumber}
@@ -261,8 +280,15 @@ let TraversalStep = class TraversalStep extends React.Component<
 
           {isExpanded && (
             <div className="step__arguments">
-              <div className="step__arguments__title">
-                Inspect input/output values:
+              <div data-test-argument={name} className={"step__argument"}>
+                <span className="step__argument-name">Filename:</span>{" "}
+                {fullFileNameForDisplay}
+              </div>
+              <div
+                style={{ paddingLeft: 6, marginTop: 5 }}
+                className="step__arguments__title"
+              >
+                Inspect operation arguments:
               </div>
               {/* <pre>
                 Runtime args:
@@ -272,7 +298,9 @@ let TraversalStep = class TraversalStep extends React.Component<
                   4
                 )}
               </pre> */}
-              {this.getAllArgs().length === 0 && <div>(No arguments)</div>}
+              {this.getAllArgs().length === 0 && (
+                <div style={{ padding: 6 }}>(No arguments)</div>
+              )}
               {this.getAllArgs().map(({ name, value }) => {
                 value = value && new OperationLog(value);
 
@@ -312,7 +340,7 @@ let TraversalStep = class TraversalStep extends React.Component<
                       selectAndTraverse(value.index, 0, "traversalStep");
                     }}
                   >
-                    <span style={{ color: "#b91212" }}>{name}:</span>
+                    <span className="step__argument-name">{name}:</span>
                     &nbsp;
                     <span>
                       {value
@@ -324,6 +352,45 @@ let TraversalStep = class TraversalStep extends React.Component<
                   </div>
                 );
               })}
+              {operationLog.astArgs &&
+                Object.keys(operationLog.astArgs).length > 0 && (
+                  <div style={{ padding: 6 }}>
+                    <div className="step__arguments__title">AST info:</div>
+                    {Object.entries(operationLog.astArgs).map(
+                      ([key, value]) => {
+                        return (
+                          <div>
+                            {key}: {value}
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                )}
+              {/* {operationLog.runtimeArgs &&
+                Object.keys(operationLog.runtimeArgs).length > 0 && (
+                  <div>
+                    <div
+                      className="step__arguments__title"
+                      style={{ paddingLeft: 6 }}
+                    >
+                      Runtime arguments:
+                    </div>
+                    {Object.keys(operationLog.runtimeArgs).map(key => {
+                      const value = operationLog.runtimeArgs[key];
+                      return (
+                        <div
+                          data-test-argument={name}
+                          className={"step__argument"}
+                        >
+                          <span className="step__argument-name">{key}:</span>{" "}
+                          {value}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )} */}
+
               {debugMode && (
                 <div>
                   <button

@@ -11,14 +11,19 @@
 }
 .step__arguments__title,
 .step__argument {
-  padding-left: 6px;
   padding-right: 6px;
+}
+.step__argument {
+  padding-left: 6px;
 }
 .step__argument {
   opacity: 0.9;
   width: 100%;
   padding-top: 1px;
   padding-bottom: 1px;
+}
+.step__argument-name {
+  color: #b91212;
 }
 .step__argument--can-inspect {
   cursor: pointer;

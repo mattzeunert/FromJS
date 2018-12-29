@@ -314,7 +314,9 @@ class ProxyInstrumenter {
     await Promise.all(
       inlineScriptTags.map(async node => {
         const code = node.childNodes[0].value;
-        const compRes = <any>await this.instrumentForEval(code);
+        const compRes = <any>await this.instrumentForEval(code, {
+          type: "scriptTag"
+        });
         node.compiledCode = compRes.instrumentedCode;
       })
     );
@@ -457,7 +459,7 @@ class ProxyInstrumenter {
     this.urlCache[url] = cacheData;
   }
 
-  instrumentForEval(code) {
+  instrumentForEval(code, details) {
     const compile = (code, url, done) => {
       this.processCode(code, url).then(done);
     };
@@ -466,6 +468,7 @@ class ProxyInstrumenter {
       this.handleEvalScript(
         code,
         compile,
+        details,
         ({ url, instrumentedCode, code, map }) => {
           this.cacheUrl(url, {
             headers: {},
@@ -552,14 +555,21 @@ class ProxyInstrumenter {
       } else {
         var compilerProcess = spawn(this.instrumenterFilePath);
         var path = require("path");
+        const inProgressTimeout = setTimeout(() => {
+          console.log(
+            "Instrumenting: " + url + " (" + prettyBytes(body.length) + ")"
+          );
+        }, 15000);
         compilerProcess
           .send({ body, url, babelPluginOptions })
           .on("message", function(response) {
             resolve(response);
             compilerProcess.kill();
+            clearTimeout(inProgressTimeout);
           })
           .on("error", error => {
             this.log("worker error", error);
+            clearTimeout(inProgressTimeout);
           });
       }
     });
@@ -591,7 +601,7 @@ class ProxyInstrumenter {
           const sizeBeforeString = prettyBytes(sizeBefore);
           const sizeAfterString = prettyBytes(sizeAfter);
           console.log(
-            `Instrumenting ${url} took ${timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
+            `Instrumented ${url} took ${timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
           );
         }
 

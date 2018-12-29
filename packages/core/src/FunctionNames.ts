@@ -13,3 +13,7 @@ export const getGlobal = "__getGlobal";
 export const getEmptyTrackingInfo = "__emptyTracking";
 export const expandArrayForArrayPattern = "__expandForArrayPattern";
 export const expandArrayForSpreadElement = "__expandArrayForSpreadElement";
+export const saveTemplateLiteralExpressionTrackingValue =
+  "__saveTLExpressionTV";
+export const exitTemplateLiteralAndGetTrackingValues = "__exitTLAndGetTVs";
+export const enterTemplateLiteral = "__enterTL";

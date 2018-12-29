@@ -23,6 +23,12 @@ export default function initDomInspectionUI(backendPort) {
     });
   };
 
+  function setSelectedElement(el) {
+    selectedElement = el;
+    addHighlight(el, "selected");
+    global["fromJSInspect"](el);
+  }
+
   function onSelectionEvent(e) {
     const el = e.target;
     if (el === toggleInspectDomButton) {
@@ -30,10 +36,8 @@ export default function initDomInspectionUI(backendPort) {
     }
 
     if (e.type == "click") {
-      global["fromJSInspect"](el);
-      selectedElement = el;
       showInspectorUI();
-      addHighlight(el, "selected");
+      setSelectedElement(el);
     } else if (e.type === "mouseenter") {
       previewedElement = el;
       const inspectorContainer = document.querySelector(
@@ -206,6 +210,7 @@ export default function initDomInspectionUI(backendPort) {
         top: 0;
         right: 0;
         bottom: 0;
+        height: 100vh;
         width: ` +
       inspectorWidth +
       `;
@@ -230,6 +235,9 @@ export default function initDomInspectionUI(backendPort) {
         if (data.type === "openInNewTab") {
           openedInNewTab = true;
           hideInspectorUI();
+        }
+        if (data.type === "inspectParent") {
+          setSelectedElement(selectedElement.parentElement);
         }
       },
       false

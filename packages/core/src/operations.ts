@@ -40,6 +40,7 @@ import { VERIFY } from "./config";
 import { getElAttributeValueOrigin } from "./operations/domHelpers/addElOrigin";
 import { safelyReadProperty, nullOnError } from "./util";
 import * as FunctionNames from "./FunctionNames";
+import * as sortBy from "lodash/sortBy";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -84,7 +85,8 @@ interface Operations {
     shorthand?: Shorthand;
     traverse?: (
       operationLog: any,
-      charIndex: number
+      charIndex: number,
+      options?: { optimistic: boolean }
     ) => TraversalStep | undefined;
     t?: any; // babel types
   };
@@ -106,9 +108,14 @@ const operations: Operations = {
         path.node.loc
       );
     },
-    traverse(operationLog, charIndex) {
+    traverse(operationLog, charIndex, options?) {
       const { operator } = operationLog.astArgs;
       const { left, right } = operationLog.args;
+
+      const leftIsNumericLiteral = left.operation === "numericLiteral";
+      const rightIsNumericLiteral = right.operation === "numericLiteral";
+      const numericLiteralCount =
+        (leftIsNumericLiteral ? 1 : 0) + (rightIsNumericLiteral ? 1 : 0);
       if (operator == "+") {
         if (
           typeof left.result.type === "string" &&
@@ -119,7 +126,17 @@ const operations: Operations = {
           console.log("todo");
         }
       } else {
-        console.log("todo binexp operator");
+        console.log("todo binexp operator " + operator);
+      }
+      if (options && options.optimistic && numericLiteralCount === 1) {
+        // We can't be quite sure, but probably the user cares about the
+        // more complex value, not the simple hard coded value
+        const complexOperation = leftIsNumericLiteral ? right : left;
+        return {
+          isOptimistic: true,
+          charIndex,
+          operationLog: complexOperation
+        };
       }
       throw "aaa";
     },
@@ -292,6 +309,102 @@ const operations: Operations = {
     },
     exec: (args, astArgs, ctx: ExecContext) => {
       return args[0][0];
+    }
+  },
+  templateLiteral: {
+    exec: (args, astArgs, ctx: ExecContext, logData) => {
+      logData.extraArgs = {};
+      logData.runtimeArgs = {};
+      const expressionValues = ctx.getCurrentTemplateLiteralTrackingValues();
+      expressionValues.forEach((expressionValue, i) => {
+        logData.extraArgs["expression" + i] = [
+          null,
+          expressionValue.trackingValue
+        ];
+        logData.runtimeArgs["expression" + i + "Length"] =
+          expressionValue.valueLength;
+      });
+
+      return args.literal[0];
+    },
+    visitor(path) {
+      let literalParts = [...path.node.expressions, ...path.node.quasis];
+      literalParts = sortBy(literalParts, p => {
+        const start = p.loc.start;
+        return start.line * 10000 + start.column;
+      });
+      const structure: any[] = literalParts.map(part => {
+        if (part.type === "TemplateElement") {
+          return ignoredObjectExpression({
+            type: ignoredStringLiteral("quasi"),
+            // cooked e.g. has escape sequences resolved
+            length: ignoredNumericLiteral(part.value.cooked.length)
+          });
+        } else {
+          return ignoredObjectExpression({
+            type: ignoredStringLiteral("expression")
+          });
+        }
+      });
+      const astArgs = {
+        structureParts: ignoredArrayExpression(structure)
+      };
+
+      path.node.expressions = path.node.expressions.map(expression => {
+        return ignoredCallExpression(
+          FunctionNames.saveTemplateLiteralExpressionTrackingValue,
+          [expression]
+        );
+      });
+
+      const args = {
+        // not sure why i need ignored array exp here?
+        literal: ignoredArrayExpression([ignoreNode(path.node), null])
+      };
+
+      return t.sequenceExpression([
+        ignoredCallExpression(FunctionNames.enterTemplateLiteral, []),
+        this.createNode!(args, astArgs, path.node.loc)
+      ]);
+    },
+    traverse(operationLog, charIndex) {
+      const structureParts = operationLog.astArgs.structureParts;
+      let indexInString = 0;
+      let expressionIndex = 0;
+      for (var partIndex = 0; partIndex < structureParts.length; partIndex++) {
+        const structurePart = structureParts[partIndex];
+        let indexInStringAfter = indexInString;
+        if (structurePart.type === "quasi") {
+          indexInStringAfter += structurePart.length;
+          if (indexInStringAfter > charIndex) {
+            return {
+              charIndex: charIndex,
+              operationLog: null
+            };
+          }
+        } else {
+          const expressionTrackingValue =
+            operationLog.extraArgs["expression" + expressionIndex];
+          const expressionValueLength =
+            operationLog.runtimeArgs["expression" + expressionIndex + "Length"];
+          expressionIndex++;
+          indexInStringAfter += expressionValueLength;
+
+          if (indexInStringAfter > charIndex) {
+            return {
+              operationLog: expressionTrackingValue,
+              charIndex: charIndex - indexInString
+            };
+          }
+        }
+
+        indexInString = indexInStringAfter;
+      }
+
+      return {
+        operationLog: null,
+        charIndex
+      };
     }
   },
   unaryExpression: {
@@ -532,6 +645,14 @@ const operations: Operations = {
       };
     }
   },
+  execResult: {
+    traverse(operationLog: OperationLog, charIndex) {
+      return {
+        operationLog: operationLog.args.string,
+        charIndex: charIndex + operationLog.runtimeArgs.matchIndex
+      };
+    }
+  },
   jsonParseResult: {
     traverse(operationLog, charIndex) {
       // This traversal method is inaccurate but still useful
@@ -539,6 +660,12 @@ const operations: Operations = {
       const valueReadFromJson = operationLog.result.primitive;
       const json = operationLog.args.json.result.primitive;
       const keyPath = operationLog.runtimeArgs.keyPath;
+      if (operationLog.runtimeArgs.isPrimitive) {
+        return {
+          operationLog: operationLog.args.json,
+          charIndex: charIndex + operationLog.runtimeArgs.charIndexAdjustment
+        };
+      }
 
       const ast = jsonToAst(json, { loc: true });
 
@@ -571,13 +698,34 @@ const operations: Operations = {
   },
   arrayIndex: {},
   assignmentExpression: AssignmentExpression,
-  objectAssign: {
+  objectAssignResult: {
     traverse: identifyTraverseFunction
   },
   arraySlice: { traverse: identifyTraverseFunction },
   arraySplice: { traverse: identifyTraverseFunction },
   arrayConcat: {
     traverse: identifyTraverseFunction
+  },
+  styleAssignment: {
+    traverse: (operationLog, charIndex) => {
+      const styleName = operationLog.args.styleName.result.primitive;
+      const styleNamePrefix = '="';
+      const styleNameText = styleNamePrefix + styleName + ": ";
+      if (charIndex < styleNameText.length) {
+        return {
+          operationLog: operationLog.args.styleName,
+          charIndex: Math.min(
+            Math.max(charIndex - styleNamePrefix.length, 0),
+            styleName.length
+          )
+        };
+      } else {
+        return {
+          operationLog: operationLog.args.styleValue,
+          charIndex: charIndex - styleNameText.length
+        };
+      }
+    }
   },
   htmlAdapter: {
     traverse: (operationLog, charIndex) => {

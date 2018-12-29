@@ -50,7 +50,9 @@ export function compileSync(code, extraBabelOptions = {}, url = "/no_url.js") {
   );
   return <CompilationResult>{
     map: babelResult.map,
-    code: babelResult.code + "\n//# sourceMappingURL=" + url + ".map",
+    code:
+      babelResult.code +
+      (babelResult.map ? "\n//# sourceMappingURL=" + url + ".map" : ""),
     locs: getAndResetLocs(),
     timeTakenMs: new Date().valueOf() - startTime.valueOf(),
     sizeAfter: babelResult.code.length,

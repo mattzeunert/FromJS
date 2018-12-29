@@ -1,13 +1,29 @@
-import { consoleLog } from "../../helperFunctions/logging";
+import { consoleLog, consoleWarn } from "../../helperFunctions/logging";
+import { safelyReadProperty } from "../../util";
 
-export default function addElOrigin(el, what, origin) {
+// this code is weird because it's been copied from V1
+export default function addElOrigin(
+  el,
+  what,
+  origin: {
+    action?;
+    value?;
+    error?;
+    inputValuesCharacterIndex?;
+    extraCharsAdded?;
+    offsetAtCharIndex?;
+    child?;
+    children?;
+    trackingValue?;
+  }
+) {
   const {
     action,
-    value,
+    // value,
     inputValuesCharacterIndex,
     extraCharsAdded,
     offsetAtCharIndex,
-    error,
+    // error,
     child,
     children,
     trackingValue // aka inputValue
@@ -79,8 +95,75 @@ export function addElAttributeValueOrigin(el, attrName, origin) {
 }
 
 export function getElAttributeNameOrigin(el, attrName) {
-  return el.__elOrigin["attribute_" + attrName + "_name"];
+  return el.__elOrigin && el.__elOrigin["attribute_" + attrName + "_name"];
 }
 export function getElAttributeValueOrigin(el, attrName) {
-  return el.__elOrigin["attribute_" + attrName + "_value"];
+  return el.__elOrigin && el.__elOrigin["attribute_" + attrName + "_value"];
+}
+
+export function processClonedNode(
+  cloneResult,
+  sourceNode,
+  opts: { isDeep: boolean }
+) {
+  const { isDeep } = opts;
+
+  const nodeType = safelyReadProperty(sourceNode, "nodeType");
+
+  if (nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+    for (var i = 0; i < sourceNode.childNodes.length; i++) {
+      processClonedNode(
+        cloneResult.childNodes[i],
+        sourceNode.childNodes[i],
+        opts
+      );
+    }
+  } else if (nodeType === Node.ELEMENT_NODE) {
+    ["openingTagStart", "openingTagEnd", "closingTag"].forEach(originName => {
+      if (sourceNode.__elOrigin && sourceNode.__elOrigin[originName]) {
+        addElOrigin(cloneResult, originName, sourceNode.__elOrigin[originName]);
+      } else {
+        console.warn("clone element but no __elOrigin");
+      }
+    });
+
+    for (var i = 0; i < sourceNode.attributes.length; i++) {
+      const attr = sourceNode.attributes[i];
+      const nameOrigin = getElAttributeNameOrigin(sourceNode, attr.name);
+      const valueOrigin = getElAttributeValueOrigin(sourceNode, attr.name);
+      if (nameOrigin) {
+        addElAttributeNameOrigin(cloneResult, attr.name, nameOrigin);
+      }
+      if (valueOrigin) {
+        addElAttributeValueOrigin(cloneResult, attr.name, valueOrigin);
+      }
+    }
+  } else if (nodeType === Node.TEXT_NODE) {
+    if (sourceNode.__elOrigin) {
+      addElOrigin(cloneResult, "textValue", sourceNode.__elOrigin.textValue);
+    }
+  } else if (nodeType === Node.COMMENT_NODE) {
+    if (sourceNode.__elOrigin) {
+      addElOrigin(cloneResult, "textValue", sourceNode.__elOrigin.textValue);
+    }
+  } else {
+    consoleWarn("unhandled cloneNode");
+  }
+
+  if (nodeType === Node.ELEMENT_NODE) {
+    if (isDeep) {
+      sourceNode.childNodes.forEach((childNode, i) => {
+        processClonedNode(cloneResult.childNodes[i], childNode, opts);
+      });
+    }
+  }
+}
+
+export function trackSetElementStyle(element, styleName, trackingValue) {
+  // for now just assume there's only ever one style
+  // for more correct mapping maybe see FromJS v1 code
+  addElAttributeValueOrigin(element, "style", {
+    action: "assignStyle",
+    trackingValue
+  });
 }

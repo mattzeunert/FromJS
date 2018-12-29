@@ -35,7 +35,10 @@ class StackFrameResolver {
 
   getAjax(type: "proxy" | "normal") {
     const ajax = url => {
-      if (type === "normal" && url.includes(":11111")) {
+      if (
+        type === "normal" &&
+        url.includes("http://fromjs-temporary-url.com:5555")
+      ) {
         // We use this port for eval scripts, which are only available through the proxy
         return this._gps._get(url);
       }
@@ -77,7 +80,8 @@ class StackFrameResolver {
         frameObject = mappedFrameObject;
         code = formatted;
       }
-      return this.getSourceCodeObject(frameObject, code);
+      frameObject.code = this.getSourceCodeObject(frameObject, code);
+      return frameObject;
     });
   }
 
@@ -91,12 +95,12 @@ class StackFrameResolver {
         var text = fullLine;
         var firstCharIndex = 0;
         var lastCharIndex = fullLine.length;
-        if (fullLine.length > 300) {
-          firstCharIndex = focusColumn - 100;
+        if (fullLine.length > 500) {
+          firstCharIndex = focusColumn - 200;
           if (firstCharIndex < 0) {
             firstCharIndex = 0;
           }
-          lastCharIndex = firstCharIndex + 200;
+          lastCharIndex = firstCharIndex + 400;
           text = fullLine.slice(firstCharIndex, lastCharIndex);
         }
         return {
@@ -117,6 +121,20 @@ class StackFrameResolver {
     // - it duplicates the cache data (though probably not taking much extra space)
     // - it only works if you first resolve a frame
     this._sourceObjectUrlCache[frameObject.fileName] = code;
+
+    if (
+      code.includes("ENOTFOUND") &&
+      code.includes("fromjs-temporary-url.com:5555")
+    ) {
+      return {
+        line: makeLine(
+          "Failed to fetch source code - this can happen if the server is restarted and you're trying to look at e.g. an eval script",
+          0
+        ),
+        nextLines: [],
+        previousLines: []
+      };
+    }
 
     var lines = code.split("\n");
 
@@ -188,14 +206,15 @@ class StackFrameResolver {
       const finishWithoutSourceMaps = () => {
         return this.resolveSourceCode(frameObject, {
           prettify: prettifyIfNoSourceMap
-        }).then(code => {
-          frameObject.code = code;
+        }).then(frameObjectWithSourceCode => {
           // frameObject.__debugOnly_FrameString = frameString;
-          resolve(frameObject);
+          resolve(frameObjectWithSourceCode);
         });
       };
 
-      if (!frameObject.fileName.includes(":11111")) {
+      if (
+        !frameObject.fileName.includes("http://fromjs-temporary-url.com:5555/")
+      ) {
         this._nonProxyGps
           .pinpoint(frameObject)
           .then(pinpointedFrameObject => {
@@ -254,10 +273,8 @@ class StackFrameResolver {
       gps.pinpoint(frameObject).then(
         newFrame => {
           if (!prettify) {
-            this.resolveSourceCode(newFrame).then(code => {
-              newFrame.code = code;
-              newFrame.__debugOnly_FrameString = frameString;
-              finish(newFrame);
+            this.resolveSourceCode(newFrame).then(newFrameWithSourceCode => {
+              finish(newFrameWithSourceCode);
             });
           } else {
             // this._fetchCode(newFrame).then(code => {

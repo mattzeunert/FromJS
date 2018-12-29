@@ -148,7 +148,13 @@ let App = class extends React.Component<any, any> {
             <button
               className="blue-button"
               onClick={() => {
-                api.setEnableInstrumentation(!props.enableInstrumentation);
+                const newValue = !props.enableInstrumentation;
+                api.setEnableInstrumentation(newValue);
+                if (newValue) {
+                  alert(
+                    "Pages you open now will not be instrumented, so they'll load faster. Use it to do stuff like logging into accounts. Then re-enable later."
+                  );
+                }
               }}
             >
               {props.enableInstrumentation ? "Disable" : "Enable"} tracking

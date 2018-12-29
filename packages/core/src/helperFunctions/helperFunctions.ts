@@ -12,6 +12,7 @@ import { getStoreLogsWorker } from "./storeLogsWorker";
 import * as OperationTypes from "../OperationTypes";
 import { mapPageHtml } from "../mapPageHtml";
 import mapInnerHTMLAssignment from "../operations/domHelpers/mapInnerHTMLAssignment";
+import { CreateOperationLogArgs } from "../types";
 
 const accessToken = "ACCESS_TOKEN_PLACEHOLDER";
 
@@ -131,7 +132,7 @@ const storeLog =
   typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog;
 
 let lastOperationType = null;
-function createOperationLog(args) {
+function createOperationLog(args: CreateOperationLogArgs) {
   if (SKIP_TRACKING) {
     return 1111;
   }
@@ -341,7 +342,6 @@ global[FunctionNames.getLastMemberExpressionObject] = function() {
   ];
 };
 
-// I think I'm duplicated untrackedValue here...
 global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
   let logData: any = {
     operation: "emptyTrackingInfo",
@@ -487,6 +487,9 @@ const ctx: ExecContext = {
   getEmptyTrackingInfo(type, loc) {
     return global[FunctionNames.getEmptyTrackingInfo](type, loc);
   },
+  getCurrentTemplateLiteralTrackingValues() {
+    return getCurrentTemplateLiteralTrackingValues();
+  },
   get lastOpTrackingResult() {
     return lastOpTrackingResult;
   },
@@ -602,6 +605,36 @@ global[
 ] = function getLastOp() {
   validateTrackingValue(lastOpTrackingResult);
   return lastOpTrackingResult;
+};
+
+let currentTemplateLiteralIndex = 1;
+let allTemplateLiteralTrackingValues = {};
+function getCurrentTemplateLiteralTrackingValues() {
+  if (!allTemplateLiteralTrackingValues[currentTemplateLiteralIndex]) {
+    allTemplateLiteralTrackingValues[currentTemplateLiteralIndex] = [];
+  }
+  return allTemplateLiteralTrackingValues[currentTemplateLiteralIndex];
+}
+function resetCurrentTemplateLiteralTrackingValues() {
+  allTemplateLiteralTrackingValues[currentTemplateLiteralIndex] = [];
+}
+global[FunctionNames.saveTemplateLiteralExpressionTrackingValue] = function(
+  expressionValue
+) {
+  getCurrentTemplateLiteralTrackingValues().push({
+    trackingValue: lastOpTrackingResultWithoutResetting,
+    valueLength: (expressionValue + "").length
+  });
+  return expressionValue;
+};
+global[FunctionNames.exitTemplateLiteralAndGetTrackingValues] = function() {
+  const ret = getCurrentTemplateLiteralTrackingValues();
+  resetCurrentTemplateLiteralTrackingValues();
+  currentTemplateLiteralIndex--;
+  return ret;
+};
+global[FunctionNames.enterTemplateLiteral] = function() {
+  currentTemplateLiteralIndex++;
 };
 
 global["__fromJSMaybeMapInitialPageHTML"] = function() {

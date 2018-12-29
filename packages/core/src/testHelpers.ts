@@ -1,6 +1,7 @@
 import compile, { CompilationResult } from "./compile";
 import InMemoryLogServer from "./LogServer/InMemoryLogServer";
 import OperationLog from "./helperFunctions/OperationLog";
+import * as prettier from "prettier";
 
 const inMemoryLocStore: any = {
   _locs: {},
@@ -42,7 +43,9 @@ export function instrumentAndRun(
       });
 
       if (logCode) {
-        console.log(code.split("* HELPER_FUNCTIONS_END */")[1]);
+        console.log(
+          prettier.format(code).split("* HELPER_FUNCTIONS_END */")[1]
+        );
       }
       const __storeLog = server.storeLog.bind(server);
       var result: InstrumentAndRunResult = eval(code);

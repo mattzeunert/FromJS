@@ -1,5 +1,6 @@
 import OperationLog from "./OperationLog";
 import KnownValues from "./KnownValues";
+import { CreateOperationLogArgs } from "../types";
 
 export interface ExecContext {
   getObjectPropertyTrackingValue: (
@@ -10,8 +11,12 @@ export interface ExecContext {
     object: any,
     propertyName: string | number
   ) => number;
+  getCurrentTemplateLiteralTrackingValues: () => {
+    valueLength: number;
+    trackingValue: number;
+  }[];
   lastMemberExpressionResult: [any, any];
-  createOperationLog(any): number;
+  createOperationLog(args: CreateOperationLogArgs): number;
   createArrayIndexOperationLog(index: number, loc: any): number | null;
   hasInstrumentationFunction: boolean;
   operationTypes: any;

@@ -1,13 +1,15 @@
-function generateEvalUrl() {
+function generateEvalUrl(type) {
   return (
-    "http://localhost:11111/eval" +
-    Math.floor(Math.random() * 10000000000) +
+    "http://fromjs-temporary-url.com:5555/" +
+    type +
+    Math.floor(Math.random() * 1000000000) +
     ".js"
   );
 }
 
-export default function handleEvalScript(code, compile, done) {
-  const url = generateEvalUrl();
+export default function handleEvalScript(code, compile, details, done) {
+  const type = (details && details.type) || "eval";
+  const url = generateEvalUrl(type);
 
   return compile(code, url, function(babelResult) {
     const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url;
