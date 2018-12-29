@@ -6,131 +6,122 @@ og_description: Find the origin of any character in the DOM
 ---
 
 <div class="container">
-  <div class="row">
-    <div class="col-md-12">
-      <!-- <style>
-		#mc_embed_signup #mc-embedded-subscribe-form input {
-		  text-indent: 4px !important; 
-		}
-		</style>
-		</div> -->
-    </div>
-    <div class="row" style="margin-top: 20px;">
-      <div class="col-md-4">
-        <h2>What is FromJS?</h2>
-        <p>
-          FromJS is an experimental dynamic data-flow analysis tool for
-          front-end JavaScript apps. It can tell you where each bit of content
-          on a web page came from.
-        </p>
-        <p>
-          For example, some data might have been loaded using fetch, some might
-          have been stored in localStorage, and some might have been hard-coded
-          in the JavaScript code.
-        </p>
-        <h2>Try FromJS</h2>
-        <p>Install from NPM:</p>
-        <pre>npm install -g @fromjs/cli</pre>
-        <p>
-          Then run <code>fromjs</code> from the command line. This will open a
-          new Chrome window. Loading pages will be very slow and some sites will
-          be broken.
-        </p>
-        <div class="aaa">
-          <h2 style="margin-top: 0">Sign up for updates</h2>
+  <div class="row" style="margin-top: 20px;">
+    <div class="col-md-4">
+      <h2>What is FromJS?</h2>
+      <p>
+        FromJS is an experimental dynamic data-flow analysis tool for front-end
+        JavaScript apps. It can tell you where each bit of content on a web page
+        came from.
+      </p>
+      <p>
+        For example, some data might have been loaded using fetch, some might
+        have been stored in localStorage, and some might have been hard-coded in
+        the JavaScript code.
+      </p>
+      <h2>Try FromJS</h2>
+      <p>Install from NPM:</p>
+      <pre>npm install -g @fromjs/cli</pre>
+      <p>
+        Then run <code>fromjs</code> from the command line. This will open a new
+        Chrome window. Loading pages will be very slow and some sites will be
+        broken.
+      </p>
+      <div style="margin-bottom: 10px">
+        <h2 style="margin-top: 0">Sign up for updates</h2>
 
-          <link
-            href="//cdn-images.mailchimp.com/embedcode/classic-10_7.css"
-            rel="stylesheet"
-            type="text/css"
-          />
-          <style type="text/css">
-            #mc_embed_signup {
-              clear: left;
-              font: 14px Helvetica, Arial, sans-serif;
-            }
-            /* Add your own MailChimp form style overrides in your site stylesheet or in this style block.
+        <link
+          href="//cdn-images.mailchimp.com/embedcode/classic-10_7.css"
+          rel="stylesheet"
+          type="text/css"
+        />
+        <style type="text/css">
+          #mc_embed_signup {
+            clear: left;
+            font: 14px Helvetica, Arial, sans-serif;
+          }
+          /* Add your own MailChimp form style overrides in your site stylesheet or in this style block.
   We recommend moving this block and the preceding CSS link to the HEAD of your HTML file. */
-          </style>
-          <div id="mc_embed_signup">
-            <form
-              style="padding: 0"
-              action="//mostlystatic.us8.list-manage.com/subscribe/post?u=6e1d1f58acfc60f4eb4adce31&amp;id=62764a4d09"
-              method="post"
-              id="mc-embedded-subscribe-form"
-              name="mc-embedded-subscribe-form"
-              class="validate"
-              target="_blank"
-              novalidate
-            >
-              <div id="mc_embed_signup_scroll">
-                <div class="mc-field-group" style="padding-bottom: 10px">
-                  <label for="mce-EMAIL" style="font-weight: normal"
-                    >Email Address <span class="asterisk">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value=""
-                    name="EMAIL"
-                    class="required email"
-                    id="mce-EMAIL"
-                  />
-                </div>
-                <div id="mce-responses" class="clear">
-                  <div
-                    class="response"
-                    id="mce-error-response"
-                    style="display:none"
-                  ></div>
-                  <div
-                    class="response"
-                    id="mce-success-response"
-                    style="display:none"
-                  ></div>
-                </div>
-                <div
-                  style="position: absolute; left: -5000px;"
-                  aria-hidden="true"
-                >
-                  <input
-                    type="text"
-                    name="b_6e1d1f58acfc60f4eb4adce31_62764a4d09"
-                    tabindex="-1"
-                    value=""
-                  />
-                </div>
-                <div class="clear">
-                  <input
-                    type="submit"
-                    value="Send me updates!"
-                    name="subscribe"
-                    id="mc-embedded-subscribe"
-                    class="btn btn-primary"
-                    style="margin: 0;border: inherit"
-                  />
-                </div>
+        </style>
+        <div id="mc_embed_signup">
+          <form
+            style="padding: 0"
+            action="//mostlystatic.us8.list-manage.com/subscribe/post?u=6e1d1f58acfc60f4eb4adce31&amp;id=62764a4d09"
+            method="post"
+            id="mc-embedded-subscribe-form"
+            name="mc-embedded-subscribe-form"
+            class="validate"
+            target="_blank"
+            novalidate
+          >
+            <div id="mc_embed_signup_scroll">
+              <div class="mc-field-group" style="padding-bottom: 10px">
+                <label for="mce-EMAIL" style="font-weight: normal"
+                  >Email Address <span class="asterisk">*</span>
+                </label>
+                <input
+                  type="email"
+                  value=""
+                  name="EMAIL"
+                  class="required email"
+                  id="mce-EMAIL"
+                />
               </div>
-            </form>
-          </div>
-          <script
-            type="text/javascript"
-            src="//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js"
-          ></script
-          ><script type="text/javascript">
-            (function($) {
-              window.fnames = new Array();
-              window.ftypes = new Array();
-              fnames[0] = "EMAIL";
-              ftypes[0] = "email";
-              fnames[1] = "FNAME";
-              ftypes[1] = "text";
-              fnames[2] = "LNAME";
-              ftypes[2] = "text";
-            })(jQuery);
-            var $mcj = jQuery.noConflict(true);
-          </script>
+              <div id="mce-responses" class="clear">
+                <div
+                  class="response"
+                  id="mce-error-response"
+                  style="display:none"
+                ></div>
+                <div
+                  class="response"
+                  id="mce-success-response"
+                  style="display:none"
+                ></div>
+              </div>
+              <div
+                style="position: absolute; left: -5000px;"
+                aria-hidden="true"
+              >
+                <input
+                  type="text"
+                  name="b_6e1d1f58acfc60f4eb4adce31_62764a4d09"
+                  tabindex="-1"
+                  value=""
+                />
+              </div>
+              <div class="clear">
+                <input
+                  type="submit"
+                  value="Send me updates!"
+                  name="subscribe"
+                  id="mc-embedded-subscribe"
+                  class="btn btn-primary"
+                  style="margin: 0;border: inherit"
+                />
+              </div>
+            </div>
+          </form>
         </div>
-        <!-- <p>
+        <script
+          type="text/javascript"
+          src="//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js"
+        ></script
+        ><script type="text/javascript">
+          (function($) {
+            window.fnames = new Array();
+            window.ftypes = new Array();
+            fnames[0] = "EMAIL";
+            ftypes[0] = "email";
+            fnames[1] = "FNAME";
+            ftypes[1] = "text";
+            fnames[2] = "LNAME";
+            ftypes[2] = "text";
+          })(jQuery);
+          var $mcj = jQuery.noConflict(true);
+        </script>
+      </div>
+      <!-- <p>
                 <div class="hide-on-desktop-chrome">
                     <h3>See it in action</h3>
                     FromJS only works on Chrome Desktop, but you can <a href="http://localhost:4000/recordings.html">watch some demo videos.</a>
@@ -141,26 +132,14 @@ og_description: Find the origin of any character in the DOM
                     <a href="/react-todomvc" class="btn btn-primary">React TodoMVC Demo</a> <span style="color: #aaa"></span>
                 </span>
             </p> -->
-      </div>
-      <div class="col-md-8" style="text-align: center;">
-        <img
-          style="height: 600px"
-          src="https://user-images.githubusercontent.com/1303660/50536171-80a00680-0b49-11e9-92a5-69ee2185ce0c.gif"
-        />
-      </div>
-      <!-- <div class="col-md-7">
-        <iframe
-          class="youtube-embed"
-          width="100%"
-          height="365"
-          src="https://www.youtube.com/embed/jtGikR68y7s"
-          frameborder="0"
-          allowfullscreen
-        ></iframe>
-      </div> -->
     </div>
-
-    <div class="row" style="margin-top: 20px;">
+    <div class="col-md-8" style="text-align: center;">
+      <img
+        style="max-height: 600px;width: 100%;"
+        src="https://user-images.githubusercontent.com/1303660/50536171-80a00680-0b49-11e9-92a5-69ee2185ce0c.gif"
+      />
+    </div>
+    <div style="margin-top: 20px;">
       <div class="col-md-12">
         <b>More links:</b>
         <ul>
@@ -177,23 +156,31 @@ og_description: Find the origin of any character in the DOM
           </li>
         </ul>
       </div>
-    </div>
 
-    <b style="margin-top: 20px;display: block;margin-bottom: 10px;"
-      >Demo videos:</b
-    >
-    <div>
-      <iframe
-        width="560"
-        height="315"
-        src="https://www.youtube.com/embed/AgjZLzuZqDE"
-        frameborder="0"
-        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-      ></iframe>
-    </div>
-    <br /><br />
+      <div class="col-md-12">
+        <b style="margin-top: 20px;display: block;margin-bottom: 10px;"
+          >Demo videos:</b
+        >
+        <style>
+          iframe {
+            max-width: 100%;
+          }
+        </style>
+        <div>
+          <iframe
+            width="560"
+            height="315"
+            src="https://www.youtube.com/embed/AgjZLzuZqDE"
+            frameborder="0"
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </div>
 
-    <br /><br /><br />
+      <br /><br />
+
+      <br /><br /><br />
+    </div>
   </div>
 </div>

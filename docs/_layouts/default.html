@@ -51,6 +51,13 @@
         color: white;
         text-decoration: underline;
       }
+
+      @media screen and (max-width: 800px) {
+        .jumbotron p {
+          font-size: 20px;
+          padding-right: 20px;
+        }
+      }
     </style>
     <script>
       (function() {
@@ -76,7 +83,7 @@
           <a href="/" style="color: inherit;text-decoration: none;">
             <h1>FromJS</h1>
           </a>
-          <p>Dynamic data-flow analysis tool for JavaScript</p>
+          <p>An experimental data-flow analysis tool for JavaScript</p>
           <!--
             <a class="btn btn-primary" href="/todomvc">Try Backbone TodoMVC Demo</a>
           -->
