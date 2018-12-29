@@ -184,11 +184,13 @@ export class TextEl extends React.Component<any, any> {
       var linesToShow = lines.slice(showFromLineIndex, showToLineIndex);
 
       let truncationConfig = {
-        minLength: 40
+        minLength: 40,
+        beforeHighlight: 10
       };
       if (document.body.clientWidth > 900) {
         truncationConfig = {
-          minLength: 100
+          minLength: 100,
+          beforeHighlight: 35
         };
       }
       console.log({ truncationConfig });
@@ -203,7 +205,10 @@ export class TextEl extends React.Component<any, any> {
             textBeforeHighlight.length > truncationConfig.minLength &&
             self.state.truncateText
           ) {
-            var textA = textBeforeHighlight.slice(0, 35);
+            var textA = textBeforeHighlight.slice(
+              0,
+              truncationConfig.beforeHighlight
+            );
             var textB = textBeforeHighlight.slice(
               textBeforeHighlight.length - 15
             );
