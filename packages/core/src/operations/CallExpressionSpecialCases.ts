@@ -1201,24 +1201,17 @@ export function traverseKnownFunction({
         operationLog: largestOperationLog,
         charIndex
       };
-    case "parseFloat":
-      return {
-        operationLog: operationLog.args.arg0,
-        charIndex
-      };
     case "Date.prototype.getTime":
     case "Date.prototype.valueOf":
+    case "String.prototype.toLowerCase":
+    case "String.prototype.toUpperCase":
       return {
         operationLog: operationLog.args.context,
         charIndex
       };
     case "Date.prototype.constructor":
-      return {
-        operationLog: operationLog.args.arg0,
-        charIndex
-      };
-
     case "Math.abs":
+    case "parseFloat":
       return {
         operationLog: operationLog.args.arg0,
         charIndex

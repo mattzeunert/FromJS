@@ -1814,3 +1814,17 @@ it("Can traverse Math.abs", async () => {
   const step = await traverseAndGetLastStep(tracking, 0);
   expect(step.operationLog.operation).toBe("numericLiteral");
 });
+
+it("Can traverse String toLowerCase/toUpperCase", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    return "A".toLowerCase() + "b".toUpperCase()
+  `);
+
+  expect(normal).toBe("aB");
+
+  var step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+
+  var step = await traverseAndGetLastStep(tracking, 1);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+});
