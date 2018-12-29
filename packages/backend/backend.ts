@@ -85,16 +85,17 @@ export default class Backend {
     }
     ensureDirectoriesExist(options);
 
-    getFolderSize(options.sessionDirectory, (err, size) => {
-      console.log(
-        "Session size: ",
-        (size / 1024 / 1024).toFixed(2) +
-          " MB" +
-          " (" +
-          path.resolve(options.sessionDirectory) +
-          ")"
-      );
-    });
+    // seems like sometimes get-folder-size runs into max call stack size exceeded, so disable it
+    // getFolderSize(options.sessionDirectory, (err, size) => {
+    //   console.log(
+    //     "Session size: ",
+    //     (size / 1024 / 1024).toFixed(2) +
+    //       " MB" +
+    //       " (" +
+    //       path.resolve(options.sessionDirectory) +
+    //       ")"
+    //   );
+    // });
 
     let sessionConfig;
     function saveSessionConfig() {
