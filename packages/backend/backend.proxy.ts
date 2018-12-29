@@ -31,7 +31,11 @@ let defaultBlockList = [
   "inspectlet.com", // does a whole bunch of stuff that really slows page execution down
   "google-analytics.com",
   "newrelic.com", // overwrites some native functions used directly in FromJS (shouldn't be done ideally, but for now blocking is easier)
-  "intercom.com"
+  "intercom.com",
+  "segment.com",
+  "bugsnag",
+  "mixpanel",
+  "piwik"
 ];
 
 startProxy({
