@@ -78,7 +78,6 @@ export default class Code extends React.Component<CodeProps, CodeState> {
         minLengthBarToHighlight: 20
       };
     }
-    console.log({ truncationSettings });
 
     if (strBeforeBar.length > truncationSettings.minLength && truncate) {
       strBeforeBar =
@@ -108,7 +107,7 @@ export default class Code extends React.Component<CodeProps, CodeState> {
         1
       )
     );
-    console.log({ highlightedString });
+
     if (frame.code.line.text.length == highlightIndexInLine) {
       // after last proper char in line, display new line
       highlightedString = "\u21B5";
