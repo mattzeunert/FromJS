@@ -1243,6 +1243,8 @@ export interface FnProcessorArgs {
   logData: any;
   object: any;
   setFunction: any;
+  fnArgValuesAtInvocation: any[];
+  fnArgsAtInvocation: any[];
 }
 
 export const knownFnProcessors = {
@@ -1396,6 +1398,7 @@ export const knownFnProcessors = {
           return Promise.resolve(JSON.parse(text));
         }
 
+        console.log(response.url, ctx.global["__fetches"][response.url]);
         const t = ctx.createOperationLog({
           operation: ctx.operationTypes.fetchResponse,
           args: {
@@ -1419,14 +1422,23 @@ export const knownFnProcessors = {
       });
     });
   },
-  fetch: ({ ctx, logData, fnArgValues }: FnProcessorArgs) => {
+  fetch: ({
+    ctx,
+    logData,
+    fnArgValues,
+    fnArgValuesAtInvocation
+  }: FnProcessorArgs) => {
     // not super accurate but until there's a proper solution
     // let's pretend we can match the fetch call
     // to the response value via the url
     ctx.global["__fetches"] = ctx.global["__fetches"] || {};
     let url =
-      typeof fnArgValues[0] === "string" ? fnArgValues[0] : fnArgValues[0].url;
+      typeof fnArgValuesAtInvocation[0] === "string"
+        ? fnArgValuesAtInvocation[0]
+        : fnArgValuesAtInvocation[0].url;
+    console.log({ url, full: getFullUrl(url) });
     url = getFullUrl(url);
+
     ctx.global["__fetches"][url] = logData.index;
   },
   "XMLHttpRequest.prototype.open": ({

@@ -185,12 +185,18 @@ export class TextEl extends React.Component<any, any> {
 
       let truncationConfig = {
         minLength: 40,
-        beforeHighlight: 10
+        beforeHighlight: 15
       };
+      if (document.body.clientWidth > 600) {
+        truncationConfig = {
+          minLength: 70,
+          beforeHighlight: 30
+        };
+      }
       if (document.body.clientWidth > 900) {
         truncationConfig = {
           minLength: 100,
-          beforeHighlight: 35
+          beforeHighlight: 40
         };
       }
       console.log({ truncationConfig });

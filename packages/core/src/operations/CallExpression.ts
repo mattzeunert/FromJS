@@ -259,7 +259,9 @@ const CallExpression = <any>{
         fnArgs,
         logData,
         object,
-        setFunction
+        setFunction,
+        fnArgValuesAtInvocation,
+        fnArgsAtInvocation
       };
 
       return fnProcessorArgs;

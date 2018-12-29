@@ -49,26 +49,24 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
                 onClick={() => {
                   // Noopener hopefully means the window will open in a new process
                   // so even if the inspected page is busy the inspector will still be interactive
-                  window.open(
-                    "/",
-                    "_blank" /* "noopener" this breaks sending messages to the window */
-                  );
+                  window.open("/", "_blank", "noopener");
                   window.parent.postMessage({ type: "openInNewTab" }, "*");
                 }}
                 title="Open in new tab"
               />
             )}
-            {type === "dom" && (
-              <button
-                style={{ fontWeight: "bold", fontSize: 16 }}
-                onClick={() =>
-                  window.parent.postMessage({ type: "inspectParent" }, "*")
-                }
-                title="Select parent DOM element"
-              >
-                ⇧
-              </button>
-            )}
+            {window.parent !== window &&
+              type === "dom" && (
+                <button
+                  style={{ fontWeight: "bold", fontSize: 16 }}
+                  onClick={() =>
+                    window.parent.postMessage({ type: "inspectParent" }, "*")
+                  }
+                  title="Select parent DOM element"
+                >
+                  ⇧
+                </button>
+              )}
           </div>
 
           <div
