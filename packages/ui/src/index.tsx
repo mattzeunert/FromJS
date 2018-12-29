@@ -150,7 +150,7 @@ let App = class extends React.Component<any, any> {
               onClick={() => {
                 const newValue = !props.enableInstrumentation;
                 api.setEnableInstrumentation(newValue);
-                if (newValue) {
+                if (!newValue) {
                   alert(
                     "Pages you open now will not be instrumented, so they'll load faster. Use it to do stuff like logging into accounts. Then re-enable later."
                   );

@@ -35,7 +35,7 @@ fromJSInspect(document.querySelector("#app"))
 
 ## How it works
 
-Read about it [here](http://www.mattzeunert.com/2018/05/27/dynamic-dataflow-analysis-for-javascript-how-fromjs-2-works.html).
+Read about it [here](http://www.mattzeunert.com/2018/05/27/dynamic-dataflow-analysis-for-javascript-how-fromjs-2-works.html), or watch [this video](https://www.youtube.com/watch?v=HmuadtxtBS4&feature=youtu.be).
 
 ## Supported by
 

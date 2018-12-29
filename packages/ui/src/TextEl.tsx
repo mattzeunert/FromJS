@@ -199,7 +199,6 @@ export class TextEl extends React.Component<any, any> {
           beforeHighlight: 40
         };
       }
-      console.log({ truncationConfig });
 
       function getLineComponent(line, beforeSpan, afterSpan) {
         var valueSpans = [];
