@@ -91,6 +91,7 @@ if (!maxOldSpaceSizeArg) {
     const browser = await puppeteer.launch({
       headless: false,
       args: [
+        `--js-flags="--max_old_space_size=8192"`,
         "--proxy-server=127.0.0.1:" + proxyPort,
         "--ignore-certificate-errors",
         "--test-type", // otherwise getting unsupported command line flag: --ignore-certificate-errors
