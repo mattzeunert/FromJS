@@ -734,6 +734,33 @@ describe("String.prototype.trim", () => {
   });
 });
 
+describe("call/apply", () => {
+  it("Correctly traverses argument values when they are passed in with apply", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function fn(str1, str2, str3) {
+        return str3
+      }
+      return fn.apply(null, ["a", "b", "c"])
+    `);
+    expect(normal).toBe("c");
+    var t = await traverseAndGetLastStep(tracking, 0);
+
+    expect(t.operationLog.operation).toBe("stringLiteral");
+  });
+  it("Correctly traverses argument values when they are passed in with call", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function fn(str1, str2, str3) {
+        return str3
+      }
+      return fn.call(null, "a", "b", "c")
+    `);
+    expect(normal).toBe("c");
+    var t = await traverseAndGetLastStep(tracking, 0);
+
+    expect(t.operationLog.operation).toBe("stringLiteral");
+  });
+});
+
 it("Can traverse arguments fn.apply(this, arguments)", async () => {
   const { normal, tracking, code } = await instrumentAndRun(`
     function f1() {
