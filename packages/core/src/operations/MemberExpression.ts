@@ -63,31 +63,28 @@ export const MemberExpression = <any>{
 
     const isInBrowser = typeof HTMLElement !== "undefined";
 
-    if (
-      propertyName === "responseText" &&
-      isInBrowser &&
-      object instanceof XMLHttpRequest
-    ) {
-      trackingValue = getAjaxResponseTextTrackingValue(
-        trackingValue,
-        ctx,
-        ret,
-        object,
-        logData
-      );
-    } else if (
-      !trackingValue &&
-      isInBrowser &&
-      object instanceof Node &&
-      typeof propertyName !== "symbol"
-    ) {
-      trackingValue = getTrackingValueFromDOMNodeAndDoOtherStuff(
-        object,
-        propertyName,
-        trackingValue,
-        ctx,
-        ret
-      );
+    if (isInBrowser) {
+      if (propertyName === "responseText" && object instanceof XMLHttpRequest) {
+        trackingValue = getAjaxResponseTextTrackingValue(
+          trackingValue,
+          ctx,
+          ret,
+          object,
+          logData
+        );
+      } else if (
+        !trackingValue &&
+        object instanceof Node &&
+        typeof propertyName !== "symbol"
+      ) {
+        trackingValue = getTrackingValueFromDOMNodeAndDoOtherStuff(
+          object,
+          propertyName,
+          trackingValue,
+          ctx,
+          ret
+        );
+      }
     }
 
     logData.extraArgs = {
