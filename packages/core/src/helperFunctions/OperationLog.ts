@@ -10,10 +10,11 @@ var global = Function("return this")();
 
 // todo: would be better if the server provided this value
 export const getOperationIndex = (function() {
-  var operationIndexBase = Math.round(Math.random() * 1000 * 1000 * 1000);
+  var operationIndexBase = Math.round(
+    Math.random() * 1000 * 1000 * 1000 * 1000 * 1000
+  );
   var operationIndex = 0;
   return function getOperationIndex() {
-    var index = operationIndex;
     operationIndex++;
     return operationIndexBase + operationIndex;
   };
