@@ -1,6 +1,6 @@
 {
   "name": "@fromjs/ui",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "main": "empty.js",
   "repository": "https://github.com/mattzeunert/FromJS/tree/master/packages/ui",
   "author": "Matt Zeunert <matt@mostlystatic.com>",
