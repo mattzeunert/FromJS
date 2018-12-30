@@ -795,6 +795,82 @@ describe("call/apply", () => {
   });
 });
 
+describe("It can traverse logical expressions", () => {
+  it("Can traverse ||", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+    function fn(a, b) {
+      b = b || a
+      return b
+    }
+    return fn("a") + fn("x", "y")
+  `
+      // {},
+      // { logCode: true }
+    );
+    expect(normal).toBe("ay");
+    var t = await traverseAndGetLastStep(tracking, 0);
+    expect(t.operationLog.operation).toBe("stringLiteral");
+    expect(t.operationLog.result.primitive).toBe("a");
+
+    var t = await traverseAndGetLastStep(tracking, 1);
+    expect(t.operationLog.operation).toBe("stringLiteral");
+    expect(t.operationLog.result.primitive).toBe("y");
+  });
+
+  it("Doesn't break the execution logic of || expressions", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let str = "a";
+      function setStrToB() {
+        str = "b"
+      }
+      ("a" || setStrToB())
+      return str
+  `
+      // {},
+      // { logCode: true }
+    );
+    expect(normal).toBe("a");
+  });
+
+  it("Doesn't break the execution logic of nested || expressions", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let str = "a";
+      function setStrToB() {
+        str = "b"
+      }
+      function setStrToC() {
+        str = "c"
+        return true
+      }
+      (null || setStrToC() || setStrToB())
+      return str
+  `
+      // {},
+      // { logCode: true }
+    );
+    expect(normal).toBe("c");
+  });
+
+  it("Doesn't break the execution logic of && expressions", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let str = "a";
+      function setStrToB() {
+        str = "b"
+      }
+      false && setStrToB()
+      return str
+  `
+      // {},
+      // { logCode: true }
+    );
+    expect(normal).toBe("a");
+  });
+});
+
 it("Can traverse arguments fn.apply(this, arguments)", async () => {
   const { normal, tracking, code } = await instrumentAndRun(`
     function f1() {

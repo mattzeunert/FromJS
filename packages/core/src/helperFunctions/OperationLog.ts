@@ -142,6 +142,13 @@ class SerializedValue implements SerializedValueData {
     }
     return str;
   }
+
+  isTruthy() {
+    if (this.primitive) {
+      return !!this.primitive;
+    }
+    return this.length > 0 || (this.keys && this.keys.length > 0);
+  }
 }
 
 interface OperationLogInterface {
