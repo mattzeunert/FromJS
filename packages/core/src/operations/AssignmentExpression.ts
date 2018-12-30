@@ -34,7 +34,12 @@ export default <any>{
       return ["currentValue", "newValue", "argument"];
     }
   },
-  exec: (args, astArgs, ctx: ExecContext, logData: any) => {
+  exec: function AssignmentExpressionExec(
+    args,
+    astArgs,
+    ctx: ExecContext,
+    logData: any
+  ) {
     var ret;
     const assignmentType = astArgs.type;
     const operator = astArgs.operator;

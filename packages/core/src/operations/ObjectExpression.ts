@@ -14,7 +14,12 @@ const OBJECT_PROPERTY = EXPLICIT_NAMES ? "ObjectProperty" : "pr";
 export default <any>{
   argNames: ["property"],
   argIsArray: [true],
-  exec: (args, astArgs, ctx: ExecContext, logData: any) => {
+  exec: function objectExpressionExec(
+    args,
+    astArgs,
+    ctx: ExecContext,
+    logData: any
+  ) {
     const [propertiesArg] = args;
     var obj = {};
     var methodProperties = {};

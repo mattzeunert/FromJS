@@ -29,12 +29,12 @@ import { countObjectKeys } from "../util";
 const CallExpression = <any>{
   argNames: ["function", "context", "arg", "evalFn"],
   argIsArray: [false, false, true, false],
-  exec: (
+  exec: function callExpressionExec(
     args: [any, ValueTrackingValuePair, any, any],
     astArgs,
     ctx: ExecContext,
     logData: any
-  ) => {
+  ) {
     let [fnArg, context, argList, evalFn] = args;
 
     var fn = fnArg[0];

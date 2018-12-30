@@ -35,12 +35,12 @@ export const MemberExpression = <any>{
       ]);
     }
   },
-  exec: (
+  exec: function memberExpressionExec(
     args: [ValueTrackingValuePair, ValueTrackingValuePair],
     astArgs: any,
     ctx: ExecContext,
     logData: any
-  ) => {
+  ) {
     var ret;
     const [objectArg, propNameArg] = args;
     var object = objectArg[0];

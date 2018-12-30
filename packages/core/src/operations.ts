@@ -141,7 +141,7 @@ const operations: Operations = {
       }
       throw "aaa";
     },
-    exec: (args, astArgs, ctx: ExecContext) => {
+    exec: function binaryExpressionExec(args, astArgs, ctx: ExecContext) {
       var { left, right } = args;
       var ret;
       left = left[0];
@@ -352,7 +352,7 @@ const operations: Operations = {
         this.createNode!([[ignoredStringLiteral(value)]], {}, path.node.loc)
       );
     },
-    exec: (args, astArgs, ctx: ExecContext) => {
+    exec: function stringLiteralExec(args, astArgs, ctx: ExecContext) {
       return args[0][0];
     }
   },
@@ -546,7 +546,12 @@ const operations: Operations = {
   arrayExpression: {
     argNames: ["element"],
     argIsArray: [true],
-    exec: (args, astArgs, ctx: ExecContext, logData: any) => {
+    exec: function arrayExpressionExec(
+      args,
+      astArgs,
+      ctx: ExecContext,
+      logData: any
+    ) {
       const [elementsArg] = args;
       let arr: any[] = [];
       elementsArg.forEach((el, i) => {
@@ -594,7 +599,12 @@ const operations: Operations = {
       // return statement will always return returned value
       return !!args[0];
     },
-    exec: (args, astArgs, ctx: ExecContext, logData) => {
+    exec: function returnStatementExec(
+      args,
+      astArgs,
+      ctx: ExecContext,
+      logData
+    ) {
       const [returnValueArg] = args;
       ctx.lastReturnStatementResult = [returnValueArg[0], logData.index];
       return returnValueArg[0];
@@ -637,7 +647,7 @@ const operations: Operations = {
         ]);
       }
     },
-    exec: (args, astArgs, ctx: ExecContext, logData) => {
+    exec: function identifierExec(args, astArgs, ctx: ExecContext, logData) {
       const [valueArg, allFnArgTrackingValuesArg] = args;
       if (
         astArgs &&
