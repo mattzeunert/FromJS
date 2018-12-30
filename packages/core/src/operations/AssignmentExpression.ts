@@ -264,8 +264,9 @@ export default <any>{
       const identifierAssignedTo = path.node.left;
       // we have to check if it exists because outside strict mode
       // you can assign to undeclared global variables
-      const identifierValue = runIfIdentifierExists(
+      const identifierValue = runIfTrackingIdentifierExists(
         identifierAssignedTo.name,
+        path.scope,
         identifierAssignedTo
       );
 
