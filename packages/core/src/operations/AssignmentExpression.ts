@@ -11,7 +11,8 @@ import {
   ignoreNode,
   createSetMemoValue,
   getLastOperationTrackingResultWithoutResettingCall,
-  getTrackingIdentifier
+  getTrackingIdentifier,
+  runIfTrackingIdentifierExists
 } from "../babelPluginHelpers";
 import traverseStringConcat from "../traverseStringConcat";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
@@ -33,7 +34,12 @@ export default <any>{
       return ["currentValue", "newValue", "argument"];
     }
   },
-  exec: (args, astArgs, ctx: ExecContext, logData: any) => {
+  exec: function AssignmentExpressionExec(
+    args,
+    astArgs,
+    ctx: ExecContext,
+    logData: any
+  ) {
     var ret;
     const assignmentType = astArgs.type;
     const operator = astArgs.operator;
@@ -236,8 +242,9 @@ export default <any>{
       );
       path.node.right = right;
 
-      trackingAssignment = runIfIdentifierExists(
-        getTrackingVarName(path.node.left.name),
+      trackingAssignment = runIfTrackingIdentifierExists(
+        path.node.left.name,
+        path.scope,
         ignoreNode(
           this.t.assignmentExpression(
             "=",
@@ -257,8 +264,9 @@ export default <any>{
       const identifierAssignedTo = path.node.left;
       // we have to check if it exists because outside strict mode
       // you can assign to undeclared global variables
-      const identifierValue = runIfIdentifierExists(
+      const identifierValue = runIfTrackingIdentifierExists(
         identifierAssignedTo.name,
+        path.scope,
         identifierAssignedTo
       );
 

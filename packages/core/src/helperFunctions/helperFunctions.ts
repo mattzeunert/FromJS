@@ -30,12 +30,14 @@ let fetch = knownValues.getValue("fetch");
 initLogging(knownValues);
 
 const startTime = new Date();
-setTimeout(checkDone, 200);
+setTimeout(checkDone, 20);
 function checkDone() {
   if (typeof document === "undefined") {
     return;
   }
-  const done = document.querySelector(".todo-list li");
+  const done =
+    document.querySelector(".todo-list li") ||
+    document.querySelector(".list-card-title");
   if (done) {
     const doneTime = new Date();
     consoleLog("#####################################");
@@ -50,7 +52,7 @@ function checkDone() {
     );
     worker.postMessage({ showDoneMessage: true });
   } else {
-    setTimeout(checkDone, 200);
+    setTimeout(checkDone, 20);
   }
 }
 
@@ -428,7 +430,9 @@ const memoValues = {};
 global[FunctionNames.setMemoValue] = function(key, value, trackingValue) {
   memoValues[key] = { value, trackingValue };
   setLastOpTrackingResult(trackingValue);
-  validateTrackingValue(trackingValue);
+  if (VERIFY) {
+    validateTrackingValue(trackingValue);
+  }
   return value;
 };
 global[FunctionNames.getMemoArray] = function(key) {
@@ -450,7 +454,10 @@ function validateTrackingValue(trackingValue) {
 }
 
 function setLastOpTrackingResult(trackingValue) {
-  validateTrackingValue(trackingValue);
+  if (VERIFY) {
+    validateTrackingValue(trackingValue);
+  }
+
   lastOpTrackingResult = trackingValue;
 }
 
@@ -507,7 +514,7 @@ const ctx: ExecContext = {
     lastMemberExpressionObjectTrackingValue = tracking;
   },
   set argTrackingInfo(info) {
-    if (info) {
+    if (VERIFY && info) {
       info.forEach(trackingValue => validateTrackingValue(trackingValue));
     }
     argTrackingInfo = info;
@@ -595,7 +602,9 @@ global[FunctionNames.getLastOperationValueResult] = function getLastOp() {
   return ret;
 };
 global[FunctionNames.getLastOperationTrackingResult] = function getLastOp() {
-  validateTrackingValue(lastOpTrackingResult);
+  if (VERIFY) {
+    validateTrackingValue(lastOpTrackingResult);
+  }
   var ret = lastOpTrackingResult;
   lastOpTrackingResult = null;
   return ret;
@@ -603,7 +612,9 @@ global[FunctionNames.getLastOperationTrackingResult] = function getLastOp() {
 global[
   FunctionNames.getLastOperationTrackingResultWithoutResetting
 ] = function getLastOp() {
-  validateTrackingValue(lastOpTrackingResult);
+  if (VERIFY) {
+    validateTrackingValue(lastOpTrackingResult);
+  }
   return lastOpTrackingResult;
 };
 

@@ -29,13 +29,15 @@ import { countObjectKeys } from "../util";
 const CallExpression = <any>{
   argNames: ["function", "context", "arg", "evalFn"],
   argIsArray: [false, false, true, false],
-  exec: (
+  exec: function callExpressionExec(
     args: [any, ValueTrackingValuePair, any, any],
     astArgs,
     ctx: ExecContext,
     logData: any
-  ) => {
+  ) {
     let [fnArg, context, argList, evalFn] = args;
+
+    var object = context[0];
 
     var fn = fnArg[0];
     var fnArgs: any[] = [];
@@ -57,8 +59,6 @@ const CallExpression = <any>{
         fnArgs.push(arg[1]);
       }
     }
-
-    var object = context[0];
 
     const functionIsCall = fn === Function.prototype.call;
     const functionIsApply = fn === Function.prototype.apply;
@@ -88,12 +88,15 @@ const CallExpression = <any>{
 
     ctx.argTrackingInfo = fnArgsAtInvocation;
 
-    const extraTrackingValues: any = {};
-    const runtimeArgs: any = {};
-
-    let extraState: any = {};
+    let extraTrackingValues: any = {};
+    let runtimeArgs: any;
+    let extraState: any;
 
     const fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
+    if (fnKnownValue) {
+      runtimeArgs = {};
+      extraState = {};
+    }
     var ret;
     let retT: any = null;
 
@@ -102,6 +105,7 @@ const CallExpression = <any>{
     if (astArgs.isNewExpression) {
       ({ ret, retT } = handleNewExpression(getSpecialCaseArgs()));
     } else if (
+      fnKnownValue &&
       specialCasesWhereWeDontCallTheOriginalFunction[fnKnownValue] &&
       (fnKnownValue !== "String.prototype.replace" ||
         ["string", "number"].includes(typeof fnArgValues[1]))
@@ -127,9 +131,11 @@ const CallExpression = <any>{
         }
       }
 
-      const knownFnProcessor = knownFnProcessors[fnKnownValue];
-      if (knownFnProcessor) {
-        knownFnProcessor(getFnProcessorArgs());
+      if (fnKnownValue) {
+        const knownFnProcessor = knownFnProcessors[fnKnownValue];
+        if (knownFnProcessor) {
+          knownFnProcessor(getFnProcessorArgs());
+        }
       }
 
       const lastReturnStatementResultBeforeCall =
@@ -145,7 +151,7 @@ const CallExpression = <any>{
         ctx.registerEvalScript(ret.evalScript);
         ret = ret.returnValue;
         retT = ctx.lastOpTrackingResultWithoutResetting;
-      } else if (specialValuesForPostprocessing[fnKnownValue]) {
+      } else if (fnKnownValue && specialValuesForPostprocessing[fnKnownValue]) {
         try {
           retT = specialValuesForPostprocessing[fnKnownValue](
             getSpecialCaseArgs()
@@ -185,7 +191,7 @@ const CallExpression = <any>{
 
     extraTrackingValues.returnValue = [ret, retT]; // pick up value from returnStatement
 
-    if (countObjectKeys(runtimeArgs) > 0) {
+    if (runtimeArgs && countObjectKeys(runtimeArgs) > 0) {
       logData.runtimeArgs = runtimeArgs;
     }
     logData.extraArgs = extraTrackingValues;

@@ -21,7 +21,8 @@ import {
   safelyGetVariableTrackingValue,
   addLoc,
   getGetGlobalCall,
-  getTrackingVarName
+  getTrackingVarName,
+  createGetMemoArray
 } from "./babelPluginHelpers";
 import * as jsonToAst from "json-to-ast";
 import { adjustColumnForEscapeSequences } from "./adjustColumnForEscapeSequences";
@@ -140,7 +141,7 @@ const operations: Operations = {
       }
       throw "aaa";
     },
-    exec: (args, astArgs, ctx: ExecContext) => {
+    exec: function binaryExpressionExec(args, astArgs, ctx: ExecContext) {
       var { left, right } = args;
       var ret;
       left = left[0];
@@ -157,6 +158,80 @@ const operations: Operations = {
         ret = left / right;
       } else {
         throw Error("unknown bin exp operator: " + operator);
+      }
+
+      return ret;
+    }
+  },
+  logicalExpression: {
+    visitor(path) {
+      if (path.node.operator === "||") {
+        return this.createNode!(
+          {
+            // always execute the left side
+            left: ignoreNode(
+              t.sequenceExpression([
+                createSetMemoValue(
+                  MemoValueNames.lastOrLogicalExpressionResult,
+                  path.node.left,
+                  getLastOperationTrackingResultCall()
+                ),
+                createGetMemoArray(MemoValueNames.lastOrLogicalExpressionResult)
+              ])
+            ),
+            // only execute the right side if left side is falsy
+            right: ignoreNode(
+              t.logicalExpression(
+                "&&",
+                ignoreNode(
+                  t.unaryExpression(
+                    "!",
+                    createGetMemoValue(
+                      MemoValueNames.lastOrLogicalExpressionResult
+                    )
+                  )
+                ),
+                ignoredArrayExpression([
+                  path.node.right,
+                  getLastOperationTrackingResultCall()
+                ])
+              )
+            )
+          },
+          { operator: ignoredStringLiteral(path.node.operator) },
+          path.node.loc
+        );
+      }
+    },
+    traverse(operationLog, charIndex, options?) {
+      const { operator } = operationLog.astArgs;
+      const { left, right } = operationLog.args;
+
+      if (operator === "||") {
+        if (left.result.isTruthy()) {
+          return {
+            operationLog: left,
+            charIndex
+          };
+        } else {
+          return {
+            operationLog: right,
+            charIndex
+          };
+        }
+      }
+    },
+    exec: (args, astArgs, ctx: ExecContext) => {
+      var { left, right } = args;
+      var ret;
+      left = left[0];
+      right = right[0];
+
+      var { operator } = astArgs;
+      if (operator === "||") {
+        ret = left || right;
+      } else {
+        throw Error("unknown logical exp operator: " + operator);
       }
 
       return ret;
@@ -277,7 +352,7 @@ const operations: Operations = {
         this.createNode!([[ignoredStringLiteral(value)]], {}, path.node.loc)
       );
     },
-    exec: (args, astArgs, ctx: ExecContext) => {
+    exec: function stringLiteralExec(args, astArgs, ctx: ExecContext) {
       return args[0][0];
     }
   },
@@ -471,7 +546,12 @@ const operations: Operations = {
   arrayExpression: {
     argNames: ["element"],
     argIsArray: [true],
-    exec: (args, astArgs, ctx: ExecContext, logData: any) => {
+    exec: function arrayExpressionExec(
+      args,
+      astArgs,
+      ctx: ExecContext,
+      logData: any
+    ) {
       const [elementsArg] = args;
       let arr: any[] = [];
       elementsArg.forEach((el, i) => {
@@ -519,7 +599,12 @@ const operations: Operations = {
       // return statement will always return returned value
       return !!args[0];
     },
-    exec: (args, astArgs, ctx: ExecContext, logData) => {
+    exec: function returnStatementExec(
+      args,
+      astArgs,
+      ctx: ExecContext,
+      logData
+    ) {
       const [returnValueArg] = args;
       ctx.lastReturnStatementResult = [returnValueArg[0], logData.index];
       return returnValueArg[0];
@@ -562,7 +647,7 @@ const operations: Operations = {
         ]);
       }
     },
-    exec: (args, astArgs, ctx: ExecContext, logData) => {
+    exec: function identifierExec(args, astArgs, ctx: ExecContext, logData) {
       const [valueArg, allFnArgTrackingValuesArg] = args;
       if (
         astArgs &&
