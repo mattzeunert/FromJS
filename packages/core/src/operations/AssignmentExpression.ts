@@ -11,7 +11,8 @@ import {
   ignoreNode,
   createSetMemoValue,
   getLastOperationTrackingResultWithoutResettingCall,
-  getTrackingIdentifier
+  getTrackingIdentifier,
+  runIfTrackingIdentifierExists
 } from "../babelPluginHelpers";
 import traverseStringConcat from "../traverseStringConcat";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
@@ -236,8 +237,9 @@ export default <any>{
       );
       path.node.right = right;
 
-      trackingAssignment = runIfIdentifierExists(
-        getTrackingVarName(path.node.left.name),
+      trackingAssignment = runIfTrackingIdentifierExists(
+        path.node.left.name,
+        path.scope,
         ignoreNode(
           this.t.assignmentExpression(
             "=",

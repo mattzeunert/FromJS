@@ -261,6 +261,37 @@ export function runIfIdentifierExists(identifierName, thenNode) {
   );
 }
 
+export function runIfTrackingIdentifierExists(identifierName, scope, thenNode) {
+  const iN = ignoreNode;
+  if (scopeHasIdentifierWithTrackingIdentifier(scope, identifierName)) {
+    return thenNode;
+  } else {
+    return iN(
+      t.logicalExpression(
+        "&&",
+        iN(
+          skipPath(
+            t.binaryExpression(
+              "!==",
+              iN(
+                // note: we're treating undeclared and undefined the same here,
+                // undefined value is fine (should call thenNode), but undeclared
+                // shouldn't and we're calling thenNode in neither case
+                t.unaryExpression(
+                  "typeof",
+                  getTrackingIdentifier(identifierName)
+                )
+              ),
+              ignoredStringLiteral("undefined")
+            )
+          )
+        ),
+        thenNode
+      )
+    );
+  }
+}
+
 export function createSetMemoValue(key, value, trackingValue) {
   return ignoredCallExpression(FunctionNames.setMemoValue, [
     ignoredStringLiteral(key),
@@ -296,10 +327,13 @@ export function createGetMemoTrackingValue(key) {
 export const getLastOpValueCall = () =>
   ignoredCallExpression(FunctionNames.getLastOperationValueResult, []);
 
-export const safelyGetVariableTrackingValue = (identifierName, scope) => {
+function scopeHasIdentifierWithTrackingIdentifier(scope, identifierName) {
   const binding = scope.getBinding(identifierName);
+  return binding && ["var", "let", "const", "param"].includes(binding.kind);
+}
 
-  if (binding && ["var", "let", "const", "param"].includes(binding.kind)) {
+export const safelyGetVariableTrackingValue = (identifierName, scope) => {
+  if (scopeHasIdentifierWithTrackingIdentifier(scope, identifierName)) {
     return getTrackingIdentifier(identifierName);
   } else {
     // If the value has been declared as a var then we know the

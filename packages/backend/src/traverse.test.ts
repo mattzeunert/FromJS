@@ -132,6 +132,40 @@ describe("Assignment Expressions", () => {
     expect(t1LastStep.operationLog.result.primitive).toBe("a");
     expect(t1LastStep.charIndex).toBe(0);
   });
+
+  test("Can traverse if the previous value of a function argument was undefined", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function fn(a,b) {
+        if (!b) {
+          b = a
+        }
+        return a
+      }
+      return fn("a")
+    `);
+    expect(normal).toBe("a");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("a");
+    expect(t1LastStep.charIndex).toBe(0);
+  });
+
+  test("Works in strict mode when assigning a value to something without a tracking identifier", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      "use strict"
+      function fn() {}
+      function fn2() {}
+      // neither fn___tv nor fv2___tv exist here
+      fn2 = fn
+      return "ok"
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ok");
+  });
 });
 
 test("Can track values through object literals", async () => {
