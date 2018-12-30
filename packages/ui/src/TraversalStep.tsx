@@ -227,7 +227,10 @@ let TraversalStep = class TraversalStep extends React.Component<
             {hasResolvedFrame ? (
               <a
                 target="_blank"
-                href={"/viewFullCode/" + encodeURIComponent(fileName)}
+                href={
+                  "/viewFullCode/" +
+                  encodeURIComponent(fileName.replace(" (prettified)", ""))
+                }
               >
                 {fileNameLabel}
               </a>
