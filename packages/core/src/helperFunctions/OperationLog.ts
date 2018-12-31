@@ -5,6 +5,7 @@ import invokeIfFunction from "../invokeIfFunction";
 import { consoleLog } from "./logging";
 import { arrayIndex } from "../OperationTypes";
 import { countObjectKeys } from "../util";
+import { ValueTrackingValuePair } from "../types";
 
 var global = Function("return this")();
 
@@ -217,8 +218,41 @@ export default class OperationLog implements OperationLogInterface {
     this.index = index;
   }
 }
+
+interface CreateAtRuntimeArg {
+  operation: string;
+  result: any;
+  args:  // Simple arg data, something like { originValue: ["hello", 2638723923] }
+    | { [argName: string]: ValueTrackingValuePair }
+    // For object literals
+    | {
+        properties: {
+          key: any;
+          type: any;
+          value: any;
+        }[];
+      }
+    // Optimization using arrays instead of objects, e.g. for call expressions, array literals,...
+    | (ValueTrackingValuePair | ValueTrackingValuePair[])[]
+    | undefined;
+  astArgs: any;
+  extraArgs: any;
+  loc: string;
+  runtimeArgs: any;
+  index: number;
+}
+
 OperationLog.createAtRuntime = function(
-  { operation, result, args, astArgs, extraArgs, loc, runtimeArgs, index },
+  {
+    operation,
+    result,
+    args,
+    astArgs,
+    extraArgs,
+    loc,
+    runtimeArgs,
+    index
+  }: CreateAtRuntimeArg,
   knownValues
 ): OperationLogInterface {
   if (VERIFY && !loc) {
@@ -230,6 +264,8 @@ OperationLog.createAtRuntime = function(
     astArgs = undefined;
   }
 
+  // When args come into this function they contain both the actual value and
+  // the tracking value. We only want the tracking value now.
   if (Array.isArray(args)) {
     const newArgs: any[] = [];
 
@@ -261,15 +297,20 @@ OperationLog.createAtRuntime = function(
       args = undefined;
     }
   } else if (args) {
-    if (operation === "objectExpression" && args.properties) {
+    // Not sure why the (args as any) is needed, but without it the UI bundle
+    // doesn't compile
+    if (operation === "objectExpression" && (args as any).properties) {
       // todo: centralize this logic, shouldn't need to do if, see "arrayexpression" above also"
-      args.properties = args.properties.map(prop => {
-        return {
-          key: prop.key[1],
-          type: prop.type[1],
-          value: prop.value[1]
-        };
-      });
+
+      (args as any).properties = ((args as any).properties as any[]).map(
+        prop => {
+          return {
+            key: prop.key[1],
+            type: prop.type[1],
+            value: prop.value[1]
+          };
+        }
+      );
     } else {
       // only store argument operation log because ol.result === a[0]
       eachArgument(args, (arg, argName, updateArg) => {
