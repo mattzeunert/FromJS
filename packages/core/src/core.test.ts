@@ -1525,3 +1525,27 @@ it("Object.assign stores information about the source object", async () => {
   const objectAssignResult = tracking.extraArgs.propertyValue;
   expect(objectAssignResult.args.sourceObject.result.keys).toEqual(["source"]);
 });
+
+describe("Doesn't break .bind", () => {
+  it("Can still access bound context when making a plain function call", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function fn() {
+        return this.toString()
+      }
+      fn = fn.bind("abc")
+      return fn()
+    `);
+    expect(normal).toBe("abc");
+  });
+  it("Can still access bound context when calling a function with a member expression", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function fn() {
+        return this.toString()
+      }
+      fn = fn.bind("abc")
+      const obj = {fn}
+      return obj.fn()
+    `);
+    expect(normal).toBe("abc");
+  });
+});
