@@ -40,7 +40,7 @@ function getFullUrl(url) {
 export type SpecialCaseArgs = {
   ctx: ExecContext;
   object: any;
-  fnArgs: any[];
+  fnArgTrackingValues: any[];
   logData: any;
   fnArgValues: any[];
   ret: any;
@@ -76,7 +76,9 @@ function traverseObject(
   });
 }
 
-export const specialCasesWhereWeDontCallTheOriginalFunction = {
+export const specialCasesWhereWeDontCallTheOriginalFunction: {
+  [knownValueName: string]: (args: SpecialCaseArgs) => any;
+} = {
   "String.prototype.replace": ({
     ctx,
     object,
@@ -160,14 +162,7 @@ export const specialCasesWhereWeDontCallTheOriginalFunction = {
     var retT = null;
     return [ret, retT];
   },
-  "JSON.parse": ({
-    fn,
-    ctx,
-    fnArgValues,
-    args,
-
-    logData
-  }) => {
+  "JSON.parse": ({ fn, ctx, fnArgValues, args, logData }) => {
     const jsonString = fnArgValues[0];
     const parsed = fn.call(JSON, jsonString);
     var ret, retT;
@@ -237,7 +232,9 @@ export const specialCasesWhereWeDontCallTheOriginalFunction = {
 };
 
 // add tracking values to returned objects
-export const specialValuesForPostprocessing = {
+export const specialValuesForPostprocessing: {
+  [knownValueName: string]: (args: SpecialCaseArgs) => any;
+} = {
   "String.prototype.match": ({
     object,
     ctx,
@@ -346,7 +343,7 @@ export const specialValuesForPostprocessing = {
     fnArgValues,
     ret,
     context,
-    fnArgs
+    fnArgTrackingValues
   }) => {
     ctx = <ExecContext>ctx;
     const regExp = object;
@@ -360,7 +357,7 @@ export const specialValuesForPostprocessing = {
         ctx.createOperationLog({
           operation: ctx.operationTypes.execResult,
           args: {
-            string: [fnArgValues[0], fnArgs[0]]
+            string: [fnArgValues[0], fnArgTrackingValues[0]]
           },
           result: ret,
           astArgs: {},
@@ -378,7 +375,7 @@ export const specialValuesForPostprocessing = {
           ctx.createOperationLog({
             operation: ctx.operationTypes.execResult,
             args: {
-              string: [fnArgValues[0], fnArgs[0]]
+              string: [fnArgValues[0], fnArgTrackingValues[0]]
             },
             result: ret,
             astArgs: {},
@@ -394,7 +391,7 @@ export const specialValuesForPostprocessing = {
   },
   "String.prototype.split": ({
     object,
-    fnArgs,
+    fnArgTrackingValues,
     ctx,
     logData,
     fnArgValues,
@@ -424,7 +421,7 @@ export const specialValuesForPostprocessing = {
           operation: ctx.operationTypes.splitResult,
           args: {
             string: [str, strT],
-            separator: [fnArgValues[0], fnArgs[0]]
+            separator: [fnArgValues[0], fnArgTrackingValues[0]]
           },
           runtimeArgs: {
             splitResultIndex: i
@@ -437,9 +434,9 @@ export const specialValuesForPostprocessing = {
       );
     });
   },
-  "Array.prototype.push": ({ object, fnArgs, ctx, logData }) => {
-    const arrayLengthBeforePush = object.length - fnArgs.length;
-    fnArgs.forEach((arg, i) => {
+  "Array.prototype.push": ({ object, fnArgTrackingValues, ctx, logData }) => {
+    const arrayLengthBeforePush = object.length - fnArgTrackingValues.length;
+    fnArgTrackingValues.forEach((arg, i) => {
       const arrayIndex = arrayLengthBeforePush + i;
       ctx.trackObjectPropertyAssignment(
         object,
@@ -448,7 +445,7 @@ export const specialValuesForPostprocessing = {
         ctx.createArrayIndexOperationLog(arrayIndex, logData.loc)
       );
     });
-    return fnArgs[fnArgs.length - 1];
+    return fnArgTrackingValues[fnArgTrackingValues.length - 1];
   },
   "Array.prototype.pop": ({ extraState }) => {
     return extraState.poppedValueTrackingValue;
@@ -483,7 +480,7 @@ export const specialValuesForPostprocessing = {
     });
     return retT;
   },
-  "Object.assign": ({ ctx, logData, fnArgValues, fnArgs }) => {
+  "Object.assign": ({ ctx, logData, fnArgValues, fnArgTrackingValues }) => {
     ctx = <ExecContext>ctx;
     const target = fnArgValues[0];
     const sources = fnArgValues.slice(1);
@@ -495,7 +492,7 @@ export const specialValuesForPostprocessing = {
         const valueTrackingValue = ctx.createOperationLog({
           operation: ctx.operationTypes.objectAssignResult,
           args: {
-            sourceObject: [source, fnArgs[sourceIndex + 1]],
+            sourceObject: [source, fnArgTrackingValues[sourceIndex + 1]],
             value: [null, ctx.getObjectPropertyTrackingValue(source, key)],
             call: [null, logData.index]
           },
@@ -541,8 +538,7 @@ export const specialValuesForPostprocessing = {
     object,
     extraState,
     ctx,
-    retT,
-    fnArgs,
+    fnArgTrackingValues,
     fnArgValues
   }) => {
     // Note: O(n) is not very efficient...
@@ -558,7 +554,7 @@ export const specialValuesForPostprocessing = {
     }
 
     for (let i = 0; i <= unshiftedItems.length; i++) {
-      ctx.trackObjectPropertyAssignment(array, i, fnArgs[i], null);
+      ctx.trackObjectPropertyAssignment(array, i, fnArgTrackingValues[i], null);
     }
 
     return extraState.shiftedTrackingValue;
@@ -684,10 +680,9 @@ export const specialValuesForPostprocessing = {
   },
   "Array.prototype.join": ({
     object,
-    fnArgs,
+    fnArgTrackingValues,
     ctx,
     logData,
-
     retT,
     extraTrackingValues
   }) => {
@@ -707,8 +702,8 @@ export const specialValuesForPostprocessing = {
         arrayValueTrackingValue
       ];
     }
-    if (fnArgs[0]) {
-      extraTrackingValues["separator"] = [null, fnArgs[0]];
+    if (fnArgTrackingValues[0]) {
+      extraTrackingValues["separator"] = [null, fnArgTrackingValues[0]];
     } else {
       extraTrackingValues["separator"] = [
         null,
@@ -725,7 +720,7 @@ export const specialValuesForPostprocessing = {
   },
   "Array.prototype.concat": ({
     object,
-    fnArgs,
+    fnArgTrackingValues,
     ctx,
     logData,
     fnArgValues,
@@ -763,7 +758,7 @@ export const specialValuesForPostprocessing = {
           i++;
         });
       } else {
-        trackProp(i, concatValue, fnArgs[valueIndex - 1]);
+        trackProp(i, concatValue, fnArgTrackingValues[valueIndex - 1]);
         i++;
       }
     });
@@ -797,38 +792,48 @@ export const specialValuesForPostprocessing = {
       }
     });
   },
-  "document.createElement": ({
-    fnArgs,
-
-    ret
-  }) => {
-    addOriginInfoToCreatedElement(ret, fnArgs[0], "document.createElement");
+  "document.createElement": ({ fnArgTrackingValues, ret }) => {
+    addOriginInfoToCreatedElement(
+      ret,
+      fnArgTrackingValues[0],
+      "document.createElement"
+    );
   },
-  "document.createTextNode": ({
-    fnArgs,
-
-    ret
-  }) => {
+  "document.createTextNode": ({ fnArgTrackingValues, ret }) => {
     addElOrigin(ret, "textValue", {
-      trackingValue: fnArgs[0]
+      trackingValue: fnArgTrackingValues[0]
     });
   },
-  "document.createComment": ({ fnArgs, ret }) => {
+  "document.createComment": ({ fnArgTrackingValues, ret }) => {
     addElOrigin(ret, "textValue", {
-      trackingValue: fnArgs[0]
+      trackingValue: fnArgTrackingValues[0]
     });
   },
-  "HTMLElement.prototype.cloneNode": ({ ret, object, fnArgs, fnArgValues }) => {
+  "HTMLElement.prototype.cloneNode": ({
+    ret,
+    object,
+    fnArgTrackingValues,
+    fnArgValues
+  }) => {
     const isDeep = !!fnArgValues[0];
     processClonedNode(ret, object, { isDeep });
   },
-  "document.importNode": ({ ret, object, fnArgs, fnArgValues }) => {
+  "document.importNode": ({
+    ret,
+    object,
+    fnArgTrackingValues,
+    fnArgValues
+  }) => {
     const importedNode = fnArgValues[0];
     const isDeep = !!fnArgValues[1];
     processClonedNode(ret, importedNode, { isDeep });
   },
-  "HTMLElement.prototype.setAttribute": ({ object, fnArgs, fnArgValues }) => {
-    const [attrNameArg, attrValueArg] = fnArgs;
+  "HTMLElement.prototype.setAttribute": ({
+    object,
+    fnArgTrackingValues,
+    fnArgValues
+  }) => {
+    const [attrNameArg, attrValueArg] = fnArgTrackingValues;
     let attrName = fnArgValues[0];
     addElAttributeNameOrigin(object, attrName, {
       trackingValue: attrNameArg
@@ -839,7 +844,7 @@ export const specialValuesForPostprocessing = {
   },
   "HTMLElement.prototype.insertAdjacentHTML": ({
     object,
-    fnArgs,
+    fnArgTrackingValues,
     fnArgValues
   }) => {
     const position = fnArgValues[0].toLowerCase();
@@ -859,30 +864,31 @@ export const specialValuesForPostprocessing = {
 
     mapInnerHTMLAssignment(
       el,
-      [html, fnArgs[1]],
+      [html, fnArgTrackingValues[1]],
       "insertAdjacentHTML",
       undefined,
       undefined,
       childNodesBefore
     );
   },
-  "DOMParser.prototype.parseFromString": ({ fnArgValues, fnArgs, ret }) => {
+  "DOMParser.prototype.parseFromString": ({
+    fnArgValues,
+    fnArgTrackingValues,
+    ret
+  }) => {
     const html = fnArgValues[0];
-    const htmlArg = [html, fnArgs[0]];
+    const htmlArg = [html, fnArgTrackingValues[0]];
 
     const doc = ret;
 
-    mapPageHtml(doc, html, fnArgs[0], "parseFromString");
+    mapPageHtml(doc, html, fnArgTrackingValues[0], "parseFromString");
   },
   "JSON.stringify": ({
-    object,
-    fnArgs,
+    fnArgTrackingValues,
     ctx,
-    logData,
     fnArgValues,
     ret,
-    runtimeArgs,
-    extraTrackingValues
+    runtimeArgs
   }: SpecialCaseArgs) => {
     const stringifiedObject = fnArgValues[0];
     const jsonIndexToTrackingValue = {};
@@ -896,7 +902,7 @@ export const specialValuesForPostprocessing = {
     const objectAfterParse = JSON.parse(jsonString);
 
     if (["boolean", "string", "number"].includes(typeof stringifiedObject)) {
-      jsonIndexToTrackingValue[0] = fnArgs[0];
+      jsonIndexToTrackingValue[0] = fnArgTrackingValues[0];
     } else {
       const ast = jsonToAst(jsonString);
 
@@ -1232,12 +1238,12 @@ export interface FnProcessorArgs {
   setFnArgForApply: (argIndex: any, argValue: any) => void;
   ctx: ExecContext;
   setContext: (c: any) => void;
-  fnArgs: any[];
+  fnArgTrackingValues: any[];
   logData: any;
   object: any;
   setFunction: any;
   fnArgValuesAtInvocation: any[];
-  fnArgsAtInvocation: any[];
+  fnArgTrackingValuesAtInvocation: any[];
 }
 
 export const knownFnProcessors = {
@@ -1249,7 +1255,7 @@ export const knownFnProcessors = {
     setFnArgForApply,
     ctx,
     setContext,
-    fnArgs,
+    fnArgTrackingValues,
     logData
   }: FnProcessorArgs) => {
     extraState.mapResultTrackingValues = [];
@@ -1261,7 +1267,7 @@ export const knownFnProcessors = {
         index.toString()
       );
       if (fnArgValues.length > 1) {
-        setContext([fnArgValues[1], fnArgs[1]]);
+        setContext([fnArgValues[1], fnArgTrackingValues[1]]);
       } else {
         setContext([this, null]);
       }
@@ -1284,12 +1290,12 @@ export const knownFnProcessors = {
     getFnArgForApply,
     setFnArgForApply,
     ctx,
-    fnArgs,
+    fnArgTrackingValues,
     logData,
     object
   }: FnProcessorArgs) => {
-    if (fnArgs.length > 1) {
-      extraState.reduceResultTrackingValue = fnArgs[1];
+    if (fnArgTrackingValues.length > 1) {
+      extraState.reduceResultTrackingValue = fnArgTrackingValues[1];
     } else {
       // "If no initial value is supplied, the first element in the array will be used."
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce

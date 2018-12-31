@@ -40,7 +40,7 @@ const CallExpression = <any>{
     var object = context[0];
 
     var fn = fnArg[0];
-    var fnArgs: any[] = [];
+    var fnArgTrackingValues: any[] = [];
     var fnArgValues: any[] = [];
 
     for (var i = 0; i < argList.length; i++) {
@@ -52,11 +52,13 @@ const CallExpression = <any>{
         const argumentArray = arg[0];
         argumentArray.forEach(argument => {
           fnArgValues.push(argument);
-          fnArgs.push(ctx.getEmptyTrackingInfo("spreadArgument", logData.loc));
+          fnArgTrackingValues.push(
+            ctx.getEmptyTrackingInfo("spreadArgument", logData.loc)
+          );
         });
       } else {
         fnArgValues.push(arg[0]);
-        fnArgs.push(arg[1]);
+        fnArgTrackingValues.push(arg[1]);
       }
     }
 
@@ -68,25 +70,25 @@ const CallExpression = <any>{
     // 1) The args passed into callExpression.exec
     // 2) The args passed into .apply/argTrackingValues, and used for special case handlers
     let fnAtInvocation = functionIsCallOrApply ? context[0] : fn;
-    let fnArgsAtInvocation = fnArgs;
+    let fnArgTrackingValuesAtInvocation = fnArgTrackingValues;
     let fnArgValuesAtInvocation = fnArgValues;
 
     if (functionIsCall) {
-      fnArgsAtInvocation = fnArgs.slice(1);
+      fnArgTrackingValuesAtInvocation = fnArgTrackingValues.slice(1);
       fnArgValuesAtInvocation = fnArgValues.slice(1);
     } else if (functionIsApply) {
       ({
-        fnArgsAtInvocation,
+        fnArgTrackingValuesAtInvocation,
         fnArgValuesAtInvocation
       } = getInvocationArgsForApply(
         fnArgValues,
-        fnArgsAtInvocation,
+        fnArgTrackingValuesAtInvocation,
         fnArgValuesAtInvocation,
         ctx
       ));
     }
 
-    ctx.argTrackingInfo = fnArgsAtInvocation;
+    ctx.argTrackingInfo = fnArgTrackingValuesAtInvocation;
 
     let extraTrackingValues: any = {};
     let runtimeArgs: any;
@@ -174,7 +176,10 @@ const CallExpression = <any>{
       if (functionIsCallOrApply && fnKnownValue) {
         let callOrApplyInvocationArgs = {};
         fnArgValuesAtInvocation.forEach((arg, i) => {
-          callOrApplyInvocationArgs["arg" + i] = [null, fnArgsAtInvocation[i]];
+          callOrApplyInvocationArgs["arg" + i] = [
+            null,
+            fnArgTrackingValuesAtInvocation[i]
+          ];
         });
 
         extraTrackingValues.call = [
@@ -203,7 +208,7 @@ const CallExpression = <any>{
         fn,
         ctx,
         object,
-        fnArgs: fnArgsAtInvocation,
+        fnArgTrackingValues: fnArgTrackingValuesAtInvocation,
         fnArgValues: fnArgValuesAtInvocation,
         args,
         extraTrackingValues,
@@ -217,7 +222,7 @@ const CallExpression = <any>{
       if (functionIsCallOrApply) {
         specialCaseArgs.fn = object;
         specialCaseArgs.object = fnArgValues[0];
-        specialCaseArgs.context = [fnArgValues[0], fnArgs[0]];
+        specialCaseArgs.context = [fnArgValues[0], fnArgTrackingValues[0]];
       }
 
       return specialCaseArgs;
@@ -262,12 +267,12 @@ const CallExpression = <any>{
         setFnArgForApply,
         ctx,
         setContext,
-        fnArgs,
+        fnArgTrackingValues,
         logData,
         object,
         setFunction,
         fnArgValuesAtInvocation,
-        fnArgsAtInvocation
+        fnArgTrackingValuesAtInvocation
       };
 
       return fnProcessorArgs;
@@ -385,7 +390,7 @@ export default CallExpression;
 
 function getInvocationArgsForApply(
   fnArgValues: any[],
-  fnArgsAtInvocation: any[],
+  fnArgTrackingValuesAtInvocation: any[],
   fnArgValuesAtInvocation: any[],
   ctx: ExecContext
 ) {
@@ -393,16 +398,18 @@ function getInvocationArgsForApply(
   if (!("length" in argArray)) {
     // hmm can this even happen in a program that's not already broken?
     consoleLog("can this even happen?");
-    fnArgsAtInvocation = [];
+    fnArgTrackingValuesAtInvocation = [];
   } else {
-    fnArgsAtInvocation = [];
+    fnArgTrackingValuesAtInvocation = [];
     fnArgValuesAtInvocation = [];
     for (let i = 0; i < argArray.length; i++) {
       fnArgValuesAtInvocation.push(argArray[i]);
-      fnArgsAtInvocation.push(ctx.getObjectPropertyTrackingValue(argArray, i));
+      fnArgTrackingValuesAtInvocation.push(
+        ctx.getObjectPropertyTrackingValue(argArray, i)
+      );
     }
   }
-  return { fnArgsAtInvocation, fnArgValuesAtInvocation };
+  return { fnArgTrackingValuesAtInvocation, fnArgValuesAtInvocation };
 }
 
 function handleNewExpression({
