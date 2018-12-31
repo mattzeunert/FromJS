@@ -403,6 +403,9 @@ const operations: Operations = {
       return args.literal[0];
     },
     visitor(path) {
+      if (path.parentPath.node.type === "TaggedTemplateExpression") {
+        return;
+      }
       let literalParts = [...path.node.expressions, ...path.node.quasis];
       literalParts = sortBy(literalParts, p => {
         const start = p.loc.start;
