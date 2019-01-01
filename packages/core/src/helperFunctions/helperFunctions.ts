@@ -416,7 +416,8 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
   return resultArr;
 };
 global[FunctionNames.expandArrayForSpreadElement] = function(arr) {
-  if (arr instanceof Map) {
+  if (!Array.isArray(arr)) {
+    // Map or arguments object
     arr = Array.from(arr);
   }
   return arr.map((elem, i) => {

@@ -31,6 +31,14 @@ window["fromJSEval"] = function(code) {
 
 window["__fromJSEval"] = function(code) {
   function compile(code, url, done) {
+    if (code.includes("__didInitializeDataFlowTracking")) {
+      // Code is already instrumented...
+      // this can happen for example if a JS file is fetched via ajax and then
+      // eval'd
+      return {
+        code
+      };
+    }
     const babelResult = Babel.transform(
       code,
       getBabelOptions(babelPlugin, {}, url)
