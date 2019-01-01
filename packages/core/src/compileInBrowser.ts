@@ -35,9 +35,11 @@ window["__fromJSEval"] = function(code) {
       // Code is already instrumented...
       // this can happen for example if a JS file is fetched via ajax and then
       // eval'd
-      return {
-        code
-      };
+      done({
+        code,
+        locs: []
+      });
+      return;
     }
     const babelResult = Babel.transform(
       code,

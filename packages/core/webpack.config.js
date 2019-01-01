@@ -29,7 +29,7 @@ module.exports = {
   optimization: {
     // Minimize because hopefully that'll speed up execution a bit,
     // e.g. I think V8 decides function inlining based on code size sometimes
-    minimize: false
+    minimize: true
   },
 
   // devtool: "source-map",
