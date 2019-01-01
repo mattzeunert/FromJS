@@ -50,23 +50,29 @@ export default <any>{
       var objT = objArg[1];
       var propNameT = propertyNameArg[1];
 
-      var currentValue = obj[propName];
-      var currentValueT = ctx.createOperationLog({
-        operation: "memexpAsLeftAssExp",
-        args: {
-          object: [obj, objT],
-          propertyName: [propName, propNameT]
-        },
-        extraArgs: {
-          propertyValue: [
-            currentValue,
-            ctx.getObjectPropertyTrackingValue(obj, propName)
-          ]
-        },
-        astArgs: {},
-        result: currentValue,
-        loc: logData.loc
-      });
+      var currentValue, currentValueT;
+      if (operator !== "=") {
+        // For simple assignment we don't need to know the current value,
+        // avoid problems where getter sets a property value which would
+        // cause infinite recursion
+        currentValue = obj[propName];
+        currentValueT = ctx.createOperationLog({
+          operation: "memexpAsLeftAssExp",
+          args: {
+            object: [obj, objT],
+            propertyName: [propName, propNameT]
+          },
+          extraArgs: {
+            propertyValue: [
+              currentValue,
+              ctx.getObjectPropertyTrackingValue(obj, propName)
+            ]
+          },
+          astArgs: {},
+          result: currentValue,
+          loc: logData.loc
+        });
+      }
 
       var argument = argumentArg[0];
       let newValue;

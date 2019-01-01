@@ -1588,3 +1588,20 @@ describe("Doesn't break .bind", () => {
     expect(normal).toBe("abc");
   });
 });
+
+it("Should not break getter that assigns to itself", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+  const obj = {
+    set sth(val) {
+      this._sth = val
+    },
+    get sth() {
+      // should not be infinite recursion
+      this.sth = "abc"
+      return "xyz"
+    }
+  }
+  return obj.sth
+`);
+  expect(normal).toBe("xyz");
+});
