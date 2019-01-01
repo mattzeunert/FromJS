@@ -362,9 +362,11 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
   type,
   namedParamCount
 ) {
-  if (arr instanceof Map) {
+  if (!Array.isArray(arr)) {
+    // e.g. Maps or arguments objects
     arr = Array.from(arr);
   }
+
   if (type === "forOf") {
     return arr.map(val => {
       return global[FunctionNames.expandArrayForArrayPattern](

@@ -50,12 +50,17 @@ const CallExpression = <any>{
         astArgs.spreadArgumentIndices.includes(i)
       ) {
         const argumentArray = arg[0];
-        argumentArray.forEach(argument => {
+        for (
+          var spreadArrayArgumentIndex = 0;
+          spreadArrayArgumentIndex < argumentArray.length;
+          spreadArrayArgumentIndex++
+        ) {
+          const argument = argumentArray[spreadArrayArgumentIndex];
           fnArgValues.push(argument);
           fnArgTrackingValues.push(
             ctx.getEmptyTrackingInfo("spreadArgument", logData.loc)
           );
-        });
+        }
       } else {
         fnArgValues.push(arg[0]);
         fnArgTrackingValues.push(arg[1]);

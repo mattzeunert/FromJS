@@ -1299,7 +1299,21 @@ describe("Doesn't break when using ES6+ features", () => {
       const nums1 = [1,2]
       const nums2 = [3,4]
       return add(...nums1, ...nums2)
-  `);
+    `);
+
+    expect(normal).toBe(10);
+  });
+
+  it("It doesn't break spread parameter arguments that are arguments objects", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function add(a, b, c, d) {
+        return a + b + c + d
+      }
+      function fn() {
+        return add(...arguments)
+      }
+      return fn(1, 2, 3, 4)
+    `);
 
     expect(normal).toBe(10);
   });
