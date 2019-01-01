@@ -353,7 +353,13 @@ const CallExpression = <any>{
     }
 
     if (isMemberExpressionCall) {
-      contextArg = ignoredCallExpression(getLastMemberExpressionObject, []);
+      if (callee.object.type === "Super") {
+        // super is not transformed by member expression visitor,
+        // so get last member expression object is not updated
+        contextArg = ignoredArrayExpression([this.t.thisExpression()]);
+      } else {
+        contextArg = ignoredCallExpression(getLastMemberExpressionObject, []);
+      }
     } else {
       contextArg = [
         ignoredIdentifier("undefined"),

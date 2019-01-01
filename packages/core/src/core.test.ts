@@ -1200,6 +1200,31 @@ describe("Doesn't break when using ES6+ features", () => {
 
       expect(normal).toBe(4);
     });
+
+    it("Can still access bound context when call to super method is made", async () => {
+      const { normal, tracking, code } = await instrumentAndRun(
+        `
+        class K {
+          constructor() {
+            this.sth = "abc"
+          }
+          getValue() {
+            return this.sth
+          }
+        }
+        class C extends K {
+          getV() {
+            const obj = {sth: "xyz"}
+            obj.yyy
+            return super.getValue()
+          }
+        }
+        const k = new C()
+        return k.getV()
+      `
+      );
+      expect(normal).toBe("abc");
+    });
   });
 
   it("Doesn't break when using array destructuring in a for of statement", async () => {
