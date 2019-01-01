@@ -237,6 +237,28 @@ const operations: Operations = {
       return ret;
     }
   },
+  thisExpression: {
+    exec(args, astArgs, ctx: ExecContext) {
+      return args.value[0];
+    },
+    traverse: identifyTraverseFunction,
+    visitor(path) {
+      console.log("aaa", FunctionNames.getFunctionContextTrackingValue);
+      return this.createNode!(
+        {
+          value: [
+            ignoreNode(path.node),
+            ignoredCallExpression(
+              FunctionNames.getFunctionContextTrackingValue,
+              []
+            )
+          ]
+        },
+        {},
+        path.node.loc
+      );
+    }
+  },
   conditionalExpression: {
     exec: (args, astArgs, ctx: ExecContext) => {
       return args.result[0];

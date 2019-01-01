@@ -77,7 +77,11 @@ const CallExpression = <any>{
     let fnAtInvocation = functionIsCallOrApply ? context[0] : fn;
     let fnArgTrackingValuesAtInvocation = fnArgTrackingValues;
     let fnArgValuesAtInvocation = fnArgValues;
+    let fnContextAtInvocation: ValueTrackingValuePair = context;
 
+    if (functionIsCallOrApply) {
+      fnContextAtInvocation = [fnArgValues[0], fnArgTrackingValues[0]];
+    }
     if (functionIsCall) {
       fnArgTrackingValuesAtInvocation = fnArgTrackingValues.slice(1);
       fnArgValuesAtInvocation = fnArgValues.slice(1);
@@ -94,6 +98,7 @@ const CallExpression = <any>{
     }
 
     ctx.argTrackingInfo = fnArgTrackingValuesAtInvocation;
+    ctx.functionContextTrackingValue = fnContextAtInvocation[1];
 
     let extraTrackingValues: any = {};
     let runtimeArgs: any;

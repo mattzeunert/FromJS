@@ -21,6 +21,7 @@ export interface ExecContext {
   hasInstrumentationFunction: boolean;
   operationTypes: any;
   argTrackingInfo: any;
+  functionContextTrackingValue: number | null;
   global: any;
   registerEvalScript(evalScript: any): void;
   knownValues: KnownValues;

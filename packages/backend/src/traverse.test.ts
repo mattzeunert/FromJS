@@ -1965,3 +1965,19 @@ it("Can traverse String toLowerCase/toUpperCase", async () => {
   var step = await traverseAndGetLastStep(tracking, 1);
   expect(step.operationLog.operation).toBe("stringLiteral");
 });
+
+it("Can traverse this arguments", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    String.prototype.appendA = function() {
+      return String(this)  + "a"
+    }
+    return "b".appendA()
+  `
+  );
+
+  expect(normal).toBe("ba");
+
+  var step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+});

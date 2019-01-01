@@ -12,7 +12,7 @@ import { getStoreLogsWorker } from "./storeLogsWorker";
 import * as OperationTypes from "../OperationTypes";
 import { mapPageHtml } from "../mapPageHtml";
 import mapInnerHTMLAssignment from "../operations/domHelpers/mapInnerHTMLAssignment";
-import { CreateOperationLogArgs } from "../types";
+import { CreateOperationLogArgs, ValueTrackingValuePair } from "../types";
 
 const accessToken = "ACCESS_TOKEN_PLACEHOLDER";
 
@@ -188,6 +188,7 @@ global[FunctionNames.getGlobal] = function() {
 };
 
 var argTrackingInfo = null;
+var functionContextTrackingValue = null;
 
 global[FunctionNames.getFunctionArgTrackingInfo] = function getArgTrackingInfo(
   index
@@ -206,6 +207,9 @@ global[FunctionNames.getFunctionArgTrackingInfo] = function getArgTrackingInfo(
     return argTrackingInfo;
   }
   return argTrackingInfo[index];
+};
+global[FunctionNames.getFunctionContextTrackingValue] = function() {
+  return functionContextTrackingValue;
 };
 
 global.getTrackingAndNormalValue = function(value) {
@@ -521,6 +525,9 @@ const ctx: ExecContext = {
       info.forEach(trackingValue => validateTrackingValue(trackingValue));
     }
     argTrackingInfo = info;
+  },
+  set functionContextTrackingValue(tv: number) {
+    functionContextTrackingValue = tv;
   },
   get lastOperationType() {
     return lastOperationType;

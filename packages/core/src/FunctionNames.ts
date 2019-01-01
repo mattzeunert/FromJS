@@ -2,6 +2,7 @@ export const getLastOperationTrackingResult = "__loT";
 export const getLastOperationTrackingResultWithoutResetting = "_loTNR";
 export const getLastOperationValueResult = "__loV";
 export const getFunctionArgTrackingInfo = "__fnArg";
+export const getFunctionContextTrackingValue = "__fnCtxTV";
 export const doOperation = "__op";
 export const setMemoValue = "__setM";
 export const getMemoValue = "__getM";
