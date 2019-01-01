@@ -179,6 +179,10 @@ let TraversalStep = class TraversalStep extends React.Component<
           operationTypeDetail =
             "HTMLInputElement." + operationLog.args.propName.result.primitive;
         }
+        if (knownTypes.includes("WebSocketMessage")) {
+          operationTypeDetail =
+            "WebSocketMessage." + operationLog.args.propName.result.primitive;
+        }
       } else if (operationLog.operation === "fetchResponse") {
         operationTypeDetail = operationLog.runtimeArgs.url;
       } else if (operationLog.operation === "XMLHttpRequest.responseText") {

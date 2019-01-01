@@ -243,7 +243,6 @@ const operations: Operations = {
     },
     traverse: identifyTraverseFunction,
     visitor(path) {
-      console.log("aaa", FunctionNames.getFunctionContextTrackingValue);
       return this.createNode!(
         {
           value: [
