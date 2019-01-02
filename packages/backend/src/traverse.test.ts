@@ -1981,3 +1981,16 @@ it("Can traverse this arguments", async () => {
   var step = await traverseAndGetLastStep(tracking, 0);
   expect(step.operationLog.operation).toBe("stringLiteral");
 });
+
+it("Can traverse Number.prototype.toFixed calls", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    return (5).toFixed(2)
+  `
+  );
+
+  expect(normal).toBe("5.00");
+
+  var step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("numericLiteral");
+});
