@@ -237,6 +237,27 @@ const operations: Operations = {
       return ret;
     }
   },
+  thisExpression: {
+    exec(args, astArgs, ctx: ExecContext) {
+      return args.value[0];
+    },
+    traverse: identifyTraverseFunction,
+    visitor(path) {
+      return this.createNode!(
+        {
+          value: [
+            ignoreNode(path.node),
+            ignoredCallExpression(
+              FunctionNames.getFunctionContextTrackingValue,
+              []
+            )
+          ]
+        },
+        {},
+        path.node.loc
+      );
+    }
+  },
   conditionalExpression: {
     exec: (args, astArgs, ctx: ExecContext) => {
       return args.result[0];
@@ -403,6 +424,9 @@ const operations: Operations = {
       return args.literal[0];
     },
     visitor(path) {
+      if (path.parentPath.node.type === "TaggedTemplateExpression") {
+        return;
+      }
       let literalParts = [...path.node.expressions, ...path.node.quasis];
       literalParts = sortBy(literalParts, p => {
         const start = p.loc.start;

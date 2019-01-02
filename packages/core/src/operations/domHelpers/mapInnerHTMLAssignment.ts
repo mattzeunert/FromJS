@@ -15,7 +15,12 @@ const config = {
 };
 
 function tagTypeHasClosingTag(tagName) {
-  return document.createElement(tagName).outerHTML.indexOf("></") !== -1;
+  try {
+    return document.createElement(tagName).outerHTML.indexOf("></") !== -1;
+  } catch (err) {
+    // For CustomElements createElement fails sometimes
+    return true;
+  }
 }
 
 // tries to describe the relationship between an assigned innerHTML value

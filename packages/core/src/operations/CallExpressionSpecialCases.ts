@@ -1160,6 +1160,7 @@ export function traverseKnownFunction({
         charIndex: charIndex - closestLoc.index
       };
     case "Number.prototype.toString":
+    case "Number.prototype.toFixed":
       return {
         operationLog: operationLog.args.context,
         charIndex: charIndex

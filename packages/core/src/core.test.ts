@@ -1200,6 +1200,31 @@ describe("Doesn't break when using ES6+ features", () => {
 
       expect(normal).toBe(4);
     });
+
+    it("Can still access bound context when call to super method is made", async () => {
+      const { normal, tracking, code } = await instrumentAndRun(
+        `
+        class K {
+          constructor() {
+            this.sth = "abc"
+          }
+          getValue() {
+            return this.sth
+          }
+        }
+        class C extends K {
+          getV() {
+            const obj = {sth: "xyz"}
+            obj.yyy
+            return super.getValue()
+          }
+        }
+        const k = new C()
+        return k.getV()
+      `
+      );
+      expect(normal).toBe("abc");
+    });
   });
 
   it("Doesn't break when using array destructuring in a for of statement", async () => {
@@ -1274,7 +1299,21 @@ describe("Doesn't break when using ES6+ features", () => {
       const nums1 = [1,2]
       const nums2 = [3,4]
       return add(...nums1, ...nums2)
-  `);
+    `);
+
+    expect(normal).toBe(10);
+  });
+
+  it("It doesn't break spread parameter arguments that are arguments objects", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function add(a, b, c, d) {
+        return a + b + c + d
+      }
+      function fn() {
+        return add(...arguments)
+      }
+      return fn(1, 2, 3, 4)
+    `);
 
     expect(normal).toBe(10);
   });
@@ -1350,6 +1389,21 @@ describe("Doesn't break when using ES6+ features", () => {
     `);
 
     expect(normal).toBe("xy");
+  });
+
+  it("Doesn't break tagged template literals", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function t(strings, ...values) { 
+        let str = '';
+        strings.forEach((string, i) => {
+           str += string + (values[i] || "").toUpperCase();
+        });
+        return str + "!";
+      }
+      return t${'`Hello ${"World"}`'}
+    `);
+
+    expect(normal).toBe("Hello WORLD!");
   });
 });
 
@@ -1509,4 +1563,45 @@ it("Object.assign stores information about the source object", async () => {
   expect(normal).toBe(1);
   const objectAssignResult = tracking.extraArgs.propertyValue;
   expect(objectAssignResult.args.sourceObject.result.keys).toEqual(["source"]);
+});
+
+describe("Doesn't break .bind", () => {
+  it("Can still access bound context when making a plain function call", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function fn() {
+        return this.toString()
+      }
+      fn = fn.bind("abc")
+      return fn()
+    `);
+    expect(normal).toBe("abc");
+  });
+  it("Can still access bound context when calling a function with a member expression", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      function fn() {
+        return this.toString()
+      }
+      fn = fn.bind("abc")
+      const obj = {fn}
+      return obj.fn()
+    `);
+    expect(normal).toBe("abc");
+  });
+});
+
+it("Should not break getter that assigns to itself", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+  const obj = {
+    set sth(val) {
+      this._sth = val
+    },
+    get sth() {
+      // should not be infinite recursion
+      this.sth = "abc"
+      return "xyz"
+    }
+  }
+  return obj.sth
+`);
+  expect(normal).toBe("xyz");
 });

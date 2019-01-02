@@ -12,7 +12,7 @@ import { getStoreLogsWorker } from "./storeLogsWorker";
 import * as OperationTypes from "../OperationTypes";
 import { mapPageHtml } from "../mapPageHtml";
 import mapInnerHTMLAssignment from "../operations/domHelpers/mapInnerHTMLAssignment";
-import { CreateOperationLogArgs } from "../types";
+import { CreateOperationLogArgs, ValueTrackingValuePair } from "../types";
 
 const accessToken = "ACCESS_TOKEN_PLACEHOLDER";
 
@@ -188,6 +188,7 @@ global[FunctionNames.getGlobal] = function() {
 };
 
 var argTrackingInfo = null;
+var functionContextTrackingValue = null;
 
 global[FunctionNames.getFunctionArgTrackingInfo] = function getArgTrackingInfo(
   index
@@ -206,6 +207,9 @@ global[FunctionNames.getFunctionArgTrackingInfo] = function getArgTrackingInfo(
     return argTrackingInfo;
   }
   return argTrackingInfo[index];
+};
+global[FunctionNames.getFunctionContextTrackingValue] = function() {
+  return functionContextTrackingValue;
 };
 
 global.getTrackingAndNormalValue = function(value) {
@@ -362,9 +366,11 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
   type,
   namedParamCount
 ) {
-  if (arr instanceof Map) {
+  if (!Array.isArray(arr)) {
+    // e.g. Maps or arguments objects
     arr = Array.from(arr);
   }
+
   if (type === "forOf") {
     return arr.map(val => {
       return global[FunctionNames.expandArrayForArrayPattern](
@@ -414,7 +420,8 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
   return resultArr;
 };
 global[FunctionNames.expandArrayForSpreadElement] = function(arr) {
-  if (arr instanceof Map) {
+  if (!Array.isArray(arr)) {
+    // Map or arguments object
     arr = Array.from(arr);
   }
   return arr.map((elem, i) => {
@@ -518,6 +525,9 @@ const ctx: ExecContext = {
       info.forEach(trackingValue => validateTrackingValue(trackingValue));
     }
     argTrackingInfo = info;
+  },
+  set functionContextTrackingValue(tv: number) {
+    functionContextTrackingValue = tv;
   },
   get lastOperationType() {
     return lastOperationType;

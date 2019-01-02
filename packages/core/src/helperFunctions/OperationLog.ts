@@ -74,6 +74,22 @@ export function getSerializedValueObject(value, type, knownValues) {
     knownTypes = [];
     knownTypes.push("HTMLInputElement");
   }
+  try {
+    if (
+      type === "object" &&
+      "lastEventId" in value &&
+      typeof value.target === "object" &&
+      typeof value.target.url === "string" &&
+      value.target.url.startsWith("ws") &&
+      value.type === "message"
+    ) {
+      knownTypes = [];
+      knownTypes.push("WebSocketMessage");
+    }
+  } catch (err) {
+    // some cases where there are getters that can't
+    // be invoked
+  }
 
   var primitive;
   if (["string", "number", "boolean", "null"].includes(type)) {

@@ -280,6 +280,9 @@ class ProxyInstrumenter {
   }
 
   async compileHtmlInlineScriptTags(body) {
+    // disable content security policy so worker blob can be loaded
+    body = body.replace(/http-equiv="Content-Security-Policy"/g, "");
+
     var MagicString = require("magic-string");
     var magicHtml = new MagicString(body);
     const parse5 = require("parse5");

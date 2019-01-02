@@ -50,12 +50,17 @@ const CallExpression = <any>{
         astArgs.spreadArgumentIndices.includes(i)
       ) {
         const argumentArray = arg[0];
-        argumentArray.forEach(argument => {
+        for (
+          var spreadArrayArgumentIndex = 0;
+          spreadArrayArgumentIndex < argumentArray.length;
+          spreadArrayArgumentIndex++
+        ) {
+          const argument = argumentArray[spreadArrayArgumentIndex];
           fnArgValues.push(argument);
           fnArgTrackingValues.push(
             ctx.getEmptyTrackingInfo("spreadArgument", logData.loc)
           );
-        });
+        }
       } else {
         fnArgValues.push(arg[0]);
         fnArgTrackingValues.push(arg[1]);
@@ -72,7 +77,11 @@ const CallExpression = <any>{
     let fnAtInvocation = functionIsCallOrApply ? context[0] : fn;
     let fnArgTrackingValuesAtInvocation = fnArgTrackingValues;
     let fnArgValuesAtInvocation = fnArgValues;
+    let fnContextAtInvocation: ValueTrackingValuePair = context;
 
+    if (functionIsCallOrApply) {
+      fnContextAtInvocation = [fnArgValues[0], fnArgTrackingValues[0]];
+    }
     if (functionIsCall) {
       fnArgTrackingValuesAtInvocation = fnArgTrackingValues.slice(1);
       fnArgValuesAtInvocation = fnArgValues.slice(1);
@@ -89,6 +98,7 @@ const CallExpression = <any>{
     }
 
     ctx.argTrackingInfo = fnArgTrackingValuesAtInvocation;
+    ctx.functionContextTrackingValue = fnContextAtInvocation[1];
 
     let extraTrackingValues: any = {};
     let runtimeArgs: any;
@@ -353,7 +363,13 @@ const CallExpression = <any>{
     }
 
     if (isMemberExpressionCall) {
-      contextArg = ignoredCallExpression(getLastMemberExpressionObject, []);
+      if (callee.object.type === "Super") {
+        // super is not transformed by member expression visitor,
+        // so get last member expression object is not updated
+        contextArg = ignoredArrayExpression([this.t.thisExpression()]);
+      } else {
+        contextArg = ignoredCallExpression(getLastMemberExpressionObject, []);
+      }
     } else {
       contextArg = [
         ignoredIdentifier("undefined"),
