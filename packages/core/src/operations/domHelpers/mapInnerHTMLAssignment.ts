@@ -19,6 +19,7 @@ function tagTypeHasClosingTag(tagName) {
     return document.createElement(tagName).outerHTML.indexOf("></") !== -1;
   } catch (err) {
     // For CustomElements createElement fails sometimes
+    // Note: I ran into this problem in devtools, but i'm not sure the problem is actually fixed now
     return true;
   }
 }
