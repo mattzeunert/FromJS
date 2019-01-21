@@ -37,7 +37,7 @@ fromJSInspect(document.querySelector("#app"))
 
 Read about it [here](http://www.mattzeunert.com/2018/05/27/dynamic-dataflow-analysis-for-javascript-how-fromjs-2-works.html), or watch [this video](https://www.youtube.com/watch?v=HmuadtxtBS4&feature=youtu.be).
 
-## Supported by
+## Made by
 
 <p align="center">
 <a href="https://www.debugbear.com/?utm_source=fromjs&utm_campaign=readme"><img style="height: 300px" src="https://user-images.githubusercontent.com/1303660/50536017-e68b8e80-0b47-11e9-85b6-25f3334e58de.png"/></a>
