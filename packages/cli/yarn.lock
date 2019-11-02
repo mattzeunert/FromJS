@@ -588,15 +588,15 @@
     lodash "^4.17.10"
     to-fast-properties "^2.0.0"
 
-"@fromjs/backend@^2.1.2":
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/@fromjs/backend/-/backend-2.1.2.tgz#f9ab45a1eb4aca8f8568dba8d0f6db6500c82d44"
-  integrity sha512-nSzTyJJJIdfmKd1thYojH8NT9eIqKx2ZlyzaB/xL3agE2uYzydPmCJYsDNWoTqZ1qB2F3iU5q4s9USdL987mPg==
+"@fromjs/backend@^2.2.3":
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/@fromjs/backend/-/backend-2.2.3.tgz#9639cad184af7cb34dd871af217abfa319b06787"
+  integrity sha512-2Y7sbd2Kb8DJ6x7ki41wcNOmk4DT44c37v+wrnDGuo6swbdXOLmn9nvo/hW1cxj2obXzQhhAJlP7L2iCNDTEXg==
   dependencies:
     "@babel/core" "^7.2.2"
-    "@fromjs/core" "^2.1.2"
-    "@fromjs/proxy-instrumenter" "^2.1.0"
-    "@fromjs/ui" "^2.1.2"
+    "@fromjs/core" "^2.2.3"
+    "@fromjs/proxy-instrumenter" "^2.2.3"
+    "@fromjs/ui" "^2.2.3"
     "@types/jest" "^22.2.3"
     "@types/node" "^10.1.3"
     "@types/react" "^16.7.17"
@@ -617,17 +617,17 @@
     response-time "^2.3.2"
     rimraf "^2.6.2"
     source-map "^0.7.3"
-    stacktrace-gps "^3.0.2"
+    stacktrace-gps "git://github.com/mattzeunert/stacktrace-gps.git#4aa6d2a6c65b7f137caaef85044d7a3717fb72e6"
     ts-loader "^5.3.1"
     ts-node "^5.0.1"
     typescript "^3.2.2"
     webpack "^4.28.0"
     ws "^5.2.0"
 
-"@fromjs/core@^2.1.2":
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/@fromjs/core/-/core-2.1.2.tgz#478ad06223bbde1e95d766a6808f111000dd670c"
-  integrity sha512-uvfMxgo6ri8XUi3vdNHwNKf3wGg+7rvJRYr9YeTCn6jnQTV4PnCZlFMh0Q1euHkTw/1KBtBvZburvXZEM+rqIw==
+"@fromjs/core@^2.2.3":
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/@fromjs/core/-/core-2.2.3.tgz#d9290920c5feb55c6a21f6725662c8c644c9e7a8"
+  integrity sha512-muItk5st6LoxabcJhgGxsQPdnXQUp3n3NDwGpF5ERbMRtgzeg8UjblsAKQYaaLdzN/+a9YFuPBq3+37d04JpSw==
   dependencies:
     "@babel/core" "^7.2.0"
     "@babel/parser" "^7.2.0"
@@ -636,6 +636,7 @@
     "@types/node" "^10.3.2"
     clone-regexp "^2.1.0"
     jest "^22.4.2"
+    json-to-ast "^2.0.7"
     leveldown "^4.0.1"
     levelup "^3.0.1"
     prettier "^1.11.1"
@@ -644,10 +645,10 @@
     webpack "^4.5.0"
     webpack-cli "^3.1.2"
 
-"@fromjs/proxy-instrumenter@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@fromjs/proxy-instrumenter/-/proxy-instrumenter-2.1.0.tgz#115b18d81da78ac8b19b2639b9ade04e558a7d82"
-  integrity sha512-3HS8YhnVJksqVCBwKRUIdsnLuaM3h01jpfMU9tVez4f0LmUUijgmvr2Yu7IFTj656P2GFEnoO63mDFspVthbSg==
+"@fromjs/proxy-instrumenter@^2.2.3":
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/@fromjs/proxy-instrumenter/-/proxy-instrumenter-2.2.3.tgz#47d6501263958640c3ad07cd306c96a482026c79"
+  integrity sha512-/By7LleX60PgHNCcft667MboHEQ3tNv4VQP/xASQXeyLrUz8M+D0XpFV330O9qtdpLSyh7aiJeewoqguoLEwbw==
   dependencies:
     "@types/node" "^10.1.3"
     http-mitm-proxy "^0.6.1"
@@ -659,13 +660,13 @@
     wait-until "^0.0.2"
     walk-parse5 "^1.0.0"
 
-"@fromjs/ui@^2.1.2":
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/@fromjs/ui/-/ui-2.1.2.tgz#a0daf44d9dd2765470b9ff2491693f34fa8bd10c"
-  integrity sha512-l+VD2Vi7g4Mn3yv20BYzaiJDQj4ut3aGvUauPfd2ql3jcjMRFQb8MwA00AuffOuUsm8x8JhRrxAbp3QAbn0eBQ==
+"@fromjs/ui@^2.2.3":
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/@fromjs/ui/-/ui-2.2.3.tgz#db1648a8d9a9bf8bd0501586ef5fe40de72e2ce6"
+  integrity sha512-t7VnF4L207MTdgI2qlPhApSnN5foDUiBpTRYtKqaUHk+NkvQJB+JPass0VZ/OmpEk3cVwvaDtKCDUzb5aed35A==
   dependencies:
     "@babel/standalone" "^7.0.0-beta.42"
-    "@fromjs/core" "^2.1.2"
+    "@fromjs/core" "^2.2.3"
     "@types/react" "^16.3.14"
     baobab "^2.5.2"
     baobab-react "^3.0.0"
@@ -1744,6 +1745,11 @@ clone-regexp@^2.1.0:
 co@^4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
+
+code-error-fragment@0.0.230:
+  version "0.0.230"
+  resolved "https://registry.yarnpkg.com/code-error-fragment/-/code-error-fragment-0.0.230.tgz#d736d75c832445342eca1d1fedbf17d9618b14d7"
+  integrity sha512-cadkfKp6932H8UkhzE/gcUqhRMNf8jHzkAN7+5Myabswaghu4xABTgPHDCjW+dBAJxj/SpkTYokpzDqY4pCzQw==
 
 code-point-at@^1.0.0:
   version "1.1.0"
@@ -2909,6 +2915,11 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.2:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.15.tgz#ffb703e1066e8a0eeaa4c8b80ba9253eeefbfb00"
   integrity sha512-6uHUhOPEBgQ24HM+r6b/QwWfZq+yiFcipKFrOFiBEnWdy5sdzYoi+pJeQaPI5qOLRFqWmAXUPQNsielzdLoecA==
 
+grapheme-splitter@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/grapheme-splitter/-/grapheme-splitter-1.0.4.tgz#9cf3a665c6247479896834af35cf1dbb4400767e"
+  integrity sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==
+
 growly@^1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/growly/-/growly-1.3.0.tgz#f10748cbe76af964b7c96c93c6bcc28af120c081"
@@ -3950,6 +3961,14 @@ json-stringify-safe@~5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"
 
+json-to-ast@^2.0.7:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/json-to-ast/-/json-to-ast-2.1.0.tgz#041a9fcd03c0845036acb670d29f425cea4faaf9"
+  integrity sha512-W9Lq347r8tA1DfMvAGn9QNcgYm4Wm7Yc+k8e6vezpMnRT+NHbtlxgNBXRVjXe9YM6eTn6+p/MKOlV/aABJcSnQ==
+  dependencies:
+    code-error-fragment "0.0.230"
+    grapheme-splitter "^1.0.4"
+
 json5@^0.5.0, json5@^0.5.1:
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/json5/-/json5-0.5.1.tgz#1eade7acc012034ad84e2396767ead9fa5495821"
@@ -4409,9 +4428,9 @@ mississippi@^3.0.0:
     through2 "^2.0.0"
 
 mixin-deep@^1.2.0:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/mixin-deep/-/mixin-deep-1.3.1.tgz#a49e7268dce1a0d9698e45326c5626df3543d0fe"
-  integrity sha512-8ZItLHeEgaqEvd5lYBXfm4EZSFCX29Jb9K+lAHhDKzReKBQKj3R+7NOF6tjqYi9t4oI8VUfaWITJQm86wnXGNQ==
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/mixin-deep/-/mixin-deep-1.3.2.tgz#1120b43dc359a785dce65b55b82e257ccf479566"
+  integrity sha512-WRoDn//mXBiJ1H40rqa3vH0toePwSsGb45iInWlTySa+Uu4k3tYUSxa2v1KqAiLtvlrSzaExqS1gtk96A9zvEA==
   dependencies:
     for-in "^1.0.2"
     is-extendable "^1.0.1"
@@ -5951,10 +5970,10 @@ stackframe@^1.0.4:
   resolved "https://registry.yarnpkg.com/stackframe/-/stackframe-1.0.4.tgz#357b24a992f9427cba6b545d96a14ed2cbca187b"
   integrity sha512-to7oADIniaYwS3MhtCa/sQhrxidCCQiF/qp4/m5iN3ipf0Y7Xlri0f6eG29r08aL7JYl8n32AF3Q5GYBZ7K8vw==
 
-stacktrace-gps@^3.0.2:
+"stacktrace-gps@git://github.com/mattzeunert/stacktrace-gps.git#4aa6d2a6c65b7f137caaef85044d7a3717fb72e6":
   version "3.0.2"
-  resolved "https://registry.yarnpkg.com/stacktrace-gps/-/stacktrace-gps-3.0.2.tgz#33f8baa4467323ab2bd1816efa279942ba431ccc"
-  integrity sha512-9o+nWhiz5wFnrB3hBHs2PTyYrS60M1vvpSzHxwxnIbtY2q9Nt51hZvhrG1+2AxD374ecwyS+IUwfkHRE/2zuGg==
+  uid "4aa6d2a6c65b7f137caaef85044d7a3717fb72e6"
+  resolved "git://github.com/mattzeunert/stacktrace-gps.git#4aa6d2a6c65b7f137caaef85044d7a3717fb72e6"
   dependencies:
     source-map "0.5.6"
     stackframe "^1.0.4"
