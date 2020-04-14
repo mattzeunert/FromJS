@@ -3,6 +3,7 @@ import Backend from "@fromjs/backend";
 import * as process from "process";
 import { BackendOptions } from "@fromjs/backend";
 import * as puppeteer from "puppeteer";
+import * as path from "path";
 
 const list = val => val.split(",");
 
@@ -88,11 +89,15 @@ if (!maxOldSpaceSizeArg) {
   }
 
   async function openBrowser() {
+    let extensionPath = path.resolve(__dirname + "/../../proxy-extension/dist");
     const browser = await puppeteer.launch({
       headless: false,
+      dumpio: true,
       args: [
         `--js-flags="--max_old_space_size=8192"`,
-        "--proxy-server=127.0.0.1:" + proxyPort,
+        // "--proxy-server=127.0.0.1:" + proxyPort,
+        "--disable-extensions-except=" + extensionPath,
+        // "--load-extension=" + extensionPath,
         "--ignore-certificate-errors",
         "--test-type", // otherwise getting unsupported command line flag: --ignore-certificate-errors
         "--user-data-dir=" + backendOptions.getChromeUserDataDirectory(),

@@ -1,0 +1,26 @@
+{
+  "name": "loadarchive",
+  "version": "1.0.0",
+  "description": "",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "webpack": "INJECT_EXTENSION_ID=true webpack --config webpack.conf.js --watch",
+    "build": "NODE_ENV=production webpack --config webpack.conf.js;zip -r extension.zip dist",
+    "build-dev": "INJECT_EXTENSION_ID=true NODE_ENV=production webpack --config webpack.conf.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "http-status-codes": "^1.3.0",
+    "lodash": "^4.17.13",
+    "then-chrome": "^1.0.7",
+    "ts-loader": "^4.4.2",
+    "typescript": "^3.0.1",
+    "webpack": "^4.16.5",
+    "webpack-cli": "^3.1.0"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^4.5.2"
+  }
+}

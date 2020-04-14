@@ -14,7 +14,7 @@ import * as bodyParser from "body-parser";
 import * as WebSocket from "ws";
 import { createProxy } from "./backend.createProxy";
 import { BackendOptions } from "./BackendOptions";
-
+import * as axios from "axios";
 import * as getFolderSize from "get-folder-size";
 import * as responseTime from "response-time";
 import { config } from "@fromjs/core";
@@ -229,8 +229,43 @@ function setupUI(options, app, wss, getProxy) {
       });
   });
 
+  app.post("/makeProxyRequest", async (req, res) => {
+    const url = req.body.url;
+
+    const r = await axios({
+      url,
+      method: req.body.method,
+      headers: req.body.headers,
+      validateStatus: status => true,
+      transformResponse: data => data,
+      proxy: {
+        host: "127.0.0.1",
+        port: options.proxyPort
+      },
+      data: req.body.postData,
+      body: req.body.body
+    });
+
+    const data = r.data;
+    const headers = r.headers;
+
+    console.log("st", r.status);
+
+    res.status(r.status);
+
+    Object.keys(headers).forEach(headerKey => {
+      res.set(headerKey, headers[headerKey]);
+    });
+
+    res.end(Buffer.from(data));
+  });
+
   app.use(express.static(uiDir));
   app.use("/fromJSInternal", express.static(fromJSInternalDir));
+  app.use((req, res, next) => {
+    console.log("rrrr", req.url);
+    next();
+  });
   app.use("/start", express.static(startPageDir));
 
   function getDomToInspectMessage(charIndex?) {
@@ -384,7 +419,7 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
     logServer.storeLogs(req.body.logs, function() {
       const timePassed = new Date().valueOf() - startTime.valueOf();
       const timePer1000 =
-        Math.round(timePassed / req.body.logs.length * 1000 * 10) / 10;
+        Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
       if (LOG_PERF) {
         console.log(
           "storing logs took " +

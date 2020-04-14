@@ -34,7 +34,8 @@ export default class LevelDBLogServer extends LogServer {
 
     // levelDownDb._batch vs db.batch:
     // _batch bypasses some validation code which should help performance a bit
-    this.levelDownDb._batch(ops, function(err) {
+    // ==> using batch for now, was getting napi_create_reference failed errors with _batch
+    this.levelDownDb.batch(ops, function(err) {
       if (err) return console.log("Ooops!  - level db error (logs)", err);
       callback();
     });
