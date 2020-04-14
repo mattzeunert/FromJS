@@ -8,7 +8,7 @@
   "license": "MIT",
   "dependencies": {
     "@types/node": "^10.1.3",
-    "http-mitm-proxy": "^0.6.1",
+    "http-mitm-proxy": "^0.8.2",
     "magic-string": "^0.25.0",
     "parse5": "^5.0.0",
     "pretty-bytes": "^5.1.0",

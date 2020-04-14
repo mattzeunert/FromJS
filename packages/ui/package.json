@@ -20,13 +20,11 @@
     "react-dom": "^16.3.2",
     "source-map-loader": "^0.2.3",
     "ts-loader": "^4.1.0",
-    "typescript": "^2.9.1",
-    "webpack": "^4.1.1",
-    "webpack-cli": "^3.1.2"
+    "typescript": "^2.9.1"
   },
   "devDependencies": {
     "css-loader": "^0.28.11",
-    "node-sass": "^4.9.0",
+    "node-sass": "^4.13.1",
     "sass-loader": "^7.0.1",
     "style-loader": "^0.21.0"
   },
