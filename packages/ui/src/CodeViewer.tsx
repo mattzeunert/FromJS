@@ -33,41 +33,6 @@ monaco.languages.registerHoverProvider("javascript", {
   }
 });
 
-window["editor"] = monaco.editor.create(document.getElementById("container"), {
-  value: window["fileContent"],
-  language: "javascript"
-});
-
-let d = [];
-window["locs"].forEach(loc => {
-  if (loc.value.start.line !== loc.value.end.line) {
-    console.log("ignoring multiline loc for now");
-    return;
-  }
-  d.push(
-    {
-      range: new monaco.Range(
-        loc.value.start.line,
-        loc.value.start.column,
-        loc.value.end.line,
-        loc.value.end.column
-      ),
-      options: {
-        isWholeLine: false,
-        inlineClassName: "myInlineDecoration"
-        // linesDecorationsClassName: "myLineDecoration"
-      }
-    }
-    // {
-    //   range: new monaco.Range(7, 1, 7, 24),
-    //   options: { inlineClassName: "myInlineDecoration" }
-    // }
-  );
-});
-console.log(d);
-
-var decorations = window["editor"].deltaDecorations([], d);
-
 function getCodeString(loc) {
   const lines = window["fileContent"].split("\n");
   if (loc.value.start.line !== loc.value.end.line) {
@@ -80,7 +45,14 @@ function getCodeString(loc) {
 }
 
 export class App2 extends React.Component {
-  state = { info: [] };
+  state = { info: [], files: [] };
+
+  async componentDidMount() {
+    this.setState({
+      files: await fetch("/xyzviewer/fileInfo").then(r => r.json())
+    });
+  }
+
   render() {
     window["setLocs"] = async locs => {
       const r = await Promise.all(
@@ -101,6 +73,65 @@ export class App2 extends React.Component {
 
     return (
       <div>
+        {this.state.files.map(f => {
+          return (
+            <div
+              onClick={() => {
+                fetch("/xyzviewer/fileDetails/" + f.key)
+                  .then(r => r.json())
+                  .then(r => {
+                    if (window["editor"]) {
+                      window["editor"].dispose();
+                    }
+                    window["editor"] = monaco.editor.create(
+                      document.getElementById("container"),
+                      {
+                        value: r["fileContent"],
+                        language: "javascript"
+                      }
+                    );
+
+                    window["locs"] = r.locs;
+                    window["fileContent"] = r.fileContent;
+
+                    let d = [];
+                    window["locs"].forEach(loc => {
+                      if (loc.value.start.line !== loc.value.end.line) {
+                        console.log("ignoring multiline loc for now");
+                        return;
+                      }
+                      d.push(
+                        {
+                          range: new monaco.Range(
+                            loc.value.start.line,
+                            loc.value.start.column,
+                            loc.value.end.line,
+                            loc.value.end.column
+                          ),
+                          options: {
+                            isWholeLine: false,
+                            inlineClassName: "myInlineDecoration"
+                            // linesDecorationsClassName: "myLineDecoration"
+                          }
+                        }
+                        // {
+                        //   range: new monaco.Range(7, 1, 7, 24),
+                        //   options: { inlineClassName: "myInlineDecoration" }
+                        // }
+                      );
+                    });
+                    console.log(d);
+
+                    var decorations = window["editor"].deltaDecorations([], d);
+                  });
+              }}
+            >
+              {f.url}
+            </div>
+          );
+        })}
+
+        <hr />
         {this.state.info.map(info => {
           return <InfoItem info={info}></InfoItem>;
         })}

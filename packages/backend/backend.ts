@@ -157,8 +157,23 @@ export default class Backend {
       return proxyInterface;
     }
 
-    setupUI(options, app, wss, getProxy);
-    let { storeLocs } = setupBackend(options, app, wss, getProxy);
+    const files = fs.existsSync(options.sessionDirectory + "/files.json")
+      ? JSON.parse(
+          fs.readFileSync(
+            options.sessionDirectory + "/" + "files.json",
+            "utf-8"
+          )
+        )
+      : [];
+    setInterval(() => {
+      fs.writeFileSync(
+        options.sessionDirectory + "/files.json",
+        JSON.stringify(files, null, 2)
+      );
+    }, 5000);
+
+    setupUI(options, app, wss, getProxy, files);
+    let { storeLocs } = setupBackend(options, app, wss, getProxy, files);
 
     let proxyInterface;
     const proxyReady = createProxy({
@@ -189,7 +204,7 @@ export default class Backend {
   }
 }
 
-function setupUI(options, app, wss, getProxy) {
+function setupUI(options, app, wss, getProxy, files) {
   wss.on("connection", (ws: WebSocket) => {
     // console.log("On ws connection");
     if (domToInspect) {
@@ -228,14 +243,6 @@ function setupUI(options, app, wss, getProxy) {
       });
   });
 
-  const files = [];
-  setInterval(() => {
-    fs.writeFileSync(
-      options.sessionDirectory + "/files.json",
-      JSON.stringify(files, null, 2)
-    );
-  }, 5000);
-
   app.post("/makeProxyRequest", async (req, res) => {
     const url = req.body.url;
     console.log("px", { url });
@@ -260,9 +267,14 @@ function setupUI(options, app, wss, getProxy) {
     const hasha = require("hasha");
     const hash = hasha(data, "hex").slice(0, 8);
 
+    let fileKey =
+      url.replace(/\//g, "_").replace(/[^a-zA-Z\-_\.0-9]/g, "") + "_" + hash;
+
     files.push({
       url,
-      hash
+      hash,
+      createdAt: new Date(),
+      key: fileKey
     });
 
     res.status(r.status);
@@ -395,32 +407,35 @@ function setupUI(options, app, wss, getProxy) {
   });
 }
 
-function setupBackend(options: BackendOptions, app, wss, getProxy) {
+function setupBackend(options: BackendOptions, app, wss, getProxy, files) {
   const locStore = new LocStore(options.getLocStorePath());
   const logServer = new LevelDBLogServer(
     options.getTrackingDataDirectory(),
     locStore
   );
 
-  let url = "http://todomvc.com/examples/backbone/js/views/app-view.js";
-
-  let locs: any[] = [];
-  let i = locStore.db.iterator();
-  function iterate(error, key, value) {
-    if (value) {
-      value = JSON.parse(value);
-      if (value.url.includes(url)) {
-        locs.push({ key: key.toString(), value });
+  function getLocs(url) {
+    return new Promise((resolve, reject) => {
+      let locs: any[] = [];
+      let i = locStore.db.iterator();
+      function iterate(error, key, value) {
+        if (value) {
+          value = JSON.parse(value);
+          if (value.url.includes(url)) {
+            locs.push({ key: key.toString(), value });
+          }
+        }
+        if (key) {
+          i.next(iterate);
+        } else {
+          resolve(locs);
+        }
       }
-    }
-    if (key) {
       i.next(iterate);
-    }
+    });
   }
-  i.next(iterate);
 
   app.get("/xyzviewer", async (req, res) => {
-    const { data: fileContent } = await axios.get(url);
     res.end(`<!doctype html>
       <style>
       .myInlineDecoration {
@@ -429,10 +444,6 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
       </style>
       <script>
       window["backendPort"] =7000;
-        window["fileContent"] = decodeURI("${encodeURI(fileContent)}");
-        window["locs"] = JSON.parse(decodeURI("${encodeURI(
-          JSON.stringify(locs)
-        )}"));
       </script>
       <div>
         <div id="container" style="width:600px;height:500px;border:1px solid grey; float:left"></div>
@@ -441,6 +452,19 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
       </div>
       <script src="http://localhost:7000/dist/bundle.js"></script>
     `);
+  });
+
+  app.get("/xyzviewer/fileInfo", (req, res) => {
+    res.json(files);
+  });
+
+  app.get("/xyzviewer/fileDetails/:fileKey", async (req, res) => {
+    let file = files.find(f => f.key === req.params.fileKey);
+    let url = file.url;
+    const { data: fileContent } = await axios.get(url);
+
+    const locs = await getLocs(url);
+    res.json({ fileContent, locs });
   });
 
   app.get("/xyzviewer/trackingDataForLoc/:locId", (req, res) => {
