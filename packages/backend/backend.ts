@@ -263,6 +263,8 @@ function setupUI(options, app, wss, getProxy, files) {
     const data = r.data;
     const headers = r.headers;
 
+    console.log(headers);
+
     console.log("st", r.status);
     const hasha = require("hasha");
     const hash = hasha(data, "hex").slice(0, 8);
@@ -270,12 +272,14 @@ function setupUI(options, app, wss, getProxy, files) {
     let fileKey =
       url.replace(/\//g, "_").replace(/[^a-zA-Z\-_\.0-9]/g, "") + "_" + hash;
 
-    files.push({
-      url,
-      hash,
-      createdAt: new Date(),
-      key: fileKey
-    });
+    if (!files.find(f => f.key === fileKey)) {
+      files.push({
+        url,
+        hash,
+        createdAt: new Date(),
+        key: fileKey
+      });
+    }
 
     res.status(r.status);
 

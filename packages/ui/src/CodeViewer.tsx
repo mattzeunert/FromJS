@@ -59,82 +59,88 @@ export class App2 extends React.Component {
 
     return (
       <div>
-        {this.state.files.map(f => {
-          return (
-            <div
-              onClick={() => {
-                fetch("/xyzviewer/fileDetails/" + f.key)
-                  .then(r => r.json())
-                  .then(r => {
-                    if (window["editor"]) {
-                      window["editor"].dispose();
-                    }
-                    window["editor"] = monaco.editor.create(
-                      document.getElementById("container"),
-                      {
-                        value: r["fileContent"],
-                        language: "javascript",
-                        readOnly: true
+        {this.state.files
+          // rough filter for now
+          .filter(f => f.url.includes(".js"))
+          .map(f => {
+            return (
+              <div
+                onClick={() => {
+                  fetch("/xyzviewer/fileDetails/" + f.key)
+                    .then(r => r.json())
+                    .then(r => {
+                      if (window["editor"]) {
+                        window["editor"].dispose();
                       }
-                    );
-                    window["editor"].onDidChangeCursorPosition(function({
-                      position
-                    }) {
-                      console.log(position.lineNumber);
+                      window["editor"] = monaco.editor.create(
+                        document.getElementById("container"),
+                        {
+                          value: r["fileContent"],
+                          language: "javascript",
+                          readOnly: true
+                        }
+                      );
+                      window["editor"].onDidChangeCursorPosition(function({
+                        position
+                      }) {
+                        console.log(position.lineNumber);
 
-                      let matchingLocs = window["locs"].filter(l => {
-                        return (
-                          l.value.start.line >= position.lineNumber &&
-                          l.value.end.line <= position.lineNumber &&
-                          (l.value.start.line !== l.value.end.line ||
-                            (l.value.start.column <= position.column &&
-                              l.value.end.column >= position.column))
-                        );
+                        let matchingLocs = window["locs"].filter(l => {
+                          return (
+                            l.value.start.line >= position.lineNumber &&
+                            l.value.end.line <= position.lineNumber &&
+                            (l.value.start.line !== l.value.end.line ||
+                              (l.value.start.column <= position.column &&
+                                l.value.end.column >= position.column))
+                          );
+                        });
+
+                        window.setLocs(matchingLocs);
+                        console.log(matchingLocs);
                       });
 
-                      window.setLocs(matchingLocs);
-                      console.log(matchingLocs);
-                    });
+                      window["locs"] = r.locs;
+                      window["fileContent"] = r.fileContent;
 
-                    window["locs"] = r.locs;
-                    window["fileContent"] = r.fileContent;
-
-                    let d = [];
-                    window["locs"].forEach(loc => {
-                      if (loc.value.start.line !== loc.value.end.line) {
-                        console.log("ignoring multiline loc for now");
-                        return;
-                      }
-                      d.push(
-                        {
-                          range: new monaco.Range(
-                            loc.value.start.line,
-                            loc.value.start.column,
-                            loc.value.end.line,
-                            loc.value.end.column
-                          ),
-                          options: {
-                            isWholeLine: false,
-                            inlineClassName: "myInlineDecoration"
-                            // linesDecorationsClassName: "myLineDecoration"
-                          }
+                      let d = [];
+                      window["locs"].forEach(loc => {
+                        if (loc.value.start.line !== loc.value.end.line) {
+                          console.log("ignoring multiline loc for now");
+                          return;
                         }
-                        // {
-                        //   range: new monaco.Range(7, 1, 7, 24),
-                        //   options: { inlineClassName: "myInlineDecoration" }
-                        // }
+                        d.push(
+                          {
+                            range: new monaco.Range(
+                              loc.value.start.line,
+                              loc.value.start.column,
+                              loc.value.end.line,
+                              loc.value.end.column
+                            ),
+                            options: {
+                              isWholeLine: false,
+                              inlineClassName: "myInlineDecoration"
+                              // linesDecorationsClassName: "myLineDecoration"
+                            }
+                          }
+                          // {
+                          //   range: new monaco.Range(7, 1, 7, 24),
+                          //   options: { inlineClassName: "myInlineDecoration" }
+                          // }
+                        );
+                      });
+                      console.log(d);
+
+                      var decorations = window["editor"].deltaDecorations(
+                        [],
+                        d
                       );
                     });
-                    console.log(d);
-
-                    var decorations = window["editor"].deltaDecorations([], d);
-                  });
-              }}
-            >
-              {f.url}
-            </div>
-          );
-        })}
+                }}
+              >
+                {f.url}
+              </div>
+            );
+          })}
 
         <hr />
         {this.state.info.map(info => {
