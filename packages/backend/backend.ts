@@ -402,14 +402,14 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
     locStore
   );
 
+  let url = "http://todomvc.com/examples/backbone/js/views/app-view.js";
+
   let locs: any[] = [];
   let i = locStore.db.iterator();
   function iterate(error, key, value) {
     if (value) {
       value = JSON.parse(value);
-      if (
-        value.url.includes("https://shared-halved-warlock.glitch.me/script.js")
-      ) {
+      if (value.url.includes(url)) {
         locs.push({ key: key.toString(), value });
       }
     }
@@ -420,9 +420,7 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
   i.next(iterate);
 
   app.get("/xyzviewer", async (req, res) => {
-    const { data: fileContent } = await axios.get(
-      "https://shared-halved-warlock.glitch.me/script.js"
-    );
+    const { data: fileContent } = await axios.get(url);
     res.end(`<!doctype html>
       <style>
       .myInlineDecoration {
@@ -437,7 +435,7 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
         )}"));
       </script>
       <div>
-        <div id="container" style="width:500px;height:500px;border:1px solid grey; float:left"></div>
+        <div id="container" style="width:600px;height:500px;border:1px solid grey; float:left"></div>
         <div id="app" style="float:left; width: 500px"></div>
         <div id="appx" style="float: left; width: 600px"></div>
       </div>

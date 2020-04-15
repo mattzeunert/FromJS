@@ -39,7 +39,11 @@ window["editor"] = monaco.editor.create(document.getElementById("container"), {
 });
 
 let d = [];
-window["locs"].map(loc => {
+window["locs"].forEach(loc => {
+  if (loc.value.start.line !== loc.value.end.line) {
+    console.log("ignoring multiline loc for now");
+    return;
+  }
   d.push(
     {
       range: new monaco.Range(
