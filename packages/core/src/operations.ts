@@ -315,6 +315,11 @@ const operations: Operations = {
   },
   stringReplacement: {},
   callExpression: CallExpression,
+  fn: {
+    exec: (args, astArgs, ctx) => {
+      return args[0];
+    }
+  },
   newExpression: {
     visitor(path) {
       return operations.callExpression.visitor(path, true);

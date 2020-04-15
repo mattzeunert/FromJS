@@ -68,6 +68,7 @@ function plugin(babel) {
 
   function handleFunction(path) {
     const declarators: any[] = [];
+
     path.node.params.forEach((param, i) => {
       if (param.type === "ObjectPattern") {
         // do nothing for now, logic is in objectpattern visitor
@@ -165,6 +166,10 @@ function plugin(babel) {
     }
     path.node.body.body.unshift(d);
     path.node.ignore = true; // I'm not sure why it would re-enter the functiondecl/expr, but it has happened before
+
+    if (path.node.type === "FunctionExpression") {
+      path.replaceWith(createOperation("fn", [path.node], null, path.node.loc));
+    }
   }
 
   const visitors = {

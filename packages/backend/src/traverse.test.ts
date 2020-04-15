@@ -1994,3 +1994,13 @@ it("Can traverse Number.prototype.toFixed calls", async () => {
   var step = await traverseAndGetLastStep(tracking, 0);
   expect(step.operationLog.operation).toBe("numericLiteral");
 });
+
+test("Can handle function expressions", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    var fn = function sth(a,b){}
+    return fn
+  `);
+
+  var step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("fn");
+});

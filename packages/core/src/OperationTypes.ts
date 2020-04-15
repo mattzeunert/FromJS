@@ -38,3 +38,4 @@ export const execResult = "execResult";
 export const fetchResponse = "fetchResponse";
 export const XMLHttpRequestResponse = "XMLHttpRequest.responseText";
 export const styleAssignment = "styleAssignment";
+export const fn = "fn";

@@ -613,6 +613,25 @@ function setupBackend(
     res.end(JSON.stringify({ ok: true }));
   });
 
+  app.get("/loadLocForTest/:locId", async (req, res) => {
+    console.log(req.params.locId);
+    locStore.getLoc(req.params.locId, loc => {
+      resolver
+        .resolveFrameFromLoc(loc, req.params.prettify === "prettify")
+        .then(rr => {
+          res.json({ loc, rr });
+        });
+    });
+  });
+
+  app.get("/loadLogForTest/:logId", async (req, res) => {
+    const log = await logServer.loadLogAwaitable(
+      parseFloat(req.params.logId),
+      1
+    );
+    res.json(log);
+  });
+
   app.post("/loadLog", (req, res) => {
     // crude way to first wait for any new logs to be sent through...
     setTimeout(function() {
