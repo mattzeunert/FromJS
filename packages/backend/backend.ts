@@ -264,7 +264,6 @@ function setupUI(options, app, wss, getProxy, files) {
 
   app.post("/makeProxyRequest", async (req, res) => {
     const url = req.body.url;
-    console.log("px", { url });
 
     const r = await axios({
       url,
@@ -282,9 +281,6 @@ function setupUI(options, app, wss, getProxy, files) {
     const data = r.data;
     const headers = r.headers;
 
-    console.log(headers);
-
-    console.log("st", r.status);
     const hasha = require("hasha");
     const hash = hasha(data, "hex").slice(0, 8);
 
@@ -314,7 +310,7 @@ function setupUI(options, app, wss, getProxy, files) {
   app.use(express.static(uiDir));
   app.use("/fromJSInternal", express.static(fromJSInternalDir));
   app.use((req, res, next) => {
-    console.log("rrrr", req.url);
+    console.log("Req", req.url);
     next();
   });
   app.use("/start", express.static(startPageDir));
@@ -506,7 +502,6 @@ function setupBackend(
 
     console.time("ttt");
     for (const loc of locs) {
-      console.log(locLogs[loc.key]);
       loc.logCount = (locLogs[loc.key] || []).length;
     }
     console.timeEnd("ttt");
@@ -622,7 +617,6 @@ function setupBackend(
     // crude way to first wait for any new logs to be sent through...
     setTimeout(function() {
       // console.log(Object.keys(internalServerInterface._storedLogs));
-      console.log(req.body);
       logServer.loadLog(req.body.id, function(err, log) {
         res.end(JSON.stringify(log));
       });

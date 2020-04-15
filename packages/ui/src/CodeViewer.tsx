@@ -61,7 +61,13 @@ export class App2 extends React.Component {
       <div>
         {this.state.files
           // rough filter for now
-          .filter(f => f.url.includes(".js"))
+          .filter(
+            f =>
+              f.url.includes(".js") &&
+              !f.url.includes(".json") &&
+              !f.url.includes("compileInBrowser.js") &&
+              !f.url.includes("babel-standalone.js")
+          )
           .map(f => {
             return (
               <div
