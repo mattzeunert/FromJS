@@ -15,6 +15,7 @@ export class LocStore {
     var ops: any[] = [];
 
     Object.keys(locs).forEach(key => {
+      console.log("store loc", locs[key]);
       ops.push({
         type: "put",
         key: key,

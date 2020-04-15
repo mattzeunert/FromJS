@@ -15,7 +15,6 @@ import * as WebSocket from "ws";
 import { createProxy } from "./backend.createProxy";
 import { BackendOptions } from "./BackendOptions";
 import * as axios from "axios";
-import * as getFolderSize from "get-folder-size";
 import * as responseTime from "response-time";
 import { config } from "@fromjs/core";
 
@@ -229,8 +228,17 @@ function setupUI(options, app, wss, getProxy) {
       });
   });
 
+  const files = [];
+  setInterval(() => {
+    fs.writeFileSync(
+      options.sessionDirectory + "/files.json",
+      JSON.stringify(files, null, 2)
+    );
+  }, 5000);
+
   app.post("/makeProxyRequest", async (req, res) => {
     const url = req.body.url;
+    console.log("px", { url });
 
     const r = await axios({
       url,
@@ -242,14 +250,20 @@ function setupUI(options, app, wss, getProxy) {
         host: "127.0.0.1",
         port: options.proxyPort
       },
-      data: req.body.postData,
-      body: req.body.body
+      data: req.body.postData
     });
 
     const data = r.data;
     const headers = r.headers;
 
     console.log("st", r.status);
+    const hasha = require("hasha");
+    const hash = hasha(data, "hex").slice(0, 8);
+
+    files.push({
+      url,
+      hash
+    });
 
     res.status(r.status);
 
@@ -259,6 +273,8 @@ function setupUI(options, app, wss, getProxy) {
 
     res.end(Buffer.from(data));
   });
+
+  app.get("/viewFile/", (req, res) => {});
 
   app.use(express.static(uiDir));
   app.use("/fromJSInternal", express.static(fromJSInternalDir));
@@ -385,6 +401,74 @@ function setupBackend(options: BackendOptions, app, wss, getProxy) {
     options.getTrackingDataDirectory(),
     locStore
   );
+
+  let locs: any[] = [];
+  let i = locStore.db.iterator();
+  function iterate(error, key, value) {
+    if (value) {
+      value = JSON.parse(value);
+      if (
+        value.url.includes("https://shared-halved-warlock.glitch.me/script.js")
+      ) {
+        locs.push({ key: key.toString(), value });
+      }
+    }
+    if (key) {
+      i.next(iterate);
+    }
+  }
+  i.next(iterate);
+
+  app.get("/xyzviewer", async (req, res) => {
+    const { data: fileContent } = await axios.get(
+      "https://shared-halved-warlock.glitch.me/script.js"
+    );
+    res.end(`<!doctype html>
+      <style>
+      .myInlineDecoration {
+        background: yellow;
+      }
+      </style>
+      <script>
+      window["backendPort"] =7000;
+        window["fileContent"] = decodeURI("${encodeURI(fileContent)}");
+        window["locs"] = JSON.parse(decodeURI("${encodeURI(
+          JSON.stringify(locs)
+        )}"));
+      </script>
+      <div>
+        <div id="container" style="width:500px;height:500px;border:1px solid grey; float:left"></div>
+        <div id="app" style="float:left; width: 500px"></div>
+        <div id="appx" style="float: left; width: 600px"></div>
+      </div>
+      <script src="http://localhost:7000/dist/bundle.js"></script>
+    `);
+  });
+
+  app.get("/xyzviewer/trackingDataForLoc/:locId", (req, res) => {
+    let logs: any[] = [];
+    let iterator = logServer.db.iterator();
+    async function iterate(err, key, value) {
+      if (value) {
+        value = JSON.parse(value.toString());
+        if (value.loc === req.params.locId) {
+          const v2 = await logServer.loadLogAwaitable(
+            parseFloat(value.index),
+            0
+          );
+          logs.push({
+            key: key.toString(),
+            value: v2
+          });
+        }
+
+        iterator.next(iterate);
+      } else {
+        res.json(logs);
+      }
+    }
+    iterator.next(iterate);
+  });
 
   app.get("/jsFiles/compileInBrowser.js", (req, res) => {
     const code = fs

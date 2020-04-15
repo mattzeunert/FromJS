@@ -20,6 +20,12 @@ export function startProxy(options) {
 
 function getUrl(ctx) {
   let protocol = ctx.isSSL ? "https" : "http";
+  if (
+    ctx.clientToProxyRequest.url.includes(ctx.clientToProxyRequest.headers.host)
+  ) {
+    // only happens with axios? or maybe it's because i upgraded the version of mitm proxy?
+    return ctx.clientToProxyRequest.url;
+  }
   return (
     protocol +
     "://" +

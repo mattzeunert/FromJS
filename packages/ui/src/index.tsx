@@ -26,6 +26,7 @@ import * as api from "./api";
 window["__debugApi"] = api;
 
 import "./main.scss";
+import { App2 } from "./CodeViewer";
 
 // global function used by tree view html
 window["showSteps"] = function(logId, charIndex) {
@@ -52,74 +53,70 @@ let App = class extends React.Component<any, any> {
     }
 
     const expandWelcome = !hasInspectorData;
-    const welcome = false &&
-      (props.isInspectingDemoApp || !hasInspectorData) && (
-        <div
-          className="welcome"
-          style={{
-            maxWidth: 800
-          }}
-        >
-          <div className="welcome-content">
-            <h3
-              style={{
-                marginTop: 5,
-                marginBottom: 10
-              }}
-            >
-              Get Started
-            </h3>
-            <div>
-              <p>
-                To inspect any website open a new tab in this browser and load
-                it.{" "}
-                <a href="http://todomvc.com/examples/backbone/" target="_blank">
-                  Try it!
-                </a>
-              </p>
-              <p>
-                To select the value you want to inspect:
-                <br /> 1) Click "Enable DOM Inspector" and then select an
-                element <br />
-                2) Use <code>fromJSInspect(value)</code>
-                in your source code
-              </p>
-              <p>
-                After selecting a value this page will show its dataflow
-                information.
-              </p>
-              <p>
-                Ask questions and report bugs{" "}
-                <a href="https://github.com/mattzeunert/FromJS/issues">
-                  on Github
-                </a>
-                .
-              </p>
+    const welcome = false && (props.isInspectingDemoApp || !hasInspectorData) && (
+      <div
+        className="welcome"
+        style={{
+          maxWidth: 800
+        }}
+      >
+        <div className="welcome-content">
+          <h3
+            style={{
+              marginTop: 5,
+              marginBottom: 10
+            }}
+          >
+            Get Started
+          </h3>
+          <div>
+            <p>
+              To inspect any website open a new tab in this browser and load it.{" "}
+              <a href="http://todomvc.com/examples/backbone/" target="_blank">
+                Try it!
+              </a>
+            </p>
+            <p>
+              To select the value you want to inspect:
+              <br /> 1) Click "Enable DOM Inspector" and then select an element{" "}
+              <br />
+              2) Use <code>fromJSInspect(value)</code>
+              in your source code
+            </p>
+            <p>
+              After selecting a value this page will show its dataflow
+              information.
+            </p>
+            <p>
+              Ask questions and report bugs{" "}
+              <a href="https://github.com/mattzeunert/FromJS/issues">
+                on Github
+              </a>
+              .
+            </p>
 
-              <button
-                className={cx("load-demo-app", {
-                  "load-demo-app--hide": props.isInspectingDemoApp
-                })}
-                // onClick={() =>
-                //   actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
-                // }
-              >
-                {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
-              </button>
-            </div>
+            <button
+              className={cx("load-demo-app", {
+                "load-demo-app--hide": props.isInspectingDemoApp
+              })}
+              // onClick={() =>
+              //   actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
+              // }
+            >
+              {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
+            </button>
           </div>
-          {props.isInspectingDemoApp && (
-            <div
-              style={{ margin: 10 }}
-              dangerouslySetInnerHTML={{
-                __html: `<iframe src="http://localhost:${
-                  location.port
-                }/start/" />`
-              }}
-            />
-          )}
         </div>
-      );
+        {props.isInspectingDemoApp && (
+          <div
+            style={{ margin: 10 }}
+            dangerouslySetInnerHTML={{
+              __html: `<iframe src="http://localhost:${location.port}/start/" />`
+            }}
+          />
+        )}
+      </div>
+    );
     return (
       <div
         className={cx("app", {
@@ -199,9 +196,16 @@ App = branch(
   App
 );
 
-App = root(appState, App);
+console.log(!location.href.includes("xyzviewer"));
+if (!location.href.includes("xyzviewer")) {
+  App = root(appState, App);
 
-ReactDom.render(<App />, document.querySelector("#app"));
+  ReactDom.render(<App />, document.querySelector("#app"));
+} else {
+  App = root(appState, App);
+  ReactDom.render(<App />, document.querySelector("#appx"));
+  ReactDom.render(<App2 />, document.querySelector("#app"));
+}
 
 // setTimeout(() => actions.selectAndTraverse(705162159, 0), 500);
 

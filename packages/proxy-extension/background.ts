@@ -161,7 +161,7 @@ class TTab {
     this.target = target;
     this.tab = tab;
 
-    const pageUrl = "http://localhost:7000/start/";
+    const pageUrl = "https://shared-halved-warlock.glitch.me";
     // await thenChrome.tabs.update(tab.id, { url: pageUrl });
 
     await this._setupDebugger();
