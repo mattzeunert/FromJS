@@ -118,7 +118,10 @@ export class App2 extends React.Component {
                             ),
                             options: {
                               isWholeLine: false,
-                              inlineClassName: "myInlineDecoration"
+                              inlineClassName:
+                                loc.logCount > 0
+                                  ? "myInlineDecoration-has"
+                                  : "myInlineDecoration-none"
                               // linesDecorationsClassName: "myLineDecoration"
                             }
                           }

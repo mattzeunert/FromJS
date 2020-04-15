@@ -442,8 +442,12 @@ function setupBackend(options: BackendOptions, app, wss, getProxy, files) {
   app.get("/xyzviewer", async (req, res) => {
     res.end(`<!doctype html>
       <style>
-      .myInlineDecoration {
+      .myInlineDecoration-has {
         background: yellow;
+        cursor: pointer;
+      }
+      .myInlineDecoration-none {
+        background: gray;
         cursor: pointer;
       }
       </style>
@@ -469,32 +473,54 @@ function setupBackend(options: BackendOptions, app, wss, getProxy, files) {
     const { data: fileContent } = await axios.get(url);
 
     const locs = await getLocs(url);
+
+    for (const loc of locs) {
+      loc.logCount = (await getLogs(loc.key)).length;
+    }
+
     res.json({ fileContent, locs });
   });
 
-  app.get("/xyzviewer/trackingDataForLoc/:locId", (req, res) => {
-    let logs: any[] = [];
-    let iterator = logServer.db.iterator();
-    async function iterate(err, key, value) {
-      if (value) {
-        value = JSON.parse(value.toString());
-        if (value.loc === req.params.locId) {
-          const v2 = await logServer.loadLogAwaitable(
-            parseFloat(value.index),
-            0
-          );
-          logs.push({
-            key: key.toString(),
-            value: v2
-          });
-        }
+  function getLogs(locId) {
+    return new Promise((resolve, reject) => {
+      let iterator = logServer.db.iterator();
+      let logs: any[] = [];
+      async function iterate(err, key, value) {
+        if (value) {
+          value = JSON.parse(value.toString());
+          if (value.loc === locId) {
+            logs.push({
+              key: key.toString(),
+              value: value
+            });
+          }
 
-        iterator.next(iterate);
-      } else {
-        res.json(logs);
+          iterator.next(iterate);
+        } else {
+          resolve(logs);
+        }
       }
-    }
-    iterator.next(iterate);
+      iterator.next(iterate);
+    });
+  }
+
+  app.get("/xyzviewer/trackingDataForLoc/:locId", async (req, res) => {
+    console.time("get logs");
+    let locs = await getLogs(req.params.locId);
+    console.timeEnd("get logs");
+    locs = await Promise.all(
+      locs.map(async loc => {
+        const v2 = await logServer.loadLogAwaitable(
+          parseFloat(loc.value.index),
+          0
+        );
+        return {
+          key: loc.key,
+          value: v2
+        };
+      })
+    );
+    res.json(locs);
   });
 
   app.get("/jsFiles/compileInBrowser.js", (req, res) => {
