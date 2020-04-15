@@ -5,33 +5,19 @@ import { selectAndTraverse } from "./actions";
 
 console.log("kkkkkkkssssskkkk");
 
-monaco.languages.registerHoverProvider("javascript", {
-  provideHover: function(model, position) {
-    let ret: monaco.languages.Hover;
-    console.log(position.lineNumber);
+// monaco.languages.registerHoverProvider("javascript", {
+//   provideHover: function(model, position) {
+//     let ret: monaco.languages.Hover;
 
-    let matchingLocs = window["locs"].filter(l => {
-      return (
-        l.value.start.line >= position.lineNumber &&
-        l.value.end.line <= position.lineNumber &&
-        (l.value.start.line !== l.value.end.line ||
-          (l.value.start.column <= position.column &&
-            l.value.end.column >= position.column))
-      );
-    });
-
-    window.setLocs(matchingLocs);
-    console.log(matchingLocs);
-
-    // if (position.lineNumber == 3) {
-    //   ret = {
-    //     range: new monaco.Range(1, 1, 1, 4),
-    //     contents: [{ value: "a" }, { value: "b" }]
-    //   };
-    // }
-    return ret!; // the ! tells the typescript compiler to shut up
-  }
-});
+//     // if (position.lineNumber == 3) {
+//     //   ret = {
+//     //     range: new monaco.Range(1, 1, 1, 4),
+//     //     contents: [{ value: "a" }, { value: "b" }]
+//     //   };
+//     // }
+//     return ret!; // the ! tells the typescript compiler to shut up
+//   }
+// });
 
 function getCodeString(loc) {
   const lines = window["fileContent"].split("\n");
@@ -87,9 +73,28 @@ export class App2 extends React.Component {
                       document.getElementById("container"),
                       {
                         value: r["fileContent"],
-                        language: "javascript"
+                        language: "javascript",
+                        readOnly: true
                       }
                     );
+                    window["editor"].onDidChangeCursorPosition(function({
+                      position
+                    }) {
+                      console.log(position.lineNumber);
+
+                      let matchingLocs = window["locs"].filter(l => {
+                        return (
+                          l.value.start.line >= position.lineNumber &&
+                          l.value.end.line <= position.lineNumber &&
+                          (l.value.start.line !== l.value.end.line ||
+                            (l.value.start.column <= position.column &&
+                              l.value.end.column >= position.column))
+                        );
+                      });
+
+                      window.setLocs(matchingLocs);
+                      console.log(matchingLocs);
+                    });
 
                     window["locs"] = r.locs;
                     window["fileContent"] = r.fileContent;

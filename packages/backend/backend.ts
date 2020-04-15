@@ -440,6 +440,7 @@ function setupBackend(options: BackendOptions, app, wss, getProxy, files) {
       <style>
       .myInlineDecoration {
         background: yellow;
+        cursor: pointer;
       }
       </style>
       <script>
