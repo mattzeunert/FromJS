@@ -165,15 +165,34 @@ export default class Backend {
           )
         )
       : [];
+    const locLogs = fs.existsSync(options.sessionDirectory + "/locLogs.json")
+      ? JSON.parse(
+          fs.readFileSync(
+            options.sessionDirectory + "/" + "locLogs.json",
+            "utf-8"
+          )
+        )
+      : {};
     setInterval(() => {
       fs.writeFileSync(
         options.sessionDirectory + "/files.json",
         JSON.stringify(files, null, 2)
       );
+      fs.writeFileSync(
+        options.sessionDirectory + "/locLogs.json",
+        JSON.stringify(locLogs, null, 2)
+      );
     }, 5000);
 
     setupUI(options, app, wss, getProxy, files);
-    let { storeLocs } = setupBackend(options, app, wss, getProxy, files);
+    let { storeLocs } = setupBackend(
+      options,
+      app,
+      wss,
+      getProxy,
+      files,
+      locLogs
+    );
 
     let proxyInterface;
     const proxyReady = createProxy({
@@ -411,7 +430,14 @@ function setupUI(options, app, wss, getProxy, files) {
   });
 }
 
-function setupBackend(options: BackendOptions, app, wss, getProxy, files) {
+function setupBackend(
+  options: BackendOptions,
+  app,
+  wss,
+  getProxy,
+  files,
+  locLogs
+) {
   const locStore = new LocStore(options.getLocStorePath());
   const logServer = new LevelDBLogServer(
     options.getTrackingDataDirectory(),
@@ -446,6 +472,10 @@ function setupBackend(options: BackendOptions, app, wss, getProxy, files) {
         background: yellow;
         cursor: pointer;
       }
+      .myInlineDecoration-hasMany {
+        background: orange;
+        cursor: pointer;
+      }
       .myInlineDecoration-none {
         background: gray;
         cursor: pointer;
@@ -474,9 +504,12 @@ function setupBackend(options: BackendOptions, app, wss, getProxy, files) {
 
     const locs = await getLocs(url);
 
+    console.time("ttt");
     for (const loc of locs) {
-      loc.logCount = (await getLogs(loc.key)).length;
+      console.log(locLogs[loc.key]);
+      loc.logCount = (locLogs[loc.key] || []).length;
     }
+    console.timeEnd("ttt");
 
     res.json({ fileContent, locs });
   });
@@ -553,6 +586,13 @@ function setupBackend(options: BackendOptions, app, wss, getProxy, files) {
     );
 
     const startTime = new Date();
+    req.body.logs.forEach(log => {
+      if (!locLogs[log.loc]) {
+        console.log("loc  not found", log.loc, log);
+        return;
+      }
+      locLogs[log.loc].push(log.index);
+    });
     logServer.storeLogs(req.body.logs, function() {
       const timePassed = new Date().valueOf() - startTime.valueOf();
       const timePer1000 =
@@ -678,6 +718,11 @@ function setupBackend(options: BackendOptions, app, wss, getProxy, files) {
 
   return {
     storeLocs: locs => {
+      Object.keys(locs).forEach(locKey => {
+        const loc = locs[locKey];
+        // should use file key here, but we don't know the file hash....
+        locLogs[locKey] = locLogs[locKey] || [];
+      });
       locStore.write(locs, function() {});
     }
   };
