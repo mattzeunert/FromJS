@@ -217,6 +217,7 @@ class InfoItem extends React.Component {
           toggle json
         </button>
         {this.state.showJson && <pre>{JSON.stringify(info.logs, null, 2)}</pre>}
+        {JSON.stringify(this.state)}
         {this.state.showUsesFor && (
           <ShowUses
             logIndex={this.state.showUsesFor}
@@ -230,7 +231,7 @@ class InfoItem extends React.Component {
 
 class ShowUses extends React.Component {
   state = {
-    uses: []
+    uses: null
   };
   async componentDidMount() {
     this.setState({
@@ -242,8 +243,12 @@ class ShowUses extends React.Component {
     });
   }
   render() {
+    if (!this.state.uses) {
+      return <div></div>;
+    }
     return (
       <div>
+        {this.state.uses.length === 0 && <div>No uses found.</div>}
         {this.state.uses.map(use => {
           return (
             <div>
