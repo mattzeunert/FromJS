@@ -1,7 +1,8 @@
 import * as React from "react";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
-import { loadSteps } from "./api";
+import { loadSteps, makeFEOperationLog } from "./api";
 import { selectAndTraverse } from "./actions";
+import TraversalStep from "./TraversalStep";
 
 console.log("kkkkkkkssssskkkk");
 
@@ -93,13 +94,14 @@ export class App2 extends React.Component {
 
                         let matchingLocs = window["locs"].filter(l => {
                           return (
-                            l.value.start.line >= position.lineNumber &&
-                            l.value.end.line <= position.lineNumber &&
+                            l.value.start.line <= position.lineNumber &&
+                            l.value.end.line >= position.lineNumber &&
                             (l.value.start.line !== l.value.end.line ||
                               (l.value.start.column <= position.column &&
                                 l.value.end.column >= position.column))
                           );
                         });
+                        // debugger;
 
                         window.setLocs(matchingLocs);
                         console.log(matchingLocs);
@@ -112,6 +114,19 @@ export class App2 extends React.Component {
                       window["locs"].forEach(loc => {
                         if (loc.value.start.line !== loc.value.end.line) {
                           console.log("ignoring multiline loc for now");
+                          d.push({
+                            range: new monaco.Range(
+                              loc.value.start.line,
+                              loc.value.start.column,
+                              loc.value.start.line,
+                              loc.value.start.column + 2
+                            ),
+                            options: {
+                              isWholeLine: false,
+                              inlineClassName:
+                                "myInlineDecoration-multiline-start"
+                            }
+                          });
                           return;
                         }
                         d.push(
@@ -164,7 +179,8 @@ export class App2 extends React.Component {
 
 class InfoItem extends React.Component {
   state = {
-    showJson: false
+    showJson: false,
+    showUsesFor: null
   };
   render() {
     let { info } = this.props;
@@ -177,6 +193,17 @@ class InfoItem extends React.Component {
             <code
               onClick={() => {
                 selectAndTraverse(l.value.index, 0);
+                if (l.value._result && l.value._result.type === "function") {
+                  loadSteps({ logId: l.value.index, charIndex: 0 }).then(
+                    ({ steps }) => {
+                      const lastStep = steps[steps.length - 1];
+                      console.log({ steps });
+                      this.setState({
+                        showUsesFor: lastStep.operationLog.index
+                      });
+                    }
+                  );
+                }
               }}
             >
               {JSON.stringify(l.value._result)}{" "}
@@ -190,6 +217,44 @@ class InfoItem extends React.Component {
           toggle json
         </button>
         {this.state.showJson && <pre>{JSON.stringify(info.logs, null, 2)}</pre>}
+        {this.state.showUsesFor && (
+          <ShowUses
+            logIndex={this.state.showUsesFor}
+            key={this.state.showUsesFor}
+          ></ShowUses>
+        )}
+      </div>
+    );
+  }
+}
+
+class ShowUses extends React.Component {
+  state = {
+    uses: []
+  };
+  async componentDidMount() {
+    this.setState({
+      uses: await fetch(
+        "/xyzviewer/getUses/" +
+          this.props.logIndex +
+          "?operationFilter=callExpression"
+      ).then(r => r.json())
+    });
+  }
+  render() {
+    return (
+      <div>
+        {this.state.uses.map(use => {
+          return (
+            <div>
+              <b>{use.operation}</b>
+              <TraversalStep
+                // makeFEOoperationLog normally done in api.ts
+                step={{ operationLog: makeFEOperationLog(use), charIndex: 0 }}
+              ></TraversalStep>
+            </div>
+          );
+        })}
       </div>
     );
   }

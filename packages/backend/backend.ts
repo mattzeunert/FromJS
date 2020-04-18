@@ -464,6 +464,10 @@ function setupBackend(
   app.get("/xyzviewer", async (req, res) => {
     res.end(`<!doctype html>
       <style>
+      .myInlineDecoration-multiline-start {
+        background: cyan;
+        cursor: pointer;
+      }
       .myInlineDecoration-has {
         background: yellow;
         cursor: pointer;
@@ -531,6 +535,77 @@ function setupBackend(
       iterator.next(iterate);
     });
   }
+
+  function getLogsWhere(whereFn) {
+    return new Promise((resolve, reject) => {
+      let iterator = logServer.db.iterator();
+      let logs: any[] = [];
+      async function iterate(err, key, value) {
+        if (value) {
+          value = JSON.parse(value.toString());
+          if (whereFn(value)) {
+            logs.push({
+              key: key.toString(),
+              value: value
+            });
+          }
+
+          iterator.next(iterate);
+        } else {
+          resolve(logs);
+        }
+      }
+      iterator.next(iterate);
+    });
+  }
+
+  async function findUses(logIndex) {
+    let uses = [];
+    let lookupQueue = [logIndex];
+    while (lookupQueue.length > 0) {
+      let lookupIndex = lookupQueue.shift();
+      let u = await getLogsWhere(log => {
+        console.log({ lookupIndex, lookupQueue });
+        return Object.keys(log.args || {}).some(k => {
+          let v = log.args[k];
+
+          console.log({ k, v });
+          if (typeof v === "number") {
+            return v === lookupIndex;
+          } else if (Array.isArray(v)) {
+            return v.includes(lookupIndex);
+          } else if (v) {
+            throw Error("not possible i think");
+          }
+          return false;
+        });
+        // return log.index === 624973639059090;
+      });
+
+      for (const uu of u) {
+        lookupQueue.push(uu.value.index);
+        uses.push(uu);
+      }
+    }
+
+    return uses;
+  }
+
+  app.get("/xyzviewer/getUses/:logId", async (req, res) => {
+    let uses = await findUses(parseFloat(req.params.logId));
+
+    if (req.query.operationFilter) {
+      uses = uses.filter(u => u.value.operation === req.query.operationFilter);
+    }
+
+    uses = await Promise.all(
+      uses.map(u => {
+        return logServer.loadLogAwaitable(u.value.index, 1);
+      })
+    );
+
+    res.json(uses);
+  });
 
   app.get("/xyzviewer/trackingDataForLoc/:locId", async (req, res) => {
     console.time("get logs");

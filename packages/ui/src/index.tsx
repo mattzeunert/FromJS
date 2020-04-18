@@ -203,8 +203,9 @@ if (!location.href.includes("xyzviewer")) {
   ReactDom.render(<App />, document.querySelector("#app"));
 } else {
   App = root(appState, App);
+  const App2b = root(appState, App2);
   ReactDom.render(<App />, document.querySelector("#appx"));
-  ReactDom.render(<App2 />, document.querySelector("#app"));
+  ReactDom.render(<App2b />, document.querySelector("#app"));
 }
 
 // setTimeout(() => actions.selectAndTraverse(705162159, 0), 500);
