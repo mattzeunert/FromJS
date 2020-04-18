@@ -173,6 +173,14 @@ export default class Backend {
           )
         )
       : {};
+    const logUses = fs.existsSync(options.sessionDirectory + "/logUses.json")
+      ? JSON.parse(
+          fs.readFileSync(
+            options.sessionDirectory + "/" + "logUses.json",
+            "utf-8"
+          )
+        )
+      : {};
     setInterval(() => {
       fs.writeFileSync(
         options.sessionDirectory + "/files.json",
@@ -181,6 +189,10 @@ export default class Backend {
       fs.writeFileSync(
         options.sessionDirectory + "/locLogs.json",
         JSON.stringify(locLogs, null, 2)
+      );
+      fs.writeFileSync(
+        options.sessionDirectory + "/logUses.json",
+        JSON.stringify(logUses, null, 2)
       );
     }, 5000);
 
@@ -191,7 +203,8 @@ export default class Backend {
       wss,
       getProxy,
       files,
-      locLogs
+      locLogs,
+      logUses
     );
 
     let proxyInterface;
@@ -432,7 +445,8 @@ function setupBackend(
   wss,
   getProxy,
   files,
-  locLogs
+  locLogs,
+  logUses
 ) {
   const locStore = new LocStore(options.getLocStorePath());
   const logServer = new LevelDBLogServer(
@@ -564,23 +578,13 @@ function setupBackend(
     let lookupQueue = [logIndex];
     while (lookupQueue.length > 0) {
       let lookupIndex = lookupQueue.shift();
-      let u = await getLogsWhere(log => {
-        console.log({ lookupIndex, lookupQueue });
-        return Object.keys(log.args || {}).some(k => {
-          let v = log.args[k];
-
-          console.log({ k, v });
-          if (typeof v === "number") {
-            return v === lookupIndex;
-          } else if (Array.isArray(v)) {
-            return v.includes(lookupIndex);
-          } else if (v) {
-            throw Error("not possible i think");
-          }
-          return false;
-        });
-        // return log.index === 624973639059090;
-      });
+      let u = await Promise.all(
+        (logUses[lookupIndex] || []).map(async uIndex => {
+          return {
+            value: await logServer.loadLogAwaitable(uIndex, 0)
+          };
+        })
+      );
 
       for (const uu of u) {
         lookupQueue.push(uu.value.index);
@@ -589,6 +593,34 @@ function setupBackend(
     }
 
     return uses;
+
+    // let uses = [];
+    // let lookupQueue = [logIndex];
+    // while (lookupQueue.length > 0) {
+    //   let lookupIndex = lookupQueue.shift();
+    //   let u = await getLogsWhere(log => {
+    //     return Object.keys(log.args || {}).some(k => {
+    //       let v = log.args[k];
+
+    //       if (typeof v === "number") {
+    //         return v === lookupIndex;
+    //       } else if (Array.isArray(v)) {
+    //         return v.includes(lookupIndex);
+    //       } else if (v) {
+    //         throw Error("not possible i think");
+    //       }
+    //       return false;
+    //     });
+    //     // return log.index === 624973639059090;
+    //   });
+
+    //   for (const uu of u) {
+    //     lookupQueue.push(uu.value.index);
+    //     uses.push(uu);
+    //   }
+    // }
+
+    // return uses;
   }
 
   app.get("/xyzviewer/getUses/:logId", async (req, res) => {
@@ -662,6 +694,26 @@ function setupBackend(
         return;
       }
       locLogs[log.loc].push(log.index);
+    });
+    req.body.logs.forEach(log => {
+      if (log.args) {
+        if (Array.isArray(log.args)) {
+          let args = log.args;
+          for (const arg of args) {
+            if (Array.isArray(arg)) {
+              for (const a of arg) {
+                logUses[a] = logUses[a] || [];
+                logUses[a].push(log.index);
+              }
+            } else {
+              logUses[arg] = logUses[arg] || [];
+              logUses[arg].push(log.index);
+            }
+          }
+        } else {
+          console.log("args is not array", log, log.args);
+        }
+      }
     });
     logServer.storeLogs(req.body.logs, function() {
       const timePassed = new Date().valueOf() - startTime.valueOf();
