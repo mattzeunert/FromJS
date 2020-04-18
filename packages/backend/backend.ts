@@ -711,7 +711,11 @@ function setupBackend(
             }
           }
         } else {
-          console.log("args is not array", log, log.args);
+          Object.keys(log.args).forEach(argName => {
+            let argLogIndex = log.args[argName];
+            logUses[argLogIndex] = logUses[argLogIndex] || [];
+            logUses[argLogIndex].push(log.index);
+          });
         }
       }
     });
