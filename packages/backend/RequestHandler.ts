@@ -2,7 +2,13 @@ import * as axios from "axios";
 import * as prettyBytes from "pretty-bytes";
 import { spawn, Thread, Worker } from "threads";
 import { handleEvalScript } from "@fromjs/core";
-import { writeFileSync } from "fs";
+import {
+  writeFileSync,
+  readdirSync,
+  existsSync,
+  readFileSync,
+  exists
+} from "fs";
 
 function rewriteHtml(html, { bePort }) {
   const originalHtml = html;
@@ -58,7 +64,8 @@ export class RequestHandler {
     storeLocs,
     shouldInstrument,
     onCodeProcessed,
-    sessionDirectory
+    sessionDirectory,
+    files
   }) {
     console.log("req h", arguments[0]);
     this._shouldBlock = shouldBlock;
@@ -70,9 +77,16 @@ export class RequestHandler {
     this._sessionDirectory = sessionDirectory;
     this._onCodeProcessed = onCodeProcessed;
 
-    this._cache[url] = instrumented;
-    this._cache[url + "?dontprocess"] = raw;
-    this._cache[url + "?map"] = map;
+    this._files = files;
+    files.forEach(f => {
+      ["", "?dontprocess", ".map"].forEach(postfix => {
+        let path = this._sessionDirectory + "/files/" + f.fileKey + postfix;
+        console.log("path", path, existsSync(path));
+        if (existsSync(path)) {
+          this._cache[f.url + postfix] = readFileSync(path, "utf-8");
+        }
+      });
+    });
   }
 
   _cache = {};
@@ -124,6 +138,7 @@ export class RequestHandler {
       method: method,
       headers: headers,
       validateStatus: status => true,
+      // prevent e.g parse json
       transformResponse: data => data,
       data: postData
     });

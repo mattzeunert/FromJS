@@ -1009,6 +1009,7 @@ function makeRequestHandler(options) {
     accessToken: options.accessToken,
     storeLocs: options.storeLocs,
     sessionDirectory: options.options.sessionDirectory,
+    files: options.files,
     onCodeProcessed: ({ url, fileKey }) => {
       options.files.push({
         url,
