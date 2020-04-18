@@ -26,3 +26,4 @@ packages/core/compileInBrowser.js
 mydb
 fromjs-session
 yarn-error.log
+/test
