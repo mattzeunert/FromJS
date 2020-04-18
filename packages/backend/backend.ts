@@ -588,7 +588,8 @@ function setupBackend(
 
       for (const uu of u) {
         lookupQueue.push(uu.value.index);
-        uses.push(uu);
+
+        uses.push({ use: uu, lookupIndex });
       }
     }
 
@@ -627,12 +628,23 @@ function setupBackend(
     let uses = await findUses(parseFloat(req.params.logId));
 
     if (req.query.operationFilter) {
-      uses = uses.filter(u => u.value.operation === req.query.operationFilter);
+      uses = uses.filter(
+        u => u.use.value.operation === req.query.operationFilter
+      );
     }
 
     uses = await Promise.all(
-      uses.map(u => {
-        return logServer.loadLogAwaitable(u.value.index, 1);
+      uses.map(async u => {
+        const log = await logServer.loadLogAwaitable(u.use.value.index, 1);
+
+        const arg = Object.entries(log.args).filter(
+          ([i, l]) => l && l.index === u.lookupIndex
+        );
+        const argName = arg && arg[0] && arg[0][0];
+        return {
+          use: log,
+          argName
+        };
       })
     );
 

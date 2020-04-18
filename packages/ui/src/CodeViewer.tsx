@@ -54,9 +54,10 @@ export class App2 extends React.Component {
             });
         })
       );
+      this._random = Math.random();
       this.setState({ info: r });
     };
-    console.log({ monaco });
+    console.log({ monaco, r: this._random });
 
     return (
       <div>
@@ -169,8 +170,8 @@ export class App2 extends React.Component {
           })}
 
         <hr />
-        {this.state.info.map(info => {
-          return <InfoItem info={info}></InfoItem>;
+        {this.state.info.map((info, i) => {
+          return <InfoItem info={info} key={this._random + "_" + i}></InfoItem>;
         })}
       </div>
     );
@@ -193,17 +194,16 @@ class InfoItem extends React.Component {
             <code
               onClick={() => {
                 selectAndTraverse(l.value.index, 0);
-                if (l.value._result && l.value._result.type === "function") {
-                  loadSteps({ logId: l.value.index, charIndex: 0 }).then(
-                    ({ steps }) => {
-                      const lastStep = steps[steps.length - 1];
-                      console.log({ steps });
-                      this.setState({
-                        showUsesFor: lastStep.operationLog.index
-                      });
-                    }
-                  );
-                }
+
+                loadSteps({ logId: l.value.index, charIndex: 0 }).then(
+                  ({ steps }) => {
+                    const lastStep = steps[steps.length - 1];
+                    console.log({ steps });
+                    this.setState({
+                      showUsesFor: lastStep.operationLog.index
+                    });
+                  }
+                );
               }}
             >
               {JSON.stringify(l.value._result)}{" "}
@@ -235,11 +235,9 @@ class ShowUses extends React.Component {
   };
   async componentDidMount() {
     this.setState({
-      uses: await fetch(
-        "/xyzviewer/getUses/" +
-          this.props.logIndex +
-          "?operationFilter=callExpression"
-      ).then(r => r.json())
+      uses: await fetch("/xyzviewer/getUses/" + this.props.logIndex).then(r =>
+        r.json()
+      )
     });
   }
   render() {
@@ -249,17 +247,19 @@ class ShowUses extends React.Component {
     return (
       <div>
         {this.state.uses.length === 0 && <div>No uses found.</div>}
-        {this.state.uses.map(use => {
-          return (
-            <div>
-              <b>{use.operation}</b>
-              <TraversalStep
-                // makeFEOoperationLog normally done in api.ts
-                step={{ operationLog: makeFEOperationLog(use), charIndex: 0 }}
-              ></TraversalStep>
-            </div>
-          );
-        })}
+        {this.state.uses
+          .filter(u => u.argName === "function")
+          .map(({ use, argName }) => {
+            return (
+              <div>
+                <b>{use.operation}</b> (as {argName})
+                <TraversalStep
+                  // makeFEOoperationLog normally done in api.ts
+                  step={{ operationLog: makeFEOperationLog(use), charIndex: 0 }}
+                ></TraversalStep>
+              </div>
+            );
+          })}
       </div>
     );
   }
