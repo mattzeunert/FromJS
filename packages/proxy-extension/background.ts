@@ -161,7 +161,10 @@ class TTab {
     this.target = target;
     this.tab = tab;
 
-    const pageUrl = "https://shared-halved-warlock.glitch.me";
+    // const pageUrl = "http://localhost:7000/start/";
+    const pageUrl =
+      "http://localhost:1212/persistent-friendly-authority.glitch.me_2020-03-25_10-04-28.report.html";
+    // const pageUrl = "https://ruddy-road-platinum.glitch.me/";
     // await thenChrome.tabs.update(tab.id, { url: pageUrl });
 
     await this._setupDebugger();

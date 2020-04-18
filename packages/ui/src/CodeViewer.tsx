@@ -74,7 +74,7 @@ export class App2 extends React.Component {
             return (
               <div
                 onClick={() => {
-                  fetch("/xyzviewer/fileDetails/" + f.key)
+                  fetch("/xyzviewer/fileDetails/" + f.fileKey)
                     .then(r => r.json())
                     .then(r => {
                       if (window["editor"]) {
@@ -108,7 +108,9 @@ export class App2 extends React.Component {
                         console.log(matchingLocs);
                       });
 
-                      window["locs"] = r.locs;
+                      window["locs"] = r.locs.filter(
+                        l => l.value.start && l.value.end
+                      );
                       window["fileContent"] = r.fileContent;
 
                       let d = [];

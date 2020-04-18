@@ -17,6 +17,8 @@ import { BackendOptions } from "./BackendOptions";
 import * as axios from "axios";
 import * as responseTime from "response-time";
 import { config } from "@fromjs/core";
+import { RequestHandler } from "./RequestHandler";
+import { request } from "http";
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -36,7 +38,8 @@ function ensureDirectoriesExist(options: BackendOptions) {
   const directories = [
     options.sessionDirectory,
     options.getCertDirectory(),
-    options.getTrackingDataDirectory()
+    options.getTrackingDataDirectory(),
+    options.sessionDirectory + "/files"
   ];
   directories.forEach(dir => {
     if (!fs.existsSync(dir)) {
@@ -196,7 +199,8 @@ export default class Backend {
       );
     }, 5000);
 
-    setupUI(options, app, wss, getProxy, files);
+    let requestHandler;
+
     let { storeLocs } = setupBackend(
       options,
       app,
@@ -204,8 +208,17 @@ export default class Backend {
       getProxy,
       files,
       locLogs,
-      logUses
+      logUses,
+      () => requestHandler
     );
+    setupUI(options, app, wss, getProxy, files, () => requestHandler);
+
+    requestHandler = makeRequestHandler({
+      accessToken: sessionConfig.accessToken,
+      options,
+      storeLocs,
+      files
+    });
 
     let proxyInterface;
     const proxyReady = createProxy({
@@ -236,7 +249,7 @@ export default class Backend {
   }
 }
 
-function setupUI(options, app, wss, getProxy, files) {
+function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
   wss.on("connection", (ws: WebSocket) => {
     // console.log("On ws connection");
     if (domToInspect) {
@@ -278,44 +291,66 @@ function setupUI(options, app, wss, getProxy, files) {
   app.post("/makeProxyRequest", async (req, res) => {
     const url = req.body.url;
 
-    const r = await axios({
-      url,
-      method: req.body.method,
-      headers: req.body.headers,
-      validateStatus: status => true,
-      transformResponse: data => data,
-      proxy: {
-        host: "127.0.0.1",
-        port: options.proxyPort
-      },
-      data: req.body.postData
-    });
+    const {
+      status,
+      headers,
+      body,
+      fileKey
+    } = await getRequestHandler().handleRequest(req.body);
+    console.log("finishihgn");
 
-    const data = r.data;
-    const headers = r.headers;
-
-    const hasha = require("hasha");
-    const hash = hasha(data, "hex").slice(0, 8);
-
-    let fileKey =
-      url.replace(/\//g, "_").replace(/[^a-zA-Z\-_\.0-9]/g, "") + "_" + hash;
-
-    if (!files.find(f => f.key === fileKey)) {
-      files.push({
-        url,
-        hash,
-        createdAt: new Date(),
-        key: fileKey
-      });
-    }
-
-    res.status(r.status);
+    res.status(status);
 
     Object.keys(headers).forEach(headerKey => {
+      if (headerKey === "content-length") {
+        // was getting this wrong sometimes
+        return;
+      }
       res.set(headerKey, headers[headerKey]);
     });
 
-    res.end(Buffer.from(data));
+    console.log("body len", body.length);
+
+    res.end(body);
+
+    // const r = await axios({
+    //   url,
+    //   method: req.body.method,
+    //   headers: req.body.headers,
+    //   validateStatus: status => true,
+    //   transformResponse: data => data,
+    //   proxy: {
+    //     host: "127.0.0.1",
+    //     port: options.proxyPort
+    //   },
+    //   data: req.body.postData
+    // });
+
+    // const data = r.data;
+    // const headers = r.headers;
+
+    // const hasha = require("hasha");
+    // const hash = hasha(data, "hex").slice(0, 8);
+
+    // let fileKey =
+    //   url.replace(/\//g, "_").replace(/[^a-zA-Z\-_\.0-9]/g, "") + "_" + hash;
+
+    // if (!files.find(f => f.key === fileKey)) {
+    //   files.push({
+    //     url,
+    //     hash,
+    //     createdAt: new Date(),
+    //     key: fileKey
+    //   });
+    // }
+
+    // res.status(r.status);
+
+    // Object.keys(headers).forEach(headerKey => {
+    //   res.set(headerKey, headers[headerKey]);
+    // });
+
+    // res.end(Buffer.from(data));
   });
 
   app.get("/viewFile/", (req, res) => {});
@@ -446,7 +481,8 @@ function setupBackend(
   getProxy,
   files,
   locLogs,
-  logUses
+  logUses,
+  getRequestHandler
 ) {
   const locStore = new LocStore(options.getLocStorePath());
   const logServer = new LevelDBLogServer(
@@ -512,9 +548,13 @@ function setupBackend(
   });
 
   app.get("/xyzviewer/fileDetails/:fileKey", async (req, res) => {
-    let file = files.find(f => f.key === req.params.fileKey);
+    let file = files.find(f => f.fileKey === req.params.fileKey);
     let url = file.url;
-    const { data: fileContent } = await axios.get(url);
+
+    const { body: fileContent } = await getRequestHandler().handleRequest({
+      url: url + "?dontprocess",
+      method: "GET"
+    });
 
     const locs = await getLocs(url);
 
@@ -702,7 +742,11 @@ function setupBackend(
     const startTime = new Date();
     req.body.logs.forEach(log => {
       if (!locLogs[log.loc]) {
-        console.log("loc  not found", log.loc, log);
+        console.log(
+          "loc not found",
+          log.loc,
+          JSON.stringify(log).slice(0, 100)
+        );
         return;
       }
       locLogs[log.loc].push(log.index);
@@ -843,7 +887,10 @@ function setupBackend(
     tryTraverse();
   });
 
-  const resolver = new StackFrameResolver({ proxyPort: options.proxyPort });
+  let resolver: StackFrameResolver;
+  setTimeout(() => {
+    resolver = new StackFrameResolver(getRequestHandler());
+  }, 200);
 
   app.get("/resolveStackFrame/:loc/:prettify?", (req, res) => {
     locStore.getLoc(req.params.loc, loc => {
@@ -906,3 +953,68 @@ function allowCrossOrigin(res) {
 }
 
 export { BackendOptions };
+
+function makeRequestHandler(options) {
+  let defaultBlockList = [
+    "inspectlet.com", // does a whole bunch of stuff that really slows page execution down
+    "google-analytics.com",
+    "newrelic.com", // overwrites some native functions used directly in FromJS (shouldn't be done ideally, but for now blocking is easier)
+    "intercom.com",
+    "segment.com",
+    "bugsnag",
+    "mixpanel",
+    "piwik"
+  ];
+
+  console.log(options);
+  return new RequestHandler({
+    shouldInstrument: ({ url }) => {
+      if (options.options.dontTrack.some(dt => url.includes(dt))) {
+        return false;
+      }
+      if (
+        url.includes("product_registry_impl_module.js") &&
+        url.includes("chrome-devtools-frontend")
+      ) {
+        // External file loaded by Chrome DevTools when opened
+        return false;
+      }
+      let u = new URL(url);
+      console.log(u.pathname, url);
+
+      console.log("u port", u.port, options.options.bePort);
+      return (
+        parseFloat(u.port) !== options.options.bePort ||
+        u.pathname.startsWith("/start") ||
+        u.pathname.startsWith("/fromJSInternal")
+      );
+    },
+    shouldBlock: ({ url }) => {
+      if (options.options.block.some(dt => url.includes(dt))) {
+        return true;
+      }
+      if (
+        !options.options.disableDefaultBlockList &&
+        defaultBlockList.some(dt => url.includes(dt))
+      ) {
+        console.log(
+          url +
+            " blocked because it's on the default block list. You can disable this by passing in --disableDefaultBlockList"
+        );
+        return true;
+      }
+      return false;
+    },
+    backendPort: options.options.bePort,
+    accessToken: options.accessToken,
+    storeLocs: options.storeLocs,
+    sessionDirectory: options.options.sessionDirectory,
+    onCodeProcessed: ({ url, fileKey }) => {
+      options.files.push({
+        url,
+        createdAt: new Date(),
+        fileKey
+      });
+    }
+  });
+}

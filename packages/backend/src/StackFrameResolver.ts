@@ -1,4 +1,5 @@
 import { prettifyAndMapFrameObject } from "./prettify";
+import { RequestHandler } from "../RequestHandler";
 
 var StackTraceGPS = require("stacktrace-gps");
 var ErrorStackParser = require("error-stack-parser");
@@ -24,35 +25,50 @@ class StackFrameResolver {
   _cache = {};
   _gps: any = null;
   _nonProxyGps: any = null;
-  _proxyPort: number | null = null;
+  _requestHandler: RequestHandler;
   _sourceObjectUrlCache = {};
 
-  constructor({ proxyPort }) {
-    this._proxyPort = proxyPort;
+  constructor(requestHandler) {
+    this._requestHandler = requestHandler;
     this._gps = new StackTraceGPS({ ajax: this.getAjax("proxy") });
     this._nonProxyGps = new StackTraceGPS({ ajax: this.getAjax("normal") });
   }
 
   getAjax(type: "proxy" | "normal") {
     const ajax = url => {
-      if (
-        type === "normal" &&
-        url.includes("http://fromjs-temporary-url.com:5555")
-      ) {
-        // We use this port for eval scripts, which are only available through the proxy
-        return this._gps._get(url);
-      }
+      console.log("get", { url });
+      // if (
+      //   type === "normal" &&
+      //   url.includes("http://fromjs-temporary-url.com:5555")
+      // ) {
+      //   // We use this port for eval scripts, which are only available through the proxy
+      //   return this._gps._get(url);
+      // }
       return new Promise((resolve, reject) => {
         const options: any = {};
+        // if (type === "proxy") {
+        //   options.proxy = "http://127.0.0.1:" + this._proxyPort;
+        // }
+
         if (type === "proxy") {
-          options.proxy = "http://127.0.0.1:" + this._proxyPort;
+          this._requestHandler
+            .handleRequest({
+              url,
+              method: "GET",
+              headers: {},
+              postData: null
+            })
+            .then(r => {
+              console.log("rrr", r);
+              resolve(r.body);
+            });
+          return;
         }
 
         var r = request.defaults(options);
         r(
           {
-            url,
-            rejectUnauthorized: false // fix UNABLE_TO_VERIFY_LEAF_SIGNATURE when loading trello board
+            url
           },
           function(err, res, body) {
             if (err) {

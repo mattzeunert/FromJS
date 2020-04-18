@@ -1,5 +1,6 @@
 // worker thread
 import { compileSync } from "@fromjs/core";
+import { expose } from "threads/worker";
 
 Error.stackTraceLimit = Infinity;
 
@@ -41,27 +42,21 @@ function instrumentCode() {
     });
   };
 }
-
-module.exports = function instrument(args, done) {
-  if (!args) {
-    // some weird issue
-    done();
-  }
-
+async function instrument(args) {
   // var { body, url } = args;
   const body = args.body;
+
   const url = args.url;
   const babelPluginOptions = args.babelPluginOptions;
   var process = require("process");
 
   process.title = "FromJS - Compilation worker(" + url + ")";
 
-  instrumentCode()(body, url, babelPluginOptions).then(
-    function(result) {
-      done(result);
-    },
-    function(err) {
-      throw Error(err);
-    }
-  );
-};
+  return await instrumentCode()(body, url, babelPluginOptions);
+}
+
+expose({
+  instrument
+});
+
+module.exports = instrument;
