@@ -76,6 +76,45 @@ function createBackendCerts(options: BackendOptions) {
 const DELETE_EXISTING_LOGS_AT_START = false;
 const LOG_PERF = config.LOG_PERF;
 
+async function  compileNodeApp(baseDirectory, requestHandler: RequestHandler, subdirectory = "") {
+  console.log("------", {baseDirectory, subdirectory})
+  let resolvedDir = path.resolve(baseDirectory + subdirectory)
+  
+  const files = fs.readdirSync(resolvedDir)
+  for (const file of files) {
+    console.log({file})
+    let filePath = path.resolve(resolvedDir, file);
+
+    if (fs.lstatSync(filePath).isDirectory()) {
+      await compileNodeApp(baseDirectory, requestHandler, subdirectory + "/" + file)
+      continue
+    }
+
+    if (!file.endsWith(".js")) {
+      console.log("skip", file)
+      continue;
+    }
+    
+    console.log("compile node app", file)
+
+    let nodeFile = fs.readFileSync(filePath, "utf-8");
+    let outdir = "./node-test-compiled" + subdirectory
+    console.log({outdir})
+    require("mkdirp").sync(outdir)
+    console.log("created dir")
+    const outFilePath = "./node-test-compiled" + subdirectory + "/" + file
+    console.log({outFilePath})
+    const r= await requestHandler.instrumentForEval(nodeFile, { type: "scriptTag" })
+    console.log("done compile node", Object.keys(r));
+    fs.writeFileSync(
+      outFilePath,
+      `var global = Function("return this")(); global.self = global; global.fromJSIsNode = true;\n` + r.instrumentedCode
+    );
+  }
+
+  
+}
+
 export default class Backend {
   constructor(options: BackendOptions) {
     if (DELETE_EXISTING_LOGS_AT_START) {
@@ -219,6 +258,10 @@ export default class Backend {
       storeLocs,
       files,
     });
+
+    compileNodeApp("node-test", requestHandler)
+
+    
 
     let proxyInterface;
     const proxyReady = createProxy({
@@ -736,6 +779,8 @@ function setupBackend(
       "Access-Control-Allow-Headers",
       "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
     );
+
+    // console.log("store logs", JSON.stringify(req.body, null, 2))
 
     const startTime = new Date();
     req.body.logs.forEach((log) => {

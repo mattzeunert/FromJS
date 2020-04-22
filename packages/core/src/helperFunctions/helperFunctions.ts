@@ -1,3 +1,5 @@
+
+console.log("in helperFunctions")
 import OperationLog, { getOperationIndex } from "./OperationLog";
 import getElementOperationLogMapping from "./getHtmlNodeOperationLogMapping";
 import getHtmlNodeOperationLogMapping from "./getHtmlNodeOperationLogMapping";
@@ -68,16 +70,21 @@ function makePostToBE({ accessToken, fetch }) {
       });
     }
 
-    const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
+    let fetchMethod = global.fromJSIsNode ? require("node-fetch").default : fetch
+
+    const url = "http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint
+    console.log({url, fetchMethod})
+    const headers = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: accessToken
+    }
+    const p = fetchMethod(url, {
       method: "POST",
-      headers: new Headers({
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: accessToken
-      }),
+      headers: global.fromJSIsNode ? headers : new Headers(headers),
       body: body
     });
-
+    
     return p;
   };
 }

@@ -1165,6 +1165,11 @@ export function traverseKnownFunction({
         operationLog: operationLog.args.context,
         charIndex: charIndex
       };
+    case "Number.prototype.toPrecision":
+      return {
+        operationLog: operationLog.args.context,
+        charIndex: charIndex
+      };
     case "Number.prototype.constructor":
       return {
         operationLog: operationLog.args.arg0,

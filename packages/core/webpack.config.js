@@ -5,7 +5,7 @@ function AfterEmitPlugin(fn) {
   this.fn = fn;
 }
 
-AfterEmitPlugin.prototype.apply = function(compiler) {
+AfterEmitPlugin.prototype.apply = function (compiler) {
   const fn = this.fn;
 
   compiler.plugin("emit", (compilation, callback) => {
@@ -23,8 +23,11 @@ module.exports = {
   },
   output: {
     filename: "[name].js",
-    path: __dirname
+    path: __dirname,
+    globalObject: `(typeof window === "undefined" ? Function("return this")() : window)`
   },
+
+  target: "node",
 
   optimization: {
     // Minimize because hopefully that'll speed up execution a bit,
@@ -40,11 +43,12 @@ module.exports = {
 
   performance: { hints: false },
 
-  mode: "production",
+  // i think right now prod doesn't work for node?
+  mode: "development",
 
   plugins: [
-    new AfterEmitPlugin(function() {
-      setTimeout(function() {
+    new AfterEmitPlugin(function () {
+      setTimeout(function () {
         const fs = require("fs");
         var code = fs.readFileSync("./helperFunctions.js").toString();
         code = code.replace(/\\/g, "MARKER_BACKSLASH");
@@ -59,7 +63,7 @@ module.exports = {
         let currentTsFile;
         try {
           currentTsFile = fs.readFileSync("./helperFunctions.ts").toString();
-        } catch (err) {}
+        } catch (err) { }
 
         // prevent infinite webpack builds (overwriting helperfunctins triggers rebuild as compileInBrowser depends on it)
         if (currentTsFile !== code) {

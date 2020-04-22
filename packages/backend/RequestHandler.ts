@@ -104,6 +104,14 @@ export class RequestHandler {
       JSON.stringify(map, null, 2)
     );
 
+    ["", "?dontprocess", ".map"].forEach(postfix => {
+      let path = this._sessionDirectory + "/files/" + fileKey + postfix;
+      console.log("path", path, existsSync(path));
+      if (existsSync(path)) {
+        this._cache[url + postfix] = readFileSync(path, "utf-8");
+      }
+    });
+
     this._onCodeProcessed({ url, fileKey });
   }
 
@@ -247,6 +255,7 @@ export class RequestHandler {
     }
     this._storeLocs(r.locs);
 
+    console.log("_afterCodeProcessed", url)
     this._afterCodeProcessed({
       url,
       fileKey,
