@@ -6,7 +6,7 @@ import babelPlugin from "../../core/src/babelPlugin";
 import * as React from "react";
 import * as ReactDom from "react-dom";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
-const traverse = x => null;
+const traverse = (x) => null;
 import { escape } from "lodash";
 import { TextEl } from "./TextEl";
 import Code from "./Code";
@@ -29,7 +29,7 @@ import "./main.scss";
 import { App2 } from "./CodeViewer";
 
 // global function used by tree view html
-window["showSteps"] = function(logId, charIndex) {
+window["showSteps"] = function (logId, charIndex) {
   actions.selectAndTraverse(logId, charIndex);
 };
 
@@ -37,7 +37,7 @@ let App = class extends React.Component<any, any> {
   constructor(props) {
     super(props);
     this.state = {
-      isForceUpdating: false
+      isForceUpdating: false,
     };
     window["forceUpdateInspector"] = () => {
       this.setState({ isForceUpdating: true });
@@ -57,14 +57,14 @@ let App = class extends React.Component<any, any> {
       <div
         className="welcome"
         style={{
-          maxWidth: 800
+          maxWidth: 800,
         }}
       >
         <div className="welcome-content">
           <h3
             style={{
               marginTop: 5,
-              marginBottom: 10
+              marginBottom: 10,
             }}
           >
             Get Started
@@ -97,7 +97,7 @@ let App = class extends React.Component<any, any> {
 
             <button
               className={cx("load-demo-app", {
-                "load-demo-app--hide": props.isInspectingDemoApp
+                "load-demo-app--hide": props.isInspectingDemoApp,
               })}
               // onClick={() =>
               //   actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
@@ -111,7 +111,7 @@ let App = class extends React.Component<any, any> {
           <div
             style={{ margin: 10 }}
             dangerouslySetInnerHTML={{
-              __html: `<iframe src="http://localhost:${location.port}/start/" />`
+              __html: `<iframe src="http://localhost:${location.port}/start/" />`,
             }}
           />
         )}
@@ -120,7 +120,7 @@ let App = class extends React.Component<any, any> {
     return (
       <div
         className={cx("app", {
-          "app--isInspectingDemoApp": props.isInspectingDemoApp
+          "app--isInspectingDemoApp": props.isInspectingDemoApp,
         })}
       >
         <div className="app-header">
@@ -191,7 +191,7 @@ App = branch(
     hasInspectorData: ["hasInspectorData"],
     enableInstrumentation: ["enableInstrumentation"],
     collapseGetStartedIfHasData: ["collapseGetStartedIfHasData"],
-    prettifyIfNoSourceMap: ["prettifyIfNoSourceMap"]
+    prettifyIfNoSourceMap: ["prettifyIfNoSourceMap"],
   },
   App
 );
@@ -202,10 +202,8 @@ if (!location.href.includes("xyzviewer")) {
 
   ReactDom.render(<App />, document.querySelector("#app"));
 } else {
-  App = root(appState, App);
   const App2b = root(appState, App2);
-  ReactDom.render(<App />, document.querySelector("#appx"));
-  ReactDom.render(<App2b />, document.querySelector("#app"));
+  ReactDom.render(<App2b App={App} />, document.querySelector("#appx"));
 }
 
 // setTimeout(() => actions.selectAndTraverse(705162159, 0), 500);

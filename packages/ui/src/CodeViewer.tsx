@@ -36,20 +36,20 @@ export class App2 extends React.Component {
 
   async componentDidMount() {
     this.setState({
-      files: await fetch("/xyzviewer/fileInfo").then(r => r.json())
+      files: await fetch("/xyzviewer/fileInfo").then((r) => r.json()),
     });
   }
 
   render() {
-    window["setLocs"] = async locs => {
+    window["setLocs"] = async (locs) => {
       const r = await Promise.all(
-        locs.map(loc => {
+        locs.map((loc) => {
           return fetch("/xyzviewer/trackingDataForLoc/" + loc.key)
-            .then(r => r.json())
-            .then(res => {
+            .then((r) => r.json())
+            .then((res) => {
               return {
                 logs: res,
-                loc: loc
+                loc: loc,
               };
             });
         })
@@ -59,122 +59,143 @@ export class App2 extends React.Component {
     };
     console.log({ monaco, r: this._random });
 
-    return (
-      <div>
-        {this.state.files
-          // rough filter for now
-          .filter(
-            f =>
-              f.url.includes(".js") &&
-              !f.url.includes(".json") &&
-              !f.url.includes("compileInBrowser.js") &&
-              !f.url.includes("babel-standalone.js")
-          )
-          .map(f => {
-            return (
-              <div
-                onClick={() => {
-                  fetch("/xyzviewer/fileDetails/" + f.fileKey)
-                    .then(r => r.json())
-                    .then(r => {
-                      if (window["editor"]) {
-                        window["editor"].dispose();
-                      }
-                      window["editor"] = monaco.editor.create(
-                        document.getElementById("container"),
-                        {
-                          value: r["fileContent"],
-                          language: "javascript",
-                          readOnly: true
-                        }
-                      );
-                      window["editor"].onDidChangeCursorPosition(function({
-                        position
-                      }) {
-                        console.log(position.lineNumber);
+    const { App } = this.props;
 
-                        let matchingLocs = window["locs"].filter(l => {
-                          return (
-                            l.value.start.line <= position.lineNumber &&
-                            l.value.end.line >= position.lineNumber &&
-                            (l.value.start.line !== l.value.end.line ||
-                              (l.value.start.column <= position.column &&
-                                l.value.end.column >= position.column))
+    return (
+      <div style={{ display: "flex" }}>
+        <div>
+          {this.state.files
+            // rough filter for now
+            .filter(
+              (f) =>
+                f.url.includes(".js") &&
+                !f.url.includes(".json") &&
+                !f.url.includes("compileInBrowser.js") &&
+                !f.url.includes("babel-standalone.js")
+            )
+            .map((f) => {
+              return (
+                <div
+                  onClick={() => {
+                    fetch("/xyzviewer/fileDetails/" + f.fileKey)
+                      .then((r) => r.json())
+                      .then((r) => {
+                        if (window["editor"]) {
+                          window["editor"].dispose();
+                        }
+                        window["editor"] = monaco.editor.create(
+                          document.getElementById("container"),
+                          {
+                            value: r["fileContent"],
+                            language: "javascript",
+                            readOnly: true,
+                          }
+                        );
+                        window["editor"].onDidChangeCursorPosition(function ({
+                          position,
+                        }) {
+                          console.log(position.lineNumber);
+
+                          let matchingLocs = window["locs"].filter((l) => {
+                            return (
+                              l.value.start.line <= position.lineNumber &&
+                              l.value.end.line >= position.lineNumber &&
+                              (l.value.start.line !== l.value.end.line ||
+                                (l.value.start.column <= position.column &&
+                                  l.value.end.column >= position.column))
+                            );
+                          });
+                          // debugger;
+
+                          window.setLocs(matchingLocs);
+                          console.log(matchingLocs);
+                        });
+
+                        window["locs"] = r.locs.filter(
+                          (l) => l.value.start && l.value.end
+                        );
+                        window["fileContent"] = r.fileContent;
+
+                        let d = [];
+                        window["locs"].forEach((loc) => {
+                          if (loc.value.start.line !== loc.value.end.line) {
+                            console.log("ignoring multiline loc for now");
+                            d.push({
+                              range: new monaco.Range(
+                                loc.value.start.line,
+                                loc.value.start.column,
+                                loc.value.start.line,
+                                loc.value.start.column + 2
+                              ),
+                              options: {
+                                isWholeLine: false,
+                                inlineClassName:
+                                  "myInlineDecoration-multiline-start",
+                              },
+                            });
+                            return;
+                          }
+                          d.push(
+                            {
+                              range: new monaco.Range(
+                                loc.value.start.line,
+                                loc.value.start.column,
+                                loc.value.end.line,
+                                loc.value.end.column
+                              ),
+                              options: {
+                                isWholeLine: false,
+                                inlineClassName:
+                                  loc.logCount > 0
+                                    ? loc.logCount > 5
+                                      ? "myInlineDecoration-hasMany"
+                                      : "myInlineDecoration-has"
+                                    : "myInlineDecoration-none",
+                                // linesDecorationsClassName: "myLineDecoration"
+                              },
+                            }
+                            // {
+                            //   range: new monaco.Range(7, 1, 7, 24),
+                            //   options: { inlineClassName: "myInlineDecoration" }
+                            // }
                           );
                         });
-                        // debugger;
+                        console.log(d);
 
-                        window.setLocs(matchingLocs);
-                        console.log(matchingLocs);
-                      });
-
-                      window["locs"] = r.locs.filter(
-                        l => l.value.start && l.value.end
-                      );
-                      window["fileContent"] = r.fileContent;
-
-                      let d = [];
-                      window["locs"].forEach(loc => {
-                        if (loc.value.start.line !== loc.value.end.line) {
-                          console.log("ignoring multiline loc for now");
-                          d.push({
-                            range: new monaco.Range(
-                              loc.value.start.line,
-                              loc.value.start.column,
-                              loc.value.start.line,
-                              loc.value.start.column + 2
-                            ),
-                            options: {
-                              isWholeLine: false,
-                              inlineClassName:
-                                "myInlineDecoration-multiline-start"
-                            }
-                          });
-                          return;
-                        }
-                        d.push(
-                          {
-                            range: new monaco.Range(
-                              loc.value.start.line,
-                              loc.value.start.column,
-                              loc.value.end.line,
-                              loc.value.end.column
-                            ),
-                            options: {
-                              isWholeLine: false,
-                              inlineClassName:
-                                loc.logCount > 0
-                                  ? loc.logCount > 5
-                                    ? "myInlineDecoration-hasMany"
-                                    : "myInlineDecoration-has"
-                                  : "myInlineDecoration-none"
-                              // linesDecorationsClassName: "myLineDecoration"
-                            }
-                          }
-                          // {
-                          //   range: new monaco.Range(7, 1, 7, 24),
-                          //   options: { inlineClassName: "myInlineDecoration" }
-                          // }
+                        var decorations = window["editor"].deltaDecorations(
+                          [],
+                          d
                         );
                       });
-                      console.log(d);
+                  }}
+                >
+                  {f.url}
+                </div>
+              );
+            })}
+        </div>
+        <div
+          id="container"
+          style={{
+            width: 600,
+            height: 500,
+            border: "1px solid grey",
+            float: "left",
+          }}
+        ></div>
 
-                      var decorations = window["editor"].deltaDecorations(
-                        [],
-                        d
-                      );
-                    });
-                }}
-              >
-                {f.url}
-              </div>
+        <div style={{ flexGrow: 1 }}>
+          -
+          {this.state.info.map((info, i) => {
+            return (
+              <InfoItem info={info} key={this._random + "_" + i}></InfoItem>
             );
           })}
+        </div>
 
-        <hr />
-        {this.state.info.map((info, i) => {
-          return <InfoItem info={info} key={this._random + "_" + i}></InfoItem>;
-        })}
+        <div style={{ flexGrow: 1 }}>
+          <App></App>
+        </div>
       </div>
     );
   }
@@ -183,7 +204,7 @@ export class App2 extends React.Component {
 class InfoItem extends React.Component {
   state = {
     showJson: false,
-    showUsesFor: null
+    showUsesFor: null,
   };
   render() {
     let { info } = this.props;
@@ -191,7 +212,7 @@ class InfoItem extends React.Component {
       <div>
         <h2>{getCodeString(info.loc)}</h2>
         Values:{" "}
-        {info.logs.map(l => (
+        {info.logs.map((l) => (
           <div>
             <code
               onClick={() => {
@@ -202,7 +223,7 @@ class InfoItem extends React.Component {
                     const lastStep = steps[steps.length - 1];
                     console.log({ steps });
                     this.setState({
-                      showUsesFor: lastStep.operationLog.index
+                      showUsesFor: lastStep.operationLog.index,
                     });
                   }
                 );
@@ -233,13 +254,13 @@ class InfoItem extends React.Component {
 
 class ShowUses extends React.Component {
   state = {
-    uses: null
+    uses: null,
   };
   async componentDidMount() {
     this.setState({
-      uses: await fetch("/xyzviewer/getUses/" + this.props.logIndex).then(r =>
+      uses: await fetch("/xyzviewer/getUses/" + this.props.logIndex).then((r) =>
         r.json()
-      )
+      ),
     });
   }
   render() {
@@ -250,7 +271,7 @@ class ShowUses extends React.Component {
       <div>
         {this.state.uses.length === 0 && <div>No uses found.</div>}
         {this.state.uses
-          .filter(u => u.argName === "function")
+          .filter((u) => u.argName === "function")
           .map(({ use, argName }) => {
             return (
               <div>
