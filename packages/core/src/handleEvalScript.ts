@@ -1,16 +1,19 @@
-function generateEvalUrl(type) {
+function generateEvalUrl(type, name) {
+
+  let fileName = type + (name || "") + "_" +
+    Math.floor(Math.random() * 1000000000) +
+    ".js";
   return (
     "http://fromjs-temporary-url.com:5555/" +
-    type +
-    Math.floor(Math.random() * 1000000000) +
-    ".js"
+    fileName
   );
 }
 
-export default function handleEvalScript(code, compile, details, done) {
+export default function handleEvalScript(code, compile, details, done, onError= function(err){}) {
   const type = (details && details.type) || "eval";
-  const url = generateEvalUrl(type);
+  const url = generateEvalUrl(type, details.name);
 
+  try {
   return compile(code, url, function(babelResult) {
     const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url;
     done({
@@ -19,5 +22,8 @@ export default function handleEvalScript(code, compile, details, done) {
       url,
       locs: babelResult.locs
     });
-  });
+  });}catch(err){ 
+    console.log("onerror", err.message)
+    onError(err)
+  }
 }

@@ -76,40 +76,73 @@ function createBackendCerts(options: BackendOptions) {
 const DELETE_EXISTING_LOGS_AT_START = false;
 const LOG_PERF = config.LOG_PERF;
 
-async function  compileNodeApp(baseDirectory, requestHandler: RequestHandler, subdirectory = "") {
-  console.log("------", {baseDirectory, subdirectory})
-  let resolvedDir = path.resolve(baseDirectory + subdirectory)
-  
+function getFilesToInstrument(baseDirectory, subdirectory) {
+  console.log({subdirectory})
+  let resolvedDir = path.resolve(baseDirectory + "/" + subdirectory)
+
+  let filesToInstrument:{relativePath: string,subdirectory: string}[] = []
+
   const files = fs.readdirSync(resolvedDir)
   for (const file of files) {
-    console.log({file})
     let filePath = path.resolve(resolvedDir, file);
-
     if (fs.lstatSync(filePath).isDirectory()) {
-      await compileNodeApp(baseDirectory, requestHandler, subdirectory + "/" + file)
-      continue
+      filesToInstrument = [...filesToInstrument, ...getFilesToInstrument(baseDirectory, subdirectory + file + "/")]
+    } else if (file.endsWith(".js")) {
+      filesToInstrument.push({
+        relativePath: subdirectory + file,
+        subdirectory
+      })
     }
+  }
 
-    if (!file.endsWith(".js")) {
-      console.log("skip", file)
+  return filesToInstrument
+}
+
+async function  compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
+
+  let filesToInstrument = getFilesToInstrument(baseDirectory, "");
+  console.log(filesToInstrument.length)
+
+  let i = 0
+  for (const file of filesToInstrument) {
+    i++
+    console.log("## " + file.relativePath, `${i}/${filesToInstrument.length}`)
+    let nodeFile = fs.readFileSync(path.resolve(baseDirectory, file.relativePath), "utf-8");
+    let outdir = "./node-test-compiled" + file.subdirectory
+    require("mkdirp").sync(outdir)
+    const outFilePath = "./node-test-compiled" + file.subdirectory + "/" + file
+    if (fs.existsSync(outFilePath)) {
       continue;
     }
-    
-    console.log("compile node app", file)
+    try {
+      const r= await requestHandler.instrumentForEval(nodeFile, { type: "node_", name: (file.subdirectory + "/" +file).replace(/[^a-zA-Z0-9\-]/g, "_") })
+      fs.writeFileSync(
+        outFilePath,
+        `var global = Function("return this")(); global.self = global; global.fromJSIsNode = true;\n` + r.instrumentedCode
+      );
+    } catch(err) {
+      console.log("Comopile code failed, will write normal", file.relativePath, err.message)
+      fs.writeFileSync(
+        outFilePath,
+        `var global = Function("return this")(); global.self = global; global.fromJSIsNode = true;\n` + nodeFile
+      );
+    }
+  }
+    // let filePath = path.resolve(resolvedDir, file);
+    // console.log(filePath)
 
-    let nodeFile = fs.readFileSync(filePath, "utf-8");
-    let outdir = "./node-test-compiled" + subdirectory
-    console.log({outdir})
-    require("mkdirp").sync(outdir)
-    console.log("created dir")
-    const outFilePath = "./node-test-compiled" + subdirectory + "/" + file
-    console.log({outFilePath})
-    const r= await requestHandler.instrumentForEval(nodeFile, { type: "scriptTag" })
-    console.log("done compile node", Object.keys(r));
-    fs.writeFileSync(
-      outFilePath,
-      `var global = Function("return this")(); global.self = global; global.fromJSIsNode = true;\n` + r.instrumentedCode
-    );
+    // if (fs.lstatSync(filePath).isDirectory()) {
+    //   await compileNodeApp(baseDirectory, requestHandler, subdirectory + "/" + file)
+    //   continue
+    // }
+
+    // if (!file.endsWith(".js")) {
+    //   continue;
+    // }
+
+
+   
+    
   }
 
   
@@ -223,20 +256,20 @@ export default class Backend {
           )
         )
       : {};
-    setInterval(() => {
-      fs.writeFileSync(
-        options.sessionDirectory + "/files.json",
-        JSON.stringify(files, null, 2)
-      );
-      fs.writeFileSync(
-        options.sessionDirectory + "/locLogs.json",
-        JSON.stringify(locLogs, null, 2)
-      );
-      fs.writeFileSync(
-        options.sessionDirectory + "/logUses.json",
-        JSON.stringify(logUses, null, 2)
-      );
-    }, 5000);
+    // setInterval(() => {
+    //   fs.writeFileSync(
+    //     options.sessionDirectory + "/files.json",
+    //     JSON.stringify(files, null, 2)
+    //   );
+    //   fs.writeFileSync(
+    //     options.sessionDirectory + "/locLogs.json",
+    //     JSON.stringify(locLogs, null, 2)
+    //   );
+    //   fs.writeFileSync(
+    //     options.sessionDirectory + "/logUses.json",
+    //     JSON.stringify(logUses, null, 2)
+    //   );
+    // }, 5000);
 
     let requestHandler;
 

@@ -52,7 +52,13 @@ async function instrument(args) {
 
   process.title = "FromJS - Compilation worker(" + url + ")";
 
-  return await instrumentCode()(body, url, babelPluginOptions);
+  try {
+    return await instrumentCode()(body, url, babelPluginOptions);
+  } catch (err) {
+    console.log("wil forward caught error")
+    return {error: err}
+  }
+  
 }
 
 expose({

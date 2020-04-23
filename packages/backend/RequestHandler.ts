@@ -81,7 +81,6 @@ export class RequestHandler {
     files.forEach(f => {
       ["", "?dontprocess", ".map"].forEach(postfix => {
         let path = this._sessionDirectory + "/files/" + f.fileKey + postfix;
-        console.log("path", path, existsSync(path));
         if (existsSync(path)) {
           this._cache[f.url + postfix] = readFileSync(path, "utf-8");
         }
@@ -92,8 +91,6 @@ export class RequestHandler {
   _cache = {};
 
   _afterCodeProcessed({ url, fileKey, raw, instrumented, map }) {
-    console.log("caching url", url);
-
     writeFileSync(this._sessionDirectory + "/files/" + fileKey, instrumented);
     writeFileSync(
       this._sessionDirectory + "/files/" + fileKey + "?dontprocess",
@@ -106,7 +103,6 @@ export class RequestHandler {
 
     ["", "?dontprocess", ".map"].forEach(postfix => {
       let path = this._sessionDirectory + "/files/" + fileKey + postfix;
-      console.log("path", path, existsSync(path));
       if (existsSync(path)) {
         this._cache[url + postfix] = readFileSync(path, "utf-8");
       }
@@ -129,8 +125,6 @@ export class RequestHandler {
     let isMap = url.includes(".map");
     url = url.replace("?dontProcess", "").replace(".map", "");
 
-    console.log("cache keys: ", Object.keys(this._cache));
-    console.log({ url });
     if (this._cache[url]) {
       return {
         body: this._cache[url],
@@ -210,13 +204,11 @@ export class RequestHandler {
       accessToken: this._accessToken,
       backendPort: this._backendPort
     };
-    console.log(babelPluginOptions);
 
     const RUN_IN_SAME_PROCESS = false;
 
     let instrumenterFilePath = "instrumentCode.js";
     let r;
-    console.log({ instrumenterFilePath });
     if (RUN_IN_SAME_PROCESS) {
       console.log("Running compilation in proxy process for debugging");
       var compile = require("./" + instrumenterFilePath);
@@ -234,6 +226,10 @@ export class RequestHandler {
         url,
         babelPluginOptions
       });
+      if (response.error) {
+        console.log("got response with error")
+        throw response.error
+      }
       if (response.timeTakenMs > 2000) {
         const sizeBeforeString = prettyBytes(response.sizeBefore);
         const sizeAfterString = prettyBytes(response.sizeAfter);
@@ -255,7 +251,6 @@ export class RequestHandler {
     }
     this._storeLocs(r.locs);
 
-    console.log("_afterCodeProcessed", url)
     this._afterCodeProcessed({
       url,
       fileKey,
@@ -341,39 +336,38 @@ export class RequestHandler {
     return magicHtml.toString();
   }
 
-  processCode(body, url) {
+  async processCode(body, url) {
     // var cacheKey = body + url;
     // if (this.processCodeCache[cacheKey]) {
     //   return Promise.resolve(this.processCodeCache[cacheKey]);
     // }
-    return this._requestProcessCode(body, url).then(response => {
-      var { code, map, locs, timeTakenMs, sizeBefore, sizeAfter } = <any>(
-        response
+    let response = await this._requestProcessCode(body, url)
+    var { code, map, locs, timeTakenMs, sizeBefore, sizeAfter } = <any>(
+      response
+    );
+    console.log("req process code done", url);
+
+    if (timeTakenMs > 2000) {
+      const sizeBeforeString = prettyBytes(sizeBefore);
+      const sizeAfterString = prettyBytes(sizeAfter);
+      console.log(
+        `Instrumented ${url} took ${timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
       );
-      console.log("req process code done", url);
+    }
 
-      if (timeTakenMs > 2000) {
-        const sizeBeforeString = prettyBytes(sizeBefore);
-        const sizeAfterString = prettyBytes(sizeAfter);
-        console.log(
-          `Instrumented ${url} took ${timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
-        );
-      }
-
-      var result = { code, map };
-      //   this.setProcessCodeCache(body, url, result);
-      return Promise.resolve(result);
-    });
+    var result = { code, map };
+    //   this.setProcessCodeCache(body, url, result);
+    return result
   }
 
   instrumentForEval(code, details) {
-    const compile = (code, url, done) => {
-      this.processCode(code, url).then(done);
-    };
+    
 
-    console.log("instumentforeveal", details);
-
-    return new Promise(resolve => {
+    
+    return new Promise(async (resolve, reject) => {
+      const compile = (code, url, done) => {
+        this.processCode(code, url).then(done).catch(reject);
+      };  
       handleEvalScript(
         code,
         compile,
@@ -382,6 +376,9 @@ export class RequestHandler {
           resolve({
             instrumentedCode
           });
+        },
+        err => {
+          reject(err)
         }
       );
     });
