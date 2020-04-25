@@ -1184,6 +1184,7 @@ export async function openBrowser({
       ...extraArgs,
     ],
   });
+  console.log("Launched browser", browser);
   let pages = await browser.pages();
   const page = pages[0];
   // disable puppeteer default window size emulation

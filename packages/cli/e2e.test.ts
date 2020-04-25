@@ -156,6 +156,7 @@ describe("E2E", () => {
     await waitForProxyReady(command);
 
     try {
+      console.log("will open browser");
       browser = await openBrowser({
         userDataDir: undefined,
         extraArgs: [
