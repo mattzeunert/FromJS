@@ -15,15 +15,20 @@ fromjs-test-cases
 
 packages/core/dist
 packages/core/helperFunctions.ts
+packages/core/helperFunctions_browser.ts
 packages/backend/logs.json
 packages/backend/ca
 ca
 logs.json
 
 packages/core/helperFunctions.js
+packages/core/helperFunctions_browser.js
 packages/core/compileInBrowser.js
+packages/core/compileInBrowser_browser.js
 
 mydb
 fromjs-session
 yarn-error.log
+/node-test-lh
 /node-test-compiled
+tmp/

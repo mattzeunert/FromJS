@@ -1,5 +1,8 @@
 const lighthouse = require('lighthouse');
 const chromeLauncher = require('chrome-launcher');
+const log = require("lighthouse-logger");
+log.setLevel("info");
+
 
 function launchChromeAndRunLighthouse(url, opts, config = null) {
     return chromeLauncher.launch({ chromeFlags: opts.chromeFlags }).then(chrome => {
@@ -15,12 +18,17 @@ function launchChromeAndRunLighthouse(url, opts, config = null) {
 }
 
 const opts = {
-    chromeFlags: ['--show-paint-rects']
+    settings: {
+        onlyCategories: ['performance'],
+    },
+    logLevel: "info"
+    // chromeFlags: ['--show-paint-rects']
 };
 
 // Usage:
 launchChromeAndRunLighthouse('https://example.com', opts).then(results => {
-    console.log(Object.keys(results))
+    const str = JSON.stringify(results)
+    console.log(Object.keys(results), str.slice(0, 1000))
     // Use results!
 });
 

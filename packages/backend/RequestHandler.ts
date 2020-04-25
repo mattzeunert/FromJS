@@ -67,25 +67,24 @@ export class RequestHandler {
     sessionDirectory,
     files
   }) {
-    console.log("req h", arguments[0]);
     this._shouldBlock = shouldBlock;
     this._accessToken = accessToken;
     this._backendPort = backendPort;
     this._storeLocs = storeLocs;
     this._shouldInstrument = shouldInstrument;
-    this._cache = {};
+    // this._cache = {};
     this._sessionDirectory = sessionDirectory;
     this._onCodeProcessed = onCodeProcessed;
 
     this._files = files;
-    files.forEach(f => {
-      ["", "?dontprocess", ".map"].forEach(postfix => {
-        let path = this._sessionDirectory + "/files/" + f.fileKey + postfix;
-        if (existsSync(path)) {
-          this._cache[f.url + postfix] = readFileSync(path, "utf-8");
-        }
-      });
-    });
+    // files.forEach(f => {
+    //   ["", "?dontprocess", ".map"].forEach(postfix => {
+    //     let path = this._sessionDirectory + "/files/" + f.fileKey + postfix;
+    //     if (existsSync(path)) {
+    //       this._cache[f.url + postfix] = readFileSync(path, "utf-8");
+    //     }
+    //   });
+    // });
   }
 
   _cache = {};
@@ -101,12 +100,12 @@ export class RequestHandler {
       JSON.stringify(map, null, 2)
     );
 
-    ["", "?dontprocess", ".map"].forEach(postfix => {
-      let path = this._sessionDirectory + "/files/" + fileKey + postfix;
-      if (existsSync(path)) {
-        this._cache[url + postfix] = readFileSync(path, "utf-8");
-      }
-    });
+    // ["", "?dontprocess", ".map"].forEach(postfix => {
+    //   let path = this._sessionDirectory + "/files/" + fileKey + postfix;
+    //   if (existsSync(path)) {
+    //     this._cache[url + postfix] = readFileSync(path, "utf-8");
+    //   }
+    // });
 
     this._onCodeProcessed({ url, fileKey });
   }
@@ -123,17 +122,26 @@ export class RequestHandler {
 
     let isDontProcess = url.includes("?dontprocess");
     let isMap = url.includes(".map");
-    url = url.replace("?dontProcess", "").replace(".map", "");
+    url = url.replace("?dontprocess", "").replace(".map", "");
 
-    if (this._cache[url]) {
+    let file = this._files.find(f => f.url == url)!;
+    if (file) {
+      let postfix = "";
+      if (isDontProcess) {
+        postfix = "?dontprocess";
+      }
+      if (isMap) {
+        postfix = ".map";
+      }
+      console.log(file);
+      let path = this._sessionDirectory + "/files/" + file.fileKey + postfix;
+
       return {
-        body: this._cache[url],
+        body: require("fs").readFileSync(path, "utf-8"),
         headers: {},
         status: 200
       };
     }
-
-    console.log({ url });
 
     let { status, data, headers: responseHeaders } = await axios({
       url,
@@ -182,8 +190,6 @@ export class RequestHandler {
 
     responseHeaders["content-length"] = data.length;
 
-    console.log("got resp", url);
-
     return {
       status,
       body: Buffer.from(data),
@@ -226,15 +232,18 @@ export class RequestHandler {
         url,
         babelPluginOptions
       });
+      await Thread.terminate(compilerProcess);
       if (response.error) {
-        console.log("got response with error")
-        throw response.error
+        console.log("got response with error");
+        throw response.error;
       }
       if (response.timeTakenMs > 2000) {
         const sizeBeforeString = prettyBytes(response.sizeBefore);
         const sizeAfterString = prettyBytes(response.sizeAfter);
         console.log(
-          `Instrumented ${url} took ${response.timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
+          `Instrumented ${url} took ${
+            response.timeTakenMs
+          }ms, ${sizeBeforeString} => ${sizeAfterString}`
         );
       }
       r = response;
@@ -341,10 +350,8 @@ export class RequestHandler {
     // if (this.processCodeCache[cacheKey]) {
     //   return Promise.resolve(this.processCodeCache[cacheKey]);
     // }
-    let response = await this._requestProcessCode(body, url)
-    var { code, map, locs, timeTakenMs, sizeBefore, sizeAfter } = <any>(
-      response
-    );
+    let response = await this._requestProcessCode(body, url);
+    var { code, map, locs, timeTakenMs, sizeBefore, sizeAfter } = <any>response;
     console.log("req process code done", url);
 
     if (timeTakenMs > 2000) {
@@ -357,17 +364,16 @@ export class RequestHandler {
 
     var result = { code, map };
     //   this.setProcessCodeCache(body, url, result);
-    return result
+    return result;
   }
 
   instrumentForEval(code, details) {
-    
-
-    
     return new Promise(async (resolve, reject) => {
       const compile = (code, url, done) => {
-        this.processCode(code, url).then(done).catch(reject);
-      };  
+        this.processCode(code, url)
+          .then(done)
+          .catch(reject);
+      };
       handleEvalScript(
         code,
         compile,
@@ -378,7 +384,7 @@ export class RequestHandler {
           });
         },
         err => {
-          reject(err)
+          reject(err);
         }
       );
     });

@@ -36,8 +36,9 @@ export function getStoreLogsWorker({ makePostToBE, accessToken }) {
       }
     };
   }
+  let global = new Function("return this")()
   return new Worker(
-    URL.createObjectURL(
+    global.URL.createObjectURL(
       new Blob([
         "const makePostToBE = " +
           makePostToBE +

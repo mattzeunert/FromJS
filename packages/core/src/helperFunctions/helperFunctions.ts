@@ -1,5 +1,4 @@
-
-console.log("in helperFunctions")
+console.log("in helperFunctions");
 import OperationLog, { getOperationIndex } from "./OperationLog";
 import getElementOperationLogMapping from "./getHtmlNodeOperationLogMapping";
 import getHtmlNodeOperationLogMapping from "./getHtmlNodeOperationLogMapping";
@@ -9,7 +8,7 @@ import { ExecContext } from "./ExecContext";
 import operations from "../operations";
 import { SKIP_TRACKING, VERIFY, KEEP_LOGS_IN_MEMORY } from "../config";
 import * as FunctionNames from "../FunctionNames";
-import { initLogging, consoleCount, consoleLog } from "./logging";
+import { initLogging, consoleCount, consoleLog, consoleError } from "./logging";
 import { getStoreLogsWorker } from "./storeLogsWorker";
 import * as OperationTypes from "../OperationTypes";
 import { mapPageHtml } from "../mapPageHtml";
@@ -70,21 +69,22 @@ function makePostToBE({ accessToken, fetch }) {
       });
     }
 
-    let fetchMethod = global.fromJSIsNode ? require("node-fetch").default : fetch
+    let fetchMethod = global.fromJSIsNode
+      ? require("node-fetch").default
+      : fetch;
 
-    const url = "http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint
-    console.log({url, fetchMethod})
+    const url = "http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint;
     const headers = {
       Accept: "application/json",
       "Content-Type": "application/json",
       Authorization: accessToken
-    }
+    };
     const p = fetchMethod(url, {
       method: "POST",
       headers: global.fromJSIsNode ? headers : new Headers(headers),
       body: body
     });
-    
+
     return p;
   };
 }
@@ -94,10 +94,17 @@ const postToBE = makePostToBE({ accessToken, fetch });
 let logQueue = [];
 global["__debugFromJSLogQueue"] = () => logQueue;
 let evalScriptQueue = [];
-let worker: Worker | null = getStoreLogsWorker({
-  makePostToBE,
-  accessToken
-});
+let worker: Worker | null = null;
+// temporarily disable worker because i think lighthouse runs stuff in isolated envs
+// and it means hundreds of workers get created rather than always using same one?
+// try {
+//   getStoreLogsWorker({
+//   makePostToBE,
+//   accessToken
+// });
+// }catch(err){
+//   console.log("Create worker error, should be ok though", err.message)
+// }
 
 function sendLogsToServer() {
   if (logQueue.length === 0 && evalScriptQueue.length == 0) {
@@ -117,9 +124,9 @@ function sendLogsToServer() {
     worker.postMessage(data);
     console.timeEnd("postMessage");
   } else {
-    consoleLog(
-      "Can't create worker (maybe already inside a web worker?), will send request in normal thread"
-    );
+    // consoleLog(
+    //   "Can't create worker (maybe already inside a web worker?), will send request in normal thread"
+    // );
     postToBE("/storeLogs", data);
   }
 

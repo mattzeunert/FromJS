@@ -43,7 +43,6 @@ function instrumentCode() {
   };
 }
 async function instrument(args) {
-  // var { body, url } = args;
   const body = args.body;
 
   const url = args.url;

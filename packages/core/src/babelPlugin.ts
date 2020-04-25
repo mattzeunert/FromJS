@@ -63,6 +63,8 @@ if (!global.__didInitializeDataFlowTracking) {` +
   "}";
 helperCode += "// aaaaa"; // this seems to help with debugging/evaling the code... not sure why...just take it out if the tests dont break
 
+// helperCode = ""
+
 function plugin(babel) {
   const { types: t } = babel;
 

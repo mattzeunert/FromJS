@@ -2,7 +2,7 @@ import {
   LevelDBLogServer,
   HtmlToOperationLogMapping,
   LocStore,
-  traverseDomOrigin,
+  traverseDomOrigin
 } from "@fromjs/core";
 import { traverse } from "./src/traverse";
 import StackFrameResolver from "./src/StackFrameResolver";
@@ -14,11 +14,10 @@ import * as bodyParser from "body-parser";
 import * as WebSocket from "ws";
 import { createProxy } from "./backend.createProxy";
 import { BackendOptions } from "./BackendOptions";
-import * as axios from "axios";
 import * as responseTime from "response-time";
 import { config } from "@fromjs/core";
 import { RequestHandler } from "./RequestHandler";
-import { request } from "http";
+import * as pMap from "p-map";
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -39,9 +38,9 @@ function ensureDirectoriesExist(options: BackendOptions) {
     options.sessionDirectory,
     options.getCertDirectory(),
     options.getTrackingDataDirectory(),
-    options.sessionDirectory + "/files",
+    options.sessionDirectory + "/files"
   ];
-  directories.forEach((dir) => {
+  directories.forEach(dir => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir);
     }
@@ -76,76 +75,103 @@ function createBackendCerts(options: BackendOptions) {
 const DELETE_EXISTING_LOGS_AT_START = false;
 const LOG_PERF = config.LOG_PERF;
 
-function getFilesToInstrument(baseDirectory, subdirectory) {
-  console.log({subdirectory})
-  let resolvedDir = path.resolve(baseDirectory + "/" + subdirectory)
+function getNodeFiles(baseDirectory, subdirectory) {
+  let resolvedDir = path.resolve(baseDirectory + "/" + subdirectory);
 
-  let filesToInstrument:{relativePath: string,subdirectory: string}[] = []
+  let nodeFiles: {
+    relativePath: string;
+    subdirectory: string;
+    name: string;
+  }[] = [];
 
-  const files = fs.readdirSync(resolvedDir)
+  const files = fs.readdirSync(resolvedDir);
   for (const file of files) {
     let filePath = path.resolve(resolvedDir, file);
     if (fs.lstatSync(filePath).isDirectory()) {
-      filesToInstrument = [...filesToInstrument, ...getFilesToInstrument(baseDirectory, subdirectory + file + "/")]
-    } else if (file.endsWith(".js")) {
-      filesToInstrument.push({
+      nodeFiles = [
+        ...nodeFiles,
+        ...getNodeFiles(baseDirectory, subdirectory + file + "/")
+      ];
+    } else {
+      nodeFiles.push({
         relativePath: subdirectory + file,
-        subdirectory
-      })
+        subdirectory,
+        name: file
+      });
     }
   }
 
-  return filesToInstrument
+  return nodeFiles;
 }
 
-async function  compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
+async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
+  let files = getNodeFiles(baseDirectory, "");
 
-  let filesToInstrument = getFilesToInstrument(baseDirectory, "");
-  console.log(filesToInstrument.length)
+  await pMap(
+    files,
+    async (file, i) => {
+      console.log("## " + file.relativePath, `${i}/${files.length}`);
 
-  let i = 0
-  for (const file of filesToInstrument) {
-    i++
-    console.log("## " + file.relativePath, `${i}/${filesToInstrument.length}`)
-    let nodeFile = fs.readFileSync(path.resolve(baseDirectory, file.relativePath), "utf-8");
-    let outdir = "./node-test-compiled" + file.subdirectory
-    require("mkdirp").sync(outdir)
-    const outFilePath = "./node-test-compiled" + file.subdirectory + "/" + file
-    if (fs.existsSync(outFilePath)) {
-      continue;
-    }
-    try {
-      const r= await requestHandler.instrumentForEval(nodeFile, { type: "node_", name: (file.subdirectory + "/" +file).replace(/[^a-zA-Z0-9\-]/g, "_") })
-      fs.writeFileSync(
-        outFilePath,
-        `var global = Function("return this")(); global.self = global; global.fromJSIsNode = true;\n` + r.instrumentedCode
+      let outdir = "./node-test-compiled/" + file.subdirectory;
+      const outFilePath = outdir + file.name;
+      if (
+        fs.existsSync(outFilePath) &&
+        !file.name.includes("driver.js") &&
+        !file.name.includes("page-functions.js")
+      ) {
+        return;
+      }
+
+      let nodeFile = fs.readFileSync(
+        path.resolve(baseDirectory, file.relativePath),
+        "utf-8"
       );
-    } catch(err) {
-      console.log("Comopile code failed, will write normal", file.relativePath, err.message)
-      fs.writeFileSync(
-        outFilePath,
-        `var global = Function("return this")(); global.self = global; global.fromJSIsNode = true;\n` + nodeFile
-      );
-    }
-  }
-    // let filePath = path.resolve(resolvedDir, file);
-    // console.log(filePath)
+      require("mkdirp").sync(outdir);
 
-    // if (fs.lstatSync(filePath).isDirectory()) {
-    //   await compileNodeApp(baseDirectory, requestHandler, subdirectory + "/" + file)
-    //   continue
-    // }
+      if (
+        file.name.endsWith(".js") &&
+        !file.subdirectory.includes("locale-data") &&
+        !file.subdirectory.includes("jsdoc")
+      ) {
+        try {
+          const r = await requestHandler.instrumentForEval(nodeFile, {
+            type: "node_",
+            name: file.relativePath.replace(/[^a-zA-Z0-9\-]/g, "_")
+          });
+          fs.writeFileSync(
+            outFilePath,
+            `/*require("/Users/mattzeunert/Documents/GitHub/FromJS/node-test-compiled/__fromJSENv.js")*/
+          ;var global = Function("return this")(); global.self = global; global.fromJSIsNode = true;\n` +
+              r.instrumentedCode
+          );
+        } catch (err) {
+          console.log(
+            "Comopile code failed, will write normal",
+            file.relativePath,
+            err.message
+          );
+          fs.writeFileSync(outFilePath, nodeFile);
+        }
+      } else {
+        fs.writeFileSync(outFilePath, nodeFile);
+      }
+    },
+    { concurrency: 4 }
+  );
 
-    // if (!file.endsWith(".js")) {
-    //   continue;
-    // }
+  let helperFunctions = fs.readFileSync(
+    "./packages/core/helperFunctions.js",
+    "utf-8"
+  );
+  console.log(helperFunctions.slice(0, 100));
 
-
-   
-    
-  }
-
-  
+  fs.writeFileSync(
+    "./node-test-compiled/__fromJSEnv.js",
+    helperFunctions +
+      `; global.helperFunctionsCode = decodeURIComponent("${encodeURIComponent(
+        helperFunctions
+      )}")`
+  );
 }
 
 export default class Backend {
@@ -183,7 +209,7 @@ export default class Backend {
       sessionConfig = JSON.parse(json);
     } else {
       sessionConfig = {
-        accessToken: crypto.randomBytes(32).toString("hex"),
+        accessToken: crypto.randomBytes(32).toString("hex")
       };
       saveSessionConfig();
     }
@@ -210,7 +236,7 @@ export default class Backend {
     const server = http.createServer(app);
 
     const wss = new WebSocket.Server({
-      server,
+      server
     });
 
     // Needed or else websocket connection doesn't work because of self-signed cert
@@ -256,20 +282,22 @@ export default class Backend {
           )
         )
       : {};
-    // setInterval(() => {
-    //   fs.writeFileSync(
-    //     options.sessionDirectory + "/files.json",
-    //     JSON.stringify(files, null, 2)
-    //   );
-    //   fs.writeFileSync(
-    //     options.sessionDirectory + "/locLogs.json",
-    //     JSON.stringify(locLogs, null, 2)
-    //   );
-    //   fs.writeFileSync(
-    //     options.sessionDirectory + "/logUses.json",
-    //     JSON.stringify(logUses, null, 2)
-    //   );
-    // }, 5000);
+    setInterval(() => {
+      console.time("save json");
+      fs.writeFileSync(
+        options.sessionDirectory + "/files.json",
+        JSON.stringify(files, null, 2)
+      );
+      // fs.writeFileSync(
+      //   options.sessionDirectory + "/locLogs.json",
+      //   JSON.stringify(locLogs, null, 2)
+      // );
+      // fs.writeFileSync(
+      //   options.sessionDirectory + "/logUses.json",
+      //   JSON.stringify(logUses, null, 2)
+      // );
+      console.timeEnd("save json");
+    }, 60000);
 
     let requestHandler;
 
@@ -289,20 +317,18 @@ export default class Backend {
       accessToken: sessionConfig.accessToken,
       options,
       storeLocs,
-      files,
+      files
     });
 
-    compileNodeApp("node-test", requestHandler)
-
-    
+    compileNodeApp("node-test", requestHandler);
 
     let proxyInterface;
     const proxyReady = createProxy({
       accessToken: sessionConfig.accessToken,
       options,
-      storeLocs,
+      storeLocs
     });
-    proxyReady.then((pInterface) => {
+    proxyReady.then(pInterface => {
       proxyInterface = pInterface;
       "justtotest" && getProxy();
       if (options.onReady) {
@@ -310,16 +336,16 @@ export default class Backend {
       }
     });
 
-    ["/storeLogs", "/inspect", "/inspectDOM"].forEach((path) => {
+    ["/storeLogs", "/inspect", "/inspectDOM"].forEach(path => {
       // todo: don't allow requests from any site
       app.options(path, allowCrossOriginRequests);
     });
 
-    const serverReady = new Promise((resolve) => {
+    const serverReady = new Promise(resolve => {
       server.listen(bePort, () => resolve());
     });
 
-    Promise.all([proxyReady, serverReady]).then(function () {
+    Promise.all([proxyReady, serverReady]).then(function() {
       console.log("Server listening on port " + bePort);
     });
   }
@@ -332,7 +358,7 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
       ws.send(
         JSON.stringify({
           type: "inspectDOM",
-          ...getDomToInspectMessage(),
+          ...getDomToInspectMessage()
         })
       );
     } else if (logToInspect) {
@@ -340,7 +366,7 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
         wss,
         JSON.stringify({
           type: "inspectOperationLog",
-          operationLogId: logToInspect,
+          operationLogId: logToInspect
         })
       );
     }
@@ -351,7 +377,7 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
     html = html.replace(/BACKEND_PORT_PLACEHOLDER/g, options.bePort.toString());
     getProxy()
       ._getEnableInstrumentation()
-      .then(function (enabled) {
+      .then(function(enabled) {
         html = html.replace(
           /BACKEND_PORT_PLACEHOLDER/g,
           options.bePort.toString()
@@ -371,21 +397,18 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
       status,
       headers,
       body,
-      fileKey,
+      fileKey
     } = await getRequestHandler().handleRequest(req.body);
-    console.log("finishihgn");
 
     res.status(status);
 
-    Object.keys(headers).forEach((headerKey) => {
+    Object.keys(headers).forEach(headerKey => {
       if (headerKey === "content-length") {
         // was getting this wrong sometimes
         return;
       }
       res.set(headerKey, headers[headerKey]);
     });
-
-    console.log("body len", body.length);
 
     res.end(body);
 
@@ -433,16 +456,12 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
 
   app.use(express.static(uiDir));
   app.use("/fromJSInternal", express.static(fromJSInternalDir));
-  app.use((req, res, next) => {
-    console.log("Req", req.url);
-    next();
-  });
   app.use("/start", express.static(startPageDir));
 
   function getDomToInspectMessage(charIndex?) {
     if (!domToInspect) {
       return {
-        err: "Backend has no selected DOM to inspect",
+        err: "Backend has no selected DOM to inspect"
       };
     }
 
@@ -471,8 +490,8 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
     }
 
     return {
-      html: (<any>domToInspect).parts.map((p) => p[0]).join(""),
-      charIndex: goodDefaultCharIndex,
+      html: (<any>domToInspect).parts.map(p => p[0]).join(""),
+      charIndex: goodDefaultCharIndex
     };
   }
 
@@ -492,7 +511,7 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
       wss,
       JSON.stringify({
         type: "inspectDOM",
-        ...getDomToInspectMessage(req.body.charIndex),
+        ...getDomToInspectMessage(req.body.charIndex)
       })
     );
 
@@ -504,7 +523,7 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
     if (!domToInspect) {
       res.status(500);
       res.json({
-        err: "Backend has no selected DOM to inspect",
+        err: "Backend has no selected DOM to inspect"
       });
       res.end();
       return;
@@ -518,7 +537,7 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
     if (!mappingResult.origin) {
       res.end(
         JSON.stringify({
-          logId: null,
+          logId: null
         })
       );
       return;
@@ -529,7 +548,7 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
     res.end(
       JSON.stringify({
         logId: origin.trackingValue,
-        charIndex: traverseDomOrigin(origin, mappingResult.charIndex),
+        charIndex: traverseDomOrigin(origin, mappingResult.charIndex)
       })
     );
   });
@@ -544,7 +563,7 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
       wss,
       JSON.stringify({
         type: "inspectOperationLog",
-        operationLogId: logToInspect,
+        operationLogId: logToInspect
       })
     );
   });
@@ -622,12 +641,12 @@ function setupBackend(
   });
 
   app.get("/xyzviewer/fileDetails/:fileKey", async (req, res) => {
-    let file = files.find((f) => f.fileKey === req.params.fileKey);
+    let file = files.find(f => f.fileKey === req.params.fileKey);
     let url = file.url;
 
     const { body: fileContent } = await getRequestHandler().handleRequest({
       url: url + "?dontprocess",
-      method: "GET",
+      method: "GET"
     });
 
     const locs = await getLocs(url);
@@ -651,7 +670,7 @@ function setupBackend(
           if (value.loc === locId) {
             logs.push({
               key: key.toString(),
-              value: value,
+              value: value
             });
           }
 
@@ -674,7 +693,7 @@ function setupBackend(
           if (whereFn(value)) {
             logs.push({
               key: key.toString(),
-              value: value,
+              value: value
             });
           }
 
@@ -693,9 +712,9 @@ function setupBackend(
     while (lookupQueue.length > 0) {
       let lookupIndex = lookupQueue.shift();
       let u = await Promise.all(
-        (logUses[lookupIndex] || []).map(async (uIndex) => {
+        (logUses[lookupIndex] || []).map(async uIndex => {
           return {
-            value: await logServer.loadLogAwaitable(uIndex, 0),
+            value: await logServer.loadLogAwaitable(uIndex, 0)
           };
         })
       );
@@ -743,12 +762,12 @@ function setupBackend(
 
     if (req.query.operationFilter) {
       uses = uses.filter(
-        (u) => u.use.value.operation === req.query.operationFilter
+        u => u.use.value.operation === req.query.operationFilter
       );
     }
 
     uses = await Promise.all(
-      uses.map(async (u) => {
+      uses.map(async u => {
         const log = await logServer.loadLogAwaitable(u.use.value.index, 1);
 
         const arg = Object.entries(log.args).filter(
@@ -757,7 +776,7 @@ function setupBackend(
         const argName = arg && arg[0] && arg[0][0];
         return {
           use: log,
-          argName,
+          argName
         };
       })
     );
@@ -770,14 +789,14 @@ function setupBackend(
     let locs = await getLogs(req.params.locId);
     console.timeEnd("get logs");
     locs = await Promise.all(
-      locs.map(async (loc) => {
+      locs.map(async loc => {
         const v2 = await logServer.loadLogAwaitable(
           parseFloat(loc.value.index),
           0
         );
         return {
           key: loc.key,
-          value: v2,
+          value: v2
         };
       })
     );
@@ -816,7 +835,7 @@ function setupBackend(
     // console.log("store logs", JSON.stringify(req.body, null, 2))
 
     const startTime = new Date();
-    req.body.logs.forEach((log) => {
+    req.body.logs.forEach(log => {
       if (!locLogs[log.loc]) {
         console.log(
           "loc not found",
@@ -827,7 +846,7 @@ function setupBackend(
       }
       locLogs[log.loc].push(log.index);
     });
-    req.body.logs.forEach((log) => {
+    req.body.logs.forEach(log => {
       if (log.args) {
         if (Array.isArray(log.args)) {
           let args = log.args;
@@ -843,7 +862,7 @@ function setupBackend(
             }
           }
         } else {
-          Object.keys(log.args).forEach((argName) => {
+          Object.keys(log.args).forEach(argName => {
             let argLogIndex = log.args[argName];
             logUses[argLogIndex] = logUses[argLogIndex] || [];
             logUses[argLogIndex].push(log.index);
@@ -851,7 +870,7 @@ function setupBackend(
         }
       }
     });
-    logServer.storeLogs(req.body.logs, function () {
+    logServer.storeLogs(req.body.logs, function() {
       const timePassed = new Date().valueOf() - startTime.valueOf();
       const timePer1000 =
         Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
@@ -866,7 +885,7 @@ function setupBackend(
       }
     });
 
-    req.body.evalScripts.forEach(function (evalScript) {
+    req.body.evalScripts.forEach(function(evalScript) {
       getProxy().registerEvalScript(evalScript);
     });
 
@@ -877,11 +896,10 @@ function setupBackend(
   });
 
   app.get("/loadLocForTest/:locId", async (req, res) => {
-    console.log(req.params.locId);
-    locStore.getLoc(req.params.locId, (loc) => {
+    locStore.getLoc(req.params.locId, loc => {
       resolver
         .resolveFrameFromLoc(loc, req.params.prettify === "prettify")
-        .then((rr) => {
+        .then(rr => {
           res.json({ loc, rr });
         });
     });
@@ -897,9 +915,9 @@ function setupBackend(
 
   app.post("/loadLog", (req, res) => {
     // crude way to first wait for any new logs to be sent through...
-    setTimeout(function () {
+    setTimeout(function() {
       // console.log(Object.keys(internalServerInterface._storedLogs));
-      logServer.loadLog(req.body.id, function (err, log) {
+      logServer.loadLog(req.body.id, function(err, log) {
         res.end(JSON.stringify(log));
       });
     }, 500);
@@ -908,7 +926,7 @@ function setupBackend(
   app.post("/traverse", (req, res) => {
     const { logId, charIndex } = req.body;
     const tryTraverse = (previousAttempts = 0) => {
-      logServer.hasLog(logId, (hasLog) => {
+      logServer.hasLog(logId, hasLog => {
         if (hasLog) {
           finishRequest();
         } else {
@@ -918,8 +936,7 @@ function setupBackend(
             res.status(500);
             res.end(
               JSON.stringify({
-                err:
-                  "Log not found (" + logId + ")- might still be saving data",
+                err: "Log not found (" + logId + ")- might still be saving data"
               })
             );
           } else {
@@ -940,7 +957,7 @@ function setupBackend(
         steps = await traverse(
           {
             operationLog: logId,
-            charIndex: charIndex,
+            charIndex: charIndex
           },
           [],
           logServer,
@@ -953,7 +970,7 @@ function setupBackend(
         res.status(500);
         res.end(
           JSON.stringify({
-            err: "Log not found in backend (" + logId + ")",
+            err: "Log not found in backend (" + logId + ")"
           })
         );
       }
@@ -970,10 +987,10 @@ function setupBackend(
   }, 200);
 
   app.get("/resolveStackFrame/:loc/:prettify?", (req, res) => {
-    locStore.getLoc(req.params.loc, (loc) => {
+    locStore.getLoc(req.params.loc, loc => {
       resolver
         .resolveFrameFromLoc(loc, req.params.prettify === "prettify")
-        .then((rr) => {
+        .then(rr => {
           res.end(JSON.stringify(rr, null, 4));
         });
     });
@@ -989,7 +1006,7 @@ function setupBackend(
 
     getProxy()
       .instrumentForEval(code)
-      .then((babelResult) => {
+      .then(babelResult => {
         res.end(
           JSON.stringify({ instrumentedCode: babelResult.instrumentedCode })
         );
@@ -997,14 +1014,14 @@ function setupBackend(
   });
 
   return {
-    storeLocs: (locs) => {
-      Object.keys(locs).forEach((locKey) => {
+    storeLocs: locs => {
+      Object.keys(locs).forEach(locKey => {
         const loc = locs[locKey];
         // should use file key here, but we don't know the file hash....
         locLogs[locKey] = locLogs[locKey] || [];
       });
-      locStore.write(locs, function () {});
-    },
+      locStore.write(locs, function() {});
+    }
   };
 }
 
@@ -1040,13 +1057,12 @@ function makeRequestHandler(options) {
     "segment.com",
     "bugsnag",
     "mixpanel",
-    "piwik",
+    "piwik"
   ];
 
-  console.log(options);
   return new RequestHandler({
     shouldInstrument: ({ url }) => {
-      if (options.options.dontTrack.some((dt) => url.includes(dt))) {
+      if (options.options.dontTrack.some(dt => url.includes(dt))) {
         return false;
       }
       if (
@@ -1057,9 +1073,6 @@ function makeRequestHandler(options) {
         return false;
       }
       let u = new URL(url);
-      console.log(u.pathname, url);
-
-      console.log("u port", u.port, options.options.bePort);
       return (
         parseFloat(u.port) !== options.options.bePort ||
         u.pathname.startsWith("/start") ||
@@ -1067,12 +1080,12 @@ function makeRequestHandler(options) {
       );
     },
     shouldBlock: ({ url }) => {
-      if (options.options.block.some((dt) => url.includes(dt))) {
+      if (options.options.block.some(dt => url.includes(dt))) {
         return true;
       }
       if (
         !options.options.disableDefaultBlockList &&
-        defaultBlockList.some((dt) => url.includes(dt))
+        defaultBlockList.some(dt => url.includes(dt))
       ) {
         console.log(
           url +
@@ -1091,8 +1104,8 @@ function makeRequestHandler(options) {
       options.files.push({
         url,
         createdAt: new Date(),
-        fileKey,
+        fileKey
       });
-    },
+    }
   });
 }

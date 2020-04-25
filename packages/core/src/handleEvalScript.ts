@@ -13,17 +13,13 @@ export default function handleEvalScript(code, compile, details, done, onError= 
   const type = (details && details.type) || "eval";
   const url = generateEvalUrl(type, details.name);
 
-  try {
-  return compile(code, url, function(babelResult) {
+  let res = compile(code, url, function(babelResult) {
     const instrumentedCode = babelResult.code + "\n//# sourceURL=" + url;
     done({
       instrumentedCode,
       code,
       url,
       locs: babelResult.locs
-    });
-  });}catch(err){ 
-    console.log("onerror", err.message)
-    onError(err)
-  }
+    })
+  })
 }

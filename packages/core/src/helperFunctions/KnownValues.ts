@@ -82,12 +82,12 @@ export default class KnownValues {
       });
     });
 
-    if (global["localStorage"]) {
-      Object.assign(this._knownValues, {
-        localStorage: global.localStorage,
-        "localStorage.getItem": global.localStorage.getItem
-      });
-    }
+    // if (global["localStorage"]) {
+    //   Object.assign(this._knownValues, {
+    //     localStorage: global.localStorage,
+    //     "localStorage.getItem": global.localStorage.getItem
+    //   });
+    // }
     if (global["fetch"]) {
       Object.assign(this._knownValues, {
         fetch: fetch,
