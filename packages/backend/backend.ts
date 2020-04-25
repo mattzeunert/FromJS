@@ -817,12 +817,12 @@ function setupBackend(
     res.end(code);
   });
 
-  app.post("/setEnableInstrumentation", (req, res) => {
-    const { enableInstrumentation } = req.body;
-    getProxy().setEnableInstrumentation(enableInstrumentation);
+  // app.post("/setEnableInstrumentation", (req, res) => {
+  //   const { enableInstrumentation } = req.body;
+  //   getProxy().setEnableInstrumentation(enableInstrumentation);
 
-    res.end(JSON.stringify(req.body));
-  });
+  //   res.end(JSON.stringify(req.body));
+  // });
 
   app.post("/storeLogs", (req, res) => {
     app.verifyToken(req);
@@ -887,7 +887,15 @@ function setupBackend(
     });
 
     req.body.evalScripts.forEach(function(evalScript) {
-      getProxy().registerEvalScript(evalScript);
+      console.log(Object.keys(evalScript), evalScript.map);
+      locStore.write(evalScript.locs, () => {});
+      getRequestHandler()._afterCodeProcessed({
+        fileKey: "eval-" + Math.random(),
+        url: evalScript.url,
+        raw: evalScript.code,
+        instrument: evalScript.instrumentedCode
+      });
+      // getProxy().registerEvalScript(evalScript);
     });
 
     // fs.writeFileSync("logs.json", JSON.stringify(logServer._storedLogs));
