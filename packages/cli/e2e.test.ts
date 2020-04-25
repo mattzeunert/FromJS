@@ -1,5 +1,4 @@
 const { spawn } = require("child_process");
-const puppeteer = require("puppeteer");
 const kp = require("kill-port");
 const request = require("request");
 import { OperationLog } from "@fromjs/core";
