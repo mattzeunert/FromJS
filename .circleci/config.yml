@@ -51,8 +51,7 @@ jobs:
       - run: npm run compile-all
 
       - run: yarn test -- --testPathIgnorePatterns e2e
-
-      - run: xvfb-run -a --server-args="-screen 0 1280x800x24 -ac -nolisten tcp -dpi 96 +extension RANDR" yarn test e2e
+      # - run: xvfb-run -a --server-args="-screen 0 1280x800x24 -ac -nolisten tcp -dpi 96 +extension RANDR" yarn test e2e
       # - save_cache:
       #     paths:
       #       - node_modules
