@@ -558,5 +558,5 @@ describe("E2E", () => {
       .readFileSync(__dirname + "/tests/bodyWithoutScriptTags/index.html")
       .toString();
     expect(res.charIndex).toBe(fullPageHtml.indexOf("realInitialPageHtml"));
-  });
+  }, 20000);
 });
