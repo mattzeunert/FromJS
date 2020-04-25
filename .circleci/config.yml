@@ -7,7 +7,7 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: circleci/node:8
+      - image: circleci/node:12
         environment:
           CHROME_BIN: "/usr/bin/google-chrome"
 
