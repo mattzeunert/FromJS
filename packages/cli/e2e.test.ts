@@ -157,7 +157,7 @@ describe("E2E", () => {
 
     browser = await openBrowser({
       userDataDir: undefined,
-      extraArgs: ["--no-sandbox"],
+      extraArgs: ["--disable-gpu", "--no-sandbox", "--disable-setuid-sandbox"],
       config: {
         backendPort,
         redirectUrl: "http://example.com",
