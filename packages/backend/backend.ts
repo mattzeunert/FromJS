@@ -808,6 +808,7 @@ function setupBackend(
         )) as any;
 
         const arg = Object.entries(log.args).filter(
+          //@ts-ignore
           ([i, l]) => l && l.index === u.lookupIndex
         );
         const argName = arg && arg[0] && arg[0][0];

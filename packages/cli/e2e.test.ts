@@ -155,14 +155,23 @@ describe("E2E", () => {
 
     await waitForProxyReady(command);
 
-    browser = await openBrowser({
-      userDataDir: undefined,
-      extraArgs: ["--disable-gpu", "--no-sandbox", "--disable-setuid-sandbox"],
-      config: {
-        backendPort,
-        redirectUrl: "http://example.com",
-      },
-    });
+    try {
+      browser = await openBrowser({
+        userDataDir: undefined,
+        extraArgs: [
+          "--disable-gpu",
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+        ],
+        config: {
+          backendPort,
+          redirectUrl: "http://example.com",
+        },
+      });
+    } catch (err) {
+      console.log("FAILed to launch browser", err);
+      throw err;
+    }
 
     // browser = await puppeteer.launch({
     //   ignoreHTTPSErrors: true,
