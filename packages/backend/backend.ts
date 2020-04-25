@@ -1167,7 +1167,7 @@ export async function openBrowser({
 }) {
   let extensionPath = path.resolve(__dirname + "/../../proxy-extension/dist");
   const browser = await puppeteer.launch({
-    headless,
+    headless: false,
     dumpio: true,
     args: [
       `--js-flags="--max_old_space_size=8192"`,
