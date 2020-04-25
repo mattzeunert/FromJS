@@ -43,6 +43,7 @@ jobs:
       - run: ./node_modules/.bin/lerna bootstrap
 
       - run: cd packages/core;npm run webpack-build;cd ../..
+      - run: cd packages/proxy-extension;npm run build;cd ../..
 
       - run: cd packages/ui;npm run webpack-build;cd ../..
 
