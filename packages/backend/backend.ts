@@ -324,18 +324,19 @@ export default class Backend {
     compileNodeApp("node-test", requestHandler);
 
     let proxyInterface;
-    const proxyReady = createProxy({
-      accessToken: sessionConfig.accessToken,
-      options,
-      storeLocs
-    });
-    proxyReady.then(pInterface => {
-      proxyInterface = pInterface;
-      "justtotest" && getProxy();
-      if (options.onReady) {
-        options.onReady();
-      }
-    });
+    const proxyReady = Promise.resolve();
+    // const proxyReady = createProxy({
+    //   accessToken: sessionConfig.accessToken,
+    //   options,
+    //   storeLocs
+    // });
+    // proxyReady.then(pInterface => {
+    //   proxyInterface = pInterface;
+    //   "justtotest" && getProxy();
+    //   if (options.onReady) {
+    //     options.onReady();
+    //   }
+    // });
 
     ["/storeLogs", "/inspect", "/inspectDOM"].forEach(path => {
       // todo: don't allow requests from any site
@@ -376,19 +377,19 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
   app.get("/", (req, res) => {
     let html = fs.readFileSync(uiDir + "/index.html").toString();
     html = html.replace(/BACKEND_PORT_PLACEHOLDER/g, options.bePort.toString());
-    getProxy()
-      ._getEnableInstrumentation()
-      .then(function(enabled) {
-        html = html.replace(
-          /BACKEND_PORT_PLACEHOLDER/g,
-          options.bePort.toString()
-        );
-        html = html.replace(
-          /ENABLE_INSTRUMENTATION_PLACEHOLDER/g,
-          enabled.toString()
-        );
-        res.send(html);
-      });
+    // getProxy()
+    //   ._getEnableInstrumentation()
+    Promise.resolve(true).then(function(enabled) {
+      html = html.replace(
+        /BACKEND_PORT_PLACEHOLDER/g,
+        options.bePort.toString()
+      );
+      html = html.replace(
+        /ENABLE_INSTRUMENTATION_PLACEHOLDER/g,
+        enabled.toString()
+      );
+      res.send(html);
+    });
   });
 
   app.post("/makeProxyRequest", async (req, res) => {
@@ -568,6 +569,8 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
       })
     );
   });
+
+  options.onReady();
 }
 
 function setupBackend(
@@ -1010,17 +1013,17 @@ function setupBackend(
     res.end(resolver.getFullSourceCode(url));
   });
 
-  app.post("/instrument", (req, res) => {
-    const code = req.body.code;
+  // app.post("/instrument", (req, res) => {
+  //   const code = req.body.code;
 
-    getProxy()
-      .instrumentForEval(code)
-      .then(babelResult => {
-        res.end(
-          JSON.stringify({ instrumentedCode: babelResult.instrumentedCode })
-        );
-      });
-  });
+  //   getProxy()
+  //     .instrumentForEval(code)
+  //     .then(babelResult => {
+  //       res.end(
+  //         JSON.stringify({ instrumentedCode: babelResult.instrumentedCode })
+  //       );
+  //     });
+  // });
 
   return {
     storeLocs: locs => {
