@@ -162,9 +162,9 @@ class TTab {
     this.tab = tab;
 
     // const pageUrl = "http://localhost:7000/start/";
-    const pageUrl =
-      "http://localhost:1212/persistent-friendly-authority.glitch.me_2020-03-25_10-04-28.report.html";
-    // const pageUrl = "https://ruddy-road-platinum.glitch.me/";
+    // const pageUrl =
+    //   "http://localhost:1212/persistent-friendly-authority.glitch.me_2020-03-25_10-04-28.report.html";
+    const pageUrl = "https://capable-ogre.glitch.me/";
     // await thenChrome.tabs.update(tab.id, { url: pageUrl });
 
     await this._setupDebugger();
@@ -290,8 +290,8 @@ class TTab {
 
     let responseText = `HTTP/1.1 ${rr.status}
 ${Object.keys(rr.headers).map(headerKey => {
-  return `${headerKey}: ${rr.headers[headerKey]}`;
-})}
+      return `${headerKey}: ${rr.headers[headerKey]}`;
+    })}
     
 ${res}`;
 

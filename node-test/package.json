@@ -9,9 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chrome-launcher": "^0.13.1",
-    "lighthouse": "^5.6.0",
-    "lighthouse-logger": "^1.2.0",
     "pretty-bytes": "^5.3.0"
   }
 }

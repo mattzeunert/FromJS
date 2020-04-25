@@ -16,80 +16,71 @@ AfterEmitPlugin.prototype.apply = function (compiler) {
   });
 };
 
-function makeTarget(target) {
-  let filePostfix = target === "node" ? "" : "_browser"
-  let config = {
-    entry: {
-      helperFunctions: "./src/helperFunctions/helperFunctions.ts",
-      compileInBrowser: "./src/compileInBrowser.ts"
-    },
-    output: {
-      filename: `[name]${filePostfix}.js`,
-      path: __dirname,
-      globalObject: `(typeof window === "undefined" ? Function("return this")() : window)`
-    },
 
-    target,
+module.exports = [{
+  entry: {
+    helperFunctions: "./src/helperFunctions/helperFunctions.ts",
+    compileInBrowser: "./src/compileInBrowser.ts"
+  },
+  output: {
+    filename: `[name].js`,
+    path: __dirname,
+    globalObject: `(typeof window === "undefined" ? Function("return this")() : window)`
+  },
 
-    optimization: {
-      // Minimize because hopefully that'll speed up execution a bit,
-      // e.g. I think V8 decides function inlining based on code size sometimes
-      minimize: true
-    },
+  // always target web and then try to sort stuff out if we're actually in node
+  // at compile time we don't know if we'll be in node or web, e.g. because you can take
+  // node code and inject it into a browser in the inspected app
+  target: "web",
 
-    // devtool: "source-map",
+  optimization: {
+    // Minimize because hopefully that'll speed up execution a bit,
+    // e.g. I think V8 decides function inlining based on code size sometimes
+    minimize: true
+  },
 
-    resolve: {
-      extensions: [".ts", ".tsx", ".js", ".json"]
-    },
+  // devtool: "source-map",
 
-    performance: { hints: false },
+  resolve: {
+    extensions: [".ts", ".tsx", ".js", ".json"]
+  },
 
-    // i think right now prod doesn't work for node?
-    mode: "development",
+  performance: { hints: false },
 
-    plugins: [
-      new AfterEmitPlugin(function () {
-        setTimeout(function () {
-          const fs = require("fs");
-          var code = fs.readFileSync(`./helperFunctions${filePostfix}.js`).toString();
-          code = code.replace(/\\/g, "MARKER_BACKSLASH");
-          code = code.replace(/`/g, "MARKER_BACKTICK");
-          code = code.replace(/\$/g, "MARKER_DOLLAR");
-          code = `
+  // i think right now prod doesn't work for node?
+  mode: "development",
+
+  plugins: [
+    new AfterEmitPlugin(function () {
+      setTimeout(function () {
+        const fs = require("fs");
+        var code = fs.readFileSync(`./helperFunctions.js`).toString();
+        code = code.replace(/\\/g, "MARKER_BACKSLASH");
+        code = code.replace(/`/g, "MARKER_BACKTICK");
+        code = code.replace(/\$/g, "MARKER_DOLLAR");
+        code = `
             let code = \`${code}\`;
             code = code.replace(/MARKER_BACKSLASH/g, "\\\\").replace(/MARKER_BACKTICK/g, "\\\`").replace(/MARKER_DOLLAR/g, "\\$");
             export default code
           `;
 
-          let currentTsFile;
-          try {
-            currentTsFile = fs.readFileSync(`./helperFunctions${filePostfix}.ts`).toString();
-          } catch (err) { }
+        let currentTsFile;
+        try {
+          currentTsFile = fs.readFileSync(`./helperFunctions.ts`).toString();
+        } catch (err) { }
 
-          // prevent infinite webpack builds (overwriting helperfunctins triggers rebuild as compileInBrowser depends on it)
-          if (currentTsFile !== code) {
-            fs.writeFileSync(`./helperFunctions${filePostfix}.ts`, code);
-            console.log("updated");
-          }
-        }, 1000);
-      })
-    ],
+        // prevent infinite webpack builds (overwriting helperfunctins triggers rebuild as compileInBrowser depends on it)
+        if (currentTsFile !== code) {
+          fs.writeFileSync(`./helperFunctions.ts`, code);
+          console.log("updated");
+        }
+      }, 1000);
+    })
+  ],
 
-    module: {
-      rules: [{ test: /\.tsx?$/, loader: "ts-loader" }]
-    },
+  module: {
+    rules: [{ test: /\.tsx?$/, loader: "ts-loader" }]
+  },
 
-    externals: {}
-  };
-
-  console.log(config.output)
-
-  return config
-
-}
-
-module.exports = [
-  makeTarget(undefined),
-  makeTarget("node")
-]
+  externals: {}
+}]

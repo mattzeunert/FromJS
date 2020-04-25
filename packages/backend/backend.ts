@@ -116,6 +116,7 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
       const outFilePath = outdir + file.name;
       if (
         fs.existsSync(outFilePath) &&
+        !file.name.includes("test.js") &&
         !file.name.includes("driver.js") &&
         !file.name.includes("page-functions.js")
       ) {
@@ -288,16 +289,16 @@ export default class Backend {
         options.sessionDirectory + "/files.json",
         JSON.stringify(files, null, 2)
       );
-      // fs.writeFileSync(
-      //   options.sessionDirectory + "/locLogs.json",
-      //   JSON.stringify(locLogs, null, 2)
-      // );
-      // fs.writeFileSync(
-      //   options.sessionDirectory + "/logUses.json",
-      //   JSON.stringify(logUses, null, 2)
-      // );
+      fs.writeFileSync(
+        options.sessionDirectory + "/locLogs.json",
+        JSON.stringify(locLogs, null, 2)
+      );
+      fs.writeFileSync(
+        options.sessionDirectory + "/logUses.json",
+        JSON.stringify(logUses, null, 2)
+      );
       console.timeEnd("save json");
-    }, 60000);
+    }, 5000);
 
     let requestHandler;
 

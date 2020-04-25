@@ -59,7 +59,6 @@ class StackFrameResolver {
               postData: null
             })
             .then(r => {
-              console.log("rrr", r);
               resolve(r.body);
             });
           return;

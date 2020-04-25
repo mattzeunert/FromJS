@@ -57,6 +57,43 @@ function checkDone() {
   }
 }
 
+function nodePost({ port, path, headers, bodyString }) {
+  return new Promise(resolve => {
+    // eval, otherwise webpack will replace it
+    const https = eval(`require("http")`);
+
+    const options = {
+      hostname: "localhost",
+      port: port,
+      path: path,
+      method: "POST",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+        "Content-Length": bodyString.length
+      }
+    };
+
+    const req = https.request(options, res => {
+      console.log(`statusCode: ${res.statusCode}`);
+
+      res.on("data", d => {
+        console.log(d.toString());
+      });
+      res.on("end", d => {
+        resolve();
+      });
+    });
+
+    req.on("error", error => {
+      console.error(error);
+    });
+
+    req.write(bodyString);
+    req.end();
+  });
+}
+
 function makePostToBE({ accessToken, fetch }) {
   return function postToBE(endpoint, data, statsCallback = function(stats) {}) {
     const stringifyStart = new Date();
@@ -69,21 +106,29 @@ function makePostToBE({ accessToken, fetch }) {
       });
     }
 
-    let fetchMethod = global.fromJSIsNode
-      ? require("node-fetch").default
-      : fetch;
+    let backendPort = "BACKEND_PORT_PLACEHOLDER";
 
-    const url = "http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint;
     const headers = {
       Accept: "application/json",
       "Content-Type": "application/json",
       Authorization: accessToken
     };
-    const p = fetchMethod(url, {
-      method: "POST",
-      headers: global.fromJSIsNode ? headers : new Headers(headers),
-      body: body
-    });
+    let p;
+    if (global.fromJSIsNode) {
+      p = nodePost({
+        port: backendPort,
+        path: endpoint,
+        bodyString: body,
+        headers
+      });
+    } else {
+      const url = "http://localhost:" + backendPort + endpoint;
+      p = fetch(url, {
+        method: "POST",
+        headers: global.fromJSIsNode ? headers : new Headers(headers),
+        body: body
+      });
+    }
 
     return p;
   };
