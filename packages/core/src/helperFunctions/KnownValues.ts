@@ -82,12 +82,16 @@ export default class KnownValues {
       });
     });
 
-    // if (global["localStorage"]) {
-    //   Object.assign(this._knownValues, {
-    //     localStorage: global.localStorage,
-    //     "localStorage.getItem": global.localStorage.getItem
-    //   });
-    // }
+    try {
+      if (global["localStorage"]) {
+        Object.assign(this._knownValues, {
+          localStorage: global.localStorage,
+          "localStorage.getItem": global.localStorage.getItem
+        });
+      }
+    } catch (err) {
+      // e.g. on about:blank just trying to access local storage failes I think
+    }
     if (global["fetch"]) {
       Object.assign(this._knownValues, {
         fetch: fetch,

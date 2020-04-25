@@ -1,4 +1,3 @@
-console.log("in helperFunctions");
 import OperationLog, { getOperationIndex } from "./OperationLog";
 import getElementOperationLogMapping from "./getHtmlNodeOperationLogMapping";
 import getHtmlNodeOperationLogMapping from "./getHtmlNodeOperationLogMapping";
