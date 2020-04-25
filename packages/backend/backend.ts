@@ -138,10 +138,10 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
         !file.subdirectory.includes("jsdoc")
       ) {
         try {
-          const r = await requestHandler.instrumentForEval(nodeFile, {
+          const r = (await requestHandler.instrumentForEval(nodeFile, {
             type: "node_",
             name: file.relativePath.replace(/[^a-zA-Z0-9\-]/g, "_"),
-          });
+          })) as any;
           fs.writeFileSync(
             outFilePath,
             `/*require("/Users/mattzeunert/Documents/GitHub/FromJS/node-test-compiled/__fromJSENv.js")*/
@@ -783,7 +783,10 @@ function setupBackend(
 
     uses = await Promise.all(
       uses.map(async (u) => {
-        const log = await logServer.loadLogAwaitable(u.use.value.index, 1);
+        const log = (await logServer.loadLogAwaitable(
+          u.use.value.index,
+          1
+        )) as any;
 
         const arg = Object.entries(log.args).filter(
           ([i, l]) => l && l.index === u.lookupIndex
@@ -801,7 +804,7 @@ function setupBackend(
 
   app.get("/xyzviewer/trackingDataForLoc/:locId", async (req, res) => {
     console.time("get logs");
-    let locs = await getLogs(req.params.locId);
+    let locs = (await getLogs(req.params.locId)) as any;
     console.timeEnd("get logs");
     locs = await Promise.all(
       locs.map(async (loc) => {
