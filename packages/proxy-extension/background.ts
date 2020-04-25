@@ -137,6 +137,9 @@ var Base64 = {
   } // End Function _utf8_decode
 };
 
+const backendPort = 12100;
+// const backendPort = 7000;
+
 class TTab {
   target: any;
   tab: any;
@@ -157,7 +160,7 @@ class TTab {
     this.target = target;
     this.tab = tab;
 
-    const pageUrl = "http://localhost:7000/start/";
+    const pageUrl = "http://localhost:" + backendPort + "/start/";
     // const pageUrl =
     //   "http://localhost:1212/persistent-friendly-authority.glitch.me_2020-03-25_10-04-28.report.html";
     // const pageUrl = "https://capable-ogre.glitch.me/";
@@ -268,18 +271,21 @@ class TTab {
     }
 
     let rr;
-    const res = await fetch("http://localhost:7000/makeProxyRequest", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        url: info.request.url,
-        method: info.request.method,
-        headers: info.request.headers,
-        postData: info.request.postData
-      })
-    }).then(r => {
+    const res = await fetch(
+      "http://localhost:" + backendPort + "/makeProxyRequest",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          url: info.request.url,
+          method: info.request.method,
+          headers: info.request.headers,
+          postData: info.request.postData
+        })
+      }
+    ).then(r => {
       rr = r;
       return r.text();
     });
@@ -309,12 +315,12 @@ ${res}`;
   }
 }
 
-setTimeout(() => {
-  chrome.tabs.create({ url: "https://example.com" }, tab => {
-    // const tt = new TTab();
-    // tt.open(tab);
-  });
-}, 100);
+// setTimeout(() => {
+//   chrome.tabs.create({ url: "https://example.com" }, tab => {
+//     // const tt = new TTab();
+//     // tt.open(tab);
+//   });
+// }, 100);
 
 chrome.browserAction.onClicked.addListener(function(tab) {
   const tt = new TTab();

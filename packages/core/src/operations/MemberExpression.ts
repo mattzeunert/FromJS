@@ -73,7 +73,7 @@ export const MemberExpression = <any>{
           logData
         );
       } else if (
-        !trackingValue &&
+        // !trackingValue &&
         object instanceof Node &&
         typeof propertyName !== "symbol"
       ) {

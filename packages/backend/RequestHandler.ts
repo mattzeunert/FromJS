@@ -210,6 +210,7 @@ export class RequestHandler {
       accessToken: this._accessToken,
       backendPort: this._backendPort
     };
+    console.log({ backendPort: this._backendPort });
 
     const RUN_IN_SAME_PROCESS = false;
 
@@ -222,11 +223,12 @@ export class RequestHandler {
     } else {
       var compilerProcess = await spawn(new Worker(instrumenterFilePath));
       var path = require("path");
-      const inProgressTimeout = setTimeout(() => {
-        console.log(
-          "Instrumenting: " + url + " (" + prettyBytes(body.length) + ")"
-        );
-      }, 15000);
+      // const inProgressTimeout = setTimeout(() => {
+      console.log({ babelPluginOptions });
+      console.log(
+        "Instrumenting: " + url + " (" + prettyBytes(body.length) + ")"
+      );
+      // }, 15000);
       const response = await compilerProcess.instrument({
         body,
         url,

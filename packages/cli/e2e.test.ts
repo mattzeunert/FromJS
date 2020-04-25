@@ -20,8 +20,6 @@ const backendPort = 12100;
 const proxyPort = backendPort + 1;
 const webServerPort = proxyPort + 1;
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
 function setTimeoutPromise(timeout) {
   return new Promise(resolve => {
     setTimeout(resolve, timeout);
@@ -129,7 +127,7 @@ describe("E2E", () => {
       console.log("Page error: " + err.toString());
     });
     // wait for the whole redirect to exampel and to /start thing...
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
     return page;
   }
 
@@ -223,7 +221,7 @@ describe("E2E", () => {
 
     console.log("creatd page");
 
-    await page.goto("http://localhost:" + backendPort + "/start");
+    await page.goto("http://localhost:" + backendPort + "/start/");
     console.log("called goto");
     await page.waitForSelector("#fromjs-inspect-dom-button");
     await page.waitForSelector("h1");
@@ -247,6 +245,9 @@ describe("E2E", () => {
         ["click"]()
     );
 
+    // wait for it to inspect H first
+    await page.waitFor(5000);
+
     await inspector.waitForFunction(() =>
       document.body.innerText.includes("SomeoneA")
     );
@@ -256,11 +257,13 @@ describe("E2E", () => {
     );
 
     await page.close();
-  }, 40000);
+  }, 60000);
 
   it("Does DOM to JS tracking", async () => {
     const page = await createPage();
-    await page.goto("http://localhost:" + webServerPort + "/tests/domTracking");
+    await page.goto(
+      "http://localhost:" + webServerPort + "/tests/domTracking/"
+    );
     const testResult = await (await page.waitForFunction(
       'window["testResult"]'
     )).jsonValue();
@@ -477,7 +480,7 @@ describe("E2E", () => {
     const page = await createPage();
 
     await page.goto(
-      "http://localhost:" + webServerPort + "/tests/" + "XMLHttpRequest"
+      "http://localhost:" + webServerPort + "/tests/" + "XMLHttpRequest/"
     );
     const inspector = await waitForInPageInspector(page);
 
@@ -535,7 +538,7 @@ describe("E2E", () => {
 
     const page = await createPage();
     await page.goto(
-      "http://localhost:" + webServerPort + "/tests/bodyWithoutScriptTags"
+      "http://localhost:" + webServerPort + "/tests/bodyWithoutScriptTags/"
     );
     const testResult = await (await page.waitForFunction(
       'window["testResult"]'
