@@ -180,6 +180,7 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
 
 export default class Backend {
   constructor(options: BackendOptions) {
+    console.time("create backend");
     if (DELETE_EXISTING_LOGS_AT_START) {
       console.log(
         "deleting existing log data, this makes sure perf data is more comparable... presumably leveldb slows down with more data"
@@ -223,6 +224,7 @@ export default class Backend {
     const app = express();
 
     if (LOG_PERF) {
+      console.log("will log perf");
       app.use(
         responseTime((req, res, time) => {
           console.log(req.method, req.url, time + "ms");
@@ -352,7 +354,9 @@ export default class Backend {
       server.listen(bePort, () => resolve());
     });
 
+    console.timeLog("create backend", "end of function");
     Promise.all([proxyReady, serverReady]).then(function () {
+      console.timeEnd("create backend");
       console.log("Server listening on port " + bePort);
     });
   }
@@ -1184,7 +1188,6 @@ export async function openBrowser({
       ...extraArgs,
     ],
   });
-  console.log("Launched browser", browser);
   let pages = await browser.pages();
   const page = pages[0];
   // disable puppeteer default window size emulation

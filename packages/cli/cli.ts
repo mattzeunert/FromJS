@@ -2,7 +2,6 @@ import * as commander from "commander";
 import Backend, { openBrowser } from "@fromjs/backend";
 import * as process from "process";
 import { BackendOptions } from "@fromjs/backend";
-import * as puppeteer from "puppeteer";
 import * as path from "path";
 
 const list = (val) => val.split(",");
