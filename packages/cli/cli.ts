@@ -7,10 +7,6 @@ import * as path from "path";
 
 const list = (val) => val.split(",");
 
-if (process.version.startsWith("v11") || process.version.startsWith("v10")) {
-  throw Error("Newer node version not support, please use node 8");
-}
-
 const maxOldSpaceSizeArg = process.execArgv.find((arg) =>
   arg.includes("--max_old_space_size")
 );
