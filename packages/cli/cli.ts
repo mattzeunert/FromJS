@@ -5,16 +5,16 @@ import { BackendOptions } from "@fromjs/backend";
 import * as puppeteer from "puppeteer";
 import * as path from "path";
 
-const list = val => val.split(",");
+const list = (val) => val.split(",");
 
 if (process.version.startsWith("v11") || process.version.startsWith("v10")) {
   throw Error("Newer node version not support, please use node 8");
 }
 
-const maxOldSpaceSizeArg = process.execArgv.find(arg =>
+const maxOldSpaceSizeArg = process.execArgv.find((arg) =>
   arg.includes("--max_old_space_size")
 );
-const inspectArg = process.execArgv.find(arg => arg.includes("--inspect"));
+const inspectArg = process.execArgv.find((arg) => arg.includes("--inspect"));
 
 if (!maxOldSpaceSizeArg) {
   // Analysis etc can sometimes use lots of memory, so raise the memory threshold
@@ -26,9 +26,9 @@ if (!maxOldSpaceSizeArg) {
     execArgv.push("--inspect=36689");
   }
   const childWithMoreMemory = fork(process.argv[1], process.argv.slice(2), {
-    execArgv
+    execArgv,
   });
-  childWithMoreMemory.on("exit", function() {
+  childWithMoreMemory.on("exit", function () {
     process.exit();
   });
   process["titl" + "e"] =
@@ -73,11 +73,11 @@ if (!maxOldSpaceSizeArg) {
     block: commander.block,
     sessionDirectory: commander.sessionDirectory,
     disableDefaultBlockList: !!commander.disableDefaultBlockList,
-    onReady: async function() {
+    onReady: async function () {
       if (commander.openBrowser === "yes") {
         // openBrowser();
       }
-    }
+    },
   });
 
   if (commander.openBrowser === "only") {
@@ -85,7 +85,11 @@ if (!maxOldSpaceSizeArg) {
     console.log("Only opening browser with proxy port set to", proxyPort);
     openBrowser({
       userDataDir: backendOptions.getChromeUserDataDirectory(),
-      extraArgs: []
+      extraArgs: [],
+      config: {
+        backendPort: bePort,
+        redirectUrl: `http://localhost:${bePort}/start/`,
+      },
     });
   } else {
     const backend = new Backend(backendOptions);

@@ -21,14 +21,14 @@ const proxyPort = backendPort + 1;
 const webServerPort = proxyPort + 1;
 
 function setTimeoutPromise(timeout) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(resolve, timeout);
   });
 }
 
 function waitForProxyReady(command) {
-  return new Promise(resolve => {
-    command.stdout.on("data", function(data) {
+  return new Promise((resolve) => {
+    command.stdout.on("data", function (data) {
       if (data.toString().includes("Server listening")) {
         resolve();
       }
@@ -37,34 +37,34 @@ function waitForProxyReady(command) {
 }
 
 function startWebServer() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let command = spawn(__dirname + "/node_modules/.bin/http-server", [
       "-p",
       webServerPort.toString(),
-      __dirname
+      __dirname,
     ]);
-    command.stdout.on("data", function(data) {
+    command.stdout.on("data", function (data) {
       if (data.toString().includes("Hit CTRL-C to stop the server")) {
         resolve();
       }
     });
-    command.stderr.on("data", function(data) {
+    command.stderr.on("data", function (data) {
       console.log("err", data.toString());
     });
   });
 }
 
 function inspectDomChar(charIndex) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     request.post(
       {
         url: "http://localhost:" + backendPort + "/inspectDomChar",
         json: {
-          charIndex
+          charIndex,
         },
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
       },
-      function(err, resp, body) {
+      function (err, resp, body) {
         if (err) {
           throw Error(err);
         }
@@ -75,14 +75,14 @@ function inspectDomChar(charIndex) {
 }
 
 function traverse(firstStep) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     request.post(
       {
         url: "http://localhost:" + backendPort + "/traverse",
         json: firstStep,
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
       },
-      function(err, resp, body) {
+      function (err, resp, body) {
         if (err) {
           throw Error(err);
         }
@@ -106,7 +106,7 @@ async function inspectDomCharAndTraverse(charIndex, isSecondTry = false) {
     const lastStep = steps[steps.length - 1];
     return {
       charIndex: lastStep.charIndex,
-      operationLog: new OperationLog(lastStep.operationLog)
+      operationLog: new OperationLog(lastStep.operationLog),
     };
   } catch (err) {
     if (isSecondTry) {
@@ -123,11 +123,11 @@ describe("E2E", () => {
 
   async function createPage() {
     const page = await browser.newPage();
-    page.on("pageerror", function(err) {
+    page.on("pageerror", function (err) {
       console.log("Page error: " + err.toString());
     });
     // wait for the whole redirect to exampel and to /start thing...
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     return page;
   }
 
@@ -142,14 +142,14 @@ describe("E2E", () => {
       "--openBrowser",
       "no",
       "--sessionDirectory",
-      "/tmp/fromjs-e2e"
+      "/tmp/fromjs-e2e",
     ]);
 
-    command.stdout.on("data", function(data) {
+    command.stdout.on("data", function (data) {
       console.log("CLI out", data.toString());
     });
 
-    command.stderr.on("data", function(data) {
+    command.stderr.on("data", function (data) {
       console.log("CLI err", data.toString());
     });
 
@@ -157,7 +157,8 @@ describe("E2E", () => {
 
     browser = await openBrowser({
       userDataDir: undefined,
-      extraArgs: ["--no-sandbox"]
+      extraArgs: ["--no-sandbox"],
+      backendPort: backendPort,
     });
 
     // browser = await puppeteer.launch({
@@ -193,7 +194,7 @@ describe("E2E", () => {
 
   async function waitForLastHTMLStepToContain(inspectorPage, str) {
     await inspectorPage.waitForFunction(
-      str => {
+      (str) => {
         const lastStep = document.querySelectorAll(".step")[0];
         return lastStep && lastStep.innerHTML.includes(str);
       },
@@ -204,7 +205,7 @@ describe("E2E", () => {
 
   async function waitForHiglightedLineToContain(inspector, str) {
     await inspector.waitFor(
-      str => {
+      (str) => {
         const highlightedLine = document.querySelector(
           "[data-test-highlighted-line]"
         );
@@ -264,11 +265,11 @@ describe("E2E", () => {
     await page.goto(
       "http://localhost:" + webServerPort + "/tests/domTracking/"
     );
-    const testResult = await (await page.waitForFunction(
-      'window["testResult"]'
-    )).jsonValue();
+    const testResult = await (
+      await page.waitForFunction('window["testResult"]')
+    ).jsonValue();
 
-    const html = testResult.parts.map(p => p[0]).join("");
+    const html = testResult.parts.map((p) => p[0]).join("");
 
     // createElement
 
@@ -521,7 +522,7 @@ describe("E2E", () => {
       const inspectorFrame = page
         .mainFrame()
         .childFrames()
-        .find(frame => frame.url() && frame.url().includes(backendPort));
+        .find((frame) => frame.url() && frame.url().includes(backendPort));
       if (inspectorFrame) {
         break;
       }
@@ -540,11 +541,11 @@ describe("E2E", () => {
     await page.goto(
       "http://localhost:" + webServerPort + "/tests/bodyWithoutScriptTags/"
     );
-    const testResult = await (await page.waitForFunction(
-      'window["testResult"]'
-    )).jsonValue();
+    const testResult = await (
+      await page.waitForFunction('window["testResult"]')
+    ).jsonValue();
 
-    const html = testResult.parts.map(p => p[0]).join("");
+    const html = testResult.parts.map((p) => p[0]).join("");
 
     let res = await inspectDomCharAndTraverse(html.indexOf("setByInnerHTML"));
     expect(res.operationLog.operation).toBe("stringLiteral");

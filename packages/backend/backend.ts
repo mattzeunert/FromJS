@@ -379,6 +379,25 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
     }
   });
 
+  app.get("/fromJSInitPage", (req, res) => {
+    res.end(`<!doctype html>
+    <head>
+      <title>fromJSInitPage</title>
+    </head>
+    <body>
+    Initializing...
+    </body>
+    </html>`);
+  });
+
+  app.get("/enableDebugger", (req, res) => {
+    res.end(`<!doctype html>
+    <body>
+    Enabling request interception...
+    </body>
+    </html>`);
+  });
+
   app.get("/", (req, res) => {
     let html = fs.readFileSync(uiDir + "/index.html").toString();
     html = html.replace(/BACKEND_PORT_PLACEHOLDER/g, options.bePort.toString());
@@ -1140,7 +1159,7 @@ function makeRequestHandler(options) {
   });
 }
 
-export async function openBrowser({ userDataDir, extraArgs }) {
+export async function openBrowser({ userDataDir, extraArgs, config }) {
   let extensionPath = path.resolve(__dirname + "/../../proxy-extension/dist");
   const browser = await puppeteer.launch({
     headless: false,
@@ -1158,9 +1177,17 @@ export async function openBrowser({ userDataDir, extraArgs }) {
       ...extraArgs,
     ],
   });
-  // let pages = await browser.pages();
-  // const page = pages[0];
-  // await page._client.send("Emulation.clearDeviceMetricsOverride");
+  let pages = await browser.pages();
+  const page = pages[0];
+  // disable puppeteer default window size emulation
+  await page._client.send("Emulation.clearDeviceMetricsOverride");
   // await page.goto("http://localhost:" + bePort + "/start");
+
+  await page.goto(
+    "http://localhost:" +
+      config.backendPort +
+      "/fromJSInitPage?config=" +
+      encodeURIComponent(JSON.stringify(config))
+  );
   return browser;
 }

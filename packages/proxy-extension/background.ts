@@ -15,7 +15,7 @@ var Base64 = {
   _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
 
   // public method for encoding
-  encode: function(input) {
+  encode: function (input) {
     var output = "";
     var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
     var i = 0;
@@ -50,7 +50,7 @@ var Base64 = {
   }, // End Function encode
 
   // public method for decoding
-  decode: function(input) {
+  decode: function (input) {
     var output = "";
     var chr1, chr2, chr3;
     var enc1, enc2, enc3, enc4;
@@ -84,7 +84,7 @@ var Base64 = {
   }, // End Function decode
 
   // private method for UTF-8 encoding
-  _utf8_encode: function(string) {
+  _utf8_encode: function (string) {
     var utftext = "";
     string = string.replace(/\r\n/g, "\n");
 
@@ -107,7 +107,7 @@ var Base64 = {
   }, // End Function _utf8_encode
 
   // private method for UTF-8 decoding
-  _utf8_decode: function(utftext) {
+  _utf8_decode: function (utftext) {
     var string = "";
     var i = 0;
     var c, c1, c2, c3;
@@ -134,10 +134,11 @@ var Base64 = {
     } // Whend
 
     return string;
-  } // End Function _utf8_decode
+  }, // End Function _utf8_decode
 };
 
-const backendPort = 12100;
+let backendPort;
+// const backendPort = 12100;
 // const backendPort = 7000;
 
 class TTab {
@@ -152,21 +153,28 @@ class TTab {
     this.onEvent = this.onEvent.bind(this);
   }
 
-  async open(tab) {
-    const targets = await thenChrome.debugger.getTargets();
-    const target = targets.find(t => t.type === "page" && t.tabId === tab.id);
-    await new Promise(resolve => setTimeout(resolve, 500)); // dont think this is needed
-
-    this.target = target;
+  async open(tab, pageUrl = "http://localhost:" + backendPort + "/start/") {
     this.tab = tab;
 
-    const pageUrl = "http://localhost:" + backendPort + "/start/";
+    // navigate away first because we can't enable debugger while on chrome url
+    await thenChrome.tabs.update(tab.id, {
+      url: "http://localhost:" + backendPort + "/enableDebugger",
+    });
+
+    // wait for navigation away from chrome url
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    const targets = await thenChrome.debugger.getTargets();
+    const target = targets.find((t) => t.type === "page" && t.tabId === tab.id);
+    this.target = target;
+
     // const pageUrl =
     //   "http://localhost:1212/persistent-friendly-authority.glitch.me_2020-03-25_10-04-28.report.html";
     // const pageUrl = "https://capable-ogre.glitch.me/";
     // await thenChrome.tabs.update(tab.id, { url: pageUrl });
 
     await this._setupDebugger();
+    console.log("Done set up debugger");
 
     await thenChrome.debugger.sendCommand(this._getTargetArg(), "Page.enable");
 
@@ -184,7 +192,7 @@ class TTab {
   log(...args) {
     console.log.apply(console, [
       "[Tab: " + (this.tab && this.tab.id) + "]",
-      ...args
+      ...args,
     ]);
   }
 
@@ -219,13 +227,13 @@ class TTab {
 
       chrome.debugger.detach(this._getTargetArg());
       chrome.tabs.update(this.tab.id, {
-        url: "http://example.com/?interceptFailed"
+        url: "http://example.com/?interceptFailed",
       });
     }
   };
 
   async _setupDebugger() {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       const targetArg = this._getTargetArg();
 
       chrome.debugger.onDetach.addListener(this.onDetach);
@@ -264,7 +272,7 @@ class TTab {
         targetArg,
         "Network.continueInterceptedRequest",
         {
-          interceptionId
+          interceptionId,
         }
       );
       return;
@@ -276,32 +284,28 @@ class TTab {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           url: info.request.url,
           method: info.request.method,
           headers: info.request.headers,
-          postData: info.request.postData
-        })
+          postData: info.request.postData,
+        }),
       }
-    ).then(r => {
+    ).then((r) => {
       rr = r;
       return r.text();
     });
 
-    console.log(Array.from);
-
     let responseText = `HTTP/1.1 ${rr.status}
 ${Array.from(rr.headers)
-      .map(([headerKey, headerValue]) => {
-        return `${headerKey}: ${headerValue}`;
-      })
-      .join("\n")}
+  .map(([headerKey, headerValue]) => {
+    return `${headerKey}: ${headerValue}`;
+  })
+  .join("\n")}
 
 ${res}`;
-
-    console.log("done fetch", rr, responseText.slice(0, 500));
 
     chrome.debugger.sendCommand(
       targetArg,
@@ -309,7 +313,7 @@ ${res}`;
       {
         interceptionId,
         // use this instead of btoa to avoid https://stackoverflow.com/questions/23223718/failed-to-execute-btoa-on-window-the-string-to-be-encoded-contains-characte
-        rawResponse: Base64.encode(responseText)
+        rawResponse: Base64.encode(responseText),
       }
     );
   }
@@ -322,16 +326,27 @@ ${res}`;
 //   });
 // }, 100);
 
-chrome.browserAction.onClicked.addListener(function(tab) {
-  const tt = new TTab();
-  tt.open(tab);
-});
-
-chrome.tabs.onCreated.addListener(tab => {
-  console.log("oncreated", tab);
-  chrome.tabs.update(tab.id, {
-    url: "http://example.com/?settingUP"
+let initInterval = setInterval(() => {
+  chrome.tabs.query({ title: "fromJSInitPage" }, (tabs) => {
+    if (tabs.length > 0) {
+      clearInterval(initInterval);
+      let url = new URL(tabs[0].url);
+      let config = JSON.parse(url.searchParams.get("config"));
+      backendPort = config.backendPort;
+      console.log("used config", config);
+      const tt = new TTab();
+      tt.open(tabs[0], config.redirectUrl);
+    }
   });
+}, 100);
+
+// chrome.browserAction.onClicked.addListener(function (tab) {
+//   const tt = new TTab();
+//   tt.open(tab);
+// });
+
+chrome.tabs.onCreated.addListener((tab) => {
+  console.log("oncreated", tab);
   const tt = new TTab();
   tt.open(tab);
 });
