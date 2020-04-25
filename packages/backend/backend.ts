@@ -404,11 +404,17 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
 
     res.status(status);
 
+    // I think some headres like allow origin don't reach the client js
+    // and are stripped by the browses
+    // https://stackoverflow.com/questions/43344819/reading-response-headers-with-fetch-api
+    res.set("access-control-expose-headers", "*");
+    res.set("Access-Control-Allow-Origin", "*");
     Object.keys(headers).forEach(headerKey => {
       if (headerKey === "content-length") {
-        // was getting this wrong sometimes
+        // was getting this wrong sometimes, easier to just not send it
         return;
       }
+      console.log(headerKey);
       res.set(headerKey, headers[headerKey]);
     });
 

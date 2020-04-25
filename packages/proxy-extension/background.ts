@@ -149,11 +149,7 @@ class TTab {
     this.onEvent = this.onEvent.bind(this);
   }
 
-  async open(xxxxx) {
-    const tab = await thenChrome.tabs.create({
-      url: "http://example.com"
-    });
-
+  async open(tab) {
     const targets = await thenChrome.debugger.getTargets();
     const target = targets.find(t => t.type === "page" && t.tabId === tab.id);
     await new Promise(resolve => setTimeout(resolve, 500)); // dont think this is needed
@@ -161,10 +157,10 @@ class TTab {
     this.target = target;
     this.tab = tab;
 
-    // const pageUrl = "http://localhost:7000/start/";
+    const pageUrl = "http://localhost:7000/start/";
     // const pageUrl =
     //   "http://localhost:1212/persistent-friendly-authority.glitch.me_2020-03-25_10-04-28.report.html";
-    const pageUrl = "https://capable-ogre.glitch.me/";
+    // const pageUrl = "https://capable-ogre.glitch.me/";
     // await thenChrome.tabs.update(tab.id, { url: pageUrl });
 
     await this._setupDebugger();
@@ -288,14 +284,18 @@ class TTab {
       return r.text();
     });
 
+    console.log(Array.from);
+
     let responseText = `HTTP/1.1 ${rr.status}
-${Object.keys(rr.headers).map(headerKey => {
-      return `${headerKey}: ${rr.headers[headerKey]}`;
-    })}
-    
+${Array.from(rr.headers)
+      .map(([headerKey, headerValue]) => {
+        return `${headerKey}: ${headerValue}`;
+      })
+      .join("\n")}
+
 ${res}`;
 
-    console.log("done fetch", responseText.slice(0, 300));
+    console.log("done fetch", rr, responseText.slice(0, 500));
 
     chrome.debugger.sendCommand(
       targetArg,
@@ -308,6 +308,13 @@ ${res}`;
     );
   }
 }
+
+setTimeout(() => {
+  chrome.tabs.create({ url: "https://example.com" }, tab => {
+    const tt = new TTab();
+    tt.open(tab);
+  });
+}, 100);
 
 chrome.browserAction.onClicked.addListener(function(tab) {
   const tt = new TTab();

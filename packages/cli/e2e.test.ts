@@ -158,7 +158,7 @@ describe("E2E", () => {
       ignoreHTTPSErrors: true,
       dumpio: true,
       args: [
-        "--proxy-server=127.0.0.1:" + proxyPort,
+        // "--proxy-server=127.0.0.1:" + proxyPort,
         // To make it work in CI:
         "--no-sandbox"
       ],
