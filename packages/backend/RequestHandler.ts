@@ -7,7 +7,7 @@ import {
   readdirSync,
   existsSync,
   readFileSync,
-  exists
+  exists,
 } from "fs";
 
 function rewriteHtml(html, { bePort }) {
@@ -57,6 +57,15 @@ function rewriteHtml(html, { bePort }) {
 }
 
 export class RequestHandler {
+  _shouldBlock: any;
+  _accessToken: string;
+  _backendPort: number;
+  _storeLocs: any;
+  _shouldInstrument: any;
+  _sessionDirectory: string;
+  _onCodeProcessed: any;
+  _files: any;
+
   constructor({
     shouldBlock,
     accessToken,
@@ -65,7 +74,7 @@ export class RequestHandler {
     shouldInstrument,
     onCodeProcessed,
     sessionDirectory,
-    files
+    files,
   }) {
     this._shouldBlock = shouldBlock;
     this._accessToken = accessToken;
@@ -116,7 +125,7 @@ export class RequestHandler {
         status: 401,
         headers: {},
         body: Buffer.from(""),
-        fileKey: "blocked"
+        fileKey: "blocked",
       };
     }
 
@@ -124,7 +133,7 @@ export class RequestHandler {
     let isMap = url.includes(".map");
     url = url.replace("?dontprocess", "").replace(".map", "");
 
-    let file = this._files.find(f => f.url == url)!;
+    let file = this._files.find((f) => f.url == url)!;
     if (file) {
       let postfix = "";
       if (isDontProcess) {
@@ -139,18 +148,19 @@ export class RequestHandler {
       return {
         body: require("fs").readFileSync(path, "utf-8"),
         headers: {},
-        status: 200
+        status: 200,
       };
     }
 
+    //@ts-ignore
     let { status, data, headers: responseHeaders } = await axios({
       url,
       method: method,
       headers: headers,
-      validateStatus: status => true,
+      validateStatus: (status) => true,
       // prevent e.g parse json
-      transformResponse: data => data,
-      data: postData
+      transformResponse: (data) => data,
+      data: postData,
     });
 
     const hasha = require("hasha");
@@ -178,7 +188,7 @@ export class RequestHandler {
       } else if (isHtml) {
         console.log("ishtml");
         data = rewriteHtml(data.toString(), {
-          bePort: this._backendPort
+          bePort: this._backendPort,
         });
         data = await this._compileHtmlInlineScriptTags(data);
 
@@ -193,7 +203,7 @@ export class RequestHandler {
     return {
       status,
       body: Buffer.from(data),
-      headers: responseHeaders
+      headers: responseHeaders,
     };
   }
 
@@ -208,7 +218,7 @@ export class RequestHandler {
 
     const babelPluginOptions = {
       accessToken: this._accessToken,
-      backendPort: this._backendPort
+      backendPort: this._backendPort,
     };
     console.log({ backendPort: this._backendPort });
 
@@ -232,7 +242,7 @@ export class RequestHandler {
       const response = await compilerProcess.instrument({
         body,
         url,
-        babelPluginOptions
+        babelPluginOptions,
       });
       await Thread.terminate(compilerProcess);
       if (response.error) {
@@ -243,9 +253,7 @@ export class RequestHandler {
         const sizeBeforeString = prettyBytes(response.sizeBefore);
         const sizeAfterString = prettyBytes(response.sizeAfter);
         console.log(
-          `Instrumented ${url} took ${
-            response.timeTakenMs
-          }ms, ${sizeBeforeString} => ${sizeAfterString}`
+          `Instrumented ${url} took ${response.timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
         );
       }
       r = response;
@@ -267,7 +275,7 @@ export class RequestHandler {
       fileKey,
       raw: body,
       instrumented: r.code,
-      map: r.map
+      map: r.map,
     });
     //   this.cacheUrl(url, {
     //           headers: {},
@@ -300,16 +308,18 @@ export class RequestHandler {
 
     const inlineScriptTags: any[] = [];
 
-    walk(doc, async node => {
+    walk(doc, async (node) => {
       // Optionally kill traversal
       if (node.tagName === "script") {
         if (
-          node.attrs.find(attr => attr.name === "data-fromjs-dont-instrument")
+          node.attrs.find((attr) => attr.name === "data-fromjs-dont-instrument")
         ) {
           return;
         }
-        const hasSrcAttribute = !!node.attrs.find(attr => attr.name === "src");
-        const typeAttribute = node.attrs.find(attr => attr.name === "type");
+        const hasSrcAttribute = !!node.attrs.find(
+          (attr) => attr.name === "src"
+        );
+        const typeAttribute = node.attrs.find((attr) => attr.name === "type");
 
         const typeIsJS =
           !typeAttribute ||
@@ -324,10 +334,10 @@ export class RequestHandler {
     });
 
     await Promise.all(
-      inlineScriptTags.map(async node => {
+      inlineScriptTags.map(async (node) => {
         const code = node.childNodes[0].value;
         const compRes = <any>await this.instrumentForEval(code, {
-          type: "scriptTag"
+          type: "scriptTag",
         });
         node.compiledCode = compRes.instrumentedCode;
       })
@@ -335,7 +345,7 @@ export class RequestHandler {
 
     console.log("has compiled");
 
-    inlineScriptTags.forEach(node => {
+    inlineScriptTags.forEach((node) => {
       const textLoc = node.childNodes[0].sourceCodeLocation;
       magicHtml.overwrite(
         textLoc.startOffset,
@@ -372,9 +382,7 @@ export class RequestHandler {
   instrumentForEval(code, details) {
     return new Promise(async (resolve, reject) => {
       const compile = (code, url, done) => {
-        this.processCode(code, url)
-          .then(done)
-          .catch(reject);
+        this.processCode(code, url).then(done).catch(reject);
       };
       handleEvalScript(
         code,
@@ -382,10 +390,10 @@ export class RequestHandler {
         details,
         ({ url, instrumentedCode, code, map }) => {
           resolve({
-            instrumentedCode
+            instrumentedCode,
           });
         },
-        err => {
+        (err) => {
           reject(err);
         }
       );
