@@ -3,6 +3,7 @@ const puppeteer = require("puppeteer");
 const kp = require("kill-port");
 const request = require("request");
 import { OperationLog } from "@fromjs/core";
+import { openBrowser } from "@fromjs/backend";
 
 async function killPort(portNum) {
   try {
@@ -127,6 +128,8 @@ describe("E2E", () => {
     page.on("pageerror", function(err) {
       console.log("Page error: " + err.toString());
     });
+    // wait for the whole redirect to exampel and to /start thing...
+    await new Promise(resolve => setTimeout(resolve, 10000));
     return page;
   }
 
@@ -154,17 +157,22 @@ describe("E2E", () => {
 
     await waitForProxyReady(command);
 
-    browser = await puppeteer.launch({
-      ignoreHTTPSErrors: true,
-      dumpio: true,
-      args: [
-        // "--proxy-server=127.0.0.1:" + proxyPort,
-        // To make it work in CI:
-        "--no-sandbox"
-      ],
-      headless: !process.env.HEADFUL,
-      devtools: process.env.HEADFUL
+    browser = await openBrowser({
+      userDataDir: undefined,
+      extraArgs: ["--no-sandbox"]
     });
+
+    // browser = await puppeteer.launch({
+    //   ignoreHTTPSErrors: true,
+    //   dumpio: true,
+    //   args: [
+    //     // "--proxy-server=127.0.0.1:" + proxyPort,
+    //     // To make it work in CI:
+    //     "--no-sandbox"
+    //   ],
+    //   headless: !process.env.HEADFUL,
+    //   devtools: process.env.HEADFUL
+    // });
 
     await startWebServer();
   }, 20000);
@@ -213,7 +221,10 @@ describe("E2E", () => {
   it("Can load the start page", async () => {
     const page = await createPage();
 
+    console.log("creatd page");
+
     await page.goto("http://localhost:" + backendPort + "/start");
+    console.log("called goto");
     await page.waitForSelector("#fromjs-inspect-dom-button");
     await page.waitForSelector("h1");
 

@@ -311,12 +311,21 @@ ${res}`;
 
 setTimeout(() => {
   chrome.tabs.create({ url: "https://example.com" }, tab => {
-    const tt = new TTab();
-    tt.open(tab);
+    // const tt = new TTab();
+    // tt.open(tab);
   });
 }, 100);
 
 chrome.browserAction.onClicked.addListener(function(tab) {
+  const tt = new TTab();
+  tt.open(tab);
+});
+
+chrome.tabs.onCreated.addListener(tab => {
+  console.log("oncreated", tab);
+  chrome.tabs.update(tab.id, {
+    url: "http://example.com/?settingUP"
+  });
   const tt = new TTab();
   tt.open(tab);
 });

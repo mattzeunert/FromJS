@@ -18,6 +18,7 @@ import * as responseTime from "response-time";
 import { config } from "@fromjs/core";
 import { RequestHandler } from "./RequestHandler";
 import * as pMap from "p-map";
+import * as puppeteer from "puppeteer";
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -1126,4 +1127,29 @@ function makeRequestHandler(options) {
       });
     }
   });
+}
+
+export async function openBrowser({ userDataDir, extraArgs }) {
+  let extensionPath = path.resolve(__dirname + "/../../proxy-extension/dist");
+  const browser = await puppeteer.launch({
+    headless: false,
+    dumpio: true,
+    args: [
+      `--js-flags="--max_old_space_size=8192"`,
+      // "--proxy-server=127.0.0.1:" + proxyPort,
+      "--disable-extensions-except=" + extensionPath,
+      // "--load-extension=" + extensionPath,
+      // "--ignore-certificate-errors",
+      // "--test-type", // otherwise getting unsupported command line flag: --ignore-certificate-errors
+      ...(userDataDir ? ["--user-data-dir=" + userDataDir] : []),
+      "--disable-infobars", // disable "controlled by automated test software" message,
+      "--allow-running-insecure-content", // load http inspector UI on https pages,
+      ...extraArgs
+    ]
+  });
+  // let pages = await browser.pages();
+  // const page = pages[0];
+  // await page._client.send("Emulation.clearDeviceMetricsOverride");
+  // await page.goto("http://localhost:" + bePort + "/start");
+  return browser;
 }

@@ -36,6 +36,7 @@
     "p-map": "^4.0.0",
     "pretty-bytes": "^5.3.0",
     "pretty-fast": "git://github.com/mattzeunert/pretty-fast.git#ac060723ef72883ef7b161b942c6260b5cb17739",
+    "puppeteer": "^3.0.1",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
     "request": "^2.85.0",

@@ -1,5 +1,5 @@
 import * as commander from "commander";
-import Backend from "@fromjs/backend";
+import Backend, { openBrowser } from "@fromjs/backend";
 import * as process from "process";
 import { BackendOptions } from "@fromjs/backend";
 import * as puppeteer from "puppeteer";
@@ -58,7 +58,7 @@ if (!maxOldSpaceSizeArg) {
       "--disableDefaultBlockList",
       "Disable blocking JS files from analytics providers etc"
     )
-    .version(require("../package.json").version)
+    // .version(require("../package.json").version)
     .parse(process.argv);
 
   let bePort = parseFloat(commander.port);
@@ -75,7 +75,7 @@ if (!maxOldSpaceSizeArg) {
     disableDefaultBlockList: !!commander.disableDefaultBlockList,
     onReady: async function() {
       if (commander.openBrowser === "yes") {
-        openBrowser();
+        // openBrowser();
       }
     }
   });
@@ -83,31 +83,11 @@ if (!maxOldSpaceSizeArg) {
   if (commander.openBrowser === "only") {
     process["titl" + "e"] = "FromJS - CLI (browser only)";
     console.log("Only opening browser with proxy port set to", proxyPort);
-    openBrowser();
+    openBrowser({
+      userDataDir: backendOptions.getChromeUserDataDirectory(),
+      extraArgs: []
+    });
   } else {
     const backend = new Backend(backendOptions);
-  }
-
-  async function openBrowser() {
-    let extensionPath = path.resolve(__dirname + "/../../proxy-extension/dist");
-    const browser = await puppeteer.launch({
-      headless: false,
-      dumpio: true,
-      args: [
-        `--js-flags="--max_old_space_size=8192"`,
-        // "--proxy-server=127.0.0.1:" + proxyPort,
-        "--disable-extensions-except=" + extensionPath,
-        // "--load-extension=" + extensionPath,
-        "--ignore-certificate-errors",
-        "--test-type", // otherwise getting unsupported command line flag: --ignore-certificate-errors
-        "--user-data-dir=" + backendOptions.getChromeUserDataDirectory(),
-        "--disable-infobars", // disable "controlled by automated test software" message,
-        "--allow-running-insecure-content" // load http inspector UI on https pages
-      ]
-    });
-    let pages = await browser.pages();
-    const page = pages[0];
-    await page._client.send("Emulation.clearDeviceMetricsOverride");
-    await page.goto("http://localhost:" + bePort + "/start");
   }
 }
