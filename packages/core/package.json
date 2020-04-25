@@ -16,7 +16,7 @@
     "@babel/parser": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
     "@types/jest": "^23.3.10",
-    "@types/node": "^10.3.2",
+    "@types/node": "^12.12.6",
     "clone-regexp": "^2.1.0",
     "file-loader": "^6.0.0",
     "jest": "^22.4.2",
