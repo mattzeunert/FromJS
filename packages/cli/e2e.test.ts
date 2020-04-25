@@ -127,7 +127,7 @@ describe("E2E", () => {
       console.log("Page error: " + err.toString());
     });
     // wait for the whole redirect to exampel and to /start thing...
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 4000));
     return page;
   }
 
@@ -158,7 +158,10 @@ describe("E2E", () => {
     browser = await openBrowser({
       userDataDir: undefined,
       extraArgs: ["--no-sandbox"],
-      backendPort: backendPort,
+      config: {
+        backendPort,
+        redirectUrl: "http://example.com",
+      },
     });
 
     // browser = await puppeteer.launch({
@@ -247,7 +250,7 @@ describe("E2E", () => {
     );
 
     // wait for it to inspect H first
-    await page.waitFor(5000);
+    await page.waitFor(4000);
 
     await inspector.waitForFunction(() =>
       document.body.innerText.includes("SomeoneA")
