@@ -1,59 +1,17 @@
-# Javascript Node CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-javascript/ for more details
-#
-version: 2
+version: 2.1
+orbs:
+  node: circleci/node@1.1.6
 jobs:
-  build:
-    docker:
-      # specify the version you desire here
-      - image: circleci/node:8
-        environment:
-          CHROME_BIN: "/usr/bin/google-chrome"
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/mongo:3.4.4
-
-    working_directory: ~/repo
-
+  build-and-test:
+    executor:
+      name: node/default
     steps:
       - checkout
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
-      - run: git clone git@github.com:mattzeunert/fromjs-test-cases.git
-      - run: cd fromjs-test-cases && npm install
-      - run: cd fromjs-test-cases/todomvc/examples/backbone && npm install
-      - run:
-          command: cd fromjs-test-cases && node start.js &> start.out
-          background: true
-      - run: cd fromjs-test-cases && node start.js confirm-started
-
-      - run: sudo apt-get update; sudo apt-get install -yq --no-install-recommends libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 libnss3
-      - run: sudo apt-get install lsof -y
-      - run: yarn install;
-
-      - run: ./node_modules/.bin/lerna bootstrap
-
-      - run: cd packages/core;npm run webpack-build;cd ../..
-
-      - run: cd packages/ui;npm run webpack-build;cd ../..
-
-      - run: cd packages/backend;npm run webpack-build;cd ../..
-
-      - run: npm run compile-all
-
-      - run: yarn test -- --testPathIgnorePatterns e2e
-
-      - run: yarn test -- e2e
-      # - save_cache:
-      #     paths:
-      #       - node_modules
-      #     key: v1-dependencies-{{ checksum "package.json" }}
+      - node/with-cache:
+          steps:
+            - run: npm install
+            - run: npm test
+workflows:
+    build-and-test:
+      jobs:
+        - build-and-test
