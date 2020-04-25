@@ -1170,6 +1170,7 @@ export async function openBrowser({
   const browser = await puppeteer.launch({
     headless: false,
     dumpio: true,
+    ignoreDefaultArgs: ["--disable-extensions"],
     args: [
       `--js-flags="--max_old_space_size=8192"`,
       // "--proxy-server=127.0.0.1:" + proxyPort,
