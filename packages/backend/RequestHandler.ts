@@ -175,7 +175,6 @@ export class RequestHandler {
       headers.Accept &&
       headers.Accept.includes("text/html");
     if (this._shouldInstrument({ url })) {
-      console.log("should instrument", url);
       if (isJS) {
         const { code, map, locs } = await this._requestProcessCode(
           data.toString(),
@@ -220,7 +219,6 @@ export class RequestHandler {
       accessToken: this._accessToken,
       backendPort: this._backendPort,
     };
-    console.log({ backendPort: this._backendPort });
 
     const RUN_IN_SAME_PROCESS = false;
 
@@ -234,7 +232,6 @@ export class RequestHandler {
       var compilerProcess = await spawn(new Worker(instrumenterFilePath));
       var path = require("path");
       // const inProgressTimeout = setTimeout(() => {
-      console.log({ babelPluginOptions });
       console.log(
         "Instrumenting: " + url + " (" + prettyBytes(body.length) + ")"
       );

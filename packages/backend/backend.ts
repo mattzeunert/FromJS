@@ -227,7 +227,7 @@ export default class Backend {
       console.log("will log perf");
       app.use(
         responseTime((req, res, time) => {
-          console.log(req.method, req.url, time + "ms");
+          console.log(req.method, req.url, Math.round(time) + "ms");
         })
       );
     }
