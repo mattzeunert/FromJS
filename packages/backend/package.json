@@ -50,6 +50,8 @@
     "typescript": "^3.2.2",
     "walk": "^2.3.14",
     "walk-parse5": "^2.0.0",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
     "ws": "^5.2.0"
   },
   "publishConfig": {
