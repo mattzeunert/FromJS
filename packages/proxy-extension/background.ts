@@ -137,7 +137,14 @@ var Base64 = {
   }, // End Function _utf8_decode
 };
 
-let backendPort;
+function getBackendPort() {
+  return parseFloat(localStorage.getItem("backendPort"));
+}
+
+function setBackendPort(backendPort) {
+  localStorage.setItem("backendPort", backendPort);
+}
+
 // const backendPort = 12100;
 // const backendPort = 7000;
 
@@ -153,12 +160,15 @@ class TTab {
     this.onEvent = this.onEvent.bind(this);
   }
 
-  async open(tab, pageUrl = "http://localhost:" + backendPort + "/start/") {
+  async open(
+    tab,
+    pageUrl = "http://localhost:" + getBackendPort() + "/start/"
+  ) {
     this.tab = tab;
 
     // navigate away first because we can't enable debugger while on chrome url
     await thenChrome.tabs.update(tab.id, {
-      url: "http://localhost:" + backendPort + "/enableDebugger",
+      url: "http://localhost:" + getBackendPort() + "/enableDebugger",
     });
 
     // wait for navigation away from chrome url
@@ -280,7 +290,7 @@ class TTab {
 
     let rr;
     const res = await fetch(
-      "http://localhost:" + backendPort + "/makeProxyRequest",
+      "http://localhost:" + getBackendPort() + "/makeProxyRequest",
       {
         method: "POST",
         headers: {
@@ -332,7 +342,7 @@ let initInterval = setInterval(() => {
       clearInterval(initInterval);
       let url = new URL(tabs[0].url);
       let config = JSON.parse(url.searchParams.get("config"));
-      backendPort = config.backendPort;
+      setBackendPort(config.backendPort);
       console.log("used config", config);
       const tt = new TTab();
       tt.open(tabs[0], config.redirectUrl);

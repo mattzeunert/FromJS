@@ -1178,8 +1178,8 @@ export async function openBrowser({
     args: [
       `--js-flags="--max_old_space_size=8192"`,
       // "--proxy-server=127.0.0.1:" + proxyPort,
-      "--disable-extensions-except=" + extensionPath,
-      // "--load-extension=" + extensionPath,
+      // "--disable-extensions-except=" + extensionPath,
+      "--load-extension=" + extensionPath,
       // "--ignore-certificate-errors",
       // "--test-type", // otherwise getting unsupported command line flag: --ignore-certificate-errors
       ...(userDataDir ? ["--user-data-dir=" + userDataDir] : []),
