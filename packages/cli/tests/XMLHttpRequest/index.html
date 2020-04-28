@@ -9,6 +9,7 @@
 
         // I had issue with DOM inspection from previous test showing up instead
         setTimeout(() => {
+          console.log("will call fromJSInspect");
           fromJSInspect(ip);
         }, 2500);
       }
