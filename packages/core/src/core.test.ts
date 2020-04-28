@@ -1605,3 +1605,17 @@ it("Should not break getter that assigns to itself", async () => {
 `);
   expect(normal).toBe("xyz");
 });
+
+it("Doesn't break function argument array destructuring if some values aren't used", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+  function fn ([,b]) {
+    return b
+  }
+  return fn(["a", "b"])
+`,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("b");
+});

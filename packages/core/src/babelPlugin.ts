@@ -91,7 +91,9 @@ function plugin(babel) {
       } else if (param.type === "ArrayPattern") {
         param.elements.forEach(elem => {
           let varName;
-          if (elem.type === "Identifier") {
+          if (!elem) {
+            // e.g. [,,c]
+          } else if (elem.type === "Identifier") {
             varName = elem.name;
           } else if (elem.type === "AssignmentPattern") {
             varName = elem.left.name;
@@ -102,15 +104,17 @@ function plugin(babel) {
           } else {
             throw Error("aaa unknown array pattern elem type " + elem.type);
           }
-          declarators.push(
-            t.variableDeclarator(
-              addLoc(getTrackingIdentifier(varName), param.loc),
-              ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
-                ignoredStringLiteral("arrayPatternInFunction"),
-                getLocObjectASTNode(elem.loc)
-              ])
-            )
-          );
+          if (elem) {
+            declarators.push(
+              t.variableDeclarator(
+                addLoc(getTrackingIdentifier(varName), param.loc),
+                ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+                  ignoredStringLiteral("arrayPatternInFunction"),
+                  getLocObjectASTNode(elem.loc)
+                ])
+              )
+            );
+          }
         });
       } else if (param.type === "AssignmentPattern") {
         let varName = param.left.name;
@@ -376,6 +380,11 @@ function plugin(babel) {
         path.parentPath.parentPath.parentPath.node.type === "ForOfStatement";
       const isForOfStatementWithoutVarDeclaration =
         path.parentPath.node.type === "ForOfStatement";
+
+      if (path.parentPath.node.type === "FunctionDeclaration") {
+        // don't transform, it would break how the values are passed
+        return;
+      }
 
       const specificParamCount = path.node.elements.filter(el => {
         // !el if e.g. [,a,b] with an empty item at the start
