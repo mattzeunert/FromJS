@@ -144,7 +144,8 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
           })) as any;
           fs.writeFileSync(
             outFilePath,
-            `/*require("/Users/mattzeunert/Documents/GitHub/FromJS/node-test-compiled/__fromJSENv.js")*/
+            `'use strict';// babel already adds use strict, but i'm prepending stuff so it won't count
+            /*require("/Users/mattzeunert/Documents/GitHub/FromJS/node-test-compiled/__fromJSENv.js")*/
           ;var global = Function("return this")(); global.self = global; global.fromJSIsNode = true;\n` +
               r.instrumentedCode
           );
