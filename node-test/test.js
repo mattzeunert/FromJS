@@ -1,12 +1,22 @@
-const prettyBytes = require("pretty-bytes")
+const prettier = require("prettier");
+const axios = require("axios")
 
-let bytes = 400000
-let msg = "Size: " + prettyBytes(bytes)
-console.log(msg)
+axios("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.core.js").then(({ data }) => {
+    const res = prettier.format(data, { semi: false, parser: "babel" });
+    console.log(res)
+})
 
-setTimeout(() => {
-    console.log("waited 10s")
-}, 10000)
+
+
+// const prettyBytes = require("pretty-bytes")
+
+// let bytes = 400000
+// let msg = "Size: " + prettyBytes(bytes)
+// console.log(msg)
+
+// setTimeout(() => {
+//     console.log("waited 10s")
+// }, 10000)
 
 // const lighthouse = require('lighthouse');
 // const chromeLauncher = require('chrome-launcher');

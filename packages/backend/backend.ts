@@ -20,7 +20,7 @@ import { RequestHandler } from "./RequestHandler";
 import * as pMap from "p-map";
 import * as puppeteer from "puppeteer";
 
-const ENABLE_DERIVED = true;
+const ENABLE_DERIVED = false;
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -328,7 +328,7 @@ export default class Backend {
       files,
     });
 
-    // compileNodeApp("node-test", requestHandler);
+    compileNodeApp("node-test", requestHandler);
 
     let proxyInterface;
     const proxyReady = Promise.resolve();

@@ -377,9 +377,10 @@ function plugin(babel) {
       const isForOfStatementWithoutVarDeclaration =
         path.parentPath.node.type === "ForOfStatement";
 
-      const namedParamCount = path.node.elements.filter(
-        el => el.type !== "RestElement"
-      ).length;
+      const specificParamCount = path.node.elements.filter(el => {
+        // !el if e.g. [,a,b] with an empty item at the start
+        return !el || el.type !== "RestElement";
+      }).length;
 
       if (
         isForOfStatementWithVarDeclaration ||
@@ -398,7 +399,7 @@ function plugin(babel) {
             forOfStatement.right,
             getLocObjectASTNode(forOfStatement.loc),
             ignoredStringLiteral("forOf"),
-            ignoredNumericLiteral(namedParamCount)
+            ignoredNumericLiteral(specificParamCount)
           ]
         );
       } else if (
@@ -411,7 +412,7 @@ function plugin(babel) {
             declarator.init,
             getLocObjectASTNode(declarator.loc),
             ignoredStringLiteral("variableDeclarationInit"),
-            ignoredNumericLiteral(namedParamCount)
+            ignoredNumericLiteral(specificParamCount)
           ]
         );
       } else if (path.parentPath.node.type === "AssignmentExpression") {
@@ -422,7 +423,7 @@ function plugin(babel) {
             assignmentExpression.right,
             getLocObjectASTNode(assignmentExpression.loc),
             ignoredStringLiteral("assignmentExpressionRight"),
-            ignoredNumericLiteral(namedParamCount)
+            ignoredNumericLiteral(specificParamCount)
           ]
         );
       }
@@ -431,7 +432,8 @@ function plugin(babel) {
       const newElements: any[] = [];
       arrayPattern.elements.forEach(elem => {
         let varName;
-        if (elem.type === "Identifier") {
+        if (!elem) {
+        } else if (elem.type === "Identifier") {
           varName = elem.name;
         } else if (elem.type === "AssignmentPattern") {
           varName = elem.left.name;
@@ -442,13 +444,16 @@ function plugin(babel) {
         } else {
           throw Error("array pattern elem type " + elem.type);
         }
-        if (elem.type !== "RestElement") {
+        if (!elem) {
+          newElements.push(elem);
+          newElements.push(elem);
+        } else if (elem.type !== "RestElement") {
           newElements.push(elem);
           newElements.push(addLoc(getTrackingIdentifier(varName), elem.loc));
         } else {
           // Rest element must be last element
           newElements.push(addLoc(getTrackingIdentifier(varName), elem.loc));
-          newElements.push(elem);
+          newElements.push(elem.argument);
         }
         // newDeclarations.push(
         //   t.variableDeclarator(

@@ -442,22 +442,26 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
   const resultArr = [];
   const restResult = [];
   arr.forEach((value, i) => {
+    const trackingValue = ctx.getObjectPropertyTrackingValue(arr, i);
+    const newTrackingValue = ctx.createOperationLog({
+      operation: ctx.operationTypes.arrayPattern,
+      args: {
+        value: [value, trackingValue]
+      },
+      astArgs: {},
+      result: value,
+      loc: loc
+    });
     if (i < namedParamCount) {
       resultArr.push(value);
-      const trackingValue = ctx.getObjectPropertyTrackingValue(arr, i);
-      resultArr.push(
-        ctx.createOperationLog({
-          operation: ctx.operationTypes.arrayPattern,
-          args: {
-            value: [value, trackingValue]
-          },
-          astArgs: {},
-          result: value,
-          loc: loc
-        })
-      );
+      resultArr.push(newTrackingValue);
     } else {
       restResult.push(value);
+      ctx.trackObjectPropertyAssignment(
+        restResult,
+        i - namedParamCount,
+        newTrackingValue
+      );
     }
   });
 
@@ -472,9 +476,7 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
     )
   );
 
-  restResult.forEach(r => {
-    resultArr.push(r);
-  });
+  resultArr.push(restResult);
   return resultArr;
 };
 global[FunctionNames.expandArrayForSpreadElement] = function(arr) {

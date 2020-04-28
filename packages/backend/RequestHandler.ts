@@ -231,16 +231,17 @@ export class RequestHandler {
     } else {
       var compilerProcess = await spawn(new Worker(instrumenterFilePath));
       var path = require("path");
-      // const inProgressTimeout = setTimeout(() => {
-      console.log(
-        "Instrumenting: " + url + " (" + prettyBytes(body.length) + ")"
-      );
-      // }, 15000);
+      const inProgressTimeout = setTimeout(() => {
+        console.log(
+          "Instrumenting: " + url + " (" + prettyBytes(body.length) + ")"
+        );
+      }, 5000);
       const response = await compilerProcess.instrument({
         body,
         url,
         babelPluginOptions,
       });
+      clearTimeout(inProgressTimeout);
       await Thread.terminate(compilerProcess);
       if (response.error) {
         console.log("got response with error");

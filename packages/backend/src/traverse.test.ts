@@ -2,7 +2,7 @@ import { testHelpers } from "@fromjs/core";
 const { instrumentAndRun, server } = testHelpers;
 import { traverse as _traverse, TraversalStep } from "./traverse";
 
-const traverse = async function(firstStep, options = {}) {
+const traverse = async function (firstStep, options = {}) {
   options = Object.assign({ optimistic: false }, options);
   const steps: TraversalStep[] = (await _traverse.call(
     null,
@@ -15,7 +15,7 @@ const traverse = async function(firstStep, options = {}) {
 };
 
 function getStepTypeList(traversalResult) {
-  return traversalResult.map(t => t.operationLog.operation);
+  return traversalResult.map((t) => t.operationLog.operation);
 }
 
 test("Can track concatenation of 'a' and 'b'", async () => {
@@ -53,7 +53,7 @@ test("Can track concatenation of 'a' and 'b' in an add function", async () => {
     "returnStatement", // return
     "binaryExpression", // +
     "identifier", // arg1
-    "stringLiteral" // "a"
+    "stringLiteral", // "a"
   ]);
 });
 
@@ -69,7 +69,7 @@ describe("Assignment Expressions", () => {
     expect(getStepTypeList(t)).toEqual([
       "memberExpression",
       "assignmentExpression",
-      "stringLiteral"
+      "stringLiteral",
     ]);
   });
   test("Can track used return values of assignment expressions (to variables)", async () => {
@@ -179,7 +179,7 @@ test("Can track values through object literals", async () => {
   expect(getStepTypeList(t)).toEqual([
     "memberExpression",
     "objectProperty",
-    "stringLiteral"
+    "stringLiteral",
   ]);
 });
 
@@ -201,7 +201,7 @@ test("Can traverse String.prototype.slice", async () => {
     "assignmentExpression",
     "callExpression",
     "identifier",
-    "stringLiteral"
+    "stringLiteral",
   ]);
 });
 
@@ -277,7 +277,7 @@ test("Can track values through conditional expression", async () => {
   expect(getStepTypeList(t)).toEqual([
     "identifier",
     "conditionalExpression",
-    "stringLiteral"
+    "stringLiteral",
   ]);
 });
 
@@ -293,7 +293,7 @@ describe("Can traverse string replacement calls", () => {
     expect(getStepTypeList(t)).toEqual([
       "identifier",
       "callExpression",
-      "stringLiteral"
+      "stringLiteral",
     ]);
 
     const lastStep = t[t.length - 1];
@@ -335,7 +335,7 @@ describe("Can traverse string replacement calls", () => {
     expect(normal).toBe("abbb<>xy");
     var t1 = await traverse({
       operationLog: tracking,
-      charIndex: "abbb<>xy".indexOf("y")
+      charIndex: "abbb<>xy".indexOf("y"),
     });
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.charIndex).toBe("abbbxy".indexOf("y"));
@@ -398,7 +398,7 @@ describe("JSON.parse", () => {
 
     var t = await traverse({
       operationLog: tracking,
-      charIndex: "Hello".indexOf("l")
+      charIndex: "Hello".indexOf("l"),
     });
     var lastStep = t[t.length - 1];
 
@@ -437,7 +437,7 @@ describe("JSON.parse", () => {
 
     var t = await traverse({
       operationLog: tracking,
-      charIndex: normal.indexOf("l")
+      charIndex: normal.indexOf("l"),
     });
     var lastStep = t[t.length - 1];
 
@@ -456,7 +456,7 @@ describe("JSON.parse", () => {
 
     var t = await traverse({
       operationLog: tracking,
-      charIndex: normal.indexOf("l")
+      charIndex: normal.indexOf("l"),
     });
     var lastStep = t[t.length - 1];
 
@@ -473,7 +473,7 @@ describe("JSON.parse", () => {
 
     var t = await traverse({
       operationLog: tracking,
-      charIndex: normal.indexOf("b")
+      charIndex: normal.indexOf("b"),
     });
     var lastStep = t[t.length - 1];
 
@@ -491,7 +491,7 @@ describe("JSON.parse", () => {
 
     var t = await traverse({
       operationLog: tracking,
-      charIndex: 0
+      charIndex: 0,
     });
     var lastStep = t[t.length - 1];
 
@@ -664,7 +664,7 @@ describe("JSON.stringify", () => {
 
     var t = await traverse({
       operationLog: tracking,
-      charIndex: 0
+      charIndex: 0,
     });
     var lastStep = t[t.length - 1];
 
@@ -695,7 +695,7 @@ it("Can traverse arguments for a function expression (rather than a function dec
     "callExpression",
     "returnStatement",
     "identifier",
-    "stringLiteral"
+    "stringLiteral",
   ]);
 });
 
@@ -2018,7 +2018,31 @@ it("Can traverse object spread parameter", async () => {
   expect(step.operationLog.operation).toBe("stringLiteral");
   expect(step.operationLog.result.primitive).toBe("sth");
 
-   step = await traverseAndGetLastStep(tracking, "sth->abc".indexOf("a"));
+  step = await traverseAndGetLastStep(tracking, "sth->abc".indexOf("a"));
   expect(step.operationLog.operation).toBe("stringLiteral");
   expect(step.operationLog.result.primitive).toBe("abc");
+});
+
+it("Can traverse array pattern destructuring with empty elements", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    function x(a,b,...c){}
+  const [,a, ...others] = ["a","b", "c", "d"]
+  return a + others[0] + others[1]
+`,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("bcd");
+  var step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.operationLog.result.primitive).toBe("b");
+
+  step = await traverseAndGetLastStep(tracking, 1);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.operationLog.result.primitive).toBe("c");
+
+  step = await traverseAndGetLastStep(tracking, 2);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.operationLog.result.primitive).toBe("d");
 });
