@@ -55,5 +55,8 @@ module.exports = {
 
   plugins: [new MonacoWebpackPlugin({ languages: ["javascript"] })],
 
-  externals: {}
+  externals: {
+    // babel plugins try to use fs
+    fs: "commonjs fs",
+  }
 };
