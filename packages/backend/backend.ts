@@ -113,18 +113,19 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
   await pMap(
     files,
     async (file, i) => {
-      console.log("## " + file.relativePath, `${i}/${files.length}`);
-
       let outdir = "./node-test-compiled/" + file.subdirectory;
       const outFilePath = outdir + file.name;
       if (
         fs.existsSync(outFilePath) &&
         !file.name.includes("test.js") &&
         !file.name.includes("driver.js") &&
-        !file.name.includes("page-functions.js")
+        !file.name.includes("page-functions.js") &&
+        !file.name.includes("compiler")
       ) {
         return;
       }
+
+      console.log("## " + file.relativePath, `${i}/${files.length}`);
 
       let nodeFile = fs.readFileSync(
         path.resolve(baseDirectory, file.relativePath),

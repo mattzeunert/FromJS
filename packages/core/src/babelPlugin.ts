@@ -579,7 +579,8 @@ function plugin(babel) {
           try {
             path.replaceWith(ret);
           } catch (err) {
-            // for easier debugging
+            console.log("Error for path at loc", JSON.stringify(path.node.loc));
+            // for easier debugging, allow step in again
             debugger;
             operation.visitor.call(operation, path);
             throw err;
