@@ -2,6 +2,7 @@ import {
   LevelDBLogServer,
   HtmlToOperationLogMapping,
   LocStore,
+  LocLogs,
   traverseDomOrigin,
 } from "@fromjs/core";
 import { traverse } from "./src/traverse";
@@ -21,6 +22,7 @@ import * as pMap from "p-map";
 import * as puppeteer from "puppeteer";
 
 const ENABLE_DERIVED = false;
+const SAVE_LOG_USES = false;
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -117,10 +119,10 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
       const outFilePath = outdir + file.name;
       if (
         fs.existsSync(outFilePath) &&
-        !file.name.includes("test.js") &&
+        (file.subdirectory !== "" || file.name !== "test.js") &&
         !file.name.includes("driver.js") &&
-        !file.name.includes("page-functions.js") &&
-        !file.name.includes("compiler")
+        !file.name.includes("page-functions.js")
+        // !file.name.includes("compiler")
       ) {
         return;
       }
@@ -180,9 +182,49 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
   );
 }
 
+async function generateLocLogs({ logServer, locLogs }) {
+  let id = "generateLocLogs";
+  await new Promise((resolve) => locLogs._db.clear(resolve));
+  console.time(id);
+
+  return new Promise((resolve, reject) => {
+    let locs: any[] = [];
+    let i = logServer.db.iterator();
+    async function iterate(error, key, value) {
+      if (value) {
+        value = JSON.parse(value);
+
+        await locLogs.addLog(value.loc, key.toString());
+        i.next(iterate);
+      } else {
+        resolve();
+      }
+
+      // if (value) {
+      //   value = JSON.parse(value);
+      //   if (value.url.includes(url)) {
+      //     locs.push({ key: key.toString(), value });
+      //   }
+      // }
+      // if (key) {
+      //   i.next(iterate);
+      // } else {
+      //   resolve(locs);
+      // }
+    }
+    i.next(iterate);
+  });
+
+  // for (const log of req.body.logs) {
+  //   await locLogs.addLog(log.loc, log.index);
+  // }
+  // console.timeEnd(id);
+}
+
 export default class Backend {
   constructor(options: BackendOptions) {
     console.time("create backend");
+
     if (DELETE_EXISTING_LOGS_AT_START) {
       console.log(
         "deleting existing log data, this makes sure perf data is more comparable... presumably leveldb slows down with more data"
@@ -274,14 +316,9 @@ export default class Backend {
           )
         )
       : [];
-    const locLogs = fs.existsSync(options.sessionDirectory + "/locLogs.json")
-      ? JSON.parse(
-          fs.readFileSync(
-            options.sessionDirectory + "/" + "locLogs.json",
-            "utf-8"
-          )
-        )
-      : {};
+
+    const locLogs = new LocLogs(options.sessionDirectory + "/locLogs");
+
     const logUses = fs.existsSync(options.sessionDirectory + "/logUses.json")
       ? JSON.parse(
           fs.readFileSync(
@@ -290,24 +327,20 @@ export default class Backend {
           )
         )
       : {};
-    setInterval(() => {
-      console.time("save json");
-      fs.writeFileSync(
-        options.sessionDirectory + "/files.json",
-        JSON.stringify(files, null, 2)
-      );
-      if (ENABLE_DERIVED) {
-        fs.writeFileSync(
-          options.sessionDirectory + "/locLogs.json",
-          JSON.stringify(locLogs, null, 2)
-        );
-        fs.writeFileSync(
-          options.sessionDirectory + "/logUses.json",
-          JSON.stringify(logUses, null, 2)
-        );
-      }
-      console.timeEnd("save json");
-    }, 10000);
+    // setInterval(() => {
+    //   console.time("save json");
+    //   fs.writeFileSync(
+    //     options.sessionDirectory + "/files.json",
+    //     JSON.stringify(files, null, 2)
+    //   );
+    //   if (ENABLE_DERIVED) {
+    //     fs.writeFileSync(
+    //       options.sessionDirectory + "/logUses.json",
+    //       JSON.stringify(logUses, null, 2)
+    //     );
+    //   }
+    //   console.timeEnd("save json");
+    // }, 10000);
 
     let requestHandler;
 
@@ -620,10 +653,12 @@ function setupBackend(
   getRequestHandler
 ) {
   const locStore = new LocStore(options.getLocStorePath());
+
   const logServer = new LevelDBLogServer(
     options.getTrackingDataDirectory(),
     locStore
   );
+  generateLocLogs({ logServer, locLogs });
 
   function getLocs(url) {
     return new Promise((resolve, reject) => {
@@ -693,7 +728,8 @@ function setupBackend(
 
     console.time("ttt");
     for (const loc of locs) {
-      loc.logCount = (locLogs[loc.key] || []).length;
+      let logs = await locLogs.getLogs(loc.key);
+      loc.logCount = logs.length;
     }
     console.timeEnd("ttt");
 
@@ -830,21 +866,20 @@ function setupBackend(
 
   app.get("/xyzviewer/trackingDataForLoc/:locId", async (req, res) => {
     console.time("get logs");
-    let locs = (await getLogs(req.params.locId)) as any;
+    // let locs = (await getLogs(req.params.locId)) as any;
+    let logs = await locLogs.getLogs(req.params.locId);
     console.timeEnd("get logs");
-    locs = await Promise.all(
-      locs.map(async (loc) => {
-        const v2 = await logServer.loadLogAwaitable(
-          parseFloat(loc.value.index),
-          0
-        );
+    console.log(logs);
+    logs = await Promise.all(
+      logs.map(async (logIndex) => {
+        const v2 = await logServer.loadLogAwaitable(parseFloat(logIndex), 0);
         return {
-          key: loc.key,
+          key: logIndex,
           value: v2,
         };
       })
     );
-    res.json(locs);
+    res.json(logs);
   });
 
   app.get("/jsFiles/compileInBrowser.js", (req, res) => {
@@ -867,7 +902,7 @@ function setupBackend(
   //   res.end(JSON.stringify(req.body));
   // });
 
-  app.post("/storeLogs", (req, res) => {
+  app.post("/storeLogs", async (req, res) => {
     app.verifyToken(req);
 
     res.set("Access-Control-Allow-Origin", "*");
@@ -880,42 +915,39 @@ function setupBackend(
 
     const startTime = new Date();
     if (ENABLE_DERIVED) {
-      req.body.logs.forEach((log) => {
-        if (!locLogs[log.loc]) {
-          console.log(
-            "loc not found",
-            log.loc,
-            JSON.stringify(log).slice(0, 100)
-          );
-          return;
-        }
-        locLogs[log.loc].push(log.index);
-      });
+      let id = "addLogs_" + Math.random();
+      console.time(id);
+      for (const log of req.body.logs) {
+        await locLogs.addLog(log.loc, log.index);
+      }
+      console.timeEnd(id);
 
-      req.body.logs.forEach((log) => {
-        if (log.args) {
-          if (Array.isArray(log.args)) {
-            let args = log.args;
-            for (const arg of args) {
-              if (Array.isArray(arg)) {
-                for (const a of arg) {
-                  logUses[a] = logUses[a] || [];
-                  logUses[a].push(log.index);
+      if (SAVE_LOG_USES) {
+        req.body.logs.forEach((log) => {
+          if (log.args) {
+            if (Array.isArray(log.args)) {
+              let args = log.args;
+              for (const arg of args) {
+                if (Array.isArray(arg)) {
+                  for (const a of arg) {
+                    logUses[a] = logUses[a] || [];
+                    logUses[a].push(log.index);
+                  }
+                } else {
+                  logUses[arg] = logUses[arg] || [];
+                  logUses[arg].push(log.index);
                 }
-              } else {
-                logUses[arg] = logUses[arg] || [];
-                logUses[arg].push(log.index);
               }
+            } else {
+              Object.keys(log.args).forEach((argName) => {
+                let argLogIndex = log.args[argName];
+                logUses[argLogIndex] = logUses[argLogIndex] || [];
+                logUses[argLogIndex].push(log.index);
+              });
             }
-          } else {
-            Object.keys(log.args).forEach((argName) => {
-              let argLogIndex = log.args[argName];
-              logUses[argLogIndex] = logUses[argLogIndex] || [];
-              logUses[argLogIndex].push(log.index);
-            });
           }
-        }
-      });
+        });
+      }
     }
     logServer.storeLogs(req.body.logs, function () {
       const timePassed = new Date().valueOf() - startTime.valueOf();
@@ -1070,12 +1102,7 @@ function setupBackend(
   // });
 
   return {
-    storeLocs: (locs) => {
-      Object.keys(locs).forEach((locKey) => {
-        const loc = locs[locKey];
-        // should use file key here, but we don't know the file hash....
-        locLogs[locKey] = locLogs[locKey] || [];
-      });
+    storeLocs: async (locs) => {
       locStore.write(locs, function () {});
     },
   };

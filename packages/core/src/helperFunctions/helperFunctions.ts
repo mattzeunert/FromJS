@@ -68,8 +68,8 @@ function nodePost({ port, path, headers, bodyString }) {
       method: "POST",
       headers: {
         ...headers,
-        "Content-Type": "application/json",
-        "Content-Length": bodyString.length
+        "Content-Type": "application/json"
+        // "Content-Length": bodyString.length
       }
     };
 
@@ -97,6 +97,7 @@ function makePostToBE({ accessToken, fetch }) {
   return function postToBE(endpoint, data, statsCallback = function(stats) {}) {
     const stringifyStart = new Date();
     const body = JSON.stringify(data);
+    console.log("body len in mb", data.length / 1024 / 1024);
     const stringifyEnd = new Date();
     if (endpoint === "/storeLogs") {
       statsCallback({
