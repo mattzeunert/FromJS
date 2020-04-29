@@ -333,15 +333,15 @@ function scopeHasIdentifierWithTrackingIdentifier(scope, identifierName) {
 }
 
 export const safelyGetVariableTrackingValue = (identifierName, scope) => {
-  // if (scopeHasIdentifierWithTrackingIdentifier(scope, identifierName)) {
-  //   return getTrackingIdentifier(identifierName);
-  // } else {
-  // If the value has been declared as a var then we know the
-  // tracking var also exists,
-  // otherwise we have to confirm it exists at runtime before
-  // trying to access it
-  return trackingIdentifierIfExists(identifierName);
-  // }
+  if (scopeHasIdentifierWithTrackingIdentifier(scope, identifierName)) {
+    return getTrackingIdentifier(identifierName);
+  } else {
+    // If the value has been declared as a var then we know the
+    // tracking var also exists,
+    // otherwise we have to confirm it exists at runtime before
+    // trying to access it
+    return trackingIdentifierIfExists(identifierName);
+  }
 };
 
 export const getGetGlobalCall = () => {
