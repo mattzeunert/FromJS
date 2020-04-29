@@ -1619,3 +1619,18 @@ it("Doesn't break function argument array destructuring if some values aren't us
   );
   expect(normal).toBe("b");
 });
+
+it("Doesn't break if destructured variable is renamed", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    "use strict";
+    // as of April 2020 this is handled by compiling it in babel
+    const {a: {b:c}} = {a: {b: "c"}}
+  const a = "a"
+  return a + c
+`,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("ac");
+});

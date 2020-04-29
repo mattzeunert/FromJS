@@ -82,5 +82,8 @@ module.exports = [{
     rules: [{ test: /\.tsx?$/, loader: "ts-loader" }]
   },
 
-  externals: {}
+  externals: {
+    // babel plugins try to use fs
+    fs: "commonjs fs",
+  }
 }]

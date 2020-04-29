@@ -26,7 +26,11 @@ export default function getBabelOptions(plugin, extraBabelOptions = {}, url) {
   currentBabelFilePath = url;
 
   const options = {
-    plugins: [plugin],
+    plugins: [
+      require("@babel/plugin-transform-destructuring"),
+      require("@babel/plugin-transform-computed-properties"),
+      plugin
+    ],
     ...extraBabelOptions,
     sourceMaps: false,
     sourceFileName: url + "?dontprocess",

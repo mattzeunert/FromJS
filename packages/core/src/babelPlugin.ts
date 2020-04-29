@@ -102,7 +102,12 @@ function plugin(babel) {
           } else if (elem.type === "ObjectPattern") {
             // will be processed in ObjectPattern visitor
           } else {
-            throw Error("aaa unknown array pattern elem type " + elem.type);
+            throw Error(
+              "aaa unknown array pattern elem type " +
+                elem.type +
+                " " +
+                JSON.stringify(path.node.loc)
+            );
           }
           if (elem) {
             declarators.push(

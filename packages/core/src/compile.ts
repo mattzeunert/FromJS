@@ -44,6 +44,7 @@ export function compileSync(code, extraBabelOptions = {}, url = "/no_url.js") {
   const sizeBefore = code.length;
   const startTime = new Date();
   code = removeSourceMapIfAny(code);
+
   const babelResult = babel.transform(
     code,
     getBabelOptions(plugin, extraBabelOptions, url)
