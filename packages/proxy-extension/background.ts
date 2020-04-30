@@ -290,11 +290,20 @@ class TTab {
     const interceptionId = info.interceptionId;
     const targetArg = this._getTargetArg();
 
+    const backendPort = await getBackendPort();
+
+    console.log(info.request.url, backendPort);
+
     if (
       info.request.url === "about:blank" ||
       info.request.url.startsWith("chrome-extension://") ||
-      info.request.url.includes("/storeLogs")
+      info.request.url.includes("/storeLogs") ||
+      // backend alrady knows not to instrument this,
+      // but this avoids the extra interception work
+      (info.request.url.includes(":" + backendPort) &&
+        !info.request.url.includes("/start"))
     ) {
+      console.log("bypassing proxy", info.request.url);
       chrome.debugger.sendCommand(
         targetArg,
         "Network.continueInterceptedRequest",
