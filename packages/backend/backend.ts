@@ -1283,14 +1283,15 @@ export async function openBrowser({ userDataDir, extraArgs, config }) {
   await page._client.send("Emulation.clearDeviceMetricsOverride");
   // await page.goto("http://localhost:" + bePort + "/start");
 
+  console.log("will wait 5s");
+  await page.waitFor(5000);
   await page.goto(
     "http://localhost:" +
       config.backendPort +
       "/fromJSInitPage?config=" +
       encodeURIComponent(JSON.stringify(config))
   );
-  console.log("will wait 5s");
-  await page.waitFor(5000);
+
   console.log("PAGE: ", page.url());
   console.log("Created browser", { config });
   return browser;
