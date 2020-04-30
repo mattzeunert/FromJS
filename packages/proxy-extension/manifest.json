@@ -2,7 +2,7 @@
   "name": "FromJS Extension",
   "version": "1.0.0",
   "description": "122",
-  "permissions": ["debugger", "http://*/*", "https://*/*"],
+  "permissions": ["debugger", "storage", "http://*/*", "https://*/*"],
   "background": {
     "scripts": ["background.js"],
     "persistent": false

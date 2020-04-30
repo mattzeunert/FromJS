@@ -138,11 +138,25 @@ var Base64 = {
 };
 
 function getBackendPort() {
-  return parseFloat(localStorage.getItem("backendPort"));
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(["backendPort"], function (result) {
+      console.log(result);
+      let bePort = result.backendPort;
+      if (!bePort) {
+        throw Error("Failed to get BE port");
+      }
+      bePort = parseFloat(bePort);
+      console.log({ bePort });
+      resolve(bePort);
+    });
+  });
 }
 
 function setBackendPort(backendPort) {
-  localStorage.setItem("backendPort", backendPort);
+  console.log("setBackendPort", backendPort);
+  chrome.storage.sync.set({ backendPort }, function () {
+    console.log("Value is set to " + backendPort);
+  });
 }
 
 // const backendPort = 12100;
@@ -160,15 +174,18 @@ class TTab {
     this.onEvent = this.onEvent.bind(this);
   }
 
-  async open(
-    tab,
-    pageUrl = "http://localhost:" + getBackendPort() + "/start/"
-  ) {
+  async open(tab, pageUrl = "") {
     this.tab = tab;
+
+    const backendPort = await getBackendPort();
+
+    if (!pageUrl) {
+      pageUrl = "http://localhost:" + backendPort + "/start/";
+    }
 
     // navigate away first because we can't enable debugger while on chrome url
     await thenChrome.tabs.update(tab.id, {
-      url: "http://localhost:" + getBackendPort() + "/enableDebugger",
+      url: "http://localhost:" + backendPort + "/enableDebugger",
     });
 
     // wait for navigation away from chrome url
@@ -290,7 +307,7 @@ class TTab {
 
     let rr;
     const res = await fetch(
-      "http://localhost:" + getBackendPort() + "/makeProxyRequest",
+      "http://localhost:" + (await getBackendPort()) + "/makeProxyRequest",
       {
         method: "POST",
         headers: {
