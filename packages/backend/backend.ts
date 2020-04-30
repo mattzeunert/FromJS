@@ -23,6 +23,7 @@ import * as puppeteer from "puppeteer";
 
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
+const GENERATE_DERIVED = false;
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -44,6 +45,7 @@ function ensureDirectoriesExist(options: BackendOptions) {
     options.getCertDirectory(),
     options.getTrackingDataDirectory(),
     options.sessionDirectory + "/files",
+    options.sessionDirectory + "/locsByUrl",
   ];
   directories.forEach((dir) => {
     if (!fs.existsSync(dir)) {
@@ -184,7 +186,6 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
 }
 
 async function generateLocLogs({ logServer, locLogs }) {
-  return;
   let id = "generateLocLogs";
   console.log("will generate locLogs");
   await new Promise((resolve) => locLogs._db.clear(resolve));
@@ -205,7 +206,7 @@ async function generateLocLogs({ logServer, locLogs }) {
     }
     async function iterate(error, key, value) {
       num++;
-      if (num % 10000 === 0) {
+      if (num % 50000 === 0) {
         await doAdd();
         console.log({ num, p: Math.round((num / 1390000) * 1000) / 10 });
       }
@@ -662,6 +663,44 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
   options.onReady();
 }
 
+function getUrlLocsPath(options: BackendOptions, url) {
+  return (
+    options.sessionDirectory + "/locsByUrl/" + url.replace(/[^a-zA-Z0-9]/g, "_")
+  );
+}
+
+async function generateUrlLocs({
+  locStore,
+  options,
+}: {
+  locStore: LocStore;
+  options: BackendOptions;
+}) {
+  return new Promise((resolve, reject) => {
+    let locsByUrl = {};
+    let i = locStore.db.iterator();
+    function iterate(error, key, value) {
+      if (value) {
+        value = JSON.parse(value);
+        locsByUrl[value.url] = locsByUrl[value.url] || [];
+        locsByUrl[value.url].push(key.toString());
+      }
+      if (key) {
+        i.next(iterate);
+      } else {
+        for (const url of Object.keys(locsByUrl)) {
+          fs.writeFileSync(
+            getUrlLocsPath(options, url),
+            JSON.stringify(locsByUrl[url], null, 2)
+          );
+        }
+        console.log("Done generate url locs");
+      }
+    }
+    i.next(iterate);
+  });
+}
+
 function setupBackend(
   options: BackendOptions,
   app,
@@ -678,9 +717,13 @@ function setupBackend(
     options.getTrackingDataDirectory(),
     locStore
   );
-  generateLocLogs({ logServer, locLogs });
+  if (GENERATE_DERIVED) {
+    generateLocLogs({ logServer, locLogs });
+    generateUrlLocs({ locStore, options });
+  }
 
   function getLocs(url) {
+    return JSON.parse(fs.readFileSync(getUrlLocsPath(options, url), "utf-8"));
     return new Promise((resolve, reject) => {
       let locs: any[] = [];
       let i = locStore.db.iterator();
@@ -744,14 +787,19 @@ function setupBackend(
       method: "GET",
     });
 
-    const locs = (await getLocs(url)) as any;
+    const locKeys = (await getLocs(url)) as any;
 
-    console.time("ttt");
-    for (const loc of locs) {
-      let logs = await locLogs.getLogs(loc.key);
-      loc.logCount = logs.length;
-    }
-    console.timeEnd("ttt");
+    const locs = await Promise.all(
+      locKeys.map(async (locKey) => {
+        let loc = (await new Promise((resolve) =>
+          locStore.getLoc(locKey, resolve)
+        )) as any;
+        let logs = await locLogs.getLogs(locKey);
+        loc.logCount = logs.length;
+        loc.key = locKey;
+        return loc;
+      })
+    );
 
     res.json({ fileContent, locs });
   });
@@ -892,13 +940,19 @@ function setupBackend(
     console.log(logs);
     logs = await Promise.all(
       logs.map(async (logIndex) => {
-        const v2 = await logServer.loadLogAwaitable(parseFloat(logIndex), 0);
+        let v2;
+        try {
+          v2 = await logServer.loadLogAwaitable(parseFloat(logIndex), 0);
+        } catch (err) {
+          return null;
+        }
         return {
           key: logIndex,
           value: v2,
         };
       })
     );
+    logs = logs.filter((l) => !!l);
     res.json(logs);
   });
 

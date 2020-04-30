@@ -22,13 +22,10 @@ console.log("kkkkkkkssssskkkk");
 
 function getCodeString(loc) {
   const lines = window["fileContent"].split("\n");
-  if (loc.value.start.line !== loc.value.end.line) {
+  if (loc.start.line !== loc.end.line) {
     return "todo";
   }
-  return lines[loc.value.start.line - 1].slice(
-    loc.value.start.column,
-    loc.value.end.column
-  );
+  return lines[loc.start.line - 1].slice(loc.start.column, loc.end.column);
 }
 
 export class App2 extends React.Component {
@@ -61,122 +58,99 @@ export class App2 extends React.Component {
 
     const { App } = this.props;
 
+    function selectFile(f) {
+      fetch("/xyzviewer/fileDetails/" + f.fileKey)
+        .then((r) => r.json())
+        .then((r) => {
+          if (window["editor"]) {
+            window["editor"].dispose();
+          }
+          window["editor"] = monaco.editor.create(
+            document.getElementById("container"),
+            {
+              value: r["fileContent"],
+              language: "javascript",
+              readOnly: true,
+            }
+          );
+          window["editor"].onDidChangeCursorPosition(function ({ position }) {
+            console.log(position.lineNumber);
+
+            let matchingLocs = window["locs"].filter((l) => {
+              return (
+                l.start.line <= position.lineNumber &&
+                l.end.line >= position.lineNumber &&
+                (l.start.line !== l.end.line ||
+                  (l.start.column <= position.column &&
+                    l.end.column >= position.column))
+              );
+            });
+            // debugger;
+
+            window.setLocs(matchingLocs);
+            console.log(matchingLocs);
+          });
+
+          window["locs"] = r.locs.filter((l) => l.start && l.end);
+          window["fileContent"] = r.fileContent;
+
+          let d = [];
+          window["locs"].forEach((loc) => {
+            if (loc.start.line !== loc.end.line) {
+              console.log("ignoring multiline loc for now");
+              d.push({
+                range: new monaco.Range(
+                  loc.start.line,
+                  loc.start.column,
+                  loc.start.line,
+                  loc.start.column + 2
+                ),
+                options: {
+                  isWholeLine: false,
+                  inlineClassName: "myInlineDecoration-multiline-start",
+                },
+              });
+              return;
+            }
+            d.push(
+              {
+                range: new monaco.Range(
+                  loc.start.line,
+                  loc.start.column,
+                  loc.end.line,
+                  loc.end.column
+                ),
+                options: {
+                  isWholeLine: false,
+                  inlineClassName:
+                    loc.logCount > 0
+                      ? loc.logCount > 5
+                        ? "myInlineDecoration-hasMany"
+                        : "myInlineDecoration-has"
+                      : "myInlineDecoration-none",
+                  // linesDecorationsClassName: "myLineDecoration"
+                },
+              }
+              // {
+              //   range: new monaco.Range(7, 1, 7, 24),
+              //   options: { inlineClassName: "myInlineDecoration" }
+              // }
+            );
+          });
+          console.log(d);
+
+          var decorations = window["editor"].deltaDecorations([], d);
+        });
+    }
+
     return (
       <div style={{ display: "flex" }}>
         <div>
-          <div style={{ height: "40vh" }}>
-            {this.state.files
-              // rough filter for now
-              .filter(
-                (f) =>
-                  f.url.includes(".js") &&
-                  !f.url.includes(".json") &&
-                  !f.url.includes("compileInBrowser.js") &&
-                  !f.url.includes("babel-standalone.js")
-              )
-              .map((f) => {
-                return (
-                  <div
-                    onClick={() => {
-                      fetch("/xyzviewer/fileDetails/" + f.fileKey)
-                        .then((r) => r.json())
-                        .then((r) => {
-                          if (window["editor"]) {
-                            window["editor"].dispose();
-                          }
-                          window["editor"] = monaco.editor.create(
-                            document.getElementById("container"),
-                            {
-                              value: r["fileContent"],
-                              language: "javascript",
-                              readOnly: true,
-                            }
-                          );
-                          window["editor"].onDidChangeCursorPosition(function ({
-                            position,
-                          }) {
-                            console.log(position.lineNumber);
-
-                            let matchingLocs = window["locs"].filter((l) => {
-                              return (
-                                l.value.start.line <= position.lineNumber &&
-                                l.value.end.line >= position.lineNumber &&
-                                (l.value.start.line !== l.value.end.line ||
-                                  (l.value.start.column <= position.column &&
-                                    l.value.end.column >= position.column))
-                              );
-                            });
-                            // debugger;
-
-                            window.setLocs(matchingLocs);
-                            console.log(matchingLocs);
-                          });
-
-                          window["locs"] = r.locs.filter(
-                            (l) => l.value.start && l.value.end
-                          );
-                          window["fileContent"] = r.fileContent;
-
-                          let d = [];
-                          window["locs"].forEach((loc) => {
-                            if (loc.value.start.line !== loc.value.end.line) {
-                              console.log("ignoring multiline loc for now");
-                              d.push({
-                                range: new monaco.Range(
-                                  loc.value.start.line,
-                                  loc.value.start.column,
-                                  loc.value.start.line,
-                                  loc.value.start.column + 2
-                                ),
-                                options: {
-                                  isWholeLine: false,
-                                  inlineClassName:
-                                    "myInlineDecoration-multiline-start",
-                                },
-                              });
-                              return;
-                            }
-                            d.push(
-                              {
-                                range: new monaco.Range(
-                                  loc.value.start.line,
-                                  loc.value.start.column,
-                                  loc.value.end.line,
-                                  loc.value.end.column
-                                ),
-                                options: {
-                                  isWholeLine: false,
-                                  inlineClassName:
-                                    loc.logCount > 0
-                                      ? loc.logCount > 5
-                                        ? "myInlineDecoration-hasMany"
-                                        : "myInlineDecoration-has"
-                                      : "myInlineDecoration-none",
-                                  // linesDecorationsClassName: "myLineDecoration"
-                                },
-                              }
-                              // {
-                              //   range: new monaco.Range(7, 1, 7, 24),
-                              //   options: { inlineClassName: "myInlineDecoration" }
-                              // }
-                            );
-                          });
-                          console.log(d);
-
-                          var decorations = window["editor"].deltaDecorations(
-                            [],
-                            d
-                          );
-                        });
-                    }}
-                  >
-                    {f.nodePath || f.url}{" "}
-                    <span style={{ fontSize: 12, color: "#777" }}>
-                      {new Date(f.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                );
-              })}
+          <div style={{ height: "40vh", overflow: "auto" }}>
+            <FileSelector
+              files={this.state.files}
+              selectFile={selectFile}
+            ></FileSelector>
           </div>
           <div
             id="container"
@@ -201,6 +175,52 @@ export class App2 extends React.Component {
         <div style={{ flexGrow: 1 }}>
           <App></App>
         </div>
+      </div>
+    );
+  }
+}
+
+class FileSelector extends React.Component {
+  state = { search: "" };
+  render() {
+    return (
+      <div>
+        <input
+          type="text"
+          onChange={(e) => this.setState({ search: e.target.value })}
+          value={this.state.search}
+        ></input>
+        {this.props.files
+          // rough filter for now
+          .filter(
+            (f) =>
+              f.url.includes(".js") &&
+              !f.url.includes(".json") &&
+              !f.url.includes("compileInBrowser.js") &&
+              !f.url.includes("babel-standalone.js")
+          )
+          .filter((f) => {
+            if (!this.state.search) {
+              return true;
+            }
+            return (f.url + f.nodePath)
+              .toLowerCase()
+              .includes(this.state.search.toLowerCase());
+          })
+          .map((f) => {
+            return (
+              <div
+                onClick={() => {
+                  this.props.selectFile(f);
+                }}
+              >
+                {f.nodePath || f.url}{" "}
+                <span style={{ fontSize: 12, color: "#777" }}>
+                  {new Date(f.createdAt).toLocaleString()}
+                </span>
+              </div>
+            );
+          })}
       </div>
     );
   }

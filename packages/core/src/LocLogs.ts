@@ -14,7 +14,6 @@ export class LocLogs {
   getLogs(locId) {
     return new Promise(resolve => {
       this._db.get(locId, (err, value) => {
-        console.log(err, value);
         if (value) {
           value = JSON.parse(value);
         } else {
