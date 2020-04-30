@@ -27,6 +27,9 @@ export default function getBabelOptions(plugin, extraBabelOptions = {}, url) {
 
   const options = {
     plugins: [
+      // these plugins do replacements and drop the path.node.loc on the way
+      // and generally misrepresent the code the user wrote
+      // but they do fix some issues for edge cases that FromJS doesn't support directly
       // require("@babel/plugin-transform-destructuring"),
       // require("@babel/plugin-transform-computed-properties"),
       plugin
