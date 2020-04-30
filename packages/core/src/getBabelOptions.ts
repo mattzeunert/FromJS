@@ -27,8 +27,8 @@ export default function getBabelOptions(plugin, extraBabelOptions = {}, url) {
 
   const options = {
     plugins: [
-      require("@babel/plugin-transform-destructuring"),
-      require("@babel/plugin-transform-computed-properties"),
+      // require("@babel/plugin-transform-destructuring"),
+      // require("@babel/plugin-transform-computed-properties"),
       plugin
     ],
     ...extraBabelOptions,
