@@ -153,9 +153,12 @@ function getBackendPort() {
 }
 
 function setBackendPort(backendPort) {
-  console.log("setBackendPort", backendPort);
-  chrome.storage.sync.set({ backendPort }, function () {
-    console.log("Value is set to " + backendPort);
+  return new Promise((resolve) => {
+    console.log("setBackendPort", backendPort);
+    chrome.storage.sync.set({ backendPort }, function () {
+      console.log("Value is set to " + backendPort);
+      resolve();
+    });
   });
 }
 
@@ -363,12 +366,12 @@ ${res}`;
 // }, 100);
 
 let initInterval = setInterval(() => {
-  chrome.tabs.query({ title: "fromJSInitPage" }, (tabs) => {
+  chrome.tabs.query({ title: "fromJSInitPage" }, async (tabs) => {
     if (tabs.length > 0) {
       clearInterval(initInterval);
       let url = new URL(tabs[0].url);
       let config = JSON.parse(url.searchParams.get("config"));
-      setBackendPort(config.backendPort);
+      await setBackendPort(config.backendPort);
       console.log("used config", config);
       const tt = new TTab();
       tt.open(tabs[0], config.redirectUrl);
