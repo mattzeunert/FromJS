@@ -312,7 +312,10 @@ class TTab {
       // backend alrady knows not to instrument this,
       // but this avoids the extra interception work
       (info.request.url.includes(":" + backendPort) &&
-        !info.request.url.includes("/start"))
+        !info.request.url.includes("/start") &&
+        // I don't really get this, but there's an empty.js
+        // file that needs to be loaded to do the html mapping in some cases
+        !info.request.url.includes("/fromJSInternal"))
     ) {
       console.log("bypassing proxy", info.request.url);
       chrome.debugger.sendCommand(
