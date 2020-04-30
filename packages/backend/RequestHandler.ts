@@ -1,6 +1,6 @@
 import * as axios from "axios";
 import * as prettyBytes from "pretty-bytes";
-import { spawn, Thread, Worker } from "threads";
+import { spawn, Thread, Worker, Pool } from "threads";
 import { handleEvalScript } from "@fromjs/core";
 import {
   writeFileSync,
@@ -9,6 +9,9 @@ import {
   readFileSync,
   exists,
 } from "fs";
+
+let instrumenterFilePath = "instrumentCode.js";
+const pool = Pool(() => spawn(new Worker(instrumenterFilePath)), 4);
 
 function rewriteHtml(html, { bePort }) {
   const originalHtml = html;
@@ -222,40 +225,40 @@ export class RequestHandler {
 
     const RUN_IN_SAME_PROCESS = false;
 
-    let instrumenterFilePath = "instrumentCode.js";
     let r;
     if (RUN_IN_SAME_PROCESS) {
       console.log("Running compilation in proxy process for debugging");
       var compile = require("./" + instrumenterFilePath);
       r = await compile({ body, url, babelPluginOptions });
     } else {
-      var compilerProcess = await spawn(new Worker(instrumenterFilePath));
-      var path = require("path");
-      const inProgressTimeout = setTimeout(() => {
-        console.log(
-          "Instrumenting: " + url + " (" + prettyBytes(body.length) + ")"
-        );
-      }, 5000);
-      const response = await compilerProcess.instrument({
-        body,
-        url,
-        babelPluginOptions,
+      await pool.queue(async (compilerProcess) => {
+        const inProgressTimeout = setTimeout(() => {
+          console.log(
+            "Instrumenting: " + url + " (" + prettyBytes(body.length) + ")"
+          );
+        }, 5000);
+        const response = await compilerProcess.instrument({
+          body,
+          url,
+          babelPluginOptions,
+        });
+        clearTimeout(inProgressTimeout);
+        if (response.error) {
+          console.log("got response with error");
+          throw response.error;
+        }
+        if (response.timeTakenMs > 2000) {
+          const sizeBeforeString = prettyBytes(response.sizeBefore);
+          const sizeAfterString = prettyBytes(response.sizeAfter);
+          console.log(
+            `Instrumented ${url} took ${response.timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
+          );
+        }
+        r = response;
+        r.details = details;
+        return r;
       });
-      clearTimeout(inProgressTimeout);
-      await Thread.terminate(compilerProcess);
-      if (response.error) {
-        console.log("got response with error");
-        throw response.error;
-      }
-      if (response.timeTakenMs > 2000) {
-        const sizeBeforeString = prettyBytes(response.sizeBefore);
-        const sizeAfterString = prettyBytes(response.sizeAfter);
-        console.log(
-          `Instrumented ${url} took ${response.timeTakenMs}ms, ${sizeBeforeString} => ${sizeAfterString}`
-        );
-      }
-      r = response;
-      r.details = details;
+
       // .on("message", function(response) {
       //   console.log({ response });
       //   resolve(response);

@@ -64,128 +64,130 @@ export class App2 extends React.Component {
     return (
       <div style={{ display: "flex" }}>
         <div>
-          {this.state.files
-            // rough filter for now
-            .filter(
-              (f) =>
-                f.url.includes(".js") &&
-                !f.url.includes(".json") &&
-                !f.url.includes("compileInBrowser.js") &&
-                !f.url.includes("babel-standalone.js")
-            )
-            .map((f) => {
-              return (
-                <div
-                  onClick={() => {
-                    fetch("/xyzviewer/fileDetails/" + f.fileKey)
-                      .then((r) => r.json())
-                      .then((r) => {
-                        if (window["editor"]) {
-                          window["editor"].dispose();
-                        }
-                        window["editor"] = monaco.editor.create(
-                          document.getElementById("container"),
-                          {
-                            value: r["fileContent"],
-                            language: "javascript",
-                            readOnly: true,
+          <div style={{ height: "40vh" }}>
+            {this.state.files
+              // rough filter for now
+              .filter(
+                (f) =>
+                  f.url.includes(".js") &&
+                  !f.url.includes(".json") &&
+                  !f.url.includes("compileInBrowser.js") &&
+                  !f.url.includes("babel-standalone.js")
+              )
+              .map((f) => {
+                return (
+                  <div
+                    onClick={() => {
+                      fetch("/xyzviewer/fileDetails/" + f.fileKey)
+                        .then((r) => r.json())
+                        .then((r) => {
+                          if (window["editor"]) {
+                            window["editor"].dispose();
                           }
-                        );
-                        window["editor"].onDidChangeCursorPosition(function ({
-                          position,
-                        }) {
-                          console.log(position.lineNumber);
+                          window["editor"] = monaco.editor.create(
+                            document.getElementById("container"),
+                            {
+                              value: r["fileContent"],
+                              language: "javascript",
+                              readOnly: true,
+                            }
+                          );
+                          window["editor"].onDidChangeCursorPosition(function ({
+                            position,
+                          }) {
+                            console.log(position.lineNumber);
 
-                          let matchingLocs = window["locs"].filter((l) => {
-                            return (
-                              l.value.start.line <= position.lineNumber &&
-                              l.value.end.line >= position.lineNumber &&
-                              (l.value.start.line !== l.value.end.line ||
-                                (l.value.start.column <= position.column &&
-                                  l.value.end.column >= position.column))
+                            let matchingLocs = window["locs"].filter((l) => {
+                              return (
+                                l.value.start.line <= position.lineNumber &&
+                                l.value.end.line >= position.lineNumber &&
+                                (l.value.start.line !== l.value.end.line ||
+                                  (l.value.start.column <= position.column &&
+                                    l.value.end.column >= position.column))
+                              );
+                            });
+                            // debugger;
+
+                            window.setLocs(matchingLocs);
+                            console.log(matchingLocs);
+                          });
+
+                          window["locs"] = r.locs.filter(
+                            (l) => l.value.start && l.value.end
+                          );
+                          window["fileContent"] = r.fileContent;
+
+                          let d = [];
+                          window["locs"].forEach((loc) => {
+                            if (loc.value.start.line !== loc.value.end.line) {
+                              console.log("ignoring multiline loc for now");
+                              d.push({
+                                range: new monaco.Range(
+                                  loc.value.start.line,
+                                  loc.value.start.column,
+                                  loc.value.start.line,
+                                  loc.value.start.column + 2
+                                ),
+                                options: {
+                                  isWholeLine: false,
+                                  inlineClassName:
+                                    "myInlineDecoration-multiline-start",
+                                },
+                              });
+                              return;
+                            }
+                            d.push(
+                              {
+                                range: new monaco.Range(
+                                  loc.value.start.line,
+                                  loc.value.start.column,
+                                  loc.value.end.line,
+                                  loc.value.end.column
+                                ),
+                                options: {
+                                  isWholeLine: false,
+                                  inlineClassName:
+                                    loc.logCount > 0
+                                      ? loc.logCount > 5
+                                        ? "myInlineDecoration-hasMany"
+                                        : "myInlineDecoration-has"
+                                      : "myInlineDecoration-none",
+                                  // linesDecorationsClassName: "myLineDecoration"
+                                },
+                              }
+                              // {
+                              //   range: new monaco.Range(7, 1, 7, 24),
+                              //   options: { inlineClassName: "myInlineDecoration" }
+                              // }
                             );
                           });
-                          // debugger;
+                          console.log(d);
 
-                          window.setLocs(matchingLocs);
-                          console.log(matchingLocs);
-                        });
-
-                        window["locs"] = r.locs.filter(
-                          (l) => l.value.start && l.value.end
-                        );
-                        window["fileContent"] = r.fileContent;
-
-                        let d = [];
-                        window["locs"].forEach((loc) => {
-                          if (loc.value.start.line !== loc.value.end.line) {
-                            console.log("ignoring multiline loc for now");
-                            d.push({
-                              range: new monaco.Range(
-                                loc.value.start.line,
-                                loc.value.start.column,
-                                loc.value.start.line,
-                                loc.value.start.column + 2
-                              ),
-                              options: {
-                                isWholeLine: false,
-                                inlineClassName:
-                                  "myInlineDecoration-multiline-start",
-                              },
-                            });
-                            return;
-                          }
-                          d.push(
-                            {
-                              range: new monaco.Range(
-                                loc.value.start.line,
-                                loc.value.start.column,
-                                loc.value.end.line,
-                                loc.value.end.column
-                              ),
-                              options: {
-                                isWholeLine: false,
-                                inlineClassName:
-                                  loc.logCount > 0
-                                    ? loc.logCount > 5
-                                      ? "myInlineDecoration-hasMany"
-                                      : "myInlineDecoration-has"
-                                    : "myInlineDecoration-none",
-                                // linesDecorationsClassName: "myLineDecoration"
-                              },
-                            }
-                            // {
-                            //   range: new monaco.Range(7, 1, 7, 24),
-                            //   options: { inlineClassName: "myInlineDecoration" }
-                            // }
+                          var decorations = window["editor"].deltaDecorations(
+                            [],
+                            d
                           );
                         });
-                        console.log(d);
-
-                        var decorations = window["editor"].deltaDecorations(
-                          [],
-                          d
-                        );
-                      });
-                  }}
-                >
-                  {f.nodePath || f.url}{" "}
-                  <span style={{ fontSize: 12, color: "#777" }}>
-                    {new Date(f.createdAt).toLocaleString()}
-                  </span>
-                </div>
-              );
-            })}
+                    }}
+                  >
+                    {f.nodePath || f.url}{" "}
+                    <span style={{ fontSize: 12, color: "#777" }}>
+                      {new Date(f.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                );
+              })}
+          </div>
+          <div
+            id="container"
+            style={{
+              width: 600,
+              height: "60vh",
+              border: "1px solid grey",
+              float: "left",
+            }}
+          ></div>
         </div>
-        <div
-          id="container"
-          style={{
-            width: 600,
-            height: 500,
-            border: "1px solid grey",
-            float: "left",
-          }}
-        ></div>
 
         <div style={{ flexGrow: 1 }}>
           -
