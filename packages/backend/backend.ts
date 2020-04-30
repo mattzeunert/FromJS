@@ -183,6 +183,7 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
 }
 
 async function generateLocLogs({ logServer, locLogs }) {
+  return;
   let id = "generateLocLogs";
   console.log("will generate locLogs");
   await new Promise((resolve) => locLogs._db.clear(resolve));
@@ -190,14 +191,31 @@ async function generateLocLogs({ logServer, locLogs }) {
 
   return new Promise((resolve, reject) => {
     let locs: any[] = [];
+    let num = 0;
     let i = logServer.db.iterator();
+
+    let locLogsToSave = {};
+    async function doAdd() {
+      let locIds = Object.keys(locLogsToSave);
+      for (const locId of locIds) {
+        await locLogs.addLogs(locId, locLogsToSave[locId]);
+      }
+      locLogsToSave = {};
+    }
     async function iterate(error, key, value) {
+      num++;
+      if (num % 10000 === 0) {
+        await doAdd();
+        console.log({ num, p: Math.round((num / 1390000) * 1000) / 10 });
+      }
       if (value) {
         value = JSON.parse(value);
 
-        await locLogs.addLog(value.loc, key.toString());
+        locLogsToSave[value.loc] = locLogsToSave[value.loc] || [];
+        locLogsToSave[value.loc].push(value.index);
         i.next(iterate);
       } else {
+        await doAdd();
         resolve();
       }
 

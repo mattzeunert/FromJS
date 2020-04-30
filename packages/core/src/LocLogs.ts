@@ -44,4 +44,22 @@ export class LocLogs {
       });
     });
   }
+
+  addLogs(locId, logIndices) {
+    return new Promise(resolve => {
+      this._db.get(locId, (err, value) => {
+        if (value) {
+          value = JSON.parse(value);
+        } else {
+          value = [];
+        }
+
+        value.push.apply(value, logIndices);
+
+        this._db.put(locId, JSON.stringify(value), () => {
+          resolve();
+        });
+      });
+    });
+  }
 }
