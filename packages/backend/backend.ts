@@ -129,7 +129,7 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
 
       console.log("## " + file.relativePath, `${i}/${files.length}`);
 
-      let nodeFile = fs.readFileSync(
+      let fileContent = fs.readFileSync(
         path.resolve(baseDirectory, file.relativePath),
         "utf-8"
       );
@@ -141,9 +141,10 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
         !file.subdirectory.includes("jsdoc")
       ) {
         try {
-          const r = (await requestHandler.instrumentForEval(nodeFile, {
+          const r = (await requestHandler.instrumentForEval(fileContent, {
             type: "node_",
             name: file.relativePath.replace(/[^a-zA-Z0-9\-]/g, "_"),
+            nodePath: file.subdirectory + file.name,
           })) as any;
           fs.writeFileSync(
             outFilePath,
@@ -158,10 +159,10 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
             file.relativePath,
             err.message
           );
-          fs.writeFileSync(outFilePath, nodeFile);
+          fs.writeFileSync(outFilePath, fileContent);
         }
       } else {
-        fs.writeFileSync(outFilePath, nodeFile);
+        fs.writeFileSync(outFilePath, fileContent);
       }
     },
     { concurrency: 4 }
@@ -1202,11 +1203,12 @@ function makeRequestHandler(options) {
     storeLocs: options.storeLocs,
     sessionDirectory: options.options.sessionDirectory,
     files: options.files,
-    onCodeProcessed: ({ url, fileKey }) => {
+    onCodeProcessed: ({ url, fileKey, details }) => {
       options.files.push({
         url,
         createdAt: new Date(),
         fileKey,
+        nodePath: details.nodePath,
       });
     },
   });

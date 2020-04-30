@@ -55,7 +55,7 @@ if (process.argv[2] === "gather") {
 // Usage:
 launchChromeAndRunLighthouse('https://example.com', opts).then(runnerResult => {
     const reportStr = JSON.stringify(runnerResult.report)
-    saveResults(runnerResult, { output: "html" }).then(() => {
+    saveResults(runnerResult, { output: ["html"] }).then(() => {
         console.log("done save")
         setTimeout(() => {
             console.log("Will exit")

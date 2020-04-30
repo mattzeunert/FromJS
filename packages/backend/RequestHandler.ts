@@ -98,7 +98,7 @@ export class RequestHandler {
 
   _cache = {};
 
-  _afterCodeProcessed({ url, fileKey, raw, instrumented, map }) {
+  _afterCodeProcessed({ url, fileKey, raw, instrumented, map, details }) {
     writeFileSync(this._sessionDirectory + "/files/" + fileKey, instrumented);
     writeFileSync(
       this._sessionDirectory + "/files/" + fileKey + "?dontprocess",
@@ -116,7 +116,7 @@ export class RequestHandler {
     //   }
     // });
 
-    this._onCodeProcessed({ url, fileKey });
+    this._onCodeProcessed({ url, fileKey, details });
   }
 
   async handleRequest({ url, method, headers, postData }) {
@@ -206,7 +206,7 @@ export class RequestHandler {
     };
   }
 
-  async _requestProcessCode(body, url) {
+  async _requestProcessCode(body, url, details = {}) {
     const hasha = require("hasha");
     const hash = hasha(body, "hex").slice(0, 8);
 
@@ -255,6 +255,7 @@ export class RequestHandler {
         );
       }
       r = response;
+      r.details = details;
       // .on("message", function(response) {
       //   console.log({ response });
       //   resolve(response);
@@ -274,6 +275,7 @@ export class RequestHandler {
       raw: body,
       instrumented: r.code,
       map: r.map,
+      details: r.details,
     });
     //   this.cacheUrl(url, {
     //           headers: {},
@@ -355,12 +357,12 @@ export class RequestHandler {
     return magicHtml.toString();
   }
 
-  async processCode(body, url) {
+  async processCode(body, url, details = {}) {
     // var cacheKey = body + url;
     // if (this.processCodeCache[cacheKey]) {
     //   return Promise.resolve(this.processCodeCache[cacheKey]);
     // }
-    let response = await this._requestProcessCode(body, url);
+    let response = await this._requestProcessCode(body, url, details);
     var { code, map, locs, timeTakenMs, sizeBefore, sizeAfter } = <any>response;
     console.log("req process code done", url);
 
@@ -379,8 +381,8 @@ export class RequestHandler {
 
   instrumentForEval(code, details) {
     return new Promise(async (resolve, reject) => {
-      const compile = (code, url, done) => {
-        this.processCode(code, url).then(done).catch(reject);
+      const compile = (code, url, done, details) => {
+        this.processCode(code, url, details).then(done).catch(reject);
       };
       handleEvalScript(
         code,

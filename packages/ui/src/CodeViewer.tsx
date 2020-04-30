@@ -169,7 +169,10 @@ export class App2 extends React.Component {
                       });
                   }}
                 >
-                  {f.url}
+                  {f.nodePath || f.url}{" "}
+                  <span style={{ fontSize: 12, color: "#777" }}>
+                    {new Date(f.createdAt).toLocaleString()}
+                  </span>
                 </div>
               );
             })}
