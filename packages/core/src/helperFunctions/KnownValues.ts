@@ -77,8 +77,13 @@ export default class KnownValues {
       }
     ].forEach(item => {
       Object.getOwnPropertyNames(item.obj).forEach(propertyName => {
-        this._knownValues[item.name + "." + propertyName] =
-          item.obj[propertyName];
+        let value = item.obj[propertyName];
+
+        // Only knownValue if not e.g. null/undefined
+        // Otherwise every time undefined appears we'd say it's RegExp.protoype.unicode
+        if (value) {
+          this._knownValues[item.name + "." + propertyName] = value;
+        }
       });
     });
 
