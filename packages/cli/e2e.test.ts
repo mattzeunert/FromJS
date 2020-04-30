@@ -16,8 +16,7 @@ async function killPort(portNum) {
 }
 
 const backendPort = 12100;
-const proxyPort = backendPort + 1;
-const webServerPort = proxyPort + 1;
+const webServerPort = backendPort + 1;
 
 function setTimeoutPromise(timeout) {
   return new Promise((resolve) => {
@@ -135,7 +134,6 @@ describe("E2E", () => {
 
   beforeAll(async () => {
     await killPort(backendPort);
-    await killPort(proxyPort);
     await killPort(webServerPort);
 
     command = spawn(__dirname + "/bin/fromjs", [
@@ -203,7 +201,6 @@ describe("E2E", () => {
   afterAll(async () => {
     await browser.close();
     await killPort(backendPort);
-    await killPort(proxyPort);
     await killPort(webServerPort);
   });
 
