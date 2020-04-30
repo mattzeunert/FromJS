@@ -137,34 +137,33 @@ var Base64 = {
   }, // End Function _utf8_decode
 };
 
-let isSettingBackendPort = false;
-
-function getBackendPort() {
-  return new Promise(async (resolve) => {
-    if (isSettingBackendPort) {
-      console.log("Setting be port in progress, will wait 200ms");
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    }
-    chrome.storage.sync.get(["backendPort"], function (result) {
-      console.log(result);
-      let bePort = result.backendPort;
-      if (!bePort) {
-        throw Error("Failed to get BE port");
-      }
-      bePort = parseFloat(bePort);
-      console.log({ bePort });
-      resolve(bePort);
+async function getBackendPort() {
+  function doGetBackendPort() {
+    return new Promise(async (resolve) => {
+      chrome.storage.sync.get(["backendPort"], function (result) {
+        let bePort = result.backendPort;
+        resolve(bePort);
+      });
     });
-  });
+  }
+
+  let bePort = await doGetBackendPort();
+  if (!bePort) {
+    console.log("BE port not set, will wait 2s and try again");
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+
+  if (!bePort) {
+    throw Error("BE port not found");
+  }
+  bePort = parseFloat(bePort as string);
+  return bePort;
 }
 
 function setBackendPort(backendPort) {
-  isSettingBackendPort = true;
   return new Promise((resolve) => {
     console.log("setBackendPort", backendPort);
     chrome.storage.sync.set({ backendPort }, function () {
-      isSettingBackendPort = false;
-      console.log("Value is set to " + backendPort);
       resolve();
     });
   });

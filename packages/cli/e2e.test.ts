@@ -449,8 +449,10 @@ describe("E2E", () => {
     );
     await page.click(".todo-list li label");
 
+    console.log("will wait for inpspector");
     const inspectorPage = await waitForInPageInspector(page);
 
+    console.log("will wait for localstorage.getItem");
     // Todo name should come from local storage
     await inspectorPage.waitForFunction(() =>
       document.body.innerHTML.includes("localStorage.getItem")
@@ -459,6 +461,7 @@ describe("E2E", () => {
     // label tag name should be string literal in eval
     // (although: we could do source mapping here again to find the origin of the eval code)
     await inspectorPage.click(".fromjs-value__content [data-key='1']");
+    console.log("will wait for eval");
     await inspectorPage.waitForFunction(() =>
       document.body.innerHTML.includes("eval")
     );
