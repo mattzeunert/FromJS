@@ -348,20 +348,6 @@ export default class Backend {
           )
         )
       : {};
-    setInterval(() => {
-      console.time("save json");
-      fs.writeFileSync(
-        options.sessionDirectory + "/files.json",
-        JSON.stringify(files, null, 2)
-      );
-      // if (ENABLE_DERIVED) {
-      //   fs.writeFileSync(
-      //     options.sessionDirectory + "/logUses.json",
-      //     JSON.stringify(logUses, null, 2)
-      //   );
-      // }
-      console.timeEnd("save json");
-    }, 10000);
 
     let requestHandler;
 
@@ -1264,6 +1250,10 @@ function makeRequestHandler(options) {
         fileKey,
         nodePath: details.nodePath,
       });
+      fs.writeFileSync(
+        options.options.sessionDirectory + "/files.json",
+        JSON.stringify(options.files, null, 2)
+      );
     },
   });
 }

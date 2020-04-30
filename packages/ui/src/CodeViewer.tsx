@@ -156,15 +156,22 @@ export class App2 extends React.Component {
             id="container"
             style={{
               width: 600,
-              height: "60vh",
+              height: "40vh",
               border: "1px solid grey",
               float: "left",
             }}
           ></div>
         </div>
 
-        <div style={{ flexGrow: 1 }}>
-          -
+        <div
+          style={{
+            flexGrow: 1,
+            width: "30vw",
+            overflow: "auto",
+            height: "95vh",
+          }}
+        >
+          -aaaa
           {this.state.info.map((info, i) => {
             return (
               <InfoItem info={info} key={this._random + "_" + i}></InfoItem>
@@ -172,7 +179,7 @@ export class App2 extends React.Component {
           })}
         </div>
 
-        <div style={{ flexGrow: 1 }}>
+        <div style={{ flexGrow: 1, width: "30vw" }}>
           <App></App>
         </div>
       </div>
@@ -254,7 +261,7 @@ class InfoItem extends React.Component {
                 );
               }}
             >
-              {JSON.stringify(l.value._result)}{" "}
+              {JSON.stringify(l.value._result).slice(0, 2000)}{" "}
             </code>
           </div>
         ))}
