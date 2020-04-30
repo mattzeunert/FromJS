@@ -1248,7 +1248,7 @@ function makeRequestHandler(options) {
         url,
         createdAt: new Date(),
         fileKey,
-        nodePath: details.nodePath,
+        nodePath: details && details.nodePath,
       });
       fs.writeFileSync(
         options.options.sessionDirectory + "/files.json",
@@ -1258,12 +1258,7 @@ function makeRequestHandler(options) {
   });
 }
 
-export async function openBrowser({
-  userDataDir,
-  extraArgs,
-  config,
-  headless = false,
-}) {
+export async function openBrowser({ userDataDir, extraArgs, config }) {
   let extensionPath = path.resolve(__dirname + "/../../proxy-extension/dist");
   const browser = await puppeteer.launch({
     headless: false,
@@ -1294,5 +1289,9 @@ export async function openBrowser({
       "/fromJSInitPage?config=" +
       encodeURIComponent(JSON.stringify(config))
   );
+  console.log("will wait 5s");
+  await page.waitFor(5000);
+  console.log("PAGE: ", page.url());
+  console.log("Created browser", { config });
   return browser;
 }

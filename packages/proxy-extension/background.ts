@@ -380,7 +380,9 @@ ${res}`;
 // }, 100);
 
 let initInterval = setInterval(() => {
+  console.log("checking for init page");
   chrome.tabs.query({ title: "fromJSInitPage" }, async (tabs) => {
+    console.log("found init page");
     if (tabs.length > 0) {
       clearInterval(initInterval);
       let url = new URL(tabs[0].url);
