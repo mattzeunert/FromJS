@@ -296,7 +296,7 @@ export default class Backend {
       );
     }
 
-    app.use(bodyParser.json({ limit: "250mb" }));
+    app.use(bodyParser.json({ limit: "500mb" }));
 
     if (!fs.existsSync(options.getBackendServerCertDirPath())) {
       createBackendCerts(options);
