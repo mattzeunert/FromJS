@@ -46,6 +46,7 @@ launchChromeAndRunLighthouse('https://example.com', opts).then(runnerResult => {
     // runnerResult.report = JSON.parse(runnerResult.report)
     // console.log(runnerResult.report)
     console.log(typeof runnerResult.report)
+    const r = JSON.stringify(runnerResult.report)
     saveResults(runnerResult, { output: ["json", "html"] }).then(() => {
         console.log("done save, will wait 20s then exit")
         setTimeout(() => {
