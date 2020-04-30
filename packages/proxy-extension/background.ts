@@ -137,8 +137,14 @@ var Base64 = {
   }, // End Function _utf8_decode
 };
 
+let isSettingBackendPort = false;
+
 function getBackendPort() {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
+    if (isSettingBackendPort) {
+      console.log("Setting be port in progress, will wait 200ms");
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
     chrome.storage.sync.get(["backendPort"], function (result) {
       console.log(result);
       let bePort = result.backendPort;
@@ -153,9 +159,11 @@ function getBackendPort() {
 }
 
 function setBackendPort(backendPort) {
+  isSettingBackendPort = true;
   return new Promise((resolve) => {
     console.log("setBackendPort", backendPort);
     chrome.storage.sync.set({ backendPort }, function () {
+      isSettingBackendPort = false;
       console.log("Value is set to " + backendPort);
       resolve();
     });
@@ -301,6 +309,7 @@ class TTab {
       info.request.url === "about:blank" ||
       info.request.url.startsWith("chrome-extension://") ||
       info.request.url.includes("/storeLogs") ||
+      info.request.url.includes("favicon.ico") ||
       // backend alrady knows not to instrument this,
       // but this avoids the extra interception work
       (info.request.url.includes(":" + backendPort) &&
@@ -318,6 +327,12 @@ class TTab {
     }
 
     let rr;
+    const reqInfo = {
+      url: info.request.url,
+      method: info.request.method,
+      headers: info.request.headers,
+      postData: info.request.postData,
+    };
     const res = await fetch(
       "http://localhost:" + (await getBackendPort()) + "/makeProxyRequest",
       {
@@ -325,17 +340,17 @@ class TTab {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          url: info.request.url,
-          method: info.request.method,
-          headers: info.request.headers,
-          postData: info.request.postData,
-        }),
+        body: JSON.stringify(reqInfo),
       }
-    ).then((r) => {
-      rr = r;
-      return r.text();
-    });
+    )
+      .then((r) => {
+        rr = r;
+        return r.text();
+      })
+      .catch((err) => {
+        console.log("Error making request", reqInfo);
+        throw err;
+      });
 
     let responseText = `HTTP/1.1 ${rr.status}
 ${Array.from(rr.headers)

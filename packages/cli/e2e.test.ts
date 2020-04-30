@@ -120,6 +120,8 @@ async function inspectDomCharAndTraverse(charIndex, isSecondTry = false) {
 describe("E2E", () => {
   let browser;
 
+  let pages: any[] = [];
+
   async function createPage() {
     const page = await browser.newPage();
     page.on("pageerror", function (err) {
@@ -127,6 +129,7 @@ describe("E2E", () => {
     });
     // wait for the whole redirect to exampel and to /start thing...
     await new Promise((resolve) => setTimeout(resolve, 4000));
+    pages.push(page);
     return page;
   }
 
@@ -187,6 +190,15 @@ describe("E2E", () => {
 
     await startWebServer();
   }, 20000);
+
+  afterEach(async () => {
+    for (const page of pages) {
+      if (page && page.close) {
+        await page.close();
+      }
+    }
+    pages = [];
+  });
 
   afterAll(async () => {
     await browser.close();
@@ -268,8 +280,6 @@ describe("E2E", () => {
     await inspector.waitForFunction(() =>
       document.body.innerText.includes("HTMLInputElementValueGetter")
     );
-
-    await page.close();
   }, 60000);
 
   it("Does DOM to JS tracking", async () => {
@@ -423,8 +433,6 @@ describe("E2E", () => {
     );
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("nodeNodeValueAssignment");
-
-    await page.close();
   }, 30000);
 
   it("Can inspect backbone todomvc and select an element by clicking on it", async () => {
@@ -454,8 +462,6 @@ describe("E2E", () => {
     await inspectorPage.waitForFunction(() =>
       document.body.innerHTML.includes("eval")
     );
-
-    await page.close();
   }, 90000);
 
   it("Can inspect pre-compiled react todomvc and use in-page inspection UI", async () => {
@@ -485,8 +491,6 @@ describe("E2E", () => {
     await inspectorFrame.waitForFunction(() =>
       document.body.innerHTML.includes("StringLiteral")
     );
-
-    await page.close();
   }, 90000);
 
   it("Can inspect XMLHttpRequest result", async () => {
@@ -525,8 +529,6 @@ describe("E2E", () => {
       document.querySelector("[data-test-argument='URL']")!["click"]();
     });
     await waitForHiglightedLineToContain(inspector, "oReq.open");
-
-    await page.close();
   }, 90000);
 
   async function waitForInPageInspector(page) {
