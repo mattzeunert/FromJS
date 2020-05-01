@@ -13,7 +13,6 @@ import * as path from "path";
 import * as express from "express";
 import * as bodyParser from "body-parser";
 import * as WebSocket from "ws";
-import { createProxy } from "./backend.createProxy";
 import { BackendOptions } from "./BackendOptions";
 import * as responseTime from "response-time";
 import { config } from "@fromjs/core";
@@ -370,7 +369,7 @@ export default class Backend {
       files,
     });
 
-    compileNodeApp("node-test", requestHandler);
+    // compileNodeApp("node-test", requestHandler);
 
     let proxyInterface;
     const proxyReady = Promise.resolve();

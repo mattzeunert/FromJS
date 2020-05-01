@@ -1,4 +1,4 @@
-const { spawn } = require("child_process");
+import { spawn } from "child_process";
 const kp = require("kill-port");
 const request = require("request");
 import { OperationLog } from "@fromjs/core";
@@ -133,17 +133,23 @@ describe("E2E", () => {
   }
 
   beforeAll(async () => {
+    process.title = "Jest E2E";
+    console.log("JEST PID", process.pid);
     await killPort(backendPort);
     await killPort(webServerPort);
 
-    command = spawn(__dirname + "/bin/fromjs", [
-      "--port",
-      backendPort.toString(),
-      "--openBrowser",
-      "no",
-      "--sessionDirectory",
-      "/tmp/fromjs-e2e",
-    ]);
+    command = spawn(
+      __dirname + "/bin/fromjs",
+      [
+        "--port",
+        backendPort.toString(),
+        "--openBrowser",
+        "no",
+        "--sessionDirectory",
+        "/tmp/fromjs-e2e",
+      ],
+      { detached: true }
+    );
 
     command.stdout.on("data", function (data) {
       console.log("CLI out", data.toString());
@@ -200,8 +206,12 @@ describe("E2E", () => {
 
   afterAll(async () => {
     await browser.close();
-    await killPort(backendPort);
+
+    // minus + detached true above makes it kill process group or sth
+    process.kill(-command.pid);
+
     await killPort(webServerPort);
+    await new Promise((resolve) => setTimeout(resolve, 500));
   });
 
   const inspectorUrl = "http://localhost:" + backendPort + "/";

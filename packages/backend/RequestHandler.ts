@@ -11,7 +11,6 @@ import {
 } from "fs";
 
 let instrumenterFilePath = "instrumentCode.js";
-const pool = Pool(() => spawn(new Worker(instrumenterFilePath)), 4);
 
 function rewriteHtml(html, { bePort }) {
   const originalHtml = html;
@@ -68,6 +67,7 @@ export class RequestHandler {
   _sessionDirectory: string;
   _onCodeProcessed: any;
   _files: any;
+  _pool: any;
 
   constructor({
     shouldBlock,
@@ -89,6 +89,7 @@ export class RequestHandler {
     this._onCodeProcessed = onCodeProcessed;
 
     this._files = files;
+    this._pool = Pool(() => spawn(new Worker(instrumenterFilePath)), 4);
     // files.forEach(f => {
     //   ["", "?dontprocess", ".map"].forEach(postfix => {
     //     let path = this._sessionDirectory + "/files/" + f.fileKey + postfix;
@@ -231,7 +232,7 @@ export class RequestHandler {
       var compile = require("./" + instrumenterFilePath);
       r = await compile({ body, url, babelPluginOptions });
     } else {
-      await pool.queue(async (compilerProcess) => {
+      await this._pool.queue(async (compilerProcess) => {
         const inProgressTimeout = setTimeout(() => {
           console.log(
             "Instrumenting: " + url + " (" + prettyBytes(body.length) + ")"
