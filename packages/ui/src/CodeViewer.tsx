@@ -25,7 +25,12 @@ function getCodeString(loc) {
   if (loc.start.line !== loc.end.line) {
     return "todo";
   }
-  return lines[loc.start.line - 1].slice(loc.start.column, loc.end.column);
+  let line = lines[loc.start.line - 1];
+  if (!line) {
+    console.log("failed to get code string");
+    return "";
+  }
+  return line.slice(loc.start.column, loc.end.column);
 }
 
 export class App2 extends React.Component {
@@ -199,8 +204,8 @@ class FileView extends React.Component {
         <div
           id="container"
           style={{
-            width: 600,
-            height: "40vh",
+            width: 800,
+            height: "55vh",
             border: "1px solid grey",
           }}
         ></div>

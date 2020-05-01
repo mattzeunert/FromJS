@@ -64,7 +64,7 @@ launchChromeAndRunLighthouse('https://example.com', opts).then(runnerResult => {
         setTimeout(() => {
             console.log("Will exit")
             process.exit()
-        }, 20 * 1000)
+        }, 40 * 1000)
     })
 
     // const rep = results.report
