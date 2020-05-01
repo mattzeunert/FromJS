@@ -50,6 +50,13 @@ export default class KnownValues {
       "console.error": console.error
     });
 
+    if (global.fromJSIsNode) {
+      Object.assign(this._knownValues, {
+        "fs.readFileSync": require("fs").readFileSync,
+        "fs.writeFileSync": require("fs").writeFileSync
+      });
+    }
+
     [
       {
         obj: String.prototype,
