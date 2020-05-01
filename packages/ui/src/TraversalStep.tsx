@@ -299,14 +299,14 @@ let TraversalStep = class TraversalStep extends React.Component<
               >
                 Inspect operation arguments:
               </div>
-              {/* <pre>
+              <pre>
                 Runtime args:
                 {JSON.stringify(
                   this.props.step.operationLog.runtimeArgs,
                   null,
                   4
                 )}
-              </pre> */}
+              </pre>
               {this.getAllArgs().length === 0 && (
                 <div style={{ padding: 6 }}>(No arguments)</div>
               )}
