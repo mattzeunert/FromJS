@@ -58,90 +58,9 @@ export class App2 extends React.Component {
 
     const { App } = this.props;
 
-    function selectFile(f) {
-      fetch("/xyzviewer/fileDetails/" + f.fileKey)
-        .then((r) => r.json())
-        .then((r) => {
-          if (window["editor"]) {
-            window["editor"].dispose();
-          }
-          window["editor"] = monaco.editor.create(
-            document.getElementById("container"),
-            {
-              value: r["fileContent"],
-              language: "javascript",
-              readOnly: true,
-            }
-          );
-          window["editor"].onDidChangeCursorPosition(function ({ position }) {
-            console.log(position.lineNumber);
+    function selectFile(f) {}
 
-            let matchingLocs = window["locs"].filter((l) => {
-              return (
-                l.start.line <= position.lineNumber &&
-                l.end.line >= position.lineNumber &&
-                (l.start.line !== l.end.line ||
-                  (l.start.column <= position.column &&
-                    l.end.column >= position.column))
-              );
-            });
-            // debugger;
-
-            window.setLocs(matchingLocs);
-            console.log(matchingLocs);
-          });
-
-          window["locs"] = r.locs.filter((l) => l.start && l.end);
-          window["fileContent"] = r.fileContent;
-
-          let d = [];
-          window["locs"].forEach((loc) => {
-            if (loc.start.line !== loc.end.line) {
-              console.log("ignoring multiline loc for now");
-              d.push({
-                range: new monaco.Range(
-                  loc.start.line,
-                  loc.start.column,
-                  loc.start.line,
-                  loc.start.column + 2
-                ),
-                options: {
-                  isWholeLine: false,
-                  inlineClassName: "myInlineDecoration-multiline-start",
-                },
-              });
-              return;
-            }
-            d.push(
-              {
-                range: new monaco.Range(
-                  loc.start.line,
-                  loc.start.column,
-                  loc.end.line,
-                  loc.end.column
-                ),
-                options: {
-                  isWholeLine: false,
-                  inlineClassName:
-                    loc.logCount > 0
-                      ? loc.logCount > 5
-                        ? "myInlineDecoration-hasMany"
-                        : "myInlineDecoration-has"
-                      : "myInlineDecoration-none",
-                  // linesDecorationsClassName: "myLineDecoration"
-                },
-              }
-              // {
-              //   range: new monaco.Range(7, 1, 7, 24),
-              //   options: { inlineClassName: "myInlineDecoration" }
-              // }
-            );
-          });
-          console.log(d);
-
-          var decorations = window["editor"].deltaDecorations([], d);
-        });
-    }
+    console.log(this.props);
 
     return (
       <div style={{ display: "flex" }}>
@@ -149,18 +68,19 @@ export class App2 extends React.Component {
           <div style={{ height: "40vh", overflow: "auto" }}>
             <FileSelector
               files={this.state.files}
-              selectFile={selectFile}
+              fileSearch={this.props.fileSearch}
+              selectFile={(f) =>
+                this.props.setQueryParam("selectedFile", f.fileKey)
+              }
+              updateFileSearch={(value) => {
+                this.props.setQueryParam("fileSearch", value);
+              }}
             ></FileSelector>
           </div>
-          <div
-            id="container"
-            style={{
-              width: 600,
-              height: "40vh",
-              border: "1px solid grey",
-              float: "left",
-            }}
-          ></div>
+          <FileView
+            fileKey={this.props.selectedFile}
+            key={this.props.selectedFile}
+          ></FileView>
         </div>
 
         <div
@@ -187,15 +107,116 @@ export class App2 extends React.Component {
   }
 }
 
+class FileView extends React.Component {
+  state = {
+    loadingFile: true,
+  };
+  componentDidMount() {
+    fetch("/xyzviewer/fileDetails/" + this.props.fileKey)
+      .then((r) => r.json())
+      .then(async (r) => {
+        this.setState({ loadingFile: false });
+        if (window["editor"]) {
+          window["editor"].dispose();
+        }
+        window["editor"] = monaco.editor.create(
+          document.getElementById("container"),
+          {
+            value: r["fileContent"],
+            language: "javascript",
+            readOnly: true,
+          }
+        );
+        window["editor"].onDidChangeCursorPosition(function ({ position }) {
+          console.log(position.lineNumber);
+          let matchingLocs = window["locs"].filter((l) => {
+            return (
+              l.start.line <= position.lineNumber &&
+              l.end.line >= position.lineNumber &&
+              (l.start.line !== l.end.line ||
+                (l.start.column <= position.column &&
+                  l.end.column >= position.column))
+            );
+          });
+          // debugger;
+          window.setLocs(matchingLocs);
+          console.log(matchingLocs);
+        });
+        window["locs"] = r.locs.filter((l) => l.start && l.end);
+        window["fileContent"] = r.fileContent;
+        let d = [];
+        window["locs"].forEach((loc) => {
+          if (loc.start.line !== loc.end.line) {
+            console.log("ignoring multiline loc for now");
+            d.push({
+              range: new monaco.Range(
+                loc.start.line,
+                loc.start.column,
+                loc.start.line,
+                loc.start.column + 2
+              ),
+              options: {
+                isWholeLine: false,
+                inlineClassName: "myInlineDecoration-multiline-start",
+              },
+            });
+            return;
+          }
+          d.push(
+            {
+              range: new monaco.Range(
+                loc.start.line,
+                loc.start.column,
+                loc.end.line,
+                loc.end.column
+              ),
+              options: {
+                isWholeLine: false,
+                inlineClassName:
+                  loc.logCount > 0
+                    ? loc.logCount > 5
+                      ? "myInlineDecoration-hasMany"
+                      : "myInlineDecoration-has"
+                    : "myInlineDecoration-none",
+                // linesDecorationsClassName: "myLineDecoration"
+              },
+            }
+            // {
+            //   range: new monaco.Range(7, 1, 7, 24),
+            //   options: { inlineClassName: "myInlineDecoration" }
+            // }
+          );
+        });
+        console.log(d);
+        var decorations = window["editor"].deltaDecorations([], d);
+      });
+  }
+
+  render() {
+    return (
+      <div>
+        {this.state.loadingFile && <div>Loading...</div>}
+        <div
+          id="container"
+          style={{
+            width: 600,
+            height: "40vh",
+            border: "1px solid grey",
+          }}
+        ></div>
+      </div>
+    );
+  }
+}
+
 class FileSelector extends React.Component {
-  state = { search: "" };
   render() {
     return (
       <div>
         <input
           type="text"
-          onChange={(e) => this.setState({ search: e.target.value })}
-          value={this.state.search}
+          onChange={(e) => this.props.updateFileSearch(e.target.value)}
+          value={this.props.fileSearch}
         ></input>
         {this.props.files
           // rough filter for now
@@ -207,12 +228,12 @@ class FileSelector extends React.Component {
               !f.url.includes("babel-standalone.js")
           )
           .filter((f) => {
-            if (!this.state.search) {
+            if (!this.props.fileSearch) {
               return true;
             }
             return (f.url + f.nodePath)
               .toLowerCase()
-              .includes(this.state.search.toLowerCase());
+              .includes(this.props.fileSearch.toLowerCase());
           })
           .map((f) => {
             return (

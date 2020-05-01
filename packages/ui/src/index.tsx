@@ -6,7 +6,7 @@ import babelPlugin from "../../core/src/babelPlugin";
 import * as React from "react";
 import * as ReactDom from "react-dom";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
-const traverse = x => null;
+const traverse = (x) => null;
 import { escape } from "lodash";
 import { TextEl } from "./TextEl";
 import Code from "./Code";
@@ -29,7 +29,7 @@ import "./main.scss";
 import { App2 } from "./CodeViewer";
 
 // global function used by tree view html
-window["showSteps"] = function(logId, charIndex) {
+window["showSteps"] = function (logId, charIndex) {
   actions.selectAndTraverse(logId, charIndex);
 };
 
@@ -37,7 +37,7 @@ let App = class extends React.Component<any, any> {
   constructor(props) {
     super(props);
     this.state = {
-      isForceUpdating: false
+      isForceUpdating: false,
     };
     window["forceUpdateInspector"] = () => {
       this.setState({ isForceUpdating: true });
@@ -57,14 +57,14 @@ let App = class extends React.Component<any, any> {
       <div
         className="welcome"
         style={{
-          maxWidth: 800
+          maxWidth: 800,
         }}
       >
         <div className="welcome-content">
           <h3
             style={{
               marginTop: 5,
-              marginBottom: 10
+              marginBottom: 10,
             }}
           >
             Get Started
@@ -97,7 +97,7 @@ let App = class extends React.Component<any, any> {
 
             <button
               className={cx("load-demo-app", {
-                "load-demo-app--hide": props.isInspectingDemoApp
+                "load-demo-app--hide": props.isInspectingDemoApp,
               })}
               // onClick={() =>
               //   actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
@@ -111,9 +111,7 @@ let App = class extends React.Component<any, any> {
           <div
             style={{ margin: 10 }}
             dangerouslySetInnerHTML={{
-              __html: `<iframe src="http://localhost:${
-                location.port
-              }/start/" />`
+              __html: `<iframe src="http://localhost:${location.port}/start/" />`,
             }}
           />
         )}
@@ -122,7 +120,7 @@ let App = class extends React.Component<any, any> {
     return (
       <div
         className={cx("app", {
-          "app--isInspectingDemoApp": props.isInspectingDemoApp
+          "app--isInspectingDemoApp": props.isInspectingDemoApp,
         })}
       >
         <div className="app-header">
@@ -193,10 +191,28 @@ App = branch(
     hasInspectorData: ["hasInspectorData"],
     enableInstrumentation: ["enableInstrumentation"],
     collapseGetStartedIfHasData: ["collapseGetStartedIfHasData"],
-    prettifyIfNoSourceMap: ["prettifyIfNoSourceMap"]
+    prettifyIfNoSourceMap: ["prettifyIfNoSourceMap"],
   },
   App
 );
+
+class App2Wrapper extends React.Component {
+  render() {
+    console.log("rendering app2");
+    return (
+      <App2
+        App={App}
+        setQueryParam={(name, value) => {
+          let qp = getQueryParams();
+          qp[name] = value;
+          history.pushState({}, "", addQueryParams(location.pathname, qp));
+          this.forceUpdate();
+        }}
+        {...getQueryParams()}
+      />
+    );
+  }
+}
 
 console.log(!location.href.includes("xyzviewer"));
 if (!location.href.includes("xyzviewer")) {
@@ -204,8 +220,51 @@ if (!location.href.includes("xyzviewer")) {
 
   ReactDom.render(<App />, document.querySelector("#app"));
 } else {
-  const App2b = root(appState, App2);
-  ReactDom.render(<App2b App={App} />, document.querySelector("#appx"));
+  console.log("xyz");
+  const App2WrapperX = root(appState, App2Wrapper);
+  ReactDom.render(
+    <App2WrapperX></App2WrapperX>,
+    document.querySelector("#appx")
+  );
+}
+
+export function getQueryParams(): { [x: string]: string } {
+  var queryParams = {};
+  location.search
+    .slice(1)
+    .split("&")
+    // if no query string don't return {"": undefined}
+    .filter((arg) => !!arg)
+    .forEach(function (param) {
+      const parts = param.split("=");
+      queryParams[parts[0]] = decodeURIComponent(parts[1]);
+    });
+
+  return queryParams;
+}
+
+function addQueryParams(url, queryObject) {
+  Object.keys(queryObject).forEach((queryParamKey) => {
+    let queryParamValue = queryObject[queryParamKey];
+
+    if (Array.isArray(queryParamValue)) {
+      queryParamValue = queryParamValue.join(",");
+    }
+
+    if (queryParamValue === false || queryParamValue === undefined) {
+      return;
+    }
+
+    if (url.includes("?")) {
+      url += "&";
+    } else {
+      url += "?";
+    }
+
+    url += queryParamKey + "=" + encodeURIComponent(queryParamValue);
+  });
+
+  return url;
 }
 
 // setTimeout(() => actions.selectAndTraverse(705162159, 0), 500);

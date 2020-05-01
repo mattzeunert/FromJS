@@ -369,7 +369,7 @@ export default class Backend {
       files,
     });
 
-    // compileNodeApp("node-test", requestHandler);
+    compileNodeApp("node-test", requestHandler);
 
     let proxyInterface;
     const proxyReady = Promise.resolve();
