@@ -13,6 +13,7 @@ export const arrayExpression = "arrayExpression";
 export const conditionalExpression = "conditionalExpression";
 export const stringReplacement = "stringReplacement";
 export const jsonParseResult = "jsonParseResult";
+export const readFileSyncResult = "readFileSyncResult";
 export const newExpressionResult = "newExpressionResult";
 export const defaultArrayJoinSeparator = "defaultArrayJoinSeparator";
 export const arrayIndex = "arrayIndex";

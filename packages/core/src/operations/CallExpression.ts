@@ -114,6 +114,11 @@ const CallExpression = <any>{
 
     let fnArgValuesForApply = fnArgValues;
 
+    console.log({ fnKnownValue });
+    console.log(
+      "aa",
+      specialCasesWhereWeDontCallTheOriginalFunction[fnKnownValue]
+    );
     if (astArgs.isNewExpression) {
       ({ ret, retT } = handleNewExpression(getSpecialCaseArgs()));
     } else if (

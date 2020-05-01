@@ -228,6 +228,106 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
     retT = null; // could set something here, but what really matters is the properties
 
     return [ret, retT];
+  },
+  "fs.readFileSync": ({ fn, ctx, fnArgValues, args, logData, context }) => {
+    const jsonString = fnArgValues[0];
+    const parsed = fn.call(JSON, jsonString);
+    var ret, retT;
+
+    let filePath = fnArgValues[0];
+    let encodingArg = fnArgValues[1];
+    if (typeof encodingArg === "string" && filePath.endsWith(".js")) {
+      const path = require("path");
+
+      if (!filePath.startsWith("/")) {
+        const cwd = eval("process.cwd()");
+        filePath = path.resolve(cwd, filePath);
+      }
+      filePath = filePath.replace("node-test-compiled", "node-test");
+      console.log("Will read", { filePath });
+
+      console.log("more args", fnArgValues.slice(1));
+    }
+
+    ret = fn.apply(context, [filePath, ...fnArgValues.slice(1)]);
+
+    retT = ctx.createOperationLog({
+      operation: ctx.operationTypes.readFileSyncResult,
+      args: {
+        // json: getFnArg(args, 0)
+      },
+      result: ret,
+      runtimeArgs: {
+        filePath
+      },
+      loc: logData.loc
+    });
+
+    console.log({ ret, retT });
+
+    return [ret, retT];
+
+    // ret = parsed;
+
+    // if (
+    //   typeof parsed === "string" ||
+    //   typeof parsed === "number" ||
+    //   typeof parsed === "boolean"
+    // ) {
+    //   return [
+    //     ret,
+    //     ctx.createOperationLog({
+    //       operation: ctx.operationTypes.jsonParseResult,
+    //       args: {
+    //         json: getFnArg(args, 0)
+    //       },
+    //       result: parsed,
+    //       runtimeArgs: {
+    //         isPrimitive: true,
+    //         charIndexAdjustment:
+    //           typeof parsed === "string" ? 1 /* account for quote sign */ : 0
+    //       },
+    //       loc: logData.loc
+    //     })
+    //   ];
+    // }
+
+    // traverseObject(parsed, (keyPath, value, key, obj) => {
+    //   const trackingValue = ctx.createOperationLog({
+    //     operation: ctx.operationTypes.jsonParseResult,
+    //     args: {
+    //       json: getFnArg(args, 0)
+    //     },
+    //     result: value,
+    //     runtimeArgs: {
+    //       keyPath: keyPath,
+    //       isKey: false
+    //     },
+    //     loc: logData.loc
+    //   });
+    //   const nameTrackingValue = ctx.createOperationLog({
+    //     operation: ctx.operationTypes.jsonParseResult,
+    //     args: {
+    //       json: getFnArg(args, 0)
+    //     },
+    //     result: key,
+    //     runtimeArgs: {
+    //       keyPath: keyPath,
+    //       isKey: true
+    //     },
+    //     loc: logData.loc
+    //   });
+    //   ctx.trackObjectPropertyAssignment(
+    //     obj,
+    //     key,
+    //     trackingValue,
+    //     nameTrackingValue
+    //   );
+    // });
+
+    // retT = null; // could set something here, but what really matters is the properties
+
+    // return [ret, retT];
   }
 };
 
@@ -1282,7 +1382,11 @@ export const knownFnProcessors = {
         [
           [originalMappingFunction, null],
           [this, null],
-          [[item, itemTrackingInfo, null], [index, null], [array, null]]
+          [
+            [item, itemTrackingInfo, null],
+            [index, null],
+            [array, null]
+          ]
         ],
         {},
         logData.loc

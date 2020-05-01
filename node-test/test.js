@@ -1,8 +1,10 @@
 const file1 = require("fs").readFileSync("a.txt", "utf-8")
 const file2 = require("fs").readFileSync("b.txt", "utf8")
+const file3 = require("fs").readFileSync("code.js", "utf8")
 
-const str = file1 + file2
-console.log(str)
+const str = file1 + file2 + " " + file3
+console.log("----")
+console.log(str.slice(0, 100))
 
 
 
