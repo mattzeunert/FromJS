@@ -22,7 +22,7 @@ import * as puppeteer from "puppeteer";
 
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
-const GENERATE_DERIVED = true;
+const GENERATE_DERIVED = false;
 
 let uiDir = require
   .resolve("@fromjs/ui")
