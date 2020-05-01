@@ -12,8 +12,8 @@
     "webpack-watch": "npm run webpack-helperFunctions; webpack --watch"
   },
   "dependencies": {
-    "@babel/core": "^7.2.0",
-    "@babel/parser": "^7.2.0",
+    "@babel/core": "^7.9.6",
+    "@babel/parser": "^7.9.6",
     "@babel/plugin-transform-computed-properties": "^7.8.3",
     "@babel/plugin-transform-destructuring": "^7.9.5",
     "@babel/preset-env": "^7.2.0",
