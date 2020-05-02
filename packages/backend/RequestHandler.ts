@@ -12,7 +12,7 @@ import {
 
 let instrumenterFilePath = "instrumentCode.js";
 
-function rewriteHtml(html, { bePort }) {
+function rewriteHtml(html, { bePort, initialHtmlLogIndex }) {
   const originalHtml = html;
   // Not accurate because there could be an attribute attribute value like ">", should work
   // most of the time
@@ -47,15 +47,16 @@ function rewriteHtml(html, { bePort }) {
   // Note: we don't want to have any empty text between the text, since that won't be removed
   // alongside the data-fromjs-remove-before-initial-html-mapping tags!
   var insertedHtml =
-    `<script data-fromjs-dont-instrument data-fromjs-remove-before-initial-html-mapping>window.__fromJSInitialPageHtml = decodeURI("${encodeURI(
+    `<script data-fromjs-dont-instrument data-fromjs-remove-before-initial-html-mapping>window.__fromJSInitialPageHtmlLogIndex = ${initialHtmlLogIndex};window.__fromJSInitialPageHtml = decodeURI("${encodeURI(
       originalHtml
     )}")</script>` +
     `<script src="http://localhost:${bePort}/jsFiles/babel-standalone.js" data-fromjs-remove-before-initial-html-mapping></script>` +
     `<script src="http://localhost:${bePort}/jsFiles/compileInBrowser.js" data-fromjs-remove-before-initial-html-mapping></script>`;
 
-  return (
-    html.slice(0, insertionIndex) + insertedHtml + html.slice(insertionIndex)
-  );
+  return {
+    insertionIndex,
+    insertedHtml,
+  };
 }
 
 export class RequestHandler {
@@ -190,10 +191,19 @@ export class RequestHandler {
         console.log("updated data", code.slice(0, 100));
       } else if (isHtml) {
         console.log("ishtml");
-        data = rewriteHtml(data.toString(), {
+        let initialHtmlLogIndex =
+          990000000000000 + Math.round(Math.random() * 10000000000);
+
+        const { insertionIndex, insertedHtml } = rewriteHtml(data.toString(), {
           bePort: this._backendPort,
+          initialHtmlLogIndex,
         });
-        data = await this._compileHtmlInlineScriptTags(data);
+
+        data = await this._compileHtmlInlineScriptTags(
+          data,
+          initialHtmlLogIndex,
+          { rewriteInsertion: { insertionIndex, insertedHtml } }
+        );
 
         // Remove integrity hashes, since the browser will prevent loading
         // the instrumented HTML otherwise
@@ -223,6 +233,8 @@ export class RequestHandler {
       accessToken: this._accessToken,
       backendPort: this._backendPort,
     };
+
+    console.log({ details });
 
     const RUN_IN_SAME_PROCESS = false;
 
@@ -299,7 +311,11 @@ export class RequestHandler {
     return r;
   }
 
-  async _compileHtmlInlineScriptTags(body) {
+  async _compileHtmlInlineScriptTags(
+    body,
+    initialHtmlLogIndex,
+    { rewriteInsertion }
+  ) {
     // disable content security policy so worker blob can be loaded
     body = body.replace(/http-equiv="Content-Security-Policy"/g, "");
 
@@ -342,6 +358,8 @@ export class RequestHandler {
         const code = node.childNodes[0].value;
         const compRes = <any>await this.instrumentForEval(code, {
           type: "scriptTag",
+          sourceOperationLog: initialHtmlLogIndex,
+          sourceOffset: node.childNodes[0].sourceCodeLocation.startOffset,
         });
         node.compiledCode = compRes.instrumentedCode;
       })
@@ -357,6 +375,9 @@ export class RequestHandler {
         node.compiledCode
       );
     });
+
+    const { insertionIndex, insertedHtml } = rewriteInsertion;
+    magicHtml.appendLeft(insertionIndex, insertedHtml);
 
     return magicHtml.toString();
   }

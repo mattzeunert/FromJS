@@ -738,7 +738,7 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
 
     const initialHtmlTrackingValue = createOperationLog({
       operation: OperationTypes.initialPageHtml,
-      index: getOperationIndex(),
+      index: window["__fromJSInitialPageHtmlLogIndex"],
       args: {},
       runtimeArgs: {
         url: location.href

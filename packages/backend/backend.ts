@@ -19,6 +19,7 @@ import { config } from "@fromjs/core";
 import { RequestHandler } from "./RequestHandler";
 import * as pMap from "p-map";
 import * as puppeteer from "puppeteer";
+import { resolve } from "dns";
 
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
@@ -1110,17 +1111,111 @@ function setupBackend(
           logServer,
           { optimistic: true }
         );
+
+        while (true) {
+          let lastStep = steps[steps.length - 1];
+          let overwriteFile = null;
+          if (lastStep.operationLog.operation === "initialPageHtml") {
+            overwriteFile = {
+              url:
+                "http://localhost:8080/example.com_2020-04-29_16-17-05.report.html",
+              sourceOperationLog: 679606042462377,
+              sourceOffset: 0,
+            };
+          } else if (!lastStep.operationLog.loc) {
+            break;
+          }
+
+          let loc;
+
+          if (overwriteFile) {
+            loc = {
+              url: overwriteFile.url,
+              start: {
+                line: 1,
+                column: 0,
+              },
+            };
+          } else if (lastStep.operationLog.loc) {
+            loc = (await new Promise((resolve) =>
+              locStore.getLoc(lastStep.operationLog.loc, (loc) => resolve(loc))
+            )) as any;
+          }
+
+          let file = files.find((f) => f.url === loc.url);
+          if (overwriteFile) {
+            file = overwriteFile;
+          }
+          if (file.sourceOperationLog) {
+            let { body: fileContent } = await getRequestHandler().handleRequest(
+              {
+                url: loc.url + "?dontprocess",
+                method: "GET",
+                headers: {},
+              }
+            );
+            let lineColumn = require("line-column");
+            let charIndex =
+              lineColumn(fileContent.toString()).toIndex(loc.start) +
+              file.sourceOffset;
+            console.log("will traverse", file);
+            let s = (await traverse(
+              {
+                operationLog: file.sourceOperationLog,
+                charIndex,
+              },
+              [],
+              logServer,
+              { optimistic: true }
+            )) as any;
+
+            steps = [...steps, ...s];
+            console.log("####");
+          } else {
+            break;
+          }
+        }
+
         if (LOG_PERF) {
           console.timeEnd("Traverse " + logId);
         }
       } catch (err) {
+        console.log(err);
         res.status(500);
         res.end(
           JSON.stringify({
-            err: "Log not found in backend (" + logId + ")",
+            err: "Log not found in backend, or other error(" + logId + ")",
           })
         );
       }
+
+      steps.forEach((step, i) => {
+        Object.keys(step.operationLog.args).forEach((key) => {
+          if (!step.operationLog.args[key]) {
+            return;
+          }
+
+          let r = step.operationLog.args[key]._result;
+          if (typeof r === "string" && r.length > 10000) {
+            step.operationLog.args[key]._result = "";
+          }
+        });
+        Object.keys(step.operationLog.extraArgs || {}).forEach((key) => {
+          if (!step.operationLog.extraArgs[key]) {
+            return;
+          }
+
+          let r = step.operationLog.extraArgs[key]._result;
+          if (typeof r === "string" && r.length > 10000) {
+            step.operationLog.extraArgs[key]._result = "";
+          }
+        });
+        if (i < steps.length - 2) {
+          step.operationLog._result = "";
+        }
+      });
+
+      debugger;
 
       res.end(JSON.stringify({ steps }));
     };
@@ -1248,6 +1343,8 @@ function makeRequestHandler(options) {
         createdAt: new Date(),
         fileKey,
         nodePath: details && details.nodePath,
+        sourceOperationLog: details && details.sourceOperationLog,
+        sourceOffset: details && details.sourceOffset,
       });
       fs.writeFileSync(
         options.options.sessionDirectory + "/files.json",
