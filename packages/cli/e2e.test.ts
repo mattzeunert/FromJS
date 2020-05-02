@@ -608,8 +608,7 @@ describe("E2E", () => {
         ".named-step-container .fromjs-highlighted-character"
       )!.textContent;
     });
-    // this is wrong, it should really be "a", but can't be bothered to fix right now
-    expect(selectedChar).toBe("<");
+    expect(selectedChar).toBe("a");
 
     await page.click("#xyz");
     await inspectorPage.waitForFunction(() =>
