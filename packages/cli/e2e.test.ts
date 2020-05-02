@@ -600,7 +600,6 @@ describe("E2E", () => {
     );
     await page.click("#abcd");
 
-    console.log("will wait for inpspector");
     const inspectorPage = await waitForInPageInspector(page);
     await inspectorPage.waitForFunction(() =>
       document.body.innerHTML.includes("InitialPageHtml")
@@ -611,5 +610,16 @@ describe("E2E", () => {
       )!.textContent;
     });
     expect(selectedChar).toBe("a");
+
+    await page.click("#xyz");
+    await inspectorPage.waitForFunction(() =>
+      document.body.innerHTML.includes("InitialPageHtml")
+    );
+    selectedChar = await inspectorPage.waitFor(() => {
+      const e = document.querySelector(
+        ".named-step-container .fromjs-highlighted-character"
+      );
+      return e && e!.textContent === "x";
+    });
   }, 90000);
 });

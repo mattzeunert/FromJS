@@ -160,7 +160,13 @@ const CallExpression = <any>{
       // Don't pretend to have a tracked return value if an uninstrumented function was called
       // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
       if (fnIsEval && ctx.hasInstrumentationFunction) {
-        ctx.registerEvalScript(ret.evalScript);
+        ctx.registerEvalScript({
+          ...ret.evalScript,
+          details: {
+            sourceOperationLog: fnArgTrackingValues[0],
+            sourceOffset: 0
+          }
+        });
         ret = ret.returnValue;
         retT = ctx.lastOpTrackingResultWithoutResetting;
       } else if (fnKnownValue && specialValuesForPostprocessing[fnKnownValue]) {

@@ -1028,10 +1028,11 @@ function setupBackend(
       console.log(Object.keys(evalScript), evalScript.map);
       locStore.write(evalScript.locs, () => {});
       getRequestHandler()._afterCodeProcessed({
-        fileKey: "eval-" + Math.random(),
         url: evalScript.url,
         raw: evalScript.code,
         instrument: evalScript.instrumentedCode,
+        fileKey: "eval-" + Math.random(),
+        details: evalScript.details,
       });
       // getProxy().registerEvalScript(evalScript);
     });
