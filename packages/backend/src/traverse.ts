@@ -21,19 +21,19 @@ export async function traverse(
     let { operationLog, charIndex } = step;
 
     try {
-      operationLog = await server.loadLogAwaitable(operationLog, 5);
+      operationLog = await server.loadLogAwaitable(operationLog, 2);
     } catch (err) {
       reject(err);
     }
 
-    const alreadyHasOptimisticStep = steps.some(st => !!st.isOptimistic);
+    const alreadyHasOptimisticStep = steps.some((st) => !!st.isOptimistic);
 
     const stepIsOptimisitc = step.isOptimistic || alreadyHasOptimisticStep;
 
     steps.push({
       ...step,
       isOptimistic: stepIsOptimisitc,
-      operationLog // overwrite numeric operation log with object
+      operationLog, // overwrite numeric operation log with object
     });
 
     if (steps.length > 2000) {
@@ -70,7 +70,7 @@ export async function traverse(
         .then(() => {
           resolve(steps);
         })
-        .catch(err => {
+        .catch((err) => {
           console.log(err);
           resolve(steps);
         });

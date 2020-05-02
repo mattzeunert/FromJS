@@ -186,10 +186,27 @@ async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
 }
 
 async function generateLocLogs({ logServer, locLogs }) {
-  let id = "generateLocLogs";
   console.log("will generate locLogs");
   await new Promise((resolve) => locLogs._db.clear(resolve));
-  console.time(id);
+
+  console.time("Couting logs");
+  let totalLogs = (await new Promise((resolve) => {
+    let totalLogs = 0;
+    let i = logServer.db.iterator();
+    function iterate(error, key, value) {
+      if (value) {
+        totalLogs++;
+        i.next(iterate);
+      } else {
+        resolve(totalLogs);
+      }
+    }
+    i.next(iterate);
+  })) as number;
+  console.timeEnd("Couting logs");
+
+  console.log({ totalLogs });
+  console.time("generateLocLogs");
 
   return new Promise((resolve, reject) => {
     let locs: any[] = [];
@@ -208,7 +225,7 @@ async function generateLocLogs({ logServer, locLogs }) {
       num++;
       if (num % 50000 === 0) {
         await doAdd();
-        console.log({ num, p: Math.round((num / 1390000) * 1000) / 10 });
+        console.log({ num, p: Math.round((num / totalLogs) * 1000) / 10 });
       }
       if (value) {
         value = JSON.parse(value);
@@ -218,6 +235,7 @@ async function generateLocLogs({ logServer, locLogs }) {
         i.next(iterate);
       } else {
         await doAdd();
+        console.timeEnd("generateLocLogs");
         resolve();
       }
 
@@ -1115,9 +1133,11 @@ function setupBackend(
 
         while (true) {
           let lastStep = steps[steps.length - 1];
+          console.log({ lastStep });
           if (
             lastStep.operationLog.operation !== "stringLiteral" &&
-            lastStep.operationLog.operation !== "templateLiteral"
+            lastStep.operationLog.operation !== "templateLiteral" &&
+            lastStep.operationLog.operation !== "initialPageHtml"
           ) {
             // if e.g. it's a localstorage value then we don't want to
             // inspect the code for it!!
@@ -1127,11 +1147,11 @@ function setupBackend(
 
           let overwriteFile: any = null;
           if (lastStep.operationLog.operation === "initialPageHtml") {
-            break;
+            // break;
             overwriteFile = {
               url:
                 "http://localhost:8080/example.com_2020-04-29_16-17-05.report.html",
-              sourceOperationLog: 679606042462377,
+              sourceOperationLog: 527148454973816,
               sourceOffset: 0,
             };
           } else if (!lastStep.operationLog.loc) {
