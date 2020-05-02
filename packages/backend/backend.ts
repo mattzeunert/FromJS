@@ -1043,7 +1043,6 @@ function setupBackend(
     });
 
     req.body.evalScripts.forEach(function (evalScript) {
-      console.log(Object.keys(evalScript), evalScript.map);
       locStore.write(evalScript.locs, () => {});
       getRequestHandler()._afterCodeProcessed({
         url: evalScript.url,

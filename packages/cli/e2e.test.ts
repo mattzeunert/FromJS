@@ -90,6 +90,19 @@ function traverse(firstStep) {
   });
 }
 
+async function waitForSelectedChar(inspectorPage, char) {
+  await inspectorPage.waitFor(
+    (char) => {
+      const e = document.querySelector(
+        ".named-step-container .fromjs-highlighted-character"
+      );
+      return e && e!.textContent === char;
+    },
+    {},
+    char
+  );
+}
+
 async function inspectDomCharAndTraverse(charIndex, isSecondTry = false) {
   try {
     if (charIndex === -1) {
@@ -228,19 +241,6 @@ describe("E2E", () => {
       (str) => {
         const lastStep = document.querySelectorAll(".step")[0];
         return lastStep && lastStep.innerHTML.includes(str);
-      },
-      {},
-      str
-    );
-  }
-
-  async function waitForHiglightedLineToContain(inspector, str) {
-    await inspector.waitFor(
-      (str) => {
-        const highlightedLine = document.querySelector(
-          "[data-test-highlighted-line]"
-        );
-        return highlightedLine && highlightedLine.innerHTML.includes(str);
       },
       {},
       str
@@ -538,7 +538,7 @@ describe("E2E", () => {
     await inspector.evaluate(() => {
       document.querySelector("[data-test-argument='URL']")!["click"]();
     });
-    await waitForHiglightedLineToContain(inspector, "oReq.open");
+    await waitForSelectedChar(inspector, "h"); // h in http://....
   }, 90000);
 
   async function waitForInPageInspector(page) {
@@ -615,12 +615,8 @@ describe("E2E", () => {
     await inspectorPage.waitForFunction(() =>
       document.body.innerHTML.includes("InitialPageHtml")
     );
-    selectedChar = await inspectorPage.waitFor(() => {
-      const e = document.querySelector(
-        ".named-step-container .fromjs-highlighted-character"
-      );
-      return e && e!.textContent === "x";
-    });
+
+    await waitForSelectedChar(inspectorPage, "x");
 
     await page.click("#newFunction");
     await inspectorPage.waitForFunction(() =>
