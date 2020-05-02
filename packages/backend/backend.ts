@@ -1116,6 +1116,7 @@ function setupBackend(
           let lastStep = steps[steps.length - 1];
           let overwriteFile = null;
           if (lastStep.operationLog.operation === "initialPageHtml") {
+            break;
             overwriteFile = {
               url:
                 "http://localhost:8080/example.com_2020-04-29_16-17-05.report.html",
@@ -1157,7 +1158,16 @@ function setupBackend(
             let lineColumn = require("line-column");
             let charIndex =
               lineColumn(fileContent.toString()).toIndex(loc.start) +
-              file.sourceOffset;
+              file.sourceOffset +
+              lastStep.charIndex;
+
+            // this makes stuff better... maybe it adjusts for the quote sign for string literals in the code?
+            charIndex++;
+            charIndex++;
+
+            // I don't understand this yet but it seem to work better
+            // charIndex += 2;
+
             console.log("will traverse", file);
             let s = (await traverse(
               {
