@@ -1179,6 +1179,11 @@ function setupBackend(
             file = overwriteFile;
           }
           if (file.sourceOperationLog) {
+            // const log = await logServer.loadLogAwaitable(
+            //   file.sourceOperationLog,
+            //   1
+            // );
+
             let { body: fileContent } = await getRequestHandler().handleRequest(
               {
                 url: loc.url + "?dontprocess",
@@ -1188,16 +1193,15 @@ function setupBackend(
             );
             let lineColumn = require("line-column");
             let charIndex =
-              lineColumn(fileContent.toString()).toIndex(loc.start) +
+              lineColumn(fileContent.toString()).toIndex({
+                line: loc.start.line,
+                column: loc.start.column + 1, // lineColumn uses origin of 1, but babel uses 0
+              }) +
               file.sourceOffset +
               lastStep.charIndex;
 
-            // this makes stuff better... maybe it adjusts for the quote sign for string literals in the code?
+            // // this makes stuff better... maybe it adjusts for the quote sign for string literals in the code?
             charIndex++;
-            charIndex++;
-
-            // I don't understand this yet but it seem to work better
-            // charIndex += 2;
 
             console.log("will traverse", file);
             let s = (await traverse(
@@ -1230,33 +1234,31 @@ function setupBackend(
         );
       }
 
-      steps.forEach((step, i) => {
-        Object.keys(step.operationLog.args).forEach((key) => {
-          if (!step.operationLog.args[key]) {
-            return;
-          }
+      // steps.forEach((step, i) => {
+      //   Object.keys(step.operationLog.args).forEach((key) => {
+      //     if (!step.operationLog.args[key]) {
+      //       return;
+      //     }
 
-          let r = step.operationLog.args[key]._result;
-          if (typeof r === "string" && r.length > 10000) {
-            step.operationLog.args[key]._result = "";
-          }
-        });
-        Object.keys(step.operationLog.extraArgs || {}).forEach((key) => {
-          if (!step.operationLog.extraArgs[key]) {
-            return;
-          }
+      //     let r = step.operationLog.args[key]._result;
+      //     if (typeof r === "string" && r.length > 10000) {
+      //       step.operationLog.args[key]._result = "";
+      //     }
+      //   });
+      //   Object.keys(step.operationLog.extraArgs || {}).forEach((key) => {
+      //     if (!step.operationLog.extraArgs[key]) {
+      //       return;
+      //     }
 
-          let r = step.operationLog.extraArgs[key]._result;
-          if (typeof r === "string" && r.length > 10000) {
-            step.operationLog.extraArgs[key]._result = "";
-          }
-        });
-        if (i < steps.length - 2) {
-          step.operationLog._result = "";
-        }
-      });
-
-      debugger;
+      //     let r = step.operationLog.extraArgs[key]._result;
+      //     if (typeof r === "string" && r.length > 10000) {
+      //       step.operationLog.extraArgs[key]._result = "";
+      //     }
+      //   });
+      //   if (i < steps.length - 2) {
+      //     step.operationLog._result = "";
+      //   }
+      // });
 
       res.end(JSON.stringify({ steps }));
     };
