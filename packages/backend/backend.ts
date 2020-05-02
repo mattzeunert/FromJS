@@ -1115,6 +1115,13 @@ function setupBackend(
 
         while (true) {
           let lastStep = steps[steps.length - 1];
+          if (lastStep.operationLog.operation !== "stringLiteral") {
+            // if e.g. it's a localstorage value then we don't want to
+            // inspect the code for it!!
+            // really mostly just string literal has that kind of sensible mapping
+            break;
+          }
+
           let overwriteFile: any = null;
           if (lastStep.operationLog.operation === "initialPageHtml") {
             break;
