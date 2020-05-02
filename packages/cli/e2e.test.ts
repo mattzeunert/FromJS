@@ -584,4 +584,32 @@ describe("E2E", () => {
       .toString();
     expect(res.charIndex).toBe(fullPageHtml.indexOf("realInitialPageHtml"));
   }, 40000);
+
+  it("Can traverse script tags and eval", async () => {
+    // Load inspected page
+    const page = await createPage();
+    await page.goto(
+      "http://localhost:" + webServerPort + "/tests/scriptTagAndEval/"
+    );
+    await page.waitForSelector("#abcd", { timeout: 60000 });
+
+    await page.waitForSelector("#fromjs-inspect-dom-button");
+    await page.click("#fromjs-inspect-dom-button");
+    await page.waitForFunction(
+      "document.querySelector('#fromjs-inspect-dom-button').innerText.includes('Click')"
+    );
+    await page.click("#abcd");
+
+    console.log("will wait for inpspector");
+    const inspectorPage = await waitForInPageInspector(page);
+    await inspectorPage.waitForFunction(() =>
+      document.body.innerHTML.includes("InitialPageHtml")
+    );
+    let selectedChar = await inspectorPage.evaluate(() => {
+      return document.querySelector(
+        ".named-step-container .fromjs-highlighted-character"
+      )!.textContent;
+    });
+    expect(selectedChar).toBe("a");
+  }, 90000);
 });

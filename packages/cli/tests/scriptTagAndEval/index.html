@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <script>
+      const code = `
+  const el = document.createElement("div");
+  el.textContent = "text";
+  document.body.appendChild(el);
+`;
+      eval(code);
+
+      const el = document.createElement("div");
+      el.textContent = "abcd";
+      el.id = "abcd";
+      document.body.appendChild(el);
+    </script>
+  </body>
+</html>
