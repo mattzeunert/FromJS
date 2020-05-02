@@ -2066,3 +2066,35 @@ it("Can traverse array pattern destructuring with empty elements", async () => {
   expect(step.operationLog.operation).toBe("stringLiteral");
   expect(step.operationLog.result.primitive).toBe("d");
 });
+
+describe("Object patterns", () => {
+  it("Can traverse simple object patterns", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      const {a} = {a: "a"}
+      return a
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("a");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("a");
+  });
+
+  it("Can traverse deeper object patterns with renaming", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      const {a:{b: c}} = {a: {b: "b"}}
+      return c
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("b");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("b");
+  });
+});

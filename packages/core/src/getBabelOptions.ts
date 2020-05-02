@@ -30,6 +30,11 @@ export default function getBabelOptions(plugin, extraBabelOptions = {}, url) {
       // these plugins do replacements and drop the path.node.loc on the way
       // and generally misrepresent the code the user wrote
       // but they do fix some issues for edge cases that FromJS doesn't support directly
+      // -----
+      // Enabling these probably means inaccurate mapping, and would also require source
+      // location mapping for doing stuff like going from a char index in an eval'd script
+      // to the script where eval was called
+      // so right now I'm generally leaning against supporting these
       // require("@babel/plugin-transform-destructuring"),
       // require("@babel/plugin-transform-computed-properties"),
       plugin

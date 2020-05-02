@@ -219,13 +219,15 @@ function plugin(babel) {
           skipPath(
             t.ObjectProperty(
               ignoreNode(getTrackingIdentifier(varName)),
-              t.assignmentPattern(
-                getTrackingIdentifier(varName),
-                ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
-                  ignoredStringLiteral("objectPattern"),
-                  getLocObjectASTNode(prop.loc)
-                ])
-              )
+              ignoreNode(getTrackingIdentifier(varName))
+              // t.assignmentPattern(
+              //   getTrackingIdentifier(varName),
+              //   getTrackingIdentifier(varName)
+              //   // ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+              //   //   ignoredStringLiteral("objectPattern"),
+              //   //   getLocObjectASTNode(prop.loc)
+              //   // ])
+              // )
             )
           )
         );
@@ -284,6 +286,45 @@ function plugin(babel) {
           // declaration are inserted into pattern already
         } else if (decl.id.type === "ObjectPattern") {
           // declarations are inserted into object pattern already
+          // but we need to make sure they are provided
+
+          function getProps(propsArr, pathPrefix = "") {
+            let properties = [];
+            for (const prop of propsArr) {
+              if (prop.value.type === "ObjectPattern") {
+                properties = [
+                  ...properties,
+                  ...getProps(
+                    prop.value.properties,
+                    pathPrefix + prop.key.name + "."
+                  )
+                ];
+              } else {
+                properties.push({
+                  name: prop.value.name,
+                  path: pathPrefix + prop.key.name
+                });
+              }
+            }
+            return properties;
+          }
+          let properties = getProps(decl.id.properties);
+          console.log(JSON.stringify(properties, null, 2));
+
+          decl.init = ignoredCallExpression(
+            FunctionNames.provideObjectPatternTrackingValues,
+            [
+              decl.init,
+              ignoredArrayExpression(
+                properties.map(prop => {
+                  return ignoredArrayExpression([
+                    ignoredStringLiteral(prop.name),
+                    ignoredStringLiteral(prop.path)
+                  ]);
+                })
+              )
+            ]
+          );
         } else {
           newDeclarations.push(
             t.variableDeclarator(

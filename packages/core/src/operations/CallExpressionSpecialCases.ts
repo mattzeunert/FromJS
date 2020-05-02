@@ -26,6 +26,7 @@ import { doOperation } from "../FunctionNames";
 import * as jsonToAst from "json-to-ast";
 import { getJSONPathOffset } from "../getJSONPathOffset";
 import * as get from "lodash/get";
+import { traverseObject } from "../traverseObject";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -52,29 +53,6 @@ export type SpecialCaseArgs = {
   context: any;
   extraState: any;
 };
-
-type TraverseObjectCallBack = (
-  keyPath: string[],
-  value: any,
-  key: string,
-  obj: any
-) => void;
-
-function traverseObject(
-  traversedObject,
-  fn: TraverseObjectCallBack,
-  keyPath: any[] = []
-) {
-  if (traversedObject === null) {
-    return;
-  }
-  Object.entries(traversedObject).forEach(([key, value]) => {
-    fn([...keyPath, key], value, key, traversedObject);
-    if (typeof value === "object") {
-      traverseObject(value, fn, [...keyPath, key]);
-    }
-  });
-}
 
 export const specialCasesWhereWeDontCallTheOriginalFunction: {
   [knownValueName: string]: (args: SpecialCaseArgs) => any;
