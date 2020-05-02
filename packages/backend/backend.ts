@@ -1133,7 +1133,8 @@ function setupBackend(
 
         while (true) {
           let lastStep = steps[steps.length - 1];
-          console.log({ lastStep });
+
+          console.log("last step op", lastStep.operationLog.operation);
           if (
             lastStep.operationLog.operation !== "stringLiteral" &&
             lastStep.operationLog.operation !== "templateLiteral" &&
@@ -1147,7 +1148,7 @@ function setupBackend(
 
           let overwriteFile: any = null;
           if (lastStep.operationLog.operation === "initialPageHtml") {
-            // break;
+            break;
             overwriteFile = {
               url:
                 "http://localhost:8080/example.com_2020-04-29_16-17-05.report.html",
