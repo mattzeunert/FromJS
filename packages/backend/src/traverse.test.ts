@@ -1661,12 +1661,32 @@ async function traverseAndGetLastStep(
 //   });
 // });
 
-it("Supports arrow functions", async () => {
+it("Supports arrow functions with a full body", async () => {
   const { normal, tracking, code } = await instrumentAndRun(`
       const concat = (a,b) => {return a + b};
       
       return concat("Hello ", "World")
     `);
+  expect(normal).toBe("Hello World");
+
+  let step;
+  step = await traverseAndGetLastStep(tracking, 1);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.charIndex).toBe(1);
+
+  step = await traverseAndGetLastStep(tracking, 6);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.charIndex).toBe(0);
+});
+
+it("Supports arrow functions with a single expression", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      const concat = (a,b) => a + b;
+      
+      return concat("Hello ", "World")
+    `
+  );
   expect(normal).toBe("Hello World");
 
   let step;

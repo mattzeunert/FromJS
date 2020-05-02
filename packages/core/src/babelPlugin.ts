@@ -172,7 +172,7 @@ function plugin(babel) {
     if (path.node.body.type !== "BlockStatement") {
       // arrow function
       path.node.body = ignoreNode(
-        t.blockStatement([ignoreNode(t.returnStatement(path.node.body))])
+        t.blockStatement([t.returnStatement(path.node.body)])
       );
     }
     path.node.body.body.unshift(d);
