@@ -735,22 +735,20 @@ global[FunctionNames.provideObjectPatternTrackingValues] = function(
   const res = {};
 
   traverseObject(obj, (keyPath, value, key, obj) => {
-    console.log({ keyPath, obj });
     let keyPathStr = keyPath.join(".");
+    console.log({ keyPathStr });
 
     objectPath.set(res, keyPathStr, value);
 
     let prop = properties.find(p => {
-      console.log(p, p.path, keyPathStr);
       return p.path === keyPathStr;
     });
-    console.log(prop, keyPathStr);
     if (prop) {
-      let tvPath =
-        (keyPath.length > 1 ? keyPath.slice(0, -1).join(".") + "." : "") +
-        prop.name +
-        "___tv";
-      objectPath.set(res, tvPath, ctx.getObjectPropertyTrackingValue(obj, key));
+      objectPath.set(
+        res,
+        prop.name + "___tv",
+        ctx.getObjectPropertyTrackingValue(obj, key)
+      );
     }
   });
 

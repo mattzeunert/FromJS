@@ -2097,4 +2097,28 @@ describe("Object patterns", () => {
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.operationLog.result.primitive).toBe("b");
   });
+
+  it("Doesn't modify any objects used by the instrumented app", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let obj = {a: {b: {c: "c"}}};
+      const {a:{b}} = obj;
+
+      if (obj.a.b !== b) {
+        throw Error("not equal")
+      }
+      if (Object.keys(obj.a).length > 1) {
+        throw Error("too many keys, probably object was modified and tv added: " + Object.keys(obj.a).join(","))
+      }
+      return b.c
+      
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("c");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("c");
+  });
 });

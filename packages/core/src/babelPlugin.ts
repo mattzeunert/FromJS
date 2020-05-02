@@ -215,22 +215,36 @@ function plugin(babel) {
           varName = prop.key.name;
         }
 
-        newProperties.push(
+        // this needs to be at the top level, otherwise we'd have to modify the
+        // return value of provideObjectPatternTrackingValues which could
+        // mean the program ends up with a modified value
+        let topLevelObjectPattern = path.node;
+        let currentPath = path.parentPath;
+        while (currentPath) {
+          if (currentPath.node.type === "ObjectPattern") {
+            topLevelObjectPattern = currentPath.node;
+          }
+          currentPath = currentPath.parentPath;
+        }
+
+        (topLevelObjectPattern === path.node
+          ? newProperties
+          : topLevelObjectPattern.properties
+        ).push(
           skipPath(
             t.ObjectProperty(
               ignoreNode(getTrackingIdentifier(varName)),
-              ignoreNode(getTrackingIdentifier(varName))
-              // t.assignmentPattern(
-              //   getTrackingIdentifier(varName),
-              //   getTrackingIdentifier(varName)
-              //   // ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
-              //   //   ignoredStringLiteral("objectPattern"),
-              //   //   getLocObjectASTNode(prop.loc)
-              //   // ])
-              // )
+              t.assignmentPattern(
+                getTrackingIdentifier(varName),
+                ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+                  ignoredStringLiteral("objectPattern"),
+                  getLocObjectASTNode(prop.loc)
+                ])
+              )
             )
           )
         );
+
         newProperties.push(prop);
       });
       path.node.properties = newProperties;
