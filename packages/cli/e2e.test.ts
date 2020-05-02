@@ -465,13 +465,12 @@ describe("E2E", () => {
       document.body.innerHTML.includes("localStorage.getItem")
     );
 
-    // label tag name should be string literal in eval
-    // (although: we could do source mapping here again to find the origin of the eval code)
+    // label tag should map to initial page html
     await inspectorPage.click(".fromjs-value__content [data-key='1']");
-    console.log("will wait for eval");
     await inspectorPage.waitForFunction(() =>
-      document.body.innerHTML.includes("eval")
+      document.body.innerHTML.includes("InitialPageHtml")
     );
+    await waitForSelectedChar(inspectorPage, "l");
   }, 90000);
 
   it("Can inspect pre-compiled react todomvc and use in-page inspection UI", async () => {
