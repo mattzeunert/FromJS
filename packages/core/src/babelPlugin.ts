@@ -303,7 +303,7 @@ function plugin(babel) {
           // but we need to make sure they are provided
 
           function getProps(propsArr, pathPrefix = "") {
-            let properties = [];
+            let properties: { name: string; path: string }[] = [];
             for (const prop of propsArr) {
               if (prop.value.type === "ObjectPattern") {
                 properties = [
@@ -323,7 +323,6 @@ function plugin(babel) {
             return properties;
           }
           let properties = getProps(decl.id.properties);
-          console.log(JSON.stringify(properties, null, 2));
 
           decl.init = ignoredCallExpression(
             FunctionNames.provideObjectPatternTrackingValues,
