@@ -30,20 +30,20 @@ function rewriteHtml(html, { bePort, initialHtmlLogIndex }) {
     insertionIndex = bodyStartIndex;
   }
 
+  const insertions: any[] = [];
   if (openingBodyTag) {
     const hasScriptTagInBody = html.slice(bodyStartIndex).includes("<script");
     if (!hasScriptTagInBody) {
       // insert script tag just so that HTML origin mapping is done
       const closingBodyTagIndex = html.search(/<\/body/);
       if (closingBodyTagIndex !== -1) {
-        html =
-          html.slice(0, closingBodyTagIndex) +
-          `<script data-fromjs-remove-before-initial-html-mapping src="http://localhost:${bePort}/fromJSInternal/empty.js"></script>` +
-          html.slice(closingBodyTagIndex);
+        insertions.push({
+          index: closingBodyTagIndex,
+          text: `<script data-fromjs-remove-before-initial-html-mapping src="http://localhost:${bePort}/fromJSInternal/empty.js"></script>`,
+        });
       }
     }
   }
-
   // Note: we don't want to have any empty text between the text, since that won't be removed
   // alongside the data-fromjs-remove-before-initial-html-mapping tags!
   var insertedHtml =
@@ -53,9 +53,13 @@ function rewriteHtml(html, { bePort, initialHtmlLogIndex }) {
     `<script src="http://localhost:${bePort}/jsFiles/babel-standalone.js" data-fromjs-remove-before-initial-html-mapping></script>` +
     `<script src="http://localhost:${bePort}/jsFiles/compileInBrowser.js" data-fromjs-remove-before-initial-html-mapping></script>`;
 
+  insertions.push({
+    index: insertionIndex,
+    text: insertedHtml,
+  });
+
   return {
-    insertionIndex,
-    insertedHtml,
+    insertions,
   };
 }
 
@@ -194,7 +198,7 @@ export class RequestHandler {
         let initialHtmlLogIndex =
           990000000000000 + Math.round(Math.random() * 10000000000);
 
-        const { insertionIndex, insertedHtml } = rewriteHtml(data.toString(), {
+        const { insertions } = rewriteHtml(data.toString(), {
           bePort: this._backendPort,
           initialHtmlLogIndex,
         });
@@ -202,7 +206,7 @@ export class RequestHandler {
         data = await this._compileHtmlInlineScriptTags(
           data,
           initialHtmlLogIndex,
-          { rewriteInsertion: { insertionIndex, insertedHtml } }
+          insertions
         );
 
         // Remove integrity hashes, since the browser will prevent loading
@@ -311,11 +315,7 @@ export class RequestHandler {
     return r;
   }
 
-  async _compileHtmlInlineScriptTags(
-    body,
-    initialHtmlLogIndex,
-    { rewriteInsertion }
-  ) {
+  async _compileHtmlInlineScriptTags(body, initialHtmlLogIndex, insertions) {
     // disable content security policy so worker blob can be loaded
     body = body.replace(/http-equiv="Content-Security-Policy"/g, "");
 
@@ -376,8 +376,9 @@ export class RequestHandler {
       );
     });
 
-    const { insertionIndex, insertedHtml } = rewriteInsertion;
-    magicHtml.appendLeft(insertionIndex, insertedHtml);
+    for (const insertion of insertions) {
+      magicHtml.appendLeft(insertion.index, insertion.text);
+    }
 
     return magicHtml.toString();
   }

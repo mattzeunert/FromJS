@@ -583,7 +583,7 @@ describe("E2E", () => {
       .readFileSync(__dirname + "/tests/bodyWithoutScriptTags/index.html")
       .toString();
     expect(res.charIndex).toBe(fullPageHtml.indexOf("realInitialPageHtml"));
-  }, 40000);
+  }, 60000);
 
   it("Can traverse script tags and eval", async () => {
     // Load inspected page
