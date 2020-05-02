@@ -621,5 +621,16 @@ describe("E2E", () => {
       );
       return e && e!.textContent === "x";
     });
+
+    await page.click("#newFunction");
+    await inspectorPage.waitForFunction(() =>
+      document.body.innerHTML.includes("InitialPageHtml")
+    );
+    selectedChar = await inspectorPage.waitFor(() => {
+      const e = document.querySelector(
+        ".named-step-container .fromjs-highlighted-character"
+      );
+      return e && e!.textContent === "n";
+    });
   }, 90000);
 });

@@ -441,16 +441,23 @@ function handleNewExpression({
   ret,
   retT,
   logData,
-  args
+  args,
+  fnArgTrackingValues
 }: SpecialCaseArgs) {
   const isNewFunctionCall = fn === Function;
   if (isNewFunctionCall && ctx.hasInstrumentationFunction) {
     let code = fnArgValues[fnArgValues.length - 1];
     let generatedFnArguments = fnArgValues.slice(0, -1);
-    code =
-      "(function(" + generatedFnArguments.join(",") + ") { " + code + " })";
+    const fnOpening = "(function(" + generatedFnArguments.join(",") + ") { ";
+    code = fnOpening + code + " })";
     ret = ctx.global["__fromJSEval"](code);
-    ctx.registerEvalScript(ret.evalScript);
+    ctx.registerEvalScript({
+      ...ret.evalScript,
+      details: {
+        sourceOffset: -fnOpening.length,
+        sourceOperationLog: fnArgTrackingValues[fnArgTrackingValues.length - 1]
+      }
+    });
     ret = ret.returnValue;
   } else {
     if (isNewFunctionCall) {

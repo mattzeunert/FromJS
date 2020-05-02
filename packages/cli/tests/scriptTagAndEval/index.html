@@ -10,6 +10,14 @@
 `;
       eval(code);
 
+      const code2 = `const el = document.createElement("div");
+        el.textContent = "newFunction";
+        el.id = "newFunction"
+        document.body.appendChild(el);
+      `;
+      let fn = new Function(code2);
+      fn();
+
       const el = document.createElement("div");
       el.textContent = "abcd";
       el.id = "abcd";
