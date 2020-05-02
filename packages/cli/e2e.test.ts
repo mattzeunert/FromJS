@@ -621,11 +621,6 @@ describe("E2E", () => {
     await inspectorPage.waitForFunction(() =>
       document.body.innerHTML.includes("InitialPageHtml")
     );
-    selectedChar = await inspectorPage.waitFor(() => {
-      const e = document.querySelector(
-        ".named-step-container .fromjs-highlighted-character"
-      );
-      return e && e!.textContent === "n";
-    });
+    await waitForSelectedChar(inspectorPage, "n");
   }, 90000);
 });
