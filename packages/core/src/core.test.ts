@@ -1006,7 +1006,7 @@ describe("Doesn't break classes", () => {
   });
 });
 
-describe("Doesn't break bitwise operators", async () => {
+describe("Doesn't break bitwise operators", () => {
   it("Doesn't break | and & for variables", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       const FLAG1 = 0b100

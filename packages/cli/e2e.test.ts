@@ -603,12 +603,7 @@ describe("E2E", () => {
     await inspectorPage.waitForFunction(() =>
       document.body.innerHTML.includes("InitialPageHtml")
     );
-    let selectedChar = await inspectorPage.evaluate(() => {
-      return document.querySelector(
-        ".named-step-container .fromjs-highlighted-character"
-      )!.textContent;
-    });
-    expect(selectedChar).toBe("a");
+    await waitForSelectedChar(inspectorPage, "a");
 
     await page.click("#xyz");
     await inspectorPage.waitForFunction(() =>
