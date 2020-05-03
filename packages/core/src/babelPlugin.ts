@@ -305,7 +305,9 @@ function plugin(babel) {
           function getProps(propsArr, pathPrefix = "") {
             let properties: { name: string; path: string }[] = [];
             for (const prop of propsArr) {
-              if (prop.value.type === "ObjectPattern") {
+              if (prop.type === "RestElement") {
+                // for now just ignore and don't add tracking values
+              } else if (prop.value.type === "ObjectPattern") {
                 properties = [
                   ...properties,
                   ...getProps(
