@@ -1265,7 +1265,7 @@ describe("Doesn't break when using ES6+ features", () => {
     expect(normal).toBe(7);
   });
 
-  it("Doesn't break rest parameter code", async () => {
+  it("Doesn't break rest parameter code for array or object pattern", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       const [a, ...b] = [1,2,3,4,5]
       const {c, ...d} = {x: 6}

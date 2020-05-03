@@ -2121,4 +2121,19 @@ describe("Object patterns", () => {
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.operationLog.result.primitive).toBe("c");
   });
+
+  it("Doesn't break default values", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      var {a="a"}= {};
+      return a
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("a");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("emptyTrackingInfo");
+    expect(step.operationLog.result.primitive).toBe(undefined);
+  });
 });

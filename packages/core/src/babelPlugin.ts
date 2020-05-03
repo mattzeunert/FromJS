@@ -315,6 +315,8 @@ function plugin(babel) {
                     pathPrefix + prop.key.name + "."
                   )
                 ];
+              } else if (prop.value.type === "AssignmentPattern") {
+                // for now just ignore and don't add tracking values
               } else {
                 properties.push({
                   name: prop.value.name,
