@@ -79,7 +79,7 @@ function nodePost({ port, path, headers, bodyString }) {
       console.log(`statusCode: ${res.statusCode}`);
 
       res.on("data", d => {
-        console.log(d.toString());
+        // console.log(d.toString());
       });
       res.on("end", d => {
         resolve();

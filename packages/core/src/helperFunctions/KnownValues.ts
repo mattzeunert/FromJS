@@ -1,3 +1,9 @@
+let nodeRequire;
+if (global["fromJSIsNode"]) {
+  // note: require is a different value in each file
+  nodeRequire = eval("require");
+}
+
 export default class KnownValues {
   _knownValues: any = {};
   _knownValuesMap = new Map();
@@ -53,8 +59,7 @@ export default class KnownValues {
     if (global.fromJSIsNode) {
       Object.assign(this._knownValues, {
         "fs.readFileSync": require("fs").readFileSync,
-        "fs.writeFileSync": require("fs").writeFileSync,
-        require: eval("require")
+        "fs.writeFileSync": require("fs").writeFileSync
       });
     }
 
@@ -161,6 +166,15 @@ export default class KnownValues {
     let knownValue = this._knownValuesMap.get(value);
     if (!knownValue) {
       knownValue = undefined;
+    }
+    // Check for require
+    // can't just check with === because require is a unique value in each file
+    if (
+      typeof value === "function" &&
+      nodeRequire &&
+      value.main === nodeRequire.main
+    ) {
+      knownValue = "require";
     }
     return knownValue;
   }

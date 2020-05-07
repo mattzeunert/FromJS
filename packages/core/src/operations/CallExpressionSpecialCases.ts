@@ -256,9 +256,7 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
         global["fromJSNodeOutPath"],
         global["fromJSNodeSourcePath"]
       );
-      console.log("Will read", { filePath });
-
-      console.log("more args", fnArgValues.slice(1));
+      console.log("Will read", filePath);
     }
 
     ret = fn.apply(context, [filePath, ...fnArgValues.slice(1)]);
