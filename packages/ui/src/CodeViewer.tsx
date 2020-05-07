@@ -171,9 +171,9 @@ class FileView extends React.Component {
             {
               range: new monaco.Range(
                 loc.start.line,
-                loc.start.column,
+                loc.start.column + 1,
                 loc.end.line,
-                loc.end.column
+                loc.end.column + 1
               ),
               options: {
                 isWholeLine: false,

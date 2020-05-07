@@ -740,7 +740,6 @@ global[FunctionNames.provideObjectPatternTrackingValues] = function(
 
   traverseObject(obj, (keyPath, value, key, obj) => {
     let keyPathStr = keyPath.join(".");
-    console.log({ keyPathStr });
 
     objectPath.set(res, keyPathStr, value);
 
@@ -755,8 +754,6 @@ global[FunctionNames.provideObjectPatternTrackingValues] = function(
       );
     }
   });
-
-  console.log("res", JSON.stringify(res));
 
   return res;
 };
