@@ -26,9 +26,8 @@ describe("Node", () => {
       const backend = new Backend(beOptions);
     }));
   }, 10000);
-  it("Can read uninstrumented contents of a js file", async () => {
-    let testName = "readJSFile";
 
+  async function runTest(testName) {
     await compileNodeApp({
       directory: "packages/backend/nodeTestFixtures/" + testName,
       requestHandler,
@@ -41,7 +40,7 @@ describe("Node", () => {
     let inspectIndex = parseFloat(
       out.match(/Inspect:\d+/)![0].replace("Inspect:", "")
     );
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     const steps = await traverse(
       {
         operationLog: inspectIndex as any,
@@ -52,8 +51,14 @@ describe("Node", () => {
       { optimistic: true }
     );
     const lastStep = steps[steps.length - 1];
-    expect(lastStep.operationLog.operation).toBe("readFileSyncResult");
-    expect(lastStep.operationLog.result.primitive).toBe('const a = "Hello"\n');
-    expect(lastStep.charIndex).toBe(11);
+    return lastStep;
+  }
+
+  it("Can read uninstrumented contents of a js file", async () => {
+    let { step } = await runTest("readJSFile");
+
+    expect(step.operationLog.operation).toBe("readFileSyncResult");
+    expect(step.operationLog.result.primitive).toBe('const a = "Hello"\n');
+    expect(step.charIndex).toBe(11);
   }, 15000);
 });
