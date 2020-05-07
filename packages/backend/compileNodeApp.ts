@@ -34,7 +34,7 @@ export async function compileNodeApp({
         path.resolve(directory, file.relativePath),
         "utf-8"
       );
-      require("mkdirp").sync(outdir);
+      require("mkdirp").sync(path.resolve(outdir, file.subdirectory));
 
       if (
         file.name.endsWith(".js") &&
