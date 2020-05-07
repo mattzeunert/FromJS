@@ -1258,6 +1258,11 @@ export function traverseKnownFunction({
         operationLog: operationLog.args.arg0,
         charIndex
       };
+    case "String.prototype.charAt":
+      return {
+        operationLog: operationLog.args.context,
+        charIndex: charIndex + operationLog.args.arg0.result.primitive
+      };
     case "Math.round":
       return {
         operationLog: operationLog.args.arg0,

@@ -2133,7 +2133,23 @@ describe("Object patterns", () => {
     );
     expect(normal).toBe("a");
     var step = await traverseAndGetLastStep(tracking, 0);
+    // not supported for  now
     expect(step.operationLog.operation).toBe("emptyTrackingInfo");
     expect(step.operationLog.result.primitive).toBe(undefined);
   });
+});
+
+it("Can traverse charAt calls", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    return "ab".charAt(1)
+`,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("b");
+  var step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.charIndex).toBe(1);
+  expect(step.operationLog.result.primitive).toBe("ab");
 });
