@@ -488,12 +488,17 @@ describe("E2E", () => {
     );
     await page.click(".todo-list li label");
 
+    console.log("wait for in page inspector");
     const inspectorFrame = await waitForInPageInspector(page);
+
+    console.log("wait for localStorage.getItem");
 
     // Todo name should come from local storage
     await inspectorFrame.waitForFunction(() =>
       document.body.innerHTML.includes("localStorage.getItem")
     );
+
+    console.log("wait for stringLiteral");
 
     // Origin of label
     inspectorFrame.click(".fromjs-value__content [data-key='3']");
