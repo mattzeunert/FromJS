@@ -227,7 +227,10 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
     let path = fnArgValues[0];
     if (path.endsWith(".json")) {
       console.log("required json", path);
-      let json = JSON.parse(require("fs").readFileSync(path, "utf-8"));
+      // Need to use fn (i.e. require) to resolve path relative to
+      // the file that contains the raw code
+      let absPath = fn.resolve(path);
+      let json = JSON.parse(require("fs").readFileSync(absPath, "utf-8"));
       [ret, retT] = addJsonParseResultTrackingValues(
         ret,
         json,
