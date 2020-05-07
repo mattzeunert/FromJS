@@ -226,6 +226,7 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
 
     let path = fnArgValues[0];
     if (path.endsWith(".json")) {
+      console.log("required json", path);
       let json = JSON.parse(require("fs").readFileSync(path, "utf-8"));
       [ret, retT] = addJsonParseResultTrackingValues(
         ret,
