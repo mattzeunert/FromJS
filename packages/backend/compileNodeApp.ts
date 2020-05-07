@@ -74,18 +74,10 @@ export async function compileNodeApp({
     { concurrency: 4 }
   );
 
-  let helperFunctions = fs.readFileSync(
-    "./packages/core/helperFunctions.js",
-    "utf-8"
-  );
-
-  fs.writeFileSync(
-    "./node-test-compiled/__fromJSEnv.js",
-    helperFunctions +
-      `; global.helperFunctionsCode = decodeURIComponent("${encodeURIComponent(
-        helperFunctions
-      )}")`
-  );
+  //   let helperFunctions = fs.readFileSync(
+  //     "./packages/core/helperFunctions.js",
+  //     "utf-8"
+  //   );
 }
 
 function getNodeFiles(baseDirectory, subdirectory) {
