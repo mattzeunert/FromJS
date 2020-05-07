@@ -20,6 +20,7 @@ import { RequestHandler } from "./RequestHandler";
 import * as puppeteer from "puppeteer";
 import { initSessionDirectory } from "./initSession";
 import { LogServer } from "@fromjs/core/src/LogServer/LogServer";
+import { compileNodeApp } from "./compileNodeApp";
 
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
@@ -284,7 +285,11 @@ export default class Backend {
       files,
     });
 
-    // compileNodeApp("node-test", requestHandler);
+    compileNodeApp({
+      directory: "node-test",
+      outdir: "node-test-compiled",
+      requestHandler: requestHandler,
+    });
 
     let proxyInterface;
     const proxyReady = Promise.resolve();
