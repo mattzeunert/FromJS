@@ -19,7 +19,6 @@ import { config } from "@fromjs/core";
 import { RequestHandler } from "./RequestHandler";
 import * as puppeteer from "puppeteer";
 import { initSessionDirectory } from "./initSession";
-import { LogServer } from "@fromjs/core/src/LogServer/LogServer";
 import { compileNodeApp } from "./compileNodeApp";
 
 const ENABLE_DERIVED = false;
@@ -184,6 +183,7 @@ export default class Backend {
         accessToken: crypto.randomBytes(32).toString("hex"),
       };
       saveSessionConfig();
+      console.log("Saved session config");
     }
 
     var { bePort, proxyPort } = options;
@@ -222,7 +222,11 @@ export default class Backend {
       const { accessToken } = sessionConfig;
       if (authorization !== accessToken) {
         throw Error(
-          "Token invalid: " + authorization + " should be " + accessToken
+          "Token invalid: " +
+            authorization +
+            " should be " +
+            accessToken +
+            ` | Request: ${req.method} + ${req.path}`
         );
       }
     };
@@ -285,11 +289,13 @@ export default class Backend {
       files,
     });
 
-    compileNodeApp({
-      directory: "node-test",
-      outdir: "node-test-compiled",
-      requestHandler: requestHandler,
-    });
+    if (process.env.NODE_TEST) {
+      compileNodeApp({
+        directory: "node-test",
+        outdir: "node-test-compiled",
+        requestHandler: requestHandler,
+      });
+    }
 
     let proxyInterface;
     const proxyReady = Promise.resolve();
@@ -319,9 +325,8 @@ export default class Backend {
     Promise.all([proxyReady, serverReady]).then(function () {
       console.timeEnd("create backend");
       console.log("Server listening on port " + bePort);
+      options.onReady({ requestHandler, logServer });
     });
-
-    options.onReady({ requestHandler, logServer });
   }
 }
 
@@ -947,7 +952,7 @@ function setupBackend(
     });
 
     // fs.writeFileSync("logs.json", JSON.stringify(logServer._storedLogs));
-    // console.log("stored logs", req.body.logs.length);
+    console.log("stored logs", req.body.logs.length);
 
     res.end(JSON.stringify({ ok: true }));
   });

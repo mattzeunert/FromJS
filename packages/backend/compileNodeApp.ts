@@ -25,6 +25,7 @@ export async function compileNodeApp({
         !file.name.includes("page-functions.js")
         // !file.name.includes("compiler")
       ) {
+        console.log("skipping", outFilePath);
         return;
       }
 
@@ -41,12 +42,14 @@ export async function compileNodeApp({
         !file.subdirectory.includes("locale-data") &&
         !file.subdirectory.includes("jsdoc")
       ) {
+        console.log("should compile", outFilePath);
         try {
           const r = (await requestHandler.instrumentForEval(fileContent, {
             type: "node_",
             name: file.relativePath.replace(/[^a-zA-Z0-9\-]/g, "_"),
             nodePath: file.subdirectory + file.name,
           })) as any;
+          console.time("did compile");
           fs.writeFileSync(
             outFilePath,
             `'use strict';// babel already adds use strict, but i'm prepending stuff so it won't count
@@ -57,6 +60,7 @@ export async function compileNodeApp({
             ;global.self = global; global.fromJSIsNode = true;\n` +
               r.instrumentedCode
           );
+          console.log("write", outFilePath);
         } catch (err) {
           console.log(
             "Comopile code failed, will write normal",

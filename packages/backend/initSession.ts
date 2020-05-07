@@ -10,6 +10,7 @@ export function initSessionDirectory(options: BackendOptions) {
     options.sessionDirectory + "/locsByUrl",
   ];
   directories.forEach((dir) => {
+    console.log({ dir });
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir);
     }

@@ -63,6 +63,8 @@ function nodePost({ port, path, headers, bodyString }) {
     // eval, otherwise webpack will replace it
     const https = eval(`require("http")`);
 
+    console.log({ port, path });
+
     const options = {
       hostname: "localhost",
       port: port,
@@ -79,9 +81,10 @@ function nodePost({ port, path, headers, bodyString }) {
       console.log(`statusCode: ${res.statusCode}`);
 
       res.on("data", d => {
-        // console.log(d.toString());
+        console.log(d.toString());
       });
       res.on("end", d => {
+        console.log("req end");
         resolve();
       });
     });
@@ -153,7 +156,8 @@ let worker: Worker | null = null;
 //   console.log("Create worker error, should be ok though", err.message)
 // }
 
-function sendLogsToServer() {
+let inProgressSendLogsRequests = 0;
+async function sendLogsToServer() {
   if (logQueue.length === 0 && evalScriptQueue.length == 0) {
     return;
   }
@@ -174,7 +178,13 @@ function sendLogsToServer() {
     // consoleLog(
     //   "Can't create worker (maybe already inside a web worker?), will send request in normal thread"
     // );
-    postToBE("/storeLogs", data);
+    inProgressSendLogsRequests++;
+    // if (inProgressSendLogsRequests > 2) {
+    console.log({ inProgressSendLogsRequests });
+    // }
+    await postToBE("/storeLogs", data);
+    console.log("done save");
+    inProgressSendLogsRequests--;
   }
 
   logQueue = [];
@@ -188,6 +198,16 @@ setInterval(sendLogsToServer, 1000);
 function remotelyStoreLog(log) {
   logQueue.push(log);
 }
+
+global["__fromJSWaitForSendLogsAndExitNodeProcess"] = async function() {
+  console.log("__fromJSWaitForSendLogsAndExitNodeProcess");
+  sendLogsToServer();
+  while (inProgressSendLogsRequests > 0) {
+    console.log({ inProgressSendLogsRequests });
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  eval("process.exit()");
+};
 
 declare var __storeLog;
 
