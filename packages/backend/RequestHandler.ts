@@ -11,6 +11,16 @@ if (!existsSync(path.resolve(__dirname, instrumenterFilePath))) {
   instrumenterFilePath = "dist/instrumentCode.js";
 }
 
+function getFileKey(url, body) {
+  const hasha = require("hasha");
+  const hash = hasha(body, "hex").slice(0, 8);
+  return (
+    url.replace(/\//g, "_").replace(/[^a-zA-Z\-_\.0-9]/g, "") +
+    "_" +
+    (url.includes(":5555") ? "eval" : hash)
+  );
+}
+
 function rewriteHtml(html, { bePort, initialHtmlLogIndex }) {
   const originalHtml = html;
   // Not accurate because there could be an attribute attribute value like ">", should work
@@ -137,6 +147,12 @@ export class RequestHandler {
       };
     }
 
+    let timeLogKey = "handleRequest_" + url;
+    console.time(timeLogKey);
+    function logTimeEnd() {
+      console.timeEnd(timeLogKey);
+    }
+
     let isDontProcess = url.includes("?dontprocess");
     let isMap = url.includes(".map");
     url = url.replace("?dontprocess", "").replace(".map", "");
@@ -153,13 +169,16 @@ export class RequestHandler {
       console.log(file);
       let path = this._sessionDirectory + "/files/" + file.fileKey + postfix;
 
-      return {
+      const ret = {
         body: require("fs").readFileSync(path, "utf-8"),
         headers: {},
         status: 200,
       };
+      logTimeEnd();
+      return ret;
     }
 
+    console.time("Making network request " + url);
     //@ts-ignore
     let { status, data, headers: responseHeaders } = await axios({
       url,
@@ -170,6 +189,7 @@ export class RequestHandler {
       transformResponse: (data) => data,
       data: postData,
     });
+    console.timeEnd("Making network request " + url);
 
     const hasha = require("hasha");
     const hash = hasha(data, "hex").slice(0, 8);
@@ -197,7 +217,9 @@ export class RequestHandler {
         let initialHtmlLogIndex =
           990000000000000 + Math.round(Math.random() * 10000000000);
 
-        const { insertions } = rewriteHtml(data.toString(), {
+        let rawHtml = data.toString();
+
+        const { insertions } = rewriteHtml(rawHtml, {
           bePort: this._backendPort,
           initialHtmlLogIndex,
         });
@@ -208,6 +230,15 @@ export class RequestHandler {
           insertions
         );
 
+        this._afterCodeProcessed({
+          url,
+          fileKey: getFileKey(url, rawHtml),
+          raw: rawHtml,
+          instrumented: data,
+          details: {},
+          map: null,
+        });
+
         // Remove integrity hashes, since the browser will prevent loading
         // the instrumented HTML otherwise
         data = data.replace(/ integrity="[\S]+"/g, "");
@@ -215,7 +246,7 @@ export class RequestHandler {
     }
 
     responseHeaders["content-length"] = data.length;
-
+    logTimeEnd();
     return {
       status,
       body: Buffer.from(data),
@@ -224,13 +255,7 @@ export class RequestHandler {
   }
 
   async _requestProcessCode(body, url, details = {}) {
-    const hasha = require("hasha");
-    const hash = hasha(body, "hex").slice(0, 8);
-
-    let fileKey =
-      url.replace(/\//g, "_").replace(/[^a-zA-Z\-_\.0-9]/g, "") +
-      "_" +
-      (url.includes(":5555") ? "eval" : hash);
+    let fileKey = getFileKey(url, body);
 
     const babelPluginOptions = {
       accessToken: this._accessToken,
@@ -261,6 +286,7 @@ export class RequestHandler {
           console.log("got response with error");
           throw response.error;
         }
+        console.log("timeTakenMs", response.timeTakenMs);
         if (response.timeTakenMs > 2000) {
           const sizeBeforeString = prettyBytes(response.sizeBefore);
           const sizeAfterString = prettyBytes(response.sizeAfter);
