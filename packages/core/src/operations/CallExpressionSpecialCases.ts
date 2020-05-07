@@ -54,6 +54,71 @@ export type SpecialCaseArgs = {
   extraState: any;
 };
 
+function addJsonParseResultTrackingValues(
+  parsed,
+  jsonString,
+  jsonStringTrackingValue,
+  { ctx, logData }
+) {
+  if (
+    typeof parsed === "string" ||
+    typeof parsed === "number" ||
+    typeof parsed === "boolean"
+  ) {
+    return [
+      parsed,
+      ctx.createOperationLog({
+        operation: ctx.operationTypes.jsonParseResult,
+        args: {
+          json: jsonStringTrackingValue
+        },
+        result: parsed,
+        runtimeArgs: {
+          isPrimitive: true,
+          charIndexAdjustment:
+            typeof parsed === "string" ? 1 /* account for quote sign */ : 0
+        },
+        loc: logData.loc
+      })
+    ];
+  }
+
+  traverseObject(parsed, (keyPath, value, key, obj) => {
+    const trackingValue = ctx.createOperationLog({
+      operation: ctx.operationTypes.jsonParseResult,
+      args: {
+        json: jsonStringTrackingValue
+      },
+      result: value,
+      runtimeArgs: {
+        keyPath: keyPath,
+        isKey: false
+      },
+      loc: logData.loc
+    });
+    const nameTrackingValue = ctx.createOperationLog({
+      operation: ctx.operationTypes.jsonParseResult,
+      args: {
+        json: jsonStringTrackingValue
+      },
+      result: key,
+      runtimeArgs: {
+        keyPath: keyPath,
+        isKey: true
+      },
+      loc: logData.loc
+    });
+    ctx.trackObjectPropertyAssignment(
+      obj,
+      key,
+      trackingValue,
+      nameTrackingValue
+    );
+  });
+
+  return [parsed, ctx.getEmptyTrackingInfo("JSON.parse result", logData.loc)];
+}
+
 export const specialCasesWhereWeDontCallTheOriginalFunction: {
   [knownValueName: string]: (args: SpecialCaseArgs) => any;
 } = {
@@ -143,67 +208,32 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
   "JSON.parse": ({ fn, ctx, fnArgValues, args, logData }) => {
     const jsonString = fnArgValues[0];
     const parsed = fn.call(JSON, jsonString);
-    var ret, retT;
+    var [ret, retT] = addJsonParseResultTrackingValues(
+      parsed,
+      jsonString,
+      getFnArg(args, 0),
+      {
+        ctx,
+        logData
+      }
+    );
 
-    ret = parsed;
+    return [ret, retT];
+  },
+  require: ({ fn, ctx, fnArgValues, args, logData, context }) => {
+    let ret = fn.apply(context, fnArgValues);
+    let retT = ctx.getEmptyTrackingInfo("Required value", logData.loc);
 
-    if (
-      typeof parsed === "string" ||
-      typeof parsed === "number" ||
-      typeof parsed === "boolean"
-    ) {
-      return [
+    let path = fnArgValues[0];
+    if (path.endsWith(".json")) {
+      let json = JSON.parse(require("fs").readFileSync(path, "utf-8"));
+      [ret, retT] = addJsonParseResultTrackingValues(
         ret,
-        ctx.createOperationLog({
-          operation: ctx.operationTypes.jsonParseResult,
-          args: {
-            json: getFnArg(args, 0)
-          },
-          result: parsed,
-          runtimeArgs: {
-            isPrimitive: true,
-            charIndexAdjustment:
-              typeof parsed === "string" ? 1 /* account for quote sign */ : 0
-          },
-          loc: logData.loc
-        })
-      ];
-    }
-
-    traverseObject(parsed, (keyPath, value, key, obj) => {
-      const trackingValue = ctx.createOperationLog({
-        operation: ctx.operationTypes.jsonParseResult,
-        args: {
-          json: getFnArg(args, 0)
-        },
-        result: value,
-        runtimeArgs: {
-          keyPath: keyPath,
-          isKey: false
-        },
-        loc: logData.loc
-      });
-      const nameTrackingValue = ctx.createOperationLog({
-        operation: ctx.operationTypes.jsonParseResult,
-        args: {
-          json: getFnArg(args, 0)
-        },
-        result: key,
-        runtimeArgs: {
-          keyPath: keyPath,
-          isKey: true
-        },
-        loc: logData.loc
-      });
-      ctx.trackObjectPropertyAssignment(
-        obj,
-        key,
-        trackingValue,
-        nameTrackingValue
+        json,
+        ctx.getEmptyTrackingInfo("requireJson", logData.loc),
+        { ctx, logData }
       );
-    });
-
-    retT = null; // could set something here, but what really matters is the properties
+    }
 
     return [ret, retT];
   },

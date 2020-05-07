@@ -27,7 +27,7 @@ describe("Node", () => {
     }));
   }, 10000);
 
-  async function runTest(testName) {
+  async function runTest(testName, { charIndex }) {
     await compileNodeApp({
       directory: "packages/backend/nodeTestFixtures/" + testName,
       requestHandler,
@@ -44,21 +44,28 @@ describe("Node", () => {
     const steps = await traverse(
       {
         operationLog: inspectIndex as any,
-        charIndex: 11,
+        charIndex: charIndex,
       },
       [],
       logServer,
       { optimistic: true }
     );
     const lastStep = steps[steps.length - 1];
-    return lastStep;
+    return { step: lastStep };
   }
 
   it("Can read uninstrumented contents of a js file", async () => {
-    let { step } = await runTest("readJSFile");
+    let { step } = await runTest("readJSFile", { charIndex: 11 });
 
     expect(step.operationLog.operation).toBe("readFileSyncResult");
     expect(step.operationLog.result.primitive).toBe('const a = "Hello"\n');
     expect(step.charIndex).toBe(11);
+  }, 15000);
+
+  it("Can require json files", async () => {
+    let { step } = await runTest("requireJson", { charIndex: 0 });
+    console.log(JSON.stringify(step, null, 2));
+
+    expect(step.operationLog.operation).toBe("jsonParseResult");
   }, 15000);
 });

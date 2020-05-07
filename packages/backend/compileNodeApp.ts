@@ -42,13 +42,11 @@ export async function compileNodeApp({
         !file.subdirectory.includes("jsdoc")
       ) {
         try {
-          console.log("will compile");
           const r = (await requestHandler.instrumentForEval(fileContent, {
             type: "node_",
             name: file.relativePath.replace(/[^a-zA-Z0-9\-]/g, "_"),
             nodePath: file.subdirectory + file.name,
           })) as any;
-          console.log("done compile", outFilePath);
           fs.writeFileSync(
             outFilePath,
             `'use strict';// babel already adds use strict, but i'm prepending stuff so it won't count

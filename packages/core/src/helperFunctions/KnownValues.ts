@@ -53,7 +53,8 @@ export default class KnownValues {
     if (global.fromJSIsNode) {
       Object.assign(this._knownValues, {
         "fs.readFileSync": require("fs").readFileSync,
-        "fs.writeFileSync": require("fs").writeFileSync
+        "fs.writeFileSync": require("fs").writeFileSync,
+        require: eval("require")
       });
     }
 
