@@ -1039,9 +1039,10 @@ function setupBackend(
 
           let overwriteFile: any = null;
           if (lastStep.operationLog.operation === "initialPageHtml") {
+            break;
             overwriteFile = {
               url:
-                "http://localhost:5555/example.com_2020-04-29_16-17-05.report.html",
+                "http://localhost:4444/example.com_2020-04-29_16-17-05.report.html",
               sourceOperationLog: 653756993124375,
               sourceOffset: 0,
             };
