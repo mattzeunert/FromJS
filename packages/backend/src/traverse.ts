@@ -13,7 +13,7 @@ export async function traverse(
   steps: TraversalStep[] = [],
   server,
   options: any
-) {
+): Promise<any> {
   const { optimistic } = options;
   return new Promise(async (resolve, reject) => {
     let nextStep: TraversalStep | null | undefined = null;

@@ -221,7 +221,10 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
         const cwd = eval("process.cwd()");
         filePath = path.resolve(cwd, filePath);
       }
-      filePath = filePath.replace("node-test-compiled", "node-test");
+      filePath = filePath.replace(
+        global["fromJSNodeOutPath"],
+        global["fromJSNodeSourcePath"]
+      );
       console.log("Will read", { filePath });
 
       console.log("more args", fnArgValues.slice(1));
@@ -241,7 +244,7 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
       loc: logData.loc
     });
 
-    console.log({ ret, retT });
+    // console.log({ ret, retT });
 
     return [ret, retT];
 

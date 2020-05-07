@@ -17,9 +17,9 @@ import { BackendOptions } from "./BackendOptions";
 import * as responseTime from "response-time";
 import { config } from "@fromjs/core";
 import { RequestHandler } from "./RequestHandler";
-import * as pMap from "p-map";
 import * as puppeteer from "puppeteer";
-import { resolve } from "dns";
+import { initSessionDirectory } from "./initSession";
+import { LogServer } from "@fromjs/core/src/LogServer/LogServer";
 
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
@@ -39,20 +39,6 @@ let fromJSInternalDir = path.resolve(__dirname + "/../fromJSInternal");
 
 let startPageDir = path.resolve(__dirname + "/../start-page");
 
-function ensureDirectoriesExist(options: BackendOptions) {
-  const directories = [
-    options.sessionDirectory,
-    options.getCertDirectory(),
-    options.getTrackingDataDirectory(),
-    options.sessionDirectory + "/files",
-    options.sessionDirectory + "/locsByUrl",
-  ];
-  directories.forEach((dir) => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
-    }
-  });
-}
 function createBackendCerts(options: BackendOptions) {
   fs.mkdirSync(options.getBackendServerCertDirPath());
   const Forge = require("node-forge");
@@ -81,109 +67,6 @@ function createBackendCerts(options: BackendOptions) {
 
 const DELETE_EXISTING_LOGS_AT_START = false;
 const LOG_PERF = config.LOG_PERF;
-
-function getNodeFiles(baseDirectory, subdirectory) {
-  let resolvedDir = path.resolve(baseDirectory + "/" + subdirectory);
-
-  let nodeFiles: {
-    relativePath: string;
-    subdirectory: string;
-    name: string;
-  }[] = [];
-
-  const files = fs.readdirSync(resolvedDir);
-  for (const file of files) {
-    let filePath = path.resolve(resolvedDir, file);
-    if (fs.lstatSync(filePath).isDirectory()) {
-      nodeFiles = [
-        ...nodeFiles,
-        ...getNodeFiles(baseDirectory, subdirectory + file + "/"),
-      ];
-    } else {
-      nodeFiles.push({
-        relativePath: subdirectory + file,
-        subdirectory,
-        name: file,
-      });
-    }
-  }
-
-  return nodeFiles;
-}
-
-async function compileNodeApp(baseDirectory, requestHandler: RequestHandler) {
-  let files = getNodeFiles(baseDirectory, "");
-
-  await pMap(
-    files,
-    async (file, i) => {
-      let outdir = "./node-test-compiled/" + file.subdirectory;
-      const outFilePath = outdir + file.name;
-      if (
-        fs.existsSync(outFilePath) &&
-        (file.subdirectory !== "" || file.name !== "test.js") &&
-        !file.name.includes("driver.js") &&
-        !file.name.includes("page-functions.js")
-        // !file.name.includes("compiler")
-      ) {
-        return;
-      }
-
-      console.log("## " + file.relativePath, `${i}/${files.length}`);
-
-      let fileContent = fs.readFileSync(
-        path.resolve(baseDirectory, file.relativePath),
-        "utf-8"
-      );
-      require("mkdirp").sync(outdir);
-
-      if (
-        file.name.endsWith(".js") &&
-        !file.subdirectory.includes("locale-data") &&
-        !file.subdirectory.includes("jsdoc")
-      ) {
-        try {
-          const r = (await requestHandler.instrumentForEval(fileContent, {
-            type: "node_",
-            name: file.relativePath.replace(/[^a-zA-Z0-9\-]/g, "_"),
-            nodePath: file.subdirectory + file.name,
-          })) as any;
-          fs.writeFileSync(
-            outFilePath,
-            `'use strict';// babel already adds use strict, but i'm prepending stuff so it won't count
-            /*require("/Users/mattzeunert/Documents/GitHub/FromJS/node-test-compiled/__fromJSENv.js")*/
-          ;var global = Function("return this")(); global.self = global; global.fromJSIsNode = true;\n` +
-              r.instrumentedCode
-          );
-        } catch (err) {
-          console.log(
-            "Comopile code failed, will write normal",
-            file.relativePath,
-            err.message
-          );
-          fs.writeFileSync(outFilePath, fileContent);
-        }
-      } else {
-        fs.writeFileSync(outFilePath, fileContent);
-      }
-    },
-    { concurrency: 4 }
-  );
-
-  let helperFunctions = fs.readFileSync(
-    "./packages/core/helperFunctions.js",
-    "utf-8"
-  );
-  console.log(helperFunctions.slice(0, 100));
-
-  fs.writeFileSync(
-    "./node-test-compiled/__fromJSEnv.js",
-    helperFunctions +
-      `; global.helperFunctionsCode = decodeURIComponent("${encodeURIComponent(
-        helperFunctions
-      )}")`
-  );
-}
 
 async function generateLocLogs({ logServer, locLogs }) {
   console.log("will generate locLogs");
@@ -271,7 +154,7 @@ export default class Backend {
       require("rimraf").sync(options.getLocStorePath());
       require("rimraf").sync(options.getTrackingDataDirectory());
     }
-    ensureDirectoriesExist(options);
+    initSessionDirectory(options);
 
     // seems like sometimes get-folder-size runs into max call stack size exceeded, so disable it
     // getFolderSize(options.sessionDirectory, (err, size) => {
@@ -369,6 +252,17 @@ export default class Backend {
 
     let requestHandler;
 
+    const locStore = new LocStore(options.getLocStorePath());
+
+    const logServer = new LevelDBLogServer(
+      options.getTrackingDataDirectory(),
+      locStore
+    );
+    if (GENERATE_DERIVED) {
+      generateLocLogs({ logServer, locLogs });
+      generateUrlLocs({ locStore, options });
+    }
+
     let { storeLocs } = setupBackend(
       options,
       app,
@@ -377,7 +271,9 @@ export default class Backend {
       files,
       locLogs,
       logUses,
-      () => requestHandler
+      () => requestHandler,
+      locStore,
+      logServer
     );
     setupUI(options, app, wss, getProxy, files, () => requestHandler);
 
@@ -388,7 +284,7 @@ export default class Backend {
       files,
     });
 
-    compileNodeApp("node-test", requestHandler);
+    // compileNodeApp("node-test", requestHandler);
 
     let proxyInterface;
     const proxyReady = Promise.resolve();
@@ -419,6 +315,8 @@ export default class Backend {
       console.timeEnd("create backend");
       console.log("Server listening on port " + bePort);
     });
+
+    options.onReady({ requestHandler, logServer });
   }
 }
 
@@ -663,8 +561,6 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
       })
     );
   });
-
-  options.onReady();
 }
 
 function getUrlLocsPath(options: BackendOptions, url) {
@@ -713,19 +609,10 @@ function setupBackend(
   files,
   locLogs,
   logUses,
-  getRequestHandler
+  getRequestHandler,
+  locStore: LocStore,
+  logServer: LevelDBLogServer
 ) {
-  const locStore = new LocStore(options.getLocStorePath());
-
-  const logServer = new LevelDBLogServer(
-    options.getTrackingDataDirectory(),
-    locStore
-  );
-  if (GENERATE_DERIVED) {
-    generateLocLogs({ logServer, locLogs });
-    generateUrlLocs({ locStore, options });
-  }
-
   function getLocs(url) {
     return JSON.parse(fs.readFileSync(getUrlLocsPath(options, url), "utf-8"));
     return new Promise((resolve, reject) => {
@@ -1150,8 +1037,8 @@ function setupBackend(
             break;
             overwriteFile = {
               url:
-                "http://localhost:8080/example.com_2020-04-29_16-17-05.report.html",
-              sourceOperationLog: 527148454973816,
+                "http://localhost:5555/example.com_2020-04-29_16-17-05.report.html",
+              sourceOperationLog: 579837143103408,
               sourceOffset: 0,
             };
           } else if (!lastStep.operationLog.loc) {
@@ -1234,31 +1121,31 @@ function setupBackend(
         );
       }
 
-      // steps.forEach((step, i) => {
-      //   Object.keys(step.operationLog.args).forEach((key) => {
-      //     if (!step.operationLog.args[key]) {
-      //       return;
-      //     }
+      steps.forEach((step, i) => {
+        Object.keys(step.operationLog.args).forEach((key) => {
+          if (!step.operationLog.args[key]) {
+            return;
+          }
 
-      //     let r = step.operationLog.args[key]._result;
-      //     if (typeof r === "string" && r.length > 10000) {
-      //       step.operationLog.args[key]._result = "";
-      //     }
-      //   });
-      //   Object.keys(step.operationLog.extraArgs || {}).forEach((key) => {
-      //     if (!step.operationLog.extraArgs[key]) {
-      //       return;
-      //     }
+          let r = step.operationLog.args[key]._result;
+          if (typeof r === "string" && r.length > 10000) {
+            step.operationLog.args[key]._result = "";
+          }
+        });
+        Object.keys(step.operationLog.extraArgs || {}).forEach((key) => {
+          if (!step.operationLog.extraArgs[key]) {
+            return;
+          }
 
-      //     let r = step.operationLog.extraArgs[key]._result;
-      //     if (typeof r === "string" && r.length > 10000) {
-      //       step.operationLog.extraArgs[key]._result = "";
-      //     }
-      //   });
-      //   if (i < steps.length - 2) {
-      //     step.operationLog._result = "";
-      //   }
-      // });
+          let r = step.operationLog.extraArgs[key]._result;
+          if (typeof r === "string" && r.length > 10000) {
+            step.operationLog.extraArgs[key]._result = "";
+          }
+        });
+        if (i < steps.length - 2) {
+          step.operationLog._result = "";
+        }
+      });
 
       res.end(JSON.stringify({ steps }));
     };

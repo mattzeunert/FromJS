@@ -2,15 +2,14 @@ import * as axios from "axios";
 import * as prettyBytes from "pretty-bytes";
 import { spawn, Thread, Worker, Pool } from "threads";
 import { handleEvalScript } from "@fromjs/core";
-import {
-  writeFileSync,
-  readdirSync,
-  existsSync,
-  readFileSync,
-  exists,
-} from "fs";
+import { writeFileSync, fstat, existsSync } from "fs";
+import * as path from "path";
 
 let instrumenterFilePath = "instrumentCode.js";
+if (!existsSync(path.resolve(__dirname, instrumenterFilePath))) {
+  // this happens in jest
+  instrumenterFilePath = "dist/instrumentCode.js";
+}
 
 function rewriteHtml(html, { bePort, initialHtmlLogIndex }) {
   const originalHtml = html;
@@ -237,8 +236,6 @@ export class RequestHandler {
       accessToken: this._accessToken,
       backendPort: this._backendPort,
     };
-
-    console.log({ details });
 
     const RUN_IN_SAME_PROCESS = false;
 

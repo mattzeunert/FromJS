@@ -251,6 +251,10 @@ global[FunctionNames.getGlobal] = function() {
 var argTrackingInfo = null;
 var functionContextTrackingValue = null;
 
+global["__fromJSGetTrackingIndex"] = function(value) {
+  return global[FunctionNames.getFunctionArgTrackingInfo](0);
+};
+
 global[FunctionNames.getFunctionArgTrackingInfo] = function getArgTrackingInfo(
   index
 ) {
