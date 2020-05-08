@@ -18,6 +18,12 @@ async function killPort(portNum) {
 const backendPort = 12100;
 const webServerPort = backendPort + 1;
 
+export async function saveScreenshot(page, screenshotName) {
+  await page.screenshot({
+    path: "artifacts/" + screenshotName + ".png",
+  });
+}
+
 function setTimeoutPromise(timeout) {
   return new Promise((resolve) => {
     setTimeout(resolve, timeout);
@@ -490,6 +496,8 @@ describe("E2E", () => {
 
     console.log("wait for in page inspector");
     const inspectorFrame = await waitForInPageInspector(page);
+    await page.waitFor(2000);
+    await saveScreenshot(page, "waited-for-inspector-plus-2s");
 
     console.log("wait for localStorage.getItem");
 
@@ -497,6 +505,7 @@ describe("E2E", () => {
     await inspectorFrame.waitForFunction(() =>
       document.body.innerHTML.includes("localStorage.getItem")
     );
+    await saveScreenshot(page, "waited-for-localstorage");
 
     console.log("wait for stringLiteral");
 

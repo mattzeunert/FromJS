@@ -52,8 +52,13 @@ jobs:
       - run: npm run compile-all
 
       - run: cd packages/backend/nodeTestFixtures/reactSsr && npm install
+      - run: mkdir artifacts
       - run: yarn test -- --testPathIgnorePatterns e2e
       - run: xvfb-run -a --server-args="-screen 0 1280x800x24 -ac -nolisten tcp -dpi 96 +extension RANDR" yarn test e2e
+
+      - store_artifacts:
+          path: artifacts
+          destination: artifacts
       # - save_cache:
       #     paths:
       #       - node_modules
