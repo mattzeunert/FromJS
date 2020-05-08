@@ -27,6 +27,7 @@ import * as jsonToAst from "json-to-ast";
 import { getJSONPathOffset } from "../getJSONPathOffset";
 import * as get from "lodash/get";
 import { traverseObject } from "../traverseObject";
+import { pathToFileURL } from "url";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -246,13 +247,14 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
     const parsed = fn.call(JSON, jsonString);
     var ret, retT;
 
+    const path = require("path");
+
     let filePath = fnArgValues[0];
     let encodingArg = fnArgValues[1];
-    if (typeof encodingArg === "string" && filePath.endsWith(".js")) {
-      const path = require("path");
 
+    const cwd = eval("process.cwd()");
+    if (typeof encodingArg === "string" && filePath.endsWith(".js")) {
       if (!filePath.startsWith("/")) {
-        const cwd = eval("process.cwd()");
         filePath = path.resolve(cwd, filePath);
       }
       filePath = filePath.replace(
@@ -271,76 +273,40 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
       },
       result: ret,
       runtimeArgs: {
-        filePath
+        filePath,
+        absPath: filePath.startsWith("/")
+          ? filePath
+          : path.resolve(cwd, filePath)
       },
       loc: logData.loc
     });
 
-    // console.log({ ret, retT });
-
     return [ret, retT];
+  },
+  "fs.writeFileSync": ({
+    fn,
+    ctx,
+    fnArgValues,
+    fnArgTrackingValues,
+    args,
+    logData,
+    context
+  }) => {
+    let ret = fn.apply(ctx, fnArgValues);
+    const path = require("path");
 
-    // ret = parsed;
-
-    // if (
-    //   typeof parsed === "string" ||
-    //   typeof parsed === "number" ||
-    //   typeof parsed === "boolean"
-    // ) {
-    //   return [
-    //     ret,
-    //     ctx.createOperationLog({
-    //       operation: ctx.operationTypes.jsonParseResult,
-    //       args: {
-    //         json: getFnArg(args, 0)
-    //       },
-    //       result: parsed,
-    //       runtimeArgs: {
-    //         isPrimitive: true,
-    //         charIndexAdjustment:
-    //           typeof parsed === "string" ? 1 /* account for quote sign */ : 0
-    //       },
-    //       loc: logData.loc
-    //     })
-    //   ];
-    // }
-
-    // traverseObject(parsed, (keyPath, value, key, obj) => {
-    //   const trackingValue = ctx.createOperationLog({
-    //     operation: ctx.operationTypes.jsonParseResult,
-    //     args: {
-    //       json: getFnArg(args, 0)
-    //     },
-    //     result: value,
-    //     runtimeArgs: {
-    //       keyPath: keyPath,
-    //       isKey: false
-    //     },
-    //     loc: logData.loc
-    //   });
-    //   const nameTrackingValue = ctx.createOperationLog({
-    //     operation: ctx.operationTypes.jsonParseResult,
-    //     args: {
-    //       json: getFnArg(args, 0)
-    //     },
-    //     result: key,
-    //     runtimeArgs: {
-    //       keyPath: keyPath,
-    //       isKey: true
-    //     },
-    //     loc: logData.loc
-    //   });
-    //   ctx.trackObjectPropertyAssignment(
-    //     obj,
-    //     key,
-    //     trackingValue,
-    //     nameTrackingValue
-    //   );
-    // });
-
-    // retT = null; // could set something here, but what really matters is the properties
-
-    // return [ret, retT];
+    let absPath = fnArgValues[0];
+    if (!absPath.startsWith("/")) {
+      const cwd = eval("process.cwd()");
+      absPath = path.resolve(cwd, absPath);
+    }
+    ctx.registerEvent({
+      type: "fileWrite",
+      logIndex: fnArgTrackingValues[1],
+      path: fnArgValues[0],
+      absPath
+    });
+    return [ret, null];
   }
 };
 

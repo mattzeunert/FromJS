@@ -66,16 +66,7 @@ describe("Node", () => {
     let inspectIndex = parseFloat(
       stdout.match(/Inspect:\d+/)![0].replace("Inspect:", "")
     );
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const steps = await traverse(
-      {
-        operationLog: inspectIndex as any,
-        charIndex: charIndex,
-      },
-      [],
-      logServer,
-      { optimistic: true }
-    );
+    const steps = await backend.handleTraverse(inspectIndex, charIndex);
     const lastStep = steps[steps.length - 1];
     return { step: lastStep, execDuration, compileDuration };
   }
@@ -104,6 +95,17 @@ describe("Node", () => {
 
     // for now don't really care to much about the exact traversal
     expect(step.operationLog.operation).toBe("callExpression");
+  }, 80000);
+
+  it("can traverse file reads and writes – fileReadWrites", async () => {
+    let { step, execDuration, compileDuration } = await runTest(
+      "fileReadWrites",
+      {
+        charIndex: 0,
+      }
+    );
+
+    expect(step.operationLog.operation).toBe("stringLiteral");
   }, 80000);
 });
 

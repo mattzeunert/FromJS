@@ -150,6 +150,7 @@ async function generateLocLogs({ logServer, locLogs }) {
 
 export default class Backend {
   sessionConfig = null;
+  handleTraverse = null as any;
   constructor(private options: BackendOptions) {
     console.time("create backend");
 
@@ -275,7 +276,7 @@ export default class Backend {
       generateUrlLocs({ locStore, options });
     }
 
-    let { storeLocs } = setupBackend(
+    let { storeLocs, handleTraverse } = setupBackend(
       options,
       app,
       wss,
@@ -288,6 +289,8 @@ export default class Backend {
       logServer
     );
     setupUI(options, app, wss, getProxy, files, () => requestHandler);
+
+    this.handleTraverse = handleTraverse;
 
     requestHandler = makeRequestHandler({
       accessToken: sessionConfig.accessToken,
@@ -916,6 +919,18 @@ function setupBackend(
     res.end(code);
   });
 
+  let eventsPath = options.sessionDirectory + "/events.json";
+  function readEvents() {
+    let events = [];
+    if (fs.existsSync(eventsPath)) {
+      events = JSON.parse(fs.readFileSync(eventsPath, "utf-8"));
+    }
+    return events;
+  }
+  function writeEvents(events) {
+    fs.writeFileSync(eventsPath, JSON.stringify(events, null, 2));
+  }
+
   // app.post("/setEnableInstrumentation", (req, res) => {
   //   const { enableInstrumentation } = req.body;
   //   getProxy().setEnableInstrumentation(enableInstrumentation);
@@ -983,29 +998,30 @@ function setupBackend(
       // getProxy().registerEvalScript(evalScript);
     });
 
-    console.log("skip_save", !!process.env.SKIP_SAVE);
-    if (!process.env.SKIP_SAVE) {
-      await new Promise((resolve) =>
-        logServer.storeLogs(req.body.logs, function () {
-          const timePassed = new Date().valueOf() - startTime.valueOf();
-
-          console.log("stored logs", req.body.logs.length);
-
-          if (LOG_PERF) {
-            const timePer1000 =
-              Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
-            console.log(
-              "storing logs took " +
-                timePassed +
-                "ms, per 1000 logs: " +
-                timePer1000 +
-                "ms"
-            );
-          }
-          resolve();
-        })
-      );
+    if (req.body.events.length > 0) {
+      writeEvents([...readEvents(), ...req.body.events]);
     }
+
+    await new Promise((resolve) =>
+      logServer.storeLogs(req.body.logs, function () {
+        const timePassed = new Date().valueOf() - startTime.valueOf();
+
+        console.log("stored logs", req.body.logs.length);
+
+        if (LOG_PERF) {
+          const timePer1000 =
+            Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
+          console.log(
+            "storing logs took " +
+              timePassed +
+              "ms, per 1000 logs: " +
+              timePer1000 +
+              "ms"
+          );
+        }
+        resolve();
+      })
+    );
 
     res.end(JSON.stringify({ ok: true }));
   });
@@ -1038,182 +1054,196 @@ function setupBackend(
     }, 500);
   });
 
-  app.post("/traverse", (req, res) => {
-    const { logId, charIndex } = req.body;
-    const tryTraverse = (previousAttempts = 0) => {
-      logServer.hasLog(logId, (hasLog) => {
-        if (hasLog) {
-          finishRequest();
-        } else {
-          const timeout = 250;
-          const timeElapsed = timeout * previousAttempts;
-          if (timeElapsed > 5000) {
-            res.status(500);
-            res.end(
-              JSON.stringify({
+  function handleTraverse(logId, charIndex) {
+    return new Promise((resolve) => {
+      const tryTraverse = (previousAttempts = 0) => {
+        logServer.hasLog(logId, (hasLog) => {
+          if (hasLog) {
+            finishRequest();
+          } else {
+            const timeout = 250;
+            const timeElapsed = timeout * previousAttempts;
+            if (timeElapsed > 5000) {
+              resolve({
                 err:
                   "Log not found (" + logId + ")- might still be saving data",
-              })
-            );
-          } else {
-            setTimeout(() => {
-              tryTraverse(previousAttempts + 1);
-            }, timeout);
+              });
+              return;
+            } else {
+              setTimeout(() => {
+                tryTraverse(previousAttempts + 1);
+              }, timeout);
+            }
           }
-        }
-      });
-    };
+        });
+      };
 
-    const finishRequest = async function finishRequest() {
-      let steps;
-      try {
-        if (LOG_PERF) {
-          console.time("Traverse " + logId);
-        }
-        steps = await traverse(
-          {
-            operationLog: logId,
-            charIndex: charIndex,
-          },
-          [],
-          logServer,
-          { optimistic: true }
-        );
-
-        while (true) {
-          let lastStep = steps[steps.length - 1];
-
-          console.log("last step op", lastStep.operationLog.operation);
-          if (
-            lastStep.operationLog.operation !== "stringLiteral" &&
-            lastStep.operationLog.operation !== "templateLiteral" &&
-            lastStep.operationLog.operation !== "initialPageHtml"
-          ) {
-            // if e.g. it's a localstorage value then we don't want to
-            // inspect the code for it!!
-            // really mostly just string literal has that kind of sensible mapping
-            break;
+      const finishRequest = async function finishRequest() {
+        let steps;
+        try {
+          if (LOG_PERF) {
+            console.time("Traverse " + logId);
           }
+          steps = await traverse(
+            {
+              operationLog: logId,
+              charIndex: charIndex,
+            },
+            [],
+            logServer,
+            { optimistic: true, events: readEvents() }
+          );
 
-          let overwriteFile: any = null;
-          if (lastStep.operationLog.operation === "initialPageHtml") {
-            break;
-            overwriteFile = {
-              url:
-                "http://localhost:4444/example.com_2020-04-29_16-17-05.report.html",
-              sourceOperationLog: 949871490803662,
-              sourceOffset: 0,
-            };
-          } else if (!lastStep.operationLog.loc) {
-            break;
-          }
+          while (true) {
+            let lastStep = steps[steps.length - 1];
 
-          let loc;
+            console.log("last step op", lastStep.operationLog.operation);
+            if (
+              lastStep.operationLog.operation !== "stringLiteral" &&
+              lastStep.operationLog.operation !== "templateLiteral" &&
+              lastStep.operationLog.operation !== "initialPageHtml"
+            ) {
+              // if e.g. it's a localstorage value then we don't want to
+              // inspect the code for it!!
+              // really mostly just string literal has that kind of sensible mapping
+              break;
+            }
 
-          if (overwriteFile) {
-            loc = {
-              url: overwriteFile.url,
-              start: {
-                line: 1,
-                column: 0,
-              },
-            };
-          } else if (lastStep.operationLog.loc) {
-            loc = (await new Promise((resolve) =>
-              locStore.getLoc(lastStep.operationLog.loc, (loc) => resolve(loc))
-            )) as any;
-          }
+            let overwriteFile: any = null;
+            if (lastStep.operationLog.operation === "initialPageHtml") {
+              break;
+              overwriteFile = {
+                url:
+                  "http://localhost:4444/example.com_2020-04-29_16-17-05.report.html",
+                sourceOperationLog: 949871490803662,
+                sourceOffset: 0,
+              };
+            } else if (!lastStep.operationLog.loc) {
+              break;
+            }
 
-          let file = files.find((f) => f.url === loc.url);
-          if (overwriteFile) {
-            file = overwriteFile;
-          }
-          if (file.sourceOperationLog) {
-            // const log = await logServer.loadLogAwaitable(
-            //   file.sourceOperationLog,
-            //   1
-            // );
+            let loc;
 
-            let { body: fileContent } = await getRequestHandler().handleRequest(
-              {
+            if (overwriteFile) {
+              loc = {
+                url: overwriteFile.url,
+                start: {
+                  line: 1,
+                  column: 0,
+                },
+              };
+            } else if (lastStep.operationLog.loc) {
+              loc = (await new Promise((resolve) =>
+                locStore.getLoc(lastStep.operationLog.loc, (loc) =>
+                  resolve(loc)
+                )
+              )) as any;
+            }
+
+            let file = files.find((f) => f.url === loc.url);
+            if (overwriteFile) {
+              file = overwriteFile;
+            }
+            if (file.sourceOperationLog) {
+              // const log = await logServer.loadLogAwaitable(
+              //   file.sourceOperationLog,
+              //   1
+              // );
+
+              let {
+                body: fileContent,
+              } = await getRequestHandler().handleRequest({
                 url: loc.url + "?dontprocess",
                 method: "GET",
                 headers: {},
-              }
-            );
-            let lineColumn = require("line-column");
-            let charIndex =
-              lineColumn(fileContent.toString()).toIndex({
-                line: loc.start.line,
-                column: loc.start.column + 1, // lineColumn uses origin of 1, but babel uses 0
-              }) +
-              file.sourceOffset +
-              lastStep.charIndex;
+              });
+              let lineColumn = require("line-column");
+              let charIndex =
+                lineColumn(fileContent.toString()).toIndex({
+                  line: loc.start.line,
+                  column: loc.start.column + 1, // lineColumn uses origin of 1, but babel uses 0
+                }) +
+                file.sourceOffset +
+                lastStep.charIndex;
 
-            // // this makes stuff better... maybe it adjusts for the quote sign for string literals in the code?
-            charIndex++;
+              // // this makes stuff better... maybe it adjusts for the quote sign for string literals in the code?
+              charIndex++;
 
-            console.log("will traverse", file);
-            let s = (await traverse(
-              {
-                operationLog: file.sourceOperationLog,
-                charIndex,
-              },
-              [],
-              logServer,
-              { optimistic: true }
-            )) as any;
+              console.log("will traverse", file);
+              let s = (await traverse(
+                {
+                  operationLog: file.sourceOperationLog,
+                  charIndex,
+                },
+                [],
+                logServer,
+                { optimistic: true, events: readEvents() }
+              )) as any;
 
-            steps = [...steps, ...s];
-            console.log("####");
-          } else {
-            break;
+              steps = [...steps, ...s];
+              console.log("####");
+            } else {
+              break;
+            }
           }
-        }
 
-        if (LOG_PERF) {
-          console.timeEnd("Traverse " + logId);
-        }
-      } catch (err) {
-        console.log(err);
-        res.status(500);
-        res.end(
-          JSON.stringify({
+          if (LOG_PERF) {
+            console.timeEnd("Traverse " + logId);
+          }
+        } catch (err) {
+          console.log(err);
+          resolve({
             err: "Log not found in backend, or other error(" + logId + ")",
-          })
-        );
-      }
-
-      steps.forEach((step, i) => {
-        Object.keys(step.operationLog.args).forEach((key) => {
-          if (!step.operationLog.args[key]) {
-            return;
-          }
-
-          let r = step.operationLog.args[key]._result;
-          if (typeof r === "string" && r.length > 10000) {
-            step.operationLog.args[key]._result = "";
-          }
-        });
-        Object.keys(step.operationLog.extraArgs || {}).forEach((key) => {
-          if (!step.operationLog.extraArgs[key]) {
-            return;
-          }
-
-          let r = step.operationLog.extraArgs[key]._result;
-          if (typeof r === "string" && r.length > 10000) {
-            step.operationLog.extraArgs[key]._result = "";
-          }
-        });
-        if (i < steps.length - 2) {
-          step.operationLog._result = "";
+          });
+          return;
         }
-      });
 
-      res.end(JSON.stringify({ steps }));
-    };
+        steps.forEach((step, i) => {
+          Object.keys(step.operationLog.args).forEach((key) => {
+            if (!step.operationLog.args[key]) {
+              return;
+            }
 
-    tryTraverse();
+            let r = step.operationLog.args[key]._result;
+            if (typeof r === "string" && r.length > 10000) {
+              step.operationLog.args[key]._result = "";
+            }
+          });
+          Object.keys(step.operationLog.extraArgs || {}).forEach((key) => {
+            if (!step.operationLog.extraArgs[key]) {
+              return;
+            }
+
+            let r = step.operationLog.extraArgs[key]._result;
+            if (typeof r === "string" && r.length > 10000) {
+              step.operationLog.extraArgs[key]._result = "";
+            }
+          });
+          if (i < steps.length - 2) {
+            step.operationLog._result = "";
+          }
+        });
+
+        resolve(steps);
+      };
+
+      tryTraverse();
+    });
+  }
+
+  app.post("/traverse", async (req, res) => {
+    const { logId, charIndex } = req.body;
+    let ret = (await handleTraverse(logId, charIndex)) as any;
+    if (ret.err) {
+      res.status(500);
+      res.end(
+        JSON.stringify({
+          err: ret.err,
+        })
+      );
+    } else {
+      res.end(JSON.stringify({ steps: ret }));
+    }
   });
 
   let resolver: StackFrameResolver;
@@ -1252,6 +1282,7 @@ function setupBackend(
     storeLocs: async (locs) => {
       locStore.write(locs, function () {});
     },
+    handleTraverse,
   };
 }
 

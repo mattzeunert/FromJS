@@ -108,7 +108,6 @@ if (global.fromJSIsNode) {
     nodeHttpReq.toString() +
       `;nodeHttpReq({port: ${backendPort}, path: '/sessionInfo', headers: {}, method: 'GET'}).then(r => console.log('RES_'+r+'_RES'));`
   )}\\"))"`;
-  console.log(cmd);
   const r = eval("require('child_process')").execSync(cmd);
   const sessionInfo = JSON.parse(r.toString().match(/RES_(.*)_RES/)[1]);
   console.log({ sessionInfo });
@@ -178,6 +177,7 @@ const postToBE = makePostToBE({ accessToken, fetch });
 let logQueue = [];
 global["__debugFromJSLogQueue"] = () => logQueue;
 let evalScriptQueue = [];
+let eventQueue = [];
 let worker: Worker | null = null;
 // temporarily disable worker because i think lighthouse runs stuff in isolated envs
 // and it means hundreds of workers get created rather than always using same one?
@@ -198,11 +198,13 @@ async function sendLogsToServer() {
 
   const data = {
     logs: logQueue,
-    evalScripts: evalScriptQueue
+    evalScripts: evalScriptQueue,
+    events: eventQueue
   };
 
   logQueue = [];
   evalScriptQueue = [];
+  eventQueue = [];
 
   if (worker) {
     // Doing this means the data will be cloned, but it seems to be
@@ -615,6 +617,10 @@ const ctx: ExecContext = {
   registerEvalScript(evalScript) {
     // store code etc for eval'd code
     evalScriptQueue.push(evalScript);
+  },
+  registerEvent(event) {
+    // events like file writes
+    eventQueue.push(event);
   },
   objectHasPropertyTrackingData(obj) {
     return !!objTrackingMap.get(obj);

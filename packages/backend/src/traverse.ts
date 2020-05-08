@@ -41,6 +41,7 @@ export async function traverse(
     }
 
     const operation = operations[operationLog.operation];
+    console.log(operationLog.operation);
     if (operation && operation.traverse) {
       try {
         nextStep = operation.traverse(operationLog, charIndex, options);

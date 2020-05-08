@@ -87,7 +87,7 @@ interface Operations {
     traverse?: (
       operationLog: any,
       charIndex: number,
-      options?: { optimistic: boolean }
+      options?: { optimistic: boolean; events?: any[] }
     ) => TraversalStep | undefined;
     t?: any; // babel types
   };
@@ -798,6 +798,24 @@ const operations: Operations = {
 
       return {
         operationLog: operationLog.args.json,
+        charIndex
+      };
+    }
+  },
+  readFileSyncResult: {
+    traverse(operationLog, charIndex, options) {
+      console.log(JSON.stringify(operationLog, null, 2));
+      let absPath = operationLog.runtimeArgs.absPath;
+      console.log({ absPath });
+      let writeEvent = (options.events || []).find(
+        e => e.type === "fileWrite" && e.absPath === absPath
+      );
+      console.log({ writeEvent, options: JSON.stringify(options.events[0]) });
+      if (!writeEvent) {
+        return null;
+      }
+      return {
+        operationLog: writeEvent.logIndex,
         charIndex
       };
     }
