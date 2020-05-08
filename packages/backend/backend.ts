@@ -68,6 +68,10 @@ function createBackendCerts(options: BackendOptions) {
 const DELETE_EXISTING_LOGS_AT_START = false;
 const LOG_PERF = config.LOG_PERF;
 
+if (LOG_PERF) {
+  require("./timeJson");
+}
+
 async function generateLocLogs({ logServer, locLogs }) {
   console.log("will generate locLogs");
   await new Promise((resolve) => locLogs._db.clear(resolve));

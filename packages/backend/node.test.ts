@@ -93,7 +93,7 @@ describe("Node", () => {
     let { step, execDuration, compileDuration } = await runTest("reactSsr", {
       charIndex: 0,
       ignoreFilePattern: /umd|profiling|production|unstable|test\-utils|scheduler\-tracing|envify|browser|\.min\.js|factoryWithTypeCheckers/,
-      runNTimes: 5,
+      runNTimes: 1,
     });
     console.log({ execDuration, compileDuration });
 
