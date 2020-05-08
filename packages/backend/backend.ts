@@ -941,25 +941,28 @@ function setupBackend(
       // getProxy().registerEvalScript(evalScript);
     });
 
-    logServer.storeLogs(req.body.logs, function () {
-      const timePassed = new Date().valueOf() - startTime.valueOf();
-      const timePer1000 =
-        Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
-      console.log("stored logs", req.body.logs.length);
+    await new Promise((resolve) =>
+      logServer.storeLogs(req.body.logs, function () {
+        const timePassed = new Date().valueOf() - startTime.valueOf();
 
-      res.end(JSON.stringify({ ok: true }));
-      if (LOG_PERF) {
-        console.log(
-          "storing logs took " +
-            timePassed +
-            "ms, per 1000 logs: " +
-            timePer1000 +
-            "ms"
-        );
-      }
-    });
+        console.log("stored logs", req.body.logs.length);
 
-    // fs.writeFileSync("logs.json", JSON.stringify(logServer._storedLogs));
+        if (LOG_PERF) {
+          const timePer1000 =
+            Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
+          console.log(
+            "storing logs took " +
+              timePassed +
+              "ms, per 1000 logs: " +
+              timePer1000 +
+              "ms"
+          );
+        }
+        resolve();
+      })
+    );
+
+    res.end(JSON.stringify({ ok: true }));
   });
 
   app.get("/loadLocForTest/:locId", async (req, res) => {

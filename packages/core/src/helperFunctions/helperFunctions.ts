@@ -99,7 +99,9 @@ function nodePost({ port, path, headers, bodyString }) {
 function makePostToBE({ accessToken, fetch }) {
   return function postToBE(endpoint, data, statsCallback = function(stats) {}) {
     const stringifyStart = new Date();
+    console.time("stringify");
     const body = JSON.stringify(data);
+    console.timeEnd("stringify");
     console.log("body len in mb", body.length / 1024 / 1024);
     const stringifyEnd = new Date();
     if (endpoint === "/storeLogs") {
