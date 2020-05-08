@@ -22,6 +22,7 @@ export default class LevelDBLogServer extends LogServer {
     });
   }
   storeLogs(logs: OperationLog[], callback = function() {}) {
+    console.time("create ops");
     const ops = logs.map(log => {
       return {
         type: "put",
@@ -29,12 +30,16 @@ export default class LevelDBLogServer extends LogServer {
         value: JSON.stringify(log)
       };
     });
+    console.timeEnd("create ops");
 
     // levelDownDb._batch vs db.batch:
     // _batch bypasses some validation code which should help performance a bit
     // ==> using batch for now, was getting napi_create_reference failed errors with _batch
+    // ====> can't find the validation code any more, maybe it was removed?
+    console.time("batch");
     this.levelDownDb.batch(ops, function(err) {
       if (err) return console.log("Ooops!  - level db error (logs)", err);
+      console.timeEnd("batch");
       callback();
     });
   }

@@ -941,6 +941,7 @@ function setupBackend(
       // getProxy().registerEvalScript(evalScript);
     });
 
+    console.log("skip_save", !!process.env.SKIP_SAVE);
     if (!process.env.SKIP_SAVE) {
       await new Promise((resolve) =>
         logServer.storeLogs(req.body.logs, function () {
