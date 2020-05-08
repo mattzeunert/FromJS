@@ -163,7 +163,7 @@ async function sendLogsToServer() {
   }
 
   const data = {
-    logs: logQueue,
+    logs: [],
     evalScripts: evalScriptQueue
   };
 
