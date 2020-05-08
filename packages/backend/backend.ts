@@ -924,20 +924,6 @@ function setupBackend(
         });
       }
     }
-    logServer.storeLogs(req.body.logs, function () {
-      const timePassed = new Date().valueOf() - startTime.valueOf();
-      const timePer1000 =
-        Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
-      if (LOG_PERF) {
-        console.log(
-          "storing logs took " +
-            timePassed +
-            "ms, per 1000 logs: " +
-            timePer1000 +
-            "ms"
-        );
-      }
-    });
 
     req.body.evalScripts.forEach(function (evalScript) {
       locStore.write(evalScript.locs, () => {});
@@ -951,10 +937,25 @@ function setupBackend(
       // getProxy().registerEvalScript(evalScript);
     });
 
-    // fs.writeFileSync("logs.json", JSON.stringify(logServer._storedLogs));
-    console.log("stored logs", req.body.logs.length);
+    logServer.storeLogs(req.body.logs, function () {
+      const timePassed = new Date().valueOf() - startTime.valueOf();
+      const timePer1000 =
+        Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
+      console.log("stored logs", req.body.logs.length);
 
-    res.end(JSON.stringify({ ok: true }));
+      res.end(JSON.stringify({ ok: true }));
+      if (LOG_PERF) {
+        console.log(
+          "storing logs took " +
+            timePassed +
+            "ms, per 1000 logs: " +
+            timePer1000 +
+            "ms"
+        );
+      }
+    });
+
+    // fs.writeFileSync("logs.json", JSON.stringify(logServer._storedLogs));
   });
 
   app.get("/loadLocForTest/:locId", async (req, res) => {

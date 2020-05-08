@@ -182,9 +182,9 @@ async function sendLogsToServer() {
     //   "Can't create worker (maybe already inside a web worker?), will send request in normal thread"
     // );
     inProgressSendLogsRequests++;
-    // if (inProgressSendLogsRequests > 2) {
-    console.log({ inProgressSendLogsRequests });
-    // }
+    if (inProgressSendLogsRequests > 2) {
+      console.log({ inProgressSendLogsRequests });
+    }
     await postToBE("/storeLogs", data);
     console.log("done save");
     inProgressSendLogsRequests--;
