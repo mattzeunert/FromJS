@@ -6,6 +6,7 @@ export function initSessionDirectory(options: BackendOptions) {
     options.sessionDirectory,
     options.getCertDirectory(),
     options.getTrackingDataDirectory(),
+    options.sessionDirectory + "/requestQueue",
     options.sessionDirectory + "/files",
     options.sessionDirectory + "/locsByUrl",
   ];

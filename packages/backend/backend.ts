@@ -20,6 +20,7 @@ import { RequestHandler } from "./RequestHandler";
 import * as puppeteer from "puppeteer";
 import { initSessionDirectory } from "./initSession";
 import { compileNodeApp } from "./compileNodeApp";
+import * as axios from "axios";
 
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
@@ -148,7 +149,8 @@ async function generateLocLogs({ logServer, locLogs }) {
 }
 
 export default class Backend {
-  constructor(options: BackendOptions) {
+  sessionConfig = null;
+  constructor(private options: BackendOptions) {
     console.time("create backend");
 
     if (DELETE_EXISTING_LOGS_AT_START) {
@@ -189,6 +191,7 @@ export default class Backend {
       saveSessionConfig();
       console.log("Saved session config");
     }
+    this.sessionConfig = sessionConfig;
 
     var { bePort, proxyPort } = options;
 
@@ -332,6 +335,29 @@ export default class Backend {
       options.onReady({ requestHandler, logServer });
     });
   }
+
+  async processRequestQueue() {
+    const queueFiles = fs.readdirSync(
+      this.options.sessionDirectory + "/requestQueue"
+    );
+    console.log({ queueFiles });
+    for (const queueFile of queueFiles) {
+      let filePath =
+        this.options.sessionDirectory + "/requestQueue/" + queueFile;
+      const content = fs.readFileSync(filePath, "utf-8");
+      const lines = content.split("\n");
+
+      await axios({
+        url: "http://localhost:" + this.options.bePort + lines[0],
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: (this.sessionConfig! as any).accessToken,
+        },
+        data: lines[1],
+      });
+    }
+  }
 }
 
 function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
@@ -353,6 +379,13 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
         })
       );
     }
+  });
+
+  app.get("/sessionInfo", (req, res) => {
+    console.log("req to /sessionInfo");
+    res.json({
+      requestQueueDirectory: options.sessionDirectory + "/requestQueue",
+    });
   });
 
   app.get("/fromJSInitPage", (req, res) => {

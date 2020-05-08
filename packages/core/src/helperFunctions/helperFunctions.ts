@@ -58,32 +58,33 @@ function checkDone() {
   }
 }
 
-function nodePost({ port, path, headers, bodyString }) {
+function nodeHttpReq({ port, path, headers, bodyString, method }) {
   return new Promise(resolve => {
-    // eval, otherwise webpack will replace it
+    /* eval, otherwise webpack will replace it*/
     const https = eval(`require("http")`);
 
     const options = {
       hostname: "localhost",
       port: port,
       path: path,
-      method: "POST",
+      method,
       headers: {
         ...headers,
         "Content-Type": "application/json"
-        // "Content-Length": bodyString.length
       }
     };
 
     const req = https.request(options, res => {
       console.log(`statusCode: ${res.statusCode}`);
 
+      let resStr = "";
       res.on("data", d => {
         console.log(d.toString());
+        resStr += d.toString();
       });
       res.on("end", d => {
         console.log("req end");
-        resolve();
+        resolve(resStr);
       });
     });
 
@@ -91,9 +92,44 @@ function nodePost({ port, path, headers, bodyString }) {
       console.error(error);
     });
 
-    req.write(bodyString);
+    if (bodyString) {
+      req.write(bodyString);
+    }
     req.end();
   });
+}
+
+let backendPort = "BACKEND_PORT_PLACEHOLDER";
+
+let requestQueueDirectory;
+
+if (global.fromJSIsNode) {
+  const cmd = `node -e "eval(decodeURIComponent(\\"${encodeURIComponent(
+    nodeHttpReq.toString() +
+      `;nodeHttpReq({port: ${backendPort}, path: '/sessionInfo', headers: {}, method: 'GET'}).then(r => console.log('RES_'+r+'_RES'));`
+  )}\\"))"`;
+  console.log(cmd);
+  const r = eval("require('child_process')").execSync(cmd);
+  const sessionInfo = JSON.parse(r.toString().match(/RES_(.*)_RES/)[1]);
+  console.log({ sessionInfo });
+  requestQueueDirectory = sessionInfo.requestQueueDirectory;
+}
+
+function nodePost({ port, path, headers, bodyString }) {
+  if (requestQueueDirectory) {
+    require("fs").writeFileSync(
+      requestQueueDirectory +
+        "/" +
+        new Date().valueOf() +
+        "_" +
+        Math.round(Math.random() * 1000) +
+        ".json",
+      path + "\n" + bodyString
+    );
+    return Promise.resolve({});
+  }
+
+  return nodeHttpReq({ port, path, headers, bodyString, method: "POST" });
 }
 
 function makePostToBE({ accessToken, fetch }) {
@@ -110,8 +146,6 @@ function makePostToBE({ accessToken, fetch }) {
         stringifyTime: stringifyEnd.valueOf() - stringifyStart.valueOf()
       });
     }
-
-    let backendPort = "BACKEND_PORT_PLACEHOLDER";
 
     const headers = {
       Accept: "application/json",
@@ -163,7 +197,7 @@ async function sendLogsToServer() {
   }
 
   const data = {
-    logs: [],
+    logs: logQueue,
     evalScripts: evalScriptQueue
   };
 

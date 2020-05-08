@@ -14,7 +14,7 @@ const backendPort = 1510 + Math.floor(Math.random() * 80);
 
 describe("Node", () => {
   let sessionDirectory = outdir + "/session";
-  let requestHandler, logServer;
+  let requestHandler, logServer, backend;
   beforeAll(async () => {
     rimraf.sync(outdir);
     fs.mkdirSync(outdir);
@@ -24,7 +24,7 @@ describe("Node", () => {
         bePort: backendPort,
         onReady: resolve,
       } as any);
-      const backend = new Backend(beOptions);
+      backend = new Backend(beOptions);
     }));
     console.log("Done create backend", backendPort);
   }, 10000);
@@ -54,6 +54,7 @@ describe("Node", () => {
       ));
     }
     let execDuration = new Date().valueOf() - execStart.valueOf();
+    backend.processRequestQueue();
 
     console.log({ execDuration });
 
@@ -116,13 +117,16 @@ export function getCmdOutput(
     let stderr = "";
     exec(cmd, (_err, _stdout, _stderr) => {
       if (_err) {
+        console.log("[err]", _err.toString());
         err += _err.toString();
       }
       if (_stdout) {
         stdout += _stdout.toString();
+        console.log("[std] ", _stdout.toString());
       }
       if (_stderr) {
         stderr += _stderr.toString();
+        console.log("[err]", _stderr.toString());
       }
     }).on("exit", (code) => {
       // Wait to receive all output
