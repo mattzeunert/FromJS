@@ -937,23 +937,24 @@ function setupBackend(
       // getProxy().registerEvalScript(evalScript);
     });
 
-    logServer.storeLogs(req.body.logs, function () {
-      const timePassed = new Date().valueOf() - startTime.valueOf();
-      const timePer1000 =
-        Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
-      console.log("stored logs", req.body.logs.length);
+    res.end(JSON.stringify({ ok: true }));
+    // logServer.storeLogs(req.body.logs, function () {
+    //   const timePassed = new Date().valueOf() - startTime.valueOf();
+    //   const timePer1000 =
+    //     Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
+    //   console.log("stored logs", req.body.logs.length);
 
-      res.end(JSON.stringify({ ok: true }));
-      if (LOG_PERF) {
-        console.log(
-          "storing logs took " +
-            timePassed +
-            "ms, per 1000 logs: " +
-            timePer1000 +
-            "ms"
-        );
-      }
-    });
+    //   res.end(JSON.stringify({ ok: true }));
+    //   if (LOG_PERF) {
+    //     console.log(
+    //       "storing logs took " +
+    //         timePassed +
+    //         "ms, per 1000 logs: " +
+    //         timePer1000 +
+    //         "ms"
+    //     );
+    //   }
+    // });
 
     // fs.writeFileSync("logs.json", JSON.stringify(logServer._storedLogs));
   });
