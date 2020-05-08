@@ -22,14 +22,12 @@ export default class LevelDBLogServer extends LogServer {
     });
   }
   storeLogs(logs: OperationLog[], callback = function() {}) {
-    var ops: any[] = [];
-
-    logs.forEach(log => {
-      ops.push({
+    const ops = logs.map(log => {
+      return {
         type: "put",
         key: log.index.toString(),
         value: JSON.stringify(log)
-      });
+      };
     });
 
     // levelDownDb._batch vs db.batch:
