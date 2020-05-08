@@ -341,7 +341,10 @@ export default class Backend {
       this.options.sessionDirectory + "/requestQueue"
     );
     console.log({ queueFiles });
+    let i = 0;
     for (const queueFile of queueFiles) {
+      i++;
+
       let filePath =
         this.options.sessionDirectory + "/requestQueue/" + queueFile;
       const content = fs.readFileSync(filePath, "utf-8");
@@ -356,6 +359,12 @@ export default class Backend {
         },
         data: lines[1],
       });
+      console.log(
+        "done process queue file",
+        queueFile,
+        i + "/" + queueFiles.length
+      );
+      fs.unlinkSync(filePath);
     }
   }
 }

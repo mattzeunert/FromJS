@@ -54,9 +54,13 @@ describe("Node", () => {
       ));
     }
     let execDuration = new Date().valueOf() - execStart.valueOf();
-    backend.processRequestQueue();
 
-    console.log({ execDuration });
+    const processRequestQueueStart = new Date();
+    await backend.processRequestQueue();
+    let processRequestQueueDuration =
+      new Date().valueOf() - processRequestQueueStart.valueOf();
+
+    console.log({ execDuration, processRequestQueueDuration });
 
     console.log(stdout);
     let inspectIndex = parseFloat(
@@ -94,13 +98,13 @@ describe("Node", () => {
     let { step, execDuration, compileDuration } = await runTest("reactSsr", {
       charIndex: 0,
       ignoreFilePattern: /umd|profiling|production|unstable|test\-utils|scheduler\-tracing|envify|browser|\.min\.js|factoryWithTypeCheckers/,
-      runNTimes: 1,
+      runNTimes: 5,
     });
     console.log({ execDuration, compileDuration });
 
     // for now don't really care to much about the exact traversal
     expect(step.operationLog.operation).toBe("callExpression");
-  }, 60000);
+  }, 80000);
 });
 
 export function getCmdOutput(
