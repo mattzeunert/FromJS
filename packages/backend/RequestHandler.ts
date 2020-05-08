@@ -286,7 +286,7 @@ export class RequestHandler {
           console.log("got response with error");
           throw response.error;
         }
-        console.log("timeTakenMs", response.timeTakenMs);
+        // console.log("timeTakenMs", response.timeTakenMs);
         if (response.timeTakenMs > 2000) {
           const sizeBeforeString = prettyBytes(response.sizeBefore);
           const sizeAfterString = prettyBytes(response.sizeAfter);
@@ -413,7 +413,7 @@ export class RequestHandler {
     // }
     let response = await this._requestProcessCode(body, url, details);
     var { code, map, locs, timeTakenMs, sizeBefore, sizeAfter } = <any>response;
-    console.log("req process code done", url);
+    // console.log("req process code done", url);
 
     if (timeTakenMs > 2000) {
       const sizeBeforeString = prettyBytes(sizeBefore);

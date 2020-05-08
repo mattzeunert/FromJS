@@ -63,8 +63,6 @@ function nodePost({ port, path, headers, bodyString }) {
     // eval, otherwise webpack will replace it
     const https = eval(`require("http")`);
 
-    console.log({ port, path });
-
     const options = {
       hostname: "localhost",
       port: port,

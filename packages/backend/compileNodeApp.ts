@@ -2,15 +2,18 @@ import * as pMap from "p-map";
 import * as fs from "fs";
 import { RequestHandler } from "./RequestHandler";
 import * as path from "path";
+import prettyBytes = require("pretty-bytes");
 
 export async function compileNodeApp({
   directory,
   requestHandler,
   outdir,
+  ignoreFilePattern,
 }: {
   directory: string;
   requestHandler: RequestHandler;
   outdir: string;
+  ignoreFilePattern?: RegExp;
 }) {
   let files = getNodeFiles(directory, "");
 
@@ -19,17 +22,22 @@ export async function compileNodeApp({
     async (file, i) => {
       const outFilePath = path.resolve(outdir, file.subdirectory, file.name);
       if (
+        ignoreFilePattern &&
+        ignoreFilePattern.test(file.subdirectory + file.name)
+      ) {
+        return;
+      }
+
+      if (
         fs.existsSync(outFilePath) &&
         (file.subdirectory !== "" || file.name !== "test.js") &&
         !file.name.includes("driver.js") &&
         !file.name.includes("page-functions.js")
         // !file.name.includes("compiler")
       ) {
-        console.log("skipping", outFilePath);
+        // console.log("skipping", outFilePath);
         return;
       }
-
-      console.log("## " + file.relativePath, `${i}/${files.length}`);
 
       let fileContent = fs.readFileSync(
         path.resolve(directory, file.relativePath),
@@ -42,7 +50,10 @@ export async function compileNodeApp({
         !file.subdirectory.includes("locale-data") &&
         !file.subdirectory.includes("jsdoc")
       ) {
-        console.log("should compile", outFilePath);
+        console.log(
+          "## " + file.relativePath,
+          ` ${prettyBytes(fileContent.length)} | ${i}/${files.length}`
+        );
         try {
           const r = (await requestHandler.instrumentForEval(fileContent, {
             type: "node_",
@@ -60,7 +71,7 @@ export async function compileNodeApp({
             ;global.self = global; global.fromJSIsNode = true;\n` +
               r.instrumentedCode
           );
-          console.log("write", outFilePath);
+          //   console.log("write", outFilePath);
         } catch (err) {
           console.log(
             "Comopile code failed, will write normal",

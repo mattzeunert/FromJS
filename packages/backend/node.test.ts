@@ -29,17 +29,33 @@ describe("Node", () => {
     console.log("Done create backend", backendPort);
   }, 10000);
 
-  async function runTest(testName, { charIndex }) {
+  async function runTest(
+    testName,
+    { charIndex, ignoreFilePattern = null as any, runNTimes = 1 }
+  ) {
     console.log("will compile node app");
+    const compileStart = new Date();
     await compileNodeApp({
       directory: "packages/backend/nodeTestFixtures/" + testName,
       requestHandler,
       outdir: outdir + "/" + testName,
+      ignoreFilePattern,
     });
+    let compileDuration = new Date().valueOf() - compileStart.valueOf();
+
     console.log("file", path.resolve(outdir, testName, testName + ".js"));
-    const { stdout } = await getCmdOutput(
-      "node " + path.resolve(outdir, testName, testName + ".js")
-    );
+
+    let stdout;
+
+    const execStart = new Date();
+    for (var i = 0; i < runNTimes; i++) {
+      ({ stdout } = await getCmdOutput(
+        "node " + path.resolve(outdir, testName, testName + ".js")
+      ));
+    }
+    let execDuration = new Date().valueOf() - execStart.valueOf();
+
+    console.log({ execDuration });
 
     console.log(stdout);
     let inspectIndex = parseFloat(
@@ -56,7 +72,7 @@ describe("Node", () => {
       { optimistic: true }
     );
     const lastStep = steps[steps.length - 1];
-    return { step: lastStep };
+    return { step: lastStep, execDuration, compileDuration };
   }
 
   it("Can read uninstrumented contents of a js file", async () => {
@@ -72,6 +88,18 @@ describe("Node", () => {
 
     expect(step.operationLog.operation).toBe("jsonParseResult");
   }, 15000);
+
+  it("reactSsr", async () => {
+    let { step, execDuration, compileDuration } = await runTest("reactSsr", {
+      charIndex: 0,
+      ignoreFilePattern: /umd|profiling|production|unstable|test\-utils|scheduler\-tracing|envify|browser|\.min\.js|factoryWithTypeCheckers/,
+      runNTimes: 5,
+    });
+    console.log({ execDuration, compileDuration });
+
+    // for now don't really care to much about the exact traversal
+    expect(step.operationLog.operation).toBe("callExpression");
+  }, 60000);
 });
 
 export function getCmdOutput(
