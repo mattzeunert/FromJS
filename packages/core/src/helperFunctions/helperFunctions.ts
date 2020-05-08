@@ -167,6 +167,9 @@ async function sendLogsToServer() {
     evalScripts: evalScriptQueue
   };
 
+  logQueue = [];
+  evalScriptQueue = [];
+
   if (worker) {
     // Doing this means the data will be cloned, but it seems to be
     // reasonably fast anyway
@@ -186,9 +189,6 @@ async function sendLogsToServer() {
     console.log("done save");
     inProgressSendLogsRequests--;
   }
-
-  logQueue = [];
-  evalScriptQueue = [];
 }
 // If page laods quickly try to send data to BE soon, later on wait
 // 1s between requests
