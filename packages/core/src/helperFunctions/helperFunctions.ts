@@ -659,7 +659,7 @@ function makeDoOperation(opName: string) {
 
     lastOperationType = opName;
 
-    if (logQueue.length > 50000) {
+    if (logQueue.length > 100000) {
       // avoid running out of memory
       sendLogsToServer();
     }
