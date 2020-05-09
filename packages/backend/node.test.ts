@@ -127,7 +127,6 @@ describe("Node", () => {
         runNTimes: 1,
       }
     );
-    console.log({ execDuration, compileDuration });
 
     const { step } = await traverse(0);
     // for now don't really care to much about the exact traversal

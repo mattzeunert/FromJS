@@ -14,10 +14,10 @@ export const getOperationIndex = (function() {
   var operationIndexBase = Math.round(
     Math.random() * 1000 * 1000 * 1000 * 1000 * 1000
   );
-  var operationIndex = 0;
+  var operationIndex = operationIndexBase;
   return function getOperationIndex() {
     operationIndex++;
-    return operationIndexBase + operationIndex;
+    return operationIndex;
   };
 })();
 
