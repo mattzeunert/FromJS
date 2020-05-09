@@ -332,9 +332,14 @@ export default class Backend {
     });
 
     console.timeLog("create backend", "end of function");
-    Promise.all([proxyReady, serverReady]).then(function () {
+    Promise.all([proxyReady, serverReady]).then(async () => {
       console.timeEnd("create backend");
       console.log("Server listening on port " + bePort);
+
+      if (process.env.PROCESS_REQUEST_QUEUE) {
+        await this.processRequestQueue();
+      }
+
       options.onReady({ requestHandler, logServer });
     });
   }
