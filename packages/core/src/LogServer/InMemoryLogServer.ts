@@ -18,7 +18,7 @@ export default class InMemoryLogServer extends LogServer {
     logs.forEach(log => this.storeLog(log));
     callback();
   }
-  getLog(index: number, fn: (err: any, null: string | null) => void) {
+  getLog(index: number, fn: (err: any, log: string | null) => void) {
     var log = this._storedLogs[index];
     if (!log) {
       fn(Error("log not found, index is: " + index), null);
@@ -27,7 +27,7 @@ export default class InMemoryLogServer extends LogServer {
 
     // deep clone log so we can modify it without affecting the original
     // possibly slow, can fix later
-    log = JSON.stringify(log);
-    fn(null, log);
+    const str = JSON.stringify(log);
+    fn(null, str);
   }
 }
