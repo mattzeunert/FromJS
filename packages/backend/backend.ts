@@ -353,6 +353,7 @@ export default class Backend {
       const content = fs.readFileSync(filePath, "utf-8");
       const lines = content.split("\n");
 
+      //@ts-ignore
       await axios({
         url: "http://localhost:" + this.options.bePort + lines[0],
         method: "POST",
