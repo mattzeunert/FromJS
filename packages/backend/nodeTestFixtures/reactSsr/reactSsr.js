@@ -9,7 +9,7 @@ const ReactDOMServer = require("react-dom/server")
   })}</div>
 */
 
-const arr = Array.from(new Array(10000)).map((v, i) => { return i.toString() });
+const arr = Array.from(new Array(500)).map((v, i) => { return i.toString() });
 
 const html = ReactDOMServer.renderToString(
     React.createElement("div", null, arr.map(function (num) {
