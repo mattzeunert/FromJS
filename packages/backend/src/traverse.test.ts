@@ -23,6 +23,7 @@ test("Can track concatenation of 'a' and 'b' - (simple)", async () => {
   expect(normal).toBe("ab");
   var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
   var t2 = await traverse({ operationLog: tracking, charIndex: 1 });
+  expect(t1[0].operationLog.result.primitive).toBe("ab");
   var t1LastStep = t1[t1.length - 1];
   var t2LastStep = t2[t2.length - 1];
   expect(t1LastStep.operationLog.operation).toBe("stringLiteral");

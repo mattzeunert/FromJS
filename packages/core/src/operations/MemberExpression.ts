@@ -18,7 +18,7 @@ export const MemberExpression = <any>{
   argNames: ["object", "propName"],
   canInferResult: function(args, extraArgs) {
     // identifier will always return same value as var value
-    return !!extraArgs.propertyValue;
+    return !!extraArgs.propertyValue[1];
   },
   shorthand: {
     fnName: "__mEx",

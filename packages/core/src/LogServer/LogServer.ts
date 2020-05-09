@@ -11,6 +11,17 @@ export class LogServer {
     this._locStore = locStore;
   }
   getLog(logIndex: number, cb: any) {}
+  // _getLogAwaitable(logIndex: number) {
+  //   return new Promise((resolve, reject) => {
+  //     this._getLog(logIndex, (err, log) => {
+  //       if (err) {
+  //         reject(err);
+  //       } else {
+  //         resolve(log);
+  //       }
+  //     });
+  //   });
+  // }
   _getLog(logIndex: number, cb: any) {
     this.getLog(logIndex, (err, val) => {
       let log;
@@ -165,7 +176,7 @@ export class LogServer {
   }
 
   _getLogResult(log: OperationLog) {
-    return new Promise(resolve => {
+    return new Promise(async resolve => {
       const tryGetResult = parentIndex => {
         // notes:
         // - we can't use getLog because the parent operation could also be an identifier
@@ -191,6 +202,13 @@ export class LogServer {
           tryGetResult(log.args.returnValue);
         } else if (log.operation === "memberExpression") {
           tryGetResult(log.extraArgs.propertyValue);
+        } else if (log.operation === "binaryExpression") {
+          // infer is only enabled if both args are strings,
+          // so we can assume that's the case
+          const left = await this.loadLogAwaitable(log.args.left, 1);
+          const right = await this.loadLogAwaitable(log.args.right, 1);
+
+          resolve(left._result + right._result);
         } else {
           throw "no res... possibly because of MINIMIZA_LOG_DATA";
         }

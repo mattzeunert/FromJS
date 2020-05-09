@@ -278,6 +278,16 @@ OperationLog.createAtRuntime = function(
     );
   }
 
+  let canInfer = false;
+  if (MINIMIZE_LOG_DATA_SIZE) {
+    let opCanInfer = op && op.canInferResult;
+    if (typeof opCanInfer === "boolean") {
+      canInfer = opCanInfer;
+    } else if (typeof opCanInfer === "function" && args) {
+      canInfer = opCanInfer(args, extraArgs);
+    }
+  }
+
   if (astArgs && countObjectKeys(astArgs) === 0) {
     astArgs = undefined;
   }
@@ -346,15 +356,6 @@ OperationLog.createAtRuntime = function(
   }
 
   let _result;
-  let canInfer = false;
-  if (MINIMIZE_LOG_DATA_SIZE) {
-    let opCanInfer = op && op.canInferResult;
-    if (typeof opCanInfer === "boolean") {
-      canInfer = opCanInfer;
-    } else if (typeof opCanInfer === "function" && args) {
-      canInfer = opCanInfer(args, extraArgs);
-    }
-  }
   if (canInfer) {
     // args can be inferred on BE by checking the AST loc data, or by checking argument values
   } else {

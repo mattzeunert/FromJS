@@ -21,7 +21,6 @@ export function createLoc(value) {
 }
 export function getAndResetLocs() {
   var ret = locs;
-  console.log("locCount", Object.keys(locs).length);
   locIndex = 0;
   locs = {};
 

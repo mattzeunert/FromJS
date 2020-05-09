@@ -96,6 +96,16 @@ interface Operations {
 const operations: Operations = {
   memberExpression: MemberExpression,
   binaryExpression: {
+    canInferResult: function(args) {
+      const { left, right } = args;
+      if (!left[1] || !right[1]) {
+        return false;
+      }
+      if (typeof left[0] !== "string" || typeof right[0] !== "string") {
+        return false;
+      }
+      return true;
+    },
     visitor(path) {
       if (!["+", "-", "/", "*"].includes(path.node.operator)) {
         return;
@@ -626,7 +636,7 @@ const operations: Operations = {
     argNames: ["returnValue"],
     canInferResult: function(args) {
       // return statement will always return returned value
-      return !!args[0];
+      return !!args[0][1];
     },
     exec: function returnStatementExec(
       args,
@@ -656,7 +666,7 @@ const operations: Operations = {
     argNames: ["value"],
     canInferResult: function(args) {
       // identifier will always return same value as var value
-      return !!args[0];
+      return !!args[0][1];
     },
     shorthand: {
       fnName: "__ident",
