@@ -205,8 +205,8 @@ export class LogServer {
         } else if (log.operation === "binaryExpression") {
           // infer is only enabled if both args are strings,
           // so we can assume that's the case
-          const left = await this.loadLogAwaitable(log.args.left, 1);
-          const right = await this.loadLogAwaitable(log.args.right, 1);
+          const left = (await this.loadLogAwaitable(log.args.left, 1)) as any;
+          const right = (await this.loadLogAwaitable(log.args.right, 1)) as any;
 
           resolve(left._result + right._result);
         } else {
