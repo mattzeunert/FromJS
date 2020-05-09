@@ -20,7 +20,9 @@ export const VERIFY = false;
 // Only use for debugging, this can use a lot of memory
 export const KEEP_LOGS_IN_MEMORY = false;
 
-export const EXPLICIT_NAMES = false;
+export const SHORT_NAMES = true;
+// don't use this one, use short_names
+export const EXPLICIT_NAMES = !SHORT_NAMES;
 
 export const MINIMIZE_LOG_DATA_SIZE = true;
 
