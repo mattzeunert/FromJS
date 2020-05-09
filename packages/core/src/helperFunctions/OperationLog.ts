@@ -4,7 +4,7 @@ import invokeIfFunction from "../invokeIfFunction";
 import { consoleLog } from "./logging";
 import { countObjectKeys } from "../util";
 import { ValueTrackingValuePair } from "../types";
-import { getShortOperationName } from "../names";
+import { getShortOperationName, getLongOperationName } from "../names";
 
 var global = Function("return this")();
 
@@ -272,7 +272,10 @@ OperationLog.createAtRuntime = function(
   op
 ): OperationLogInterface {
   if (VERIFY && !loc) {
-    consoleLog("no loc at runtime for operation", operation);
+    consoleLog(
+      "no loc at runtime for operation",
+      getLongOperationName(operation)
+    );
   }
 
   if (astArgs && countObjectKeys(astArgs) === 0) {
@@ -359,7 +362,7 @@ OperationLog.createAtRuntime = function(
   }
 
   return <OperationLogInterface>{
-    operation: getShortOperationName(operation),
+    operation,
     _result,
     index,
     extraArgs,

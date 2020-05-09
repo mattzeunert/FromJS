@@ -15,6 +15,7 @@ import mapInnerHTMLAssignment from "../operations/domHelpers/mapInnerHTMLAssignm
 import { CreateOperationLogArgs, ValueTrackingValuePair } from "../types";
 import { traverseObject } from "../traverseObject";
 import * as objectPath from "object-path";
+import { getShortOperationName } from "../names";
 
 const accessToken = "ACCESS_TOKEN_PLACEHOLDER";
 
@@ -676,10 +677,11 @@ let opExecCount = 0;
 
 function makeDoOperation(opName: string, op) {
   const opExec = op.exec;
+  const shortName = getShortOperationName(opName);
   return function ___op(objArgs, astArgs, loc) {
     let index = getOperationIndex();
     let logData: any = {
-      operation: opName,
+      operation: shortName,
       args: objArgs,
       astArgs: astArgs,
       loc,
