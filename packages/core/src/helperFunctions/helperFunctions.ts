@@ -251,11 +251,11 @@ const storeLog =
   typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog;
 
 let lastOperationType = null;
-function createOperationLog(args: CreateOperationLogArgs) {
+function createOperationLog(args: CreateOperationLogArgs, op) {
   if (SKIP_TRACKING) {
     return 1111;
   }
-  var log = OperationLog.createAtRuntime(args, knownValues);
+  var log = OperationLog.createAtRuntime(args, knownValues, op);
   storeLog(log);
 
   if (KEEP_LOGS_IN_MEMORY) {
@@ -479,7 +479,7 @@ global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
     index: getOperationIndex()
   };
 
-  return createOperationLog(logData);
+  return createOperationLog(logData, operations["emptyTrackingInfo"]);
 };
 global[FunctionNames.expandArrayForArrayPattern] = function(
   arr,
@@ -599,7 +599,7 @@ const ctx: ExecContext = {
   hasInstrumentationFunction: typeof global["__fromJSEval"] === "function",
   createOperationLog: function(args) {
     args.index = getOperationIndex();
-    return createOperationLog(args);
+    return createOperationLog(args, operations[args.operation]);
   },
   createArrayIndexOperationLog(index, loc) {
     if (index > MAX_TRACKED_ARRAY_INDEX) {
@@ -672,7 +672,8 @@ let lastOpTrackingResultWithoutResetting = null;
 
 let opExecCount = 0;
 
-function makeDoOperation(opName: string, opExec) {
+function makeDoOperation(opName: string, op) {
+  const opExec = op.exec;
   return function ___op(objArgs, astArgs, loc) {
     var trackingValue;
 
@@ -688,7 +689,7 @@ function makeDoOperation(opName: string, opExec) {
     opExecCount++;
 
     logData.result = ret;
-    trackingValue = createOperationLog(logData);
+    trackingValue = createOperationLog(logData, op);
 
     lastOpValueResult = ret;
 
@@ -717,7 +718,7 @@ global[FunctionNames.doOperation] = function ___op(
 
 Object.keys(operations).forEach(opName => {
   const op = operations[opName];
-  const doOpFunction = makeDoOperation(opName, op.exec);
+  const doOpFunction = makeDoOperation(opName, op);
 
   // The object creation in so many places is expensive
   // so some simple ops have a shorthand function that
@@ -831,15 +832,18 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
       .querySelectorAll("[data-fromjs-remove-before-initial-html-mapping]")
       .forEach(el => el.remove());
 
-    const initialHtmlTrackingValue = createOperationLog({
-      operation: OperationTypes.initialPageHtml,
-      index: window["__fromJSInitialPageHtmlLogIndex"],
-      args: {},
-      runtimeArgs: {
-        url: location.href
+    const initialHtmlTrackingValue = createOperationLog(
+      {
+        operation: OperationTypes.initialPageHtml,
+        index: window["__fromJSInitialPageHtmlLogIndex"],
+        args: {},
+        runtimeArgs: {
+          url: location.href
+        },
+        result: initialPageHtml
       },
-      result: initialPageHtml
-    });
+      operations[OperationTypes.initialPageHtml]
+    );
 
     mapPageHtml(
       document,

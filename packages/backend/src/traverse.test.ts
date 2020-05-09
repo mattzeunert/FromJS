@@ -18,7 +18,7 @@ function getStepTypeList(traversalResult) {
   return traversalResult.map((t) => t.operationLog.operation);
 }
 
-test("Can track concatenation of 'a' and 'b'", async () => {
+test("Can track concatenation of 'a' and 'b' - (simple)", async () => {
   const { normal, tracking, code } = await instrumentAndRun("return 'a' + 'b'");
   expect(normal).toBe("ab");
   var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
@@ -688,6 +688,7 @@ it("Can traverse arguments for a function expression (rather than a function dec
     }
     return fn("a")
   `);
+  console.log(code);
   expect(normal).toBe("a");
   var t = await traverse({ operationLog: tracking, charIndex: 0 });
   const tLastStep = t[t.length - 1];

@@ -238,8 +238,8 @@ export default class OperationLog implements OperationLogInterface {
 interface CreateAtRuntimeArg {
   operation: string;
   result: any;
-  args:  // Simple arg data, something like { originValue: ["hello", 2638723923] }
-    | { [argName: string]: ValueTrackingValuePair }
+  args: // Simple arg data, something like { originValue: ["hello", 2638723923] }
+  | { [argName: string]: ValueTrackingValuePair }
     // For object literals
     | {
         properties: {
@@ -269,12 +269,12 @@ OperationLog.createAtRuntime = function(
     runtimeArgs,
     index
   }: CreateAtRuntimeArg,
-  knownValues
+  knownValues,
+  op
 ): OperationLogInterface {
   if (VERIFY && !loc) {
     consoleLog("no loc at runtime for operation", operation);
   }
-  const op = operations[operation];
 
   if (astArgs && countObjectKeys(astArgs) === 0) {
     astArgs = undefined;
