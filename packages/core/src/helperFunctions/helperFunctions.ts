@@ -264,8 +264,6 @@ function createOperationLog(args: CreateOperationLogArgs, op) {
     global["__debugAllLogs"] = global["__debugAllLogs"] || {};
     global["__debugAllLogs"][log.index] = log;
   }
-
-  return log.index;
 }
 
 if (KEEP_LOGS_IN_MEMORY) {
@@ -470,16 +468,18 @@ global[FunctionNames.getLastMemberExpressionObject] = function() {
 };
 
 global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
+  let index = getOperationIndex();
   let logData: any = {
     operation: "emptyTrackingInfo",
     args: {},
     runtimeArgs: { type },
     astArgs: {},
     loc,
-    index: getOperationIndex()
+    index
   };
 
-  return createOperationLog(logData, operations["emptyTrackingInfo"]);
+  createOperationLog(logData, operations["emptyTrackingInfo"]);
+  return index;
 };
 global[FunctionNames.expandArrayForArrayPattern] = function(
   arr,
@@ -598,8 +598,10 @@ const ctx: ExecContext = {
   trackObjectPropertyAssignment,
   hasInstrumentationFunction: typeof global["__fromJSEval"] === "function",
   createOperationLog: function(args) {
-    args.index = getOperationIndex();
-    return createOperationLog(args, operations[args.operation]);
+    let index = getOperationIndex();
+    args.index = index;
+    createOperationLog(args, operations[args.operation]);
+    return index;
   },
   createArrayIndexOperationLog(index, loc) {
     if (index > MAX_TRACKED_ARRAY_INDEX) {
@@ -675,26 +677,25 @@ let opExecCount = 0;
 function makeDoOperation(opName: string, op) {
   const opExec = op.exec;
   return function ___op(objArgs, astArgs, loc) {
-    var trackingValue;
-
+    let index = getOperationIndex();
     let logData: any = {
       operation: opName,
       args: objArgs,
       astArgs: astArgs,
       loc,
-      index: getOperationIndex()
+      index
     };
 
     var ret = opExec(objArgs, astArgs, ctx, logData);
     opExecCount++;
 
     logData.result = ret;
-    trackingValue = createOperationLog(logData, op);
+    createOperationLog(logData, op);
 
     lastOpValueResult = ret;
 
-    lastOpTrackingResultWithoutResetting = trackingValue;
-    setLastOpTrackingResult(trackingValue);
+    lastOpTrackingResultWithoutResetting = index;
+    setLastOpTrackingResult(index);
 
     lastOperationType = opName;
 
@@ -832,10 +833,12 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
       .querySelectorAll("[data-fromjs-remove-before-initial-html-mapping]")
       .forEach(el => el.remove());
 
-    const initialHtmlTrackingValue = createOperationLog(
+    const tvIndex = window["__fromJSInitialPageHtmlLogIndex"];
+
+    createOperationLog(
       {
         operation: OperationTypes.initialPageHtml,
-        index: window["__fromJSInitialPageHtmlLogIndex"],
+        index: tvIndex,
         args: {},
         runtimeArgs: {
           url: location.href
@@ -845,12 +848,7 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
       operations[OperationTypes.initialPageHtml]
     );
 
-    mapPageHtml(
-      document,
-      initialPageHtml,
-      initialHtmlTrackingValue,
-      "initial page html"
-    );
+    mapPageHtml(document, initialPageHtml, tvIndex, "initial page html");
 
     global["__fromJSDidMapInitialPageHTML"] = true;
   }
