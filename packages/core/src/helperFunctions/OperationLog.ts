@@ -360,7 +360,7 @@ OperationLog.createAtRuntime = function(
   }
 
   return <OperationLogInterface>{
-    operation,
+    operation: operation === "identifier" ? "ii" : operation,
     _result,
     index,
     extraArgs,

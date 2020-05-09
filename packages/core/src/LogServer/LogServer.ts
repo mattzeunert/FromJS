@@ -10,6 +10,16 @@ export class LogServer {
     this._locStore = locStore;
   }
   getLog(logIndex: number, cb: any) {}
+  _getLog(logIndex: number, cb: any) {
+    this.getLog(logIndex, (err, log) => {
+      if (log) {
+        if (log.operation === "ii") {
+          log.operation = "identifier";
+        }
+      }
+      cb(err, log);
+    });
+  }
   hasLog(logIndex: number, cb: (hasLog: boolean) => void) {
     this.loadLog(
       logIndex,
@@ -27,7 +37,7 @@ export class LogServer {
     } else {
       logIndex = log.index;
     }
-    this.getLog(logIndex, (err, log) => {
+    this._getLog(logIndex, (err, log) => {
       if (log === undefined) {
         debugger;
       }
@@ -133,7 +143,7 @@ export class LogServer {
   }
 
   _getLogAndLoadLocData(logIndex, cb) {
-    this.getLog(logIndex, (err, log) => {
+    this._getLog(logIndex, (err, log) => {
       if (err) {
         cb(err);
       } else {
