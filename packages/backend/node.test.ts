@@ -113,8 +113,14 @@ describe("Node", () => {
       {}
     );
 
-    const { step } = await traverse(0);
+    let { step } = await traverse(0);
     expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("Hello");
+
+    ({ step } = await traverse("Hello".length));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("World");
+    expect(step.charIndex).toBe(0);
   }, 80000);
 });
 

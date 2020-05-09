@@ -1,11 +1,13 @@
 const fs = require("fs")
-const str = "Hello"
 
-let path = "./test.txt"
+let path1 = "./test.txt"
+let path2 = "./test2.txt"
 
-fs.writeFileSync(path, str)
+fs.writeFileSync(path1, "Hello")
+let str1 = fs.readFileSync(path1, "utf-8")
 
-let str2 = fs.readFileSync(path, "utf-8")
-console.log({ str2 })
-console.log("Inspect:" + __fromJSGetTrackingIndex(str2))
-__fromJSWaitForSendLogsAndExitNodeProcess()
+fs.writeFile(path2, "World", () => {
+    let str2 = fs.readFileSync(path2, "utf-8")
+    console.log("Inspect:" + __fromJSGetTrackingIndex(str1 + str2))
+    __fromJSWaitForSendLogsAndExitNodeProcess()
+})

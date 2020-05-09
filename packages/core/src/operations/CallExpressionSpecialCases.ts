@@ -55,6 +55,33 @@ export type SpecialCaseArgs = {
   extraState: any;
 };
 
+const writeFile = ({
+  fn,
+  ctx,
+  fnArgValues,
+  fnArgTrackingValues,
+  args,
+  logData,
+  context
+}) => {
+  const path = require("path");
+
+  let absPath = fnArgValues[0];
+  if (!absPath.startsWith("/")) {
+    const cwd = eval("process.cwd()");
+    absPath = path.resolve(cwd, absPath);
+  }
+  ctx.registerEvent({
+    type: "fileWrite",
+    logIndex: fnArgTrackingValues[1],
+    path: fnArgValues[0],
+    absPath
+  });
+  let ret = fn.apply(ctx, fnArgValues);
+
+  return [ret, null];
+};
+
 function addJsonParseResultTrackingValues(
   parsed,
   jsonString,
@@ -283,31 +310,8 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
 
     return [ret, retT];
   },
-  "fs.writeFileSync": ({
-    fn,
-    ctx,
-    fnArgValues,
-    fnArgTrackingValues,
-    args,
-    logData,
-    context
-  }) => {
-    let ret = fn.apply(ctx, fnArgValues);
-    const path = require("path");
-
-    let absPath = fnArgValues[0];
-    if (!absPath.startsWith("/")) {
-      const cwd = eval("process.cwd()");
-      absPath = path.resolve(cwd, absPath);
-    }
-    ctx.registerEvent({
-      type: "fileWrite",
-      logIndex: fnArgTrackingValues[1],
-      path: fnArgValues[0],
-      absPath
-    });
-    return [ret, null];
-  }
+  "fs.writeFileSync": writeFile,
+  "fs.writeFile": writeFile
 };
 
 // add tracking values to returned objects
