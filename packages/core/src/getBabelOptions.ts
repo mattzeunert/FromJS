@@ -8,17 +8,23 @@ export function getCurrentBabelFilePath() {
 }
 // more global state for babel
 let locs = {};
+let locIndex = 0;
 export function createLoc(value) {
   // would be nice to just use an integer, but then need to avoid collisions better
   const id =
-    Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36) +
-    Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
+    locIndex.toString(36) +
+    // need to avoid more than 10B files I guess...
+    Math.floor(Math.random() * 1000 * 1000 * 1000 * 10).toString(36);
+  locIndex++;
   locs[id] = value;
   return id;
 }
 export function getAndResetLocs() {
   var ret = locs;
+  console.log("locCount", Object.keys(locs).length);
+  locIndex = 0;
   locs = {};
+
   return ret;
 }
 
