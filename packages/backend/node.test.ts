@@ -31,7 +31,7 @@ describe("Node", () => {
 
   async function runTest(
     testName,
-    { charIndex, ignoreFilePattern = null as any, runNTimes = 1 }
+    { ignoreFilePattern = null as any, runNTimes = 1 }
   ) {
     console.log("will compile node app");
     const compileStart = new Date();
@@ -66,45 +66,54 @@ describe("Node", () => {
     let inspectIndex = parseFloat(
       stdout.match(/Inspect:\d+/)![0].replace("Inspect:", "")
     );
-    const steps = await backend.handleTraverse(inspectIndex, charIndex);
-    const lastStep = steps[steps.length - 1];
-    return { step: lastStep, execDuration, compileDuration };
+    return {
+      execDuration,
+      compileDuration,
+      traverse: async (charIndex) => {
+        const steps = await backend.handleTraverse(inspectIndex, charIndex);
+        const lastStep = steps[steps.length - 1];
+        return { step: lastStep };
+      },
+    };
   }
 
   it("Can read uninstrumented contents of a js file", async () => {
-    let { step } = await runTest("readJSFile", { charIndex: 11 });
+    let { traverse } = await runTest("readJSFile", {});
 
+    const { step } = await traverse(11);
     expect(step.operationLog.operation).toBe("readFileSyncResult");
     expect(step.operationLog.result.primitive).toBe('const a = "Hello"\n');
     expect(step.charIndex).toBe(11);
   }, 15000);
 
   it("Can require json files", async () => {
-    let { step } = await runTest("requireJson", { charIndex: 0 });
-
+    let { traverse } = await runTest("requireJson", {});
+    const { step } = await traverse(0);
     expect(step.operationLog.operation).toBe("jsonParseResult");
   }, 15000);
 
   it("reactSsr", async () => {
-    let { step, execDuration, compileDuration } = await runTest("reactSsr", {
-      charIndex: 0,
-      ignoreFilePattern: /umd|profiling|production|unstable|test\-utils|scheduler\-tracing|envify|browser|\.min\.js|factoryWithTypeCheckers/,
-      runNTimes: 5,
-    });
+    let { traverse, execDuration, compileDuration } = await runTest(
+      "reactSsr",
+      {
+        ignoreFilePattern: /umd|profiling|production|unstable|test\-utils|scheduler\-tracing|envify|browser|\.min\.js|factoryWithTypeCheckers/,
+        runNTimes: 5,
+      }
+    );
     console.log({ execDuration, compileDuration });
 
+    const { step } = await traverse(0);
     // for now don't really care to much about the exact traversal
     expect(step.operationLog.operation).toBe("callExpression");
   }, 80000);
 
   it("can traverse file reads and writes – fileReadWrites", async () => {
-    let { step, execDuration, compileDuration } = await runTest(
+    let { execDuration, compileDuration, traverse } = await runTest(
       "fileReadWrites",
-      {
-        charIndex: 0,
-      }
+      {}
     );
 
+    const { step } = await traverse(0);
     expect(step.operationLog.operation).toBe("stringLiteral");
   }, 80000);
 });
