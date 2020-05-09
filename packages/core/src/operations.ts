@@ -805,7 +805,7 @@ const operations: Operations = {
   readFileSyncResult: {
     traverse(operationLog, charIndex, options) {
       let absPath = operationLog.runtimeArgs.absPath;
-      let writeEvent = (options.events || []).find(
+      let writeEvent = (options!.events || []).find(
         e => e.type === "fileWrite" && e.absPath === absPath
       );
       if (!writeEvent) {
