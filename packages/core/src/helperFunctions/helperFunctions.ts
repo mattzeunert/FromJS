@@ -672,9 +672,7 @@ let lastOpTrackingResultWithoutResetting = null;
 
 let opExecCount = 0;
 
-function makeDoOperation(opName: string) {
-  const opExec = operationsExec[opName];
-
+function makeDoOperation(opName: string, opExec) {
   return function ___op(objArgs, astArgs, loc) {
     var trackingValue;
 
@@ -717,11 +715,9 @@ global[FunctionNames.doOperation] = function ___op(
   return global["__" + opName](objArgs, astArgs, loc);
 };
 
-const operationsExec = {};
 Object.keys(operations).forEach(opName => {
   const op = operations[opName];
-  operationsExec[opName] = op.exec;
-  const doOpFunction = makeDoOperation(opName);
+  const doOpFunction = makeDoOperation(opName, op.exec);
 
   // The object creation in so many places is expensive
   // so some simple ops have a shorthand function that
