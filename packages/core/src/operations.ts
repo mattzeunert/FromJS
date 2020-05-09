@@ -804,15 +804,15 @@ const operations: Operations = {
   },
   readFileSyncResult: {
     traverse(operationLog, charIndex, options) {
-      console.log(JSON.stringify(operationLog, null, 2));
       let absPath = operationLog.runtimeArgs.absPath;
-      console.log({ absPath });
       let writeEvent = (options.events || []).find(
         e => e.type === "fileWrite" && e.absPath === absPath
       );
-      console.log({ writeEvent, options: JSON.stringify(options.events[0]) });
       if (!writeEvent) {
-        return null;
+        return {
+          operationLog: null,
+          charIndex
+        };
       }
       return {
         operationLog: writeEvent.logIndex,
