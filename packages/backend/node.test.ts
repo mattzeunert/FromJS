@@ -7,6 +7,7 @@ var rimraf = require("rimraf");
 import * as path from "path";
 import * as fs from "fs";
 import { traverse } from "./src/traverse";
+import * as getFolderSize from "get-folder-size";
 
 const outdir = "node-test-out";
 // random because there are zombies sending data sometimes... should probably fix that instead
@@ -29,11 +30,27 @@ describe("Node", () => {
     console.log("Done create backend", backendPort);
   }, 10000);
 
+  function getSessionSize(): Promise<number> {
+    return new Promise((resolve) => {
+      getFolderSize(sessionDirectory, (err, size) => {
+        console.log(
+          "Session size: ",
+          (size / 1024 / 1024).toFixed(2) +
+            " MB" +
+            " (" +
+            path.resolve(sessionDirectory) +
+            ")"
+        );
+        resolve(size);
+      });
+    });
+  }
+
   async function runTest(
     testName,
     { ignoreFilePattern = null as any, runNTimes = 1 }
   ) {
-    console.log("will compile node app");
+    let sessionSizeBefore = await getSessionSize();
     const compileStart = new Date();
     await compileNodeApp({
       directory: "packages/backend/nodeTestFixtures/" + testName,
@@ -43,7 +60,7 @@ describe("Node", () => {
     });
     let compileDuration = new Date().valueOf() - compileStart.valueOf();
 
-    console.log("file", path.resolve(outdir, testName, testName + ".js"));
+    // console.log("file", path.resolve(outdir, testName, testName + ".js"));
 
     let stdout;
 
@@ -60,9 +77,18 @@ describe("Node", () => {
     let processRequestQueueDuration =
       new Date().valueOf() - processRequestQueueStart.valueOf();
 
-    console.log({ execDuration, processRequestQueueDuration });
+    let sessionSizeAfter = await getSessionSize();
+    let sessionSizeIncreaseInMB = Math.round(
+      (sessionSizeAfter - sessionSizeBefore) / 1024 / 1024
+    );
 
-    console.log(stdout);
+    console.log({
+      execDuration,
+      processRequestQueueDuration,
+      sessionSizeIncreaseInMB,
+    });
+
+    // console.log(stdout);
     let inspectIndex = parseFloat(
       stdout.match(/Inspect:\d+/)![0].replace("Inspect:", "")
     );

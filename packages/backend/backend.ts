@@ -368,11 +368,13 @@ export default class Backend {
         },
         data: lines[1],
       });
-      console.log(
-        "done process queue file",
-        queueFile,
-        i + "/" + queueFiles.length
-      );
+      if (i % 10 === 0) {
+        console.log(
+          "done process queue file",
+          queueFile,
+          i + "/" + queueFiles.length
+        );
+      }
       fs.unlinkSync(filePath);
     }
   }
