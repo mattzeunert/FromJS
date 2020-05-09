@@ -1,11 +1,10 @@
 import KnownValues from "./KnownValues";
 import { VERIFY, MINIMIZE_LOG_DATA_SIZE } from "../config";
-import operations from "../operations";
 import invokeIfFunction from "../invokeIfFunction";
 import { consoleLog } from "./logging";
-import { arrayIndex } from "../OperationTypes";
 import { countObjectKeys } from "../util";
 import { ValueTrackingValuePair } from "../types";
+import { getShortOperationName } from "../names";
 
 var global = Function("return this")();
 
@@ -360,7 +359,7 @@ OperationLog.createAtRuntime = function(
   }
 
   return <OperationLogInterface>{
-    operation: operation === "identifier" ? "ii" : operation,
+    operation: getShortOperationName(operation),
     _result,
     index,
     extraArgs,

@@ -3,6 +3,7 @@ import invokeIfFunction from "../invokeIfFunction";
 import { LocStore } from "../LocStore";
 import { MINIMIZE_LOG_DATA_SIZE } from "../config";
 import OperationLog from "../helperFunctions/OperationLog";
+import { getLongOperationName } from "../names";
 
 export class LogServer {
   _locStore: LocStore;
@@ -13,9 +14,7 @@ export class LogServer {
   _getLog(logIndex: number, cb: any) {
     this.getLog(logIndex, (err, log) => {
       if (log) {
-        if (log.operation === "ii") {
-          log.operation = "identifier";
-        }
+        log.operation = getLongOperationName(log.operation);
       }
       cb(err, log);
     });
