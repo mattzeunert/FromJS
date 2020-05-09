@@ -123,7 +123,7 @@ describe("Node", () => {
       "reactSsr",
       {
         ignoreFilePattern: /umd|profiling|production|unstable|test\-utils|scheduler\-tracing|envify|browser|\.min\.js|factoryWithTypeCheckers/,
-        runNTimes: 5,
+        runNTimes: 1,
       }
     );
     console.log({ execDuration, compileDuration });
@@ -147,7 +147,7 @@ describe("Node", () => {
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.operationLog.result.primitive).toBe("World");
     expect(step.charIndex).toBe(0);
-  }, 80000);
+  }, 100000);
 });
 
 export function getCmdOutput(
