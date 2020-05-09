@@ -350,7 +350,6 @@ export default class Backend {
     const queueFiles = fs.readdirSync(
       this.options.sessionDirectory + "/requestQueue"
     );
-    console.log({ queueFiles });
     let i = 0;
     for (const queueFile of queueFiles) {
       i++;

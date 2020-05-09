@@ -12,10 +12,20 @@ export class LogServer {
   }
   getLog(logIndex: number, cb: any) {}
   _getLog(logIndex: number, cb: any) {
-    this.getLog(logIndex, (err, log) => {
-      if (log) {
-        log.operation = getLongOperationName(log.operation);
+    this.getLog(logIndex, (err, val) => {
+      let log;
+      if (val) {
+        const obj = JSON.parse(val);
+        if (!obj.operation && obj.o) {
+          obj.operation = obj.o;
+          obj.loc = obj.l;
+          obj.args = obj.a;
+          obj._result = obj.r;
+        }
+        obj.operation = getLongOperationName(obj.operation);
+        log = new OperationLog(obj);
       }
+
       cb(err, log);
     });
   }

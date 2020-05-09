@@ -53,9 +53,8 @@ export default class LevelDBLogServer extends LogServer {
         fn(err, null);
         return;
       }
-      value = JSON.parse(value);
-      const ret = new OperationLog(value);
-      fn(null, ret);
+
+      fn(null, value);
     });
   }
 }

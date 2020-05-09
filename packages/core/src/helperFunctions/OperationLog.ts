@@ -1,5 +1,5 @@
 import KnownValues from "./KnownValues";
-import { VERIFY, MINIMIZE_LOG_DATA_SIZE } from "../config";
+import { VERIFY, MINIMIZE_LOG_DATA_SIZE, SHORT_NAMES } from "../config";
 import invokeIfFunction from "../invokeIfFunction";
 import { consoleLog } from "./logging";
 import { countObjectKeys } from "../util";
@@ -361,16 +361,29 @@ OperationLog.createAtRuntime = function(
     _result = serializeValue(result, knownValues);
   }
 
-  return <OperationLogInterface>{
-    operation,
-    _result,
-    index,
-    extraArgs,
-    args,
-    astArgs,
-    loc,
-    runtimeArgs
-  };
+  if (SHORT_NAMES) {
+    return {
+      o: operation,
+      r: _result,
+      index,
+      extraArgs,
+      a: args,
+      astArgs,
+      l: loc,
+      runtimeArgs
+    } as any;
+  } else {
+    return <OperationLogInterface>{
+      operation,
+      _result,
+      index,
+      extraArgs,
+      args,
+      astArgs,
+      loc,
+      runtimeArgs
+    };
+  }
 };
 
 // TODO: don't copy/paste this
