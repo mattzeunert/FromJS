@@ -78,11 +78,12 @@ describe("Node", () => {
       new Date().valueOf() - processRequestQueueStart.valueOf();
 
     let sessionSizeAfter = await getSessionSize();
-    let sessionSizeIncreaseInMB = Math.round(
-      (sessionSizeAfter - sessionSizeBefore) / 1024 / 1024
-    );
+    let sessionSizeIncreaseInMB =
+      Math.round(((sessionSizeAfter - sessionSizeBefore) / 1024 / 1024) * 10) /
+      10;
 
     console.log({
+      compileDuration,
       execDuration,
       processRequestQueueDuration,
       sessionSizeIncreaseInMB,

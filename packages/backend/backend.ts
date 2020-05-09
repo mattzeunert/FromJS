@@ -151,6 +151,7 @@ async function generateLocLogs({ logServer, locLogs }) {
 export default class Backend {
   sessionConfig = null;
   handleTraverse = null as any;
+  doStoreLogs = null as any;
   constructor(private options: BackendOptions) {
     console.time("create backend");
 
@@ -276,7 +277,7 @@ export default class Backend {
       generateUrlLocs({ locStore, options });
     }
 
-    let { storeLocs, handleTraverse } = setupBackend(
+    let { storeLocs, handleTraverse, doStoreLogs } = setupBackend(
       options,
       app,
       wss,
@@ -291,6 +292,7 @@ export default class Backend {
     setupUI(options, app, wss, getProxy, files, () => requestHandler);
 
     this.handleTraverse = handleTraverse;
+    this.doStoreLogs = doStoreLogs;
 
     requestHandler = makeRequestHandler({
       accessToken: sessionConfig.accessToken,
@@ -356,18 +358,22 @@ export default class Backend {
       let filePath =
         this.options.sessionDirectory + "/requestQueue/" + queueFile;
       const content = fs.readFileSync(filePath, "utf-8");
-      const lines = content.split("\n");
+      const [path, body] = content.split("\n");
+      if (path === "/storeLogs") {
+        this.doStoreLogs(JSON.parse(body));
+      } else {
+        //@ts-ignore
+        await axios({
+          url: "http://localhost:" + this.options.bePort + path,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: (this.sessionConfig! as any).accessToken,
+          },
+          data: body,
+        });
+      }
 
-      //@ts-ignore
-      await axios({
-        url: "http://localhost:" + this.options.bePort + lines[0],
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: (this.sessionConfig! as any).accessToken,
-        },
-        data: lines[1],
-      });
       if (i % 10 === 0) {
         console.log(
           "done process queue file",
@@ -946,55 +952,10 @@ function setupBackend(
   //   res.end(JSON.stringify(req.body));
   // });
 
-  app.post("/storeLogs", async (req, res) => {
-    app.verifyToken(req);
-
-    res.set("Access-Control-Allow-Origin", "*");
-    res.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
-    );
-
-    // console.log("store logs", JSON.stringify(req.body, null, 2))
-
+  async function doStoreLogs(reqBody) {
     const startTime = new Date();
-    if (ENABLE_DERIVED) {
-      let id = "addLogs_" + Math.random();
-      console.time(id);
-      for (const log of req.body.logs) {
-        await locLogs.addLog(log.loc, log.index);
-      }
-      console.timeEnd(id);
 
-      if (SAVE_LOG_USES) {
-        req.body.logs.forEach((log) => {
-          if (log.args) {
-            if (Array.isArray(log.args)) {
-              let args = log.args;
-              for (const arg of args) {
-                if (Array.isArray(arg)) {
-                  for (const a of arg) {
-                    logUses[a] = logUses[a] || [];
-                    logUses[a].push(log.index);
-                  }
-                } else {
-                  logUses[arg] = logUses[arg] || [];
-                  logUses[arg].push(log.index);
-                }
-              }
-            } else {
-              Object.keys(log.args).forEach((argName) => {
-                let argLogIndex = log.args[argName];
-                logUses[argLogIndex] = logUses[argLogIndex] || [];
-                logUses[argLogIndex].push(log.index);
-              });
-            }
-          }
-        });
-      }
-    }
-
-    req.body.evalScripts.forEach(function (evalScript) {
+    reqBody.evalScripts.forEach(function (evalScript) {
       locStore.write(evalScript.locs, () => {});
       getRequestHandler()._afterCodeProcessed({
         url: evalScript.url,
@@ -1006,19 +967,19 @@ function setupBackend(
       // getProxy().registerEvalScript(evalScript);
     });
 
-    if (req.body.events.length > 0) {
-      writeEvents([...readEvents(), ...req.body.events]);
+    if (reqBody.events.length > 0) {
+      writeEvents([...readEvents(), ...reqBody.events]);
     }
 
     await new Promise((resolve) =>
-      logServer.storeLogs(req.body.logs, function () {
+      logServer.storeLogs(reqBody.logs, function () {
         const timePassed = new Date().valueOf() - startTime.valueOf();
 
-        console.log("stored logs", req.body.logs.length);
+        console.log("stored logs", reqBody.logs.length);
 
         if (LOG_PERF) {
           const timePer1000 =
-            Math.round((timePassed / req.body.logs.length) * 1000 * 10) / 10;
+            Math.round((timePassed / reqBody.logs.length) * 1000 * 10) / 10;
           console.log(
             "storing logs took " +
               timePassed +
@@ -1030,7 +991,20 @@ function setupBackend(
         resolve();
       })
     );
+  }
 
+  app.post("/storeLogs", async (req, res) => {
+    app.verifyToken(req);
+
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+    );
+
+    // console.log("store logs", JSON.stringify(req.body, null, 2))
+
+    await doStoreLogs(req.body);
     res.end(JSON.stringify({ ok: true }));
   });
 
@@ -1291,6 +1265,7 @@ function setupBackend(
       locStore.write(locs, function () {});
     },
     handleTraverse,
+    doStoreLogs,
   };
 }
 
