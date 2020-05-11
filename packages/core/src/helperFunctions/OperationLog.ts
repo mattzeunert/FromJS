@@ -265,8 +265,7 @@ OperationLog.createAtRuntime = function(
     astArgs,
     extraArgs,
     loc,
-    runtimeArgs,
-    index
+    runtimeArgs
   }: CreateAtRuntimeArg,
   knownValues,
   op
@@ -366,7 +365,6 @@ OperationLog.createAtRuntime = function(
     return {
       o: operation,
       r: _result,
-      index,
       extraArgs,
       a: args,
       astArgs,
@@ -377,7 +375,6 @@ OperationLog.createAtRuntime = function(
     return <OperationLogInterface>{
       operation,
       _result,
-      index,
       extraArgs,
       args,
       astArgs,
