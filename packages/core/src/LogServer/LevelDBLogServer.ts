@@ -31,11 +31,11 @@ export default class LevelDBLogServer extends LogServer {
     // });
     // console.log(types);
 
-    const ops = logs.map(([logIndex, logString]) => {
+    const ops = logs.map(logArr => {
       return {
         type: "put",
-        key: logIndex.toString(),
-        value: logString
+        key: logArr[0].toString(),
+        value: logArr[1]
       };
     });
     console.timeEnd("create ops");
