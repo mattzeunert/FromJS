@@ -51,7 +51,12 @@ export interface SerializedValueData {
 
 type StoredSerializedValue = SerializedValueData | string | number | boolean;
 
-export function getSerializedValueObject(value, type, knownValues) {
+export function getSerializedValueObject(
+  value,
+  type,
+  knownValues,
+  preventShortNames = false
+) {
   var knownValue: undefined | string =
     knownValues && knownValues.getName(value);
 
@@ -114,14 +119,25 @@ export function getSerializedValueObject(value, type, knownValues) {
     }
   } catch (err) {}
 
-  return <SerializedValueData>{
-    length,
-    type,
-    primitive,
-    knownValue,
-    knownTypes,
-    keys
-  };
+  if (SHORT_NAMES && !preventShortNames) {
+    return {
+      l: length,
+      t: type,
+      p: primitive,
+      k: knownValue,
+      knownTypes,
+      keys
+    } as any;
+  } else {
+    return <SerializedValueData>{
+      length,
+      type,
+      primitive,
+      knownValue,
+      knownTypes,
+      keys
+    };
+  }
 }
 
 class SerializedValue implements SerializedValueData {
@@ -202,7 +218,7 @@ export default class OperationLog implements OperationLogInterface {
     if (resultIsSerializedValueObject) {
       sv = <SerializedValueData>this._result;
     } else {
-      sv = getSerializedValueObject(this._result, null, null);
+      sv = getSerializedValueObject(this._result, null, null, true);
     }
 
     return new SerializedValue(sv);

@@ -28,12 +28,19 @@ export class LogServer {
       if (val) {
         const obj = JSON.parse(val);
         if (!obj.operation && obj.o) {
+          // undo short names
           obj.operation = obj.o;
           obj.loc = obj.l;
           obj.args = obj.a;
           obj.extraArgs = obj.e;
           obj.astArgs = obj.ast;
           obj._result = obj.r;
+          if (typeof obj._result === "object" && obj._result.t) {
+            obj._result.type = obj._result.t;
+            obj._result.length = obj._result.l;
+            obj._result.primitive = obj._result.p;
+            obj._result.knownValue = obj._result.k;
+          }
         }
         obj.operation = getLongOperationName(obj.operation);
         log = new OperationLog(obj);
