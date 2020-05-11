@@ -379,7 +379,7 @@ export default class Backend {
       const body = content.slice(firstLineBreakIndex + 1);
 
       if (path === "/storeLogs") {
-        this.doStoreLogs(body);
+        await this.doStoreLogs(body);
       } else {
         //@ts-ignore
         await axios({
