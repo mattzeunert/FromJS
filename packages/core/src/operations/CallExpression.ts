@@ -32,6 +32,17 @@ const returnValueExtraArgName = getShortExtraArgName("returnValue");
 const CallExpression = <any>{
   argNames: ["function", "context", "arg", "evalFn"],
   argIsArray: [false, false, true, false],
+  // I tried this once and it broke the Backbone e2e test
+  // I think the issue is that sometimes there is a return value
+  // but it's not the most recent one, e.g. because a native function
+  // was involved
+  // canInferResult: (args, extraArgs, astArgs, runtimeArgs) => {
+  //   return (
+  //     extraArgs &&
+  //     extraArgs[returnValueExtraArgName] &&
+  //     extraArgs[returnValueExtraArgName][1]
+  //   );
+  // },
   exec: function callExpressionExec(
     args: [any, ValueTrackingValuePair, any, any],
     astArgs,

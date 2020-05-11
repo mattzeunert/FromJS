@@ -1198,31 +1198,31 @@ function setupBackend(
           return;
         }
 
-        steps.forEach((step, i) => {
-          Object.keys(step.operationLog.args).forEach((key) => {
-            if (!step.operationLog.args[key]) {
-              return;
-            }
+        // steps.forEach((step, i) => {
+        //   Object.keys(step.operationLog.args).forEach((key) => {
+        //     if (!step.operationLog.args[key]) {
+        //       return;
+        //     }
 
-            let r = step.operationLog.args[key]._result;
-            if (typeof r === "string" && r.length > 10000) {
-              step.operationLog.args[key]._result = "";
-            }
-          });
-          Object.keys(step.operationLog.extraArgs || {}).forEach((key) => {
-            if (!step.operationLog.extraArgs[key]) {
-              return;
-            }
+        //     let r = step.operationLog.args[key]._result;
+        //     if (typeof r === "string" && r.length > 10000) {
+        //       step.operationLog.args[key]._result = "";
+        //     }
+        //   });
+        //   Object.keys(step.operationLog.extraArgs || {}).forEach((key) => {
+        //     if (!step.operationLog.extraArgs[key]) {
+        //       return;
+        //     }
 
-            let r = step.operationLog.extraArgs[key]._result;
-            if (typeof r === "string" && r.length > 10000) {
-              step.operationLog.extraArgs[key]._result = "";
-            }
-          });
-          if (i < steps.length - 2) {
-            step.operationLog._result = "";
-          }
-        });
+        //     let r = step.operationLog.extraArgs[key]._result;
+        //     if (typeof r === "string" && r.length > 10000) {
+        //       step.operationLog.extraArgs[key]._result = "";
+        //     }
+        //   });
+        //   if (i < steps.length - 2) {
+        //     step.operationLog._result = "";
+        //   }
+        // });
 
         resolve(steps);
       };

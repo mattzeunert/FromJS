@@ -270,7 +270,9 @@ export class LogServer {
             )) as any;
             resolve(currentValue._result + argument._result);
           }
-        } else {
+        } /*else if (log.operation === "callExpression") {
+          tryGetResult(log.extraArgs.returnValue);
+        } */ else {
           throw "no res... possibly because of MINIMIZA_LOG_DATA";
         }
       } else {
