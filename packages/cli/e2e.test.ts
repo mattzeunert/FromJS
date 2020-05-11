@@ -3,6 +3,7 @@ const kp = require("kill-port");
 const request = require("request");
 import { OperationLog } from "@fromjs/core";
 import { openBrowser } from "@fromjs/backend";
+var rimraf = require("rimraf");
 
 async function killPort(portNum) {
   try {
@@ -165,7 +166,7 @@ describe("E2E", () => {
         "--openBrowser",
         "no",
         "--sessionDirectory",
-        "/tmp/fromjs-e2e",
+        fromJSSessionPath,
       ],
       { detached: true }
     );
@@ -223,6 +224,8 @@ describe("E2E", () => {
     pages = [];
   });
 
+  const fromJSSessionPath = "/tmp/fromjs-e2e";
+
   afterAll(async () => {
     await browser.close();
 
@@ -230,6 +233,7 @@ describe("E2E", () => {
     process.kill(-command.pid);
 
     await killPort(webServerPort);
+    rimraf.sync(fromJSSessionPath);
     await new Promise((resolve) => setTimeout(resolve, 500));
   });
 
