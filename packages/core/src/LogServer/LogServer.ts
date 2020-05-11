@@ -202,6 +202,8 @@ export class LogServer {
           tryGetResult(log.args.returnValue);
         } else if (log.operation === "memberExpression") {
           tryGetResult(log.extraArgs.propertyValue);
+        } else if (log.operation === "memexpAsLeftAssExp") {
+          tryGetResult(log.extraArgs.propertyValue);
         } else if (log.operation === "binaryExpression") {
           // infer is only enabled if both args are strings,
           // so we can assume that's the case
@@ -210,22 +212,16 @@ export class LogServer {
 
           resolve(left._result + right._result);
         } else if (log.operation === "assignmentExpression") {
-          console.log("infer assignment expression");
-          console.log("lll", log);
           // infer is only enabled for strings and +=
           // so we can assume that's what the values are
 
-          if (log.runtimeArgs.assignment) {
+          if (log.runtimeArgs && log.runtimeArgs.assignment) {
             let assignment = (await this.loadLogAwaitable(
               log.runtimeArgs.assignment,
               1
             )) as any;
             resolve(assignment._result);
           } else {
-            let newValue = (await this.loadLogAwaitable(
-              log.args.newValue,
-              1
-            )) as any;
             let argument = (await this.loadLogAwaitable(
               log.args.argument,
               1
@@ -234,7 +230,7 @@ export class LogServer {
               log.args.currentValue,
               1
             )) as any;
-            resolve(newValue._result + argument._result);
+            resolve(currentValue._result + argument._result);
           }
         } else {
           throw "no res... possibly because of MINIMIZA_LOG_DATA";

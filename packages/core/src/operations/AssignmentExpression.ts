@@ -31,15 +31,21 @@ export default <any>{
     if (log.astArgs.assignmentType === "MemberExpression") {
       return ["object", "propertyName", "argument"];
     } else {
+      // e.g. "x += fn()" turns into [x, x+=mem(fn()), getMem()]
       return ["currentValue", "newValue", "argument"];
     }
   },
   canInferResult: (args, extraArgs, astArgs, runtimeArgs) => {
-    console.log(args, extraArgs, astArgs, runtimeArgs);
     if (astArgs.operator === "+=") {
       if (astArgs.type === "MemberExpression") {
-        console.log(extraArgs, "caninfer", !!runtimeArgs.assignment);
         return !!runtimeArgs.assignment;
+      } else {
+        return (
+          args[0][1] &&
+          typeof args[0][0] === "string" &&
+          args[2][1] &&
+          typeof args[2][0] === "string"
+        );
       }
     }
     return false;
@@ -135,12 +141,10 @@ export default <any>{
       const assignmentExpressionT = ctx.createOperationLog({
         result: ret,
         operation: "assignmentExpression",
-        args: {
-          currentValue: [currentValue, currentValueT],
-          argument: argumentArg
-        },
+        args: [[currentValue, currentValueT], [newValue, null], argumentArg],
         astArgs: {
-          operator
+          operator,
+          generated: true
         },
         loc: logData.loc
       });

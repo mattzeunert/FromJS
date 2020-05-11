@@ -11,7 +11,7 @@ import * as getFolderSize from "get-folder-size";
 
 const outdir = "node-test-out";
 // random because there are zombies sending data sometimes... should probably fix that instead
-const backendPort = 1510 + Math.floor(Math.random() * 80);
+const backendPort = 1510;
 
 describe("Node", () => {
   let sessionDirectory = outdir + "/session";

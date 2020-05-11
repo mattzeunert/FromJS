@@ -118,16 +118,15 @@ describe("Assignment Expressions", () => {
 
     expect(normal).toBe("ab");
     var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
-    console.log(JSON.stringify(t1, null, 2));
     const t1LastStep = t1[t1.length - 1];
     expect(t1[0].operationLog.result.primitive).toBe("ab");
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t1LastStep.operationLog.result.primitive).toBe("a");
 
-    // var t2 = await traverse({ operationLog: tracking, charIndex: 1 });
-    // const t2LastStep = t2[t2.length - 1];
-    // expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
-    // expect(t2LastStep.operationLog.result.primitive).toBe("b");
+    var t2 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t2LastStep.operationLog.result.primitive).toBe("b");
   });
 
   test("Can traverse results of assignment expression", async () => {
@@ -711,7 +710,6 @@ it("Can traverse arguments for a function expression (rather than a function dec
     }
     return fn("a")
   `);
-  console.log(code);
   expect(normal).toBe("a");
   var t = await traverse({ operationLog: tracking, charIndex: 0 });
   const tLastStep = t[t.length - 1];
