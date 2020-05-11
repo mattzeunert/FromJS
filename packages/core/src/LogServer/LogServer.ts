@@ -39,7 +39,7 @@ export class LogServer {
           obj.extraArgs = obj.e;
           obj.astArgs = obj.ast;
           obj._result = obj.r;
-          if (typeof obj._result === "object" && obj._result.t) {
+          if (typeof obj._result === "object" && obj._result && obj._result.t) {
             obj._result.type = obj._result.t;
             obj._result.length = obj._result.l;
             obj._result.primitive = obj._result.p;

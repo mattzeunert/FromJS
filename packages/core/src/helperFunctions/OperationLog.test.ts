@@ -11,5 +11,5 @@ it("Does not include function values as length in the result (because they'll ca
 it("Does include length for strings", () => {
   var str = "abc";
   const sv = getSerializedValueObject(str, null, null);
-  expect(sv.length).toBe(3);
+  expect(sv["length"] || sv["l"]).toBe(3);
 });
