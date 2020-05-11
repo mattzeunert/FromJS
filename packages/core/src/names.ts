@@ -11,8 +11,15 @@ if (SHORT_NAMES) {
     numericLiteral: "n",
     returnStatement: "r",
     memberExpression: "m",
+    objectExpression: "o",
     objectProperty: "op",
-    assignmentExpression: "a"
+    conditionalExpression: "cond",
+    assignmentExpression: "a",
+    arrayExpression: "arr",
+    thisExpression: "t",
+    logicalExpression: "l",
+    arrayIndex: "arrI",
+    unaryExpression: "u"
   };
 }
 const opShortNameToLongName = {};

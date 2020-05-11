@@ -601,7 +601,9 @@ const ctx: ExecContext = {
   createOperationLog: function(args) {
     let index = getOperationIndex();
     args.index = index;
-    createOperationLog(args, operations[args.operation]);
+    const op = operations[args.operation];
+    args.operation = getShortOperationName(args.operation);
+    createOperationLog(args, op);
     return index;
   },
   createArrayIndexOperationLog(index, loc) {

@@ -27,8 +27,6 @@ import { safelyReadProperty } from "../util";
 import * as OperationTypes from "../OperationTypes";
 import { getShortOperationName } from "../names";
 
-let assignmentExpressionName = getShortOperationName("assignmentExpression");
-
 export default <any>{
   argNames: log => {
     if (log.astArgs.assignmentType === "MemberExpression") {
@@ -143,7 +141,7 @@ export default <any>{
 
       const assignmentExpressionT = ctx.createOperationLog({
         result: ret,
-        operation: assignmentExpressionName,
+        operation: "assignmentExpression",
         args: [[currentValue, currentValueT], [newValue, null], argumentArg],
         astArgs: {
           operator,
