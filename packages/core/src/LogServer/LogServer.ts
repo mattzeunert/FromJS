@@ -38,12 +38,21 @@ export class LogServer {
           obj.args = obj.a;
           obj.extraArgs = obj.e;
           obj.astArgs = obj.ast;
+          obj.runtimeArgs = obj.rt;
           obj._result = obj.r;
           if (typeof obj._result === "object" && obj._result && obj._result.t) {
-            obj._result.type = obj._result.t;
+            let type = obj._result.t;
+            if (type === "o") {
+              type = "object";
+            } else if (type === "f") {
+              type = "function";
+            }
+            obj._result.type = type;
             obj._result.length = obj._result.l;
             obj._result.primitive = obj._result.p;
             obj._result.knownValue = obj._result.k;
+            obj._result.knownTypes = obj._result.kt;
+            obj._result.keys = obj._result.ke;
           }
         }
         obj.operation = getLongOperationName(obj.operation);

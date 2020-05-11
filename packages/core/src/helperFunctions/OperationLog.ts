@@ -120,13 +120,18 @@ export function getSerializedValueObject(
   } catch (err) {}
 
   if (SHORT_NAMES && !preventShortNames) {
+    if (type === "object") {
+      type = "o";
+    } else if (type === "function") {
+      type = "f";
+    }
     return {
       l: length,
       t: type,
       p: primitive,
       k: knownValue,
-      knownTypes,
-      keys
+      kt: knownTypes,
+      ke: keys
     } as any;
   } else {
     return <SerializedValueData>{
@@ -385,7 +390,7 @@ OperationLog.createAtRuntime = function(
       a: args,
       ast: astArgs,
       l: loc,
-      runtimeArgs
+      rt: runtimeArgs
     } as any;
   } else {
     return <OperationLogInterface>{
