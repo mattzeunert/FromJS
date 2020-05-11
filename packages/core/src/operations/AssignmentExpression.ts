@@ -25,7 +25,9 @@ import * as MemoValueNames from "../MemoValueNames";
 import { consoleLog } from "../helperFunctions/logging";
 import { safelyReadProperty } from "../util";
 import * as OperationTypes from "../OperationTypes";
-import { getShortOperationName } from "../names";
+import { getShortOperationName, getShortExtraArgName } from "../names";
+
+const propertyValueExtraArgName = getShortExtraArgName("propertyValue");
 
 export default <any>{
   argNames: log => {
@@ -80,7 +82,7 @@ export default <any>{
             propertyName: [propName, propNameT]
           },
           extraArgs: {
-            propertyValue: [
+            [propertyValueExtraArgName]: [
               currentValue,
               ctx.getObjectPropertyTrackingValue(obj, propName)
             ]

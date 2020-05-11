@@ -42,6 +42,7 @@ import { getElAttributeValueOrigin } from "./operations/domHelpers/addElOrigin";
 import { safelyReadProperty, nullOnError } from "./util";
 import * as FunctionNames from "./FunctionNames";
 import * as sortBy from "lodash/sortBy";
+import { getShortExtraArgName } from "./names";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -428,7 +429,7 @@ const operations: Operations = {
       logData.runtimeArgs = {};
       const expressionValues = ctx.getCurrentTemplateLiteralTrackingValues();
       expressionValues.forEach((expressionValue, i) => {
-        logData.extraArgs["expression" + i] = [
+        logData.extraArgs[getShortExtraArgName("expression" + i)] = [
           null,
           expressionValue.trackingValue
         ];
@@ -880,7 +881,7 @@ const operations: Operations = {
   }
 };
 
-function eachArgumentInObject(args, operationName, fn) {
+export function eachArgumentInObject(args, operationName, fn) {
   if (!args) {
     return;
   }
@@ -895,7 +896,18 @@ function eachArgumentInObject(args, operationName, fn) {
     fn(args.key, "key", newValue => (args.key = newValue));
   } else {
     Object.keys(args).forEach(key => {
-      fn(args[key], key, newValue => (args[key] = newValue));
+      fn(
+        args[key],
+        key,
+        newValue => (args[key] = newValue),
+        newKey => {
+          if (key === newKey) {
+            return;
+          }
+          args[newKey] = args[key];
+          delete args[key];
+        }
+      );
     });
   }
 }

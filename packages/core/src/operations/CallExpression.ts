@@ -25,6 +25,9 @@ import {
 import { ValueTrackingValuePair } from "../types";
 import KnownValues from "../helperFunctions/KnownValues";
 import { countObjectKeys } from "../util";
+import { getShortExtraArgName } from "../names";
+
+const returnValueExtraArgName = getShortExtraArgName("returnValue");
 
 const CallExpression = <any>{
   argNames: ["function", "context", "arg", "evalFn"],
@@ -210,7 +213,7 @@ const CallExpression = <any>{
       }
     }
 
-    extraTrackingValues.returnValue = [ret, retT]; // pick up value from returnStatement
+    extraTrackingValues[returnValueExtraArgName] = [ret, retT]; // pick up value from returnStatement
 
     if (runtimeArgs && countObjectKeys(runtimeArgs) > 0) {
       logData.runtimeArgs = runtimeArgs;

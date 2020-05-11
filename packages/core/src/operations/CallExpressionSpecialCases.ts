@@ -28,7 +28,7 @@ import { getJSONPathOffset } from "../getJSONPathOffset";
 import * as get from "lodash/get";
 import { traverseObject } from "../traverseObject";
 import { pathToFileURL } from "url";
-import { getShortOperationName } from "../names";
+import { getShortOperationName, getShortExtraArgName } from "../names";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -211,7 +211,7 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
           throw Error("unhandled replacement param type");
         }
 
-        extraTrackingValues["replacement" + index] = [
+        extraTrackingValues[getShortExtraArgName("replacement" + index)] = [
           null,
           ctx.createOperationLog({
             operation: ctx.operationTypes.stringReplacement,
