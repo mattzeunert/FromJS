@@ -737,6 +737,7 @@ const operations: Operations = {
     }
   },
   memexpAsLeftAssExp: {
+    // canInferResult: true,
     traverse(operationLog: OperationLog, charIndex: number) {
       return {
         operationLog: operationLog.extraArgs.propertyValue,

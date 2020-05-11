@@ -76,12 +76,12 @@ describe("Assignment Expressions", () => {
   test("Can track used return values of assignment expressions (to variables)", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       var str = "a"
-      debugger
       return (str += "b")
     `);
 
     expect(normal).toBe("ab");
     var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    expect(t1[0].operationLog.result.primitive).toBe("ab");
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t1LastStep.operationLog.result.primitive).toBe("a");
@@ -109,6 +109,27 @@ describe("Assignment Expressions", () => {
     expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t2LastStep.operationLog.result.primitive).toBe("b");
   });
+
+  test("Can traverse return value of object assignments", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    var obj = { a: "a" }
+    return (obj.a += "b")
+  `);
+
+    expect(normal).toBe("ab");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    console.log(JSON.stringify(t1, null, 2));
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1[0].operationLog.result.primitive).toBe("ab");
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("a");
+
+    // var t2 = await traverse({ operationLog: tracking, charIndex: 1 });
+    // const t2LastStep = t2[t2.length - 1];
+    // expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    // expect(t2LastStep.operationLog.result.primitive).toBe("b");
+  });
+
   test("Can traverse results of assignment expression", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       var v
@@ -262,6 +283,7 @@ test("Traversing += assignment expressions", async () => {
   `);
   expect(normal).toBe("ab");
   var t = await traverse({ operationLog: tracking, charIndex: 0 });
+  expect(t[0].operationLog.result.primitive).toBe("ab");
   var lastStep = t[t.length - 1];
 
   expect(lastStep.operationLog.result.primitive).toBe("a");

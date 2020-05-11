@@ -34,6 +34,16 @@ export default <any>{
       return ["currentValue", "newValue", "argument"];
     }
   },
+  canInferResult: (args, extraArgs, astArgs, runtimeArgs) => {
+    console.log(args, extraArgs, astArgs, runtimeArgs);
+    if (astArgs.operator === "+=") {
+      if (astArgs.type === "MemberExpression") {
+        console.log(extraArgs, "caninfer", !!runtimeArgs.assignment);
+        return !!runtimeArgs.assignment;
+      }
+    }
+    return false;
+  },
   exec: function AssignmentExpressionExec(
     args,
     astArgs,
@@ -122,23 +132,26 @@ export default <any>{
       obj[propName] = newValue;
       ret = newValue;
 
+      const assignmentExpressionT = ctx.createOperationLog({
+        result: ret,
+        operation: "assignmentExpression",
+        args: {
+          currentValue: [currentValue, currentValueT],
+          argument: argumentArg
+        },
+        astArgs: {
+          operator
+        },
+        loc: logData.loc
+      });
+
       ctx.trackObjectPropertyAssignment(
         obj,
         propName,
-        ctx.createOperationLog({
-          result: ret,
-          operation: "assignmentExpression",
-          args: {
-            currentValue: [currentValue, currentValueT],
-            argument: argumentArg
-          },
-          astArgs: {
-            operator
-          },
-          loc: logData.loc
-        }),
+        assignmentExpressionT,
         propNameT
       );
+      logData.runtimeArgs = { assignment: assignmentExpressionT };
 
       const objIsHTMLNode = typeof Node !== "undefined" && obj instanceof Node;
       if (objIsHTMLNode) {
@@ -209,6 +222,12 @@ export default <any>{
         charIndex: charIndex
       };
     } else if (operator === "+=") {
+      if (operationLog.runtimeArgs && operationLog.runtimeArgs.assignment) {
+        return {
+          operationLog: operationLog.runtimeArgs.assignment,
+          charIndex
+        };
+      }
       return traverseStringConcat(
         operationLog.args.currentValue,
         operationLog.args.argument,
