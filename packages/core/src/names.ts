@@ -19,7 +19,9 @@ if (SHORT_NAMES) {
     thisExpression: "t",
     logicalExpression: "l",
     arrayIndex: "arrI",
-    unaryExpression: "u"
+    unaryExpression: "u",
+    newExpressionResult: "new",
+    memexpAsLeftAssExp: "mae"
   };
 }
 const opShortNameToLongName = {};
