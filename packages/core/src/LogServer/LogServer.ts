@@ -35,6 +35,7 @@ export class LogServer {
         }
         obj.operation = getLongOperationName(obj.operation);
         log = new OperationLog(obj);
+        log.index = logIndex;
       }
 
       cb(err, log);
