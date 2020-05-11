@@ -42,7 +42,7 @@ import { getElAttributeValueOrigin } from "./operations/domHelpers/addElOrigin";
 import { safelyReadProperty, nullOnError } from "./util";
 import * as FunctionNames from "./FunctionNames";
 import * as sortBy from "lodash/sortBy";
-import { getShortExtraArgName } from "./names";
+import { getShortExtraArgName, getShortArgName } from "./names";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -94,11 +94,15 @@ interface Operations {
   };
 }
 
+const leftArgName = getShortArgName("left");
+const rightArgName = getShortArgName("right");
+
 const operations: Operations = {
   memberExpression: MemberExpression,
   binaryExpression: {
     canInferResult: function(args) {
-      const { left, right } = args;
+      const left = args[leftArgName];
+      const right = args[rightArgName];
       if (!left[1] || !right[1]) {
         return false;
       }
@@ -113,8 +117,11 @@ const operations: Operations = {
       }
       return this.createNode!(
         {
-          left: [path.node.left, getLastOperationTrackingResultCall()],
-          right: [path.node.right, getLastOperationTrackingResultCall()]
+          [leftArgName]: [path.node.left, getLastOperationTrackingResultCall()],
+          [rightArgName]: [
+            path.node.right,
+            getLastOperationTrackingResultCall()
+          ]
         },
         { operator: ignoredStringLiteral(path.node.operator) },
         path.node.loc
@@ -153,10 +160,9 @@ const operations: Operations = {
       throw "aaa";
     },
     exec: function binaryExpressionExec(args, astArgs, ctx: ExecContext) {
-      var { left, right } = args;
+      const [left] = args[leftArgName];
+      const [right] = args[rightArgName];
       var ret;
-      left = left[0];
-      right = right[0];
 
       var { operator } = astArgs;
       if (operator === "+") {
@@ -180,7 +186,7 @@ const operations: Operations = {
         return this.createNode!(
           {
             // always execute the left side
-            left: ignoreNode(
+            [leftArgName]: ignoreNode(
               t.sequenceExpression([
                 createSetMemoValue(
                   MemoValueNames.lastOrLogicalExpressionResult,
@@ -191,7 +197,7 @@ const operations: Operations = {
               ])
             ),
             // only execute the right side if left side is falsy
-            right: ignoreNode(
+            [rightArgName]: ignoreNode(
               t.logicalExpression(
                 "&&",
                 ignoreNode(
@@ -233,10 +239,15 @@ const operations: Operations = {
       }
     },
     exec: (args, astArgs, ctx: ExecContext) => {
-      var { left, right } = args;
+      const l = args[leftArgName];
+      const r = args[rightArgName];
+
+      // destructure here instead of using [l] = ... above,
+      // because false[0] is valid, but can't destructure false
+      const left = l[0];
+      const right = r[0];
+
       var ret;
-      left = left[0];
-      right = right[0];
 
       var { operator } = astArgs;
       if (operator === "||") {
@@ -890,10 +901,22 @@ export function eachArgumentInObject(args, operationName, fn) {
 
   if (isObjectExpression) {
     // todo: this is an objexpression property not an obj expression itself, should be clarified
-    fn(args.value, "value", newValue => {
-      args.value = newValue;
+    ["value", "key"].forEach(key => {
+      fn(
+        args.value,
+        key,
+        newValue => {
+          args[key] = newValue;
+        },
+        newKey => {
+          if (newKey === key) {
+            return;
+          }
+          args[newKey] = args[key];
+          delete args.key;
+        }
+      );
     });
-    fn(args.key, "key", newValue => (args.key = newValue));
   } else {
     Object.keys(args).forEach(key => {
       fn(

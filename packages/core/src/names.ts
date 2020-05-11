@@ -37,6 +37,8 @@ export function getLongOperationName(operationName) {
   return opShortNameToLongName[operationName] || operationName;
 }
 
+// -------------------------------------------------
+
 let extraArgLongNameToShortName = {};
 if (SHORT_NAMES) {
   extraArgLongNameToShortName = {
@@ -60,4 +62,27 @@ export function getShortExtraArgName(extraArgName) {
 
 export function getLongExtraArgName(extraArgName) {
   return extraArgShortNameToLongName[extraArgName] || extraArgName;
+}
+
+// -------------------------------------------------
+
+let argLongNameToShortName = {};
+if (SHORT_NAMES) {
+  argLongNameToShortName = {
+    left: "l",
+    right: "r"
+  };
+}
+const argShortNameToLongName = {};
+Object.keys(argLongNameToShortName).forEach(longName => {
+  argShortNameToLongName[argLongNameToShortName[longName]] = longName;
+});
+
+export function getShortArgName(argName) {
+  let shortName = argLongNameToShortName[argName];
+  return shortName || argName;
+}
+
+export function getLongArgName(argName) {
+  return argShortNameToLongName[argName] || argName;
 }

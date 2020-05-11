@@ -3,7 +3,11 @@ import invokeIfFunction from "../invokeIfFunction";
 import { LocStore } from "../LocStore";
 import { MINIMIZE_LOG_DATA_SIZE } from "../config";
 import OperationLog from "../helperFunctions/OperationLog";
-import { getLongOperationName, getLongExtraArgName } from "../names";
+import {
+  getLongOperationName,
+  getLongExtraArgName,
+  getLongArgName
+} from "../names";
 
 export class LogServer {
   _locStore: LocStore;
@@ -43,16 +47,23 @@ export class LogServer {
           }
         }
         obj.operation = getLongOperationName(obj.operation);
-        log = new OperationLog(obj);
-        log.index = logIndex;
-
         eachArgumentInObject(
-          log.extraArgs,
-          log.operation,
+          obj.extraArgs,
+          obj.operation,
           (arg, argName, updateArgValue, updateArgKey) => {
             updateArgKey(getLongExtraArgName(argName));
           }
         );
+
+        eachArgumentInObject(
+          obj.args,
+          obj.operation,
+          (arg, argName, updateArgValue, updateArgKey) => {
+            updateArgKey(getLongArgName(argName));
+          }
+        );
+        log = new OperationLog(obj);
+        log.index = logIndex;
       }
 
       cb(err, log);
