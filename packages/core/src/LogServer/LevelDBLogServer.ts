@@ -24,12 +24,12 @@ export default class LevelDBLogServer extends LogServer {
   storeLogs(logs: OperationLog[], callback = function() {}) {
     console.time("create ops");
     let types = {};
-    logs.forEach(log => {
-      let operation = log["o"];
-      types[operation] = types[operation] || 0;
-      types[operation]++;
-    });
-    console.log(types);
+    // logs.forEach(log => {
+    //   let operation = log["o"];
+    //   types[operation] = types[operation] || 0;
+    //   types[operation]++;
+    // });
+    // console.log(types);
 
     const ops = logs.map(log => {
       return {
