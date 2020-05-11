@@ -252,12 +252,12 @@ const storeLog =
   typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog;
 
 let lastOperationType = null;
-function createOperationLog(args: CreateOperationLogArgs, op) {
+function createOperationLog(args: CreateOperationLogArgs, op, index) {
   if (SKIP_TRACKING) {
     return 1111;
   }
   var log = OperationLog.createAtRuntime(args, knownValues, op);
-  storeLog(log.index, JSON.stringify(log));
+  storeLog(index, JSON.stringify(log));
 
   if (KEEP_LOGS_IN_MEMORY) {
     // Normally we just store the numbers, but it's useful for
@@ -475,11 +475,10 @@ global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
     args: {},
     runtimeArgs: { type },
     astArgs: {},
-    loc,
-    index
+    loc
   };
 
-  createOperationLog(logData, operations["emptyTrackingInfo"]);
+  createOperationLog(logData, operations["emptyTrackingInfo"], index);
   return index;
 };
 global[FunctionNames.expandArrayForArrayPattern] = function(
@@ -600,10 +599,9 @@ const ctx: ExecContext = {
   hasInstrumentationFunction: typeof global["__fromJSEval"] === "function",
   createOperationLog: function(args) {
     let index = getOperationIndex();
-    args.index = index;
     const op = operations[args.operation];
     args.operation = getShortOperationName(args.operation);
-    createOperationLog(args, op);
+    createOperationLog(args, op, index);
     return index;
   },
   createArrayIndexOperationLog(index, loc) {
@@ -694,7 +692,7 @@ function makeDoOperation(opName: string, op) {
     opExecCount++;
 
     logData.result = ret;
-    createOperationLog(logData, op);
+    createOperationLog(logData, op, index);
 
     lastOpValueResult = ret;
 
@@ -842,14 +840,14 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
     createOperationLog(
       {
         operation: OperationTypes.initialPageHtml,
-        index: tvIndex,
         args: {},
         runtimeArgs: {
           url: location.href
         },
         result: initialPageHtml
       },
-      operations[OperationTypes.initialPageHtml]
+      operations[OperationTypes.initialPageHtml],
+      tvIndex
     );
 
     mapPageHtml(document, initialPageHtml, tvIndex, "initial page html");
