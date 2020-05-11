@@ -232,8 +232,8 @@ async function sendLogsToServer() {
 setTimeout(sendLogsToServer, 200);
 setTimeout(sendLogsToServer, 400);
 setInterval(sendLogsToServer, 1000);
-function remotelyStoreLog(log) {
-  logQueue.push(log);
+function remotelyStoreLog(logIndex, logString) {
+  logQueue.push([logIndex, logString]);
 }
 
 global["__fromJSWaitForSendLogsAndExitNodeProcess"] = async function() {
@@ -257,7 +257,7 @@ function createOperationLog(args: CreateOperationLogArgs, op) {
     return 1111;
   }
   var log = OperationLog.createAtRuntime(args, knownValues, op);
-  storeLog(log);
+  storeLog(log.index, JSON.stringify(log));
 
   if (KEEP_LOGS_IN_MEMORY) {
     // Normally we just store the numbers, but it's useful for

@@ -1114,6 +1114,7 @@ function setupBackend(
                 },
               };
             } else if (lastStep.operationLog.loc) {
+              console.log(JSON.stringify(lastStep, null, 2));
               loc = (await new Promise((resolve) =>
                 locStore.getLoc(lastStep.operationLog.loc, (loc) =>
                   resolve(loc)

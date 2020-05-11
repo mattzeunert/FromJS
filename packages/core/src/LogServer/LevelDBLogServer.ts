@@ -16,8 +16,8 @@ export default class LevelDBLogServer extends LogServer {
     this.db = levelup(this.levelDownDb);
     this._getCached = cacheLevelDBGet(this.db);
   }
-  storeLog(log: OperationLog) {
-    this.db.put(log.index.toString(), JSON.stringify(log), function(err) {
+  storeLog(logIndex, logString) {
+    this.db.put(logIndex.toString(), logString, function(err) {
       if (err) return console.log("Ooops! (put)", err); // some kind of I/O error
     });
   }
@@ -31,11 +31,11 @@ export default class LevelDBLogServer extends LogServer {
     // });
     // console.log(types);
 
-    const ops = logs.map(log => {
+    const ops = logs.map(([logIndex, logString]) => {
       return {
         type: "put",
-        key: log.index.toString(),
-        value: JSON.stringify(log)
+        key: logIndex.toString(),
+        value: logString
       };
     });
     console.timeEnd("create ops");
