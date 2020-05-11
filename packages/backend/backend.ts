@@ -208,6 +208,23 @@ export default class Backend {
       );
     }
 
+    app.use(bodyParser.text({ limit: "500mb" }));
+
+    app.post("/storeLogs", async (req, res) => {
+      app.verifyToken(req);
+
+      res.set("Access-Control-Allow-Origin", "*");
+      res.set(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+      );
+
+      // console.log("store logs", JSON.stringify(req.body, null, 2))
+
+      await doStoreLogs(req.body);
+      res.end(JSON.stringify({ ok: true }));
+    });
+
     app.use(bodyParser.json({ limit: "500mb" }));
 
     if (!fs.existsSync(options.getBackendServerCertDirPath())) {
@@ -357,9 +374,12 @@ export default class Backend {
       let filePath =
         this.options.sessionDirectory + "/requestQueue/" + queueFile;
       const content = fs.readFileSync(filePath, "utf-8");
-      const [path, body] = content.split("\n");
+      let firstLineBreakIndex = content.indexOf("\n");
+      const path = content.slice(0, firstLineBreakIndex);
+      const body = content.slice(firstLineBreakIndex + 1);
+
       if (path === "/storeLogs") {
-        this.doStoreLogs(JSON.parse(body));
+        this.doStoreLogs(body);
       } else {
         //@ts-ignore
         await axios({
@@ -952,9 +972,21 @@ function setupBackend(
   // });
 
   async function doStoreLogs(reqBody) {
+    const lines = reqBody.split("\n");
+    let evalScriptsJson = lines.shift();
+    let eventsJson = lines.shift();
+    let logLines = lines;
+
+    const logs: any[] = [];
+    for (var i = 0; i < logLines.length - 1; i += 2) {
+      const logItem = [logLines[i], logLines[i + 1]];
+      logs.push(logItem);
+    }
+
     const startTime = new Date();
 
-    reqBody.evalScripts.forEach(function (evalScript) {
+    let evalScripts = JSON.parse(evalScriptsJson);
+    evalScripts.forEach(function (evalScript) {
       locStore.write(evalScript.locs, () => {});
       getRequestHandler()._afterCodeProcessed({
         url: evalScript.url,
@@ -966,19 +998,20 @@ function setupBackend(
       // getProxy().registerEvalScript(evalScript);
     });
 
-    if (reqBody.events.length > 0) {
-      writeEvents([...readEvents(), ...reqBody.events]);
+    let events = JSON.parse(eventsJson);
+    if (events.length > 0) {
+      writeEvents([...readEvents(), ...events]);
     }
 
     await new Promise((resolve) =>
-      logServer.storeLogs(reqBody.logs, function () {
+      logServer.storeLogs(logs, function () {
         const timePassed = new Date().valueOf() - startTime.valueOf();
 
-        console.log("stored logs", reqBody.logs.length);
+        console.log("stored logs", logs.length);
 
         if (LOG_PERF) {
           const timePer1000 =
-            Math.round((timePassed / reqBody.logs.length) * 1000 * 10) / 10;
+            Math.round((timePassed / logs.length) * 1000 * 10) / 10;
           console.log(
             "storing logs took " +
               timePassed +
@@ -991,21 +1024,6 @@ function setupBackend(
       })
     );
   }
-
-  app.post("/storeLogs", async (req, res) => {
-    app.verifyToken(req);
-
-    res.set("Access-Control-Allow-Origin", "*");
-    res.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
-    );
-
-    // console.log("store logs", JSON.stringify(req.body, null, 2))
-
-    await doStoreLogs(req.body);
-    res.end(JSON.stringify({ ok: true }));
-  });
 
   app.get("/loadLocForTest/:locId", async (req, res) => {
     locStore.getLoc(req.params.locId, (loc) => {

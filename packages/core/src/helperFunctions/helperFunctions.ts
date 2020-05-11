@@ -135,9 +135,14 @@ function nodePost({ port, path, headers, bodyString }) {
 function makePostToBE({ accessToken, fetch }) {
   return function postToBE(endpoint, data, statsCallback = function(stats) {}) {
     const stringifyStart = new Date();
-    console.time("stringify");
-    const body = JSON.stringify(data);
-    console.timeEnd("stringify");
+    let body = data;
+    let bodyIsString = typeof body === "string";
+    if (!bodyIsString) {
+      console.time("stringify");
+      body = JSON.stringify(data);
+      console.timeEnd("stringify");
+    }
+
     console.log("body len in mb", body.length / 1024 / 1024);
     const stringifyEnd = new Date();
     if (endpoint === "/storeLogs") {
@@ -149,9 +154,11 @@ function makePostToBE({ accessToken, fetch }) {
 
     const headers = {
       Accept: "application/json",
-      "Content-Type": "application/json",
       Authorization: accessToken
     };
+    if (!bodyIsString) {
+      headers["Content-Type"] = "application/json";
+    }
     let p;
     if (global.fromJSIsNode) {
       p = nodePost({
@@ -197,11 +204,21 @@ async function sendLogsToServer() {
     return;
   }
 
-  const data = {
-    logs: logQueue,
-    evalScripts: evalScriptQueue,
-    events: eventQueue
-  };
+  // const data = {
+  //   logs: logQueue,
+  //   evalScripts: evalScriptQueue,
+  //   events: eventQueue
+  // };
+
+  let data = "";
+
+  data += JSON.stringify(evalScriptQueue);
+  data += "\n";
+  data += JSON.stringify(eventQueue);
+  data += "\n";
+  for (const item of logQueue) {
+    data += item[0] + "\n" + item[1] + "\n";
+  }
 
   logQueue = [];
   evalScriptQueue = [];
