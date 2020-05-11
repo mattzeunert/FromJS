@@ -31,6 +31,8 @@ export class LogServer {
           obj.operation = obj.o;
           obj.loc = obj.l;
           obj.args = obj.a;
+          obj.extraArgs = obj.e;
+          obj.astArgs = obj.ast;
           obj._result = obj.r;
         }
         obj.operation = getLongOperationName(obj.operation);

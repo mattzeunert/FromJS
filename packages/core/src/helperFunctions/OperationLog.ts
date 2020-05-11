@@ -365,9 +365,9 @@ OperationLog.createAtRuntime = function(
     return {
       o: operation,
       r: _result,
-      extraArgs,
+      e: extraArgs,
       a: args,
-      astArgs,
+      ast: astArgs,
       l: loc,
       runtimeArgs
     } as any;
