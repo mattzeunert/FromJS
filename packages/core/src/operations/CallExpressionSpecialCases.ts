@@ -28,6 +28,9 @@ import { getJSONPathOffset } from "../getJSONPathOffset";
 import * as get from "lodash/get";
 import { traverseObject } from "../traverseObject";
 import { pathToFileURL } from "url";
+import { getShortOperationName } from "../names";
+
+let callExpressionName = getShortOperationName("callExpression");
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -1366,7 +1369,7 @@ export const knownFnProcessors = {
         setContext([this, null]);
       }
       const ret = ctx.global[doOperation](
-        "callExpression",
+        callExpressionName,
         [
           [originalMappingFunction, null],
           [this, null],
@@ -1415,7 +1418,7 @@ export const knownFnProcessors = {
         currentIndex.toString()
       );
       const ret = ctx.global[doOperation](
-        "callExpression",
+        callExpressionName,
         [
           [originalReduceFunction, null],
           [this, null],
@@ -1444,7 +1447,7 @@ export const knownFnProcessors = {
     const originalFilterFunction = getFnArgForApply(0);
     setFnArgForApply(0, function(this: any, element, index, array) {
       const ret = ctx.global[doOperation](
-        "callExpression",
+        callExpressionName,
         [
           [originalFilterFunction, null],
           [this, null],
@@ -1511,7 +1514,7 @@ export const knownFnProcessors = {
         });
 
         const obj = ctx.global[doOperation](
-          "callExpression",
+          callExpressionName,
           [[JSON.parse], [JSON], [[text, t]]],
           {}
         );

@@ -25,6 +25,9 @@ import * as MemoValueNames from "../MemoValueNames";
 import { consoleLog } from "../helperFunctions/logging";
 import { safelyReadProperty } from "../util";
 import * as OperationTypes from "../OperationTypes";
+import { getShortOperationName } from "../names";
+
+let assignmentExpressionName = getShortOperationName("assignmentExpression");
 
 export default <any>{
   argNames: log => {
@@ -140,7 +143,7 @@ export default <any>{
 
       const assignmentExpressionT = ctx.createOperationLog({
         result: ret,
-        operation: "assignmentExpression",
+        operation: assignmentExpressionName,
         args: [[currentValue, currentValueT], [newValue, null], argumentArg],
         astArgs: {
           operator,

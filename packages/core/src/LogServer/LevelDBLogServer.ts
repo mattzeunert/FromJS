@@ -23,7 +23,10 @@ export default class LevelDBLogServer extends LogServer {
   }
   storeLogs(logs: OperationLog[], callback = function() {}) {
     console.time("create ops");
+    let types = {};
     const ops = logs.map(log => {
+      types[log.o] = types[log.o] || 0;
+      types[log.o]++;
       return {
         type: "put",
         key: log.index.toString(),
@@ -31,6 +34,7 @@ export default class LevelDBLogServer extends LogServer {
       };
     });
     console.timeEnd("create ops");
+    console.log(types);
 
     // levelDownDb._batch vs db.batch:
     // _batch bypasses some validation code which should help performance a bit
