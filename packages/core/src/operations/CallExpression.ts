@@ -25,10 +25,24 @@ import {
 import { ValueTrackingValuePair } from "../types";
 import KnownValues from "../helperFunctions/KnownValues";
 import { countObjectKeys } from "../util";
+import { getShortExtraArgName } from "../names";
+
+const returnValueExtraArgName = getShortExtraArgName("returnValue");
 
 const CallExpression = <any>{
   argNames: ["function", "context", "arg", "evalFn"],
   argIsArray: [false, false, true, false],
+  // I tried this once and it broke the Backbone e2e test
+  // I think the issue is that sometimes there is a return value
+  // but it's not the most recent one, e.g. because a native function
+  // was involved
+  // canInferResult: (args, extraArgs, astArgs, runtimeArgs) => {
+  //   return (
+  //     extraArgs &&
+  //     extraArgs[returnValueExtraArgName] &&
+  //     extraArgs[returnValueExtraArgName][1]
+  //   );
+  // },
   exec: function callExpressionExec(
     args: [any, ValueTrackingValuePair, any, any],
     astArgs,
@@ -160,7 +174,13 @@ const CallExpression = <any>{
       // Don't pretend to have a tracked return value if an uninstrumented function was called
       // (not 100% reliable e.g. if the uninstrumented fn calls an instrumented fn)
       if (fnIsEval && ctx.hasInstrumentationFunction) {
-        ctx.registerEvalScript(ret.evalScript);
+        ctx.registerEvalScript({
+          ...ret.evalScript,
+          details: {
+            sourceOperationLog: fnArgTrackingValues[0],
+            sourceOffset: 0
+          }
+        });
         ret = ret.returnValue;
         retT = ctx.lastOpTrackingResultWithoutResetting;
       } else if (fnKnownValue && specialValuesForPostprocessing[fnKnownValue]) {
@@ -204,7 +224,7 @@ const CallExpression = <any>{
       }
     }
 
-    extraTrackingValues.returnValue = [ret, retT]; // pick up value from returnStatement
+    extraTrackingValues[returnValueExtraArgName] = [ret, retT]; // pick up value from returnStatement
 
     if (runtimeArgs && countObjectKeys(runtimeArgs) > 0) {
       logData.runtimeArgs = runtimeArgs;
@@ -435,16 +455,23 @@ function handleNewExpression({
   ret,
   retT,
   logData,
-  args
+  args,
+  fnArgTrackingValues
 }: SpecialCaseArgs) {
   const isNewFunctionCall = fn === Function;
   if (isNewFunctionCall && ctx.hasInstrumentationFunction) {
     let code = fnArgValues[fnArgValues.length - 1];
     let generatedFnArguments = fnArgValues.slice(0, -1);
-    code =
-      "(function(" + generatedFnArguments.join(",") + ") { " + code + " })";
+    const fnOpening = "(function(" + generatedFnArguments.join(",") + ") { ";
+    code = fnOpening + code + " })";
     ret = ctx.global["__fromJSEval"](code);
-    ctx.registerEvalScript(ret.evalScript);
+    ctx.registerEvalScript({
+      ...ret.evalScript,
+      details: {
+        sourceOffset: -fnOpening.length,
+        sourceOperationLog: fnArgTrackingValues[fnArgTrackingValues.length - 1]
+      }
+    });
     ret = ret.returnValue;
   } else {
     if (isNewFunctionCall) {

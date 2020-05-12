@@ -1006,7 +1006,7 @@ describe("Doesn't break classes", () => {
   });
 });
 
-describe("Doesn't break bitwise operators", async () => {
+describe("Doesn't break bitwise operators", () => {
   it("Doesn't break | and & for variables", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       const FLAG1 = 0b100
@@ -1265,7 +1265,7 @@ describe("Doesn't break when using ES6+ features", () => {
     expect(normal).toBe(7);
   });
 
-  it("Doesn't break rest parameter code", async () => {
+  it("Doesn't break rest parameter code for array or object pattern", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       const [a, ...b] = [1,2,3,4,5]
       const {c, ...d} = {x: 6}
@@ -1605,3 +1605,32 @@ it("Should not break getter that assigns to itself", async () => {
 `);
   expect(normal).toBe("xyz");
 });
+
+it("Doesn't break function argument array destructuring if some values aren't used", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+  function fn ([,b]) {
+    return b
+  }
+  return fn(["a", "b"])
+`,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("b");
+});
+
+// it("Doesn't break if destructured variable is renamed", async () => {
+//   const { normal, tracking, code } = await instrumentAndRun(
+//     `
+//     "use strict";
+//     // as of April 2020 this is handled by compiling it in babel
+//     const {a: {b:c}} = {a: {b: "c"}}
+//   const a = "a"
+//   return a + c
+// `,
+//     {},
+//     { logCode: false }
+//   );
+//   expect(normal).toBe("ac");
+// });

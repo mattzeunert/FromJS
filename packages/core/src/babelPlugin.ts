@@ -63,11 +63,14 @@ if (!global.__didInitializeDataFlowTracking) {` +
   "}";
 helperCode += "// aaaaa"; // this seems to help with debugging/evaling the code... not sure why...just take it out if the tests dont break
 
+// helperCode = ""
+
 function plugin(babel) {
   const { types: t } = babel;
 
   function handleFunction(path) {
     const declarators: any[] = [];
+
     path.node.params.forEach((param, i) => {
       if (param.type === "ObjectPattern") {
         // do nothing for now, logic is in objectpattern visitor
@@ -88,7 +91,9 @@ function plugin(babel) {
       } else if (param.type === "ArrayPattern") {
         param.elements.forEach(elem => {
           let varName;
-          if (elem.type === "Identifier") {
+          if (!elem) {
+            // e.g. [,,c]
+          } else if (elem.type === "Identifier") {
             varName = elem.name;
           } else if (elem.type === "AssignmentPattern") {
             varName = elem.left.name;
@@ -97,17 +102,24 @@ function plugin(babel) {
           } else if (elem.type === "ObjectPattern") {
             // will be processed in ObjectPattern visitor
           } else {
-            throw Error("aaa unknown array pattern elem type " + elem.type);
+            throw Error(
+              "aaa unknown array pattern elem type " +
+                elem.type +
+                " " +
+                JSON.stringify(path.node.loc)
+            );
           }
-          declarators.push(
-            t.variableDeclarator(
-              addLoc(getTrackingIdentifier(varName), param.loc),
-              ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
-                ignoredStringLiteral("arrayPatternInFunction"),
-                getLocObjectASTNode(elem.loc)
-              ])
-            )
-          );
+          if (elem) {
+            declarators.push(
+              t.variableDeclarator(
+                addLoc(getTrackingIdentifier(varName), param.loc),
+                ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+                  ignoredStringLiteral("arrayPatternInFunction"),
+                  getLocObjectASTNode(elem.loc)
+                ])
+              )
+            );
+          }
         });
       } else if (param.type === "AssignmentPattern") {
         let varName = param.left.name;
@@ -160,11 +172,15 @@ function plugin(babel) {
     if (path.node.body.type !== "BlockStatement") {
       // arrow function
       path.node.body = ignoreNode(
-        t.blockStatement([ignoreNode(t.returnStatement(path.node.body))])
+        t.blockStatement([t.returnStatement(path.node.body)])
       );
     }
     path.node.body.body.unshift(d);
     path.node.ignore = true; // I'm not sure why it would re-enter the functiondecl/expr, but it has happened before
+
+    if (path.node.type === "FunctionExpression") {
+      path.replaceWith(createOperation("fn", [path.node], null, path.node.loc));
+    }
   }
 
   const visitors = {
@@ -199,7 +215,22 @@ function plugin(babel) {
           varName = prop.key.name;
         }
 
-        newProperties.push(
+        // this needs to be at the top level, otherwise we'd have to modify the
+        // return value of provideObjectPatternTrackingValues which could
+        // mean the program ends up with a modified value
+        let topLevelObjectPattern = path.node;
+        let currentPath = path.parentPath;
+        while (currentPath) {
+          if (currentPath.node.type === "ObjectPattern") {
+            topLevelObjectPattern = currentPath.node;
+          }
+          currentPath = currentPath.parentPath;
+        }
+
+        (topLevelObjectPattern === path.node
+          ? newProperties
+          : topLevelObjectPattern.properties
+        ).push(
           skipPath(
             t.ObjectProperty(
               ignoreNode(getTrackingIdentifier(varName)),
@@ -213,6 +244,7 @@ function plugin(babel) {
             )
           )
         );
+
         newProperties.push(prop);
       });
       path.node.properties = newProperties;
@@ -268,6 +300,48 @@ function plugin(babel) {
           // declaration are inserted into pattern already
         } else if (decl.id.type === "ObjectPattern") {
           // declarations are inserted into object pattern already
+          // but we need to make sure they are provided
+
+          function getProps(propsArr, pathPrefix = "") {
+            let properties: { name: string; path: string }[] = [];
+            for (const prop of propsArr) {
+              if (prop.type === "RestElement") {
+                // for now just ignore and don't add tracking values
+              } else if (prop.value.type === "ObjectPattern") {
+                properties = [
+                  ...properties,
+                  ...getProps(
+                    prop.value.properties,
+                    pathPrefix + prop.key.name + "."
+                  )
+                ];
+              } else if (prop.value.type === "AssignmentPattern") {
+                // for now just ignore and don't add tracking values
+              } else {
+                properties.push({
+                  name: prop.value.name,
+                  path: pathPrefix + prop.key.name
+                });
+              }
+            }
+            return properties;
+          }
+          let properties = getProps(decl.id.properties);
+
+          decl.init = ignoredCallExpression(
+            FunctionNames.provideObjectPatternTrackingValues,
+            [
+              decl.init,
+              ignoredArrayExpression(
+                properties.map(prop => {
+                  return ignoredArrayExpression([
+                    ignoredStringLiteral(prop.name),
+                    ignoredStringLiteral(prop.path)
+                  ]);
+                })
+              )
+            ]
+          );
         } else {
           newDeclarations.push(
             t.variableDeclarator(
@@ -370,9 +444,15 @@ function plugin(babel) {
       const isForOfStatementWithoutVarDeclaration =
         path.parentPath.node.type === "ForOfStatement";
 
-      const namedParamCount = path.node.elements.filter(
-        el => el.type !== "RestElement"
-      ).length;
+      if (path.parentPath.node.type === "FunctionDeclaration") {
+        // don't transform, it would break how the values are passed
+        return;
+      }
+
+      const specificParamCount = path.node.elements.filter(el => {
+        // !el if e.g. [,a,b] with an empty item at the start
+        return !el || el.type !== "RestElement";
+      }).length;
 
       if (
         isForOfStatementWithVarDeclaration ||
@@ -391,7 +471,7 @@ function plugin(babel) {
             forOfStatement.right,
             getLocObjectASTNode(forOfStatement.loc),
             ignoredStringLiteral("forOf"),
-            ignoredNumericLiteral(namedParamCount)
+            ignoredNumericLiteral(specificParamCount)
           ]
         );
       } else if (
@@ -404,7 +484,7 @@ function plugin(babel) {
             declarator.init,
             getLocObjectASTNode(declarator.loc),
             ignoredStringLiteral("variableDeclarationInit"),
-            ignoredNumericLiteral(namedParamCount)
+            ignoredNumericLiteral(specificParamCount)
           ]
         );
       } else if (path.parentPath.node.type === "AssignmentExpression") {
@@ -415,7 +495,7 @@ function plugin(babel) {
             assignmentExpression.right,
             getLocObjectASTNode(assignmentExpression.loc),
             ignoredStringLiteral("assignmentExpressionRight"),
-            ignoredNumericLiteral(namedParamCount)
+            ignoredNumericLiteral(specificParamCount)
           ]
         );
       }
@@ -424,7 +504,8 @@ function plugin(babel) {
       const newElements: any[] = [];
       arrayPattern.elements.forEach(elem => {
         let varName;
-        if (elem.type === "Identifier") {
+        if (!elem) {
+        } else if (elem.type === "Identifier") {
           varName = elem.name;
         } else if (elem.type === "AssignmentPattern") {
           varName = elem.left.name;
@@ -435,13 +516,16 @@ function plugin(babel) {
         } else {
           throw Error("array pattern elem type " + elem.type);
         }
-        if (elem.type !== "RestElement") {
+        if (!elem) {
+          newElements.push(elem);
+          newElements.push(elem);
+        } else if (elem.type !== "RestElement") {
           newElements.push(elem);
           newElements.push(addLoc(getTrackingIdentifier(varName), elem.loc));
         } else {
           // Rest element must be last element
           newElements.push(addLoc(getTrackingIdentifier(varName), elem.loc));
-          newElements.push(elem);
+          newElements.push(elem.argument);
         }
         // newDeclarations.push(
         //   t.variableDeclarator(
@@ -553,7 +637,8 @@ function plugin(babel) {
           try {
             path.replaceWith(ret);
           } catch (err) {
-            // for easier debugging
+            console.log("Error for path at loc", JSON.stringify(path.node.loc));
+            // for easier debugging, allow step in again
             debugger;
             operation.visitor.call(operation, path);
             throw err;

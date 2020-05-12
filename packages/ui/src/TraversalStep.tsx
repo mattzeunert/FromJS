@@ -40,22 +40,22 @@ let TraversalStep = class TraversalStep extends React.Component<
       showLogJson: false,
       showTree: false,
       isExpanded: false,
-      isHovering: false
+      isHovering: false,
     };
 
     const { step } = props;
     if (this.needsToLoadLocation(step.operationLog)) {
       resolveStackFrame(step.operationLog)
-        .then(r => {
+        .then((r) => {
           // console.log("got stackframe", r);
           this.setState({
-            stackFrame: r
+            stackFrame: r,
           });
           // console.log("done resolve stack frame", r);
           // document.querySelector("#step-code-" + i).innerHTML =
           //   r.code.line.text;
         })
-        .catch(err => "yolo");
+        .catch((err) => "yolo");
     }
   }
 
@@ -164,7 +164,7 @@ let TraversalStep = class TraversalStep extends React.Component<
             operationTypeDetail +=
               '["' +
               truncate(propName, {
-                length: 20
+                length: 20,
               }) +
               '"]';
           } else {
@@ -187,6 +187,10 @@ let TraversalStep = class TraversalStep extends React.Component<
         operationTypeDetail = operationLog.runtimeArgs.url;
       } else if (operationLog.operation === "XMLHttpRequest.responseText") {
         operationTypeDetail = operationLog.runtimeArgs.url;
+      } else if (operationLog.operation === "readFileSyncResult") {
+        operationTypeDetail = operationLog.runtimeArgs.filePath
+          .split("/")
+          .slice(-1)[0];
       }
     } catch (err) {
       console.log(err);
@@ -295,14 +299,14 @@ let TraversalStep = class TraversalStep extends React.Component<
               >
                 Inspect operation arguments:
               </div>
-              {/* <pre>
+              <pre>
                 Runtime args:
                 {JSON.stringify(
                   this.props.step.operationLog.runtimeArgs,
                   null,
                   4
                 )}
-              </pre> */}
+              </pre>
               {this.getAllArgs().length === 0 && (
                 <div style={{ padding: 6 }}>(No arguments)</div>
               )}
@@ -336,7 +340,7 @@ let TraversalStep = class TraversalStep extends React.Component<
                   <div
                     data-test-argument={name}
                     className={cx("step__argument", {
-                      "step__argument--can-inspect": canInspect
+                      "step__argument--can-inspect": canInspect,
                     })}
                     onClick={() => {
                       if (!canInspect) {
@@ -350,7 +354,7 @@ let TraversalStep = class TraversalStep extends React.Component<
                     <span>
                       {value
                         ? truncate(value.result.getTruncatedUIString(), {
-                            length: 80
+                            length: 80,
                           })
                         : "(no tracking value)"}
                     </span>
@@ -420,7 +424,7 @@ let TraversalStep = class TraversalStep extends React.Component<
             <TextEl
               text={str}
               highlightedCharacterIndex={charIndex}
-              onCharacterClick={charIndex =>
+              onCharacterClick={(charIndex) =>
                 selectAndTraverse(
                   operationLog.index,
                   charIndex,
@@ -439,7 +443,7 @@ let TraversalStep = class TraversalStep extends React.Component<
 
 TraversalStep = branch(
   {
-    debugMode: ["debugMode"]
+    debugMode: ["debugMode"],
   },
   TraversalStep
 );

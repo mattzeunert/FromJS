@@ -25,14 +25,33 @@ import * as MemoValueNames from "../MemoValueNames";
 import { consoleLog } from "../helperFunctions/logging";
 import { safelyReadProperty } from "../util";
 import * as OperationTypes from "../OperationTypes";
+import { getShortOperationName, getShortExtraArgName } from "../names";
+
+const propertyValueExtraArgName = getShortExtraArgName("propertyValue");
 
 export default <any>{
   argNames: log => {
     if (log.astArgs.assignmentType === "MemberExpression") {
       return ["object", "propertyName", "argument"];
     } else {
+      // e.g. "x += fn()" turns into [x, x+=mem(fn()), getMem()]
       return ["currentValue", "newValue", "argument"];
     }
+  },
+  canInferResult: (args, extraArgs, astArgs, runtimeArgs) => {
+    if (astArgs.operator === "+=") {
+      if (astArgs.type === "MemberExpression") {
+        return !!runtimeArgs.assignment;
+      } else {
+        return (
+          args[0][1] &&
+          typeof args[0][0] === "string" &&
+          args[2][1] &&
+          typeof args[2][0] === "string"
+        );
+      }
+    }
+    return false;
   },
   exec: function AssignmentExpressionExec(
     args,
@@ -63,7 +82,7 @@ export default <any>{
             propertyName: [propName, propNameT]
           },
           extraArgs: {
-            propertyValue: [
+            [propertyValueExtraArgName]: [
               currentValue,
               ctx.getObjectPropertyTrackingValue(obj, propName)
             ]
@@ -122,23 +141,24 @@ export default <any>{
       obj[propName] = newValue;
       ret = newValue;
 
+      const assignmentExpressionT = ctx.createOperationLog({
+        result: ret,
+        operation: "assignmentExpression",
+        args: [[currentValue, currentValueT], [newValue, null], argumentArg],
+        astArgs: {
+          operator,
+          generated: true
+        },
+        loc: logData.loc
+      });
+
       ctx.trackObjectPropertyAssignment(
         obj,
         propName,
-        ctx.createOperationLog({
-          result: ret,
-          operation: "assignmentExpression",
-          args: {
-            currentValue: [currentValue, currentValueT],
-            argument: argumentArg
-          },
-          astArgs: {
-            operator
-          },
-          loc: logData.loc
-        }),
+        assignmentExpressionT,
         propNameT
       );
+      logData.runtimeArgs = { assignment: assignmentExpressionT };
 
       const objIsHTMLNode = typeof Node !== "undefined" && obj instanceof Node;
       if (objIsHTMLNode) {
@@ -209,6 +229,12 @@ export default <any>{
         charIndex: charIndex
       };
     } else if (operator === "+=") {
+      if (operationLog.runtimeArgs && operationLog.runtimeArgs.assignment) {
+        return {
+          operationLog: operationLog.runtimeArgs.assignment,
+          charIndex
+        };
+      }
       return traverseStringConcat(
         operationLog.args.currentValue,
         operationLog.args.argument,

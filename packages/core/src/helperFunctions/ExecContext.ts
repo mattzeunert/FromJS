@@ -15,6 +15,7 @@ export interface ExecContext {
     valueLength: number;
     trackingValue: number;
   }[];
+  registerEvent: (event: any) => void;
   lastMemberExpressionResult: [any, any];
   createOperationLog(args: CreateOperationLogArgs): number;
   createArrayIndexOperationLog(index: number, loc: any): number | null;

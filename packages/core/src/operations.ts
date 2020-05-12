@@ -42,6 +42,7 @@ import { getElAttributeValueOrigin } from "./operations/domHelpers/addElOrigin";
 import { safelyReadProperty, nullOnError } from "./util";
 import * as FunctionNames from "./FunctionNames";
 import * as sortBy from "lodash/sortBy";
+import { getShortExtraArgName, getShortArgName } from "./names";
 
 function identifyTraverseFunction(operationLog, charIndex) {
   return {
@@ -87,23 +88,40 @@ interface Operations {
     traverse?: (
       operationLog: any,
       charIndex: number,
-      options?: { optimistic: boolean }
+      options?: { optimistic: boolean; events?: any[] }
     ) => TraversalStep | undefined;
     t?: any; // babel types
   };
 }
 
+const leftArgName = getShortArgName("left");
+const rightArgName = getShortArgName("right");
+
 const operations: Operations = {
   memberExpression: MemberExpression,
   binaryExpression: {
+    canInferResult: function(args) {
+      const left = args[leftArgName];
+      const right = args[rightArgName];
+      if (!left[1] || !right[1]) {
+        return false;
+      }
+      if (typeof left[0] !== "string" || typeof right[0] !== "string") {
+        return false;
+      }
+      return true;
+    },
     visitor(path) {
       if (!["+", "-", "/", "*"].includes(path.node.operator)) {
         return;
       }
       return this.createNode!(
         {
-          left: [path.node.left, getLastOperationTrackingResultCall()],
-          right: [path.node.right, getLastOperationTrackingResultCall()]
+          [leftArgName]: [path.node.left, getLastOperationTrackingResultCall()],
+          [rightArgName]: [
+            path.node.right,
+            getLastOperationTrackingResultCall()
+          ]
         },
         { operator: ignoredStringLiteral(path.node.operator) },
         path.node.loc
@@ -142,10 +160,9 @@ const operations: Operations = {
       throw "aaa";
     },
     exec: function binaryExpressionExec(args, astArgs, ctx: ExecContext) {
-      var { left, right } = args;
+      const [left] = args[leftArgName];
+      const [right] = args[rightArgName];
       var ret;
-      left = left[0];
-      right = right[0];
 
       var { operator } = astArgs;
       if (operator === "+") {
@@ -169,7 +186,7 @@ const operations: Operations = {
         return this.createNode!(
           {
             // always execute the left side
-            left: ignoreNode(
+            [leftArgName]: ignoreNode(
               t.sequenceExpression([
                 createSetMemoValue(
                   MemoValueNames.lastOrLogicalExpressionResult,
@@ -180,7 +197,7 @@ const operations: Operations = {
               ])
             ),
             // only execute the right side if left side is falsy
-            right: ignoreNode(
+            [rightArgName]: ignoreNode(
               t.logicalExpression(
                 "&&",
                 ignoreNode(
@@ -222,10 +239,15 @@ const operations: Operations = {
       }
     },
     exec: (args, astArgs, ctx: ExecContext) => {
-      var { left, right } = args;
+      const l = args[leftArgName];
+      const r = args[rightArgName];
+
+      // destructure here instead of using [l] = ... above,
+      // because false[0] is valid, but can't destructure false
+      const left = l[0];
+      const right = r[0];
+
       var ret;
-      left = left[0];
-      right = right[0];
 
       var { operator } = astArgs;
       if (operator === "||") {
@@ -315,6 +337,11 @@ const operations: Operations = {
   },
   stringReplacement: {},
   callExpression: CallExpression,
+  fn: {
+    exec: (args, astArgs, ctx) => {
+      return args[0];
+    }
+  },
   newExpression: {
     visitor(path) {
       return operations.callExpression.visitor(path, true);
@@ -413,7 +440,7 @@ const operations: Operations = {
       logData.runtimeArgs = {};
       const expressionValues = ctx.getCurrentTemplateLiteralTrackingValues();
       expressionValues.forEach((expressionValue, i) => {
-        logData.extraArgs["expression" + i] = [
+        logData.extraArgs[getShortExtraArgName("expression" + i)] = [
           null,
           expressionValue.trackingValue
         ];
@@ -621,7 +648,7 @@ const operations: Operations = {
     argNames: ["returnValue"],
     canInferResult: function(args) {
       // return statement will always return returned value
-      return !!args[0];
+      return !!args[0][1];
     },
     exec: function returnStatementExec(
       args,
@@ -651,7 +678,7 @@ const operations: Operations = {
     argNames: ["value"],
     canInferResult: function(args) {
       // identifier will always return same value as var value
-      return !!args[0];
+      return !!args[0][1];
     },
     shorthand: {
       fnName: "__ident",
@@ -722,6 +749,7 @@ const operations: Operations = {
     }
   },
   memexpAsLeftAssExp: {
+    canInferResult: true,
     traverse(operationLog: OperationLog, charIndex: number) {
       return {
         operationLog: operationLog.extraArgs.propertyValue,
@@ -797,6 +825,24 @@ const operations: Operations = {
       };
     }
   },
+  readFileSyncResult: {
+    traverse(operationLog, charIndex, options) {
+      let absPath = operationLog.runtimeArgs.absPath;
+      let writeEvent = (options!.events || []).find(
+        e => e.type === "fileWrite" && e.absPath === absPath
+      );
+      if (!writeEvent) {
+        return {
+          operationLog: null,
+          charIndex
+        };
+      }
+      return {
+        operationLog: writeEvent.logIndex,
+        charIndex
+      };
+    }
+  },
   arrayPattern: {
     traverse(operationLog, charIndex) {
       return {
@@ -846,7 +892,7 @@ const operations: Operations = {
   }
 };
 
-function eachArgumentInObject(args, operationName, fn) {
+export function eachArgumentInObject(args, operationName, fn) {
   if (!args) {
     return;
   }
@@ -855,13 +901,36 @@ function eachArgumentInObject(args, operationName, fn) {
 
   if (isObjectExpression) {
     // todo: this is an objexpression property not an obj expression itself, should be clarified
-    fn(args.value, "value", newValue => {
-      args.value = newValue;
+    ["value", "key"].forEach(key => {
+      fn(
+        args.value,
+        key,
+        newValue => {
+          args[key] = newValue;
+        },
+        newKey => {
+          if (newKey === key) {
+            return;
+          }
+          args[newKey] = args[key];
+          delete args.key;
+        }
+      );
     });
-    fn(args.key, "key", newValue => (args.key = newValue));
   } else {
     Object.keys(args).forEach(key => {
-      fn(args[key], key, newValue => (args[key] = newValue));
+      fn(
+        args[key],
+        key,
+        newValue => (args[key] = newValue),
+        newKey => {
+          if (key === newKey) {
+            return;
+          }
+          args[newKey] = args[key];
+          delete args[key];
+        }
+      );
     });
   }
 }

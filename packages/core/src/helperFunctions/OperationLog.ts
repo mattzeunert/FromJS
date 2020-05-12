@@ -1,11 +1,10 @@
 import KnownValues from "./KnownValues";
-import { VERIFY, MINIMIZE_LOG_DATA_SIZE } from "../config";
-import operations from "../operations";
+import { VERIFY, MINIMIZE_LOG_DATA_SIZE, SHORT_NAMES } from "../config";
 import invokeIfFunction from "../invokeIfFunction";
 import { consoleLog } from "./logging";
-import { arrayIndex } from "../OperationTypes";
 import { countObjectKeys } from "../util";
 import { ValueTrackingValuePair } from "../types";
+import { getShortOperationName, getLongOperationName } from "../names";
 
 var global = Function("return this")();
 
@@ -14,10 +13,10 @@ export const getOperationIndex = (function() {
   var operationIndexBase = Math.round(
     Math.random() * 1000 * 1000 * 1000 * 1000 * 1000
   );
-  var operationIndex = 0;
+  var operationIndex = operationIndexBase;
   return function getOperationIndex() {
     operationIndex++;
-    return operationIndexBase + operationIndex;
+    return operationIndex;
   };
 })();
 
@@ -41,6 +40,8 @@ function serializeValue(
   return getSerializedValueObject(value, type, knownValues);
 }
 
+const _bufferObj = eval("typeof Buffer === 'undefined' ? null : Buffer");
+
 export interface SerializedValueData {
   length: any;
   type: string;
@@ -52,7 +53,12 @@ export interface SerializedValueData {
 
 type StoredSerializedValue = SerializedValueData | string | number | boolean;
 
-export function getSerializedValueObject(value, type, knownValues) {
+export function getSerializedValueObject(
+  value,
+  type,
+  knownValues,
+  preventShortNames = false
+) {
   var knownValue: undefined | string =
     knownValues && knownValues.getName(value);
 
@@ -101,13 +107,17 @@ export function getSerializedValueObject(value, type, knownValues) {
       type === "object" &&
       value !== null &&
       !Array.isArray(value) &&
-      !knownValue
+      !knownValue &&
+      (!_bufferObj || !(value instanceof _bufferObj))
     ) {
       // todo: rethink this regarding perf
       // maybe don't collect keys, maybe do for...in instead
       // also: when inspecting i really want the trakcing data for
       // values/keys to be accessible, so maybe just storing keys makes more sense
       keys = Object.keys(value);
+      if (keys.length > 100) {
+        console.log("Obj with more than 100 keys", keys.slice(0, 5));
+      }
       if (keys.length > 5) {
         keys = keys.slice(0, 5);
         keys.push("...");
@@ -115,14 +125,32 @@ export function getSerializedValueObject(value, type, knownValues) {
     }
   } catch (err) {}
 
-  return <SerializedValueData>{
-    length,
-    type,
-    primitive,
-    knownValue,
-    knownTypes,
-    keys
-  };
+  if (SHORT_NAMES && !preventShortNames) {
+    if (type === "object") {
+      type = "o";
+    } else if (type === "function") {
+      type = "f";
+    } else if (type === "undefined") {
+      type = "u";
+    }
+    return {
+      l: length,
+      t: type,
+      p: primitive,
+      k: knownValue,
+      kt: knownTypes,
+      ke: keys
+    } as any;
+  } else {
+    return <SerializedValueData>{
+      length,
+      type,
+      primitive,
+      knownValue,
+      knownTypes,
+      keys
+    };
+  }
 }
 
 class SerializedValue implements SerializedValueData {
@@ -203,7 +231,7 @@ export default class OperationLog implements OperationLogInterface {
     if (resultIsSerializedValueObject) {
       sv = <SerializedValueData>this._result;
     } else {
-      sv = getSerializedValueObject(this._result, null, null);
+      sv = getSerializedValueObject(this._result, null, null, true);
     }
 
     return new SerializedValue(sv);
@@ -238,8 +266,8 @@ export default class OperationLog implements OperationLogInterface {
 interface CreateAtRuntimeArg {
   operation: string;
   result: any;
-  args:  // Simple arg data, something like { originValue: ["hello", 2638723923] }
-    | { [argName: string]: ValueTrackingValuePair }
+  args: // Simple arg data, something like { originValue: ["hello", 2638723923] }
+  | { [argName: string]: ValueTrackingValuePair }
     // For object literals
     | {
         properties: {
@@ -266,15 +294,27 @@ OperationLog.createAtRuntime = function(
     astArgs,
     extraArgs,
     loc,
-    runtimeArgs,
-    index
+    runtimeArgs
   }: CreateAtRuntimeArg,
-  knownValues
+  knownValues,
+  op
 ): OperationLogInterface {
   if (VERIFY && !loc) {
-    consoleLog("no loc at runtime for operation", operation);
+    consoleLog(
+      "no loc at runtime for operation",
+      getLongOperationName(operation)
+    );
   }
-  const op = operations[operation];
+
+  let canInfer = false;
+  if (MINIMIZE_LOG_DATA_SIZE) {
+    let opCanInfer = op && op.canInferResult;
+    if (typeof opCanInfer === "boolean") {
+      canInfer = opCanInfer;
+    } else if (typeof opCanInfer === "function" && args) {
+      canInfer = opCanInfer(args, extraArgs, astArgs, runtimeArgs);
+    }
+  }
 
   if (astArgs && countObjectKeys(astArgs) === 0) {
     astArgs = undefined;
@@ -344,31 +384,33 @@ OperationLog.createAtRuntime = function(
   }
 
   let _result;
-  let canInfer = false;
-  if (MINIMIZE_LOG_DATA_SIZE) {
-    let opCanInfer = op && op.canInferResult;
-    if (typeof opCanInfer === "boolean") {
-      canInfer = opCanInfer;
-    } else if (typeof opCanInfer === "function" && args) {
-      canInfer = opCanInfer(args, extraArgs);
-    }
-  }
   if (canInfer) {
     // args can be inferred on BE by checking the AST loc data, or by checking argument values
   } else {
     _result = serializeValue(result, knownValues);
   }
 
-  return <OperationLogInterface>{
-    operation,
-    _result,
-    index,
-    extraArgs,
-    args,
-    astArgs,
-    loc,
-    runtimeArgs
-  };
+  if (SHORT_NAMES) {
+    return {
+      o: operation,
+      r: _result,
+      e: extraArgs,
+      a: args,
+      ast: astArgs,
+      l: loc,
+      rt: runtimeArgs
+    } as any;
+  } else {
+    return <OperationLogInterface>{
+      operation,
+      _result,
+      extraArgs,
+      args,
+      astArgs,
+      loc,
+      runtimeArgs
+    };
+  }
 };
 
 // TODO: don't copy/paste this

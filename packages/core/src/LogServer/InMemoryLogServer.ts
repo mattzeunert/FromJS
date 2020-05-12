@@ -3,7 +3,7 @@ import { LogServer } from "./LogServer";
 import { LocStore } from "../LocStore";
 
 interface LogsObject {
-  [key: string]: OperationLog;
+  [key: string]: string;
 }
 
 export default class InMemoryLogServer extends LogServer {
@@ -11,23 +11,20 @@ export default class InMemoryLogServer extends LogServer {
   constructor(locStore: LocStore) {
     super(locStore);
   }
-  storeLog(log) {
-    this._storedLogs[log.index] = log;
+  storeLog(logIndex, logString) {
+    this._storedLogs[logIndex] = logString;
   }
   storeLogs(logs, callback = function() {}) {
-    logs.forEach(log => this.storeLog(log));
+    logs.forEach(([logIndex, logString]) => this.storeLog(logIndex, logString));
     callback();
   }
-  getLog(index: number, fn: (err: any, log: OperationLog | null) => void) {
+  getLog(index: number, fn: (err: any, log: string | null) => void) {
     var log = this._storedLogs[index];
     if (!log) {
       fn(Error("log not found, index is: " + index), null);
       return;
     }
 
-    // deep clone log so we can modify it without affecting the original
-    // possibly slow, can fix later
-    log = new OperationLog(JSON.parse(JSON.stringify(log)));
     fn(null, log);
   }
 }

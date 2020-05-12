@@ -16,26 +16,38 @@ export default class LevelDBLogServer extends LogServer {
     this.db = levelup(this.levelDownDb);
     this._getCached = cacheLevelDBGet(this.db);
   }
-  storeLog(log: OperationLog) {
-    this.db.put(log.index.toString(), JSON.stringify(log), function(err) {
+  storeLog(logIndex, logString) {
+    this.db.put(logIndex.toString(), logString, function(err) {
       if (err) return console.log("Ooops! (put)", err); // some kind of I/O error
     });
   }
   storeLogs(logs: OperationLog[], callback = function() {}) {
-    var ops: any[] = [];
+    console.time("create ops");
+    let types = {};
+    // logs.forEach(log => {
+    //   let operation = log["o"];
+    //   types[operation] = types[operation] || 0;
+    //   types[operation]++;
+    // });
+    // console.log(types);
 
-    logs.forEach(log => {
-      ops.push({
+    const ops = logs.map(logArr => {
+      return {
         type: "put",
-        key: log.index.toString(),
-        value: JSON.stringify(log)
-      });
+        key: logArr[0].toString(),
+        value: logArr[1]
+      };
     });
+    console.timeEnd("create ops");
 
     // levelDownDb._batch vs db.batch:
     // _batch bypasses some validation code which should help performance a bit
-    this.levelDownDb._batch(ops, function(err) {
+    // ==> using batch for now, was getting napi_create_reference failed errors with _batch
+    // ====> can't find the validation code any more, maybe it was removed?
+    console.time("batch");
+    this.levelDownDb.batch(ops, function(err) {
       if (err) return console.log("Ooops!  - level db error (logs)", err);
+      console.timeEnd("batch");
       callback();
     });
   }
@@ -49,9 +61,8 @@ export default class LevelDBLogServer extends LogServer {
         fn(err, null);
         return;
       }
-      value = JSON.parse(value);
-      const ret = new OperationLog(value);
-      fn(null, ret);
+
+      fn(null, value);
     });
   }
 }

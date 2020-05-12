@@ -44,10 +44,11 @@ export function compileSync(code, extraBabelOptions = {}, url = "/no_url.js") {
   const sizeBefore = code.length;
   const startTime = new Date();
   code = removeSourceMapIfAny(code);
+
   const babelResult = babel.transform(
     code,
     getBabelOptions(plugin, extraBabelOptions, url)
-  );
+  )!;
   return <CompilationResult>{
     map: babelResult.map,
     code:
@@ -55,7 +56,7 @@ export function compileSync(code, extraBabelOptions = {}, url = "/no_url.js") {
       (babelResult.map ? "\n//# sourceMappingURL=" + url + ".map" : ""),
     locs: getAndResetLocs(),
     timeTakenMs: new Date().valueOf() - startTime.valueOf(),
-    sizeAfter: babelResult.code.length,
+    sizeAfter: babelResult.code!.length,
     sizeBefore
   };
 }

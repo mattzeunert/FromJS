@@ -88,7 +88,7 @@ let showErrorAlert = debounce(function() {
   errorQueue = [];
 }, 100);
 
-function makeFEOperationLog(log) {
+export function makeFEOperationLog(log) {
   if (log.args) {
     const newArgs = {};
     Object.keys(log.args).forEach(key => {

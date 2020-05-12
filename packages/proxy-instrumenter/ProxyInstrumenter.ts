@@ -20,6 +20,12 @@ export function startProxy(options) {
 
 function getUrl(ctx) {
   let protocol = ctx.isSSL ? "https" : "http";
+  if (
+    ctx.clientToProxyRequest.url.includes(ctx.clientToProxyRequest.headers.host)
+  ) {
+    // only happens with axios? or maybe it's because i upgraded the version of mitm proxy?
+    return ctx.clientToProxyRequest.url;
+  }
   return (
     protocol +
     "://" +
@@ -81,6 +87,8 @@ class ProxyInstrumenter {
     this.onRegisterEvalScript = onRegisterEvalScript;
     this.shouldBlock = shouldBlock;
 
+    console.log("Proxy on port", port);
+
     this.proxy.onError((ctx, err, errorKind) => {
       var url = "n/a";
       // ctx may be null
@@ -126,7 +134,14 @@ class ProxyInstrumenter {
       method: ctx.clientToProxyRequest.method.toUpperCase()
     };
     var url = requestInfo.url;
+    console.log("req", url);
+    console.log(ctx.clientToProxyRequest.headers);
     ctx.requestId = url + "_" + Math.random();
+
+    if (ctx.proxyToServerRequestOptions.port === this.port) {
+      console.log("tried to do cyclical proxy request");
+      return;
+    }
 
     // allow self-signed certificates
     ctx.proxyToServerRequestOptions.rejectUnauthorized = false;
@@ -212,10 +227,12 @@ class ProxyInstrumenter {
     };
 
     if ((isHtml || checkIsJS(ctx)) && shouldInstrument) {
+      console.log("ishtml or is js");
       this.waitForResponseEnd(ctx).then(({ body, ctx, sendResponse }) => {
         const contentType = ctx.serverToProxyResponse.headers["content-type"];
 
         let resourceType;
+        console.log({ contentType });
         if (contentType) {
           if (contentType.includes("text/html")) {
             resourceType = "html";
@@ -238,6 +255,7 @@ class ProxyInstrumenter {
         }
 
         if (resourceType === "html") {
+          console.log("call processHtml");
           this.processHtml(body).then(function(html) {
             body = html;
             sendResponse(body);
@@ -414,7 +432,7 @@ class ProxyInstrumenter {
 
         var body = buffer.toString();
         var msElapsed = new Date().valueOf() - jsFetchStartTime.valueOf();
-        var speed = Math.round(buffer.byteLength / msElapsed / 1000 * 1000);
+        var speed = Math.round((buffer.byteLength / msElapsed / 1000) * 1000);
         if (!this.silent && this.verbose) {
           this.log(
             "JS ResponseEnd",
@@ -429,6 +447,7 @@ class ProxyInstrumenter {
         }
 
         const sendResponse = responseBody => {
+          console.log("send resp", ctx.requestId);
           this.finishRequest(ctx.requestId);
           if (body.length === 0) {
             // console.log(body, responseBody);
@@ -591,14 +610,9 @@ class ProxyInstrumenter {
     }
     return this.requestProcessCode(body, url, this.babelPluginOptions).then(
       response => {
-        var {
-          code,
-          map,
-          locs,
-          timeTakenMs,
-          sizeBefore,
-          sizeAfter
-        } = <any>response;
+        var { code, map, locs, timeTakenMs, sizeBefore, sizeAfter } = <any>(
+          response
+        );
 
         if (timeTakenMs > 2000) {
           const sizeBeforeString = prettyBytes(sizeBefore);

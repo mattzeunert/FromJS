@@ -8,17 +8,22 @@ export function getCurrentBabelFilePath() {
 }
 // more global state for babel
 let locs = {};
+let locIndex = 0;
 export function createLoc(value) {
   // would be nice to just use an integer, but then need to avoid collisions better
   const id =
-    Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36) +
-    Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
+    locIndex.toString(36) +
+    // need to avoid more than 10B files I guess...
+    Math.floor(Math.random() * 1000 * 1000 * 1000 * 10).toString(36);
+  locIndex++;
   locs[id] = value;
   return id;
 }
 export function getAndResetLocs() {
   var ret = locs;
+  locIndex = 0;
   locs = {};
+
   return ret;
 }
 
@@ -26,7 +31,19 @@ export default function getBabelOptions(plugin, extraBabelOptions = {}, url) {
   currentBabelFilePath = url;
 
   const options = {
-    plugins: [plugin],
+    plugins: [
+      // these plugins do replacements and drop the path.node.loc on the way
+      // and generally misrepresent the code the user wrote
+      // but they do fix some issues for edge cases that FromJS doesn't support directly
+      // -----
+      // Enabling these probably means inaccurate mapping, and would also require source
+      // location mapping for doing stuff like going from a char index in an eval'd script
+      // to the script where eval was called
+      // so right now I'm generally leaning against supporting these
+      // require("@babel/plugin-transform-destructuring"),
+      // require("@babel/plugin-transform-computed-properties"),
+      plugin
+    ],
     ...extraBabelOptions,
     sourceMaps: false,
     sourceFileName: url + "?dontprocess",

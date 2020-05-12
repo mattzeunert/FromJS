@@ -5,7 +5,7 @@ export class BackendOptions {
   bePort: number;
   proxyPort: number;
   sessionDirectory: string;
-  onReady: () => void;
+  onReady: (x: any) => void;
   dontTrack: any[];
   block: any[];
   disableDefaultBlockList: boolean;
@@ -17,7 +17,7 @@ export class BackendOptions {
     onReady,
     dontTrack,
     block,
-    disableDefaultBlockList
+    disableDefaultBlockList,
   }) {
     this.bePort = bePort;
     this.proxyPort = proxyPort;
@@ -63,7 +63,7 @@ export class BackendOptions {
   getBackendServerCertInfo() {
     return {
       key: fs.readFileSync(this.getBackendServerPrivateKeyPath()),
-      cert: fs.readFileSync(this.getBackendServerCertPath())
+      cert: fs.readFileSync(this.getBackendServerCertPath()),
     };
   }
 }

@@ -13,12 +13,15 @@ import {
 } from "./domHelpers/addElOrigin";
 import { htmlAdapter } from "../OperationTypes";
 import { ValueTrackingValuePair } from "../types";
+import { getShortExtraArgName } from "../names";
+
+const propertyValueExtraArgName = getShortExtraArgName("propertyValue");
 
 export const MemberExpression = <any>{
   argNames: ["object", "propName"],
   canInferResult: function(args, extraArgs) {
     // identifier will always return same value as var value
-    return !!extraArgs.propertyValue;
+    return !!extraArgs[propertyValueExtraArgName][1];
   },
   shorthand: {
     fnName: "__mEx",
@@ -73,7 +76,7 @@ export const MemberExpression = <any>{
           logData
         );
       } else if (
-        !trackingValue &&
+        // !trackingValue &&
         object instanceof Node &&
         typeof propertyName !== "symbol"
       ) {
@@ -88,7 +91,7 @@ export const MemberExpression = <any>{
     }
 
     logData.extraArgs = {
-      propertyValue: [ret, trackingValue]
+      [propertyValueExtraArgName]: [ret, trackingValue]
     };
 
     ctx.lastMemberExpressionResult = [object, objectT];

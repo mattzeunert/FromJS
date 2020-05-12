@@ -6,7 +6,7 @@ import babelPlugin from "../../core/src/babelPlugin";
 import * as React from "react";
 import * as ReactDom from "react-dom";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
-const traverse = x => null;
+const traverse = (x) => null;
 import { escape } from "lodash";
 import { TextEl } from "./TextEl";
 import Code from "./Code";
@@ -26,9 +26,10 @@ import * as api from "./api";
 window["__debugApi"] = api;
 
 import "./main.scss";
+import { App2 } from "./CodeViewer";
 
 // global function used by tree view html
-window["showSteps"] = function(logId, charIndex) {
+window["showSteps"] = function (logId, charIndex) {
   actions.selectAndTraverse(logId, charIndex);
 };
 
@@ -36,7 +37,7 @@ let App = class extends React.Component<any, any> {
   constructor(props) {
     super(props);
     this.state = {
-      isForceUpdating: false
+      isForceUpdating: false,
     };
     window["forceUpdateInspector"] = () => {
       this.setState({ isForceUpdating: true });
@@ -52,78 +53,74 @@ let App = class extends React.Component<any, any> {
     }
 
     const expandWelcome = !hasInspectorData;
-    const welcome = false &&
-      (props.isInspectingDemoApp || !hasInspectorData) && (
-        <div
-          className="welcome"
-          style={{
-            maxWidth: 800
-          }}
-        >
-          <div className="welcome-content">
-            <h3
-              style={{
-                marginTop: 5,
-                marginBottom: 10
-              }}
-            >
-              Get Started
-            </h3>
-            <div>
-              <p>
-                To inspect any website open a new tab in this browser and load
-                it.{" "}
-                <a href="http://todomvc.com/examples/backbone/" target="_blank">
-                  Try it!
-                </a>
-              </p>
-              <p>
-                To select the value you want to inspect:
-                <br /> 1) Click "Enable DOM Inspector" and then select an
-                element <br />
-                2) Use <code>fromJSInspect(value)</code>
-                in your source code
-              </p>
-              <p>
-                After selecting a value this page will show its dataflow
-                information.
-              </p>
-              <p>
-                Ask questions and report bugs{" "}
-                <a href="https://github.com/mattzeunert/FromJS/issues">
-                  on Github
-                </a>
-                .
-              </p>
+    const welcome = false && (props.isInspectingDemoApp || !hasInspectorData) && (
+      <div
+        className="welcome"
+        style={{
+          maxWidth: 800,
+        }}
+      >
+        <div className="welcome-content">
+          <h3
+            style={{
+              marginTop: 5,
+              marginBottom: 10,
+            }}
+          >
+            Get Started
+          </h3>
+          <div>
+            <p>
+              To inspect any website open a new tab in this browser and load it.{" "}
+              <a href="http://todomvc.com/examples/backbone/" target="_blank">
+                Try it!
+              </a>
+            </p>
+            <p>
+              To select the value you want to inspect:
+              <br /> 1) Click "Enable DOM Inspector" and then select an element{" "}
+              <br />
+              2) Use <code>fromJSInspect(value)</code>
+              in your source code
+            </p>
+            <p>
+              After selecting a value this page will show its dataflow
+              information.
+            </p>
+            <p>
+              Ask questions and report bugs{" "}
+              <a href="https://github.com/mattzeunert/FromJS/issues">
+                on Github
+              </a>
+              .
+            </p>
 
-              <button
-                className={cx("load-demo-app", {
-                  "load-demo-app--hide": props.isInspectingDemoApp
-                })}
-                // onClick={() =>
-                //   actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
-                // }
-              >
-                {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
-              </button>
-            </div>
+            <button
+              className={cx("load-demo-app", {
+                "load-demo-app--hide": props.isInspectingDemoApp,
+              })}
+              // onClick={() =>
+              //   actions.setIsInspectingDemoApp(!props.isInspectingDemoApp)
+              // }
+            >
+              {props.isInspectingDemoApp ? "Hide" : "Load"} demo app
+            </button>
           </div>
-          {props.isInspectingDemoApp && (
-            <div
-              style={{ margin: 10 }}
-              dangerouslySetInnerHTML={{
-                __html: `<iframe src="http://localhost:${
-                  location.port
-                }/start/" />`
-              }}
-            />
-          )}
         </div>
-      );
+        {props.isInspectingDemoApp && (
+          <div
+            style={{ margin: 10 }}
+            dangerouslySetInnerHTML={{
+              __html: `<iframe src="http://localhost:${location.port}/start/" />`,
+            }}
+          />
+        )}
+      </div>
+    );
     return (
       <div
         className={cx("app", {
-          "app--isInspectingDemoApp": props.isInspectingDemoApp
+          "app--isInspectingDemoApp": props.isInspectingDemoApp,
         })}
       >
         <div className="app-header">
@@ -145,7 +142,7 @@ let App = class extends React.Component<any, any> {
                 Toggle Debug Mode
               </button>
             )}
-            <button
+            {/* <button
               className="blue-button"
               onClick={() => {
                 const newValue = !props.enableInstrumentation;
@@ -158,7 +155,7 @@ let App = class extends React.Component<any, any> {
               }}
             >
               {props.enableInstrumentation ? "Disable" : "Enable"} tracking
-            </button>
+            </button> */}
 
             <button
               className="blue-button"
@@ -194,14 +191,81 @@ App = branch(
     hasInspectorData: ["hasInspectorData"],
     enableInstrumentation: ["enableInstrumentation"],
     collapseGetStartedIfHasData: ["collapseGetStartedIfHasData"],
-    prettifyIfNoSourceMap: ["prettifyIfNoSourceMap"]
+    prettifyIfNoSourceMap: ["prettifyIfNoSourceMap"],
   },
   App
 );
 
-App = root(appState, App);
+class App2Wrapper extends React.Component {
+  render() {
+    console.log("rendering app2");
+    return (
+      <App2
+        App={App}
+        setQueryParam={(name, value) => {
+          let qp = getQueryParams();
+          qp[name] = value;
+          history.pushState({}, "", addQueryParams(location.pathname, qp));
+          this.forceUpdate();
+        }}
+        {...getQueryParams()}
+      />
+    );
+  }
+}
 
-ReactDom.render(<App />, document.querySelector("#app"));
+console.log(!location.href.includes("xyzviewer"));
+if (!location.href.includes("xyzviewer")) {
+  App = root(appState, App);
+
+  ReactDom.render(<App />, document.querySelector("#app"));
+} else {
+  console.log("xyz");
+  const App2WrapperX = root(appState, App2Wrapper);
+  ReactDom.render(
+    <App2WrapperX></App2WrapperX>,
+    document.querySelector("#appx")
+  );
+}
+
+export function getQueryParams(): { [x: string]: string } {
+  var queryParams = {};
+  location.search
+    .slice(1)
+    .split("&")
+    // if no query string don't return {"": undefined}
+    .filter((arg) => !!arg)
+    .forEach(function (param) {
+      const parts = param.split("=");
+      queryParams[parts[0]] = decodeURIComponent(parts[1]);
+    });
+
+  return queryParams;
+}
+
+function addQueryParams(url, queryObject) {
+  Object.keys(queryObject).forEach((queryParamKey) => {
+    let queryParamValue = queryObject[queryParamKey];
+
+    if (Array.isArray(queryParamValue)) {
+      queryParamValue = queryParamValue.join(",");
+    }
+
+    if (queryParamValue === false || queryParamValue === undefined) {
+      return;
+    }
+
+    if (url.includes("?")) {
+      url += "&";
+    } else {
+      url += "?";
+    }
+
+    url += queryParamKey + "=" + encodeURIComponent(queryParamValue);
+  });
+
+  return url;
+}
 
 // setTimeout(() => actions.selectAndTraverse(705162159, 0), 500);
 

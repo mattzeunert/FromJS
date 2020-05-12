@@ -1,8 +1,12 @@
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
+
+
 module.exports = {
   entry: "./src/index.tsx",
   output: {
     filename: "bundle.js",
-    path: __dirname + "/dist"
+    path: __dirname + "/dist",
+    publicPath: "/dist/"
   },
 
   performance: { hints: false },
@@ -21,9 +25,22 @@ module.exports = {
 
   module: {
     rules: [
-      { test: /\.tsx?$/, loader: "ts-loader" },
+      {
+        test: /\.tsx?$/, loader: "ts-loader",
+        // transpileOnly to fix build with monaco
+        options: { transpileOnly: true }
+      },
 
-      { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
+      { enforce: "pre", test: /\.js$/, loader: "source-map-loader", },
+
+
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
+      }, {
+        test: /\.ttf$/,
+        use: ['file-loader']
+      },
 
       {
         test: /\.scss$/,
@@ -36,5 +53,10 @@ module.exports = {
     ]
   },
 
-  externals: {}
+  plugins: [new MonacoWebpackPlugin({ languages: ["javascript"] })],
+
+  externals: {
+    // babel plugins try to use fs
+    fs: "commonjs fs",
+  }
 };

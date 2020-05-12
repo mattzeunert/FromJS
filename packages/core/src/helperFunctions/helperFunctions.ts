@@ -7,12 +7,15 @@ import { ExecContext } from "./ExecContext";
 import operations from "../operations";
 import { SKIP_TRACKING, VERIFY, KEEP_LOGS_IN_MEMORY } from "../config";
 import * as FunctionNames from "../FunctionNames";
-import { initLogging, consoleCount, consoleLog } from "./logging";
+import { initLogging, consoleCount, consoleLog, consoleError } from "./logging";
 import { getStoreLogsWorker } from "./storeLogsWorker";
 import * as OperationTypes from "../OperationTypes";
 import { mapPageHtml } from "../mapPageHtml";
 import mapInnerHTMLAssignment from "../operations/domHelpers/mapInnerHTMLAssignment";
 import { CreateOperationLogArgs, ValueTrackingValuePair } from "../types";
+import { traverseObject } from "../traverseObject";
+import * as objectPath from "object-path";
+import { getShortOperationName } from "../names";
 
 const accessToken = "ACCESS_TOKEN_PLACEHOLDER";
 
@@ -56,10 +59,124 @@ function checkDone() {
   }
 }
 
+function nodeHttpReq({ port, path, headers, bodyString, method }) {
+  return new Promise(resolve => {
+    /* eval, otherwise webpack will replace it*/
+    const https = eval(`require("http")`);
+
+    const options = {
+      hostname: "localhost",
+      port: port,
+      path: path,
+      method,
+      headers: {
+        ...headers,
+        "Content-Type": "application/json"
+      }
+    };
+
+    const req = https.request(options, res => {
+      console.log(`statusCode: ${res.statusCode}`);
+
+      let resStr = "";
+      res.on("data", d => {
+        console.log(d.toString());
+        resStr += d.toString();
+      });
+      res.on("end", d => {
+        console.log("req end");
+        resolve(resStr);
+      });
+    });
+
+    req.on("error", error => {
+      console.error(error);
+    });
+
+    if (bodyString) {
+      req.write(bodyString);
+    }
+    req.end();
+  });
+}
+
+let backendPort = "BACKEND_PORT_PLACEHOLDER";
+
+let requestQueueDirectory;
+
+if (global.fromJSIsNode) {
+  const cmd = `node -e "eval(decodeURIComponent(\\"${encodeURIComponent(
+    nodeHttpReq.toString() +
+      `;nodeHttpReq({port: ${backendPort}, path: '/sessionInfo', headers: {}, method: 'GET'}).then(r => console.log('RES_'+r+'_RES'));`
+  )}\\"))"`;
+  const r = eval("require('child_process')").execSync(cmd);
+  const sessionInfo = JSON.parse(r.toString().match(/RES_(.*)_RES/)[1]);
+  console.log({ sessionInfo });
+  requestQueueDirectory = sessionInfo.requestQueueDirectory;
+}
+
+let fs;
+let fsProperties;
+if (global.fromJSIsNode) {
+  fs = eval("require('fs')");
+  fsProperties = { ...fs };
+}
+
+function setFsProperties(fsProperties) {
+  Object.keys(fsProperties).forEach(propertyName => {
+    let value = fsProperties[propertyName];
+    if (typeof value === "function") {
+      fs[propertyName] = fsProperties[propertyName];
+    }
+  });
+}
+
+function nodePost({ port, path, headers, bodyString }) {
+  if (requestQueueDirectory) {
+    // graceful-fs patches some methods and adding tracking data
+    // as part of saving stuff breaks the normal flow...
+    // (e.g. because lastmemberexpressionobject is not right any more)
+    let fsPropertiesBefore = { ...fs };
+    setFsProperties(fsProperties);
+
+    let opCount = ctx.countOperations(() => {
+      fs.writeFileSync(
+        requestQueueDirectory +
+          "/" +
+          new Date().valueOf() +
+          "_" +
+          Math.round(Math.random() * 1000) +
+          ".json",
+        path + "\n" + bodyString
+      );
+    });
+
+    if (opCount > 0) {
+      console.log(
+        `Did ${opCount} operations during writeFileSync, maybe something is patched?`
+      );
+    }
+
+    setFsProperties(fsPropertiesBefore);
+
+    return Promise.resolve({});
+  }
+
+  return nodeHttpReq({ port, path, headers, bodyString, method: "POST" });
+}
+
 function makePostToBE({ accessToken, fetch }) {
   return function postToBE(endpoint, data, statsCallback = function(stats) {}) {
     const stringifyStart = new Date();
-    const body = JSON.stringify(data);
+    let body = data;
+    let bodyIsString = typeof body === "string";
+    if (!bodyIsString) {
+      console.time("stringify");
+      body = JSON.stringify(data);
+      console.timeEnd("stringify");
+    }
+
+    console.log("body len in mb", body.length / 1024 / 1024);
     const stringifyEnd = new Date();
     if (endpoint === "/storeLogs") {
       statsCallback({
@@ -68,15 +185,29 @@ function makePostToBE({ accessToken, fetch }) {
       });
     }
 
-    const p = fetch("http://localhost:BACKEND_PORT_PLACEHOLDER" + endpoint, {
-      method: "POST",
-      headers: new Headers({
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: accessToken
-      }),
-      body: body
-    });
+    const headers = {
+      Accept: "application/json",
+      Authorization: accessToken
+    };
+    if (!bodyIsString) {
+      headers["Content-Type"] = "application/json";
+    }
+    let p;
+    if (global.fromJSIsNode) {
+      p = nodePost({
+        port: backendPort,
+        path: endpoint,
+        bodyString: body,
+        headers
+      });
+    } else {
+      const url = "http://localhost:" + backendPort + endpoint;
+      p = fetch(url, {
+        method: "POST",
+        headers: global.fromJSIsNode ? headers : new Headers(headers),
+        body: body
+      });
+    }
 
     return p;
   };
@@ -87,20 +218,44 @@ const postToBE = makePostToBE({ accessToken, fetch });
 let logQueue = [];
 global["__debugFromJSLogQueue"] = () => logQueue;
 let evalScriptQueue = [];
-let worker: Worker | null = getStoreLogsWorker({
-  makePostToBE,
-  accessToken
-});
+let eventQueue = [];
+let worker: Worker | null = null;
+// temporarily disable worker because i think lighthouse runs stuff in isolated envs
+// and it means hundreds of workers get created rather than always using same one?
+// try {
+//   getStoreLogsWorker({
+//   makePostToBE,
+//   accessToken
+// });
+// }catch(err){
+//   console.log("Create worker error, should be ok though", err.message)
+// }
 
-function sendLogsToServer() {
+let inProgressSendLogsRequests = 0;
+async function sendLogsToServer() {
   if (logQueue.length === 0 && evalScriptQueue.length == 0) {
     return;
   }
 
-  const data = {
-    logs: logQueue,
-    evalScripts: evalScriptQueue
-  };
+  // const data = {
+  //   logs: logQueue,
+  //   evalScripts: evalScriptQueue,
+  //   events: eventQueue
+  // };
+
+  let data = "";
+
+  data += JSON.stringify(evalScriptQueue);
+  data += "\n";
+  data += JSON.stringify(eventQueue);
+  data += "\n";
+  for (const item of logQueue) {
+    data += item[0] + "\n" + item[1] + "\n";
+  }
+
+  logQueue = [];
+  evalScriptQueue = [];
+  eventQueue = [];
 
   if (worker) {
     // Doing this means the data will be cloned, but it seems to be
@@ -110,23 +265,35 @@ function sendLogsToServer() {
     worker.postMessage(data);
     console.timeEnd("postMessage");
   } else {
-    consoleLog(
-      "Can't create worker (maybe already inside a web worker?), will send request in normal thread"
-    );
-    postToBE("/storeLogs", data);
+    // consoleLog(
+    //   "Can't create worker (maybe already inside a web worker?), will send request in normal thread"
+    // );
+    inProgressSendLogsRequests++;
+    if (inProgressSendLogsRequests > 2) {
+      console.log({ inProgressSendLogsRequests });
+    }
+    await postToBE("/storeLogs", data);
+    inProgressSendLogsRequests--;
   }
-
-  logQueue = [];
-  evalScriptQueue = [];
 }
 // If page laods quickly try to send data to BE soon, later on wait
 // 1s between requests
 setTimeout(sendLogsToServer, 200);
 setTimeout(sendLogsToServer, 400);
 setInterval(sendLogsToServer, 1000);
-function remotelyStoreLog(log) {
-  logQueue.push(log);
+function remotelyStoreLog(logIndex, logString) {
+  logQueue.push([logIndex, logString]);
 }
+
+global["__fromJSWaitForSendLogsAndExitNodeProcess"] = async function() {
+  console.log("__fromJSWaitForSendLogsAndExitNodeProcess");
+  sendLogsToServer();
+  while (inProgressSendLogsRequests > 0) {
+    console.log({ inProgressSendLogsRequests });
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  eval("process.exit()");
+};
 
 declare var __storeLog;
 
@@ -134,12 +301,12 @@ const storeLog =
   typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog;
 
 let lastOperationType = null;
-function createOperationLog(args: CreateOperationLogArgs) {
+function createOperationLog(args: CreateOperationLogArgs, op, index) {
   if (SKIP_TRACKING) {
     return 1111;
   }
-  var log = OperationLog.createAtRuntime(args, knownValues);
-  storeLog(log);
+  var log = OperationLog.createAtRuntime(args, knownValues, op);
+  storeLog(index, JSON.stringify(log));
 
   if (KEEP_LOGS_IN_MEMORY) {
     // Normally we just store the numbers, but it's useful for
@@ -147,8 +314,6 @@ function createOperationLog(args: CreateOperationLogArgs) {
     global["__debugAllLogs"] = global["__debugAllLogs"] || {};
     global["__debugAllLogs"][log.index] = log;
   }
-
-  return log.index;
 }
 
 if (KEEP_LOGS_IN_MEMORY) {
@@ -189,6 +354,10 @@ global[FunctionNames.getGlobal] = function() {
 
 var argTrackingInfo = null;
 var functionContextTrackingValue = null;
+
+global["__fromJSGetTrackingIndex"] = function(value) {
+  return global[FunctionNames.getFunctionArgTrackingInfo](0);
+};
 
 global[FunctionNames.getFunctionArgTrackingInfo] = function getArgTrackingInfo(
   index
@@ -349,16 +518,17 @@ global[FunctionNames.getLastMemberExpressionObject] = function() {
 };
 
 global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
+  let index = getOperationIndex();
   let logData: any = {
     operation: "emptyTrackingInfo",
     args: {},
     runtimeArgs: { type },
     astArgs: {},
-    loc,
-    index: getOperationIndex()
+    loc
   };
 
-  return createOperationLog(logData);
+  createOperationLog(logData, operations["emptyTrackingInfo"], index);
+  return index;
 };
 global[FunctionNames.expandArrayForArrayPattern] = function(
   arr,
@@ -384,22 +554,26 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
   const resultArr = [];
   const restResult = [];
   arr.forEach((value, i) => {
+    const trackingValue = ctx.getObjectPropertyTrackingValue(arr, i);
+    const newTrackingValue = ctx.createOperationLog({
+      operation: ctx.operationTypes.arrayPattern,
+      args: {
+        value: [value, trackingValue]
+      },
+      astArgs: {},
+      result: value,
+      loc: loc
+    });
     if (i < namedParamCount) {
       resultArr.push(value);
-      const trackingValue = ctx.getObjectPropertyTrackingValue(arr, i);
-      resultArr.push(
-        ctx.createOperationLog({
-          operation: ctx.operationTypes.arrayPattern,
-          args: {
-            value: [value, trackingValue]
-          },
-          astArgs: {},
-          result: value,
-          loc: loc
-        })
-      );
+      resultArr.push(newTrackingValue);
     } else {
       restResult.push(value);
+      ctx.trackObjectPropertyAssignment(
+        restResult,
+        i - namedParamCount,
+        newTrackingValue
+      );
     }
   });
 
@@ -414,9 +588,7 @@ global[FunctionNames.expandArrayForArrayPattern] = function(
     )
   );
 
-  restResult.forEach(r => {
-    resultArr.push(r);
-  });
+  resultArr.push(restResult);
   return resultArr;
 };
 global[FunctionNames.expandArrayForSpreadElement] = function(arr) {
@@ -475,8 +647,11 @@ const ctx: ExecContext = {
   trackObjectPropertyAssignment,
   hasInstrumentationFunction: typeof global["__fromJSEval"] === "function",
   createOperationLog: function(args) {
-    args.index = getOperationIndex();
-    return createOperationLog(args);
+    let index = getOperationIndex();
+    const op = operations[args.operation];
+    args.operation = getShortOperationName(args.operation);
+    createOperationLog(args, op, index);
+    return index;
   },
   createArrayIndexOperationLog(index, loc) {
     if (index > MAX_TRACKED_ARRAY_INDEX) {
@@ -494,6 +669,10 @@ const ctx: ExecContext = {
   registerEvalScript(evalScript) {
     // store code etc for eval'd code
     evalScriptQueue.push(evalScript);
+  },
+  registerEvent(event) {
+    // events like file writes
+    eventQueue.push(event);
   },
   objectHasPropertyTrackingData(obj) {
     return !!objTrackingMap.get(obj);
@@ -545,34 +724,33 @@ let lastOpTrackingResultWithoutResetting = null;
 
 let opExecCount = 0;
 
-function makeDoOperation(opName: string) {
-  const opExec = operationsExec[opName];
-
+function makeDoOperation(opName: string, op) {
+  const opExec = op.exec;
+  const shortName = getShortOperationName(opName);
   return function ___op(objArgs, astArgs, loc) {
-    var trackingValue;
-
+    let index = getOperationIndex();
     let logData: any = {
-      operation: opName,
+      operation: shortName,
       args: objArgs,
       astArgs: astArgs,
       loc,
-      index: getOperationIndex()
+      index
     };
 
     var ret = opExec(objArgs, astArgs, ctx, logData);
     opExecCount++;
 
     logData.result = ret;
-    trackingValue = createOperationLog(logData);
+    createOperationLog(logData, op, index);
 
     lastOpValueResult = ret;
 
-    lastOpTrackingResultWithoutResetting = trackingValue;
-    setLastOpTrackingResult(trackingValue);
+    lastOpTrackingResultWithoutResetting = index;
+    setLastOpTrackingResult(index);
 
     lastOperationType = opName;
 
-    if (logQueue.length > 100000) {
+    if (logQueue.length > 200000) {
       // avoid running out of memory
       sendLogsToServer();
     }
@@ -590,11 +768,9 @@ global[FunctionNames.doOperation] = function ___op(
   return global["__" + opName](objArgs, astArgs, loc);
 };
 
-const operationsExec = {};
 Object.keys(operations).forEach(opName => {
   const op = operations[opName];
-  operationsExec[opName] = op.exec;
-  const doOpFunction = makeDoOperation(opName);
+  const doOpFunction = makeDoOperation(opName, op);
 
   // The object creation in so many places is expensive
   // so some simple ops have a shorthand function that
@@ -658,6 +834,39 @@ global[FunctionNames.enterTemplateLiteral] = function() {
   currentTemplateLiteralIndex++;
 };
 
+global[FunctionNames.provideObjectPatternTrackingValues] = function(
+  obj,
+  properties
+) {
+  properties = properties.map(arr => {
+    return {
+      name: arr[0],
+      path: arr[1]
+    };
+  });
+
+  const res = {};
+
+  traverseObject(obj, (keyPath, value, key, obj) => {
+    let keyPathStr = keyPath.join(".");
+
+    objectPath.set(res, keyPathStr, value);
+
+    let prop = properties.find(p => {
+      return p.path === keyPathStr;
+    });
+    if (prop) {
+      objectPath.set(
+        res,
+        prop.name + "___tv",
+        ctx.getObjectPropertyTrackingValue(obj, key)
+      );
+    }
+  });
+
+  return res;
+};
+
 global["__fromJSMaybeMapInitialPageHTML"] = function() {
   if (!global["__fromJSInitialPageHtml"]) {
     return;
@@ -675,22 +884,22 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
       .querySelectorAll("[data-fromjs-remove-before-initial-html-mapping]")
       .forEach(el => el.remove());
 
-    const initialHtmlTrackingValue = createOperationLog({
-      operation: OperationTypes.initialPageHtml,
-      index: getOperationIndex(),
-      args: {},
-      runtimeArgs: {
-        url: location.href
-      },
-      result: initialPageHtml
-    });
+    const tvIndex = window["__fromJSInitialPageHtmlLogIndex"];
 
-    mapPageHtml(
-      document,
-      initialPageHtml,
-      initialHtmlTrackingValue,
-      "initial page html"
+    createOperationLog(
+      {
+        operation: OperationTypes.initialPageHtml,
+        args: {},
+        runtimeArgs: {
+          url: location.href
+        },
+        result: initialPageHtml
+      },
+      operations[OperationTypes.initialPageHtml],
+      tvIndex
     );
+
+    mapPageHtml(document, initialPageHtml, tvIndex, "initial page html");
 
     global["__fromJSDidMapInitialPageHTML"] = true;
   }

@@ -26,6 +26,13 @@ import { doOperation } from "../FunctionNames";
 import * as jsonToAst from "json-to-ast";
 import { getJSONPathOffset } from "../getJSONPathOffset";
 import * as get from "lodash/get";
+import { traverseObject } from "../traverseObject";
+import { pathToFileURL } from "url";
+import {
+  getShortOperationName,
+  getShortExtraArgName,
+  getShortKnownValueName
+} from "../names";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -53,33 +60,102 @@ export type SpecialCaseArgs = {
   extraState: any;
 };
 
-type TraverseObjectCallBack = (
-  keyPath: string[],
-  value: any,
-  key: string,
-  obj: any
-) => void;
+const writeFile = ({
+  fn,
+  ctx,
+  fnArgValues,
+  fnArgTrackingValues,
+  args,
+  logData,
+  context
+}) => {
+  const path = require("path");
 
-function traverseObject(
-  traversedObject,
-  fn: TraverseObjectCallBack,
-  keyPath: any[] = []
-) {
-  if (traversedObject === null) {
-    return;
+  let absPath = fnArgValues[0];
+  if (!absPath.startsWith("/")) {
+    const cwd = eval("process.cwd()");
+    absPath = path.resolve(cwd, absPath);
   }
-  Object.entries(traversedObject).forEach(([key, value]) => {
-    fn([...keyPath, key], value, key, traversedObject);
-    if (typeof value === "object") {
-      traverseObject(value, fn, [...keyPath, key]);
-    }
+  ctx.registerEvent({
+    type: "fileWrite",
+    logIndex: fnArgTrackingValues[1],
+    path: fnArgValues[0],
+    absPath
   });
+  let ret = fn.apply(ctx, fnArgValues);
+
+  return [ret, null];
+};
+
+function addJsonParseResultTrackingValues(
+  parsed,
+  jsonString,
+  jsonStringTrackingValue,
+  { ctx, logData }
+) {
+  if (
+    typeof parsed === "string" ||
+    typeof parsed === "number" ||
+    typeof parsed === "boolean"
+  ) {
+    return [
+      parsed,
+      ctx.createOperationLog({
+        operation: ctx.operationTypes.jsonParseResult,
+        args: {
+          json: jsonStringTrackingValue
+        },
+        result: parsed,
+        runtimeArgs: {
+          isPrimitive: true,
+          charIndexAdjustment:
+            typeof parsed === "string" ? 1 /* account for quote sign */ : 0
+        },
+        loc: logData.loc
+      })
+    ];
+  }
+
+  traverseObject(parsed, (keyPath, value, key, obj) => {
+    const trackingValue = ctx.createOperationLog({
+      operation: ctx.operationTypes.jsonParseResult,
+      args: {
+        json: jsonStringTrackingValue
+      },
+      result: value,
+      runtimeArgs: {
+        keyPath: keyPath,
+        isKey: false
+      },
+      loc: logData.loc
+    });
+    const nameTrackingValue = ctx.createOperationLog({
+      operation: ctx.operationTypes.jsonParseResult,
+      args: {
+        json: jsonStringTrackingValue
+      },
+      result: key,
+      runtimeArgs: {
+        keyPath: keyPath,
+        isKey: true
+      },
+      loc: logData.loc
+    });
+    ctx.trackObjectPropertyAssignment(
+      obj,
+      key,
+      trackingValue,
+      nameTrackingValue
+    );
+  });
+
+  return [parsed, ctx.getEmptyTrackingInfo("JSON.parse result", logData.loc)];
 }
 
 export const specialCasesWhereWeDontCallTheOriginalFunction: {
   [knownValueName: string]: (args: SpecialCaseArgs) => any;
 } = {
-  "String.prototype.replace": ({
+  [getShortKnownValueName("String.prototype.replace")]: ({
     ctx,
     object,
     fnArgValues,
@@ -139,7 +215,7 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
           throw Error("unhandled replacement param type");
         }
 
-        extraTrackingValues["replacement" + index] = [
+        extraTrackingValues[getShortExtraArgName("replacement" + index)] = [
           null,
           ctx.createOperationLog({
             operation: ctx.operationTypes.stringReplacement,
@@ -162,80 +238,112 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
     var retT = null;
     return [ret, retT];
   },
-  "JSON.parse": ({ fn, ctx, fnArgValues, args, logData }) => {
+  [getShortKnownValueName("JSON.parse")]: ({
+    fn,
+    ctx,
+    fnArgValues,
+    args,
+    logData
+  }) => {
+    const jsonString = fnArgValues[0];
+    const parsed = fn.call(JSON, jsonString);
+    var [ret, retT] = addJsonParseResultTrackingValues(
+      parsed,
+      jsonString,
+      getFnArg(args, 0),
+      {
+        ctx,
+        logData
+      }
+    );
+
+    return [ret, retT];
+  },
+  [getShortKnownValueName("require")]: ({
+    fn,
+    ctx,
+    fnArgValues,
+    args,
+    logData,
+    context
+  }) => {
+    let ret = fn.apply(context, fnArgValues);
+    let retT = ctx.getEmptyTrackingInfo("Required value", logData.loc);
+
+    let path = fnArgValues[0];
+    if (path.endsWith(".json")) {
+      console.log("required json", path);
+      // Need to use fn (i.e. require) to resolve path relative to
+      // the file that contains the raw code
+      let absPath = fn.resolve(path);
+      let json = JSON.parse(require("fs").readFileSync(absPath, "utf-8"));
+      [ret, retT] = addJsonParseResultTrackingValues(
+        ret,
+        json,
+        ctx.getEmptyTrackingInfo("requireJson", logData.loc),
+        { ctx, logData }
+      );
+    }
+
+    return [ret, retT];
+  },
+  [getShortKnownValueName("fs.readFileSync")]: ({
+    fn,
+    ctx,
+    fnArgValues,
+    args,
+    logData,
+    context
+  }) => {
     const jsonString = fnArgValues[0];
     const parsed = fn.call(JSON, jsonString);
     var ret, retT;
 
-    ret = parsed;
+    const path = require("path");
 
-    if (
-      typeof parsed === "string" ||
-      typeof parsed === "number" ||
-      typeof parsed === "boolean"
-    ) {
-      return [
-        ret,
-        ctx.createOperationLog({
-          operation: ctx.operationTypes.jsonParseResult,
-          args: {
-            json: getFnArg(args, 0)
-          },
-          result: parsed,
-          runtimeArgs: {
-            isPrimitive: true,
-            charIndexAdjustment:
-              typeof parsed === "string" ? 1 /* account for quote sign */ : 0
-          },
-          loc: logData.loc
-        })
-      ];
+    let filePath = fnArgValues[0];
+    let encodingArg = fnArgValues[1];
+
+    const cwd = eval("process.cwd()");
+    if (typeof encodingArg === "string" && filePath.endsWith(".js")) {
+      if (!filePath.startsWith("/")) {
+        filePath = path.resolve(cwd, filePath);
+      }
+      filePath = filePath.replace(
+        global["fromJSNodeOutPath"],
+        global["fromJSNodeSourcePath"]
+      );
+      console.log("Will read", filePath);
     }
 
-    traverseObject(parsed, (keyPath, value, key, obj) => {
-      const trackingValue = ctx.createOperationLog({
-        operation: ctx.operationTypes.jsonParseResult,
-        args: {
-          json: getFnArg(args, 0)
-        },
-        result: value,
-        runtimeArgs: {
-          keyPath: keyPath,
-          isKey: false
-        },
-        loc: logData.loc
-      });
-      const nameTrackingValue = ctx.createOperationLog({
-        operation: ctx.operationTypes.jsonParseResult,
-        args: {
-          json: getFnArg(args, 0)
-        },
-        result: key,
-        runtimeArgs: {
-          keyPath: keyPath,
-          isKey: true
-        },
-        loc: logData.loc
-      });
-      ctx.trackObjectPropertyAssignment(
-        obj,
-        key,
-        trackingValue,
-        nameTrackingValue
-      );
+    ret = fn.apply(context, [filePath, ...fnArgValues.slice(1)]);
+
+    retT = ctx.createOperationLog({
+      operation: ctx.operationTypes.readFileSyncResult,
+      args: {
+        // json: getFnArg(args, 0)
+      },
+      result: ret,
+      runtimeArgs: {
+        filePath,
+        absPath: filePath.startsWith("/")
+          ? filePath
+          : path.resolve(cwd, filePath)
+      },
+      loc: logData.loc
     });
 
-    retT = null; // could set something here, but what really matters is the properties
-
     return [ret, retT];
-  }
+  },
+  [getShortKnownValueName("fs.writeFileSync")]: writeFile,
+  [getShortKnownValueName("fs.writeFile")]: writeFile
 };
 
 // add tracking values to returned objects
 export const specialValuesForPostprocessing: {
   [knownValueName: string]: (args: SpecialCaseArgs) => any;
 } = {
-  "String.prototype.match": ({
+  [getShortKnownValueName("String.prototype.match")]: ({
     object,
     ctx,
     logData,
@@ -336,7 +444,7 @@ export const specialValuesForPostprocessing: {
       );
     });
   },
-  "RegExp.prototype.exec": ({
+  [getShortKnownValueName("RegExp.prototype.exec")]: ({
     object,
     ctx,
     logData,
@@ -389,7 +497,7 @@ export const specialValuesForPostprocessing: {
       }
     }
   },
-  "String.prototype.split": ({
+  [getShortKnownValueName("String.prototype.split")]: ({
     object,
     fnArgTrackingValues,
     ctx,
@@ -434,7 +542,12 @@ export const specialValuesForPostprocessing: {
       );
     });
   },
-  "Array.prototype.push": ({ object, fnArgTrackingValues, ctx, logData }) => {
+  [getShortKnownValueName("Array.prototype.push")]: ({
+    object,
+    fnArgTrackingValues,
+    ctx,
+    logData
+  }) => {
     const arrayLengthBeforePush = object.length - fnArgTrackingValues.length;
     fnArgTrackingValues.forEach((arg, i) => {
       const arrayIndex = arrayLengthBeforePush + i;
@@ -447,10 +560,16 @@ export const specialValuesForPostprocessing: {
     });
     return fnArgTrackingValues[fnArgTrackingValues.length - 1];
   },
-  "Array.prototype.pop": ({ extraState }) => {
+  [getShortKnownValueName("Array.prototype.pop")]: ({ extraState }) => {
     return extraState.poppedValueTrackingValue;
   },
-  "Object.keys": ({ ctx, logData, fnArgValues, ret, retT }) => {
+  [getShortKnownValueName("Object.keys")]: ({
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT
+  }) => {
     ret.forEach((key, i) => {
       const trackingValue = ctx.getObjectPropertyNameTrackingValue(
         fnArgValues[0],
@@ -469,7 +588,13 @@ export const specialValuesForPostprocessing: {
     });
     return retT;
   },
-  "Object.entries": ({ ctx, logData, fnArgValues, ret, retT }) => {
+  [getShortKnownValueName("Object.entries")]: ({
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    retT
+  }) => {
     const obj = fnArgValues[0];
     ret.forEach((entryArr, i) => {
       const [key, value] = entryArr;
@@ -480,7 +605,12 @@ export const specialValuesForPostprocessing: {
     });
     return retT;
   },
-  "Object.assign": ({ ctx, logData, fnArgValues, fnArgTrackingValues }) => {
+  [getShortKnownValueName("Object.assign")]: ({
+    ctx,
+    logData,
+    fnArgValues,
+    fnArgTrackingValues
+  }) => {
     ctx = <ExecContext>ctx;
     const target = fnArgValues[0];
     const sources = fnArgValues.slice(1);
@@ -520,7 +650,11 @@ export const specialValuesForPostprocessing: {
       });
     });
   },
-  "Array.prototype.shift": ({ object, extraState, ctx }) => {
+  [getShortKnownValueName("Array.prototype.shift")]: ({
+    object,
+    extraState,
+    ctx
+  }) => {
     // Note: O(n) is not very efficient...
     const array = object;
     for (var i = 0; i < array.length; i++) {
@@ -534,7 +668,7 @@ export const specialValuesForPostprocessing: {
 
     return extraState.shiftedTrackingValue;
   },
-  "Array.prototype.unshift": ({
+  [getShortKnownValueName("Array.prototype.unshift")]: ({
     object,
     extraState,
     ctx,
@@ -559,7 +693,7 @@ export const specialValuesForPostprocessing: {
 
     return extraState.shiftedTrackingValue;
   },
-  "Array.prototype.slice": ({
+  [getShortKnownValueName("Array.prototype.slice")]: ({
     object,
 
     ctx,
@@ -630,7 +764,13 @@ export const specialValuesForPostprocessing: {
       );
     });
   },
-  "Array.prototype.splice": ({ object, ctx, logData, fnArgValues, ret }) => {
+  [getShortKnownValueName("Array.prototype.splice")]: ({
+    object,
+    ctx,
+    logData,
+    fnArgValues,
+    ret
+  }) => {
     ctx = <ExecContext>ctx;
     const resultArray = ret;
     const inputArray = object;
@@ -678,7 +818,7 @@ export const specialValuesForPostprocessing: {
     //   }
     // }
   },
-  "Array.prototype.join": ({
+  [getShortKnownValueName("Array.prototype.join")]: ({
     object,
     fnArgTrackingValues,
     ctx,
@@ -718,7 +858,7 @@ export const specialValuesForPostprocessing: {
     }
     return retT;
   },
-  "Array.prototype.concat": ({
+  [getShortKnownValueName("Array.prototype.concat")]: ({
     object,
     fnArgTrackingValues,
     ctx,
@@ -763,7 +903,12 @@ export const specialValuesForPostprocessing: {
       }
     });
   },
-  "Array.prototype.map": ({ extraState, ret, ctx, logData }) => {
+  [getShortKnownValueName("Array.prototype.map")]: ({
+    extraState,
+    ret,
+    ctx,
+    logData
+  }) => {
     const { mapResultTrackingValues } = extraState;
     mapResultTrackingValues.forEach((tv, i) => {
       ctx.trackObjectPropertyAssignment(
@@ -774,10 +919,16 @@ export const specialValuesForPostprocessing: {
       );
     });
   },
-  "Array.prototype.reduce": ({ extraState }) => {
+  [getShortKnownValueName("Array.prototype.reduce")]: ({ extraState }) => {
     return extraState.reduceResultTrackingValue;
   },
-  "Array.prototype.filter": ({ extraState, ctx, ret, object, logData }) => {
+  [getShortKnownValueName("Array.prototype.filter")]: ({
+    extraState,
+    ctx,
+    ret,
+    object,
+    logData
+  }) => {
     let resultArrayIndex = 0;
     object.forEach(function(originalArrayItem, originalArrayIndex) {
       if (extraState.filterResults[originalArrayIndex]) {
@@ -792,24 +943,33 @@ export const specialValuesForPostprocessing: {
       }
     });
   },
-  "document.createElement": ({ fnArgTrackingValues, ret }) => {
+  [getShortKnownValueName("document.createElement")]: ({
+    fnArgTrackingValues,
+    ret
+  }) => {
     addOriginInfoToCreatedElement(
       ret,
       fnArgTrackingValues[0],
       "document.createElement"
     );
   },
-  "document.createTextNode": ({ fnArgTrackingValues, ret }) => {
+  [getShortKnownValueName("document.createTextNode")]: ({
+    fnArgTrackingValues,
+    ret
+  }) => {
     addElOrigin(ret, "textValue", {
       trackingValue: fnArgTrackingValues[0]
     });
   },
-  "document.createComment": ({ fnArgTrackingValues, ret }) => {
+  [getShortKnownValueName("document.createComment")]: ({
+    fnArgTrackingValues,
+    ret
+  }) => {
     addElOrigin(ret, "textValue", {
       trackingValue: fnArgTrackingValues[0]
     });
   },
-  "HTMLElement.prototype.cloneNode": ({
+  [getShortKnownValueName("HTMLElement.prototype.cloneNode")]: ({
     ret,
     object,
     fnArgTrackingValues,
@@ -818,7 +978,7 @@ export const specialValuesForPostprocessing: {
     const isDeep = !!fnArgValues[0];
     processClonedNode(ret, object, { isDeep });
   },
-  "document.importNode": ({
+  [getShortKnownValueName("document.importNode")]: ({
     ret,
     object,
     fnArgTrackingValues,
@@ -828,7 +988,7 @@ export const specialValuesForPostprocessing: {
     const isDeep = !!fnArgValues[1];
     processClonedNode(ret, importedNode, { isDeep });
   },
-  "HTMLElement.prototype.setAttribute": ({
+  [getShortKnownValueName("HTMLElement.prototype.setAttribute")]: ({
     object,
     fnArgTrackingValues,
     fnArgValues
@@ -842,7 +1002,7 @@ export const specialValuesForPostprocessing: {
       trackingValue: attrValueArg
     });
   },
-  "HTMLElement.prototype.insertAdjacentHTML": ({
+  [getShortKnownValueName("HTMLElement.prototype.insertAdjacentHTML")]: ({
     object,
     fnArgTrackingValues,
     fnArgValues
@@ -871,7 +1031,7 @@ export const specialValuesForPostprocessing: {
       childNodesBefore
     );
   },
-  "DOMParser.prototype.parseFromString": ({
+  [getShortKnownValueName("DOMParser.prototype.parseFromString")]: ({
     fnArgValues,
     fnArgTrackingValues,
     ret
@@ -883,7 +1043,7 @@ export const specialValuesForPostprocessing: {
 
     mapPageHtml(doc, html, fnArgTrackingValues[0], "parseFromString");
   },
-  "JSON.stringify": ({
+  [getShortKnownValueName("JSON.stringify")]: ({
     fnArgTrackingValues,
     ctx,
     fnArgValues,
@@ -1165,6 +1325,11 @@ export function traverseKnownFunction({
         operationLog: operationLog.args.context,
         charIndex: charIndex
       };
+    case "Number.prototype.toPrecision":
+      return {
+        operationLog: operationLog.args.context,
+        charIndex: charIndex
+      };
     case "Number.prototype.constructor":
       return {
         operationLog: operationLog.args.arg0,
@@ -1174,6 +1339,11 @@ export function traverseKnownFunction({
       return {
         operationLog: operationLog.args.arg0,
         charIndex
+      };
+    case "String.prototype.charAt":
+      return {
+        operationLog: operationLog.args.context,
+        charIndex: charIndex + operationLog.args.arg0.result.primitive
       };
     case "Math.round":
       return {
@@ -1248,7 +1418,7 @@ export interface FnProcessorArgs {
 }
 
 export const knownFnProcessors = {
-  "Array.prototype.map": ({
+  [getShortKnownValueName("Array.prototype.map")]: ({
     extraState,
     setArgValuesForApply,
     fnArgValues,
@@ -1277,7 +1447,11 @@ export const knownFnProcessors = {
         [
           [originalMappingFunction, null],
           [this, null],
-          [[item, itemTrackingInfo, null], [index, null], [array, null]]
+          [
+            [item, itemTrackingInfo, null],
+            [index, null],
+            [array, null]
+          ]
         ],
         {},
         logData.loc
@@ -1286,7 +1460,7 @@ export const knownFnProcessors = {
       return ret;
     });
   },
-  "Array.prototype.reduce": ({
+  [getShortKnownValueName("Array.prototype.reduce")]: ({
     extraState,
     getFnArgForApply,
     setFnArgForApply,
@@ -1336,7 +1510,7 @@ export const knownFnProcessors = {
       return ret;
     });
   },
-  "Array.prototype.filter": ({
+  [getShortKnownValueName("Array.prototype.filter")]: ({
     extraState,
     getFnArgForApply,
     setFnArgForApply,
@@ -1364,7 +1538,11 @@ export const knownFnProcessors = {
       return ret;
     });
   },
-  "Array.prototype.pop": ({ extraState, ctx, object }: FnProcessorArgs) => {
+  [getShortKnownValueName("Array.prototype.pop")]: ({
+    extraState,
+    ctx,
+    object
+  }: FnProcessorArgs) => {
     extraState.poppedValueTrackingValue = null;
     if (object && object.length > 0) {
       extraState.poppedValueTrackingValue = ctx.getObjectPropertyTrackingValue(
@@ -1373,7 +1551,11 @@ export const knownFnProcessors = {
       );
     }
   },
-  "Array.prototype.shift": ({ extraState, ctx, object }: FnProcessorArgs) => {
+  [getShortKnownValueName("Array.prototype.shift")]: ({
+    extraState,
+    ctx,
+    object
+  }: FnProcessorArgs) => {
     extraState.shiftedTrackingValue = null;
     if (object && object.length > 0) {
       extraState.shiftedTrackingValue = ctx.getObjectPropertyTrackingValue(
@@ -1382,7 +1564,7 @@ export const knownFnProcessors = {
       );
     }
   },
-  "Response.prototype.json": ({
+  [getShortKnownValueName("Response.prototype.json")]: ({
     setFunction,
     ctx,
     logData
@@ -1422,7 +1604,7 @@ export const knownFnProcessors = {
       });
     });
   },
-  fetch: ({
+  [getShortKnownValueName("fetch")]: ({
     ctx,
     logData,
     fnArgValues,
@@ -1441,7 +1623,7 @@ export const knownFnProcessors = {
 
     ctx.global["__fetches"][url] = logData.index;
   },
-  "XMLHttpRequest.prototype.open": ({
+  [getShortKnownValueName("XMLHttpRequest.prototype.open")]: ({
     ctx,
     logData,
     fnArgValues

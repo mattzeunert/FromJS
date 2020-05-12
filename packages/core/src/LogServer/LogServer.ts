@@ -1,8 +1,14 @@
-import operations, { eachArgument } from "../operations";
+import operations, { eachArgument, eachArgumentInObject } from "../operations";
 import invokeIfFunction from "../invokeIfFunction";
 import { LocStore } from "../LocStore";
 import { MINIMIZE_LOG_DATA_SIZE } from "../config";
 import OperationLog from "../helperFunctions/OperationLog";
+import {
+  getLongOperationName,
+  getLongExtraArgName,
+  getLongArgName,
+  getLongKnownValueName
+} from "../names";
 
 export class LogServer {
   _locStore: LocStore;
@@ -10,6 +16,71 @@ export class LogServer {
     this._locStore = locStore;
   }
   getLog(logIndex: number, cb: any) {}
+  // _getLogAwaitable(logIndex: number) {
+  //   return new Promise((resolve, reject) => {
+  //     this._getLog(logIndex, (err, log) => {
+  //       if (err) {
+  //         reject(err);
+  //       } else {
+  //         resolve(log);
+  //       }
+  //     });
+  //   });
+  // }
+  _getLog(logIndex: number, cb: any) {
+    this.getLog(logIndex, (err, val) => {
+      let log;
+      if (val) {
+        const obj = JSON.parse(val);
+        if (!obj.operation && obj.o) {
+          // undo short names
+          obj.operation = obj.o;
+          obj.loc = obj.l;
+          obj.args = obj.a;
+          obj.extraArgs = obj.e;
+          obj.astArgs = obj.ast;
+          obj.runtimeArgs = obj.rt;
+          obj._result = obj.r;
+          if (typeof obj._result === "object" && obj._result && obj._result.t) {
+            let type = obj._result.t;
+            if (type === "o") {
+              type = "object";
+            } else if (type === "f") {
+              type = "function";
+            } else if (type === "u") {
+              type = "undefined";
+            }
+            obj._result.type = type;
+            obj._result.length = obj._result.l;
+            obj._result.primitive = obj._result.p;
+            obj._result.knownValue = getLongKnownValueName(obj._result.k);
+            obj._result.knownTypes = obj._result.kt;
+            obj._result.keys = obj._result.ke;
+          }
+        }
+        obj.operation = getLongOperationName(obj.operation);
+        eachArgumentInObject(
+          obj.extraArgs,
+          obj.operation,
+          (arg, argName, updateArgValue, updateArgKey) => {
+            updateArgKey(getLongExtraArgName(argName));
+          }
+        );
+
+        eachArgumentInObject(
+          obj.args,
+          obj.operation,
+          (arg, argName, updateArgValue, updateArgKey) => {
+            updateArgKey(getLongArgName(argName));
+          }
+        );
+        log = new OperationLog(obj);
+        log.index = logIndex;
+      }
+
+      cb(err, log);
+    });
+  }
   hasLog(logIndex: number, cb: (hasLog: boolean) => void) {
     this.loadLog(
       logIndex,
@@ -27,7 +98,7 @@ export class LogServer {
     } else {
       logIndex = log.index;
     }
-    this.getLog(logIndex, (err, log) => {
+    this._getLog(logIndex, (err, log) => {
       if (log === undefined) {
         debugger;
       }
@@ -133,7 +204,7 @@ export class LogServer {
   }
 
   _getLogAndLoadLocData(logIndex, cb) {
-    this.getLog(logIndex, (err, log) => {
+    this._getLog(logIndex, (err, log) => {
       if (err) {
         cb(err);
       } else {
@@ -146,7 +217,7 @@ export class LogServer {
   }
 
   _getLogResult(log: OperationLog) {
-    return new Promise(resolve => {
+    return new Promise(async resolve => {
       const tryGetResult = parentIndex => {
         // notes:
         // - we can't use getLog because the parent operation could also be an identifier
@@ -172,7 +243,39 @@ export class LogServer {
           tryGetResult(log.args.returnValue);
         } else if (log.operation === "memberExpression") {
           tryGetResult(log.extraArgs.propertyValue);
-        } else {
+        } else if (log.operation === "memexpAsLeftAssExp") {
+          tryGetResult(log.extraArgs.propertyValue);
+        } else if (log.operation === "binaryExpression") {
+          // infer is only enabled if both args are strings,
+          // so we can assume that's the case
+          const left = (await this.loadLogAwaitable(log.args.left, 1)) as any;
+          const right = (await this.loadLogAwaitable(log.args.right, 1)) as any;
+
+          resolve(left._result + right._result);
+        } else if (log.operation === "assignmentExpression") {
+          // infer is only enabled for strings and +=
+          // so we can assume that's what the values are
+
+          if (log.runtimeArgs && log.runtimeArgs.assignment) {
+            let assignment = (await this.loadLogAwaitable(
+              log.runtimeArgs.assignment,
+              1
+            )) as any;
+            resolve(assignment._result);
+          } else {
+            let argument = (await this.loadLogAwaitable(
+              log.args.argument,
+              1
+            )) as any;
+            let currentValue = (await this.loadLogAwaitable(
+              log.args.currentValue,
+              1
+            )) as any;
+            resolve(currentValue._result + argument._result);
+          }
+        } /*else if (log.operation === "callExpression") {
+          tryGetResult(log.extraArgs.returnValue);
+        } */ else {
           throw "no res... possibly because of MINIMIZA_LOG_DATA";
         }
       } else {

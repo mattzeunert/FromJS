@@ -10,6 +10,7 @@ import * as OperationTypes from "../OperationTypes";
 
 const OBJECT_METHOD = EXPLICIT_NAMES ? "ObjectMethod" : "met";
 const OBJECT_PROPERTY = EXPLICIT_NAMES ? "ObjectProperty" : "pr";
+const OBJECT_SPREAD_ELEMENT = EXPLICIT_NAMES ? "SpreadElement" : "se";
 
 export default <any>{
   argNames: ["property"],
@@ -50,6 +51,29 @@ export default <any>{
           }),
           key[1]
         );
+      } else if (propertyType === OBJECT_SPREAD_ELEMENT) {
+        let objToCopyFrom = value[0];
+        let objToCopyFromTrackingValue = value[1];
+        Object.entries(objToCopyFrom).forEach(([key, value]) => {
+          obj[key] = value;
+          ctx.trackObjectPropertyAssignment(
+            obj,
+            key,
+            ctx.createOperationLog({
+              operation: OperationTypes.objectProperty,
+              args: {
+                propertyValue: [
+                  value,
+                  ctx.getObjectPropertyTrackingValue(objToCopyFrom, key)
+                ]
+              },
+              result: propertyValue,
+              astArgs: {},
+              loc: logData.loc
+            }),
+            ctx.getObjectPropertyNameTrackingValue(objToCopyFrom, key)
+          );
+        });
       } else if (propertyType === OBJECT_METHOD) {
         var propertyKind = kind[0];
         var fn = value[0];
@@ -78,7 +102,8 @@ export default <any>{
   },
   visitor(path) {
     path.node.properties.forEach(function(prop) {
-      if (prop.key.type === "Identifier") {
+      if (prop.type === "SpreadElement") {
+      } else if (prop.key.type === "Identifier") {
         const loc = prop.key.loc;
         prop.key = getBabelTypes().stringLiteral(prop.key.name);
         prop.key.loc = loc;
@@ -107,6 +132,12 @@ export default <any>{
           [prop.key],
           [getBabelTypes().functionExpression(null, prop.params, prop.body)],
           [kind]
+        );
+      } else if (prop.type === "SpreadElement") {
+        return makeArray(
+          [ignoredStringLiteral(OBJECT_SPREAD_ELEMENT)],
+          [ignoredStringLiteral("n/a")],
+          [prop.argument, getLastOperationTrackingResultCall()]
         );
       } else {
         return makeArray(

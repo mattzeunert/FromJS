@@ -2,7 +2,7 @@ import { testHelpers } from "@fromjs/core";
 const { instrumentAndRun, server } = testHelpers;
 import { traverse as _traverse, TraversalStep } from "./traverse";
 
-const traverse = async function(firstStep, options = {}) {
+const traverse = async function (firstStep, options = {}) {
   options = Object.assign({ optimistic: false }, options);
   const steps: TraversalStep[] = (await _traverse.call(
     null,
@@ -15,14 +15,15 @@ const traverse = async function(firstStep, options = {}) {
 };
 
 function getStepTypeList(traversalResult) {
-  return traversalResult.map(t => t.operationLog.operation);
+  return traversalResult.map((t) => t.operationLog.operation);
 }
 
-test("Can track concatenation of 'a' and 'b'", async () => {
+test("Can track concatenation of 'a' and 'b' - (simple)", async () => {
   const { normal, tracking, code } = await instrumentAndRun("return 'a' + 'b'");
   expect(normal).toBe("ab");
   var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
   var t2 = await traverse({ operationLog: tracking, charIndex: 1 });
+  expect(t1[0].operationLog.result.primitive).toBe("ab");
   var t1LastStep = t1[t1.length - 1];
   var t2LastStep = t2[t2.length - 1];
   expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
@@ -53,7 +54,7 @@ test("Can track concatenation of 'a' and 'b' in an add function", async () => {
     "returnStatement", // return
     "binaryExpression", // +
     "identifier", // arg1
-    "stringLiteral" // "a"
+    "stringLiteral", // "a"
   ]);
 });
 
@@ -69,18 +70,18 @@ describe("Assignment Expressions", () => {
     expect(getStepTypeList(t)).toEqual([
       "memberExpression",
       "assignmentExpression",
-      "stringLiteral"
+      "stringLiteral",
     ]);
   });
   test("Can track used return values of assignment expressions (to variables)", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       var str = "a"
-      debugger
       return (str += "b")
     `);
 
     expect(normal).toBe("ab");
     var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    expect(t1[0].operationLog.result.primitive).toBe("ab");
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t1LastStep.operationLog.result.primitive).toBe("a");
@@ -108,6 +109,26 @@ describe("Assignment Expressions", () => {
     expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t2LastStep.operationLog.result.primitive).toBe("b");
   });
+
+  test("Can traverse return value of object assignments", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    var obj = { a: "a" }
+    return (obj.a += "b")
+  `);
+
+    expect(normal).toBe("ab");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1[0].operationLog.result.primitive).toBe("ab");
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("a");
+
+    var t2 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t2LastStep = t2[t2.length - 1];
+    expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t2LastStep.operationLog.result.primitive).toBe("b");
+  });
+
   test("Can traverse results of assignment expression", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       var v
@@ -179,7 +200,7 @@ test("Can track values through object literals", async () => {
   expect(getStepTypeList(t)).toEqual([
     "memberExpression",
     "objectProperty",
-    "stringLiteral"
+    "stringLiteral",
   ]);
 });
 
@@ -201,7 +222,7 @@ test("Can traverse String.prototype.slice", async () => {
     "assignmentExpression",
     "callExpression",
     "identifier",
-    "stringLiteral"
+    "stringLiteral",
   ]);
 });
 
@@ -261,6 +282,7 @@ test("Traversing += assignment expressions", async () => {
   `);
   expect(normal).toBe("ab");
   var t = await traverse({ operationLog: tracking, charIndex: 0 });
+  expect(t[0].operationLog.result.primitive).toBe("ab");
   var lastStep = t[t.length - 1];
 
   expect(lastStep.operationLog.result.primitive).toBe("a");
@@ -277,7 +299,7 @@ test("Can track values through conditional expression", async () => {
   expect(getStepTypeList(t)).toEqual([
     "identifier",
     "conditionalExpression",
-    "stringLiteral"
+    "stringLiteral",
   ]);
 });
 
@@ -293,7 +315,7 @@ describe("Can traverse string replacement calls", () => {
     expect(getStepTypeList(t)).toEqual([
       "identifier",
       "callExpression",
-      "stringLiteral"
+      "stringLiteral",
     ]);
 
     const lastStep = t[t.length - 1];
@@ -335,7 +357,7 @@ describe("Can traverse string replacement calls", () => {
     expect(normal).toBe("abbb<>xy");
     var t1 = await traverse({
       operationLog: tracking,
-      charIndex: "abbb<>xy".indexOf("y")
+      charIndex: "abbb<>xy".indexOf("y"),
     });
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.charIndex).toBe("abbbxy".indexOf("y"));
@@ -398,7 +420,7 @@ describe("JSON.parse", () => {
 
     var t = await traverse({
       operationLog: tracking,
-      charIndex: "Hello".indexOf("l")
+      charIndex: "Hello".indexOf("l"),
     });
     var lastStep = t[t.length - 1];
 
@@ -437,7 +459,7 @@ describe("JSON.parse", () => {
 
     var t = await traverse({
       operationLog: tracking,
-      charIndex: normal.indexOf("l")
+      charIndex: normal.indexOf("l"),
     });
     var lastStep = t[t.length - 1];
 
@@ -456,7 +478,7 @@ describe("JSON.parse", () => {
 
     var t = await traverse({
       operationLog: tracking,
-      charIndex: normal.indexOf("l")
+      charIndex: normal.indexOf("l"),
     });
     var lastStep = t[t.length - 1];
 
@@ -473,7 +495,7 @@ describe("JSON.parse", () => {
 
     var t = await traverse({
       operationLog: tracking,
-      charIndex: normal.indexOf("b")
+      charIndex: normal.indexOf("b"),
     });
     var lastStep = t[t.length - 1];
 
@@ -491,7 +513,7 @@ describe("JSON.parse", () => {
 
     var t = await traverse({
       operationLog: tracking,
-      charIndex: 0
+      charIndex: 0,
     });
     var lastStep = t[t.length - 1];
 
@@ -664,7 +686,7 @@ describe("JSON.stringify", () => {
 
     var t = await traverse({
       operationLog: tracking,
-      charIndex: 0
+      charIndex: 0,
     });
     var lastStep = t[t.length - 1];
 
@@ -695,7 +717,7 @@ it("Can traverse arguments for a function expression (rather than a function dec
     "callExpression",
     "returnStatement",
     "identifier",
-    "stringLiteral"
+    "stringLiteral",
   ]);
 });
 
@@ -1661,12 +1683,32 @@ async function traverseAndGetLastStep(
 //   });
 // });
 
-it("Supports arrow functions", async () => {
+it("Supports arrow functions with a full body", async () => {
   const { normal, tracking, code } = await instrumentAndRun(`
       const concat = (a,b) => {return a + b};
       
       return concat("Hello ", "World")
     `);
+  expect(normal).toBe("Hello World");
+
+  let step;
+  step = await traverseAndGetLastStep(tracking, 1);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.charIndex).toBe(1);
+
+  step = await traverseAndGetLastStep(tracking, 6);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.charIndex).toBe(0);
+});
+
+it("Supports arrow functions with a single expression", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      const concat = (a,b) => a + b;
+      
+      return concat("Hello ", "World")
+    `
+  );
   expect(normal).toBe("Hello World");
 
   let step;
@@ -1993,4 +2035,143 @@ it("Can traverse Number.prototype.toFixed calls", async () => {
 
   var step = await traverseAndGetLastStep(tracking, 0);
   expect(step.operationLog.operation).toBe("numericLiteral");
+});
+
+test("Can handle function expressions", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    var fn = function sth(a,b){}
+    return fn
+  `);
+
+  var step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("fn");
+});
+
+it("Can traverse object spread parameter", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+  const obj = {sth: "abc"}
+  const obj2 = {...obj}
+  let key = Object.keys(obj2)[0]
+  return key + "->"+ obj2.sth
+`);
+  expect(normal).toBe("sth->abc");
+
+  var step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.operationLog.result.primitive).toBe("sth");
+
+  step = await traverseAndGetLastStep(tracking, "sth->abc".indexOf("a"));
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.operationLog.result.primitive).toBe("abc");
+});
+
+it("Can traverse array pattern destructuring with empty elements", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    function x(a,b,...c){}
+  const [,a, ...others] = ["a","b", "c", "d"]
+  return a + others[0] + others[1]
+`,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("bcd");
+  var step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.operationLog.result.primitive).toBe("b");
+
+  step = await traverseAndGetLastStep(tracking, 1);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.operationLog.result.primitive).toBe("c");
+
+  step = await traverseAndGetLastStep(tracking, 2);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.operationLog.result.primitive).toBe("d");
+});
+
+describe("Object patterns", () => {
+  it("Can traverse simple object patterns", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      const {a} = {a: "a"}
+      return a
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("a");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("a");
+  });
+
+  it("Can traverse deeper object patterns with renaming", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      const {a:{b: c}} = {a: {b: "b"}}
+      return c
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("b");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("b");
+  });
+
+  it("Doesn't modify any objects used by the instrumented app", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let obj = {a: {b: {c: "c"}}};
+      const {a:{b}} = obj;
+
+      if (obj.a.b !== b) {
+        throw Error("not equal")
+      }
+      if (Object.keys(obj.a).length > 1) {
+        throw Error("too many keys, probably object was modified and tv added: " + Object.keys(obj.a).join(","))
+      }
+      return b.c
+      
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("c");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("c");
+  });
+
+  it("Doesn't break default values", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      var {a="a"}= {};
+      return a
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("a");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    // not supported for  now
+    expect(step.operationLog.operation).toBe("emptyTrackingInfo");
+    expect(step.operationLog.result.primitive).toBe(undefined);
+  });
+});
+
+it("Can traverse charAt calls", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+    return "ab".charAt(1)
+`,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("b");
+  var step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.charIndex).toBe(1);
+  expect(step.operationLog.result.primitive).toBe("ab");
 });

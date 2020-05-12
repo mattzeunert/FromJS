@@ -36,7 +36,9 @@ export function instrumentAndRun(
 
     compile(code).then((compileResult: CompilationResult) => {
       var code = compileResult.code;
+
       const relevantCode = code.split("* HELPER_FUNCTIONS_END */")[1];
+      // console.log(relevantCode);
 
       server._locStore.write(compileResult.locs, function() {
         /* don't bother waiting since store is sync */

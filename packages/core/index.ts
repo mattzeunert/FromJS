@@ -8,6 +8,7 @@ import handleEvalScript from "./src/handleEvalScript";
 import { compileSync } from "./src/compile";
 import HtmlToOperationLogMapping from "./src/helperFunctions/HtmlToOperationLogMapping";
 import { LocStore } from "./src/LocStore";
+import { LocLogs } from "./src/LocLogs";
 import { traverseDomOrigin } from "./src/traverseDomOrigin";
 import * as config from "./src/config";
 import { adjustColumnForEscapeSequences } from "./src/adjustColumnForEscapeSequences";
@@ -25,5 +26,6 @@ export {
   LocStore,
   traverseDomOrigin,
   config,
+  LocLogs,
   adjustColumnForEscapeSequences
 };

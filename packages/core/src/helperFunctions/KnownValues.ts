@@ -1,3 +1,11 @@
+import { getShortKnownValueName } from "../names";
+
+let nodeRequire;
+if (global["fromJSIsNode"]) {
+  // note: require is a different value in each file
+  nodeRequire = eval("require");
+}
+
 export default class KnownValues {
   _knownValues: any = {};
   _knownValuesMap = new Map();
@@ -38,7 +46,6 @@ export default class KnownValues {
       "Date.prototype.getHours": Date.prototype.getHours,
       encodeURIComponent: encodeURIComponent,
       decodeURIComponent: decodeURIComponent,
-      undefined: undefined,
       null: null,
       "Promise.prototype.then": Promise.prototype.then,
       "Promise.prototype.catch": Promise.prototype.catch,
@@ -49,6 +56,14 @@ export default class KnownValues {
       "console.count": console.count,
       "console.error": console.error
     });
+
+    if (global.fromJSIsNode) {
+      Object.assign(this._knownValues, {
+        "fs.readFileSync": require("fs").readFileSync,
+        "fs.writeFileSync": require("fs").writeFileSync,
+        "fs.writeFile": require("fs").writeFile
+      });
+    }
 
     [
       {
@@ -77,16 +92,25 @@ export default class KnownValues {
       }
     ].forEach(item => {
       Object.getOwnPropertyNames(item.obj).forEach(propertyName => {
-        this._knownValues[item.name + "." + propertyName] =
-          item.obj[propertyName];
+        let value = item.obj[propertyName];
+
+        // Only knownValue if not e.g. null/undefined
+        // Otherwise every time undefined appears we'd say it's RegExp.protoype.unicode
+        if (value) {
+          this._knownValues[item.name + "." + propertyName] = value;
+        }
       });
     });
 
-    if (global["localStorage"]) {
-      Object.assign(this._knownValues, {
-        localStorage: global.localStorage,
-        "localStorage.getItem": global.localStorage.getItem
-      });
+    try {
+      if (global["localStorage"]) {
+        Object.assign(this._knownValues, {
+          localStorage: global.localStorage,
+          "localStorage.getItem": global.localStorage.getItem
+        });
+      }
+    } catch (err) {
+      // e.g. on about:blank just trying to access local storage failes I think
     }
     if (global["fetch"]) {
       Object.assign(this._knownValues, {
@@ -136,7 +160,10 @@ export default class KnownValues {
     }
 
     Object.keys(this._knownValues).forEach(key => {
-      this._knownValuesMap.set(this._knownValues[key], key);
+      this._knownValuesMap.set(
+        this._knownValues[key],
+        getShortKnownValueName(key)
+      );
     });
   }
 
@@ -145,10 +172,19 @@ export default class KnownValues {
     if (!knownValue) {
       knownValue = undefined;
     }
+    // Check for require
+    // can't just check with === because require is a unique value in each file
+    if (
+      typeof value === "function" &&
+      nodeRequire &&
+      value.main === nodeRequire.main
+    ) {
+      knownValue = "require";
+    }
     return knownValue;
   }
 
   getValue(name: string) {
-    return this._knownValues[name];
+    return this._knownValues[getShortKnownValueName(name)];
   }
 }

@@ -5,7 +5,7 @@ function AfterEmitPlugin(fn) {
   this.fn = fn;
 }
 
-AfterEmitPlugin.prototype.apply = function(compiler) {
+AfterEmitPlugin.prototype.apply = function (compiler) {
   const fn = this.fn;
 
   compiler.plugin("emit", (compilation, callback) => {
@@ -16,15 +16,22 @@ AfterEmitPlugin.prototype.apply = function(compiler) {
   });
 };
 
-module.exports = {
+
+module.exports = [{
   entry: {
     helperFunctions: "./src/helperFunctions/helperFunctions.ts",
     compileInBrowser: "./src/compileInBrowser.ts"
   },
   output: {
-    filename: "[name].js",
-    path: __dirname
+    filename: `[name].js`,
+    path: __dirname,
+    globalObject: `(typeof window === "undefined" ? Function("return this")() : window)`
   },
+
+  // always target web and then try to sort stuff out if we're actually in node
+  // at compile time we don't know if we'll be in node or web, e.g. because you can take
+  // node code and inject it into a browser in the inspected app
+  target: "web",
 
   optimization: {
     // Minimize because hopefully that'll speed up execution a bit,
@@ -40,30 +47,31 @@ module.exports = {
 
   performance: { hints: false },
 
-  mode: "production",
+  // i think right now prod doesn't work for node?
+  mode: "development",
 
   plugins: [
-    new AfterEmitPlugin(function() {
-      setTimeout(function() {
+    new AfterEmitPlugin(function () {
+      setTimeout(function () {
         const fs = require("fs");
-        var code = fs.readFileSync("./helperFunctions.js").toString();
+        var code = fs.readFileSync(`./helperFunctions.js`).toString();
         code = code.replace(/\\/g, "MARKER_BACKSLASH");
         code = code.replace(/`/g, "MARKER_BACKTICK");
         code = code.replace(/\$/g, "MARKER_DOLLAR");
         code = `
-          let code = \`${code}\`;
-          code = code.replace(/MARKER_BACKSLASH/g, "\\\\").replace(/MARKER_BACKTICK/g, "\\\`").replace(/MARKER_DOLLAR/g, "\\$");
-          export default code
-        `;
+            let code = \`${code}\`;
+            code = code.replace(/MARKER_BACKSLASH/g, "\\\\").replace(/MARKER_BACKTICK/g, "\\\`").replace(/MARKER_DOLLAR/g, "\\$");
+            export default code
+          `;
 
         let currentTsFile;
         try {
-          currentTsFile = fs.readFileSync("./helperFunctions.ts").toString();
-        } catch (err) {}
+          currentTsFile = fs.readFileSync(`./helperFunctions.ts`).toString();
+        } catch (err) { }
 
         // prevent infinite webpack builds (overwriting helperfunctins triggers rebuild as compileInBrowser depends on it)
         if (currentTsFile !== code) {
-          fs.writeFileSync("./helperFunctions.ts", code);
+          fs.writeFileSync(`./helperFunctions.ts`, code);
           console.log("updated");
         }
       }, 1000);
@@ -74,5 +82,8 @@ module.exports = {
     rules: [{ test: /\.tsx?$/, loader: "ts-loader" }]
   },
 
-  externals: {}
-};
+  externals: {
+    // babel plugins try to use fs
+    fs: "commonjs fs",
+  }
+}]
