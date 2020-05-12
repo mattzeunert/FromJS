@@ -46,6 +46,8 @@ export class LogServer {
               type = "object";
             } else if (type === "f") {
               type = "function";
+            } else if (type === "u") {
+              type = "undefined";
             }
             obj._result.type = type;
             obj._result.length = obj._result.l;

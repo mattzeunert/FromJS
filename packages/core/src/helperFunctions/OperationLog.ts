@@ -124,6 +124,8 @@ export function getSerializedValueObject(
       type = "o";
     } else if (type === "function") {
       type = "f";
+    } else if (type === "undefined") {
+      type = "u";
     }
     return {
       l: length,
