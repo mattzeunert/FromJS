@@ -320,7 +320,7 @@ export default class Backend {
 
     if (process.env.NODE_TEST) {
       compileNodeApp({
-        directory: "node-test",
+        directory: process.env.NODE_TEST,
         outdir: "node-test-compiled",
         requestHandler: requestHandler,
       });
