@@ -185,6 +185,6 @@ export default class KnownValues {
   }
 
   getValue(name: string) {
-    return this._knownValues[name];
+    return this._knownValues[getShortKnownValueName(name)];
   }
 }
