@@ -1,3 +1,5 @@
+import { getShortKnownValueName } from "../names";
+
 let nodeRequire;
 if (global["fromJSIsNode"]) {
   // note: require is a different value in each file
@@ -158,7 +160,10 @@ export default class KnownValues {
     }
 
     Object.keys(this._knownValues).forEach(key => {
-      this._knownValuesMap.set(this._knownValues[key], key);
+      this._knownValuesMap.set(
+        this._knownValues[key],
+        getShortKnownValueName(key)
+      );
     });
   }
 

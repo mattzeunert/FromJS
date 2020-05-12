@@ -6,7 +6,8 @@ import OperationLog from "../helperFunctions/OperationLog";
 import {
   getLongOperationName,
   getLongExtraArgName,
-  getLongArgName
+  getLongArgName,
+  getLongKnownValueName
 } from "../names";
 
 export class LogServer {
@@ -52,7 +53,7 @@ export class LogServer {
             obj._result.type = type;
             obj._result.length = obj._result.l;
             obj._result.primitive = obj._result.p;
-            obj._result.knownValue = obj._result.k;
+            obj._result.knownValue = getLongKnownValueName(obj._result.k);
             obj._result.knownTypes = obj._result.kt;
             obj._result.keys = obj._result.ke;
           }

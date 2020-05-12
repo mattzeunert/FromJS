@@ -72,3 +72,36 @@ const {
 });
 
 export { getShortArgName, getLongArgName };
+
+const {
+  getShortName: getShortKnownValueName,
+  getLongName: getLongKnownValueName
+} = makeNameShortingFunctions({
+  "Array.prototype.push": "push",
+  "Array.prototype.pop": "pop",
+  "Array.prototype.shift": "shift",
+  "Array.prototype.filter": "filter",
+  "Array.prototype.map": "map",
+  "String.prototype.match": "match",
+  "String.prototype.charAt": "charAt",
+  "String.prototype.split": "split",
+  "String.prototype.slice": "sslice",
+  "String.prototype.toUpperCase": "upper",
+  "String.prototype.toLowerCase": "lower",
+  "String.prototype.substring": "substring",
+  "Date.prototype.constructor": "d.c",
+  "Function.prototype.apply": "apply",
+  "Function.prototype.call": "call",
+  parseFloat: "pf",
+  "Math.max": "max",
+  "Math.min": "min",
+  "Math.round": "round",
+  "String.protoype.replace": "repl",
+  "String.prototype.constructor": "s.c",
+  "JSON.stringify": "jstr",
+  "JSON.parse": "jprs",
+  "Object.prototype.constructor": "o.c",
+  "Object.keys": "o.k"
+});
+
+export { getShortKnownValueName, getLongKnownValueName };
