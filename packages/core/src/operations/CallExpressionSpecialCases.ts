@@ -1434,8 +1434,6 @@ export const knownFnProcessors = {
     let originalThenHandler = getFnArgForApply(0);
     let promise = context[0];
     return setFnArgForApply(0, function() {
-      console.log("will call then", context);
-
       ctx.argTrackingInfo = [promise._resTrackingValue];
       return originalThenHandler.apply(this, arguments);
     });

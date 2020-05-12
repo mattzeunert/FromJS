@@ -2191,7 +2191,7 @@ describe("Supports promises", () => {
       })
     `,
       {},
-      { logCode: true }
+      { logCode: false }
     );
     expect(normal).toBe("ab");
     var step = await traverseAndGetLastStep(tracking, 1);

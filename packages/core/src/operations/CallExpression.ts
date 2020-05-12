@@ -55,8 +55,6 @@ const CallExpression = <any>{
   ) {
     let [fnArg, context, argList, evalFn] = args;
 
-    console.log("call", { fnArg, argList, context });
-
     var object = context[0];
 
     var fn = fnArg[0];
