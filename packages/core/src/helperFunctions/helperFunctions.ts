@@ -117,15 +117,24 @@ if (global.fromJSIsNode) {
 
 function nodePost({ port, path, headers, bodyString }) {
   if (requestQueueDirectory) {
-    require("fs").writeFileSync(
-      requestQueueDirectory +
-        "/" +
-        new Date().valueOf() +
-        "_" +
-        Math.round(Math.random() * 1000) +
-        ".json",
-      path + "\n" + bodyString
-    );
+    let opCount = ctx.countOperations(() => {
+      require("fs").writeFileSync(
+        requestQueueDirectory +
+          "/" +
+          new Date().valueOf() +
+          "_" +
+          Math.round(Math.random() * 1000) +
+          ".json",
+        path + "\n" + bodyString
+      );
+    });
+
+    if (opCount > 0) {
+      console.log(
+        `Did ${opCount} operations during writeFileSync, maybe something is patched?`
+      );
+    }
+
     return Promise.resolve({});
   }
 
@@ -718,7 +727,7 @@ function makeDoOperation(opName: string, op) {
 
     lastOperationType = opName;
 
-    if (logQueue.length > 100000) {
+    if (logQueue.length > 200000) {
       // avoid running out of memory
       sendLogsToServer();
     }
