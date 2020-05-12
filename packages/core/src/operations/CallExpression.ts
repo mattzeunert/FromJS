@@ -10,7 +10,11 @@ import {
 
 import { ExecContext } from "../helperFunctions/ExecContext";
 import { VERIFY } from "../config";
-import { doOperation, getLastMemberExpressionObject } from "../FunctionNames";
+import {
+  doOperation,
+  getLastMemberExpressionObject,
+  getFunctionArgTrackingInfo
+} from "../FunctionNames";
 import OperationLog from "../helperFunctions/OperationLog";
 
 import { consoleLog, consoleError } from "../helperFunctions/logging";
@@ -50,6 +54,8 @@ const CallExpression = <any>{
     logData: any
   ) {
     let [fnArg, context, argList, evalFn] = args;
+
+    console.log("call", { fnArg, argList, context });
 
     var object = context[0];
 
@@ -297,6 +303,7 @@ const CallExpression = <any>{
         setFnArgForApply,
         ctx,
         setContext,
+        context,
         fnArgTrackingValues,
         logData,
         object,
@@ -479,6 +486,24 @@ function handleNewExpression({
         "can't instrument new Function() code because instrumentation function is missing in context"
       );
     }
+
+    if (fn === Promise) {
+      console.log("IS PROMISE");
+      let executor = fnArgValues[0];
+      fnArgValues = [
+        function(resolve, reject) {
+          const res = function(val) {
+            console.log("resolving promise", ret, val);
+            let promise = ret;
+            promise._resTrackingValue = global[getFunctionArgTrackingInfo](0);
+            resolve(val);
+          };
+          return executor.apply(this, [res, reject]);
+        },
+        fnArgValues.slice(1)
+      ];
+    }
+
     let thisValue = null; // overwritten inside new()
     ret = new (Function.prototype.bind.apply(fn, [
       thisValue,

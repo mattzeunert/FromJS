@@ -2175,3 +2175,28 @@ it("Can traverse charAt calls", async () => {
   expect(step.charIndex).toBe(1);
   expect(step.operationLog.result.primitive).toBe("ab");
 });
+
+describe("Supports promises", () => {
+  it("Works when creating a promise with new Promise()", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      const p = new Promise(function(resolve){
+        setTimeout(() => {
+          resolve("a" + "b")
+        }, 50)
+      }).then(function(res){
+        console.log("resT",__fromJSGetTrackingIndex(res))
+        finishAsyncTest(res)
+      })
+    `,
+      {},
+      { logCode: true }
+    );
+    expect(normal).toBe("ab");
+    var step = await traverseAndGetLastStep(tracking, 1);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("b");
+  });
+});

@@ -1409,6 +1409,7 @@ export interface FnProcessorArgs {
   setFnArgForApply: (argIndex: any, argValue: any) => void;
   ctx: ExecContext;
   setContext: (c: any) => void;
+  context: any;
   fnArgTrackingValues: any[];
   logData: any;
   object: any;
@@ -1418,6 +1419,27 @@ export interface FnProcessorArgs {
 }
 
 export const knownFnProcessors = {
+  [getShortKnownValueName("Promise.prototype.then")]: function({
+    extraState,
+    setArgValuesForApply,
+    fnArgValues,
+    getFnArgForApply,
+    setFnArgForApply,
+    ctx,
+    setContext,
+    fnArgTrackingValues,
+    logData,
+    context
+  }: FnProcessorArgs) {
+    let originalThenHandler = getFnArgForApply(0);
+    let promise = context[0];
+    return setFnArgForApply(0, function() {
+      console.log("will call then", context);
+
+      ctx.argTrackingInfo = [promise._resTrackingValue];
+      return originalThenHandler.apply(this, arguments);
+    });
+  },
   [getShortKnownValueName("Array.prototype.map")]: ({
     extraState,
     setArgValuesForApply,

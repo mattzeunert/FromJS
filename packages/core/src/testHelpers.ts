@@ -34,7 +34,7 @@ export function instrumentAndRun(
   return new Promise<InstrumentAndRunResult>(resolve => {
     code = `getTrackingAndNormalValue((function(){ ${code} })())`;
 
-    compile(code).then((compileResult: CompilationResult) => {
+    compile(code).then(async (compileResult: CompilationResult) => {
       var code = compileResult.code;
 
       const relevantCode = code.split("* HELPER_FUNCTIONS_END */")[1];
@@ -50,27 +50,56 @@ export function instrumentAndRun(
         );
       }
       const __storeLog = server.storeLog.bind(server);
-      var result: InstrumentAndRunResult = eval(code);
 
-      delete global["__didInitializeDataFlowTracking"];
-      result.code = relevantCode; // only the interesting code
+      var result: InstrumentAndRunResult;
 
-      if (result.tracking) {
-        server.loadLog(
-          result.tracking,
-          (err, log) => {
-            if (err) {
-              throw err;
-            }
-            // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
-            result.tracking = log.extraArgs.returnValue.args.returnValue;
-            // console.log(result.tracking)
-            resolve(result);
-          },
-          10
-        );
-      } else {
-        resolve(result);
+      let testIsAsync = false;
+      const asyncTest = function() {
+        testIsAsync = true;
+        console.log("async test");
+        return function finish(value) {
+          result = {
+            code: "",
+            normal: value,
+            tracking: global["__fnArg"](0)
+          };
+          console.log("asyncTest fiin", result);
+          finishRunning();
+        };
+      };
+      result = eval(code);
+
+      if (!testIsAsync) {
+        finishRunning();
+      }
+
+      function finishRunning() {
+        delete global["__didInitializeDataFlowTracking"];
+        result.code = relevantCode; // only the interesting code
+
+        if (result.tracking) {
+          server.loadLog(
+            result.tracking,
+            (err, log) => {
+              if (err) {
+                throw err;
+              }
+              if (testIsAsync) {
+                // remove functionArgument
+                result.tracking = log.args.value;
+                resolve(result);
+              } else {
+                // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
+                result.tracking = log.extraArgs.returnValue.args.returnValue;
+                // console.log(result.tracking)
+                resolve(result);
+              }
+            },
+            10
+          );
+        } else {
+          resolve(result);
+        }
       }
     });
   });
