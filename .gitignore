@@ -18,13 +18,13 @@ packages/backend/ca
 ca
 logs.json
 
-# packages/core/helperFunctions.ts
-# packages/core/helperFunctions_browser.ts
-# packages/core/dist/helperFunctions.js
-# packages/core/helperFunctions.js
-# packages/core/helperFunctions_browser.js
-# packages/core/compileInBrowser.js
-# packages/core/compileInBrowser_browser.js
+packages/core/helperFunctions.ts
+packages/core/helperFunctions_browser.ts
+packages/core/dist/helperFunctions.js
+packages/core/helperFunctions.js
+packages/core/helperFunctions_browser.js
+packages/core/compileInBrowser.js
+packages/core/compileInBrowser_browser.js
 
 mydb
 fromjs-session
