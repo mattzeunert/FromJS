@@ -35,6 +35,7 @@ export async function compileNodeApp({
         fs.existsSync(outFilePath) &&
         (file.subdirectory !== "" || file.name !== "test.js") &&
         !file.name.includes("driver.js") &&
+        !file.name.includes("runner.js") &&
         !file.name.includes("connection.js") &&
         !file.name.includes("cri.js") &&
         !file.name.includes("page-functions.js") &&
