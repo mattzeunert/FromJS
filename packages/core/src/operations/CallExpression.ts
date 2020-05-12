@@ -496,6 +496,7 @@ function handleNewExpression({
             promise._resTrackingValue = global[getFunctionArgTrackingInfo](0);
             resolve(val);
           };
+          //@ts-ignore
           return executor.apply(this, [res, reject]);
         },
         fnArgValues.slice(1)
