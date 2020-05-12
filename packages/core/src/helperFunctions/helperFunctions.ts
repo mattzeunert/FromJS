@@ -115,10 +115,18 @@ if (global.fromJSIsNode) {
   requestQueueDirectory = sessionInfo.requestQueueDirectory;
 }
 
+let fs;
+if (global.fromJSIsNode) {
+  // destructure to avoid e.g. graceful-fs patching methods
+  // Patched methods mean tracking can run while saving
+  // and that breaks stuff like lastMemeberExpressionObject
+  fs = { ...eval("require('fs')") };
+}
+
 function nodePost({ port, path, headers, bodyString }) {
   if (requestQueueDirectory) {
     let opCount = ctx.countOperations(() => {
-      require("fs").writeFileSync(
+      fs.writeFileSync(
         requestQueueDirectory +
           "/" +
           new Date().valueOf() +
