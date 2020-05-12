@@ -40,6 +40,8 @@ function serializeValue(
   return getSerializedValueObject(value, type, knownValues);
 }
 
+const _bufferObj = eval("typeof Buffer === 'undefined' ? null : Buffer");
+
 export interface SerializedValueData {
   length: any;
   type: string;
@@ -105,13 +107,17 @@ export function getSerializedValueObject(
       type === "object" &&
       value !== null &&
       !Array.isArray(value) &&
-      !knownValue
+      !knownValue &&
+      (!_bufferObj || !(value instanceof _bufferObj))
     ) {
       // todo: rethink this regarding perf
       // maybe don't collect keys, maybe do for...in instead
       // also: when inspecting i really want the trakcing data for
       // values/keys to be accessible, so maybe just storing keys makes more sense
       keys = Object.keys(value);
+      if (keys.length > 100) {
+        console.log("Obj with more than 100 keys", keys.slice(0, 5));
+      }
       if (keys.length > 5) {
         keys = keys.slice(0, 5);
         keys.push("...");
