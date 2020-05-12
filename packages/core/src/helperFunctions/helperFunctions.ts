@@ -121,10 +121,12 @@ if (global.fromJSIsNode) {
   // Patched methods mean tracking can run while saving
   // and that breaks stuff like lastMemeberExpressionObject
   fs = { ...eval("require('fs')") };
+  console.log("did destructure fs");
 }
 
 function nodePost({ port, path, headers, bodyString }) {
   if (requestQueueDirectory) {
+    console.log(fs.createWriteStream);
     let opCount = ctx.countOperations(() => {
       fs.writeFileSync(
         requestQueueDirectory +
