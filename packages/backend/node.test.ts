@@ -47,7 +47,11 @@ describe("Node", () => {
 
   async function runTest(
     testName,
-    { ignoreFilePattern = null as any, runNTimes = 1 }
+    {
+      ignoreFilePattern = null as any,
+      includeFilePattern = null as any,
+      runNTimes = 1,
+    }
   ) {
     let sessionSizeBefore = await getSessionSize();
     const compileStart = new Date();
@@ -56,20 +60,25 @@ describe("Node", () => {
       requestHandler,
       outdir: outdir + "/" + testName,
       ignoreFilePattern,
+      includeFilePattern,
     });
     let compileDuration = new Date().valueOf() - compileStart.valueOf();
 
     // console.log("file", path.resolve(outdir, testName, testName + ".js"));
 
-    let stdout;
+    let stdout, code;
 
     const execStart = new Date();
     for (var i = 0; i < runNTimes; i++) {
-      ({ stdout } = await getCmdOutput(
+      ({ stdout, code } = await getCmdOutput(
         "node " + path.resolve(outdir, testName, testName + ".js")
       ));
     }
     let execDuration = new Date().valueOf() - execStart.valueOf();
+
+    if (code !== 0) {
+      throw Error("Node command exited with code " + code);
+    }
 
     const processRequestQueueStart = new Date();
     await backend.processRequestQueue();
@@ -147,6 +156,22 @@ describe("Node", () => {
     expect(step.operationLog.result.primitive).toBe("World");
     expect(step.charIndex).toBe(0);
   }, 100000);
+
+  it("can load and use lodash", async () => {
+    let { execDuration, compileDuration, traverse } = await runTest(
+      "lodash",
+      {}
+    );
+
+    let { step } = await traverse(0);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("helloWorld");
+
+    ({ step } = await traverse(12));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("equal");
+  }, 120000);
 });
 
 export function getCmdOutput(

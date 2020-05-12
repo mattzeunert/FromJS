@@ -9,22 +9,25 @@ export async function compileNodeApp({
   requestHandler,
   outdir,
   ignoreFilePattern,
+  includeFilePattern,
 }: {
   directory: string;
   requestHandler: RequestHandler;
   outdir: string;
   ignoreFilePattern?: RegExp;
+  includeFilePattern?: RegExp;
 }) {
   let files = getNodeFiles(directory, "");
 
   await pMap(
     files,
     async (file, i) => {
-      const outFilePath = path.resolve(outdir, file.subdirectory, file.name);
-      if (
-        ignoreFilePattern &&
-        ignoreFilePattern.test(file.subdirectory + file.name)
-      ) {
+      let filePath = file.subdirectory + file.name;
+      const outFilePath = path.resolve(outdir, filePath);
+      if (includeFilePattern && !includeFilePattern.test(filePath)) {
+        return;
+      }
+      if (ignoreFilePattern && ignoreFilePattern.test(filePath)) {
         return;
       }
 
