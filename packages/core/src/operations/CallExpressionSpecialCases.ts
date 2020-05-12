@@ -561,7 +561,6 @@ export const specialValuesForPostprocessing: {
     return fnArgTrackingValues[fnArgTrackingValues.length - 1];
   },
   [getShortKnownValueName("Array.prototype.pop")]: ({ extraState }) => {
-    console.log("doing tracking");
     return extraState.poppedValueTrackingValue;
   },
   [getShortKnownValueName("Object.keys")]: ({
