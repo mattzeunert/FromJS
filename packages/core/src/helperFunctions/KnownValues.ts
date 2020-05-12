@@ -44,7 +44,6 @@ export default class KnownValues {
       "Date.prototype.getHours": Date.prototype.getHours,
       encodeURIComponent: encodeURIComponent,
       decodeURIComponent: decodeURIComponent,
-      undefined: undefined,
       null: null,
       "Promise.prototype.then": Promise.prototype.then,
       "Promise.prototype.catch": Promise.prototype.catch,
