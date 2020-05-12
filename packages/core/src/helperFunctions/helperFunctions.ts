@@ -116,17 +116,29 @@ if (global.fromJSIsNode) {
 }
 
 let fs;
+let fsProperties;
 if (global.fromJSIsNode) {
-  // destructure to avoid e.g. graceful-fs patching methods
-  // Patched methods mean tracking can run while saving
-  // and that breaks stuff like lastMemeberExpressionObject
-  fs = { ...eval("require('fs')") };
-  console.log("did destructure fs");
+  fs = eval("require('fs')");
+  fsProperties = { ...fs };
+}
+
+function setFsProperties(fsProperties) {
+  Object.keys(fsProperties).forEach(propertyName => {
+    let value = fsProperties[propertyName];
+    if (typeof value === "function") {
+      fs[propertyName] = fsProperties[propertyName];
+    }
+  });
 }
 
 function nodePost({ port, path, headers, bodyString }) {
   if (requestQueueDirectory) {
-    console.log(fs.createWriteStream);
+    // graceful-fs patches some methods and adding tracking data
+    // as part of saving stuff breaks the normal flow...
+    // (e.g. because lastmemberexpressionobject is not right any more)
+    let fsPropertiesBefore = { ...fs };
+    setFsProperties(fsProperties);
+
     let opCount = ctx.countOperations(() => {
       fs.writeFileSync(
         requestQueueDirectory +
@@ -144,6 +156,8 @@ function nodePost({ port, path, headers, bodyString }) {
         `Did ${opCount} operations during writeFileSync, maybe something is patched?`
       );
     }
+
+    setFsProperties(fsPropertiesBefore);
 
     return Promise.resolve({});
   }
