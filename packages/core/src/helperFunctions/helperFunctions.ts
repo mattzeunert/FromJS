@@ -257,7 +257,6 @@ async function sendLogsToServer() {
       console.log({ inProgressSendLogsRequests });
     }
     await postToBE("/storeLogs", data);
-    console.log("done save");
     inProgressSendLogsRequests--;
   }
 }
