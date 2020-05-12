@@ -1,88 +1,74 @@
 import { SHORT_NAMES } from "./config";
 
-let opLongNameToShortName = {};
-if (SHORT_NAMES) {
-  opLongNameToShortName = {
-    identifier: "i",
-    callExpression: "c",
-    binaryExpression: "b",
-    stringLiteral: "s",
-    numericLiteral: "n",
-    returnStatement: "r",
-    memberExpression: "m",
-    objectExpression: "o",
-    objectProperty: "op",
-    conditionalExpression: "cond",
-    assignmentExpression: "a",
-    arrayExpression: "arr",
-    thisExpression: "t",
-    logicalExpression: "l",
-    arrayIndex: "arrI",
-    unaryExpression: "u",
-    newExpressionResult: "new",
-    memexpAsLeftAssExp: "mae"
+function makeNameShortingFunctions(longNameToShortName) {
+  if (!SHORT_NAMES) {
+    longNameToShortName = {};
+  }
+  const shortNameToLongName = {};
+  Object.keys(longNameToShortName).forEach(longName => {
+    shortNameToLongName[longNameToShortName[longName]] = longName;
+  });
+  return {
+    getShortName(longName) {
+      let shortName = longNameToShortName[longName];
+      return shortName || longName;
+    },
+    getLongName(shortName) {
+      return shortNameToLongName[shortName] || shortName;
+    }
   };
 }
-const opShortNameToLongName = {};
-Object.keys(opLongNameToShortName).forEach(longName => {
-  opShortNameToLongName[opLongNameToShortName[longName]] = longName;
+
+const {
+  getShortName: getShortOperationName,
+  getLongName: getLongOperationName
+} = makeNameShortingFunctions({
+  identifier: "i",
+  callExpression: "c",
+  binaryExpression: "b",
+  stringLiteral: "s",
+  numericLiteral: "n",
+  returnStatement: "r",
+  memberExpression: "m",
+  objectExpression: "o",
+  objectProperty: "op",
+  conditionalExpression: "cond",
+  assignmentExpression: "a",
+  arrayExpression: "arr",
+  thisExpression: "t",
+  logicalExpression: "l",
+  arrayIndex: "arrI",
+  unaryExpression: "u",
+  newExpressionResult: "new",
+  memexpAsLeftAssExp: "mae"
 });
 
-export function getShortOperationName(operationName) {
-  let shortName = opLongNameToShortName[operationName];
-  return shortName || operationName;
-}
+export { getShortOperationName, getLongOperationName };
 
-export function getLongOperationName(operationName) {
-  return opShortNameToLongName[operationName] || operationName;
-}
-
-// -------------------------------------------------
-
-let extraArgLongNameToShortName = {};
-if (SHORT_NAMES) {
-  extraArgLongNameToShortName = {
-    returnValue: "r",
-    propertyValue: "p",
-    expression0: "e0",
-    expression1: "e1",
-    replacement0: "r0",
-    replacement1: "r1"
-  };
-}
-const extraArgShortNameToLongName = {};
-Object.keys(extraArgLongNameToShortName).forEach(longName => {
-  extraArgShortNameToLongName[extraArgLongNameToShortName[longName]] = longName;
+const {
+  getShortName: getShortExtraArgName,
+  getLongName: getLongExtraArgName
+} = makeNameShortingFunctions({
+  returnValue: "r",
+  propertyValue: "p",
+  expression0: "e0",
+  expression1: "e1",
+  replacement0: "r0",
+  replacement1: "r1"
 });
 
-export function getShortExtraArgName(extraArgName) {
-  let shortName = extraArgLongNameToShortName[extraArgName];
-  return shortName || extraArgName;
-}
+export { getShortExtraArgName, getLongExtraArgName };
 
-export function getLongExtraArgName(extraArgName) {
-  return extraArgShortNameToLongName[extraArgName] || extraArgName;
-}
-
-// -------------------------------------------------
-
-let argLongNameToShortName = {};
-if (SHORT_NAMES) {
-  argLongNameToShortName = {
-    left: "l",
-    right: "r"
-  };
-}
-const argShortNameToLongName = {};
-Object.keys(argLongNameToShortName).forEach(longName => {
-  argShortNameToLongName[argLongNameToShortName[longName]] = longName;
+const {
+  getShortName: getShortArgName,
+  getLongName: getLongArgName
+} = makeNameShortingFunctions({
+  returnValue: "r",
+  propertyValue: "p",
+  expression0: "e0",
+  expression1: "e1",
+  replacement0: "r0",
+  replacement1: "r1"
 });
 
-export function getShortArgName(argName) {
-  let shortName = argLongNameToShortName[argName];
-  return shortName || argName;
-}
-
-export function getLongArgName(argName) {
-  return argShortNameToLongName[argName] || argName;
-}
+export { getShortArgName, getLongArgName };
