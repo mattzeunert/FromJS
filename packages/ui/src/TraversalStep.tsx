@@ -125,7 +125,11 @@ let TraversalStep = class TraversalStep extends React.Component<
       return text.slice(0, 15) + "..." + text.slice(-30);
     }
 
-    const str = operationLog.result.primitive + "";
+    let str = operationLog.result.primitive + "";
+
+    if (!operationLog.result.primitive) {
+      str = operationLog.result.getTruncatedUIString();
+    }
     // const beforeChar = prepareText(str.slice(0, charIndex));
     // const char = str.slice(charIndex, charIndex + 1);
     // const afterChar = prepareText(str.slice(charIndex + 1));
