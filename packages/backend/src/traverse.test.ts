@@ -2295,12 +2295,10 @@ describe("Supports promises", () => {
   it("Doesn't break Promise.reject", async () => {
     const { normal, tracking, code } = await instrumentAndRun(
       `
-      let finishAsyncTest = asyncTest()
-      const p = (async function(){
+      let finishAsyncTest = asyncTest();
+      (async function(){
         await Promise.reject("x")
-      })();
-      
-      p.catch(r => {
+      })().catch(r => {
         const ret = r === "x" ? "ok" : "wrong value";
         finishAsyncTest(ret)
       })
