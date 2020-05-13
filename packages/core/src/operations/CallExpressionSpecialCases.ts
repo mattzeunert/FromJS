@@ -184,6 +184,8 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
       //@ts-ignore
       thenRet = originalThenHandler.apply(this, arguments);
 
+      console.log("thenRet", thenRet, originalThenHandler);
+
       const returnedThen =
         ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[0];
       if (returnedThen instanceof Promise) {
