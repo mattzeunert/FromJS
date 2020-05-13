@@ -2331,9 +2331,9 @@ describe("Supports promises", () => {
       let p = new Promise(resolve => {
         const p2 = new Promise(resolve => setTimeout(() => {
           const p3 = new Promise(resolve => {
-            resolve(new Promise(resolve => {
+            resolve(Promise.resolve(new Promise(resolve => {
               setTimeout(() => resolve("a"), 10)
-            }))
+            })))
           })
           resolve(p3)
         },10))
