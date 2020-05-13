@@ -317,7 +317,10 @@ const CallExpression = <any>{
         object,
         setFunction,
         fnArgValuesAtInvocation,
-        fnArgTrackingValuesAtInvocation
+        fnArgTrackingValuesAtInvocation,
+        setFnArgTrackingValue: (index, val) => {
+          fnArgTrackingValues[index] = val;
+        }
       };
 
       return fnProcessorArgs;

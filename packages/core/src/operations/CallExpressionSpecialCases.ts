@@ -1492,6 +1492,7 @@ export interface FnProcessorArgs {
   fnArgValues: any[];
   getFnArgForApply: (argIndex: any) => any;
   setFnArgForApply: (argIndex: any, argValue: any) => void;
+  setFnArgTrackingValue: (index: any, val: any) => void;
   ctx: ExecContext;
   setContext: (c: any) => void;
   context: any;
@@ -1504,6 +1505,23 @@ export interface FnProcessorArgs {
 }
 
 export const knownFnProcessors = {
+  [getShortKnownValueName("EventEmitter.prototype.emit")]: ({
+    extraState,
+    setArgValuesForApply,
+    fnArgValues,
+    getFnArgForApply,
+    setFnArgForApply,
+    ctx,
+    setContext,
+    fnArgTrackingValues,
+    logData,
+    fnArgTrackingValuesAtInvocation,
+    setFnArgTrackingValue
+  }: FnProcessorArgs) => {
+    // If you call `.emit("eventName", "data")` then the `.on("eventName")` callback
+    // is called with "data" as it's first argument
+    setFnArgTrackingValue(0, fnArgTrackingValuesAtInvocation[1]);
+  },
   [getShortKnownValueName("Array.prototype.map")]: ({
     extraState,
     setArgValuesForApply,

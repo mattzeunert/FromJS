@@ -173,6 +173,22 @@ describe("Node", () => {
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.operationLog.result.primitive).toBe("equal");
   }, 120000);
+
+  it("can handle event emitter .emit", async () => {
+    let { execDuration, compileDuration, traverse } = await runTest(
+      "eventEmitter",
+      {}
+    );
+
+    let { step } = await traverse(0);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("abc");
+
+    ({ step } = await traverse(3));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("xyz");
+  }, 120000);
 });
 
 export function getCmdOutput(
