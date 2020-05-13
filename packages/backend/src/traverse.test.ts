@@ -2199,4 +2199,78 @@ describe("Supports promises", () => {
     expect(step.charIndex).toBe(0);
     expect(step.operationLog.result.primitive).toBe("b");
   });
+
+  it("Supports async functions that return a value right away", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      async function fn() {
+        return "x" + "y"
+      }
+      fn().then(function(res){
+        finishAsyncTest(res)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("xy");
+    var step = await traverseAndGetLastStep(tracking, 1);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("y");
+  });
+
+  it("Supports async functions that use await and then return", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      function fn2() {
+        return new Promise(resolve => {
+          setTimeout(() => resolve("abc"), 100)
+        })
+      }
+      async function fn() {
+        let val = await fn2()
+        console.log("tv val", __fromJSGetTrackingIndex(val))
+        return val
+      }
+      fn().then(function(res){
+        console.log("tv res", __fromJSGetTrackingIndex(res))
+        finishAsyncTest(res)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("abc");
+    var step = await traverseAndGetLastStep(tracking, 1);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(1);
+    expect(step.operationLog.result.primitive).toBe("abc");
+  });
+
+  it("Supports using await for promises", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      async function fn() {
+        return "x" + "y"
+      }
+      (async () => {
+        const res = await fn()
+        console.log("res", res)
+        finishAsyncTest(res)
+      })();
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("xy");
+    var step = await traverseAndGetLastStep(tracking, 1);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("y");
+  });
 });

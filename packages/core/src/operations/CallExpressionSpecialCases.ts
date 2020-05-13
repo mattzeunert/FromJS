@@ -1434,7 +1434,14 @@ export const knownFnProcessors = {
     let originalThenHandler = getFnArgForApply(0);
     let promise = context[0];
     return setFnArgForApply(0, function() {
-      ctx.argTrackingInfo = [promise._resTrackingValue];
+      if (promise._resTrackingValue) {
+        ctx.argTrackingInfo = [promise._resTrackingValue];
+      } else {
+        // returned from async function
+        console.log("last ret", ctx.lastReturnStatementResult);
+        ctx.argTrackingInfo = [ctx.lastReturnStatementResult[1]];
+      }
+
       //@ts-ignore
       return originalThenHandler.apply(this, arguments);
     });

@@ -533,6 +533,53 @@ const operations: Operations = {
       };
     }
   },
+  awaitExpression: {
+    visitor(path) {
+      const args = {
+        argument: [
+          createSetMemoValue(
+            "promiseForAwait",
+            path.node.argument,
+            getLastOperationTrackingResultCall()
+          ),
+          createGetMemoTrackingValue("promiseForAwait")
+        ],
+        result: [
+          ignoreNode(
+            this.t.awaitExpression(createGetMemoValue("promiseForAwait"))
+          ),
+          null
+        ]
+      };
+
+      // ignoreNode(
+      //   t.sequenceExpression([
+      //     createSetMemoValue(
+      //       MemoValueNames.lastOrLogicalExpressionResult,
+      //       path.node.left,
+      //       getLastOperationTrackingResultCall()
+      //     ),
+      //     createGetMemoArray(MemoValueNames.lastOrLogicalExpressionResult)
+      //   ])
+      // )
+
+      return ignoreNode(this.createNode!(args, {}, path.node.loc));
+    },
+    exec(args, astArgs, ctx: ExecContext, logData) {
+      // ctx.lastOpTrackingResult = args.argument[0]["_resTrackingValue"];
+      console.log("exec await", args);
+      logData.runtimeArgs = {
+        result: args.argument[0]._resTrackingValue
+      };
+      return args.result[0];
+    },
+    traverse(operationLog, charIndex) {
+      return {
+        operationLog: operationLog.runtimeArgs.result,
+        charIndex
+      };
+    }
+  },
   unaryExpression: {
     exec: (args, astArgs, ctx: ExecContext) => {
       if (astArgs.operator === "-") {

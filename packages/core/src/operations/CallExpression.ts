@@ -202,8 +202,18 @@ const CallExpression = <any>{
           lastReturnStatementResultAfterCall !==
             lastReturnStatementResultBeforeCall
         ) {
-          retT =
-            ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+          if (ctx.lastReturnStatementResult) {
+            retT = ctx.lastReturnStatementResult[1];
+            // if there's a return statement that's not returning a promise
+            // but a function returns a promise then that's an async function
+            if (
+              ret instanceof Promise &&
+              !(ctx.lastReturnStatementResult[0] instanceof Promise)
+            ) {
+              console.log("setting restv", retT);
+              ret["_resTrackingValue"] = retT;
+            }
+          }
         }
       }
 
