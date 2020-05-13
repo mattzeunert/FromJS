@@ -56,14 +56,12 @@ export function instrumentAndRun(
       let testIsAsync = false;
       const asyncTest = function() {
         testIsAsync = true;
-        console.log("async test");
         return function finish(value) {
           result = {
             code: "",
             normal: value,
             tracking: global["__fnArg"](0)
           };
-          console.log("asyncTest fiin", result);
           finishRunning();
         };
       };

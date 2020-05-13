@@ -448,9 +448,17 @@ function getTrackingPropName(propName) {
 function trackPromiseResolutionValue(promise, trackingValue) {
   // todo: map<promise, trackingvalue> might be better
   // if the program for some reason inspects the promise properties?
+  if (!promise) {
+    console.log("No promise passed into trackPromiseResolutionValue!");
+    return;
+  }
   promise["_resTrackingValue"] = trackingValue;
 }
 function getPromiseResolutionTrackingValue(promise) {
+  if (!promise) {
+    console.log("No promise passed into getPromiseResolutionTrackingValue!");
+    return;
+  }
   return promise["_resTrackingValue"];
 }
 

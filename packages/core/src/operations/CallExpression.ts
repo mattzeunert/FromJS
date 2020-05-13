@@ -495,19 +495,44 @@ function handleNewExpression({
       );
     }
 
+    let doTrackPromiseResolutionValue;
     if (fn === Promise) {
-      console.log("IS PROMISE");
+      // new Promise((resolve, reject)= {})
       let executor = fnArgValues[0];
       fnArgValues = [
         function(resolve, reject) {
-          const res = function(val) {
-            console.log("resolving promise", ret, val);
-            let promise = ret;
-            ctx.trackPromiseResolutionValue(
-              promise,
-              global[getFunctionArgTrackingInfo](0)
-            );
-            resolve(val);
+          const res = function(resolveValue) {
+            debugger;
+            let resolveValueTV = global[getFunctionArgTrackingInfo](0);
+            doTrackPromiseResolutionValue = promise => {
+              console.log("resolving promise", { promise, resolveValue });
+              if (resolveValue instanceof Promise) {
+                resolveValue.then(nextResolveValue => {
+                  console.log("resolve call then", {
+                    resolveValue,
+                    nextResolveValue
+                  });
+                  let tv = ctx.getPromiseResolutionTrackingValue(resolveValue);
+
+                  ctx.trackPromiseResolutionValue(promise, tv);
+                });
+              } else {
+                ctx.trackPromiseResolutionValue(promise, resolveValueTV);
+                debugger;
+                console.log("p after track", promise, {
+                  at: global[getFunctionArgTrackingInfo](0)
+                });
+              }
+            };
+
+            // ret is the promise
+            // if ret is undefined that means the promis executor resolved synchronously
+            // before the `new Promise()` call finished
+            if (ret) {
+              doTrackPromiseResolutionValue(ret);
+              doTrackPromiseResolutionValue = null;
+            }
+            resolve(resolveValue);
           };
           //@ts-ignore
           return executor.apply(this, [res, reject]);
@@ -521,6 +546,10 @@ function handleNewExpression({
       thisValue,
       ...fnArgValues
     ]))();
+
+    if (doTrackPromiseResolutionValue) {
+      doTrackPromiseResolutionValue(ret);
+    }
   }
 
   const newArgs = {

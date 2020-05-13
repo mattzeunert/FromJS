@@ -1445,8 +1445,10 @@ export const knownFnProcessors = {
   }: FnProcessorArgs) {
     let originalThenHandler = getFnArgForApply(0);
     let promise = context[0];
+    console.log("will replace then callback");
     return setFnArgForApply(0, function() {
       const resTv = ctx.getPromiseResolutionTrackingValue(promise);
+      console.log("in then callback", resTv);
       if (resTv) {
         ctx.argTrackingInfo = [resTv];
       } else if (ctx.lastReturnStatementResult) {

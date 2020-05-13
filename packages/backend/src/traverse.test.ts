@@ -2324,6 +2324,37 @@ describe("Supports promises", () => {
     expect(step.operationLog.result.primitive).toBe("a");
   });
 
+  it("Supports resolving a promise with another promise", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      let p = new Promise(resolve => {
+        const p2 = new Promise(resolve => setTimeout(() => {
+          const p3 = new Promise(resolve => {
+            resolve(new Promise(resolve => {
+              setTimeout(() => resolve("a"), 10)
+            }))
+          })
+          resolve(p3)
+        },10))
+        resolve(p2)
+      })
+      p.then(res => {
+        console.log("user code then")
+        finishAsyncTest(res)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("a");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("a");
+  });
+
   it("Doesn't break Promise.reject", async () => {
     const { normal, tracking, code } = await instrumentAndRun(
       `
