@@ -853,6 +853,8 @@ global[FunctionNames.enterTemplateLiteral] = function() {
   currentTemplateLiteralIndex++;
 };
 
+// note: would be good to make this spec complient, e.g. see how babel does it
+// e.g. handle non own properties better
 global[FunctionNames.provideObjectPatternTrackingValues] = function(
   obj,
   properties
@@ -866,21 +868,26 @@ global[FunctionNames.provideObjectPatternTrackingValues] = function(
 
   const res = {};
 
+  // I don't think deep cloning is necessary
+  // I used to set the tracking values here, but that
+  // didn't work for non own properties
   traverseObject(obj, (keyPath, value, key, obj) => {
     let keyPathStr = keyPath.join(".");
 
     objectPath.set(res, keyPathStr, value);
+  });
 
-    let prop = properties.find(p => {
-      return p.path === keyPathStr;
-    });
-    if (prop) {
-      objectPath.set(
-        res,
-        prop.name + "___tv",
-        ctx.getObjectPropertyTrackingValue(obj, key)
-      );
+  properties.forEach(prop => {
+    let pathParts = prop.path.split(".");
+    let parent = obj;
+    if (pathParts.length > 1) {
+      parent = objectPath.get(obj, pathParts.slice(0, -1).join("."));
     }
+    let key = pathParts[pathParts.length - 1];
+    let value = objectPath.get(obj, prop.path);
+    let trackingValue = ctx.getObjectPropertyTrackingValue(parent, key);
+    objectPath.set(res, prop.name, value);
+    objectPath.set(res, prop.name + "___tv", trackingValue);
   });
 
   return res;

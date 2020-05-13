@@ -2105,6 +2105,22 @@ describe("Object patterns", () => {
     expect(step.operationLog.result.primitive).toBe("a");
   });
 
+  it("Doesn't break object pattern if properites aren't own properties", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      const {round} = Math;
+      const num = round(5.9);
+      return num === 6 ? "ok" : "wrong result"
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ok");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("ok");
+  });
+
   it("Can traverse deeper object patterns with renaming", async () => {
     const { normal, tracking, code } = await instrumentAndRun(
       `
@@ -2158,6 +2174,21 @@ describe("Object patterns", () => {
     // not supported for  now
     expect(step.operationLog.operation).toBe("emptyTrackingInfo");
     expect(step.operationLog.result.primitive).toBe(undefined);
+  });
+
+  it("Doesn't break rest spread", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      var {a, ...x}= {a: "a", b: "b", c: "c"};
+      return a + x.b + x.c + x.a
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("abcundefined");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("a");
   });
 });
 
