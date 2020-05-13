@@ -49,6 +49,7 @@ export default class KnownValues {
       null: null,
       "Promise.prototype.then": Promise.prototype.then,
       "Promise.prototype.catch": Promise.prototype.catch,
+      "Promise.resolve": Promise.resolve,
       "Function.prototype.call": Function.prototype.call,
       "Function.prototype.apply": Function.prototype.apply,
       "console.log": console.log,

@@ -343,6 +343,18 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
 export const specialValuesForPostprocessing: {
   [knownValueName: string]: (args: SpecialCaseArgs) => any;
 } = {
+  [getShortKnownValueName("Promise.resolve")]: ({
+    object,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    context,
+    fnArgTrackingValues
+  }) => {
+    let promise = ret;
+    promise["_resTrackingValue"] = fnArgTrackingValues[0];
+  },
   [getShortKnownValueName("String.prototype.match")]: ({
     object,
     ctx,
@@ -1436,7 +1448,7 @@ export const knownFnProcessors = {
     return setFnArgForApply(0, function() {
       if (promise._resTrackingValue) {
         ctx.argTrackingInfo = [promise._resTrackingValue];
-      } else {
+      } else if (ctx.lastReturnStatementResult) {
         // returned from async function
         console.log("last ret", ctx.lastReturnStatementResult);
         ctx.argTrackingInfo = [ctx.lastReturnStatementResult[1]];

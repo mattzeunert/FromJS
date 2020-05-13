@@ -2268,9 +2268,27 @@ describe("Supports promises", () => {
     );
     expect(normal).toBe("xy");
     var step = await traverseAndGetLastStep(tracking, 1);
-    console.log(JSON.stringify(step, null, 2));
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.charIndex).toBe(0);
     expect(step.operationLog.result.primitive).toBe("y");
+  });
+
+  it("Supports Promise.resolve", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      Promise.resolve("a").then(res => {
+        finishAsyncTest(res)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("a");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("a");
   });
 });
