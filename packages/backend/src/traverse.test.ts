@@ -2405,17 +2405,15 @@ describe("Supports promises", () => {
     const { normal, tracking, code } = await instrumentAndRun(
       `
       let finishAsyncTest = asyncTest()
-      Promise.resolve("a").then(r => 
-         "x"
-      ).then(r => {
+      Promise.resolve("a").then(r => r + "x").then(r => {
         finishAsyncTest(r)
       })
     `,
       {},
       { logCode: false }
     );
-    expect(normal).toBe("x");
-    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(normal).toBe("ax");
+    var step = await traverseAndGetLastStep(tracking, 1);
     console.log(JSON.stringify(step, null, 2));
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.charIndex).toBe(0);
