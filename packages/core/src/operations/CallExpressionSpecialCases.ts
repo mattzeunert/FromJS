@@ -155,6 +155,79 @@ function addJsonParseResultTrackingValues(
 export const specialCasesWhereWeDontCallTheOriginalFunction: {
   [knownValueName: string]: (args: SpecialCaseArgs) => any;
 } = {
+  [getShortKnownValueName("Promise.all")]: ({
+    extraState,
+    ctx,
+    object,
+    fnArgValues,
+    args,
+    extraTrackingValues,
+    logData,
+    fn,
+    context
+  }) => {
+    let ret = fn.apply(context[0], fnArgValues);
+    return [
+      ret.then(r => {
+        for (var i = 0; i < r.length; i++) {
+          ctx.trackObjectPropertyAssignment(
+            r,
+            i,
+            ctx.getPromiseResolutionTrackingValue(fnArgValues[0][i])
+          );
+        }
+        return r;
+      }),
+      null
+    ];
+  },
+  [getShortKnownValueName("Promise.prototype.then")]: ({
+    extraState,
+    ctx,
+    object,
+    fnArgValues,
+    args,
+    extraTrackingValues,
+    logData,
+    fn,
+    context
+  }) => {
+    let promise = context[0];
+    let originalThenHandler = fnArgValues[0];
+    let thenRet;
+
+    function handler() {
+      const resTv = ctx.getPromiseResolutionTrackingValue(promise);
+      console.log("in then callback", promise, resTv);
+      if (resTv) {
+        ctx.argTrackingInfo = [resTv];
+      } else if (ctx.lastReturnStatementResult) {
+        // returned from async function
+        console.log("last ret", ctx.lastReturnStatementResult);
+        ctx.argTrackingInfo = [ctx.lastReturnStatementResult[1]];
+      }
+
+      //@ts-ignore
+      thenRet = originalThenHandler.apply(this, arguments);
+
+      const returnedThen =
+        ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[0];
+      if (returnedThen instanceof Promise) {
+        returnedThen.then(() => {
+          ctx.trackPromiseResolutionValue(
+            ret,
+            ctx.getPromiseResolutionTrackingValue(returnedThen)
+          );
+        });
+      }
+
+      return thenRet;
+    }
+
+    const ret = fn.apply(context[0], [handler]);
+
+    return [ret, null];
+  },
   [getShortKnownValueName("String.prototype.replace")]: ({
     ctx,
     object,
@@ -343,6 +416,18 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
 export const specialValuesForPostprocessing: {
   [knownValueName: string]: (args: SpecialCaseArgs) => any;
 } = {
+  [getShortKnownValueName("Promise.resolve")]: ({
+    object,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    context,
+    fnArgTrackingValues
+  }) => {
+    let promise = ret;
+    ctx.trackPromiseResolutionValue(promise, fnArgTrackingValues[0]);
+  },
   [getShortKnownValueName("String.prototype.match")]: ({
     object,
     ctx,
@@ -1409,6 +1494,7 @@ export interface FnProcessorArgs {
   setFnArgForApply: (argIndex: any, argValue: any) => void;
   ctx: ExecContext;
   setContext: (c: any) => void;
+  context: any;
   fnArgTrackingValues: any[];
   logData: any;
   object: any;

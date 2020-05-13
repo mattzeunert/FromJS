@@ -10,7 +10,11 @@ import {
 
 import { ExecContext } from "../helperFunctions/ExecContext";
 import { VERIFY } from "../config";
-import { doOperation, getLastMemberExpressionObject } from "../FunctionNames";
+import {
+  doOperation,
+  getLastMemberExpressionObject,
+  getFunctionArgTrackingInfo
+} from "../FunctionNames";
 import OperationLog from "../helperFunctions/OperationLog";
 
 import { consoleLog, consoleError } from "../helperFunctions/logging";
@@ -198,8 +202,18 @@ const CallExpression = <any>{
           lastReturnStatementResultAfterCall !==
             lastReturnStatementResultBeforeCall
         ) {
-          retT =
-            ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[1];
+          if (ctx.lastReturnStatementResult) {
+            retT = ctx.lastReturnStatementResult[1];
+            // if there's a return statement that's not returning a promise
+            // but a function returns a promise then that's an async function
+            if (
+              ret instanceof Promise &&
+              !(ctx.lastReturnStatementResult[0] instanceof Promise)
+            ) {
+              console.log("setting restv", retT);
+              ctx.trackPromiseResolutionValue(ret, retT);
+            }
+          }
         }
       }
 
@@ -297,6 +311,7 @@ const CallExpression = <any>{
         setFnArgForApply,
         ctx,
         setContext,
+        context,
         fnArgTrackingValues,
         logData,
         object,
@@ -479,11 +494,60 @@ function handleNewExpression({
         "can't instrument new Function() code because instrumentation function is missing in context"
       );
     }
+
+    let doTrackPromiseResolutionValue;
+    if (fn === Promise) {
+      // new Promise((resolve, reject)= {})
+      let executor = fnArgValues[0];
+      fnArgValues = [
+        function(resolve, reject) {
+          const res = function(resolveValue) {
+            let resolveValueTV = global[getFunctionArgTrackingInfo](0);
+            doTrackPromiseResolutionValue = promise => {
+              console.log("resolving promise", { promise, resolveValue });
+              if (resolveValue instanceof Promise) {
+                resolveValue.then(nextResolveValue => {
+                  console.log("resolve call then", {
+                    resolveValue,
+                    nextResolveValue
+                  });
+                  let tv = ctx.getPromiseResolutionTrackingValue(resolveValue);
+
+                  ctx.trackPromiseResolutionValue(promise, tv);
+                });
+              } else {
+                ctx.trackPromiseResolutionValue(promise, resolveValueTV);
+                console.log("p after track", promise, {
+                  at: global[getFunctionArgTrackingInfo](0)
+                });
+              }
+            };
+
+            // ret is the promise
+            // if ret is undefined that means the promis executor resolved synchronously
+            // before the `new Promise()` call finished
+            if (ret) {
+              doTrackPromiseResolutionValue(ret);
+              doTrackPromiseResolutionValue = null;
+            }
+            resolve(resolveValue);
+          };
+          //@ts-ignore
+          return executor.apply(this, [res, reject]);
+        },
+        fnArgValues.slice(1)
+      ];
+    }
+
     let thisValue = null; // overwritten inside new()
     ret = new (Function.prototype.bind.apply(fn, [
       thisValue,
       ...fnArgValues
     ]))();
+
+    if (doTrackPromiseResolutionValue) {
+      doTrackPromiseResolutionValue(ret);
+    }
   }
 
   const newArgs = {

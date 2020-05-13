@@ -2175,3 +2175,328 @@ it("Can traverse charAt calls", async () => {
   expect(step.charIndex).toBe(1);
   expect(step.operationLog.result.primitive).toBe("ab");
 });
+
+describe("Supports promises", () => {
+  it("Works when creating a promise with new Promise()", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      const p = new Promise(function(resolve){
+        setTimeout(() => {
+          resolve("a" + "b")
+        }, 50)
+      }).then(function(res){
+        console.log("resT",__fromJSGetTrackingIndex(res))
+        finishAsyncTest(res)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ab");
+    var step = await traverseAndGetLastStep(tracking, 1);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("b");
+  });
+
+  it("Supports async functions that return a value right away", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      async function fn() {
+        return "x" + "y"
+      }
+      fn().then(function(res){
+        finishAsyncTest(res)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("xy");
+    var step = await traverseAndGetLastStep(tracking, 1);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("y");
+  });
+
+  it("Supports async functions that use await and then return", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      function fn2() {
+        return new Promise(resolve => {
+          setTimeout(() => resolve("abc"), 100)
+        })
+      }
+      async function fn() {
+        let val = await fn2()
+        console.log("tv val", __fromJSGetTrackingIndex(val))
+        return val
+      }
+      fn().then(function(res){
+        console.log("tv res", __fromJSGetTrackingIndex(res))
+        finishAsyncTest(res)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("abc");
+    var step = await traverseAndGetLastStep(tracking, 1);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(1);
+    expect(step.operationLog.result.primitive).toBe("abc");
+  });
+
+  it("Supports using await for promises", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      async function fn() {
+        return "x" + "y"
+      }
+      (async () => {
+        const res = await fn()
+        console.log("res", res)
+        finishAsyncTest(res)
+      })();
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("xy");
+    var step = await traverseAndGetLastStep(tracking, 1);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("y");
+  });
+
+  it("Supports nested async/await/Promises", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      async function getRes() {
+        return "abc"
+      }
+      (async () => {
+      var p = new Promise(async resolve => {
+          let retP = getRes()
+          let p2 = Promise.resolve("xyz")
+          resolve(await retP + await p2)
+      });
+      const res = await p
+      finishAsyncTest(res)
+      })()
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("abcxyz");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("abc");
+
+    var step = await traverseAndGetLastStep(tracking, 3);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("xyz");
+  });
+
+  it("Supports Promise.resolve", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      Promise.resolve("a").then(res => {
+        finishAsyncTest(res)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("a");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("a");
+  });
+
+  it("Supports resolving a promise with another promise", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      let p = new Promise(resolve => {
+        const p2 = new Promise(resolve => setTimeout(() => {
+          const p3 = new Promise(resolve => {
+            resolve(Promise.resolve(new Promise(resolve => {
+              setTimeout(() => resolve("a"), 10)
+            })))
+          })
+          resolve(p3)
+        },10))
+        resolve(p2)
+      })
+      p.then(res => {
+        console.log("user code then")
+        finishAsyncTest(res)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("a");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("a");
+  });
+
+  it("Supports returning a promise from a then handler", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      Promise.resolve("a").then(r => 
+         new Promise(resolve => {
+          setTimeout(() => resolve(r), 10)
+        })
+      ).then(r => {
+        finishAsyncTest(r)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("a");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("a");
+  });
+
+  it("Supports returning a resolved promise from a then handler", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      Promise.resolve("a").then(r => 
+         new Promise(resolve => {
+          resolve(r)
+        })
+      ).then(r => {
+        finishAsyncTest(r)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("a");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("a");
+  });
+
+  it("Supports returning a value promise from a then handler", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      Promise.resolve("a").then(r => r + "x").then(r => {
+        finishAsyncTest(r)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ax");
+    var step = await traverseAndGetLastStep(tracking, 1);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("x");
+  });
+
+  it("Supports Promise.all", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      Promise.all([
+        Promise.resolve("a"),
+        Promise.resolve("b")
+      ]).then(arr => {
+        const str = arr.join("")
+        finishAsyncTest(str)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ab");
+    var step = await traverseAndGetLastStep(tracking, 1);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("b");
+  });
+
+  it("Doesn't break Promise.reject", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest();
+      (async function(){
+        await Promise.reject("x")
+      })().catch(r => {
+        const ret = r === "x" ? "ok" : "wrong value";
+        finishAsyncTest(ret)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ok");
+    // don't worry about traversing rejections for now
+  });
+
+  it("Doesn't break async function promise rejected by exception", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      const p = (async function(){
+        throw "x"
+      })();
+      
+      p.catch(r => {
+        const ret = r === "x" ? "ok" : "wrong value";
+        finishAsyncTest(ret)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ok");
+    // don't worry about traversing rejections for now
+  });
+
+  it("Doesn't break await async function without return value", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      async function sleep(ms) {
+         await new Promise(resolve => setTimeout(resolve, ms))
+      }
+      (async function(){
+        const ret = await sleep(10)
+        finishAsyncTest(ret)
+      })();
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe(undefined);
+    // don't worry about traversing rejections for now
+  });
+});

@@ -445,6 +445,23 @@ function getTrackingPropName(propName) {
   }
 }
 
+function trackPromiseResolutionValue(promise, trackingValue) {
+  // todo: map<promise, trackingvalue> might be better
+  // if the program for some reason inspects the promise properties?
+  if (!promise) {
+    console.log("No promise passed into trackPromiseResolutionValue!");
+    return;
+  }
+  promise["_resTrackingValue"] = trackingValue;
+}
+function getPromiseResolutionTrackingValue(promise) {
+  if (!promise) {
+    console.log("No promise passed into getPromiseResolutionTrackingValue!");
+    return;
+  }
+  return promise["_resTrackingValue"];
+}
+
 const objTrackingMap = new WeakMap();
 global["__debugObjTrackingMap"] = objTrackingMap;
 function trackObjectPropertyAssignment(
@@ -645,6 +662,8 @@ const ctx: ExecContext = {
   getObjectPropertyTrackingValue: getObjectPropertyValueTrackingValue,
   getObjectPropertyNameTrackingValue,
   trackObjectPropertyAssignment,
+  trackPromiseResolutionValue,
+  getPromiseResolutionTrackingValue,
   hasInstrumentationFunction: typeof global["__fromJSEval"] === "function",
   createOperationLog: function(args) {
     let index = getOperationIndex();
