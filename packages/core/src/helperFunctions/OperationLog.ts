@@ -116,7 +116,10 @@ export function getSerializedValueObject(
       // values/keys to be accessible, so maybe just storing keys makes more sense
       keys = Object.keys(value);
       if (keys.length > 100) {
-        console.log("Obj with more than 100 keys", keys.slice(0, 5));
+        console.log(
+          "Obj with more than 100 keys: " + keys.length,
+          keys.slice(0, 5)
+        );
       }
       if (keys.length > 5) {
         keys = keys.slice(0, 5);

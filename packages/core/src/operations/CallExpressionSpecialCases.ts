@@ -198,7 +198,6 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
 
     function handler() {
       const resTv = ctx.getPromiseResolutionTrackingValue(promise);
-      console.log("in then callback", promise, resTv);
       if (resTv) {
         ctx.argTrackingInfo = [resTv];
       } else if (ctx.lastReturnStatementResult) {
