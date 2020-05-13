@@ -328,6 +328,7 @@ export const getLastOpValueCall = () =>
   ignoredCallExpression(FunctionNames.getLastOperationValueResult, []);
 
 function scopeHasIdentifierWithTrackingIdentifier(scope, identifierName) {
+  return false;
   const binding = scope.getBinding(identifierName);
   return binding && ["var", "let", "const", "param"].includes(binding.kind);
 }
