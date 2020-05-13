@@ -2273,6 +2273,38 @@ describe("Supports promises", () => {
     expect(step.operationLog.result.primitive).toBe("y");
   });
 
+  it("Supports nested async/await/Promises", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      async function getRes() {
+        return "abc"
+      }
+      (async () => {
+      var p = new Promise(async resolve => {
+          let retP = getRes()
+          let p2 = Promise.resolve("xyz")
+          resolve(await retP + await p2)
+      });
+      const res = await p
+      finishAsyncTest(res)
+      })()
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("abcxyz");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("abc");
+
+    var step = await traverseAndGetLastStep(tracking, 3);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("xyz");
+  });
+
   it("Supports Promise.resolve", async () => {
     const { normal, tracking, code } = await instrumentAndRun(
       `
@@ -2327,6 +2359,25 @@ describe("Supports promises", () => {
       { logCode: false }
     );
     expect(normal).toBe("ok");
+    // don't worry about traversing rejections for now
+  });
+
+  it("Doesn't break await async function without return value", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      async function sleep(ms) {
+         await new Promise(resolve => setTimeout(resolve, ms))
+      }
+      (async function(){
+        const ret = await sleep(10)
+        finishAsyncTest(ret)
+      })();
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe(undefined);
     // don't worry about traversing rejections for now
   });
 });
