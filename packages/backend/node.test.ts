@@ -101,6 +101,7 @@ describe("Node", () => {
     let inspectIndex = parseFloat(
       stdout.match(/Inspect:\d+/)![0].replace("Inspect:", "")
     );
+    console.log({ inspectIndex });
     return {
       execDuration,
       compileDuration,
