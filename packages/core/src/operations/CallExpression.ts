@@ -211,7 +211,7 @@ const CallExpression = <any>{
               !(ctx.lastReturnStatementResult[0] instanceof Promise)
             ) {
               console.log("setting restv", retT);
-              ret["_resTrackingValue"] = retT;
+              ctx.trackPromiseResolutionValue(ret, retT);
             }
           }
         }
@@ -503,7 +503,10 @@ function handleNewExpression({
           const res = function(val) {
             console.log("resolving promise", ret, val);
             let promise = ret;
-            promise._resTrackingValue = global[getFunctionArgTrackingInfo](0);
+            ctx.trackPromiseResolutionValue(
+              promise,
+              global[getFunctionArgTrackingInfo](0)
+            );
             resolve(val);
           };
           //@ts-ignore

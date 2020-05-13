@@ -19,6 +19,11 @@ export interface ExecContext {
   lastMemberExpressionResult: [any, any];
   createOperationLog(args: CreateOperationLogArgs): number;
   createArrayIndexOperationLog(index: number, loc: any): number | null;
+  trackPromiseResolutionValue: (
+    promise: any,
+    trackingValue: number | null
+  ) => void;
+  getPromiseResolutionTrackingValue: (promise: any) => number | null;
   hasInstrumentationFunction: boolean;
   operationTypes: any;
   argTrackingInfo: any;

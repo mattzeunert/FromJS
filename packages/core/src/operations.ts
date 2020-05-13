@@ -566,10 +566,9 @@ const operations: Operations = {
       return ignoreNode(this.createNode!(args, {}, path.node.loc));
     },
     exec(args, astArgs, ctx: ExecContext, logData) {
-      // ctx.lastOpTrackingResult = args.argument[0]["_resTrackingValue"];
       console.log("exec await", args);
       logData.runtimeArgs = {
-        result: args.argument[0]._resTrackingValue
+        result: ctx.getPromiseResolutionTrackingValue(args.argument[0])
       };
       return args.result[0];
     },

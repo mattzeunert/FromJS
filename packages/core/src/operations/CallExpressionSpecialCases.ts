@@ -353,7 +353,7 @@ export const specialValuesForPostprocessing: {
     fnArgTrackingValues
   }) => {
     let promise = ret;
-    promise["_resTrackingValue"] = fnArgTrackingValues[0];
+    ctx.trackPromiseResolutionValue(promise, fnArgTrackingValues[0]);
   },
   [getShortKnownValueName("String.prototype.match")]: ({
     object,
@@ -1446,8 +1446,9 @@ export const knownFnProcessors = {
     let originalThenHandler = getFnArgForApply(0);
     let promise = context[0];
     return setFnArgForApply(0, function() {
-      if (promise._resTrackingValue) {
-        ctx.argTrackingInfo = [promise._resTrackingValue];
+      const resTv = ctx.getPromiseResolutionTrackingValue(promise);
+      if (resTv) {
+        ctx.argTrackingInfo = [resTv];
       } else if (ctx.lastReturnStatementResult) {
         // returned from async function
         console.log("last ret", ctx.lastReturnStatementResult);
