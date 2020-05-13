@@ -502,7 +502,6 @@ function handleNewExpression({
       fnArgValues = [
         function(resolve, reject) {
           const res = function(resolveValue) {
-            debugger;
             let resolveValueTV = global[getFunctionArgTrackingInfo](0);
             doTrackPromiseResolutionValue = promise => {
               console.log("resolving promise", { promise, resolveValue });
@@ -518,7 +517,6 @@ function handleNewExpression({
                 });
               } else {
                 ctx.trackPromiseResolutionValue(promise, resolveValueTV);
-                debugger;
                 console.log("p after track", promise, {
                   at: global[getFunctionArgTrackingInfo](0)
                 });
