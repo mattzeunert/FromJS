@@ -2291,4 +2291,44 @@ describe("Supports promises", () => {
     expect(step.charIndex).toBe(0);
     expect(step.operationLog.result.primitive).toBe("a");
   });
+
+  it("Doesn't break Promise.reject", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      const p = (async function(){
+        await Promise.reject("x")
+      })();
+      
+      p.catch(r => {
+        const ret = r === "x" ? "ok" : "wrong value";
+        finishAsyncTest(ret)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ok");
+    // don't worry about traversing rejections for now
+  });
+
+  it("Doesn't break async function promise rejected by exception", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      const p = (async function(){
+        throw "x"
+      })();
+      
+      p.catch(r => {
+        const ret = r === "x" ? "ok" : "wrong value";
+        finishAsyncTest(ret)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ok");
+    // don't worry about traversing rejections for now
+  });
 });
