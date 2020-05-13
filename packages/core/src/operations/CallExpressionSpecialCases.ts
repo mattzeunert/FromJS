@@ -203,7 +203,6 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
         ctx.argTrackingInfo = [resTv];
       } else if (ctx.lastReturnStatementResult) {
         // returned from async function
-        console.log("last ret", ctx.lastReturnStatementResult);
         ctx.argTrackingInfo = [ctx.lastReturnStatementResult[1]];
       }
 

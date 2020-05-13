@@ -507,22 +507,14 @@ function handleNewExpression({
           const res = function(resolveValue) {
             let resolveValueTV = global[getFunctionArgTrackingInfo](0);
             doTrackPromiseResolutionValue = promise => {
-              console.log("resolving promise", { promise, resolveValue });
               if (resolveValue instanceof Promise) {
                 resolveValue.then(nextResolveValue => {
-                  console.log("resolve call then", {
-                    resolveValue,
-                    nextResolveValue
-                  });
                   let tv = ctx.getPromiseResolutionTrackingValue(resolveValue);
 
                   ctx.trackPromiseResolutionValue(promise, tv);
                 });
               } else {
                 ctx.trackPromiseResolutionValue(promise, resolveValueTV);
-                console.log("p after track", promise, {
-                  at: global[getFunctionArgTrackingInfo](0)
-                });
               }
             };
 
