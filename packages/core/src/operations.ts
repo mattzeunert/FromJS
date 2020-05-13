@@ -536,7 +536,7 @@ const operations: Operations = {
   awaitExpression: {
     visitor(path) {
       const args = {
-        argument: [
+        promise: [
           createSetMemoValue(
             "promiseForAwait",
             path.node.argument,
@@ -547,34 +547,19 @@ const operations: Operations = {
         result: [
           ignoreNode(
             this.t.awaitExpression(createGetMemoValue("promiseForAwait"))
-          ),
-          null
+          )
         ]
       };
-
-      // ignoreNode(
-      //   t.sequenceExpression([
-      //     createSetMemoValue(
-      //       MemoValueNames.lastOrLogicalExpressionResult,
-      //       path.node.left,
-      //       getLastOperationTrackingResultCall()
-      //     ),
-      //     createGetMemoArray(MemoValueNames.lastOrLogicalExpressionResult)
-      //   ])
-      // )
 
       return ignoreNode(this.createNode!(args, {}, path.node.loc));
     },
     exec(args, astArgs, ctx: ExecContext, logData) {
-      console.log("exec await", args);
-      logData.runtimeArgs = {
-        result: ctx.getPromiseResolutionTrackingValue(args.argument[0])
-      };
+      args.result[1] = ctx.getPromiseResolutionTrackingValue(args.promise[0]);
       return args.result[0];
     },
     traverse(operationLog, charIndex) {
       return {
-        operationLog: operationLog.runtimeArgs.result,
+        operationLog: operationLog.args.result,
         charIndex
       };
     }
