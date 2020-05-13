@@ -47,6 +47,7 @@ export default class KnownValues {
       encodeURIComponent: encodeURIComponent,
       decodeURIComponent: decodeURIComponent,
       null: null,
+      "Promise.all": Promise.all,
       "Promise.prototype.then": Promise.prototype.then,
       "Promise.prototype.catch": Promise.prototype.catch,
       "Promise.resolve": Promise.resolve,

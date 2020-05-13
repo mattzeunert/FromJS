@@ -2420,6 +2420,29 @@ describe("Supports promises", () => {
     expect(step.operationLog.result.primitive).toBe("x");
   });
 
+  it("Supports Promise.all", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let finishAsyncTest = asyncTest()
+      Promise.all([
+        Promise.resolve("a"),
+        Promise.resolve("b")
+      ]).then(arr => {
+        const str = arr.join("")
+        finishAsyncTest(str)
+      })
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ab");
+    var step = await traverseAndGetLastStep(tracking, 1);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.charIndex).toBe(0);
+    expect(step.operationLog.result.primitive).toBe("b");
+  });
+
   it("Doesn't break Promise.reject", async () => {
     const { normal, tracking, code } = await instrumentAndRun(
       `

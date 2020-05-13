@@ -155,6 +155,32 @@ function addJsonParseResultTrackingValues(
 export const specialCasesWhereWeDontCallTheOriginalFunction: {
   [knownValueName: string]: (args: SpecialCaseArgs) => any;
 } = {
+  [getShortKnownValueName("Promise.all")]: ({
+    extraState,
+    ctx,
+    object,
+    fnArgValues,
+    args,
+    extraTrackingValues,
+    logData,
+    fn,
+    context
+  }) => {
+    let ret = fn.apply(context[0], fnArgValues);
+    return [
+      ret.then(r => {
+        for (var i = 0; i < r.length; i++) {
+          ctx.trackObjectPropertyAssignment(
+            r,
+            i,
+            ctx.getPromiseResolutionTrackingValue(fnArgValues[0][i])
+          );
+        }
+        return r;
+      }),
+      null
+    ];
+  },
   [getShortKnownValueName("Promise.prototype.then")]: ({
     extraState,
     ctx,
@@ -1478,62 +1504,6 @@ export interface FnProcessorArgs {
 }
 
 export const knownFnProcessors = {
-  // [getShortKnownValueName("Promise.prototype.then")]: function({
-  //   extraState,
-  //   setArgValuesForApply,
-  //   fnArgValues,
-  //   getFnArgForApply,
-  //   setFnArgForApply,
-  //   ctx,
-  //   setContext,
-  //   fnArgTrackingValues,
-  //   logData,
-  //   context
-  // }: FnProcessorArgs) {
-  //   let originalThenHandler = getFnArgForApply(0);
-  //   let promise = context[0];
-  //   console.log("will replace then callback");
-  //   setFnArgForApply(0, function() {
-  //     const resTv = ctx.getPromiseResolutionTrackingValue(promise);
-  //     console.log("in then callback", promise, resTv);
-  //     if (resTv) {
-  //       ctx.argTrackingInfo = [resTv];
-  //     } else if (ctx.lastReturnStatementResult) {
-  //       // returned from async function
-  //       console.log("last ret", ctx.lastReturnStatementResult);
-  //       ctx.argTrackingInfo = [ctx.lastReturnStatementResult[1]];
-  //     }
-
-  //     //@ts-ignore
-  //     let thenRet = originalThenHandler.apply(this, arguments);
-
-  //     console.log({ thenRet, r: ctx.lastReturnStatementResult });
-
-  //     extraState.thenRet = thenRet;
-
-  //     const returnedThen =
-  //       ctx.lastReturnStatementResult && ctx.lastReturnStatementResult[0];
-  //     if (returnedThen instanceof Promise) {
-  //       returnedThen.then(() => {
-  //         console.log("returned then", returnedThen);
-  //         ctx.trackPromiseResolutionValue(
-  //           thenRet,
-  //           ctx.getPromiseResolutionTrackingValue(returnedThen)
-  //         );
-  //       });
-  //       global["tr"] = thenRet;
-  //       thenRet.then(resolveValue => {
-  //         console.log("thenret then", { resolveValue, thenRet });
-  //       });
-  //     } else {
-  //       console.log(
-  //         "then call returned a promise, but last ret val isn't a promise"
-  //       );
-  //     }
-
-  //     return thenRet;
-  //   });
-  // },
   [getShortKnownValueName("Array.prototype.map")]: ({
     extraState,
     setArgValuesForApply,
