@@ -860,34 +860,61 @@ global[FunctionNames.provideObjectPatternTrackingValues] = function(
   properties
 ) {
   properties = properties.map(arr => {
+    let pathParts = arr[1].split(".");
     return {
       name: arr[0],
-      path: arr[1]
+      nameInPath: pathParts[pathParts.length - 1],
+      path: arr[1],
+      isRest: !!arr[2],
+      parentPath: pathParts.slice(0, -1).join(".")
     };
   });
 
-  const res = {};
-
-  // I don't think deep cloning is necessary
-  // I used to set the tracking values here, but that
-  // didn't work for non own properties
-  traverseObject(obj, (keyPath, value, key, obj) => {
-    let keyPathStr = keyPath.join(".");
-
-    objectPath.set(res, keyPathStr, value);
+  let propertiesByParentPath = {};
+  properties.forEach(p => {
+    propertiesByParentPath[p.parentPath] =
+      propertiesByParentPath[p.parentPath] || [];
+    propertiesByParentPath[p.parentPath].push(p);
   });
 
-  properties.forEach(prop => {
-    let pathParts = prop.path.split(".");
-    let parent = obj;
-    if (pathParts.length > 1) {
-      parent = objectPath.get(obj, pathParts.slice(0, -1).join("."));
+  const res = {};
+  Object.keys(propertiesByParentPath).forEach(parentPath => {
+    let props = propertiesByParentPath[parentPath];
+    const subObj = objectPath.get(obj, parentPath);
+    let rest = { ...subObj };
+
+    let subRes = parentPath ? {} : res;
+
+    props.forEach(prop => {
+      if (prop.isRest) {
+      } else {
+        objectPath.set(subRes, prop.nameInPath, objectPath.get(obj, prop.path));
+        let trackingValue = ctx.getObjectPropertyTrackingValue(
+          subObj,
+          prop.nameInPath
+        );
+        // The tracking values are set directly on res
+        objectPath.set(res, prop.name + "___tv", trackingValue);
+        delete rest[prop.nameInPath];
+      }
+    });
+
+    props.forEach(prop => {
+      if (prop.isRest) {
+        // !!!!! I THINK OBJECT.KEYS HERE MEAN WE MISS SOME NON OWN PROPERTIES !!!!
+        Object.keys(rest).forEach(key => {
+          objectPath.set(
+            subRes,
+            key,
+            objectPath.get(obj, (parentPath ? parentPath + "." : "") + key)
+          );
+        });
+      }
+    });
+
+    if (parentPath) {
+      objectPath.set(res, parentPath, subRes);
     }
-    let key = pathParts[pathParts.length - 1];
-    let value = objectPath.get(obj, prop.path);
-    let trackingValue = ctx.getObjectPropertyTrackingValue(parent, key);
-    objectPath.set(res, prop.name, value);
-    objectPath.set(res, prop.name + "___tv", trackingValue);
   });
 
   return res;

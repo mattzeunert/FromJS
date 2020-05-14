@@ -2095,7 +2095,7 @@ it("Can traverse array pattern destructuring with empty elements", async () => {
   expect(step.operationLog.result.primitive).toBe("d");
 });
 
-describe("Object patterns", () => {
+describe("Object patterns / destructuring", () => {
   it("Can traverse simple object patterns", async () => {
     const { normal, tracking, code } = await instrumentAndRun(
       `
@@ -2185,16 +2185,37 @@ describe("Object patterns", () => {
   it("Doesn't break rest spread", async () => {
     const { normal, tracking, code } = await instrumentAndRun(
       `
-      var {a, ...x}= {a: "a", b: "b", c: "c"};
-      return a + x.b + x.c + x.a
+      var {a: {b:c, ...xyz}, ...more} = {a: {b:"c", x: "x", y: "y",z:"z"}, one: "1"}
+      return c + xyz.x + xyz.y + xyz.z + more.one + xyz.b
   `,
       {},
       { logCode: false }
     );
-    expect(normal).toBe("abcundefined");
+    expect(normal).toBe("cxyz1undefined");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("c");
+  });
+
+  it("Doesn't break with objects with circular nesting", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      var obj = {a: "a", b: "b"}
+      obj.self = obj
+      var {self, a} = obj
+
+      return a + self.b
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ab");
     var step = await traverseAndGetLastStep(tracking, 0);
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.operationLog.result.primitive).toBe("a");
+    var step = await traverseAndGetLastStep(tracking, 1);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("b");
   });
 });
 
