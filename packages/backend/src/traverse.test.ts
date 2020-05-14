@@ -1,6 +1,7 @@
 import { testHelpers } from "@fromjs/core";
 const { instrumentAndRun, server } = testHelpers;
 import { traverse as _traverse, TraversalStep } from "./traverse";
+import { numericLiteral } from "@fromjs/core/src/OperationTypes";
 
 const traverse = async function (firstStep, options = {}) {
   options = Object.assign({ optimistic: false }, options);
@@ -56,6 +57,38 @@ test("Can track concatenation of 'a' and 'b' in an add function", async () => {
     "identifier", // arg1
     "stringLiteral", // "a"
   ]);
+});
+
+test("Can traverse concatenation of a string and a number", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    const num = 100
+    return num + "x"
+  `);
+  expect(normal).toBe("100x");
+  var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+  var t2 = await traverse({ operationLog: tracking, charIndex: 4 });
+  var t1LastStep = t1[t1.length - 1];
+  var t2LastStep = t2[t2.length - 1];
+  expect(t1LastStep.operationLog.operation).toBe("numericLiteral");
+  expect(t1LastStep.operationLog.result.primitive).toBe(100);
+  expect(t2LastStep.operationLog.operation).toBe("stringLiteral");
+  expect(t2LastStep.operationLog.result.primitive).toBe("x");
+});
+
+test("Can traverse concatenation of a number and a string", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(`
+    const num = 100
+    return "x" + num
+  `);
+  expect(normal).toBe("x100");
+  var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
+  var t2 = await traverse({ operationLog: tracking, charIndex: 4 });
+  var t1LastStep = t1[t1.length - 1];
+  var t2LastStep = t2[t2.length - 1];
+  expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+  expect(t1LastStep.operationLog.result.primitive).toBe("x");
+  expect(t2LastStep.operationLog.operation).toBe("numericLiteral");
+  expect(t2LastStep.operationLog.result.primitive).toBe(100);
 });
 
 describe("Assignment Expressions", () => {

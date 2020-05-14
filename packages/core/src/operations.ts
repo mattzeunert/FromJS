@@ -34,7 +34,7 @@ import CallExpression from "./operations/CallExpression";
 import { MemberExpression } from "./operations/MemberExpression";
 import ObjectExpression from "./operations/ObjectExpression";
 import AssignmentExpression from "./operations/AssignmentExpression";
-import traverseStringConcat from "./traverseStringConcat";
+import traverseConcat from "./traverseConcat";
 import * as MemoValueNames from "./MemoValueNames";
 import { traverseDomOrigin } from "./traverseDomOrigin";
 import { VERIFY } from "./config";
@@ -131,32 +131,25 @@ const operations: Operations = {
       const { operator } = operationLog.astArgs;
       const { left, right } = operationLog.args;
 
-      const leftIsNumericLiteral = left.operation === "numericLiteral";
-      const rightIsNumericLiteral = right.operation === "numericLiteral";
-      const numericLiteralCount =
-        (leftIsNumericLiteral ? 1 : 0) + (rightIsNumericLiteral ? 1 : 0);
+      // const leftIsNumericLiteral = left.operation === "numericLiteral";
+      // const rightIsNumericLiteral = right.operation === "numericLiteral";
+      // const numericLiteralCount =
+      //   (leftIsNumericLiteral ? 1 : 0) + (rightIsNumericLiteral ? 1 : 0);
       if (operator == "+") {
-        if (
-          typeof left.result.type === "string" &&
-          typeof right.result.type === "string"
-        ) {
-          return traverseStringConcat(left, right, charIndex);
-        } else {
-          console.log("todo");
-        }
+        return traverseConcat(left, right, charIndex);
       } else {
         console.log("todo binexp operator " + operator);
       }
-      if (options && options.optimistic && numericLiteralCount === 1) {
-        // We can't be quite sure, but probably the user cares about the
-        // more complex value, not the simple hard coded value
-        const complexOperation = leftIsNumericLiteral ? right : left;
-        return {
-          isOptimistic: true,
-          charIndex,
-          operationLog: complexOperation
-        };
-      }
+      // if (options && options.optimistic && numericLiteralCount === 1) {
+      //   // We can't be quite sure, but probably the user cares about the
+      //   // more complex value, not the simple hard coded value
+      //   const complexOperation = leftIsNumericLiteral ? right : left;
+      //   return {
+      //     isOptimistic: true,
+      //     charIndex,
+      //     operationLog: complexOperation
+      //   };
+      // }
       throw "aaa";
     },
     exec: function binaryExpressionExec(args, astArgs, ctx: ExecContext) {
