@@ -880,7 +880,7 @@ global[FunctionNames.provideObjectPatternTrackingValues] = function(
   const res = {};
   Object.keys(propertiesByParentPath).forEach(parentPath => {
     let props = propertiesByParentPath[parentPath];
-    const subObj = objectPath.get(obj, parentPath);
+    const subObj = objectPath.withInheritedProps.get(obj, parentPath);
     let rest = { ...subObj };
 
     let subRes = parentPath ? {} : res;
@@ -888,7 +888,11 @@ global[FunctionNames.provideObjectPatternTrackingValues] = function(
     props.forEach(prop => {
       if (prop.isRest) {
       } else {
-        objectPath.set(subRes, prop.nameInPath, objectPath.get(obj, prop.path));
+        objectPath.set(
+          subRes,
+          prop.nameInPath,
+          objectPath.withInheritedProps.get(obj, prop.path)
+        );
         let trackingValue = ctx.getObjectPropertyTrackingValue(
           subObj,
           prop.nameInPath
@@ -906,7 +910,10 @@ global[FunctionNames.provideObjectPatternTrackingValues] = function(
           objectPath.set(
             subRes,
             key,
-            objectPath.get(obj, (parentPath ? parentPath + "." : "") + key)
+            objectPath.withInheritedProps.get(
+              obj,
+              (parentPath ? parentPath + "." : "") + key
+            )
           );
         });
       }

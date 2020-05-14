@@ -2217,6 +2217,25 @@ describe("Object patterns / destructuring", () => {
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.operationLog.result.primitive).toBe("b");
   });
+
+  it("Supports inherited properties", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      function K() {}
+      K.prototype.x = "x"
+
+      let k = new K()
+      const {x} = k
+      return x
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("x");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    // prorotype info not supported right now
+    expect(step.operationLog.operation).toBe("emptyTrackingInfo");
+  });
 });
 
 it("Can traverse charAt calls", async () => {
