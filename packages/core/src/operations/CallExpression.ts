@@ -238,6 +238,13 @@ const CallExpression = <any>{
       }
     }
 
+    if (!retT) {
+      retT = ctx.getEmptyTrackingInfo(
+        "Untracked function return value",
+        logData.loc,
+        ret
+      );
+    }
     extraTrackingValues[returnValueExtraArgName] = [ret, retT]; // pick up value from returnStatement
 
     if (runtimeArgs && countObjectKeys(runtimeArgs) > 0) {

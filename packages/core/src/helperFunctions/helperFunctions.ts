@@ -538,10 +538,15 @@ global[FunctionNames.getLastMemberExpressionObject] = function() {
   ];
 };
 
-global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
+global[FunctionNames.getEmptyTrackingInfo] = function(
+  type,
+  loc,
+  result = undefined
+) {
   let index = getOperationIndex();
   let logData: any = {
     operation: "emptyTrackingInfo",
+    result,
     args: {},
     runtimeArgs: { type },
     astArgs: {},
@@ -700,8 +705,8 @@ const ctx: ExecContext = {
   objectHasPropertyTrackingData(obj) {
     return !!objTrackingMap.get(obj);
   },
-  getEmptyTrackingInfo(type, loc) {
-    return global[FunctionNames.getEmptyTrackingInfo](type, loc);
+  getEmptyTrackingInfo(type, loc, result = undefined) {
+    return global[FunctionNames.getEmptyTrackingInfo](type, loc, result);
   },
   getCurrentTemplateLiteralTrackingValues() {
     return getCurrentTemplateLiteralTrackingValues();
@@ -971,8 +976,13 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
 
 global["__fromJSMaybeMapInitialPageHTML"]();
 
-global["__fromJSRawEval"] = function(str) {
-  eval(str);
+global["__fromJSCallFunctionWithTrackingChainInterruption"] = function(fn) {
+  const ret = global[FunctionNames.doOperation](
+    "callExpression",
+    [[fn, null], [this, null], []],
+    {}
+  );
+  return ret;
 };
 
 global["__fromJSRegisterLuckyMatch"] = function(value) {

@@ -37,7 +37,7 @@ export interface ExecContext {
     valueTrackingValue: null | number | OperationLog,
     nameTrackingValue?: null | number | OperationLog
   );
-  getEmptyTrackingInfo(type: string, loc: any): number;
+  getEmptyTrackingInfo(type: string, loc: any, result?: any): number;
   lastReturnStatementResult: any;
   objectHasPropertyTrackingData: (obj: any) => boolean;
   readonly lastOpTrackingResultWithoutResetting;
