@@ -289,6 +289,7 @@ export default class Backend {
       options.getTrackingDataDirectory(),
       locStore
     );
+
     if (GENERATE_DERIVED) {
       generateLocLogs({ logServer, locLogs });
       generateUrlLocs({ locStore, options });
@@ -1230,6 +1231,27 @@ function setupBackend(
       tryTraverse();
     });
   }
+
+  app.get("/search", async (req, res) => {
+    let i = logServer.db.iterator();
+    let index = 0;
+    let search = "display: block; width: 200px; height: 20px";
+    function iterate(error, key, value) {
+      if (value) {
+        index++;
+        if (index % 50000 === 0) {
+          console.log({ index });
+        }
+        if (value.includes(search)) {
+          console.log({ key: key.toString(), value: value.toString() });
+        }
+        i.next(iterate);
+      } else {
+        res.end("done");
+      }
+    }
+    i.next(iterate);
+  });
 
   app.post("/traverse", async (req, res) => {
     const { logId, charIndex } = req.body;
