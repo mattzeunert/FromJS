@@ -1176,27 +1176,15 @@ function setupBackend(
         }
       }
 
-      async function getNextStepFromLuckyMatches(lastStep, secondToLastStep) {
+      async function getNextStepFromLuckyMatches(lastStep) {
         let stepToUse = lastStep;
-        console.log({
-          lastStep,
-          r: JSON.stringify(stepToUse.operationLog.result),
-        });
-        debugger;
-        // if (stepToUse.operationLog.result.type === "undefined") {
-        //   console.log("will use second to last")
-        //   stepToUse = secondToLastStep;
-        // }
-        // console.log({ secondToLastStep, r: stepToUse.operationLog.result });
         if (!stepToUse || stepToUse.operationLog.result.type === "undefined") {
-          console.log("give up", stepToUse.operationLog);
           return;
         }
         const luckyMatches: any[] = readLuckyMatches();
         const match = luckyMatches.find(
           (m) => m.value === stepToUse.operationLog.result.primitive
         );
-        console.log({ match });
         if (match) {
           return {
             operationLog: match.trackingValue,
@@ -1225,12 +1213,14 @@ function setupBackend(
             let lastStep = steps[steps.length - 1];
 
             let nextStep = await getNextStepFromFileContents(lastStep);
-            console.log("STEPS", JSON.stringify(steps, null, 2));
             if (!nextStep) {
-              nextStep = await getNextStepFromLuckyMatches(
-                lastStep,
-                steps[steps.length - 2]
-              );
+              nextStep = await getNextStepFromLuckyMatches(lastStep);
+              if (nextStep) {
+                console.log(
+                  "lucky match",
+                  JSON.stringify(nextStep).slice(0, 100)
+                );
+              }
             }
 
             if (nextStep) {
