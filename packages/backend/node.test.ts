@@ -139,7 +139,7 @@ describe("Node", () => {
 
     const { step } = await traverse(0);
     // for now don't really care to much about the exact traversal
-    expect(step.operationLog.operation).toBe("callExpression");
+    expect(step.operationLog.operation).toBe("emptyTrackingInfo");
   }, 80000);
 
   it("can traverse file reads and writes – fileReadWrites", async () => {
