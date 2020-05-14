@@ -2236,6 +2236,26 @@ describe("Object patterns / destructuring", () => {
     // prorotype info not supported right now
     expect(step.operationLog.operation).toBe("emptyTrackingInfo");
   });
+
+  it("Supports non enumerable properties", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      let obj = {}
+      Object.defineProperty(obj, "x", {
+        value: "x",
+        enumerable: false
+      })
+
+      const {x} = obj
+      return x
+  `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("x");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("emptyTrackingInfo");
+  });
 });
 
 it("Can traverse charAt calls", async () => {
