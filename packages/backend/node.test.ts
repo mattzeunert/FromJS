@@ -189,6 +189,18 @@ describe("Node", () => {
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.operationLog.result.primitive).toBe("xyz");
   }, 120000);
+
+  // it("supports lucky matches", async () => {
+  //   let { execDuration, compileDuration, traverse } = await runTest(
+  //     "luckyMatches",
+  //     {}
+  //   );
+
+  //   let { step } = await traverse(0);
+  //   console.log(JSON.stringify(step, null, 2));
+  //   expect(step.operationLog.operation).toBe("stringLiteral");
+  //   expect(step.operationLog.result.primitive).toBe("abc");
+  // }, 120000);
 });
 
 export function getCmdOutput(

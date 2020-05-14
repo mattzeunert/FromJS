@@ -965,6 +965,18 @@ function setupBackend(
     fs.writeFileSync(eventsPath, JSON.stringify(events, null, 2));
   }
 
+  let luckyMatchesPath = options.sessionDirectory + "/luckyMatches.json";
+  function readLuckyMatches() {
+    let luckyMatches = [];
+    if (fs.existsSync(luckyMatchesPath)) {
+      luckyMatches = JSON.parse(fs.readFileSync(luckyMatchesPath, "utf-8"));
+    }
+    return luckyMatches;
+  }
+  function writeLuckyMatches(luckyMatches) {
+    fs.writeFileSync(luckyMatchesPath, JSON.stringify(luckyMatches, null, 2));
+  }
+
   // app.post("/setEnableInstrumentation", (req, res) => {
   //   const { enableInstrumentation } = req.body;
   //   getProxy().setEnableInstrumentation(enableInstrumentation);
@@ -976,7 +988,10 @@ function setupBackend(
     const lines = reqBody.split("\n");
     let evalScriptsJson = lines.shift();
     let eventsJson = lines.shift();
+    let luckyMatchesJson = lines.shift();
     let logLines = lines;
+
+    console.log({ luckyMatchesJson });
 
     const logs: any[] = [];
     for (var i = 0; i < logLines.length - 1; i += 2) {
@@ -1002,6 +1017,11 @@ function setupBackend(
     let events = JSON.parse(eventsJson);
     if (events.length > 0) {
       writeEvents([...readEvents(), ...events]);
+    }
+
+    let luckyMatches = JSON.parse(luckyMatchesJson);
+    if (luckyMatches.length > 0) {
+      writeLuckyMatches([...readLuckyMatches(), ...luckyMatches]);
     }
 
     await new Promise((resolve) =>
@@ -1078,6 +1098,84 @@ function setupBackend(
         });
       };
 
+      async function getNextStepFromFileContents(lastStep) {
+        console.log("last step op", lastStep.operationLog.operation);
+        if (
+          lastStep.operationLog.operation !== "stringLiteral" &&
+          lastStep.operationLog.operation !== "templateLiteral" &&
+          lastStep.operationLog.operation !== "initialPageHtml"
+        ) {
+          // if e.g. it's a localstorage value then we don't want to
+          // inspect the code for it!!
+          // really mostly just string literal has that kind of sensible mapping
+          return;
+        }
+
+        let overwriteFile: any = null;
+        if (lastStep.operationLog.operation === "initialPageHtml") {
+          return;
+          overwriteFile = {
+            url:
+              "http://localhost:4444/example.com_2020-04-29_16-17-05.report.html",
+            sourceOperationLog: 949871490803662,
+            sourceOffset: 0,
+          };
+        } else if (!lastStep.operationLog.loc) {
+          return;
+        }
+
+        let loc;
+
+        if (overwriteFile) {
+          loc = {
+            url: overwriteFile.url,
+            start: {
+              line: 1,
+              column: 0,
+            },
+          };
+        } else if (lastStep.operationLog.loc) {
+          console.log(JSON.stringify(lastStep, null, 2));
+          loc = (await new Promise((resolve) =>
+            locStore.getLoc(lastStep.operationLog.loc, (loc) => resolve(loc))
+          )) as any;
+        }
+
+        let file = files.find((f) => f.url === loc.url);
+        if (overwriteFile) {
+          file = overwriteFile;
+        }
+        if (file.sourceOperationLog) {
+          // const log = await logServer.loadLogAwaitable(
+          //   file.sourceOperationLog,
+          //   1
+          // );
+
+          let { body: fileContent } = await getRequestHandler().handleRequest({
+            url: loc.url + "?dontprocess",
+            method: "GET",
+            headers: {},
+          });
+          let lineColumn = require("line-column");
+          let charIndex =
+            lineColumn(fileContent.toString()).toIndex({
+              line: loc.start.line,
+              column: loc.start.column + 1, // lineColumn uses origin of 1, but babel uses 0
+            }) +
+            file.sourceOffset +
+            lastStep.charIndex;
+
+          // // this makes stuff better... maybe it adjusts for the quote sign for string literals in the code?
+          charIndex++;
+
+          console.log("will traverse", file);
+          return {
+            charIndex,
+            operationLog: file.sourceOperationLog,
+          };
+        }
+      }
+
       const finishRequest = async function finishRequest() {
         let steps;
         try {
@@ -1097,92 +1195,15 @@ function setupBackend(
           while (true) {
             let lastStep = steps[steps.length - 1];
 
-            console.log("last step op", lastStep.operationLog.operation);
-            if (
-              lastStep.operationLog.operation !== "stringLiteral" &&
-              lastStep.operationLog.operation !== "templateLiteral" &&
-              lastStep.operationLog.operation !== "initialPageHtml"
-            ) {
-              // if e.g. it's a localstorage value then we don't want to
-              // inspect the code for it!!
-              // really mostly just string literal has that kind of sensible mapping
-              break;
-            }
+            let nextStep = await getNextStepFromFileContents(lastStep);
 
-            let overwriteFile: any = null;
-            if (lastStep.operationLog.operation === "initialPageHtml") {
-              break;
-              overwriteFile = {
-                url:
-                  "http://localhost:4444/example.com_2020-04-29_16-17-05.report.html",
-                sourceOperationLog: 949871490803662,
-                sourceOffset: 0,
-              };
-            } else if (!lastStep.operationLog.loc) {
-              break;
-            }
-
-            let loc;
-
-            if (overwriteFile) {
-              loc = {
-                url: overwriteFile.url,
-                start: {
-                  line: 1,
-                  column: 0,
-                },
-              };
-            } else if (lastStep.operationLog.loc) {
-              console.log(JSON.stringify(lastStep, null, 2));
-              loc = (await new Promise((resolve) =>
-                locStore.getLoc(lastStep.operationLog.loc, (loc) =>
-                  resolve(loc)
-                )
-              )) as any;
-            }
-
-            let file = files.find((f) => f.url === loc.url);
-            if (overwriteFile) {
-              file = overwriteFile;
-            }
-            if (file.sourceOperationLog) {
-              // const log = await logServer.loadLogAwaitable(
-              //   file.sourceOperationLog,
-              //   1
-              // );
-
-              let {
-                body: fileContent,
-              } = await getRequestHandler().handleRequest({
-                url: loc.url + "?dontprocess",
-                method: "GET",
-                headers: {},
-              });
-              let lineColumn = require("line-column");
-              let charIndex =
-                lineColumn(fileContent.toString()).toIndex({
-                  line: loc.start.line,
-                  column: loc.start.column + 1, // lineColumn uses origin of 1, but babel uses 0
-                }) +
-                file.sourceOffset +
-                lastStep.charIndex;
-
-              // // this makes stuff better... maybe it adjusts for the quote sign for string literals in the code?
-              charIndex++;
-
-              console.log("will traverse", file);
-              let s = (await traverse(
-                {
-                  operationLog: file.sourceOperationLog,
-                  charIndex,
-                },
-                [],
-                logServer,
-                { optimistic: true, events: readEvents() }
-              )) as any;
+            if (nextStep) {
+              let s = (await traverse(nextStep, [], logServer, {
+                optimistic: true,
+                events: readEvents(),
+              })) as any;
 
               steps = [...steps, ...s];
-              console.log("####");
             } else {
               break;
             }

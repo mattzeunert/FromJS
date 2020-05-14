@@ -219,6 +219,7 @@ let logQueue = [];
 global["__debugFromJSLogQueue"] = () => logQueue;
 let evalScriptQueue = [];
 let eventQueue = [];
+let luckyMatchQueue = [];
 let worker: Worker | null = null;
 // temporarily disable worker because i think lighthouse runs stuff in isolated envs
 // and it means hundreds of workers get created rather than always using same one?
@@ -249,6 +250,8 @@ async function sendLogsToServer() {
   data += "\n";
   data += JSON.stringify(eventQueue);
   data += "\n";
+  data += JSON.stringify(luckyMatchQueue);
+  data += "\n";
   for (const item of logQueue) {
     data += item[0] + "\n" + item[1] + "\n";
   }
@@ -256,6 +259,7 @@ async function sendLogsToServer() {
   logQueue = [];
   evalScriptQueue = [];
   eventQueue = [];
+  luckyMatchQueue = [];
 
   if (worker) {
     // Doing this means the data will be cloned, but it seems to be
@@ -966,3 +970,15 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
 };
 
 global["__fromJSMaybeMapInitialPageHTML"]();
+
+global["__fromJSRawEval"] = function(str) {
+  eval(str);
+};
+
+global["__fromJSRegisterLuckyMatch"] = function(value) {
+  let valueTv = global[FunctionNames.getFunctionArgTrackingInfo](0);
+  luckyMatchQueue.push({
+    value,
+    trackingValue: valueTv
+  });
+};
