@@ -1433,6 +1433,11 @@ export function traverseKnownFunction({
         operationLog: operationLog.args.arg0,
         charIndex
       };
+    case "Math.floor":
+      return {
+        operationLog: operationLog.args.arg0,
+        charIndex
+      };
     case "Math.min":
       let smallestValue = Number.POSITIVE_INFINITY;
       let smallestOperationLog = null;
