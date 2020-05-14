@@ -2613,3 +2613,19 @@ describe("Supports promises", () => {
     // don't worry about traversing rejections for now
   });
 });
+
+it("Can traverse new URL().href", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      return new URL("http://example.com").href
+    `,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("http://example.com/");
+
+  let step = await traverseAndGetLastStep(tracking, 0);
+  expect(step.operationLog.operation).toBe("stringLiteral");
+  expect(step.operationLog.result.primitive).toBe("http://example.com");
+  expect(step.charIndex).toBe(0);
+});

@@ -24,12 +24,13 @@ import {
   SpecialCaseArgs,
   traverseKnownFunction,
   knownFnProcessors,
-  FnProcessorArgs
+  FnProcessorArgs,
+  newExpressionPostProcessors
 } from "./CallExpressionSpecialCases";
 import { ValueTrackingValuePair } from "../types";
 import KnownValues from "../helperFunctions/KnownValues";
 import { countObjectKeys } from "../util";
-import { getShortExtraArgName } from "../names";
+import { getShortExtraArgName, getShortKnownValueName } from "../names";
 
 const returnValueExtraArgName = getShortExtraArgName("returnValue");
 
@@ -261,7 +262,8 @@ const CallExpression = <any>{
         ret,
         retT,
         extraState,
-        runtimeArgs
+        runtimeArgs,
+        fnKnownValue
       };
       if (functionIsCallOrApply) {
         specialCaseArgs.fn = object;
@@ -474,7 +476,8 @@ function handleNewExpression({
   retT,
   logData,
   args,
-  fnArgTrackingValues
+  fnArgTrackingValues,
+  fnKnownValue
 }: SpecialCaseArgs) {
   const isNewFunctionCall = fn === Function;
   if (isNewFunctionCall && ctx.hasInstrumentationFunction) {
@@ -562,5 +565,23 @@ function handleNewExpression({
     result: ret,
     loc: logData.loc
   });
+
+  if (fnKnownValue) {
+    let postProcessor = newExpressionPostProcessors[fnKnownValue];
+    if (postProcessor) {
+      postProcessor({
+        fn,
+        ctx,
+        fnArgValues,
+        ret,
+        retT,
+        logData,
+        args,
+        fnArgTrackingValues,
+        fnKnownValue
+      });
+    }
+  }
+
   return { ret, retT };
 }

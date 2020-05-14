@@ -56,7 +56,8 @@ export default class KnownValues {
       "console.log": console.log,
       "console.warn": console.warn,
       "console.count": console.count,
-      "console.error": console.error
+      "console.error": console.error,
+      URL: URL
     });
 
     if (global.fromJSIsNode) {

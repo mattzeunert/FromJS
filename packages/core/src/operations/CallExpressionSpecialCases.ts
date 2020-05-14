@@ -58,6 +58,7 @@ export type SpecialCaseArgs = {
   args: any[];
   context: any;
   extraState: any;
+  fnKnownValue: string | null;
 };
 
 const writeFile = ({
@@ -1749,3 +1750,14 @@ function allArgs(operationLog, fn) {
     i++;
   }
 }
+
+export const newExpressionPostProcessors = {
+  // Would maybe be better to store the constructor args in some way and then
+  // link to that when the property is accessed?? Then during traversal
+  // you could see that URL.proto.href is accessed, reference the constructor data
+  // and then link to it?
+  // But this works for now.
+  [getShortKnownValueName("URL")]: ({ ctx, ret, fnArgTrackingValues }) => {
+    ctx.trackObjectPropertyAssignment(ret, "href", fnArgTrackingValues[0]);
+  }
+};
