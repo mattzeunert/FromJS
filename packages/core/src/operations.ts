@@ -41,7 +41,8 @@ import { VERIFY } from "./config";
 import { getElAttributeValueOrigin } from "./operations/domHelpers/addElOrigin";
 import { safelyReadProperty, nullOnError } from "./util";
 import * as FunctionNames from "./FunctionNames";
-import * as sortBy from "lodash/sortBy";
+import * as sortBy from "lodash.sortby";
+const sortBy = function() {} as any;
 import { getShortExtraArgName, getShortArgName } from "./names";
 
 function identifyTraverseFunction(operationLog, charIndex) {

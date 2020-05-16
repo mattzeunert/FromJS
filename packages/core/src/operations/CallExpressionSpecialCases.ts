@@ -25,7 +25,7 @@ import * as cloneRegExp from "clone-regexp";
 import { doOperation } from "../FunctionNames";
 import * as jsonToAst from "json-to-ast";
 import { getJSONPathOffset } from "../getJSONPathOffset";
-import * as get from "lodash/get";
+import * as get from "lodash.get";
 import { traverseObject } from "../traverseObject";
 import { pathToFileURL } from "url";
 import {
