@@ -1115,9 +1115,8 @@ function setupBackend(
         if (lastStep.operationLog.operation === "initialPageHtml") {
           return;
           overwriteFile = {
-            url:
-              "http://localhost:4444/example.com_2020-04-29_16-17-05.report.html",
-            sourceOperationLog: 949871490803662,
+            url: "http://localhost:4444/report.html",
+            sourceOperationLog: 713919808822512,
             sourceOffset: 0,
           };
         } else if (!lastStep.operationLog.loc) {
@@ -1282,7 +1281,7 @@ function setupBackend(
   app.get("/search", async (req, res) => {
     let i = logServer.db.iterator();
     let index = 0;
-    let search = "display: block; width: 200px; height: 20px";
+    let search = "lighthouse";
     function iterate(error, key, value) {
       if (value) {
         index++;
