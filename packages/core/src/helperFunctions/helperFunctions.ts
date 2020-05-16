@@ -556,6 +556,7 @@ global[FunctionNames.getEmptyTrackingInfo] = function(
   createOperationLog(logData, operations["emptyTrackingInfo"], index);
   return index;
 };
+
 global[FunctionNames.expandArrayForArrayPattern] = function(
   arr,
   loc,

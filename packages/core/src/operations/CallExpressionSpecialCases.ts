@@ -415,6 +415,44 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
 export const specialValuesForPostprocessing: {
   [knownValueName: string]: (args: SpecialCaseArgs) => any;
 } = {
+  [getShortKnownValueName("HTMLElement.prototype.getClientRects")]: ({
+    object,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    context,
+    fnArgTrackingValues
+  }) => {
+    for (var i = 0; i < ret.length; i++) {
+      const rect = ret[i];
+      const properties = [
+        "width",
+        "height",
+        "x",
+        "y",
+        "top",
+        "bottom",
+        "left",
+        "right"
+      ];
+      properties.forEach(prop => {
+        ctx.trackObjectPropertyAssignment(
+          rect,
+          prop,
+          ctx.createOperationLog({
+            operation: ctx.operationTypes.genericOperation,
+            runtimeArgs: {
+              name: "clientRect." + prop
+            },
+            args: {},
+            loc: logData.loc,
+            result: rect[prop]
+          })
+        );
+      });
+    }
+  },
   [getShortKnownValueName("Promise.resolve")]: ({
     object,
     ctx,

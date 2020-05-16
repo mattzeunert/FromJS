@@ -221,6 +221,13 @@ let TraversalStep = class TraversalStep extends React.Component<
       ""
     );
     const fileNameLabel = shortFileName;
+
+    let opNameToShow =
+      operationLog.operation[0].toUpperCase() + operationLog.operation.slice(1);
+    if (opNameToShow) {
+      opNameToShow = operationLog.runtimeArgs.name;
+    }
+
     return (
       <div
         className="step"
@@ -229,8 +236,7 @@ let TraversalStep = class TraversalStep extends React.Component<
       >
         <div className="step__header">
           <div className="step__operation-type">
-            {operationLog.operation[0].toUpperCase() +
-              operationLog.operation.slice(1)}{" "}
+            {opNameToShow}{" "}
             <span className="step__operation-type-detail">
               {operationTypeDetail}
             </span>
