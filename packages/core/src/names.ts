@@ -65,6 +65,8 @@ const {
 } = makeNameShortingFunctions({
   returnValue: "r",
   propertyValue: "p",
+  left: "l",
+  right: "rr",
   expression0: "e0",
   expression1: "e1",
   replacement0: "r0",
