@@ -108,10 +108,11 @@ export function getSerializedValueObject(
       value !== null &&
       !Array.isArray(value) &&
       !knownValue &&
-      (!_bufferObj || !(value instanceof _bufferObj))
+      (!_bufferObj || !(value instanceof _bufferObj)) &&
+      // filter out Array like things, e.g. Uint8Array
+      !(value.length && value[0])
     ) {
       // todo: rethink this regarding perf
-      // maybe don't collect keys, maybe do for...in instead
       // also: when inspecting i really want the trakcing data for
       // values/keys to be accessible, so maybe just storing keys makes more sense
       keys = Object.keys(value);
