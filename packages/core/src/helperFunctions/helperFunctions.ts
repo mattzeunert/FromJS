@@ -328,15 +328,13 @@ function createOperationLog(args: CreateOperationLogArgs, op, index) {
 // Counter used to handle nested function calls that disable at start and end
 let skipTrackingCounter = 0;
 global["__FromJSDisableCollectTrackingData"] = function() {
-  console.log("Disable FromJS tracking");
-  console.log({ skipTrackingCounter });
   skipTrackingCounter++;
+  console.log("Disable FromJS tracking", { skipTrackingCounter });
   skipTracking = true;
 };
 global["__FromJSEnableCollectTrackingData"] = function() {
-  console.log("Enable FromJS tracking");
   skipTrackingCounter--;
-  console.log({ skipTrackingCounter });
+  console.log("Enable FromJS tracking", { skipTrackingCounter });
   if (skipTrackingCounter === 0) {
     skipTracking = SKIP_TRACKING;
   }
