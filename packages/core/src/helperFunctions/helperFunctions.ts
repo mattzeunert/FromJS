@@ -324,13 +324,22 @@ function createOperationLog(args: CreateOperationLogArgs, op, index) {
 
 // Used to speed up slow parts of a program, e.g. for the Lighthouse
 // JSON parser or other buffer processing logic
+// ----
+// Counter used to handle nested function calls that disable at start and end
+let skipTrackingCounter = 0;
 global["__FromJSDisableCollectTrackingData"] = function() {
   console.log("Disable FromJS tracking");
+  console.log({ skipTrackingCounter });
+  skipTrackingCounter++;
   skipTracking = true;
 };
 global["__FromJSEnableCollectTrackingData"] = function() {
   console.log("Enable FromJS tracking");
-  skipTracking = SKIP_TRACKING;
+  skipTrackingCounter--;
+  console.log({ skipTrackingCounter });
+  if (skipTrackingCounter === 0) {
+    skipTracking = SKIP_TRACKING;
+  }
 };
 
 if (KEEP_LOGS_IN_MEMORY) {
