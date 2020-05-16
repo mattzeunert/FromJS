@@ -304,10 +304,12 @@ declare var __storeLog;
 const storeLog =
   typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog;
 
+let skipTracking = SKIP_TRACKING;
+
 let lastOperationType = null;
 function createOperationLog(args: CreateOperationLogArgs, op, index) {
-  if (SKIP_TRACKING) {
-    return 1111;
+  if (skipTracking) {
+    return null;
   }
   var log = OperationLog.createAtRuntime(args, knownValues, op);
   storeLog(index, JSON.stringify(log));
@@ -319,6 +321,15 @@ function createOperationLog(args: CreateOperationLogArgs, op, index) {
     global["__debugAllLogs"][log.index] = log;
   }
 }
+
+// Used to speed up slow parts of a program, e.g. for the Lighthouse
+// JSON parser or other buffer processing logic
+global["__FromJSDisableCollectTrackingData"] = function() {
+  skipTracking = true;
+};
+global["__FromJSEnableCollectTrackingData"] = function() {
+  skipTracking = SKIP_TRACKING;
+};
 
 if (KEEP_LOGS_IN_MEMORY) {
   global["__debugLookupLog"] = function(logId, currentDepth = 0) {
