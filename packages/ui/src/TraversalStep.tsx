@@ -224,7 +224,7 @@ let TraversalStep = class TraversalStep extends React.Component<
 
     let opNameToShow =
       operationLog.operation[0].toUpperCase() + operationLog.operation.slice(1);
-    if (opNameToShow) {
+    if (operationLog.operation === "genericOperation") {
       opNameToShow = operationLog.runtimeArgs.name;
     }
 
