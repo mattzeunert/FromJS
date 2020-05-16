@@ -332,7 +332,7 @@ global["__FromJSDisableCollectTrackingData"] = function(label) {
   console.log("Disable FromJS tracking", { skipTrackingCounter, label });
   skipTracking = true;
 };
-global["__FromJSEnableCollectTrackingData"] = function() {
+global["__FromJSEnableCollectTrackingData"] = function(label) {
   skipTrackingCounter--;
   console.log("Enable FromJS tracking", { skipTrackingCounter, label });
   if (skipTrackingCounter === 0) {
