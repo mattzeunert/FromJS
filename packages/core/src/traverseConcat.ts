@@ -11,15 +11,20 @@ export default function traverseConcat(
   right: OperationLog,
   charIndex: number
 ) {
-  if (
-    left.result.primitive === undefined ||
-    right.result.primitive === undefined
-  ) {
+  let leftStr;
+  if (left.result.type === "string") {
+    leftStr = left.result.primitive;
+  } else if (left.result.type === "number") {
+    leftStr = left.result.primitive + "";
+  } else if (left.result.type === "undefined") {
+    [leftStr === "undefined"];
+  }
+  if (typeof leftStr !== "string") {
     console.log("Can't traverse concat", left.result, right.result);
     return;
   }
 
-  const leftLength = getResultLen(left);
+  const leftLength = leftStr.length;
 
   if (charIndex < leftLength) {
     return {
