@@ -51,6 +51,7 @@ describe("Node", () => {
       ignoreFilePattern = null as any,
       includeFilePattern = null as any,
       runNTimes = 1,
+      returnAfterExec = false,
     }
   ) {
     let sessionSizeBefore = await getSessionSize();
@@ -80,6 +81,10 @@ describe("Node", () => {
       throw Error("Node command exited with code " + code);
     }
 
+    if (returnAfterExec) {
+      return {} as any;
+    }
+
     const processRequestQueueStart = new Date();
     await backend.processRequestQueue();
     let processRequestQueueDuration =
@@ -107,6 +112,7 @@ describe("Node", () => {
       compileDuration,
       traverse: async (charIndex) => {
         const steps = await backend.handleTraverse(inspectIndex, charIndex);
+        console.log("step count", steps.length);
         const lastStep = steps[steps.length - 1];
         return { step: lastStep };
       },
@@ -127,6 +133,11 @@ describe("Node", () => {
     const { step } = await traverse(0);
     expect(step.operationLog.operation).toBe("fileContent");
   }, 15000);
+
+  it("Can calculate PI", async () => {
+    let { traverse } = await runTest("pi", { returnAfterExec: true });
+    // just doing this one for timing
+  }, 25000);
 
   it("reactSsr", async () => {
     let { traverse, execDuration, compileDuration } = await runTest(
