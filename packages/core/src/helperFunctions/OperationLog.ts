@@ -110,7 +110,7 @@ export function getSerializedValueObject(
       !knownValue &&
       (!_bufferObj || !(value instanceof _bufferObj)) &&
       // filter out Array like things, e.g. Uint8Array
-      !(value.length && "0" in value)
+      !("length" in value && "0" in value)
     ) {
       // todo: rethink this regarding perf
       // also: when inspecting i really want the trakcing data for
