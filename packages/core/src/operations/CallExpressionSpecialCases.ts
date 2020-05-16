@@ -91,7 +91,7 @@ const writeFile = ({
 function addJsonParseResultTrackingValues(
   parsed,
   jsonString,
-  jsonStringTrackingValue,
+  jsonStringValueAndTrackingValueArray,
   { ctx, logData }
 ) {
   if (
@@ -104,7 +104,7 @@ function addJsonParseResultTrackingValues(
       ctx.createOperationLog({
         operation: ctx.operationTypes.jsonParseResult,
         args: {
-          json: jsonStringTrackingValue
+          json: jsonStringValueAndTrackingValueArray
         },
         result: parsed,
         runtimeArgs: {
@@ -121,7 +121,7 @@ function addJsonParseResultTrackingValues(
     const trackingValue = ctx.createOperationLog({
       operation: ctx.operationTypes.jsonParseResult,
       args: {
-        json: jsonStringTrackingValue
+        json: jsonStringValueAndTrackingValueArray
       },
       result: value,
       runtimeArgs: {
@@ -133,7 +133,7 @@ function addJsonParseResultTrackingValues(
     const nameTrackingValue = ctx.createOperationLog({
       operation: ctx.operationTypes.jsonParseResult,
       args: {
-        json: jsonStringTrackingValue
+        json: jsonStringValueAndTrackingValueArray
       },
       result: key,
       runtimeArgs: {
@@ -348,11 +348,24 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
       // Need to use fn (i.e. require) to resolve path relative to
       // the file that contains the raw code
       let absPath = fn.resolve(path);
-      let json = JSON.parse(require("fs").readFileSync(absPath, "utf-8"));
+      const jsonString = require("fs").readFileSync(absPath, "utf-8");
+
       [ret, retT] = addJsonParseResultTrackingValues(
         ret,
-        json,
-        ctx.getEmptyTrackingInfo("requireJson", logData.loc),
+        jsonString,
+        [
+          jsonString,
+          ctx.createOperationLog({
+            operation: "fileContent",
+            args: {},
+            loc: logData.loc,
+            runtimeArgs: {
+              path: path,
+              readType: "requireJson"
+            },
+            result: jsonString
+          })
+        ],
         { ctx, logData }
       );
     }

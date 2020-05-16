@@ -125,7 +125,7 @@ describe("Node", () => {
   it("Can require json files", async () => {
     let { traverse } = await runTest("requireJson", {});
     const { step } = await traverse(0);
-    expect(step.operationLog.operation).toBe("jsonParseResult");
+    expect(step.operationLog.operation).toBe("fileContent");
   }, 15000);
 
   it("reactSsr", async () => {

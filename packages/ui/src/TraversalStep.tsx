@@ -195,6 +195,8 @@ let TraversalStep = class TraversalStep extends React.Component<
         operationTypeDetail = operationLog.runtimeArgs.filePath
           .split("/")
           .slice(-1)[0];
+      } else if (operationLog.operation === "fileContent") {
+        operationTypeDetail = operationLog.runtimeArgs.path;
       }
     } catch (err) {
       console.log(err);
