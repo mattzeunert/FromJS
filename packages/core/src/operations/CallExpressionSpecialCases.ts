@@ -70,7 +70,7 @@ const writeFile = ({
   logData,
   context
 }) => {
-  const path = require("path");
+  const path = eval('require("path")');
 
   let absPath = fnArgValues[0];
   if (!absPath.startsWith("/")) {
@@ -384,7 +384,7 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
     const parsed = fn.call(JSON, jsonString);
     var ret, retT;
 
-    const path = require("path");
+    const path = eval('require("path")');
 
     let filePath = fnArgValues[0];
     let encodingArg = fnArgValues[1];
