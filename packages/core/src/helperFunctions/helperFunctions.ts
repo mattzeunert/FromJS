@@ -325,9 +325,11 @@ function createOperationLog(args: CreateOperationLogArgs, op, index) {
 // Used to speed up slow parts of a program, e.g. for the Lighthouse
 // JSON parser or other buffer processing logic
 global["__FromJSDisableCollectTrackingData"] = function() {
+  console.log("Disable FromJS tracking");
   skipTracking = true;
 };
 global["__FromJSEnableCollectTrackingData"] = function() {
+  console.log("Enable FromJS tracking");
   skipTracking = SKIP_TRACKING;
 };
 
