@@ -1112,11 +1112,13 @@ function setupBackend(
         }
 
         let overwriteFile: any = null;
-        if (lastStep.operationLog.operation === "initialPageHtml") {
-          return;
+        if (
+          lastStep.operationLog.operation === "initialPageHtml" &&
+          process.env.REPORT_TV
+        ) {
           overwriteFile = {
             url: "http://localhost:4444/report.html",
-            sourceOperationLog: 713919808822512,
+            sourceOperationLog: process.env.REPORT_TV,
             sourceOffset: 0,
           };
         } else if (!lastStep.operationLog.loc) {
