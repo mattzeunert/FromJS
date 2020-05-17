@@ -1118,7 +1118,7 @@ function setupBackend(
         ) {
           overwriteFile = {
             url: "http://localhost:4444/report.html",
-            sourceOperationLog: process.env.REPORT_TV,
+            sourceOperationLog: parseFloat(process.env.REPORT_TV),
             sourceOffset: 0,
           };
         } else if (!lastStep.operationLog.loc) {
