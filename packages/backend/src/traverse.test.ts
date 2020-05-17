@@ -1778,6 +1778,42 @@ describe("Array destructuring", () => {
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.charIndex).toBe(0);
   });
+
+  it("Works for an object pattern in the array expression", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+      const [{a}] = [{a: "a"}]
+      
+      return a
+    `);
+    expect(normal).toBe("a");
+
+    // Traversal not supported yet
+    // let step;
+    // step = await traverseAndGetLastStep(tracking, 0);
+    // expect(step.operationLog.operation).toBe("stringLiteral");
+    // expect(step.charIndex).toBe(0);
+  });
+
+  it("Works for function parameters", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+      const concat = ([a, b], [{c, d}]) => {
+        console.log({a, b,c,d})
+        return a + b + c + d
+      }
+      return concat(["a", "b"], [{c: "c", d: "d"}])
+    `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("abcd");
+
+    let step;
+    step = await traverseAndGetLastStep(tracking, 0);
+    // traversla doesn't work yet...
+    expect(step.operationLog.operation).toBe("binaryExpression");
+    expect(step.charIndex).toBe(0);
+  });
 });
 
 describe("getters/setters", () => {

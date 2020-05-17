@@ -472,7 +472,13 @@ function plugin(babel) {
       const isForOfStatementWithoutVarDeclaration =
         path.parentPath.node.type === "ForOfStatement";
 
-      if (path.parentPath.node.type === "FunctionDeclaration") {
+      if (
+        [
+          "FunctionDeclaration",
+          "FunctionExpression",
+          "ArrowFunctionExpression"
+        ].includes(path.parentPath.node.type)
+      ) {
         // don't transform, it would break how the values are passed
         return;
       }
