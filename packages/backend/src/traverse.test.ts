@@ -2169,22 +2169,35 @@ test("Can handle function expressions", async () => {
   expect(step.operationLog.operation).toBe("fn");
 });
 
-it("Can traverse object spread parameter", async () => {
-  const { normal, tracking, code } = await instrumentAndRun(`
-  const obj = {sth: "abc"}
-  const obj2 = {...obj}
-  let key = Object.keys(obj2)[0]
-  return key + "->"+ obj2.sth
-`);
-  expect(normal).toBe("sth->abc");
+describe("object spread", () => {
+  it("Can traverse object spread parameter", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    const obj = {sth: "abc"}
+    const obj2 = {...obj}
+    let key = Object.keys(obj2)[0]
+    return key + "->"+ obj2.sth
+  `);
+    expect(normal).toBe("sth->abc");
 
-  var step = await traverseAndGetLastStep(tracking, 0);
-  expect(step.operationLog.operation).toBe("stringLiteral");
-  expect(step.operationLog.result.primitive).toBe("sth");
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("sth");
 
-  step = await traverseAndGetLastStep(tracking, "sth->abc".indexOf("a"));
-  expect(step.operationLog.operation).toBe("stringLiteral");
-  expect(step.operationLog.result.primitive).toBe("abc");
+    step = await traverseAndGetLastStep(tracking, "sth->abc".indexOf("a"));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("abc");
+  });
+  it("Doesn't crash if destructuring undefined in object", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    const obj = {a: "a", ...undefined}
+    return obj.a
+  `);
+    expect(normal).toBe("a");
+
+    var step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("a");
+  });
 });
 
 it("Can traverse array pattern destructuring with empty elements", async () => {

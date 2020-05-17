@@ -54,7 +54,7 @@ export default <any>{
       } else if (propertyType === OBJECT_SPREAD_ELEMENT) {
         let objToCopyFrom = value[0];
         let objToCopyFromTrackingValue = value[1];
-        Object.entries(objToCopyFrom).forEach(([key, value]) => {
+        Object.entries(objToCopyFrom || {}).forEach(([key, value]) => {
           obj[key] = value;
           ctx.trackObjectPropertyAssignment(
             obj,
