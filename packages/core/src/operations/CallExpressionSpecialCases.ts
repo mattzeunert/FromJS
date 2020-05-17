@@ -825,7 +825,6 @@ export const specialValuesForPostprocessing: {
     }
 
     for (let i = 0; i < unshiftedItems.length; i++) {
-      console.log({ i });
       ctx.trackObjectPropertyAssignment(array, i, fnArgTrackingValues[i], null);
     }
 
