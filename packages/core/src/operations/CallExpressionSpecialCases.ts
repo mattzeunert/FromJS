@@ -813,17 +813,19 @@ export const specialValuesForPostprocessing: {
   }) => {
     // Note: O(n) is not very efficient...
     const array = object;
-    const unshiftedItems = fnArgValues[0];
+    const unshiftedItems = fnArgValues;
     for (let i = unshiftedItems.length; i < array.length; i++) {
+      let iBeforeUnshift = i - unshiftedItems.length;
       ctx.trackObjectPropertyAssignment(
         array,
         i.toString(),
-        ctx.getObjectPropertyTrackingValue(array, i - unshiftedItems.length),
-        ctx.getObjectPropertyNameTrackingValue(array, i - unshiftedItems.length)
+        ctx.getObjectPropertyTrackingValue(array, iBeforeUnshift),
+        ctx.getObjectPropertyNameTrackingValue(array, iBeforeUnshift)
       );
     }
 
-    for (let i = 0; i <= unshiftedItems.length; i++) {
+    for (let i = 0; i < unshiftedItems.length; i++) {
+      console.log({ i });
       ctx.trackObjectPropertyAssignment(array, i, fnArgTrackingValues[i], null);
     }
 

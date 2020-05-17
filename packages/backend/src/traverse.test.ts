@@ -971,6 +971,32 @@ describe("Arrays", () => {
     expect(tLastStep.operationLog.operation).toBe("stringLiteral");
   });
 
+  it("Can traverse shifted/unshifted values", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    const arr = ["a", "c"]
+    const v = arr.shift()
+    arr.unshift("b")
+    return v + arr[0] + arr[1]
+    `);
+
+    expect(normal).toBe("abc");
+    var t = await traverse({ operationLog: tracking, charIndex: 0 });
+    var tLastStep = t[t.length - 1];
+    expect(tLastStep.operationLog.operation).toBe("stringLiteral");
+    expect(tLastStep.operationLog.result.primitive).toBe("a");
+
+    var t = await traverse({ operationLog: tracking, charIndex: 1 });
+    var tLastStep = t[t.length - 1];
+    expect(tLastStep.operationLog.operation).toBe("stringLiteral");
+    expect(tLastStep.operationLog.result.primitive).toBe("b");
+
+    var t = await traverse({ operationLog: tracking, charIndex: 2 });
+    var tLastStep = t[t.length - 1];
+    console.log(JSON.stringify(tLastStep, null, 2));
+    expect(tLastStep.operationLog.operation).toBe("stringLiteral");
+    expect(tLastStep.operationLog.result.primitive).toBe("c");
+  });
+
   describe("Array.prototype.join", () => {
     it("Can traverse basic join call", async () => {
       const { normal, tracking, code } = await instrumentAndRun(`
@@ -1593,15 +1619,20 @@ describe("Array.prototype.unshift", () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       const arr = ["c"]
       arr.unshift("a","b")
-      return arr[1]
+      return arr[1] + arr[2]
     `);
 
-    expect(normal).toBe("b");
+    expect(normal).toBe("bc");
 
     var t1 = await traverse({ operationLog: tracking, charIndex: 0 });
-    const t1LastStep = t1[t1.length - 1];
+    var t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
     expect(t1LastStep.operationLog.result.primitive).toBe("b");
+
+    var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
+    var t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("stringLiteral");
+    expect(t1LastStep.operationLog.result.primitive).toBe("c");
   });
 });
 
