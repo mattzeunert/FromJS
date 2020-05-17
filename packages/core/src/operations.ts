@@ -330,6 +330,21 @@ const operations: Operations = {
       path.replaceWith(t.sequenceExpression([saveTestValue, operation]));
     }
   },
+  genericOperation: {
+    traverse(operationLog, charIndex) {
+      if (!operationLog.runtimeArgs.next) {
+        return {
+          operationLog: null,
+          charIndex
+        };
+      }
+
+      return {
+        operationLog: operationLog.runtimeArgs.next,
+        charIndex: charIndex + (operationLog.runtimeArgs.adjustCharIndex || 0)
+      };
+    }
+  },
   stringReplacement: {},
   callExpression: CallExpression,
   fn: {

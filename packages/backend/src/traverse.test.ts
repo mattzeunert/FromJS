@@ -2683,18 +2683,52 @@ describe("Supports promises", () => {
   });
 });
 
-it("Can traverse new URL().href", async () => {
-  const { normal, tracking, code } = await instrumentAndRun(
-    `
-      return new URL("http://example.com").href
-    `,
-    {},
-    { logCode: false }
-  );
-  expect(normal).toBe("http://example.com/");
+describe("URL", () => {
+  it("Can traverse new URL().href", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+        return new URL("http://example.com").href
+      `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("http://example.com/");
 
-  let step = await traverseAndGetLastStep(tracking, 0);
-  expect(step.operationLog.operation).toBe("stringLiteral");
-  expect(step.operationLog.result.primitive).toBe("http://example.com");
-  expect(step.charIndex).toBe(0);
+    let step = await traverseAndGetLastStep(tracking, 0);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("http://example.com");
+    expect(step.charIndex).toBe(0);
+  });
+
+  it("Can traverse new URL().pathname", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+        return new URL("http://example.com/a/b").pathname
+      `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("/a/b");
+
+    let step = await traverseAndGetLastStep(tracking, 2);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("http://example.com/a/b");
+    expect(step.charIndex).toBe("http://example.com/a/b".indexOf("/a/b") + 2);
+  });
+
+  it("Can traverse new URL().origin", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(
+      `
+        return new URL("http://example.com/a/b").origin
+      `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("http://example.com");
+
+    let step = await traverseAndGetLastStep(tracking, 2);
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("http://example.com/a/b");
+    expect(step.charIndex).toBe(2);
+  });
 });

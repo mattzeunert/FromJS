@@ -33,6 +33,7 @@ import {
   getShortExtraArgName,
   getShortKnownValueName
 } from "../names";
+import { url } from "inspector";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -1808,7 +1809,29 @@ export const newExpressionPostProcessors = {
   // you could see that URL.proto.href is accessed, reference the constructor data
   // and then link to it?
   // But this works for now.
-  [getShortKnownValueName("URL")]: ({ ctx, ret, fnArgTrackingValues }) => {
-    ctx.trackObjectPropertyAssignment(ret, "href", fnArgTrackingValues[0]);
+  [getShortKnownValueName("URL")]: ({
+    ctx,
+    ret,
+    fnArgTrackingValues,
+    logData
+  }) => {
+    let urlTv = fnArgTrackingValues[0];
+    ctx.trackObjectPropertyAssignment(ret, "href", urlTv);
+    ctx.trackObjectPropertyAssignment(
+      ret,
+      "pathname",
+      ctx.createOperationLog({
+        operation: ctx.operationTypes.genericOperation,
+        runtimeArgs: {
+          name: "URL.pathname",
+          next: urlTv,
+          adjustCharIndex: ret.href.indexOf(ret.pathname)
+        },
+        args: {},
+        loc: logData.loc,
+        result: ret.pathname
+      })
+    );
+    ctx.trackObjectPropertyAssignment(ret, "origin", urlTv);
   }
 };
