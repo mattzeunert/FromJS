@@ -57,7 +57,6 @@ export default class KnownValues {
       "console.warn": console.warn,
       "console.count": console.count,
       "console.error": console.error,
-
       URL: URL
     });
 
@@ -159,7 +158,6 @@ export default class KnownValues {
         // runs getter.call() to get the input element's value
         HTMLInputElementValueGetter: Object.getOwnPropertyDescriptor(
           HTMLInputElement.prototype,
-
           "value"
         )!.get,
         "HTMLElement.prototype.getClientRects":

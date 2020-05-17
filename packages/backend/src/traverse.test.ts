@@ -2732,3 +2732,19 @@ describe("URL", () => {
     expect(step.charIndex).toBe(2);
   });
 });
+
+it("Can traverse Intl.NumberFormat().format", async () => {
+  const { normal, tracking, code } = await instrumentAndRun(
+    `
+      let num = 10000
+      return new Intl.NumberFormat().format(num)
+    `,
+    {},
+    { logCode: false }
+  );
+  expect(normal).toBe("10,000");
+
+  let step = await traverseAndGetLastStep(tracking, 0);
+  console.log(JSON.stringify(step, null, 2));
+  expect(step.operationLog.operation).toBe("numericLiteral");
+});

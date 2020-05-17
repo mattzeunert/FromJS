@@ -53,6 +53,9 @@ export interface SerializedValueData {
 
 type StoredSerializedValue = SerializedValueData | string | number | boolean;
 
+let HtmlInputElement = global["HTMLInputElement"];
+let IntlNumberFormat = Intl.NumberFormat;
+
 export function getSerializedValueObject(
   value,
   type,
@@ -73,12 +76,16 @@ export function getSerializedValueObject(
   }
 
   var knownTypes: any[] | undefined = undefined;
-  if (
-    global["HTMLInputElement"] &&
-    value instanceof global["HTMLInputElement"]
-  ) {
+  if (HtmlInputElement && value instanceof HtmlInputElement) {
     knownTypes = [];
     knownTypes.push("HTMLInputElement");
+  } else if (value instanceof IntlNumberFormat) {
+    // use this to be able to traverse Intl.NumberFormat.format call
+    // format function can't be a normal known value because it's unqiue for each instance
+    // ... maybe a better solution would be adding each format function to knownvalues
+    // when is the NumberFormat instance is created
+    knownTypes = [];
+    knownTypes.push("Intl.NumberFormat");
   }
   try {
     if (

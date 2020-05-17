@@ -123,7 +123,14 @@ const CallExpression = <any>{
     let runtimeArgs: any;
     let extraState: any;
 
-    const fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
+    let fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
+    if (
+      !fnKnownValue &&
+      typeof fnArgValuesAtInvocation[0] === "number" &&
+      context[0] instanceof Intl.NumberFormat
+    ) {
+      fnKnownValue = "Intl.NumberFormat.format";
+    }
     if (fnKnownValue) {
       runtimeArgs = {};
       extraState = {};
@@ -352,6 +359,16 @@ const CallExpression = <any>{
 
     if (knownFunction) {
       return traverseKnownFunction({ operationLog, charIndex, knownFunction });
+    } else if (
+      operationLog.args.context &&
+      operationLog.args.context.result.knownTypes &&
+      operationLog.args.context.result.knownTypes.includes("Intl.NumberFormat")
+    ) {
+      // let's just assume it's the
+      return {
+        operationLog: operationLog.args.arg0,
+        charIndex: charIndex
+      };
     } else {
       return {
         operationLog: operationLog.extraArgs.returnValue,
