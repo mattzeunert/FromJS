@@ -1077,7 +1077,11 @@ function setupBackend(
     }, 500);
   });
 
-  function handleTraverse(logId, charIndex) {
+  function handleTraverse(
+    logId,
+    charIndex,
+    opts: { keepResultData?: boolean } = {}
+  ) {
     return new Promise((resolve) => {
       const tryTraverse = (previousAttempts = 0) => {
         logServer.hasLog(logId, (hasLog) => {
@@ -1261,20 +1265,22 @@ function setupBackend(
           return;
         }
 
-        // Avoid massive respondes (can be 100s of MB)
-        steps.forEach((step, i) => {
-          traverseObject(step, (keyPath, value, key, obj) => {
-            if (key === "_result") {
-              obj[key] = undefined;
-            }
-            if (key === "jsonIndexToTrackingValue") {
-              obj[key] = "omitted";
-            }
-            if (key.startsWith("replacement")) {
-              obj[key] = undefined;
-            }
+        if (!opts.keepResultData) {
+          // Avoid massive respondes (can be 100s of MB)
+          steps.forEach((step, i) => {
+            traverseObject(step, (keyPath, value, key, obj) => {
+              if (key === "_result") {
+                obj[key] = undefined;
+              }
+              if (key === "jsonIndexToTrackingValue") {
+                obj[key] = "omitted";
+              }
+              if (key.startsWith("replacement")) {
+                obj[key] = undefined;
+              }
+            });
           });
-        });
+        }
 
         resolve(steps);
       };

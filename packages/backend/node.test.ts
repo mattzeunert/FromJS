@@ -111,7 +111,9 @@ describe("Node", () => {
       execDuration,
       compileDuration,
       traverse: async (charIndex) => {
-        const steps = await backend.handleTraverse(inspectIndex, charIndex);
+        const steps = await backend.handleTraverse(inspectIndex, charIndex, {
+          keepResultData: true,
+        });
         console.log("step count", steps.length);
         const lastStep = steps[steps.length - 1];
         return { step: lastStep };
