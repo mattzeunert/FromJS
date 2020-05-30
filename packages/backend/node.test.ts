@@ -221,7 +221,6 @@ describe("Node", () => {
     });
 
     let { step } = await traverse(0);
-    console.log(JSON.stringify(step, null, 2));
     expect(step.operationLog.operation).toBe("binaryExpression");
     expect(step.operationLog.result.primitive).toBe(12345678.9);
   }, 120000);
