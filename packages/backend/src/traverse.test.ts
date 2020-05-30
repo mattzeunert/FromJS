@@ -415,16 +415,16 @@ describe("Can traverse string replacement calls", () => {
 describe("JSON.parse", () => {
   it("Can traverse JSON.parse", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
-        var json = '{"a": {"b": 5}}';
+        var json = '{"a": {"b": "xyz"}}';
         var obj = JSON.parse(json);
         return obj.a.b
       `);
 
-    var t = await traverse({ operationLog: tracking, charIndex: 0 });
+    var t = await traverse({ operationLog: tracking, charIndex: 2 });
     var lastStep = t[t.length - 1];
 
     expect(lastStep.operationLog.operation).toBe("stringLiteral");
-    expect(lastStep.charIndex).toBe(12);
+    expect(lastStep.charIndex).toBe(15);
   });
 
   it("Can traverse JSON.parse when using keys", async () => {
@@ -443,7 +443,7 @@ describe("JSON.parse", () => {
     expect(lastStep.charIndex).toBe(13);
   });
 
-  it("Can traverse JSON.parse with JSON containting arrays", async () => {
+  it("Can traverse JSON.parse with JSON containing arrays", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
         var json = '{"a": {"b": ["one", "two"]}}';
         var obj = JSON.parse(json);

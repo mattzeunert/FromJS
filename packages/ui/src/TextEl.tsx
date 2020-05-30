@@ -169,7 +169,9 @@ export class TextEl extends React.Component<any, any> {
 
       var highlightedCharLineIndex = valBeforeColumn.split("\n").length;
 
-      const numberOflinesToShow = this.state.truncateText ? 2 : 10;
+      const numberOflinesToShow = this.state.truncateText
+        ? this.props.defaultNumberOfLinesToShow || 2
+        : 20;
 
       var showFromLineIndex = highlightedCharLineIndex - numberOflinesToShow;
       if (showFromLineIndex < 0) {

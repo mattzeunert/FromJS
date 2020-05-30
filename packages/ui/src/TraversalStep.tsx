@@ -83,16 +83,16 @@ let TraversalStep = class TraversalStep extends React.Component<
   render() {
     const { step, debugMode } = this.props;
     let { charIndex, operationLog } = step;
-    const { showTree, showLogJson, stackFrame } = this.state;
+    const { showTree, showLogJson, stackFrame, logResult } = this.state;
     let { isExpanded } = this.state;
     let code;
     let fileName, columnNumber, lineNumber;
     let previousLine, nextLine;
 
-    if (this.state.logResult) {
+    if (logResult) {
       operationLog = new OperationLog({
         ...operationLog,
-        _result: this.state.logResult,
+        _result: logResult._result,
       });
     }
 
@@ -145,6 +145,11 @@ let TraversalStep = class TraversalStep extends React.Component<
 
     if (!operationLog.result.primitive) {
       str = operationLog.result.getTruncatedUIString();
+    }
+
+    if (logResult && logResult.json) {
+      str = logResult.json.formatted;
+      charIndex = logResult.json.charIndex;
     }
     // const beforeChar = prepareText(str.slice(0, charIndex));
     // const char = str.slice(charIndex, charIndex + 1);
@@ -452,13 +457,19 @@ let TraversalStep = class TraversalStep extends React.Component<
             <TextEl
               text={str}
               highlightedCharacterIndex={charIndex}
-              onCharacterClick={(charIndex) =>
+              defaultNumberOfLinesToShow={logResult && logResult.json ? 3 : 2}
+              onCharacterClick={(charIndex) => {
+                if (logResult.json) {
+                  alert(
+                    "Warning: json is prettified so char index will be wrong"
+                  );
+                }
                 selectAndTraverse(
                   operationLog.index,
                   charIndex,
                   "traversalStep"
-                )
-              }
+                );
+              }}
             />
           </div>
 

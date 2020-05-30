@@ -22,6 +22,7 @@ import { initSessionDirectory } from "./initSession";
 import { compileNodeApp } from "./compileNodeApp";
 import * as axios from "axios";
 import { traverseObject } from "@fromjs/core";
+import { prettifyAndMapFrameObject } from "./src/prettify";
 
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
@@ -1293,7 +1294,39 @@ function setupBackend(
 
   app.get("/logResult/:logIndex/:charIndex", async (req, res) => {
     let log = (await logServer.loadLogAwaitable(req.params.logIndex, 1)) as any;
-    res.json(log._result);
+
+    let json;
+    console.log(
+      typeof log._result,
+      log._result.length,
+      log._result.includes("\n")
+    );
+    if (
+      typeof log._result === "string" &&
+      log._result.length > 100 &&
+      !log._result.includes("\n")
+    ) {
+      try {
+        let parsed = JSON.parse(log._result);
+        let charIndex = req.params.charIndex;
+
+        const prettier = require("prettier");
+        json = prettier.formatWithCursor(log._result, {
+          cursorOffset: req.params.charIndex,
+          parser: "json",
+        });
+        json.charIndex = json.cursorOffset;
+        delete json.cursorOffset;
+      } catch (err) {
+        console.log("not json", err);
+        // not json
+      }
+    }
+
+    res.json({
+      json,
+      _result: log._result,
+    });
   });
 
   app.get("/traverse", async (req, res) => {

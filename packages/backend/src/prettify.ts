@@ -46,15 +46,16 @@ async function prettifyAndMapFrameObject(code, frameObject) {
   var pretty = cache[code];
   if (!pretty) {
     let unprettifiedCode = code;
+
     var { code, map } = prettyFast(code, {
       indent: "  ",
       url: "meaningless.js",
-      columnLevelMapAccuracy: true
+      columnLevelMapAccuracy: true,
     });
 
     pretty = {
       code,
-      consumer: await new sourceMap.SourceMapConsumer(map.toString())
+      consumer: await new sourceMap.SourceMapConsumer(map.toString()),
     };
     cache[unprettifiedCode] = pretty;
   }
@@ -62,7 +63,7 @@ async function prettifyAndMapFrameObject(code, frameObject) {
   var generatedPosition = pretty.consumer.generatedPositionFor({
     source: "meaningless.js",
     line: frameObject.lineNumber,
-    column: frameObject.columnNumber
+    column: frameObject.columnNumber,
   });
 
   return {
@@ -70,8 +71,8 @@ async function prettifyAndMapFrameObject(code, frameObject) {
     mappedFrameObject: {
       fileName: frameObject.fileName + " (prettified)",
       lineNumber: generatedPosition.line,
-      columnNumber: generatedPosition.column
-    }
+      columnNumber: generatedPosition.column,
+    },
   };
 }
 
