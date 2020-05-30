@@ -16,7 +16,7 @@ export default class Code extends React.Component<CodeProps, CodeState> {
   constructor(props) {
     super(props);
     this.state = {
-      surroundingLineCount: 5,
+      surroundingLineCount: props.defaultSurroundingLineCount || 3,
     };
   }
   render() {
@@ -221,16 +221,19 @@ export default class Code extends React.Component<CodeProps, CodeState> {
                 (true ? " fromjs-stack__code--truncated" : "")
               }
               onClick={() => {
-                const nextSurroundingLineCount = {
+                let nextSurroundingLineCount = {
                   // 1: 3,
+                  3: 7,
                   5: 7,
                   7: 20,
                   20: 3,
-                };
+                }[surroundingLineCount];
+                if (!nextSurroundingLineCount) {
+                  nextSurroundingLineCount = 7;
+                }
 
                 self.setState({
-                  surroundingLineCount:
-                    nextSurroundingLineCount[surroundingLineCount],
+                  surroundingLineCount: nextSurroundingLineCount,
                 });
               }}
             >

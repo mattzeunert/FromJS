@@ -80,6 +80,26 @@ let TraversalSteps = class TraversalSteps extends React.Component<
       };
     }
 
+    let mainSteps = [];
+
+    mainSteps.push(stepsToShow[0]);
+
+    window.__debugSteps = steps;
+    steps.forEach((s, i) => {
+      let isMemberAccessForParsedJson =
+        s.operationLog.operation === "memberExpression" &&
+        steps[i + 1] &&
+        steps[i + 1].operationLog.operation === "jsonParseResult";
+      if (
+        isMemberAccessForParsedJson ||
+        s.operationLog.operation === "stringLiteral"
+      ) {
+        if (!mainSteps.find((ms) => ms === s)) {
+          mainSteps.push(s);
+        }
+      }
+    });
+
     return (
       <div style={{ opacity: this.props.isTraversing ? 0.5 : 1, padding: 10 }}>
         <ItemWithTitle>
@@ -93,6 +113,24 @@ let TraversalSteps = class TraversalSteps extends React.Component<
             </ErrorBoundary>
           </div>
         </ItemWithTitle>
+
+        {mainSteps && (
+          <div style={{ marginTop: 20 }}>
+            {mainSteps
+              .map((step) => (
+                <div style={{ marginBottom: 10 }}>
+                  <ErrorBoundary>
+                    <TraversalStep
+                      key={step.operationLog.index}
+                      step={step}
+                      defaultCodeSurroundingLineCount={1}
+                    />
+                  </ErrorBoundary>
+                </div>
+              ))
+              .reverse()}
+          </div>
+        )}
         {/* <div
           className={cx("named-step-container", {
             "named-step-container--collapsed": !this.props.collapseDomInspector

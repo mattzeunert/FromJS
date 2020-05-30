@@ -24,6 +24,7 @@ import * as axios from "axios";
 import { traverseObject } from "@fromjs/core";
 import { prettifyAndMapFrameObject } from "./src/prettify";
 import { fixOffByOneTraversalError } from "./src/fixOffByOneTraversalError";
+import { resolve } from "dns";
 
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
@@ -1367,8 +1368,17 @@ function setupBackend(
   }, 200);
 
   app.get("/resolveStackFrame/:loc/:prettify?", (req, res) => {
-    locStore.getLoc(req.params.loc, (loc) => {
+    locStore.getLoc(req.params.loc, async (loc) => {
       let file = files.find((f) => f.url === loc.url);
+      if (file.sourceOperationLog) {
+        let sourceLog = await logServer.loadLogAwaitable(
+          file.sourceOperationLog,
+          1
+        );
+        if (sourceLog && sourceLog.runtimeArgs && sourceLog.runtimeArgs.url) {
+          file.sourceUrl = sourceLog.runtimeArgs.url;
+        }
+      }
       resolver
         .resolveFrameFromLoc(loc, req.params.prettify === "prettify")
         .then((rr: any) => {

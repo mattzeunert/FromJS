@@ -14,7 +14,11 @@ import { adjustColumnForEscapeSequences } from "../../core/src/adjustColumnForEs
 
 function getFileNameFromPath(path) {
   const parts = path.split("/");
-  return parts[parts.length - 1];
+  while (parts.length > 1 && parts.join("/").length > 30) {
+    parts.shift();
+  }
+
+  return parts.join("/");
 }
 
 type TraversalStepProps = {
@@ -106,7 +110,7 @@ let TraversalStep = class TraversalStep extends React.Component<
       try {
         if (stackFrame) {
           if (stackFrame.file && stackFrame.file.nodePath) {
-            fileName = stackFrame.file.nodePath.split("/").slice(-2).join("/");
+            fileName = stackFrame.file.nodePath;
           } else {
             const { previousLines, nextLines } = stackFrame.code;
             code = stackFrame.code.line.text;
@@ -234,7 +238,10 @@ let TraversalStep = class TraversalStep extends React.Component<
       );
     }
 
-    let shortFileName = getFileNameFromPath(fileName);
+    let shortFileName = fileName;
+    if (shortFileName.length > 25) {
+      shortFileName = getFileNameFromPath(fileName);
+    }
     if (shortFileName.length === 0) {
       // Commonly happens for HTML path that ends with /
       shortFileName = fileName;
@@ -243,6 +250,12 @@ let TraversalStep = class TraversalStep extends React.Component<
       "http://fromjs-temporary-url.com:5555/",
       ""
     );
+
+    if (stackFrame && stackFrame.file && stackFrame.file.sourceUrl) {
+      shortFileName =
+        getFileNameFromPath(stackFrame.file.sourceUrl) + " ➔ " + shortFileName;
+    }
+
     const fileNameLabel = shortFileName;
 
     let opNameToShow =
@@ -451,6 +464,9 @@ let TraversalStep = class TraversalStep extends React.Component<
               resolvedStackFrame={this.state.stackFrame}
               traversalStep={step}
               highlighNthCharAfterColumn={highlighNthCharAfterColumn}
+              defaultSurroundingLineCount={
+                this.props.defaultCodeSurroundingLineCount
+              }
             />
           )}
           <div style={{ borderTop: "1px dotted rgb(221, 221, 221)" }}>
