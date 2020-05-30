@@ -284,31 +284,29 @@ export class TextEl extends React.Component<any, any> {
       }
 
       var ret = (
-        <HorizontalScrollContainer>
-          <div className="fromjs-value">
-            <div
-              className="fromjs-value__content"
-              ref={(el) => {
-                this.scrollToHighlightedChar(el, highlightedCharLineIndex);
-              }}
-            >
-              {linesToShow.map((line, i) => {
-                var beforeSpan = null;
-                if (i === 0 && line.charOffsetStart > 0) {
-                  beforeSpan = getEllipsisSpan("beforeEllipsis");
-                }
-                var afterSpan = null;
-                if (
-                  i === linesToShow.length - 1 &&
-                  line.charOffsetEnd < val.length
-                ) {
-                  afterSpan = getEllipsisSpan("afterEllipsis");
-                }
-                return getLineComponent(line, beforeSpan, afterSpan);
-              })}
-            </div>
+        <div className="fromjs-value">
+          <div
+            className="fromjs-value__content"
+            ref={(el) => {
+              this.scrollToHighlightedChar(el, highlightedCharLineIndex);
+            }}
+          >
+            {linesToShow.map((line, i) => {
+              var beforeSpan = null;
+              if (i === 0 && line.charOffsetStart > 0) {
+                beforeSpan = getEllipsisSpan("beforeEllipsis");
+              }
+              var afterSpan = null;
+              if (
+                i === linesToShow.length - 1 &&
+                line.charOffsetEnd < val.length
+              ) {
+                afterSpan = getEllipsisSpan("afterEllipsis");
+              }
+              return getLineComponent(line, beforeSpan, afterSpan);
+            })}
           </div>
-        </HorizontalScrollContainer>
+        </div>
       );
       return ret;
     }
