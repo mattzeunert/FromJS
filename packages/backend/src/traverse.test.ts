@@ -1296,7 +1296,7 @@ describe("encodeURICompoennt", () => {
 
     var t2 = await traverse({ operationLog: tracking, charIndex: 9 });
     const t2LastStep = t2[t2.length - 1];
-    expect(t2LastStep.charIndex).toBe(4);
+    expect(t2LastStep.charIndex).toBe(5);
   });
   it("Can traverse encodeURIComponent when called with .call", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
@@ -1311,7 +1311,7 @@ describe("encodeURICompoennt", () => {
 
     var t2 = await traverse({ operationLog: tracking, charIndex: 9 });
     const t2LastStep = t2[t2.length - 1];
-    expect(t2LastStep.charIndex).toBe(4);
+    expect(t2LastStep.charIndex).toBe(5);
   });
 });
 
