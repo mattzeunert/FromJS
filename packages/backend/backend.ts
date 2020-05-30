@@ -1109,6 +1109,7 @@ function setupBackend(
         console.log("last step op", lastStep.operationLog.operation);
         if (
           lastStep.operationLog.operation !== "stringLiteral" &&
+          lastStep.operationLog.operation !== "numericLiteral" &&
           lastStep.operationLog.operation !== "templateLiteral" &&
           lastStep.operationLog.operation !== "initialPageHtml"
         ) {
@@ -1240,10 +1241,9 @@ function setupBackend(
             }
 
             if (nextStep) {
-              console.log("call fix");
               fixOffByOneTraversalError(lastStep, nextStep);
 
-              let s = (await traverse(nextStep, [], logServer, {
+              let s = (await traverse(nextStep!, [], logServer, {
                 optimistic: true,
                 events: readEvents(),
               })) as any;

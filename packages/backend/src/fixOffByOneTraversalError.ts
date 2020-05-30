@@ -5,7 +5,6 @@ export function fixOffByOneTraversalError(step, nextStep) {
   ) {
     let charBefore = step.operationLog._result[step.charIndex];
     let charNow = nextStep.operationLog._result[nextStep.charIndex];
-    console.log({ charBefore, charNow });
     if (charNow !== charBefore) {
       let prevCharNow = nextStep.operationLog._result[nextStep.charIndex - 1];
       let nextCharNow = nextStep.operationLog._result[nextStep.charIndex + 1];
