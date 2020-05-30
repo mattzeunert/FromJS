@@ -1270,7 +1270,11 @@ function setupBackend(
           // Avoid massive respondes (can be 100s of MB)
           steps.forEach((step, i) => {
             traverseObject(step, (keyPath, value, key, obj) => {
-              if (key === "_result" && JSON.stringify(value).length > 250) {
+              if (
+                key === "_result" &&
+                value &&
+                JSON.stringify(value).length > 250
+              ) {
                 obj[key] = undefined;
               }
               if (key === "jsonIndexToTrackingValue") {
