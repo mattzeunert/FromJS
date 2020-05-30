@@ -90,7 +90,12 @@ export class LogServer {
       0
     );
   }
-  loadLog(log, fn, maxDepth = Number.POSITIVE_INFINITY, currentDepth = 0) {
+  loadLog(
+    log,
+    fn: (error: any, l: OperationLog | null) => void,
+    maxDepth = Number.POSITIVE_INFINITY,
+    currentDepth = 0
+  ) {
     let logIndex;
 
     if (typeof log === "number") {
@@ -133,7 +138,7 @@ export class LogServer {
                     log,
                     (err, l) => {
                       if (err) {
-                        fn(err);
+                        fn(err, null);
                         return;
                       }
                       update(l);
@@ -286,7 +291,7 @@ export class LogServer {
     });
   }
 
-  async loadLogAwaitable(log, maxDepth) {
+  async loadLogAwaitable(log, maxDepth): Promise<OperationLog | null> {
     return new Promise((resolve, reject) => {
       this.loadLog(
         log,

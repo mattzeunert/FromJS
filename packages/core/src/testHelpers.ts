@@ -84,11 +84,11 @@ export function instrumentAndRun(
               }
               if (testIsAsync) {
                 // remove functionArgument
-                result.tracking = log.args.value;
+                result.tracking = log!.args.value;
                 resolve(result);
               } else {
                 // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
-                result.tracking = log.extraArgs.returnValue.args.returnValue;
+                result.tracking = log!.extraArgs.returnValue.args.returnValue;
                 // console.log(result.tracking)
                 resolve(result);
               }
