@@ -4,6 +4,7 @@ import TraversalStep from "./TraversalStep";
 import * as cx from "classnames";
 import { toggleShowFullDataFlow, toggleShowDOMStep } from "./actions";
 import ItemWithTitle from "./ItemWithTitle";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 type TraversalStepsProps = {
   steps?: any[];
@@ -75,7 +76,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<
       }
       return {
         charsBefore: str.slice(charIndexTwoCharsBefore, step.charIndex),
-        charsAfter: str.slice(step.charIndex, charIndexTwoCharsAfter)
+        charsAfter: str.slice(step.charIndex, charIndexTwoCharsAfter),
       };
     }
 
@@ -84,10 +85,12 @@ let TraversalSteps = class TraversalSteps extends React.Component<
         <ItemWithTitle>
           <div>Value origin</div>
           <div>
-            <TraversalStep
-              key={steps[steps.length - 1].operationLog.index}
-              step={steps[steps.length - 1]}
-            />
+            <ErrorBoundary>
+              <TraversalStep
+                key={steps[steps.length - 1].operationLog.index}
+                step={steps[steps.length - 1]}
+              />
+            </ErrorBoundary>
           </div>
         </ItemWithTitle>
         {/* <div
@@ -144,7 +147,11 @@ let TraversalSteps = class TraversalSteps extends React.Component<
               Show full data flow ({steps.length} steps)
             </button>
           )}
-        {this.props.showDOMStep && <TraversalStep step={stepsToShow[0]} />}
+        {this.props.showDOMStep && (
+          <ErrorBoundary>
+            <TraversalStep step={stepsToShow[0]} />
+          </ErrorBoundary>
+        )}
 
         {(this.props.showFullDataFlow || this.props.showDOMStep) && (
           <button
@@ -163,7 +170,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<
           <div
             className="title"
             style={{
-              cursor: "pointer"
+              cursor: "pointer",
             }}
           >
             Full data flow – the story of how the selected string was
@@ -173,9 +180,11 @@ let TraversalSteps = class TraversalSteps extends React.Component<
 
         {this.props.showFullDataFlow &&
           stepsToShow
-            .map(step => (
+            .map((step) => (
               <div style={{ marginBottom: 10 }}>
-                <TraversalStep key={step.operationLog.index} step={step} />
+                <ErrorBoundary>
+                  <TraversalStep key={step.operationLog.index} step={step} />
+                </ErrorBoundary>
               </div>
             ))
             .reverse()}
@@ -192,7 +201,7 @@ TraversalSteps = branch(
     inspectedString: ["inspectedString"],
     showFullDataFlow: ["showFullDataFlow"],
     showDOMStep: ["showDOMStep"],
-    isTraversing: ["hasInProgressRequest", "traverse"]
+    isTraversing: ["hasInProgressRequest", "traverse"],
   },
   TraversalSteps
 );
