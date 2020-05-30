@@ -1323,10 +1323,11 @@ function setupBackend(
 
   app.get("/resolveStackFrame/:loc/:prettify?", (req, res) => {
     locStore.getLoc(req.params.loc, (loc) => {
+      let file = files.find((f) => f.url === loc.url);
       resolver
         .resolveFrameFromLoc(loc, req.params.prettify === "prettify")
-        .then((rr) => {
-          res.end(JSON.stringify(rr, null, 4));
+        .then((rr: any) => {
+          res.end(JSON.stringify({ ...rr, file }, null, 4));
         });
     });
   });
