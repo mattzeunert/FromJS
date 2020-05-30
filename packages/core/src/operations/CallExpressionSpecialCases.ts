@@ -266,8 +266,20 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
                 var submatch = submatches[submatchIndex - 1]; // $n is one-based, array is zero-based
                 if (submatch === undefined) {
                   var maxSubmatchIndex = countGroupsInRegExp(getFnArg(args, 0));
+
                   var submatchIsDefinedInRegExp =
                     submatchIndex < maxSubmatchIndex;
+
+                  // handle cases like where part of the number isn't for the submatch
+                  // e.g. here the match is $1 and 234 should be kept
+                  // "".replace(/(a-z)/, "$1234")
+                  let submatchIndexStr = submatchIndex + "";
+                  let firstDigit = parseFloat(submatchIndexStr[0]);
+                  if (submatchIndex >= 10 && submatches[firstDigit - 1]) {
+                    return (
+                      submatches[firstDigit - 1] + submatchIndexStr.slice(1)
+                    );
+                  }
 
                   if (submatchIsDefinedInRegExp) {
                     submatch = "";
