@@ -396,7 +396,7 @@ describe("Can traverse string replacement calls", () => {
     expect(t1LastStep.charIndex).toBe("abbbxy".indexOf("y"));
   });
 
-  test("xxxx", async () => {
+  test("Can handle numbers after a dollar sign that don't identify the submatch", async () => {
     const { normal, tracking, code } = await instrumentAndRun(`
       var ret = "_abc#_".replace(/([a-z]+)#/g, '$1' + 123)
       return ret

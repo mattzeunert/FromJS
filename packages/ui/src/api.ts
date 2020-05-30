@@ -16,7 +16,7 @@ export function resolveStackFrame(operationLog) {
     "resolveStackFrame/" + operationLog.loc + prettifyArg,
     {},
     { method: "GET" }
-  ).then(res => {
+  ).then((res) => {
     resolveStackFrameCache[cacheKey] = res;
     return res;
   });
@@ -25,8 +25,8 @@ export function resolveStackFrame(operationLog) {
 export function inspectDomChar(charIndex) {
   console.time("inspectDomChar");
   return callApi("inspectDomChar", {
-    charIndex
-  }).then(function(re) {
+    charIndex,
+  }).then(function (re) {
     console.timeEnd("inspectDomChar");
     return re;
   });
@@ -37,7 +37,7 @@ export function callApi(endpoint, data, extraOptions: any = {}) {
   function finishRequest() {
     let apiRequestsInProgress = appState
       .get("apiRequestsInProgress")
-      .filter(request => request.requestId !== requestId);
+      .filter((request) => request.requestId !== requestId);
     appState.set("apiRequestsInProgress", apiRequestsInProgress);
   }
   appState.select("apiRequestsInProgress").push({ endpoint, data, requestId });
@@ -46,8 +46,8 @@ export function callApi(endpoint, data, extraOptions: any = {}) {
       method: "POST",
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/json"
-      } as any
+        "Content-Type": "application/json",
+      } as any,
     },
     extraOptions
   );
@@ -55,8 +55,8 @@ export function callApi(endpoint, data, extraOptions: any = {}) {
     requestDetails.body = JSON.stringify(data);
   }
   return fetch(backendRoot + "/" + endpoint, requestDetails)
-    .then(r => r.json())
-    .then(r => {
+    .then((r) => r.json())
+    .then((r) => {
       if (r.err) {
         handleError(r.err);
         return Promise.reject();
@@ -64,7 +64,7 @@ export function callApi(endpoint, data, extraOptions: any = {}) {
       finishRequest();
       return r;
     })
-    .catch(e => {
+    .catch((e) => {
       finishRequest();
       console.log(
         "Request failed:" +
@@ -83,7 +83,7 @@ const handleError = function handleError(errorMessage) {
   errorQueue.push(errorMessage);
   showErrorAlert();
 };
-let showErrorAlert = debounce(function() {
+let showErrorAlert = debounce(function () {
   alert("Errors: \n" + errorQueue.join("\n\n"));
   errorQueue = [];
 }, 100);
@@ -91,7 +91,7 @@ let showErrorAlert = debounce(function() {
 export function makeFEOperationLog(log) {
   if (log.args) {
     const newArgs = {};
-    Object.keys(log.args).forEach(key => {
+    Object.keys(log.args).forEach((key) => {
       const argLog = log.args[key];
       newArgs[key] =
         argLog && typeof argLog === "object" && makeFEOperationLog(argLog);
@@ -101,7 +101,7 @@ export function makeFEOperationLog(log) {
 
   if (log.extraArgs) {
     const newExtraArgs = {};
-    Object.keys(log.extraArgs).forEach(key => {
+    Object.keys(log.extraArgs).forEach((key) => {
       const argLog = log.extraArgs[key];
       newExtraArgs[key] =
         argLog && typeof argLog === "object" && makeFEOperationLog(argLog);
@@ -113,12 +113,24 @@ export function makeFEOperationLog(log) {
 }
 
 export function loadSteps({ logId, charIndex }) {
-  return callApi("traverse", { logId: logId, charIndex }).then(steps => {
+  return callApi(
+    `traverse?logId=${logId}&charIndex=${charIndex}`,
+    {},
+    { method: "GET" }
+  ).then((steps) => {
     steps.steps.forEach(
-      step => (step.operationLog = makeFEOperationLog(step.operationLog))
+      (step) => (step.operationLog = makeFEOperationLog(step.operationLog))
     );
     return steps;
   });
+}
+
+export function loadLogResult(logId, inspectedCharIndex) {
+  return callApi(
+    "logResult/" + logId + "/" + inspectedCharIndex,
+    {},
+    { method: "GET" }
+  );
 }
 
 export function setEnableInstrumentation(enableInstrumentation) {
@@ -128,7 +140,7 @@ export function setEnableInstrumentation(enableInstrumentation) {
 
 var exampleSocket = new WebSocket("ws://127.0.0.1:" + backendPort);
 
-exampleSocket.onmessage = function(event) {
+exampleSocket.onmessage = function (event) {
   // console.log("websocket onmessage", event.data);
   const message = JSON.parse(event.data);
 
@@ -142,7 +154,7 @@ exampleSocket.onmessage = function(event) {
 function handleDomToInspectMessage(message) {
   appState.set("domToInspect", {
     outerHTML: message.html,
-    charIndex: message.charIndex
+    charIndex: message.charIndex,
   });
 
   selectInspectedDomCharIndex(message.charIndex);

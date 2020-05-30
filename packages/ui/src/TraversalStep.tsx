@@ -1,7 +1,7 @@
 import * as React from "react";
 import { branch, root } from "baobab-react/higher-order";
 import OperationLogTreeView from "./OperationLogTreeView";
-import { resolveStackFrame } from "./api";
+import { resolveStackFrame, loadLogResult } from "./api";
 import appState from "./appState";
 import { TextEl } from "./TextEl";
 import Code from "./Code";
@@ -23,6 +23,7 @@ type TraversalStepProps = {
 };
 type TraversalStepState = {
   stackFrame: any;
+  logResult: any;
   showLogJson: boolean;
   showTree: boolean;
   isExpanded: boolean;
@@ -57,6 +58,10 @@ let TraversalStep = class TraversalStep extends React.Component<
         })
         .catch((err) => "yolo");
     }
+
+    loadLogResult(step.operationLog.index, step.charIndex).then((lr) => {
+      this.setState({ logResult: lr });
+    });
   }
 
   needsToLoadLocation(operationLog) {
@@ -77,12 +82,19 @@ let TraversalStep = class TraversalStep extends React.Component<
 
   render() {
     const { step, debugMode } = this.props;
-    const { charIndex, operationLog } = step;
+    let { charIndex, operationLog } = step;
     const { showTree, showLogJson, stackFrame } = this.state;
     let { isExpanded } = this.state;
     let code;
     let fileName, columnNumber, lineNumber;
     let previousLine, nextLine;
+
+    if (this.state.logResult) {
+      operationLog = new OperationLog({
+        ...operationLog,
+        _result: this.state.logResult,
+      });
+    }
 
     // if (operationLog.result.type === "object") {
     //   // the user probably cares about the arguments

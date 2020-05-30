@@ -21,6 +21,7 @@ import * as puppeteer from "puppeteer";
 import { initSessionDirectory } from "./initSession";
 import { compileNodeApp } from "./compileNodeApp";
 import * as axios from "axios";
+import { traverseObject } from "@fromjs/core";
 
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
@@ -1247,31 +1248,20 @@ function setupBackend(
           return;
         }
 
-        // steps.forEach((step, i) => {
-        //   Object.keys(step.operationLog.args).forEach((key) => {
-        //     if (!step.operationLog.args[key]) {
-        //       return;
-        //     }
-
-        //     let r = step.operationLog.args[key]._result;
-        //     if (typeof r === "string" && r.length > 10000) {
-        //       step.operationLog.args[key]._result = "";
-        //     }
-        //   });
-        //   Object.keys(step.operationLog.extraArgs || {}).forEach((key) => {
-        //     if (!step.operationLog.extraArgs[key]) {
-        //       return;
-        //     }
-
-        //     let r = step.operationLog.extraArgs[key]._result;
-        //     if (typeof r === "string" && r.length > 10000) {
-        //       step.operationLog.extraArgs[key]._result = "";
-        //     }
-        //   });
-        //   if (i < steps.length - 2) {
-        //     step.operationLog._result = "";
-        //   }
-        // });
+        // Avoid massive respondes (can be 100s of MB)
+        steps.forEach((step, i) => {
+          traverseObject(step, (keyPath, value, key, obj) => {
+            if (key === "_result") {
+              obj[key] = undefined;
+            }
+            if (key === "jsonIndexToTrackingValue") {
+              obj[key] = "omitted";
+            }
+            if (key.startsWith("replacement")) {
+              obj[key] = undefined;
+            }
+          });
+        });
 
         resolve(steps);
       };
@@ -1301,9 +1291,17 @@ function setupBackend(
     i.next(iterate);
   });
 
-  app.post("/traverse", async (req, res) => {
-    const { logId, charIndex } = req.body;
-    let ret = (await handleTraverse(logId, charIndex)) as any;
+  app.get("/logResult/:logIndex/:charIndex", async (req, res) => {
+    let log = (await logServer.loadLogAwaitable(req.params.logIndex, 1)) as any;
+    res.json(log._result);
+  });
+
+  app.get("/traverse", async (req, res) => {
+    const { logId, charIndex } = req.query;
+    let ret = (await handleTraverse(
+      parseFloat(logId),
+      parseFloat(charIndex)
+    )) as any;
     if (ret.err) {
       res.status(500);
       res.end(
@@ -1312,7 +1310,7 @@ function setupBackend(
         })
       );
     } else {
-      res.end(JSON.stringify({ steps: ret }));
+      res.end(JSON.stringify({ steps: ret }, null, 2));
     }
   });
 

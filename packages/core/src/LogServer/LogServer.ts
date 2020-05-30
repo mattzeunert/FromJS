@@ -95,6 +95,8 @@ export class LogServer {
 
     if (typeof log === "number") {
       logIndex = log;
+    } else if (typeof log === "string") {
+      logIndex = parseFloat(log);
     } else {
       logIndex = log.index;
     }
