@@ -312,6 +312,7 @@ const CallExpression = <any>{
       function setFunction(f) {
         fn = f;
       }
+
       const fnProcessorArgs: FnProcessorArgs = {
         extraState,
         setArgValuesForApply,
@@ -331,6 +332,12 @@ const CallExpression = <any>{
           fnArgTrackingValues[index] = val;
         }
       };
+
+      if (functionIsCallOrApply) {
+        // fnProcessorArgs.fn = object;
+        fnProcessorArgs.object = fnArgValues[0];
+        fnProcessorArgs.context = [fnArgValues[0], fnArgTrackingValues[0]];
+      }
 
       return fnProcessorArgs;
     }

@@ -214,6 +214,17 @@ describe("Node", () => {
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.operationLog.result.primitive).toBe("a");
   }, 120000);
+
+  it("intl test", async () => {
+    let { execDuration, compileDuration, traverse } = await runTest("intl", {
+      ignoreFilePattern: /dist/,
+    });
+
+    let { step } = await traverse(0);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("binaryExpression");
+    expect(step.operationLog.result.primitive).toBe(12345678.9);
+  }, 120000);
 });
 
 export function getCmdOutput(
