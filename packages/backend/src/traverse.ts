@@ -1,4 +1,5 @@
 import { operations, OperationLog } from "@fromjs/core";
+import { fixOffByOneTraversalError } from "./fixOffByOneTraversalError";
 
 export interface TraversalStep {
   charIndex: number;
@@ -54,7 +55,7 @@ export async function traverse(
       try {
         nextStep.operationLog = await server.loadLogAwaitable(
           nextStep.operationLog,
-          5
+          2
         );
       } catch (err) {
         reject(err);
@@ -66,6 +67,7 @@ export async function traverse(
       nextStep.operationLog &&
       nextStep.operationLog.result.primitive === "";
     if (nextStep && nextStep.operationLog && !hasEmptyStepResult) {
+      fixOffByOneTraversalError(step, nextStep);
       traverse(nextStep, steps, server, options)
         .then(() => {
           resolve(steps);

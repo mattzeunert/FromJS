@@ -23,6 +23,7 @@ import { compileNodeApp } from "./compileNodeApp";
 import * as axios from "axios";
 import { traverseObject } from "@fromjs/core";
 import { prettifyAndMapFrameObject } from "./src/prettify";
+import { fixOffByOneTraversalError } from "./src/fixOffByOneTraversalError";
 
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
@@ -1169,12 +1170,18 @@ function setupBackend(
             lastStep.charIndex;
 
           // // this makes stuff better... maybe it adjusts for the quote sign for string literals in the code?
+          // i think it also causes off-by-one errors, but we fix those with fixOffByOneTraversalError
           charIndex++;
 
           console.log("will traverse", file);
+
+          let operationLog = await logServer.loadLogAwaitable(
+            file.sourceOperationLog,
+            1
+          );
           return {
             charIndex,
-            operationLog: file.sourceOperationLog,
+            operationLog,
           };
         }
       }
@@ -1224,9 +1231,14 @@ function setupBackend(
                   JSON.stringify(nextStep).slice(0, 100)
                 );
               }
+            } else {
+              console.log("FILE CONT");
             }
 
             if (nextStep) {
+              console.log("call fix");
+              fixOffByOneTraversalError(lastStep, nextStep);
+
               let s = (await traverse(nextStep, [], logServer, {
                 optimistic: true,
                 events: readEvents(),
@@ -1296,11 +1308,7 @@ function setupBackend(
     let log = (await logServer.loadLogAwaitable(req.params.logIndex, 1)) as any;
 
     let json;
-    console.log(
-      typeof log._result,
-      log._result.length,
-      log._result.includes("\n")
-    );
+
     if (
       typeof log._result === "string" &&
       log._result.length > 100 &&
