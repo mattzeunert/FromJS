@@ -12,6 +12,16 @@ import "./TraversalStep.scss";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
 import { adjustColumnForEscapeSequences } from "../../core/src/adjustColumnForEscapeSequences";
 
+function truncate(str, maxLength) {
+  if (!str || !str.slice) {
+    return str;
+  }
+  if (str.length <= maxLength) {
+    return str;
+  }
+  return str.slice(0, maxLength - 1) + "...";
+}
+
 function getFileNameFromPath(path) {
   const parts = path.split("/");
   while (parts.length > 1 && parts.join("/").length > 30) {
@@ -222,6 +232,8 @@ let TraversalStep = class TraversalStep extends React.Component<
           .slice(-1)[0];
       } else if (operationLog.operation === "fileContent") {
         operationTypeDetail = operationLog.runtimeArgs.path;
+      } else if (stackFrame && stackFrame.loc && stackFrame.loc.objectPath) {
+        operationTypeDetail = truncate(stackFrame.loc.objectPath.join("."), 70);
       }
     } catch (err) {
       console.log(err);

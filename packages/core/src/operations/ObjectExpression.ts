@@ -14,7 +14,7 @@ const OBJECT_SPREAD_ELEMENT = EXPLICIT_NAMES ? "SpreadElement" : "se";
 
 var traverseFullObjectExpression = function traverseFullObjectExpression(
   node,
-  keyPath = []
+  keyPath
 ) {
   if (node._didAddObjectPaths) {
     return;
@@ -135,7 +135,11 @@ export default <any>{
 
     // Add objectPath to values – we use that in the UI to show what the
     // surrounding object is when users can only see a few lines of it
-    traverseFullObjectExpression(path.node);
+    let initialPath = [];
+    if (path.parentPath.node.type === "VariableDeclarator") {
+      initialPath.push(path.parentPath.node.id.name);
+    }
+    traverseFullObjectExpression(path.node, initialPath);
 
     function makeArray(type, key, value, kind?) {
       var ret = [type, key, value];

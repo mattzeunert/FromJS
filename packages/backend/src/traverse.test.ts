@@ -2833,7 +2833,6 @@ describe("Doesn't really test traversal", () => {
     const loc = await logServer._locStore.getLocAwaitable(
       step.operationLog.loc
     );
-    console.log(loc);
-    expect(loc.objectPath).toEqual(["somekey", "something", "key"]);
+    expect(loc.objectPath).toEqual(["obj", "somekey", "something", "key"]);
   });
 });
