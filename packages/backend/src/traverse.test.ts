@@ -410,6 +410,17 @@ describe("Can traverse string replacement calls", () => {
     const t1LastStep = t1[t1.length - 1];
     expect(t1LastStep.charIndex).toBe("abbbxy".indexOf("y"));
   });
+
+  test("Doesn't break replace with numbers after dollar sign if there's a subgroup but no submatch", async () => {
+    const { normal, tracking, code } = await instrumentAndRun(`
+    var ret = "# insecure requests found".replace(/(^|[^\\\\])#/g, '$1' + 555)
+    return ret
+  `);
+    expect(normal).toBe("555 insecure requests found");
+    var t1 = await traverse({ operationLog: tracking, charIndex: 1 });
+    const t1LastStep = t1[t1.length - 1];
+    expect(t1LastStep.operationLog.operation).toBe("numericLiteral");
+  });
 });
 
 describe("JSON.parse", () => {

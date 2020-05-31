@@ -275,7 +275,7 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
                   // "".replace(/(a-z)/, "$1234")
                   let submatchIndexStr = submatchIndex + "";
                   let firstDigit = parseFloat(submatchIndexStr[0]);
-                  if (submatchIndex >= 10 && submatches[firstDigit - 1]) {
+                  if (submatchIndex >= 10) {
                     return (
                       submatches[firstDigit - 1] + submatchIndexStr.slice(1)
                     );
