@@ -12,10 +12,7 @@ const OBJECT_METHOD = EXPLICIT_NAMES ? "ObjectMethod" : "met";
 const OBJECT_PROPERTY = EXPLICIT_NAMES ? "ObjectProperty" : "pr";
 const OBJECT_SPREAD_ELEMENT = EXPLICIT_NAMES ? "SpreadElement" : "se";
 
-var traverseFullObjectExpression = function traverseFullObjectExpression(
-  node,
-  keyPath
-) {
+function traverseFullObjectExpression(node, keyPath: string[]) {
   if (node._didAddObjectPaths) {
     return;
   }
@@ -30,7 +27,7 @@ var traverseFullObjectExpression = function traverseFullObjectExpression(
       }
     }
   });
-};
+}
 
 export default <any>{
   argNames: ["property"],
@@ -135,7 +132,7 @@ export default <any>{
 
     // Add objectPath to values – we use that in the UI to show what the
     // surrounding object is when users can only see a few lines of it
-    let initialPath = [];
+    let initialPath: string[] = [];
     if (path.parentPath.node.type === "VariableDeclarator") {
       initialPath.push(path.parentPath.node.id.name);
     }

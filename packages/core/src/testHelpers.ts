@@ -28,7 +28,7 @@ interface InstrumentAndRunResult {
   code: string;
   tracking?: OperationLog;
   normal?: any;
-  logServer: InMemoryLogServer;
+  logServer?: InMemoryLogServer;
 }
 
 export function instrumentAndRun(

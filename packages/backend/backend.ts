@@ -1350,9 +1350,14 @@ function setupBackend(
 
   app.get("/traverse", async (req, res) => {
     const { logId, charIndex } = req.query;
+    const opts = {
+      keepResultData: "keepResultData" in req.query,
+    };
+    console.log(opts);
     let ret = (await handleTraverse(
       parseFloat(logId),
-      parseFloat(charIndex)
+      parseFloat(charIndex),
+      opts
     )) as any;
     if (ret.err) {
       res.status(500);

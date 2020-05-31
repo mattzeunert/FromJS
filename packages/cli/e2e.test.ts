@@ -81,11 +81,11 @@ function inspectDomChar(charIndex) {
 
 function traverse(firstStep) {
   return new Promise((resolve) => {
-    request.post(
+    request.get(
       {
-        url: "http://localhost:" + backendPort + "/traverse",
-        json: firstStep,
+        url: `http://localhost:${backendPort}/traverse?logId=${firstStep.logId}&charIndex=${firstStep.charIndex}&keepResultData=true`,
         rejectUnauthorized: false,
+        json: true,
       },
       function (err, resp, body) {
         if (err) {
@@ -120,7 +120,8 @@ async function inspectDomCharAndTraverse(charIndex, isSecondTry = false) {
       console.log(firstStep);
       throw Error("Seems like no tracking data ");
     }
-    const steps = ((await traverse(firstStep)) as any)["steps"];
+    const res = (await traverse(firstStep)) as any;
+    const steps = res["steps"];
     const lastStep = steps[steps.length - 1];
     return {
       charIndex: lastStep.charIndex,
