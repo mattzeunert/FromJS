@@ -2804,6 +2804,36 @@ it("Can traverse Intl.NumberFormat().format", async () => {
   expect(normal).toBe("10,000");
 
   let step = await traverseAndGetLastStep(tracking, 0);
-  console.log(JSON.stringify(step, null, 2));
   expect(step.operationLog.operation).toBe("numericLiteral");
+});
+
+describe("Doesn't really test traversal", () => {
+  it("Includes object path for string literal in Object Expression", async () => {
+    const { normal, tracking, code, logServer } = await instrumentAndRun(
+      `
+        const obj = {
+          somekey: {
+            something: {
+              key: "xyz"
+            }
+          }
+        }
+
+        return obj.somekey.something.key;
+      `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("xyz");
+
+    let step = await traverseAndGetLastStep(tracking, 0);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+
+    const loc = await logServer._locStore.getLocAwaitable(
+      step.operationLog.loc
+    );
+    console.log(loc);
+    expect(loc.objectPath).toEqual(["somekey", "something", "key"]);
+  });
 });

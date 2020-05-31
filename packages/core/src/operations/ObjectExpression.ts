@@ -12,6 +12,26 @@ const OBJECT_METHOD = EXPLICIT_NAMES ? "ObjectMethod" : "met";
 const OBJECT_PROPERTY = EXPLICIT_NAMES ? "ObjectProperty" : "pr";
 const OBJECT_SPREAD_ELEMENT = EXPLICIT_NAMES ? "SpreadElement" : "se";
 
+var traverseFullObjectExpression = function traverseFullObjectExpression(
+  node,
+  keyPath = []
+) {
+  if (node._didAddObjectPaths) {
+    return;
+  }
+  node._didAddObjectPaths = true;
+  node.properties.forEach(prop => {
+    if (prop.key && (prop.key.value || prop.key.name)) {
+      let propKeyPath = [...keyPath, prop.key.value || prop.key.name];
+      if (prop.value.type === "ObjectExpression") {
+        traverseFullObjectExpression(prop.value, propKeyPath);
+      } else {
+        prop.value.loc.objectPath = propKeyPath;
+      }
+    }
+  });
+};
+
 export default <any>{
   argNames: ["property"],
   argIsArray: [true],
@@ -112,6 +132,10 @@ export default <any>{
         }
       }
     });
+
+    // Add objectPath to values – we use that in the UI to show what the
+    // surrounding object is when users can only see a few lines of it
+    traverseFullObjectExpression(path.node);
 
     function makeArray(type, key, value, kind?) {
       var ret = [type, key, value];

@@ -36,4 +36,16 @@ export class LocStore {
       callback(JSON.parse(value.toString()));
     });
   }
+
+  async getLocAwaitable(loc): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.getLoc(loc, (err, value) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(value);
+        }
+      });
+    });
+  }
 }

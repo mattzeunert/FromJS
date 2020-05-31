@@ -15,6 +15,11 @@ const inMemoryLocStore: any = {
   },
   getLoc(locId, callback) {
     callback(this._locs[locId]);
+  },
+  async getLocAwaitable(locId) {
+    return new Promise(resolve => {
+      this.getLoc(locId, resolve);
+    });
   }
 };
 const server = new InMemoryLogServer(inMemoryLocStore);
@@ -23,6 +28,7 @@ interface InstrumentAndRunResult {
   code: string;
   tracking?: OperationLog;
   normal?: any;
+  logServer: InMemoryLogServer;
 }
 
 export function instrumentAndRun(
@@ -74,6 +80,8 @@ export function instrumentAndRun(
       function finishRunning() {
         delete global["__didInitializeDataFlowTracking"];
         result.code = relevantCode; // only the interesting code
+
+        result.logServer = server;
 
         if (result.tracking) {
           server.loadLog(

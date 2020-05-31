@@ -1386,7 +1386,7 @@ function setupBackend(
       resolver
         .resolveFrameFromLoc(loc, req.params.prettify === "prettify")
         .then((rr: any) => {
-          res.end(JSON.stringify({ ...rr, file }, null, 4));
+          res.end(JSON.stringify({ ...rr, file, loc }, null, 4));
         });
     });
   });
