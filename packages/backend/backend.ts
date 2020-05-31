@@ -5,7 +5,7 @@ import {
   LocLogs,
   traverseDomOrigin,
 } from "@fromjs/core";
-import { traverse } from "./src/traverse";
+import { traverse, TraversalStep } from "./src/traverse";
 import StackFrameResolver from "./src/StackFrameResolver";
 import * as fs from "fs";
 import * as crypto from "crypto";
@@ -29,6 +29,12 @@ import { resolve } from "dns";
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
 const GENERATE_DERIVED = false;
+
+let reportHtmlFileInfo = {
+  url: "http://localhost:4444/report.html",
+  sourceOperationLog: parseFloat(process.env.REPORT_TV!),
+  sourceOffset: 0,
+};
 
 let uiDir = require
   .resolve("@fromjs/ui")
@@ -1078,11 +1084,110 @@ function setupBackend(
     }, 500);
   });
 
+  async function getNextStepFromFileContents(lastStep, loc: any = null) {
+    console.log("last step op", lastStep.operationLog.operation);
+    if (
+      lastStep.operationLog.operation !== "stringLiteral" &&
+      lastStep.operationLog.operation !== "numericLiteral" &&
+      lastStep.operationLog.operation !== "templateLiteral" &&
+      lastStep.operationLog.operation !== "initialPageHtml"
+    ) {
+      // if e.g. it's a localstorage value then we don't want to
+      // inspect the code for it!!
+      // really mostly just string literal has that kind of sensible mapping
+      return;
+    }
+
+    let overwriteFile: any = null;
+    if (
+      lastStep.operationLog.operation === "initialPageHtml" &&
+      process.env.REPORT_TV
+    ) {
+      overwriteFile = reportHtmlFileInfo;
+    } else if (!lastStep.operationLog.loc) {
+      return;
+    }
+
+    if (!loc) {
+      if (overwriteFile) {
+        loc = {
+          url: overwriteFile.url,
+          start: {
+            line: 1,
+            column: 0,
+          },
+        };
+      } else if (lastStep.operationLog.loc) {
+        console.log(JSON.stringify(lastStep, null, 2));
+        loc = (await new Promise((resolve) =>
+          locStore.getLoc(lastStep.operationLog.loc, (loc) => resolve(loc))
+        )) as any;
+      }
+    }
+
+    let file = files.find((f) => f.url === loc.url);
+    if (overwriteFile) {
+      file = overwriteFile;
+    }
+    if (file.sourceOperationLog) {
+      // const log = await logServer.loadLogAwaitable(
+      //   file.sourceOperationLog,
+      //   1
+      // );
+
+      let { body: fileContent } = await getRequestHandler().handleRequest({
+        url: loc.url + "?dontprocess",
+        method: "GET",
+        headers: {},
+      });
+      let lineColumn = require("line-column");
+      let charIndex =
+        lineColumn(fileContent.toString()).toIndex({
+          line: loc.start.line,
+          column: loc.start.column + 1, // lineColumn uses origin of 1, but babel uses 0
+        }) +
+        file.sourceOffset +
+        lastStep.charIndex;
+
+      // // this makes stuff better... maybe it adjusts for the quote sign for string literals in the code?
+      // i think it also causes off-by-one errors, but we fix those with fixOffByOneTraversalError
+      charIndex++;
+
+      console.log("will traverse", file);
+
+      let operationLog = await logServer.loadLogAwaitable(
+        file.sourceOperationLog,
+        1
+      );
+      return {
+        charIndex,
+        operationLog,
+      };
+    }
+  }
+
+  async function getNextStepFromLuckyMatches(lastStep) {
+    let stepToUse = lastStep;
+    if (!stepToUse || stepToUse.operationLog.result.type === "undefined") {
+      return;
+    }
+    const luckyMatches: any[] = readLuckyMatches();
+    const match = luckyMatches.find(
+      (m) => m.value === stepToUse.operationLog.result.primitive
+    );
+    if (match) {
+      return {
+        operationLog: match.trackingValue,
+        charIndex: stepToUse.charIndex,
+      };
+    }
+  }
+
   function handleTraverse(
     logId,
     charIndex,
     opts: { keepResultData?: boolean } = {}
-  ) {
+  ): Promise<TraversalStep[]> {
     return new Promise((resolve) => {
       const tryTraverse = (previousAttempts = 0) => {
         logServer.hasLog(logId, (hasLog) => {
@@ -1095,7 +1200,7 @@ function setupBackend(
               resolve({
                 err:
                   "Log not found (" + logId + ")- might still be saving data",
-              });
+              } as any);
               return;
             } else {
               setTimeout(() => {
@@ -1105,109 +1210,6 @@ function setupBackend(
           }
         });
       };
-
-      async function getNextStepFromFileContents(lastStep) {
-        console.log("last step op", lastStep.operationLog.operation);
-        if (
-          lastStep.operationLog.operation !== "stringLiteral" &&
-          lastStep.operationLog.operation !== "numericLiteral" &&
-          lastStep.operationLog.operation !== "templateLiteral" &&
-          lastStep.operationLog.operation !== "initialPageHtml"
-        ) {
-          // if e.g. it's a localstorage value then we don't want to
-          // inspect the code for it!!
-          // really mostly just string literal has that kind of sensible mapping
-          return;
-        }
-
-        let overwriteFile: any = null;
-        if (
-          lastStep.operationLog.operation === "initialPageHtml" &&
-          process.env.REPORT_TV
-        ) {
-          overwriteFile = {
-            url: "http://localhost:4444/report.html",
-            sourceOperationLog: parseFloat(process.env.REPORT_TV),
-            sourceOffset: 0,
-          };
-        } else if (!lastStep.operationLog.loc) {
-          return;
-        }
-
-        let loc;
-
-        if (overwriteFile) {
-          loc = {
-            url: overwriteFile.url,
-            start: {
-              line: 1,
-              column: 0,
-            },
-          };
-        } else if (lastStep.operationLog.loc) {
-          console.log(JSON.stringify(lastStep, null, 2));
-          loc = (await new Promise((resolve) =>
-            locStore.getLoc(lastStep.operationLog.loc, (loc) => resolve(loc))
-          )) as any;
-        }
-
-        let file = files.find((f) => f.url === loc.url);
-        if (overwriteFile) {
-          file = overwriteFile;
-        }
-        if (file.sourceOperationLog) {
-          // const log = await logServer.loadLogAwaitable(
-          //   file.sourceOperationLog,
-          //   1
-          // );
-
-          let { body: fileContent } = await getRequestHandler().handleRequest({
-            url: loc.url + "?dontprocess",
-            method: "GET",
-            headers: {},
-          });
-          let lineColumn = require("line-column");
-          let charIndex =
-            lineColumn(fileContent.toString()).toIndex({
-              line: loc.start.line,
-              column: loc.start.column + 1, // lineColumn uses origin of 1, but babel uses 0
-            }) +
-            file.sourceOffset +
-            lastStep.charIndex;
-
-          // // this makes stuff better... maybe it adjusts for the quote sign for string literals in the code?
-          // i think it also causes off-by-one errors, but we fix those with fixOffByOneTraversalError
-          charIndex++;
-
-          console.log("will traverse", file);
-
-          let operationLog = await logServer.loadLogAwaitable(
-            file.sourceOperationLog,
-            1
-          );
-          return {
-            charIndex,
-            operationLog,
-          };
-        }
-      }
-
-      async function getNextStepFromLuckyMatches(lastStep) {
-        let stepToUse = lastStep;
-        if (!stepToUse || stepToUse.operationLog.result.type === "undefined") {
-          return;
-        }
-        const luckyMatches: any[] = readLuckyMatches();
-        const match = luckyMatches.find(
-          (m) => m.value === stepToUse.operationLog.result.primitive
-        );
-        if (match) {
-          return {
-            operationLog: match.trackingValue,
-            charIndex: stepToUse.charIndex,
-          };
-        }
-      }
 
       const finishRequest = async function finishRequest() {
         let steps;
@@ -1262,7 +1264,7 @@ function setupBackend(
           console.log(err);
           resolve({
             err: "Log not found in backend, or other error(" + logId + ")",
-          });
+          } as any);
           return;
         }
 
@@ -1386,6 +1388,22 @@ function setupBackend(
         );
         if (sourceLog && sourceLog.runtimeArgs && sourceLog.runtimeArgs.url) {
           file.sourceUrl = sourceLog.runtimeArgs.url;
+          if (file.sourceUrl === reportHtmlFileInfo.url) {
+            let htmlStep = await getNextStepFromFileContents(
+              {
+                operationLog: sourceLog,
+                charIndex: file.sourceOffset,
+              },
+              loc
+            );
+            if (htmlStep) {
+              let steps = await handleTraverse(
+                htmlStep.operationLog?.index,
+                htmlStep.charIndex
+              );
+              file.lastSourceTraversalStep = steps[steps.length - 1];
+            }
+          }
         }
       }
       resolver

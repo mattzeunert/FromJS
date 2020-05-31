@@ -266,6 +266,21 @@ let TraversalStep = class TraversalStep extends React.Component<
     if (stackFrame && stackFrame.file && stackFrame.file.sourceUrl) {
       shortFileName =
         getFileNameFromPath(stackFrame.file.sourceUrl) + " ➔ " + shortFileName;
+
+      let lsts = stackFrame.file.lastSourceTraversalStep;
+
+      if (
+        lsts &&
+        lsts.operationLog &&
+        lsts.operationLog.runtimeArgs &&
+        (lsts.operationLog.runtimeArgs.filePath ||
+          lsts.operationLog.runtimeArgs.path)
+      ) {
+        shortFileName += ` (${getFileNameFromPath(
+          lsts.operationLog.runtimeArgs.filePath ||
+            lsts.operationLog.runtimeArgs.path
+        )})`;
+      }
     }
 
     const fileNameLabel = shortFileName;
