@@ -18,7 +18,7 @@ function traverseFullObjectExpression(node, keyPath: string[]) {
   }
   node._didAddObjectPaths = true;
   node.properties.forEach(prop => {
-    if (prop.key && (prop.key.value || prop.key.name)) {
+    if (prop.value && prop.key && (prop.key.value || prop.key.name)) {
       let propKeyPath = [...keyPath, prop.key.value || prop.key.name];
       if (prop.value.type === "ObjectExpression") {
         traverseFullObjectExpression(prop.value, propKeyPath);
