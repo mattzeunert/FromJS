@@ -2830,7 +2830,7 @@ describe("Doesn't really test traversal", () => {
     console.log(JSON.stringify(step, null, 2));
     expect(step.operationLog.operation).toBe("stringLiteral");
 
-    const loc = await logServer._locStore.getLocAwaitable(
+    const loc = await logServer!._locStore.getLocAwaitable(
       step.operationLog.loc
     );
     expect(loc.objectPath).toEqual(["obj", "somekey", "something", "key"]);

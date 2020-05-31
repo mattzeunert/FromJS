@@ -1244,7 +1244,7 @@ function setupBackend(
             if (nextStep) {
               fixOffByOneTraversalError(lastStep, nextStep);
 
-              let s = (await traverse(nextStep!, [], logServer, {
+              let s = (await traverse(nextStep as any, [], logServer, {
                 optimistic: true,
                 events: readEvents(),
               })) as any;
