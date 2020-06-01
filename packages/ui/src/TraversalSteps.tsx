@@ -85,15 +85,27 @@ let TraversalSteps = class TraversalSteps extends React.Component<
     mainSteps.push(stepsToShow[0]);
 
     window.__debugSteps = steps;
-    steps.forEach((s, i) => {
+    steps.slice(0, -1).forEach((s, i) => {
+      let stepCloserToInspectedValue = steps[i + 1];
+      let stepCloserToValueOrigin = steps[i - 1];
+
       let isMemberAccessForParsedJson =
         s.operationLog.operation === "memberExpression" &&
         steps[i + 1] &&
         steps[i + 1].operationLog.operation === "jsonParseResult";
-      if (
+
+      // E.g. if we make an optimistic traversal of a number
+      // we want to show the last previous number before it was modified
+      let charWillChange =
+        stepCloserToValueOrigin &&
+        stepCloserToValueOrigin.chars[1] !== s.chars[1];
+
+      let isMainStep =
         isMemberAccessForParsedJson ||
-        s.operationLog.operation === "stringLiteral"
-      ) {
+        s.operationLog.operation === "stringLiteral" ||
+        charWillChange;
+
+      if (isMainStep) {
         if (!mainSteps.find((ms) => ms === s)) {
           mainSteps.push(s);
         }
@@ -163,7 +175,8 @@ let TraversalSteps = class TraversalSteps extends React.Component<
         } */}
         <div style={{ height: 10 }} />
 
-        {inspectedStringType === "dom" &&
+        {/* not really needed any more since it'll be shown by default */}
+        {/* {inspectedStringType === "dom" &&
           !this.props.showDOMStep &&
           !this.props.showFullDataFlow && (
             <button
@@ -174,7 +187,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<
             >
               Show DOM transition step
             </button>
-          )}
+          )} */}
         {!this.props.showFullDataFlow &&
           !this.props.showDOMStep &&
           steps.length > 1 && (

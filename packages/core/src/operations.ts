@@ -135,6 +135,7 @@ const operations: Operations = {
       const rightIsNumericLiteral = right.operation === "numericLiteral";
       const numericLiteralCount =
         (leftIsNumericLiteral ? 1 : 0) + (rightIsNumericLiteral ? 1 : 0);
+
       if (options && options.optimistic && numericLiteralCount === 1) {
         // We can't be quite sure, but probably the user cares about the
         // more complex value, not the simple hard coded value
@@ -146,8 +147,49 @@ const operations: Operations = {
         };
       }
 
+      function looksLikeNumericConstant(operationLog) {
+        if (operationLog._result && operationLog._result.type === "undefined") {
+          // mostly doing this because right now function paramters with a default value
+          // don't get a tracking value...
+          return true;
+        }
+        if (typeof operationLog._result !== "number") {
+          return false;
+        }
+        return [0.1, 10, 100, 1000].includes(operationLog._result);
+      }
+      let leftLooksLikeNumericConstant = looksLikeNumericConstant(left);
+      let rightLooksLikeNumericConstant = looksLikeNumericConstant(right);
+      let numericConstantCount =
+        (leftLooksLikeNumericConstant ? 1 : 0) +
+        (rightLooksLikeNumericConstant ? 1 : 0);
+      if (
+        options &&
+        options.optimistic &&
+        numericConstantCount === 1 &&
+        left._result !== 0 &&
+        right._result !== 0
+      ) {
+        const complexOperation = leftLooksLikeNumericConstant ? right : left;
+        return {
+          isOptimistic: true,
+          charIndex,
+          operationLog: complexOperation
+        };
+      }
+
       if (operator == "+") {
-        return traverseConcat(left, right, charIndex);
+        let nextStep = traverseConcat(left, right, charIndex);
+        if (
+          nextStep &&
+          nextStep.operationLog &&
+          nextStep.operationLog._result === 0
+        ) {
+          // Ignore step... traversal to number 0 usually isn't interesting
+          return undefined;
+        }
+
+        return nextStep;
       } else {
         console.log("todo binexp operator " + operator);
       }

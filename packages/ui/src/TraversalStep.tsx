@@ -286,7 +286,6 @@ let TraversalStep = class TraversalStep extends React.Component<
     let isFileContent =
       operationLog.operation === "fileContent" ||
       operationLog.operation === "readFileSyncResult";
-    console.log(operationLog.operation, { isFileContent });
     let hasFormattedJson = logResult && logResult.json;
     let showMoreResultValueLines = hasFormattedJson || isFileContent;
 

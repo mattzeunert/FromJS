@@ -1268,6 +1268,16 @@ function setupBackend(
           return;
         }
 
+        steps.forEach((step) => {
+          let { operationLog, charIndex } = step;
+          const str = operationLog._result && operationLog._result + "";
+          step.chars = [
+            str[charIndex - 1] || " ",
+            str[charIndex] || " ",
+            str[charIndex + 1] || " ",
+          ];
+        });
+
         if (!opts.keepResultData) {
           // Avoid massive respondes (can be 100s of MB)
           steps.forEach((step, i) => {
