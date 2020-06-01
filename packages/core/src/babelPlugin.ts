@@ -112,7 +112,8 @@ function plugin(babel) {
                 addLoc(getTrackingIdentifier(varName), param.loc),
                 ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
                   ignoredStringLiteral("arrayPatternInFunction"),
-                  getLocObjectASTNode(elem.loc)
+                  getLocObjectASTNode(elem.loc),
+                  ignoredIdentifier(varName)
                 ])
               )
             );
@@ -124,8 +125,9 @@ function plugin(babel) {
           t.variableDeclarator(
             addLoc(getTrackingIdentifier(varName), param.loc),
             ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
-              ignoredStringLiteral("arrayPatternInFunction"),
-              getLocObjectASTNode(param.loc)
+              ignoredStringLiteral("assignmentPatternInFunction"),
+              getLocObjectASTNode(param.loc),
+              ignoredIdentifier(varName)
             ])
           )
         );

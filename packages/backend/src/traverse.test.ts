@@ -2838,12 +2838,35 @@ describe("Doesn't really test traversal", () => {
     expect(normal).toBe("xyz");
 
     let step = await traverseAndGetLastStep(tracking, 0);
-    console.log(JSON.stringify(step, null, 2));
     expect(step.operationLog.operation).toBe("stringLiteral");
 
     const loc = await logServer!._locStore.getLocAwaitable(
       step.operationLog.loc
     );
     expect(loc.objectPath).toEqual(["obj", "somekey", "something", "key"]);
+  });
+});
+
+describe("Function default values", () => {
+  it("stores value even if it can't traverse the default value", async () => {
+    const { normal, tracking, code, logServer } = await instrumentAndRun(
+      `
+      function concat(a, b="b") {
+        return a + b
+      }
+  
+      return concat("a")
+      `,
+      {},
+      { logCode: false }
+    );
+    expect(normal).toBe("ab");
+
+    let step = await traverseAndGetLastStep(tracking, 1);
+    expect(step.operationLog.operation).toBe("emptyTrackingInfo");
+    expect(step.operationLog.runtimeArgs.type).toBe(
+      "assignmentPatternInFunction"
+    );
+    expect(step.operationLog._result).toBe("b");
   });
 });

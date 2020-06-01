@@ -148,11 +148,12 @@ const operations: Operations = {
       }
 
       function looksLikeNumericConstant(operationLog) {
-        if (operationLog._result && operationLog._result.type === "undefined") {
-          // mostly doing this because right now function paramters with a default value
-          // don't get a tracking value...
-          return true;
-        }
+        // remove: should be fixed now, fn params should store value even if untracked
+        // if (operationLog._result && operationLog._result.type === "undefined") {
+        //   // mostly doing this because right now function paramters with a default value
+        //   // don't get a tracking value...
+        //   return true;
+        // }
         if (typeof operationLog._result !== "number") {
           return false;
         }
