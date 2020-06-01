@@ -12,16 +12,6 @@ import "./TraversalStep.scss";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
 import { adjustColumnForEscapeSequences } from "../../core/src/adjustColumnForEscapeSequences";
 
-function truncate(str, maxLength) {
-  if (!str || !str.slice) {
-    return str;
-  }
-  if (str.length <= maxLength) {
-    return str;
-  }
-  return str.slice(0, maxLength - 1) + "...";
-}
-
 function getFileNameFromPath(path) {
   const parts = path.split("/");
   while (parts.length > 1 && parts.join("/").length > 30) {
@@ -233,7 +223,9 @@ let TraversalStep = class TraversalStep extends React.Component<
       } else if (operationLog.operation === "fileContent") {
         operationTypeDetail = operationLog.runtimeArgs.path;
       } else if (stackFrame && stackFrame.loc && stackFrame.loc.objectPath) {
-        operationTypeDetail = truncate(stackFrame.loc.objectPath.join("."), 70);
+        operationTypeDetail = truncate(stackFrame.loc.objectPath.join("."), {
+          length: 70,
+        });
       }
     } catch (err) {
       console.log(err);
@@ -290,6 +282,13 @@ let TraversalStep = class TraversalStep extends React.Component<
     if (operationLog.operation === "genericOperation") {
       opNameToShow = operationLog.runtimeArgs.name;
     }
+
+    let isFileContent =
+      operationLog.operation === "fileContent" ||
+      operationLog.operation === "readFileSyncResult";
+    console.log(operationLog.operation, { isFileContent });
+    let hasFormattedJson = logResult && logResult.json;
+    let showMoreResultValueLines = hasFormattedJson || isFileContent;
 
     return (
       <div
@@ -372,14 +371,7 @@ let TraversalStep = class TraversalStep extends React.Component<
               >
                 Inspect operation arguments:
               </div>
-              <pre>
-                Runtime args:
-                {JSON.stringify(
-                  this.props.step.operationLog.runtimeArgs,
-                  null,
-                  4
-                )}
-              </pre>
+
               {this.getAllArgs().length === 0 && (
                 <div style={{ padding: 6 }}>(No arguments)</div>
               )}
@@ -449,6 +441,14 @@ let TraversalStep = class TraversalStep extends React.Component<
                     )}
                   </div>
                 )}
+              <pre>
+                Runtime args:
+                {JSON.stringify(
+                  this.props.step.operationLog.runtimeArgs,
+                  null,
+                  4
+                )}
+              </pre>
               {/* {operationLog.runtimeArgs &&
                 Object.keys(operationLog.runtimeArgs).length > 0 && (
                   <div>
@@ -492,7 +492,7 @@ let TraversalStep = class TraversalStep extends React.Component<
               traversalStep={step}
               highlighNthCharAfterColumn={highlighNthCharAfterColumn}
               defaultSurroundingLineCount={
-                this.props.defaultCodeSurroundingLineCount
+                isFileContent ? 1 : this.props.defaultCodeSurroundingLineCount
               }
             />
           )}
@@ -500,7 +500,7 @@ let TraversalStep = class TraversalStep extends React.Component<
             <TextEl
               text={str}
               highlightedCharacterIndex={charIndex}
-              defaultNumberOfLinesToShow={logResult && logResult.json ? 3 : 2}
+              defaultNumberOfLinesToShow={showMoreResultValueLines ? 4 : 2}
               onCharacterClick={(charIndex) => {
                 if (logResult.json) {
                   alert(

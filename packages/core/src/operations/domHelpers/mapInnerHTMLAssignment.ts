@@ -10,6 +10,8 @@ var whitespaceRegex = /^[\s]+/;
 var tagEndRegex = /^(\s+)\/?>/;
 // var twoQuoteSignsRegex = /^['"]{2}/;
 
+const LOG_MAPPING = true;
+
 const config = {
   validateHtmlMapping: true
 };
@@ -45,6 +47,7 @@ export default function mapInnerHTMLAssignment(
     charsAddedInSerializedHtml = initialExtraCharsValue;
   }
   var assignedString = assignedInnerHTML[0];
+
   // if (contentEndIndex === 0) {
   //   contentEndIndex = assignedString.length
   // }
@@ -157,6 +160,7 @@ export default function mapInnerHTMLAssignment(
     });
 
     var childNodesToProcess: any[] = [].slice.call(children);
+
     childNodesToProcess = childNodesToProcess.filter(function(childNode) {
       var shouldIgnore = nodesToIgnore.indexOf(childNode) !== -1;
       return !shouldIgnore;
@@ -166,6 +170,35 @@ export default function mapInnerHTMLAssignment(
       var isTextNode = child.nodeType === 3;
       var isCommentNode = child.nodeType === 8;
       var isElementNode = child.nodeType === 1;
+
+      if (LOG_MAPPING) {
+        console.log(
+          "assigned_",
+          assignedString
+            .substr(getCharOffsetInAssignedHTML(), 100)
+            .replace(/\n/g, "\\n")
+        );
+        if (isTextNode) {
+          console.log(
+            "text_____",
+            (child.textContent || "").replace(/\n/g, "\\n").slice(0, 100)
+          );
+        } else if (isCommentNode) {
+          console.log(
+            "comment  ",
+            "<!--" +
+              (child.textContent || "").replace(/\n/g, "\\n").slice(0, 100) +
+              "-->"
+          );
+        } else {
+          console.log(
+            "outerHTML",
+            child.outerHTML &&
+              child.outerHTML.replace(/\n/g, "\\n").slice(0, 100),
+            { extraCharsAddedHere, offsetInAssigned }
+          );
+        }
+      }
 
       if (isTextNode) {
         var text = child.textContent;
@@ -451,6 +484,16 @@ export default function mapInnerHTMLAssignment(
           var closingTag = "</" + child.tagName + ">";
           charOffsetInSerializedHtml += closingTag.length;
           forDebuggingProcessedHtml += closingTag;
+
+          let hasClosingTagButNotInAssignedHtml =
+            assignedString.substr(
+              getCharOffsetInAssignedHTML() - ">".length - closingTag.length,
+              2
+            ) === "/>";
+          if (hasClosingTagButNotInAssignedHtml) {
+            console.log("hasClosingTagButNotInAssignedHtml");
+            charsAddedInSerializedHtml += closingTag.length - "/>".length;
+          }
         }
       } else {
         throw "not handled";
