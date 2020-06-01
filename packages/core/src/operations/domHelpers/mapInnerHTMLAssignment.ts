@@ -194,8 +194,7 @@ export default function mapInnerHTMLAssignment(
           console.log(
             "outerHTML",
             child.outerHTML &&
-              child.outerHTML.replace(/\n/g, "\\n").slice(0, 100),
-            { extraCharsAddedHere, offsetInAssigned }
+              child.outerHTML.replace(/\n/g, "\\n").slice(0, 100)
           );
         }
       }
