@@ -171,7 +171,7 @@ export class TextEl extends React.Component<any, any> {
 
       const numberOflinesToShow = this.state.truncateText
         ? this.props.defaultNumberOfLinesToShow || 2
-        : 20;
+        : 25;
 
       var showFromLineIndex = highlightedCharLineIndex - numberOflinesToShow;
       if (showFromLineIndex < 0) {
