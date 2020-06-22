@@ -221,8 +221,8 @@ describe("Node", () => {
     });
 
     let { step } = await traverse(0);
-    expect(step.operationLog.operation).toBe("binaryExpression");
-    expect(step.operationLog.result.primitive).toBe(12345678.9);
+    expect(step.operationLog.operation).toBe("numericLiteral");
+    expect(step.operationLog.result.primitive).toBe(123456.789);
   }, 120000);
 });
 
