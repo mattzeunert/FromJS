@@ -491,7 +491,8 @@ export default function mapInnerHTMLAssignment(
             ) === "/>";
           if (hasClosingTagButNotInAssignedHtml) {
             console.log("hasClosingTagButNotInAssignedHtml");
-            charsAddedInSerializedHtml += closingTag.length - "/>".length;
+            // I don't really understand the +1, but it's needed
+            charsAddedInSerializedHtml += closingTag.length - "/>".length + 1;
           }
         }
       } else {
