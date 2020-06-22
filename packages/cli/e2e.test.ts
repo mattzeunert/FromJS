@@ -59,13 +59,14 @@ function startWebServer() {
   });
 }
 
-function inspectDomChar(charIndex) {
+function inspectDomChar(pageSessionId, charIndex) {
   return new Promise((resolve) => {
     request.post(
       {
         url: "http://localhost:" + backendPort + "/inspectDomChar",
         json: {
           charIndex,
+          pageSessionId,
         },
         rejectUnauthorized: false,
       },
@@ -110,12 +111,16 @@ async function waitForSelectedChar(inspectorPage, char) {
   );
 }
 
-async function inspectDomCharAndTraverse(charIndex, isSecondTry = false) {
+async function inspectDomCharAndTraverse(
+  pageSessionId: string,
+  charIndex: number,
+  isSecondTry = false
+) {
   try {
     if (charIndex === -1) {
       throw Error("char index is -1");
     }
-    const firstStep = await inspectDomChar(charIndex);
+    const firstStep = await inspectDomChar(pageSessionId, charIndex);
     if (typeof firstStep === "string") {
       console.log(firstStep);
       throw Error("Seems like no tracking data ");
@@ -132,7 +137,7 @@ async function inspectDomCharAndTraverse(charIndex, isSecondTry = false) {
       throw err;
     } else {
       await setTimeoutPromise(2000);
-      return await inspectDomCharAndTraverse(charIndex, true);
+      return await inspectDomCharAndTraverse(pageSessionId, charIndex, true);
     }
   }
 }
@@ -311,30 +316,47 @@ describe("E2E", () => {
 
     const html = testResult.parts.map((p) => p[0]).join("");
 
+    let pageSessionId = await page.evaluate(`global["fromJSPageSessionId"]`);
+
     // createElement
 
-    let res = await inspectDomCharAndTraverse(html.indexOf("span"));
+    let res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      html.indexOf("span")
+    );
 
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("span");
 
     // createTextNode
-    res = await inspectDomCharAndTraverse(html.indexOf("createTextNode"));
+    res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      html.indexOf("createTextNode")
+    );
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("createTextNode");
 
     // createComment
-    res = await inspectDomCharAndTraverse(html.indexOf("createComment"));
+    res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      html.indexOf("createComment")
+    );
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("createComment");
 
     // Initial page html
-    res = await inspectDomCharAndTraverse(html.indexOf("InitialPageHtml"));
+    res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      html.indexOf("InitialPageHtml")
+    );
     expect(res.operationLog.operation).toBe("initialPageHtml");
     expect(res.operationLog.result.primitive).toContain(`<div id="app"`);
 
     // Values read from script tags in initial html
-    res = await inspectDomCharAndTraverse(html.indexOf("scriptTagContent"));
+    res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      html.indexOf("scriptTagContent")
+    );
     expect(res.operationLog.operation).toBe("initialPageHtml");
     expect(res.operationLog.result.primitive).toContain(`<div id="app"`);
     const fullPageHtml = require("fs")
@@ -348,21 +370,22 @@ describe("E2E", () => {
     const spanIndex = html.indexOf(spanHtml);
     const attrNameIndex = spanIndex + spanHtml.indexOf("attr=");
     const attrValueIndex = spanIndex + spanHtml.indexOf("setAttribute");
-    res = await inspectDomCharAndTraverse(attrValueIndex);
+    res = await inspectDomCharAndTraverse(pageSessionId, attrValueIndex);
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("setAttribute");
 
-    res = await inspectDomCharAndTraverse(attrNameIndex);
+    res = await inspectDomCharAndTraverse(pageSessionId, attrNameIndex);
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("attr");
 
     // innerHTML
-    res = await inspectDomCharAndTraverse(html.indexOf("<b>"));
+    res = await inspectDomCharAndTraverse(pageSessionId, html.indexOf("<b>"));
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("abc<b>innerHTML</b>");
 
     // Comment in innerHTML
     res = await inspectDomCharAndTraverse(
+      pageSessionId,
       html.indexOf("<!-- COMMENT_IN_INNERTHML -->")
     );
     expect(res.operationLog.operation).toBe("stringLiteral");
@@ -371,29 +394,39 @@ describe("E2E", () => {
     );
 
     // insertAjacentHTML
-    res = await inspectDomCharAndTraverse(html.indexOf("insertAdjacentHTML2"));
+    res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      html.indexOf("insertAdjacentHTML2")
+    );
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe(
       "<div>insertAdjacentHTML1</div><div>insertAdjacentHTML2</div>"
     );
 
     // setting a.href
-    res = await inspectDomCharAndTraverse(html.indexOf("aHref"));
+    res = await inspectDomCharAndTraverse(pageSessionId, html.indexOf("aHref"));
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("aHref");
 
     // DOMParser parseFromString
-    res = await inspectDomCharAndTraverse(html.indexOf("DOMParser"));
+    res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      html.indexOf("DOMParser")
+    );
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("<div>DOMParser</div>");
 
     // textContent
-    res = await inspectDomCharAndTraverse(html.indexOf("textContent"));
+    res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      html.indexOf("textContent")
+    );
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("textContent");
 
     // textContent
     res = await inspectDomCharAndTraverse(
+      pageSessionId,
       html.indexOf("className") - '">'.length
     );
     expect(res.operationLog.operation).toBe("stringLiteral");
@@ -401,6 +434,7 @@ describe("E2E", () => {
 
     // setting el.style.sth
     res = await inspectDomCharAndTraverse(
+      pageSessionId,
       html.indexOf("styleWidth") - '">'.length
     );
     expect(res.operationLog.operation).toBe("stringLiteral");
@@ -419,34 +453,44 @@ describe("E2E", () => {
     const deepClonedContentIndex =
       clonedSpanIndex + clonedSpanHtml.indexOf("deepClonedContent");
 
-    res = await inspectDomCharAndTraverse(clonedSpanIndex);
+    res = await inspectDomCharAndTraverse(pageSessionId, clonedSpanIndex);
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("span");
 
-    res = await inspectDomCharAndTraverse(clonedSpanAttributeIndex);
+    res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      clonedSpanAttributeIndex
+    );
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("attr");
 
-    res = await inspectDomCharAndTraverse(clonedTextIndex);
+    res = await inspectDomCharAndTraverse(pageSessionId, clonedTextIndex);
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("createTextNode");
 
-    res = await inspectDomCharAndTraverse(clonedCommentIndex);
+    res = await inspectDomCharAndTraverse(pageSessionId, clonedCommentIndex);
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("createComment");
 
-    res = await inspectDomCharAndTraverse(deepClonedContentIndex);
+    res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      deepClonedContentIndex
+    );
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe(
       "<div>deepClonedContent</div>"
     );
 
     // template + importNode
-    res = await inspectDomCharAndTraverse(html.indexOf("TemplateChild2"));
+    res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      html.indexOf("TemplateChild2")
+    );
     expect(res.operationLog.operation).toBe("initialPageHtml");
 
     // .text or .textContent on a text node
     res = await inspectDomCharAndTraverse(
+      pageSessionId,
       html.indexOf("nodeNodeValueAssignment")
     );
     expect(res.operationLog.operation).toBe("stringLiteral");
@@ -586,14 +630,21 @@ describe("E2E", () => {
     const testResult = await (
       await page.waitForFunction('window["testResult"]')
     ).jsonValue();
+    let pageSessionId = await page.evaluate(`global["fromJSPageSessionId"]`);
 
     const html = testResult.parts.map((p) => p[0]).join("");
 
-    let res = await inspectDomCharAndTraverse(html.indexOf("setByInnerHTML"));
+    let res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      html.indexOf("setByInnerHTML")
+    );
     expect(res.operationLog.operation).toBe("stringLiteral");
     expect(res.operationLog.result.primitive).toBe("setByInnerHTML");
 
-    res = await inspectDomCharAndTraverse(html.indexOf("realInitialPageHtml"));
+    res = await inspectDomCharAndTraverse(
+      pageSessionId,
+      html.indexOf("realInitialPageHtml")
+    );
     expect(res.operationLog.operation).toBe("initialPageHtml");
     expect(res.operationLog.result.primitive).toContain("realInitialPageHtml");
 
