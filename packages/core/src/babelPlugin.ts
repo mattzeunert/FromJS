@@ -106,7 +106,7 @@ function plugin(babel) {
                 JSON.stringify(path.node.loc)
             );
           }
-          if (elem) {
+          if (elem && varName) {
             declarators.push(
               t.variableDeclarator(
                 addLoc(getTrackingIdentifier(varName), param.loc),
