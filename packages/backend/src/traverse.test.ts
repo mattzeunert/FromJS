@@ -1868,7 +1868,7 @@ describe("Array destructuring", () => {
     let step;
     step = await traverseAndGetLastStep(tracking, 0);
     // traversla doesn't work yet...
-    expect(step.operationLog.operation).toBe("binaryExpression");
+    expect(step.operationLog.operation).toBe("emptyTrackingInfo");
     expect(step.charIndex).toBe(0);
   });
 });
