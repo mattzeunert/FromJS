@@ -416,23 +416,37 @@ export default class Backend {
   }
 }
 
+const pageSessionsById = {};
+function getPageSession(pageSessionId) {
+  let session = pageSessionsById[pageSessionId];
+  if (!session) {
+    pageSessionsById[pageSessionId] = {};
+  }
+  console.log("Page session", pageSessionId, pageSessionsById[pageSessionId]);
+  return pageSessionsById[pageSessionId];
+}
+
 function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
-  wss.on("connection", (ws: WebSocket) => {
-    // console.log("On ws connection");
-    if (domToInspect) {
+  wss.on("connection", (ws: WebSocket, req) => {
+    let pageSessionId = req.url.match(/pageSessionId=([a-zA-Z0-9_]+)/)[1];
+    console.log("On ws connection", { pageSessionId });
+    ws.pageSessionId = pageSessionId;
+    let pageSession = getPageSession(pageSessionId);
+    if (pageSession.domToInspect) {
       ws.send(
         JSON.stringify({
           type: "inspectDOM",
-          ...getDomToInspectMessage(),
+          ...getDomToInspectMessage(pageSessionId),
         })
       );
-    } else if (logToInspect) {
+    } else if (pageSession.logToInspect) {
       broadcast(
         wss,
         JSON.stringify({
           type: "inspectOperationLog",
-          operationLogId: logToInspect,
-        })
+          operationLogId: getPageSession(pageSessionId).logToInspect,
+        }),
+        pageSessionId
       );
     }
   });
@@ -555,7 +569,8 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
   app.use("/fromJSInternal", express.static(fromJSInternalDir));
   app.use("/start", express.static(startPageDir));
 
-  function getDomToInspectMessage(charIndex?) {
+  function getDomToInspectMessage(pageSessionId, charIndex?) {
+    let domToInspect = getPageSession(pageSessionId).domToInspect;
     if (!domToInspect) {
       return {
         err: "Backend has no selected DOM to inspect",
@@ -592,7 +607,6 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
     };
   }
 
-  let domToInspect = null;
   app.post("/inspectDOM", (req, res) => {
     app.verifyToken(req);
 
@@ -602,22 +616,24 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
       "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
     );
 
-    domToInspect = req.body;
+    getPageSession(req.body.pageSessionId).domToInspect = req.body;
 
     broadcast(
       wss,
       JSON.stringify({
         type: "inspectDOM",
-        ...getDomToInspectMessage(req.body.charIndex),
-      })
+        ...getDomToInspectMessage(req.body.pageSessionId, req.body.charIndex),
+      }),
+      req.body.pageSessionId
     );
 
     res.end("{}");
   });
 
-  let logToInspect = null;
   app.post("/inspectDomChar", (req, res) => {
+    let domToInspect = getPageSession(req.body.pageSessionId).domToInspect;
     if (!domToInspect) {
+      console.log("no domtoinspect", getPageSession(req.body.pageSessionId));
       res.status(500);
       res.json({
         err: "Backend has no selected DOM to inspect",
@@ -653,15 +669,16 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
     allowCrossOrigin(res);
 
     app.verifyToken(req);
-    logToInspect = req.body.logId;
+    getPageSession(req.body.pageSessionId).logToInspect = req.body.logId;
     res.end("{}");
 
     broadcast(
       wss,
       JSON.stringify({
         type: "inspectOperationLog",
-        operationLogId: logToInspect,
-      })
+        operationLogId: getPageSession(req.body.pageSessionId).logToInspect,
+      }),
+      req.body.pageSessionId
     );
   });
 }
@@ -1450,10 +1467,18 @@ function setupBackend(
   };
 }
 
-function broadcast(wss, data) {
+function broadcast(wss, data, pageSessionId) {
   wss.clients.forEach(function each(client) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(data);
+    if (client.pageSessionId === pageSessionId) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(data);
+      }
+    } else {
+      console.log(
+        "Not broadcasting to client",
+        client.pageSessionId,
+        pageSessionId
+      );
     }
   });
 }

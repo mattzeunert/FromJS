@@ -172,6 +172,7 @@ function makePostToBE({ accessToken, fetch }) {
     let bodyIsString = typeof body === "string";
     if (!bodyIsString) {
       console.time("stringify");
+      data.pageSessionId = global["fromJSPageSessionId"];
       body = JSON.stringify(data);
       console.timeEnd("stringify");
     }
@@ -424,6 +425,11 @@ initDomInspectionUI("BACKEND_PORT_PLACEHOLDER");
 
 global["__getHtmlNodeOperationLogMapping"] = getHtmlNodeOperationLogMapping;
 
+global["fromJSPageSessionId"] = (
+  Math.random().toString() +
+  "_" +
+  Math.random().toString()
+).replace(/\./g, "");
 global.fromJSInspect = function(value: any, charIndex: number) {
   let logId;
   if (!argTrackingInfo && typeof value === "number") {

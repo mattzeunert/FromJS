@@ -22,10 +22,13 @@ export function resolveStackFrame(operationLog) {
   });
 }
 
+let pageSessionId = new URLSearchParams(location.search).get("pageSessionId");
+
 export function inspectDomChar(charIndex) {
   console.time("inspectDomChar");
   return callApi("inspectDomChar", {
     charIndex,
+    pageSessionId,
   }).then(function (re) {
     console.timeEnd("inspectDomChar");
     return re;
@@ -138,7 +141,9 @@ export function setEnableInstrumentation(enableInstrumentation) {
   return callApi("setEnableInstrumentation", { enableInstrumentation });
 }
 
-var exampleSocket = new WebSocket("ws://127.0.0.1:" + backendPort);
+var exampleSocket = new WebSocket(
+  "ws://127.0.0.1:" + backendPort + "/?pageSessionId=" + pageSessionId
+);
 
 exampleSocket.onmessage = function (event) {
   // console.log("websocket onmessage", event.data);
