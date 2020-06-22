@@ -15,6 +15,11 @@ const inMemoryLocStore: any = {
   },
   getLoc(locId, callback) {
     callback(this._locs[locId]);
+  },
+  async getLocAwaitable(locId) {
+    return new Promise(resolve => {
+      this.getLoc(locId, resolve);
+    });
   }
 };
 const server = new InMemoryLogServer(inMemoryLocStore);
@@ -23,6 +28,7 @@ interface InstrumentAndRunResult {
   code: string;
   tracking?: OperationLog;
   normal?: any;
+  logServer?: InMemoryLogServer;
 }
 
 export function instrumentAndRun(
@@ -75,6 +81,8 @@ export function instrumentAndRun(
         delete global["__didInitializeDataFlowTracking"];
         result.code = relevantCode; // only the interesting code
 
+        result.logServer = server;
+
         if (result.tracking) {
           server.loadLog(
             result.tracking,
@@ -84,11 +92,11 @@ export function instrumentAndRun(
               }
               if (testIsAsync) {
                 // remove functionArgument
-                result.tracking = log.args.value;
+                result.tracking = log!.args.value;
                 resolve(result);
               } else {
                 // remove the extra fn arg/fnret/ret statement... from getTrackingAndNormalValue
-                result.tracking = log.extraArgs.returnValue.args.returnValue;
+                result.tracking = log!.extraArgs.returnValue.args.returnValue;
                 // console.log(result.tracking)
                 resolve(result);
               }

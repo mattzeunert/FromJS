@@ -56,14 +56,16 @@ export default class KnownValues {
       "console.log": console.log,
       "console.warn": console.warn,
       "console.count": console.count,
-      "console.error": console.error
+      "console.error": console.error,
+      URL: URL
     });
 
     if (global.fromJSIsNode) {
       Object.assign(this._knownValues, {
         "fs.readFileSync": require("fs").readFileSync,
         "fs.writeFileSync": require("fs").writeFileSync,
-        "fs.writeFile": require("fs").writeFile
+        "fs.writeFile": require("fs").writeFile,
+        "EventEmitter.prototype.emit": eval('require("events")').prototype.emit
       });
     }
 
@@ -157,7 +159,9 @@ export default class KnownValues {
         HTMLInputElementValueGetter: Object.getOwnPropertyDescriptor(
           HTMLInputElement.prototype,
           "value"
-        )!.get
+        )!.get,
+        "HTMLElement.prototype.getClientRects":
+          HTMLElement.prototype.getClientRects
       });
     }
 

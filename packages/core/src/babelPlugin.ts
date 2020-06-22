@@ -106,13 +106,14 @@ function plugin(babel) {
                 JSON.stringify(path.node.loc)
             );
           }
-          if (elem) {
+          if (elem && varName) {
             declarators.push(
               t.variableDeclarator(
                 addLoc(getTrackingIdentifier(varName), param.loc),
                 ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
                   ignoredStringLiteral("arrayPatternInFunction"),
-                  getLocObjectASTNode(elem.loc)
+                  getLocObjectASTNode(elem.loc),
+                  ignoredIdentifier(varName)
                 ])
               )
             );
@@ -124,8 +125,9 @@ function plugin(babel) {
           t.variableDeclarator(
             addLoc(getTrackingIdentifier(varName), param.loc),
             ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
-              ignoredStringLiteral("arrayPatternInFunction"),
-              getLocObjectASTNode(param.loc)
+              ignoredStringLiteral("assignmentPatternInFunction"),
+              getLocObjectASTNode(param.loc),
+              ignoredIdentifier(varName)
             ])
           )
         );
@@ -212,7 +214,7 @@ function plugin(babel) {
           varName = prop.key.name;
         }
 
-        // this needs to be at the top level, otherwise we'd have to modify the
+        // tracking values need to be at the top level, otherwise we'd have to modify the
         // return value of provideObjectPatternTrackingValues which could
         // mean the program ends up with a modified value
         let topLevelObjectPattern = path.node;
@@ -224,23 +226,41 @@ function plugin(babel) {
           currentPath = currentPath.parentPath;
         }
 
-        (topLevelObjectPattern === path.node
-          ? newProperties
-          : topLevelObjectPattern.properties
-        ).push(
-          skipPath(
-            t.ObjectProperty(
-              ignoreNode(getTrackingIdentifier(varName)),
-              t.assignmentPattern(
-                getTrackingIdentifier(varName),
-                ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
-                  ignoredStringLiteral("objectPattern"),
-                  getLocObjectASTNode(prop.loc)
-                ])
-              )
+        let topLevelObjectPatternProperties =
+          topLevelObjectPattern === path.node
+            ? newProperties
+            : topLevelObjectPattern.properties;
+
+        let trackingVarPath = skipPath(
+          t.ObjectProperty(
+            ignoreNode(getTrackingIdentifier(varName)),
+            t.assignmentPattern(
+              getTrackingIdentifier(varName),
+              ignoredCallExpression(FunctionNames.getEmptyTrackingInfo, [
+                ignoredStringLiteral("objectPattern"),
+                getLocObjectASTNode(prop.loc)
+              ])
             )
           )
         );
+
+        const lastTopLevelObjectProperty =
+          topLevelObjectPatternProperties[
+            topLevelObjectPatternProperties.length - 1
+          ];
+        const topLevelHasRestElement =
+          lastTopLevelObjectProperty &&
+          lastTopLevelObjectProperty.type === "RestElement";
+
+        if (!topLevelHasRestElement) {
+          topLevelObjectPatternProperties.push(trackingVarPath);
+        } else {
+          topLevelObjectPatternProperties.splice(
+            topLevelObjectPatternProperties.length - 2,
+            0,
+            trackingVarPath
+          );
+        }
 
         newProperties.push(prop);
       });
@@ -300,10 +320,19 @@ function plugin(babel) {
           // but we need to make sure they are provided
 
           function getProps(propsArr, pathPrefix = "") {
-            let properties: { name: string; path: string }[] = [];
+            let properties: {
+              name: string;
+              path: string;
+              isRest?: boolean;
+            }[] = [];
             for (const prop of propsArr) {
               if (prop.type === "RestElement") {
                 // for now just ignore and don't add tracking values
+                properties.push({
+                  name: prop.argument.name,
+                  path: pathPrefix + prop.argument.name,
+                  isRest: true
+                });
               } else if (prop.value.type === "ObjectPattern") {
                 properties = [
                   ...properties,
@@ -331,10 +360,14 @@ function plugin(babel) {
               decl.init,
               ignoredArrayExpression(
                 properties.map(prop => {
-                  return ignoredArrayExpression([
+                  let arrItems = [
                     ignoredStringLiteral(prop.name),
                     ignoredStringLiteral(prop.path)
-                  ]);
+                  ];
+                  if (prop.isRest) {
+                    arrItems.push(ignoredStringLiteral("isRest"));
+                  }
+                  return ignoredArrayExpression(arrItems);
                 })
               )
             ]
@@ -441,7 +474,13 @@ function plugin(babel) {
       const isForOfStatementWithoutVarDeclaration =
         path.parentPath.node.type === "ForOfStatement";
 
-      if (path.parentPath.node.type === "FunctionDeclaration") {
+      if (
+        [
+          "FunctionDeclaration",
+          "FunctionExpression",
+          "ArrowFunctionExpression"
+        ].includes(path.parentPath.node.type)
+      ) {
         // don't transform, it would break how the values are passed
         return;
       }

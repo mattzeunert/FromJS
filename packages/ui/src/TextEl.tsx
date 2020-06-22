@@ -5,7 +5,7 @@ export class TextEl extends React.Component<any, any> {
   constructor(props) {
     super(props);
     this.state = {
-      truncateText: true
+      truncateText: true,
     };
   }
   shouldComponentUpdate(nextProps, nextState) {
@@ -23,7 +23,7 @@ export class TextEl extends React.Component<any, any> {
       var lineStrings = str.split("\n");
       var lines = [];
       var charOffset = 0;
-      lineStrings.forEach(function(lineString, i) {
+      lineStrings.forEach(function (lineString, i) {
         var isLastLine = i + 1 === lineStrings.length;
         var text = lineString + (isLastLine ? "" : "\n");
         var charOffsetStart = charOffset;
@@ -33,10 +33,10 @@ export class TextEl extends React.Component<any, any> {
           lineNumber: i,
           charOffsetStart: charOffsetStart,
           charOffsetEnd: charOffsetEnd,
-          containsCharIndex: function(index) {
+          containsCharIndex: function (index) {
             return index >= charOffsetStart && index < charOffsetEnd;
           },
-          splitAtCharIndex: function(index) {
+          splitAtCharIndex: function (index) {
             var lineBeforeIndex = text.substr(
               0,
               highlightedCharIndex - charOffsetStart
@@ -51,19 +51,19 @@ export class TextEl extends React.Component<any, any> {
             return [
               {
                 text: lineBeforeIndex,
-                charOffsetStart: charOffsetStart
+                charOffsetStart: charOffsetStart,
               },
               {
                 text: lineAtIndex,
-                charOffsetStart: charOffsetStart + lineBeforeIndex.length
+                charOffsetStart: charOffsetStart + lineBeforeIndex.length,
               },
               {
                 text: lineAfterIndex,
                 charOffsetStart:
-                  charOffsetStart + lineBeforeIndex.length + lineAtIndex.length
-              }
+                  charOffsetStart + lineBeforeIndex.length + lineAtIndex.length,
+              },
             ];
-          }
+          },
         });
         charOffset = charOffsetEnd;
       });
@@ -169,7 +169,9 @@ export class TextEl extends React.Component<any, any> {
 
       var highlightedCharLineIndex = valBeforeColumn.split("\n").length;
 
-      const numberOflinesToShow = this.state.truncateText ? 2 : 10;
+      const numberOflinesToShow = this.state.truncateText
+        ? this.props.defaultNumberOfLinesToShow || 2
+        : 25;
 
       var showFromLineIndex = highlightedCharLineIndex - numberOflinesToShow;
       if (showFromLineIndex < 0) {
@@ -185,18 +187,18 @@ export class TextEl extends React.Component<any, any> {
 
       let truncationConfig = {
         minLength: 40,
-        beforeHighlight: 15
+        beforeHighlight: 15,
       };
       if (document.body.clientWidth > 600) {
         truncationConfig = {
           minLength: 70,
-          beforeHighlight: 30
+          beforeHighlight: 30,
         };
       }
       if (document.body.clientWidth > 900) {
         truncationConfig = {
           minLength: 100,
-          beforeHighlight: 40
+          beforeHighlight: 40,
         };
       }
 
@@ -225,7 +227,7 @@ export class TextEl extends React.Component<any, any> {
                 chunks[0].charOffsetStart +
                   textBeforeHighlight.length -
                   textB.length
-              )
+              ),
             ];
           } else {
             valueSpans = valueSpans.concat(
@@ -238,9 +240,9 @@ export class TextEl extends React.Component<any, any> {
               chunks[1].text,
               "fromjs-highlighted-character",
               "highlighted-char-key",
-              function() {},
-              function() {},
-              function() {}
+              function () {},
+              function () {},
+              function () {}
             )
           );
 
@@ -252,7 +254,7 @@ export class TextEl extends React.Component<any, any> {
                 chunks[2].text.slice(0, 80),
                 chunks[2].charOffsetStart
               ),
-              getEllipsisSpan("ellipsis-line-after-highlight")
+              getEllipsisSpan("ellipsis-line-after-highlight"),
             ];
           } else {
             restofLineValueSpans = getValueSpans(
@@ -282,31 +284,29 @@ export class TextEl extends React.Component<any, any> {
       }
 
       var ret = (
-        <HorizontalScrollContainer>
-          <div className="fromjs-value">
-            <div
-              className="fromjs-value__content"
-              ref={el => {
-                this.scrollToHighlightedChar(el, highlightedCharLineIndex);
-              }}
-            >
-              {linesToShow.map((line, i) => {
-                var beforeSpan = null;
-                if (i === 0 && line.charOffsetStart > 0) {
-                  beforeSpan = getEllipsisSpan("beforeEllipsis");
-                }
-                var afterSpan = null;
-                if (
-                  i === linesToShow.length - 1 &&
-                  line.charOffsetEnd < val.length
-                ) {
-                  afterSpan = getEllipsisSpan("afterEllipsis");
-                }
-                return getLineComponent(line, beforeSpan, afterSpan);
-              })}
-            </div>
+        <div className="fromjs-value">
+          <div
+            className="fromjs-value__content"
+            ref={(el) => {
+              this.scrollToHighlightedChar(el, highlightedCharLineIndex);
+            }}
+          >
+            {linesToShow.map((line, i) => {
+              var beforeSpan = null;
+              if (i === 0 && line.charOffsetStart > 0) {
+                beforeSpan = getEllipsisSpan("beforeEllipsis");
+              }
+              var afterSpan = null;
+              if (
+                i === linesToShow.length - 1 &&
+                line.charOffsetEnd < val.length
+              ) {
+                afterSpan = getEllipsisSpan("afterEllipsis");
+              }
+              return getLineComponent(line, beforeSpan, afterSpan);
+            })}
           </div>
-        </HorizontalScrollContainer>
+        </div>
       );
       return ret;
     }

@@ -25,7 +25,7 @@ import * as cloneRegExp from "clone-regexp";
 import { doOperation } from "../FunctionNames";
 import * as jsonToAst from "json-to-ast";
 import { getJSONPathOffset } from "../getJSONPathOffset";
-import * as get from "lodash/get";
+import * as get from "lodash.get";
 import { traverseObject } from "../traverseObject";
 import { pathToFileURL } from "url";
 import {
@@ -33,6 +33,7 @@ import {
   getShortExtraArgName,
   getShortKnownValueName
 } from "../names";
+import { url } from "inspector";
 
 function getFnArg(args, index) {
   return args[2][index];
@@ -58,6 +59,7 @@ export type SpecialCaseArgs = {
   args: any[];
   context: any;
   extraState: any;
+  fnKnownValue: string | null;
 };
 
 const writeFile = ({
@@ -69,7 +71,7 @@ const writeFile = ({
   logData,
   context
 }) => {
-  const path = require("path");
+  const path = eval('require("path")');
 
   let absPath = fnArgValues[0];
   if (!absPath.startsWith("/")) {
@@ -90,7 +92,7 @@ const writeFile = ({
 function addJsonParseResultTrackingValues(
   parsed,
   jsonString,
-  jsonStringTrackingValue,
+  jsonStringValueAndTrackingValueArray,
   { ctx, logData }
 ) {
   if (
@@ -103,7 +105,7 @@ function addJsonParseResultTrackingValues(
       ctx.createOperationLog({
         operation: ctx.operationTypes.jsonParseResult,
         args: {
-          json: jsonStringTrackingValue
+          json: jsonStringValueAndTrackingValueArray
         },
         result: parsed,
         runtimeArgs: {
@@ -120,7 +122,7 @@ function addJsonParseResultTrackingValues(
     const trackingValue = ctx.createOperationLog({
       operation: ctx.operationTypes.jsonParseResult,
       args: {
-        json: jsonStringTrackingValue
+        json: jsonStringValueAndTrackingValueArray
       },
       result: value,
       runtimeArgs: {
@@ -132,7 +134,7 @@ function addJsonParseResultTrackingValues(
     const nameTrackingValue = ctx.createOperationLog({
       operation: ctx.operationTypes.jsonParseResult,
       args: {
-        json: jsonStringTrackingValue
+        json: jsonStringValueAndTrackingValueArray
       },
       result: key,
       runtimeArgs: {
@@ -198,12 +200,10 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
 
     function handler() {
       const resTv = ctx.getPromiseResolutionTrackingValue(promise);
-      console.log("in then callback", promise, resTv);
       if (resTv) {
         ctx.argTrackingInfo = [resTv];
       } else if (ctx.lastReturnStatementResult) {
         // returned from async function
-        console.log("last ret", ctx.lastReturnStatementResult);
         ctx.argTrackingInfo = [ctx.lastReturnStatementResult[1]];
       }
 
@@ -266,8 +266,20 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
                 var submatch = submatches[submatchIndex - 1]; // $n is one-based, array is zero-based
                 if (submatch === undefined) {
                   var maxSubmatchIndex = countGroupsInRegExp(getFnArg(args, 0));
+
                   var submatchIsDefinedInRegExp =
                     submatchIndex < maxSubmatchIndex;
+
+                  // handle cases like where part of the number isn't for the submatch
+                  // e.g. here the match is $1 and 234 should be kept
+                  // "".replace(/(a-z)/, "$1234")
+                  let submatchIndexStr = submatchIndex + "";
+                  let firstDigit = parseFloat(submatchIndexStr[0]);
+                  if (submatchIndex >= 10) {
+                    return (
+                      submatches[firstDigit - 1] + submatchIndexStr.slice(1)
+                    );
+                  }
 
                   if (submatchIsDefinedInRegExp) {
                     submatch = "";
@@ -349,11 +361,24 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
       // Need to use fn (i.e. require) to resolve path relative to
       // the file that contains the raw code
       let absPath = fn.resolve(path);
-      let json = JSON.parse(require("fs").readFileSync(absPath, "utf-8"));
+      const jsonString = require("fs").readFileSync(absPath, "utf-8");
+
       [ret, retT] = addJsonParseResultTrackingValues(
         ret,
-        json,
-        ctx.getEmptyTrackingInfo("requireJson", logData.loc),
+        jsonString,
+        [
+          jsonString,
+          ctx.createOperationLog({
+            operation: "fileContent",
+            args: {},
+            loc: logData.loc,
+            runtimeArgs: {
+              path: path,
+              readType: "requireJson"
+            },
+            result: jsonString
+          })
+        ],
         { ctx, logData }
       );
     }
@@ -372,7 +397,7 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
     const parsed = fn.call(JSON, jsonString);
     var ret, retT;
 
-    const path = require("path");
+    const path = eval('require("path")');
 
     let filePath = fnArgValues[0];
     let encodingArg = fnArgValues[1];
@@ -416,6 +441,44 @@ export const specialCasesWhereWeDontCallTheOriginalFunction: {
 export const specialValuesForPostprocessing: {
   [knownValueName: string]: (args: SpecialCaseArgs) => any;
 } = {
+  [getShortKnownValueName("HTMLElement.prototype.getClientRects")]: ({
+    object,
+    ctx,
+    logData,
+    fnArgValues,
+    ret,
+    context,
+    fnArgTrackingValues
+  }) => {
+    for (var i = 0; i < ret.length; i++) {
+      const rect = ret[i];
+      const properties = [
+        "width",
+        "height",
+        "x",
+        "y",
+        "top",
+        "bottom",
+        "left",
+        "right"
+      ];
+      properties.forEach(prop => {
+        ctx.trackObjectPropertyAssignment(
+          rect,
+          prop,
+          ctx.createOperationLog({
+            operation: ctx.operationTypes.genericOperation,
+            runtimeArgs: {
+              name: "clientRect." + prop
+            },
+            args: {},
+            loc: logData.loc,
+            result: rect[prop]
+          })
+        );
+      });
+    }
+  },
   [getShortKnownValueName("Promise.resolve")]: ({
     object,
     ctx,
@@ -762,17 +825,18 @@ export const specialValuesForPostprocessing: {
   }) => {
     // Note: O(n) is not very efficient...
     const array = object;
-    const unshiftedItems = fnArgValues[0];
+    const unshiftedItems = fnArgValues;
     for (let i = unshiftedItems.length; i < array.length; i++) {
+      let iBeforeUnshift = i - unshiftedItems.length;
       ctx.trackObjectPropertyAssignment(
         array,
         i.toString(),
-        ctx.getObjectPropertyTrackingValue(array, i - unshiftedItems.length),
-        ctx.getObjectPropertyNameTrackingValue(array, i - unshiftedItems.length)
+        ctx.getObjectPropertyTrackingValue(array, iBeforeUnshift),
+        ctx.getObjectPropertyNameTrackingValue(array, iBeforeUnshift)
       );
     }
 
-    for (let i = 0; i <= unshiftedItems.length; i++) {
+    for (let i = 0; i < unshiftedItems.length; i++) {
       ctx.trackObjectPropertyAssignment(array, i, fnArgTrackingValues[i], null);
     }
 
@@ -1435,6 +1499,11 @@ export function traverseKnownFunction({
         operationLog: operationLog.args.arg0,
         charIndex
       };
+    case "Math.floor":
+      return {
+        operationLog: operationLog.args.arg0,
+        charIndex
+      };
     case "Math.min":
       let smallestValue = Number.POSITIVE_INFINITY;
       let smallestOperationLog = null;
@@ -1492,6 +1561,7 @@ export interface FnProcessorArgs {
   fnArgValues: any[];
   getFnArgForApply: (argIndex: any) => any;
   setFnArgForApply: (argIndex: any, argValue: any) => void;
+  setFnArgTrackingValue: (index: any, val: any) => void;
   ctx: ExecContext;
   setContext: (c: any) => void;
   context: any;
@@ -1504,6 +1574,23 @@ export interface FnProcessorArgs {
 }
 
 export const knownFnProcessors = {
+  [getShortKnownValueName("EventEmitter.prototype.emit")]: ({
+    extraState,
+    setArgValuesForApply,
+    fnArgValues,
+    getFnArgForApply,
+    setFnArgForApply,
+    ctx,
+    setContext,
+    fnArgTrackingValues,
+    logData,
+    fnArgTrackingValuesAtInvocation,
+    setFnArgTrackingValue
+  }: FnProcessorArgs) => {
+    // If you call `.emit("eventName", "data")` then the `.on("eventName")` callback
+    // is called with "data" as it's first argument
+    setFnArgTrackingValue(0, fnArgTrackingValuesAtInvocation[1]);
+  },
   [getShortKnownValueName("Array.prototype.map")]: ({
     extraState,
     setArgValuesForApply,
@@ -1728,3 +1815,36 @@ function allArgs(operationLog, fn) {
     i++;
   }
 }
+
+export const newExpressionPostProcessors = {
+  // Would maybe be better to store the constructor args in some way and then
+  // link to that when the property is accessed?? Then during traversal
+  // you could see that URL.proto.href is accessed, reference the constructor data
+  // and then link to it?
+  // But this works for now.
+  [getShortKnownValueName("URL")]: ({
+    ctx,
+    ret,
+    fnArgTrackingValues,
+    logData
+  }) => {
+    let urlTv = fnArgTrackingValues[0];
+    ctx.trackObjectPropertyAssignment(ret, "href", urlTv);
+    ctx.trackObjectPropertyAssignment(
+      ret,
+      "pathname",
+      ctx.createOperationLog({
+        operation: ctx.operationTypes.genericOperation,
+        runtimeArgs: {
+          name: "URL.pathname",
+          next: urlTv,
+          adjustCharIndex: ret.href.indexOf(ret.pathname)
+        },
+        args: {},
+        loc: logData.loc,
+        result: ret.pathname
+      })
+    );
+    ctx.trackObjectPropertyAssignment(ret, "origin", urlTv);
+  }
+};

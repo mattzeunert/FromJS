@@ -3,6 +3,7 @@ import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import { loadSteps, makeFEOperationLog } from "./api";
 import { selectAndTraverse } from "./actions";
 import TraversalStep from "./TraversalStep";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 console.log("kkkkkkkssssskkkk");
 
@@ -334,10 +335,16 @@ class ShowUses extends React.Component {
             return (
               <div>
                 <b>{use.operation}</b> (as {argName})
-                <TraversalStep
-                  // makeFEOoperationLog normally done in api.ts
-                  step={{ operationLog: makeFEOperationLog(use), charIndex: 0 }}
-                ></TraversalStep>
+                <ErrorBoundary>
+                  {" "}
+                  <TraversalStep
+                    // makeFEOoperationLog normally done in api.ts
+                    step={{
+                      operationLog: makeFEOperationLog(use),
+                      charIndex: 0,
+                    }}
+                  ></TraversalStep>
+                </ErrorBoundary>
               </div>
             );
           })}

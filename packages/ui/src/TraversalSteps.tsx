@@ -4,6 +4,7 @@ import TraversalStep from "./TraversalStep";
 import * as cx from "classnames";
 import { toggleShowFullDataFlow, toggleShowDOMStep } from "./actions";
 import ItemWithTitle from "./ItemWithTitle";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 type TraversalStepsProps = {
   steps?: any[];
@@ -75,21 +76,73 @@ let TraversalSteps = class TraversalSteps extends React.Component<
       }
       return {
         charsBefore: str.slice(charIndexTwoCharsBefore, step.charIndex),
-        charsAfter: str.slice(step.charIndex, charIndexTwoCharsAfter)
+        charsAfter: str.slice(step.charIndex, charIndexTwoCharsAfter),
       };
     }
+
+    let mainSteps = [];
+
+    mainSteps.push(stepsToShow[0]);
+
+    window.__debugSteps = steps;
+    steps.slice(0, -1).forEach((s, i) => {
+      let stepCloserToInspectedValue = steps[i + 1];
+      let stepCloserToValueOrigin = steps[i - 1];
+
+      let isMemberAccessForParsedJson =
+        s.operationLog.operation === "memberExpression" &&
+        steps[i + 1] &&
+        steps[i + 1].operationLog.operation === "jsonParseResult";
+
+      // E.g. if we make an optimistic traversal of a number
+      // we want to show the last previous number before it was modified
+      let charWillChange =
+        stepCloserToValueOrigin &&
+        stepCloserToValueOrigin.chars[1] !== s.chars[1];
+
+      let isMainStep =
+        isMemberAccessForParsedJson ||
+        s.operationLog.operation === "stringLiteral" ||
+        charWillChange;
+
+      if (isMainStep) {
+        if (!mainSteps.find((ms) => ms === s)) {
+          mainSteps.push(s);
+        }
+      }
+    });
 
     return (
       <div style={{ opacity: this.props.isTraversing ? 0.5 : 1, padding: 10 }}>
         <ItemWithTitle>
           <div>Value origin</div>
           <div>
-            <TraversalStep
-              key={steps[steps.length - 1].operationLog.index}
-              step={steps[steps.length - 1]}
-            />
+            <ErrorBoundary>
+              <TraversalStep
+                key={steps[steps.length - 1].operationLog.index}
+                step={steps[steps.length - 1]}
+              />
+            </ErrorBoundary>
           </div>
         </ItemWithTitle>
+
+        {mainSteps && (
+          <div style={{ marginTop: 20 }}>
+            {mainSteps
+              .map((step) => (
+                <div style={{ marginBottom: 10 }}>
+                  <ErrorBoundary>
+                    <TraversalStep
+                      key={step.operationLog.index}
+                      step={step}
+                      defaultCodeSurroundingLineCount={1}
+                    />
+                  </ErrorBoundary>
+                </div>
+              ))
+              .reverse()}
+          </div>
+        )}
         {/* <div
           className={cx("named-step-container", {
             "named-step-container--collapsed": !this.props.collapseDomInspector
@@ -122,7 +175,8 @@ let TraversalSteps = class TraversalSteps extends React.Component<
         } */}
         <div style={{ height: 10 }} />
 
-        {inspectedStringType === "dom" &&
+        {/* not really needed any more since it'll be shown by default */}
+        {/* {inspectedStringType === "dom" &&
           !this.props.showDOMStep &&
           !this.props.showFullDataFlow && (
             <button
@@ -133,7 +187,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<
             >
               Show DOM transition step
             </button>
-          )}
+          )} */}
         {!this.props.showFullDataFlow &&
           !this.props.showDOMStep &&
           steps.length > 1 && (
@@ -144,7 +198,11 @@ let TraversalSteps = class TraversalSteps extends React.Component<
               Show full data flow ({steps.length} steps)
             </button>
           )}
-        {this.props.showDOMStep && <TraversalStep step={stepsToShow[0]} />}
+        {this.props.showDOMStep && (
+          <ErrorBoundary>
+            <TraversalStep step={stepsToShow[0]} />
+          </ErrorBoundary>
+        )}
 
         {(this.props.showFullDataFlow || this.props.showDOMStep) && (
           <button
@@ -163,7 +221,7 @@ let TraversalSteps = class TraversalSteps extends React.Component<
           <div
             className="title"
             style={{
-              cursor: "pointer"
+              cursor: "pointer",
             }}
           >
             Full data flow – the story of how the selected string was
@@ -173,9 +231,11 @@ let TraversalSteps = class TraversalSteps extends React.Component<
 
         {this.props.showFullDataFlow &&
           stepsToShow
-            .map(step => (
+            .map((step) => (
               <div style={{ marginBottom: 10 }}>
-                <TraversalStep key={step.operationLog.index} step={step} />
+                <ErrorBoundary>
+                  <TraversalStep key={step.operationLog.index} step={step} />
+                </ErrorBoundary>
               </div>
             ))
             .reverse()}
@@ -192,7 +252,7 @@ TraversalSteps = branch(
     inspectedString: ["inspectedString"],
     showFullDataFlow: ["showFullDataFlow"],
     showDOMStep: ["showDOMStep"],
-    isTraversing: ["hasInProgressRequest", "traverse"]
+    isTraversing: ["hasInProgressRequest", "traverse"],
   },
   TraversalSteps
 );

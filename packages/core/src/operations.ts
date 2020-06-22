@@ -34,14 +34,14 @@ import CallExpression from "./operations/CallExpression";
 import { MemberExpression } from "./operations/MemberExpression";
 import ObjectExpression from "./operations/ObjectExpression";
 import AssignmentExpression from "./operations/AssignmentExpression";
-import traverseStringConcat from "./traverseStringConcat";
+import traverseConcat from "./traverseConcat";
 import * as MemoValueNames from "./MemoValueNames";
 import { traverseDomOrigin } from "./traverseDomOrigin";
 import { VERIFY } from "./config";
 import { getElAttributeValueOrigin } from "./operations/domHelpers/addElOrigin";
 import { safelyReadProperty, nullOnError } from "./util";
 import * as FunctionNames from "./FunctionNames";
-import * as sortBy from "lodash/sortBy";
+import * as sortBy from "lodash.sortby";
 import { getShortExtraArgName, getShortArgName } from "./names";
 
 function identifyTraverseFunction(operationLog, charIndex) {
@@ -135,18 +135,7 @@ const operations: Operations = {
       const rightIsNumericLiteral = right.operation === "numericLiteral";
       const numericLiteralCount =
         (leftIsNumericLiteral ? 1 : 0) + (rightIsNumericLiteral ? 1 : 0);
-      if (operator == "+") {
-        if (
-          typeof left.result.type === "string" &&
-          typeof right.result.type === "string"
-        ) {
-          return traverseStringConcat(left, right, charIndex);
-        } else {
-          console.log("todo");
-        }
-      } else {
-        console.log("todo binexp operator " + operator);
-      }
+
       if (options && options.optimistic && numericLiteralCount === 1) {
         // We can't be quite sure, but probably the user cares about the
         // more complex value, not the simple hard coded value
@@ -157,6 +146,55 @@ const operations: Operations = {
           operationLog: complexOperation
         };
       }
+
+      function looksLikeNumericConstant(operationLog) {
+        // remove: should be fixed now, fn params should store value even if untracked
+        // if (operationLog._result && operationLog._result.type === "undefined") {
+        //   // mostly doing this because right now function paramters with a default value
+        //   // don't get a tracking value...
+        //   return true;
+        // }
+        if (typeof operationLog._result !== "number") {
+          return false;
+        }
+        return [0.1, 10, 100, 1000].includes(operationLog._result);
+      }
+      let leftLooksLikeNumericConstant = looksLikeNumericConstant(left);
+      let rightLooksLikeNumericConstant = looksLikeNumericConstant(right);
+      let numericConstantCount =
+        (leftLooksLikeNumericConstant ? 1 : 0) +
+        (rightLooksLikeNumericConstant ? 1 : 0);
+      if (
+        options &&
+        options.optimistic &&
+        numericConstantCount === 1 &&
+        left._result !== 0 &&
+        right._result !== 0
+      ) {
+        const complexOperation = leftLooksLikeNumericConstant ? right : left;
+        return {
+          isOptimistic: true,
+          charIndex,
+          operationLog: complexOperation
+        };
+      }
+
+      if (operator == "+") {
+        let nextStep = traverseConcat(left, right, charIndex);
+        if (
+          nextStep &&
+          nextStep.operationLog &&
+          nextStep.operationLog._result === 0
+        ) {
+          // Ignore step... traversal to number 0 usually isn't interesting
+          return undefined;
+        }
+
+        return nextStep;
+      } else {
+        console.log("todo binexp operator " + operator);
+      }
+
       throw "aaa";
     },
     exec: function binaryExpressionExec(args, astArgs, ctx: ExecContext) {
@@ -333,6 +371,21 @@ const operations: Operations = {
         path.node.loc
       );
       path.replaceWith(t.sequenceExpression([saveTestValue, operation]));
+    }
+  },
+  genericOperation: {
+    traverse(operationLog, charIndex) {
+      if (!operationLog.runtimeArgs.next) {
+        return {
+          operationLog: null,
+          charIndex
+        };
+      }
+
+      return {
+        operationLog: operationLog.runtimeArgs.next,
+        charIndex: charIndex + (operationLog.runtimeArgs.adjustCharIndex || 0)
+      };
     }
   },
   stringReplacement: {},

@@ -12,6 +12,7 @@ import { LocLogs } from "./src/LocLogs";
 import { traverseDomOrigin } from "./src/traverseDomOrigin";
 import * as config from "./src/config";
 import { adjustColumnForEscapeSequences } from "./src/adjustColumnForEscapeSequences";
+import { traverseObject } from "./src/traverseObject";
 
 export {
   babelPlugin,
@@ -27,5 +28,6 @@ export {
   traverseDomOrigin,
   config,
   LocLogs,
-  adjustColumnForEscapeSequences
+  adjustColumnForEscapeSequences,
+  traverseObject
 };

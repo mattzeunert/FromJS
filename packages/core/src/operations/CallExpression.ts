@@ -24,12 +24,13 @@ import {
   SpecialCaseArgs,
   traverseKnownFunction,
   knownFnProcessors,
-  FnProcessorArgs
+  FnProcessorArgs,
+  newExpressionPostProcessors
 } from "./CallExpressionSpecialCases";
 import { ValueTrackingValuePair } from "../types";
 import KnownValues from "../helperFunctions/KnownValues";
 import { countObjectKeys } from "../util";
-import { getShortExtraArgName } from "../names";
+import { getShortExtraArgName, getShortKnownValueName } from "../names";
 
 const returnValueExtraArgName = getShortExtraArgName("returnValue");
 
@@ -122,7 +123,14 @@ const CallExpression = <any>{
     let runtimeArgs: any;
     let extraState: any;
 
-    const fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
+    let fnKnownValue = ctx.knownValues.getName(fnAtInvocation);
+    if (
+      !fnKnownValue &&
+      typeof fnArgValuesAtInvocation[0] === "number" &&
+      context[0] instanceof Intl.NumberFormat
+    ) {
+      fnKnownValue = "Intl.NumberFormat.format";
+    }
     if (fnKnownValue) {
       runtimeArgs = {};
       extraState = {};
@@ -261,7 +269,8 @@ const CallExpression = <any>{
         ret,
         retT,
         extraState,
-        runtimeArgs
+        runtimeArgs,
+        fnKnownValue
       };
       if (functionIsCallOrApply) {
         specialCaseArgs.fn = object;
@@ -303,6 +312,7 @@ const CallExpression = <any>{
       function setFunction(f) {
         fn = f;
       }
+
       const fnProcessorArgs: FnProcessorArgs = {
         extraState,
         setArgValuesForApply,
@@ -317,8 +327,17 @@ const CallExpression = <any>{
         object,
         setFunction,
         fnArgValuesAtInvocation,
-        fnArgTrackingValuesAtInvocation
+        fnArgTrackingValuesAtInvocation,
+        setFnArgTrackingValue: (index, val) => {
+          fnArgTrackingValues[index] = val;
+        }
       };
+
+      if (functionIsCallOrApply) {
+        // fnProcessorArgs.fn = object;
+        fnProcessorArgs.object = fnArgValues[0];
+        fnProcessorArgs.context = [fnArgValues[0], fnArgTrackingValues[0]];
+      }
 
       return fnProcessorArgs;
     }
@@ -347,6 +366,16 @@ const CallExpression = <any>{
 
     if (knownFunction) {
       return traverseKnownFunction({ operationLog, charIndex, knownFunction });
+    } else if (
+      operationLog.args.context &&
+      operationLog.args.context.result.knownTypes &&
+      operationLog.args.context.result.knownTypes.includes("Intl.NumberFormat")
+    ) {
+      // let's just assume it's the
+      return {
+        operationLog: operationLog.args.arg0,
+        charIndex: charIndex
+      };
     } else {
       return {
         operationLog: operationLog.extraArgs.returnValue,
@@ -471,7 +500,8 @@ function handleNewExpression({
   retT,
   logData,
   args,
-  fnArgTrackingValues
+  fnArgTrackingValues,
+  fnKnownValue
 }: SpecialCaseArgs) {
   const isNewFunctionCall = fn === Function;
   if (isNewFunctionCall && ctx.hasInstrumentationFunction) {
@@ -504,22 +534,14 @@ function handleNewExpression({
           const res = function(resolveValue) {
             let resolveValueTV = global[getFunctionArgTrackingInfo](0);
             doTrackPromiseResolutionValue = promise => {
-              console.log("resolving promise", { promise, resolveValue });
               if (resolveValue instanceof Promise) {
                 resolveValue.then(nextResolveValue => {
-                  console.log("resolve call then", {
-                    resolveValue,
-                    nextResolveValue
-                  });
                   let tv = ctx.getPromiseResolutionTrackingValue(resolveValue);
 
                   ctx.trackPromiseResolutionValue(promise, tv);
                 });
               } else {
                 ctx.trackPromiseResolutionValue(promise, resolveValueTV);
-                console.log("p after track", promise, {
-                  at: global[getFunctionArgTrackingInfo](0)
-                });
               }
             };
 
@@ -567,5 +589,23 @@ function handleNewExpression({
     result: ret,
     loc: logData.loc
   });
+
+  if (fnKnownValue) {
+    let postProcessor = newExpressionPostProcessors[fnKnownValue];
+    if (postProcessor) {
+      postProcessor({
+        fn,
+        ctx,
+        fnArgValues,
+        ret,
+        retT,
+        logData,
+        args,
+        fnArgTrackingValues,
+        fnKnownValue
+      });
+    }
+  }
+
   return { ret, retT };
 }

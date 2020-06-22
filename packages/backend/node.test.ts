@@ -51,6 +51,7 @@ describe("Node", () => {
       ignoreFilePattern = null as any,
       includeFilePattern = null as any,
       runNTimes = 1,
+      returnAfterExec = false,
     }
   ) {
     let sessionSizeBefore = await getSessionSize();
@@ -80,6 +81,10 @@ describe("Node", () => {
       throw Error("Node command exited with code " + code);
     }
 
+    if (returnAfterExec) {
+      return {} as any;
+    }
+
     const processRequestQueueStart = new Date();
     await backend.processRequestQueue();
     let processRequestQueueDuration =
@@ -101,11 +106,15 @@ describe("Node", () => {
     let inspectIndex = parseFloat(
       stdout.match(/Inspect:\d+/)![0].replace("Inspect:", "")
     );
+    console.log({ inspectIndex });
     return {
       execDuration,
       compileDuration,
       traverse: async (charIndex) => {
-        const steps = await backend.handleTraverse(inspectIndex, charIndex);
+        const steps = await backend.handleTraverse(inspectIndex, charIndex, {
+          keepResultData: true,
+        });
+        console.log("step count", steps.length);
         const lastStep = steps[steps.length - 1];
         return { step: lastStep };
       },
@@ -124,8 +133,13 @@ describe("Node", () => {
   it("Can require json files", async () => {
     let { traverse } = await runTest("requireJson", {});
     const { step } = await traverse(0);
-    expect(step.operationLog.operation).toBe("jsonParseResult");
+    expect(step.operationLog.operation).toBe("fileContent");
   }, 15000);
+
+  it("Can calculate PI", async () => {
+    let { traverse } = await runTest("pi", { returnAfterExec: true });
+    // just doing this one for timing
+  }, 25000);
 
   it("reactSsr", async () => {
     let { traverse, execDuration, compileDuration } = await runTest(
@@ -171,6 +185,44 @@ describe("Node", () => {
     ({ step } = await traverse(12));
     expect(step.operationLog.operation).toBe("stringLiteral");
     expect(step.operationLog.result.primitive).toBe("equal");
+  }, 120000);
+
+  it("can handle event emitter .emit", async () => {
+    let { execDuration, compileDuration, traverse } = await runTest(
+      "eventEmitter",
+      {}
+    );
+
+    let { step } = await traverse(0);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("abc");
+
+    ({ step } = await traverse(3));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("xyz");
+  }, 120000);
+
+  it("supports lucky matches", async () => {
+    let { execDuration, compileDuration, traverse } = await runTest(
+      "luckyMatches",
+      {}
+    );
+
+    let { step } = await traverse(0);
+    console.log(JSON.stringify(step, null, 2));
+    expect(step.operationLog.operation).toBe("stringLiteral");
+    expect(step.operationLog.result.primitive).toBe("a");
+  }, 120000);
+
+  it("intl test", async () => {
+    let { execDuration, compileDuration, traverse } = await runTest("intl", {
+      ignoreFilePattern: /dist/,
+    });
+
+    let { step } = await traverse(0);
+    expect(step.operationLog.operation).toBe("numericLiteral");
+    expect(step.operationLog.result.primitive).toBe(123456.789);
   }, 120000);
 });
 

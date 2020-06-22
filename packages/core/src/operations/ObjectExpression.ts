@@ -12,6 +12,23 @@ const OBJECT_METHOD = EXPLICIT_NAMES ? "ObjectMethod" : "met";
 const OBJECT_PROPERTY = EXPLICIT_NAMES ? "ObjectProperty" : "pr";
 const OBJECT_SPREAD_ELEMENT = EXPLICIT_NAMES ? "SpreadElement" : "se";
 
+function traverseFullObjectExpression(node, keyPath: string[]) {
+  if (node._didAddObjectPaths) {
+    return;
+  }
+  node._didAddObjectPaths = true;
+  node.properties.forEach(prop => {
+    if (prop.value && prop.key && (prop.key.value || prop.key.name)) {
+      let propKeyPath = [...keyPath, prop.key.value || prop.key.name];
+      if (prop.value.type === "ObjectExpression") {
+        traverseFullObjectExpression(prop.value, propKeyPath);
+      } else {
+        prop.value.loc.objectPath = propKeyPath;
+      }
+    }
+  });
+}
+
 export default <any>{
   argNames: ["property"],
   argIsArray: [true],
@@ -54,7 +71,7 @@ export default <any>{
       } else if (propertyType === OBJECT_SPREAD_ELEMENT) {
         let objToCopyFrom = value[0];
         let objToCopyFromTrackingValue = value[1];
-        Object.entries(objToCopyFrom).forEach(([key, value]) => {
+        Object.entries(objToCopyFrom || {}).forEach(([key, value]) => {
           obj[key] = value;
           ctx.trackObjectPropertyAssignment(
             obj,
@@ -112,6 +129,14 @@ export default <any>{
         }
       }
     });
+
+    // Add objectPath to values – we use that in the UI to show what the
+    // surrounding object is when users can only see a few lines of it
+    let initialPath: string[] = [];
+    if (path.parentPath.node.type === "VariableDeclarator") {
+      initialPath.push(path.parentPath.node.id.name);
+    }
+    traverseFullObjectExpression(path.node, initialPath);
 
     function makeArray(type, key, value, kind?) {
       var ret = [type, key, value];

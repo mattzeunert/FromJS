@@ -219,6 +219,7 @@ let logQueue = [];
 global["__debugFromJSLogQueue"] = () => logQueue;
 let evalScriptQueue = [];
 let eventQueue = [];
+let luckyMatchQueue = [];
 let worker: Worker | null = null;
 // temporarily disable worker because i think lighthouse runs stuff in isolated envs
 // and it means hundreds of workers get created rather than always using same one?
@@ -249,6 +250,8 @@ async function sendLogsToServer() {
   data += "\n";
   data += JSON.stringify(eventQueue);
   data += "\n";
+  data += JSON.stringify(luckyMatchQueue);
+  data += "\n";
   for (const item of logQueue) {
     data += item[0] + "\n" + item[1] + "\n";
   }
@@ -256,6 +259,7 @@ async function sendLogsToServer() {
   logQueue = [];
   evalScriptQueue = [];
   eventQueue = [];
+  luckyMatchQueue = [];
 
   if (worker) {
     // Doing this means the data will be cloned, but it seems to be
@@ -300,10 +304,12 @@ declare var __storeLog;
 const storeLog =
   typeof __storeLog !== "undefined" ? __storeLog : remotelyStoreLog;
 
+let skipTracking = SKIP_TRACKING;
+
 let lastOperationType = null;
 function createOperationLog(args: CreateOperationLogArgs, op, index) {
-  if (SKIP_TRACKING) {
-    return 1111;
+  if (skipTracking) {
+    return null;
   }
   var log = OperationLog.createAtRuntime(args, knownValues, op);
   storeLog(index, JSON.stringify(log));
@@ -315,6 +321,24 @@ function createOperationLog(args: CreateOperationLogArgs, op, index) {
     global["__debugAllLogs"][log.index] = log;
   }
 }
+
+// Used to speed up slow parts of a program, e.g. for the Lighthouse
+// JSON parser or other buffer processing logic
+// ----
+// Counter used to handle nested function calls that disable at start and end
+let skipTrackingCounter = 0;
+global["__FromJSDisableCollectTrackingData"] = function(label) {
+  skipTrackingCounter++;
+  console.log("Disable FromJS tracking", { skipTrackingCounter, label });
+  skipTracking = true;
+};
+global["__FromJSEnableCollectTrackingData"] = function(label) {
+  skipTrackingCounter--;
+  console.log("Enable FromJS tracking", { skipTrackingCounter, label });
+  if (skipTrackingCounter === 0) {
+    skipTracking = SKIP_TRACKING;
+  }
+};
 
 if (KEEP_LOGS_IN_MEMORY) {
   global["__debugLookupLog"] = function(logId, currentDepth = 0) {
@@ -534,10 +558,15 @@ global[FunctionNames.getLastMemberExpressionObject] = function() {
   ];
 };
 
-global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
+global[FunctionNames.getEmptyTrackingInfo] = function(
+  type,
+  loc,
+  result = undefined
+) {
   let index = getOperationIndex();
   let logData: any = {
     operation: "emptyTrackingInfo",
+    result,
     args: {},
     runtimeArgs: { type },
     astArgs: {},
@@ -547,6 +576,7 @@ global[FunctionNames.getEmptyTrackingInfo] = function(type, loc) {
   createOperationLog(logData, operations["emptyTrackingInfo"], index);
   return index;
 };
+
 global[FunctionNames.expandArrayForArrayPattern] = function(
   arr,
   loc,
@@ -696,8 +726,8 @@ const ctx: ExecContext = {
   objectHasPropertyTrackingData(obj) {
     return !!objTrackingMap.get(obj);
   },
-  getEmptyTrackingInfo(type, loc) {
-    return global[FunctionNames.getEmptyTrackingInfo](type, loc);
+  getEmptyTrackingInfo(type, loc, result = undefined) {
+    return global[FunctionNames.getEmptyTrackingInfo](type, loc, result);
   },
   getCurrentTemplateLiteralTrackingValues() {
     return getCurrentTemplateLiteralTrackingValues();
@@ -853,33 +883,74 @@ global[FunctionNames.enterTemplateLiteral] = function() {
   currentTemplateLiteralIndex++;
 };
 
+// note: would be good to make this spec complient, e.g. see how babel does it
+// e.g. handle non own properties better
 global[FunctionNames.provideObjectPatternTrackingValues] = function(
   obj,
   properties
 ) {
   properties = properties.map(arr => {
+    let pathParts = arr[1].split(".");
     return {
       name: arr[0],
-      path: arr[1]
+      nameInPath: pathParts[pathParts.length - 1],
+      path: arr[1],
+      isRest: !!arr[2],
+      parentPath: pathParts.slice(0, -1).join(".")
     };
   });
 
+  let propertiesByParentPath = {};
+  properties.forEach(p => {
+    propertiesByParentPath[p.parentPath] =
+      propertiesByParentPath[p.parentPath] || [];
+    propertiesByParentPath[p.parentPath].push(p);
+  });
+
   const res = {};
+  Object.keys(propertiesByParentPath).forEach(parentPath => {
+    let props = propertiesByParentPath[parentPath];
+    const subObj = objectPath.withInheritedProps.get(obj, parentPath);
+    let rest = { ...subObj };
 
-  traverseObject(obj, (keyPath, value, key, obj) => {
-    let keyPathStr = keyPath.join(".");
+    let subRes = parentPath ? {} : res;
 
-    objectPath.set(res, keyPathStr, value);
-
-    let prop = properties.find(p => {
-      return p.path === keyPathStr;
+    props.forEach(prop => {
+      if (prop.isRest) {
+      } else {
+        objectPath.set(
+          subRes,
+          prop.nameInPath,
+          objectPath.withInheritedProps.get(obj, prop.path)
+        );
+        let trackingValue = ctx.getObjectPropertyTrackingValue(
+          subObj,
+          prop.nameInPath
+        );
+        // The tracking values are set directly on res
+        objectPath.set(res, prop.name + "___tv", trackingValue);
+        delete rest[prop.nameInPath];
+      }
     });
-    if (prop) {
-      objectPath.set(
-        res,
-        prop.name + "___tv",
-        ctx.getObjectPropertyTrackingValue(obj, key)
-      );
+
+    props.forEach(prop => {
+      if (prop.isRest) {
+        // !!!!! I THINK OBJECT.KEYS HERE MEAN WE MISS SOME NON OWN PROPERTIES !!!!
+        Object.keys(rest).forEach(key => {
+          objectPath.set(
+            subRes,
+            key,
+            objectPath.withInheritedProps.get(
+              obj,
+              (parentPath ? parentPath + "." : "") + key
+            )
+          );
+        });
+      }
+    });
+
+    if (parentPath) {
+      objectPath.set(res, parentPath, subRes);
     }
   });
 
@@ -925,3 +996,20 @@ global["__fromJSMaybeMapInitialPageHTML"] = function() {
 };
 
 global["__fromJSMaybeMapInitialPageHTML"]();
+
+global["__fromJSCallFunctionWithTrackingChainInterruption"] = function(fn) {
+  const ret = global[FunctionNames.doOperation](
+    "callExpression",
+    [[fn, null], [this, null], []],
+    {}
+  );
+  return ret;
+};
+
+global["__fromJSRegisterLuckyMatch"] = function(value) {
+  let valueTv = global[FunctionNames.getFunctionArgTrackingInfo](0);
+  luckyMatchQueue.push({
+    value,
+    trackingValue: valueTv
+  });
+};

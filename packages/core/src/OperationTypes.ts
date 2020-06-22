@@ -41,3 +41,5 @@ export const XMLHttpRequestResponse = "XMLHttpRequest.responseText";
 export const styleAssignment = "styleAssignment";
 export const fn = "fn";
 export const awaitExpression = "awaitExpression";
+export const genericOperation = "genericOperation";
+export const fileContent = "fileContent";

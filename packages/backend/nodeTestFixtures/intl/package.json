@@ -1,0 +1,14 @@
+{
+  "name": "intltest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "intl.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "intl": "^1.2.5"
+  }
+}

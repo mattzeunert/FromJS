@@ -27,6 +27,7 @@ window["__debugApi"] = api;
 
 import "./main.scss";
 import { App2 } from "./CodeViewer";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 // global function used by tree view html
 window["showSteps"] = function (logId, charIndex) {
@@ -218,7 +219,12 @@ console.log(!location.href.includes("xyzviewer"));
 if (!location.href.includes("xyzviewer")) {
   App = root(appState, App);
 
-  ReactDom.render(<App />, document.querySelector("#app"));
+  ReactDom.render(
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>,
+    document.querySelector("#app")
+  );
 } else {
   console.log("xyz");
   const App2WrapperX = root(appState, App2Wrapper);

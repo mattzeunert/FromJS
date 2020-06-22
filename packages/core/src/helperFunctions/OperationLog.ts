@@ -53,6 +53,9 @@ export interface SerializedValueData {
 
 type StoredSerializedValue = SerializedValueData | string | number | boolean;
 
+let HtmlInputElement = global["HTMLInputElement"];
+let IntlNumberFormat = Intl.NumberFormat;
+
 export function getSerializedValueObject(
   value,
   type,
@@ -73,12 +76,16 @@ export function getSerializedValueObject(
   }
 
   var knownTypes: any[] | undefined = undefined;
-  if (
-    global["HTMLInputElement"] &&
-    value instanceof global["HTMLInputElement"]
-  ) {
+  if (HtmlInputElement && value instanceof HtmlInputElement) {
     knownTypes = [];
     knownTypes.push("HTMLInputElement");
+  } else if (value instanceof IntlNumberFormat) {
+    // use this to be able to traverse Intl.NumberFormat.format call
+    // format function can't be a normal known value because it's unqiue for each instance
+    // ... maybe a better solution would be adding each format function to knownvalues
+    // when is the NumberFormat instance is created
+    knownTypes = [];
+    knownTypes.push("Intl.NumberFormat");
   }
   try {
     if (
@@ -108,15 +115,19 @@ export function getSerializedValueObject(
       value !== null &&
       !Array.isArray(value) &&
       !knownValue &&
-      (!_bufferObj || !(value instanceof _bufferObj))
+      (!_bufferObj || !(value instanceof _bufferObj)) &&
+      // filter out Array like things, e.g. Uint8Array
+      !("length" in value && "0" in value)
     ) {
       // todo: rethink this regarding perf
-      // maybe don't collect keys, maybe do for...in instead
       // also: when inspecting i really want the trakcing data for
       // values/keys to be accessible, so maybe just storing keys makes more sense
       keys = Object.keys(value);
       if (keys.length > 100) {
-        console.log("Obj with more than 100 keys", keys.slice(0, 5));
+        console.log(
+          "Obj with more than 100 keys: " + keys.length,
+          keys.slice(0, 5)
+        );
       }
       if (keys.length > 5) {
         keys = keys.slice(0, 5);

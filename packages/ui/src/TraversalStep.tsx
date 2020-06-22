@@ -1,7 +1,7 @@
 import * as React from "react";
 import { branch, root } from "baobab-react/higher-order";
 import OperationLogTreeView from "./OperationLogTreeView";
-import { resolveStackFrame } from "./api";
+import { resolveStackFrame, loadLogResult } from "./api";
 import appState from "./appState";
 import { TextEl } from "./TextEl";
 import Code from "./Code";
@@ -14,7 +14,11 @@ import { adjustColumnForEscapeSequences } from "../../core/src/adjustColumnForEs
 
 function getFileNameFromPath(path) {
   const parts = path.split("/");
-  return parts[parts.length - 1];
+  while (parts.length > 1 && parts.join("/").length > 30) {
+    parts.shift();
+  }
+
+  return parts.join("/");
 }
 
 type TraversalStepProps = {
@@ -23,6 +27,7 @@ type TraversalStepProps = {
 };
 type TraversalStepState = {
   stackFrame: any;
+  logResult: any;
   showLogJson: boolean;
   showTree: boolean;
   isExpanded: boolean;
@@ -57,6 +62,10 @@ let TraversalStep = class TraversalStep extends React.Component<
         })
         .catch((err) => "yolo");
     }
+
+    loadLogResult(step.operationLog.index, step.charIndex).then((lr) => {
+      this.setState({ logResult: lr });
+    });
   }
 
   needsToLoadLocation(operationLog) {
@@ -77,12 +86,19 @@ let TraversalStep = class TraversalStep extends React.Component<
 
   render() {
     const { step, debugMode } = this.props;
-    const { charIndex, operationLog } = step;
-    const { showTree, showLogJson, stackFrame } = this.state;
+    let { charIndex, operationLog } = step;
+    const { showTree, showLogJson, stackFrame, logResult } = this.state;
     let { isExpanded } = this.state;
     let code;
     let fileName, columnNumber, lineNumber;
     let previousLine, nextLine;
+
+    if (logResult) {
+      operationLog = new OperationLog({
+        ...operationLog,
+        _result: logResult._result,
+      });
+    }
 
     // if (operationLog.result.type === "object") {
     //   // the user probably cares about the arguments
@@ -93,18 +109,22 @@ let TraversalStep = class TraversalStep extends React.Component<
     if (this.needsToLoadLocation(operationLog)) {
       try {
         if (stackFrame) {
-          const { previousLines, nextLines } = stackFrame.code;
-          code = stackFrame.code.line.text;
-          fileName = stackFrame.fileName.replace("?dontprocess", "");
-          lineNumber = stackFrame.lineNumber;
-          columnNumber = stackFrame.columnNumber;
-          if (previousLines.length > 0) {
-            previousLine = previousLines[previousLines.length - 1].text;
+          if (stackFrame.file && stackFrame.file.nodePath) {
+            fileName = stackFrame.file.nodePath;
+          } else {
+            const { previousLines, nextLines } = stackFrame.code;
+            code = stackFrame.code.line.text;
+            fileName = stackFrame.fileName.replace("?dontprocess", "");
+            lineNumber = stackFrame.lineNumber;
+            columnNumber = stackFrame.columnNumber;
+            if (previousLines.length > 0) {
+              previousLine = previousLines[previousLines.length - 1].text;
+            }
+            if (nextLines.length > 0) {
+              nextLine = nextLines[0].text;
+            }
+            hasResolvedFrame = true;
           }
-          if (nextLines.length > 0) {
-            nextLine = nextLines[0].text;
-          }
-          hasResolvedFrame = true;
         } else {
           code = "(Loading...)";
           fileName = "(Loading...)";
@@ -125,7 +145,16 @@ let TraversalStep = class TraversalStep extends React.Component<
       return text.slice(0, 15) + "..." + text.slice(-30);
     }
 
-    const str = operationLog.result.primitive + "";
+    let str = operationLog.result.primitive + "";
+
+    if (!operationLog.result.primitive) {
+      str = operationLog.result.getTruncatedUIString();
+    }
+
+    if (logResult && logResult.json) {
+      str = logResult.json.formatted;
+      charIndex = logResult.json.charIndex;
+    }
     // const beforeChar = prepareText(str.slice(0, charIndex));
     // const char = str.slice(charIndex, charIndex + 1);
     // const afterChar = prepareText(str.slice(charIndex + 1));
@@ -191,6 +220,12 @@ let TraversalStep = class TraversalStep extends React.Component<
         operationTypeDetail = operationLog.runtimeArgs.filePath
           .split("/")
           .slice(-1)[0];
+      } else if (operationLog.operation === "fileContent") {
+        operationTypeDetail = operationLog.runtimeArgs.path;
+      } else if (stackFrame && stackFrame.loc && stackFrame.loc.objectPath) {
+        operationTypeDetail = truncate(stackFrame.loc.objectPath.join("."), {
+          length: 70,
+        });
       }
     } catch (err) {
       console.log(err);
@@ -207,7 +242,10 @@ let TraversalStep = class TraversalStep extends React.Component<
       );
     }
 
-    let shortFileName = getFileNameFromPath(fileName);
+    let shortFileName = fileName;
+    if (shortFileName.length > 25) {
+      shortFileName = getFileNameFromPath(fileName);
+    }
     if (shortFileName.length === 0) {
       // Commonly happens for HTML path that ends with /
       shortFileName = fileName;
@@ -216,7 +254,41 @@ let TraversalStep = class TraversalStep extends React.Component<
       "http://fromjs-temporary-url.com:5555/",
       ""
     );
+
+    if (stackFrame && stackFrame.file && stackFrame.file.sourceUrl) {
+      shortFileName =
+        getFileNameFromPath(stackFrame.file.sourceUrl) + " ➔ " + shortFileName;
+
+      let lsts = stackFrame.file.lastSourceTraversalStep;
+
+      if (
+        lsts &&
+        lsts.operationLog &&
+        lsts.operationLog.runtimeArgs &&
+        (lsts.operationLog.runtimeArgs.filePath ||
+          lsts.operationLog.runtimeArgs.path)
+      ) {
+        shortFileName += ` (${getFileNameFromPath(
+          lsts.operationLog.runtimeArgs.filePath ||
+            lsts.operationLog.runtimeArgs.path
+        )})`;
+      }
+    }
+
     const fileNameLabel = shortFileName;
+
+    let opNameToShow =
+      operationLog.operation[0].toUpperCase() + operationLog.operation.slice(1);
+    if (operationLog.operation === "genericOperation") {
+      opNameToShow = operationLog.runtimeArgs.name;
+    }
+
+    let isFileContent =
+      operationLog.operation === "fileContent" ||
+      operationLog.operation === "readFileSyncResult";
+    let hasFormattedJson = logResult && logResult.json;
+    let showMoreResultValueLines = hasFormattedJson || isFileContent;
+
     return (
       <div
         className="step"
@@ -225,8 +297,7 @@ let TraversalStep = class TraversalStep extends React.Component<
       >
         <div className="step__header">
           <div className="step__operation-type">
-            {operationLog.operation[0].toUpperCase() +
-              operationLog.operation.slice(1)}{" "}
+            {opNameToShow}{" "}
             <span className="step__operation-type-detail">
               {operationTypeDetail}
             </span>
@@ -299,14 +370,7 @@ let TraversalStep = class TraversalStep extends React.Component<
               >
                 Inspect operation arguments:
               </div>
-              <pre>
-                Runtime args:
-                {JSON.stringify(
-                  this.props.step.operationLog.runtimeArgs,
-                  null,
-                  4
-                )}
-              </pre>
+
               {this.getAllArgs().length === 0 && (
                 <div style={{ padding: 6 }}>(No arguments)</div>
               )}
@@ -376,6 +440,14 @@ let TraversalStep = class TraversalStep extends React.Component<
                     )}
                   </div>
                 )}
+              <pre>
+                Runtime args:
+                {JSON.stringify(
+                  this.props.step.operationLog.runtimeArgs,
+                  null,
+                  4
+                )}
+              </pre>
               {/* {operationLog.runtimeArgs &&
                 Object.keys(operationLog.runtimeArgs).length > 0 && (
                   <div>
@@ -418,19 +490,28 @@ let TraversalStep = class TraversalStep extends React.Component<
               resolvedStackFrame={this.state.stackFrame}
               traversalStep={step}
               highlighNthCharAfterColumn={highlighNthCharAfterColumn}
+              defaultSurroundingLineCount={
+                isFileContent ? 1 : this.props.defaultCodeSurroundingLineCount
+              }
             />
           )}
           <div style={{ borderTop: "1px dotted rgb(221, 221, 221)" }}>
             <TextEl
               text={str}
               highlightedCharacterIndex={charIndex}
-              onCharacterClick={(charIndex) =>
+              defaultNumberOfLinesToShow={showMoreResultValueLines ? 4 : 2}
+              onCharacterClick={(charIndex) => {
+                if (logResult.json) {
+                  alert(
+                    "Warning: json is prettified so char index will be wrong"
+                  );
+                }
                 selectAndTraverse(
                   operationLog.index,
                   charIndex,
                   "traversalStep"
-                )
-              }
+                );
+              }}
             />
           </div>
 

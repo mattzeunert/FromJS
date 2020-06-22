@@ -14,7 +14,7 @@ import {
   getTrackingIdentifier,
   runIfTrackingIdentifierExists
 } from "../babelPluginHelpers";
-import traverseStringConcat from "../traverseStringConcat";
+import traverseConcat from "../traverseConcat";
 import mapInnerHTMLAssignment from "./domHelpers/mapInnerHTMLAssignment";
 import addElOrigin, {
   addElAttributeValueOrigin,
@@ -235,7 +235,7 @@ export default <any>{
           charIndex
         };
       }
-      return traverseStringConcat(
+      return traverseConcat(
         operationLog.args.currentValue,
         operationLog.args.argument,
         charIndex

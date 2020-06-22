@@ -39,6 +39,7 @@ export async function compileNodeApp({
         !file.name.includes("connection.js") &&
         !file.name.includes("cri.js") &&
         !file.name.includes("page-functions.js") &&
+        !file.name.includes("default-config.js") &&
         !(
           file.relativePath.includes("lighthouse-cli") &&
           file.name === "index.js"

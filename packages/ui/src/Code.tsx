@@ -16,7 +16,7 @@ export default class Code extends React.Component<CodeProps, CodeState> {
   constructor(props) {
     super(props);
     this.state = {
-      surroundingLineCount: 5
+      surroundingLineCount: props.defaultSurroundingLineCount || 3,
     };
   }
   render() {
@@ -41,6 +41,13 @@ export default class Code extends React.Component<CodeProps, CodeState> {
     }
 
     const columnNumber = frame.columnNumber;
+
+    if (!frame.code) {
+      return (
+        "No code for frame: " + JSON.stringify(frame, null, 2).slice(0, 100)
+      );
+    }
+
     const lineFirstCharIndex = frame.code.line.firstCharIndex;
     var strBetweenBarAndHighlight = frame.code.line.text.substring(
       columnNumber - lineFirstCharIndex,
@@ -60,14 +67,14 @@ export default class Code extends React.Component<CodeProps, CodeState> {
       minLength: 30,
       charsAtStart: 8,
       charsBefore: 20,
-      minLengthBarToHighlight: 20
+      minLengthBarToHighlight: 20,
     };
     if (document.body.clientWidth > 700) {
       truncationSettings = {
         minLength: 40,
         charsAtStart: 10,
         charsBefore: 25,
-        minLengthBarToHighlight: 20
+        minLengthBarToHighlight: 20,
       };
     }
     if (document.body.clientWidth > 1000) {
@@ -75,7 +82,7 @@ export default class Code extends React.Component<CodeProps, CodeState> {
         minLength: 60,
         charsAtStart: 15,
         charsBefore: 35,
-        minLengthBarToHighlight: 20
+        minLengthBarToHighlight: 20,
       };
     }
 
@@ -171,9 +178,9 @@ export default class Code extends React.Component<CodeProps, CodeState> {
 
       var previousLines = frame.code.previousLines
         .slice(-surroundingLineCount)
-        .map(l => l.text);
+        .map((l) => l.text);
 
-      return previousLines.map(function(line, i) {
+      return previousLines.map(function (line, i) {
         return getLine(
           line,
           frame.lineNumber + i - previousLines.length,
@@ -187,8 +194,8 @@ export default class Code extends React.Component<CodeProps, CodeState> {
       }
       var nextLines = frame.code.nextLines
         .slice(0, surroundingLineCount)
-        .map(l => l.text);
-      return nextLines.map(function(line, i) {
+        .map((l) => l.text);
+      return nextLines.map(function (line, i) {
         return getLine(
           line,
           frame.lineNumber + 1 + i,
@@ -202,9 +209,9 @@ export default class Code extends React.Component<CodeProps, CodeState> {
         style={{
           display: "block",
           // maxHeight: 18 * 7,
-          overflow: "auto"
+          overflow: "auto",
         }}
-        ref={el => this.scrollToLine(el, frame.lineNumber)}
+        ref={(el) => this.scrollToLine(el, frame.lineNumber)}
       >
         <HorizontalScrollContainer>
           <div>
@@ -214,16 +221,19 @@ export default class Code extends React.Component<CodeProps, CodeState> {
                 (true ? " fromjs-stack__code--truncated" : "")
               }
               onClick={() => {
-                const nextSurroundingLineCount = {
+                let nextSurroundingLineCount = {
                   // 1: 3,
+                  3: 7,
                   5: 7,
                   7: 20,
-                  20: 3
-                };
+                  20: 3,
+                }[surroundingLineCount];
+                if (!nextSurroundingLineCount) {
+                  nextSurroundingLineCount = 7;
+                }
 
                 self.setState({
-                  surroundingLineCount:
-                    nextSurroundingLineCount[surroundingLineCount]
+                  surroundingLineCount: nextSurroundingLineCount,
                 });
               }}
             >
