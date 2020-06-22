@@ -10,8 +10,10 @@ export default function initDomInspectionUI(backendPort) {
   const toggleInspectDomButton = document.createElement("div");
   let selectedElement = null;
   const selectedElementMarker = document.createElement("div");
+  selectedElementMarker.classList.add("fromjs-element-marker");
   let previewedElement = null;
   const previewedElementMarker = document.createElement("div");
+  previewedElementMarker.classList.add("fromjs-element-marker");
 
   let waitForInitResolveFunction;
   const waitForInit = new Promise(
