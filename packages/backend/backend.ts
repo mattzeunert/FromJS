@@ -507,7 +507,7 @@ copy(JSON.stringify(res, null, 2))
       <head>
       </head>
       <body>
-        <div>Loading snapshot...</div>
+        <div id="loading-snapshot">Loading snapshot...</div>
         <script>
         window.backendPort = 7000;
         </script>
@@ -549,6 +549,7 @@ copy(JSON.stringify(res, null, 2))
           fetch("/snapshotData/lighthouse").then(r => r.json()).then(snapshotData => {
             restoreEl(document.head, snapshotData.head)
             restoreEl(document.body, snapshotData.body)
+            document.querySelector("#loading-snapshot").remove()
           })
         </script>
       </body>
