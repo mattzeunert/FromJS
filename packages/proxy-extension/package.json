@@ -1,8 +1,8 @@
 {
-  "name": "loadarchive",
-  "version": "1.0.0",
+  "name": "@fromjs/proxy-extension",
+  "version": "3.0.5",
   "description": "",
-  "main": "background.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "webpack": "INJECT_EXTENSION_ID=true webpack --config webpack.conf.js --watch",
@@ -23,5 +23,8 @@
   },
   "devDependencies": {
     "copy-webpack-plugin": "^4.5.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

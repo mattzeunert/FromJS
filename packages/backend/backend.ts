@@ -46,6 +46,13 @@ let coreDir = require
   .split(/[\/\\]/g)
   .slice(0, -1)
   .join("/");
+let extensionDir =
+  require
+    .resolve("@fromjs/proxy-extension")
+    .split(/[\/\\]/g)
+    .slice(0, -1)
+    .join("/") + "/dist";
+
 let fromJSInternalDir = path.resolve(__dirname + "/../fromJSInternal");
 
 let startPageDir = path.resolve(__dirname + "/../start-page");
@@ -1679,7 +1686,7 @@ function makeRequestHandler(options) {
 }
 
 export async function openBrowser({ userDataDir, extraArgs, config }) {
-  let extensionPath = path.resolve(__dirname + "/../../proxy-extension/dist");
+  let extensionPath = path.resolve(extensionDir);
   const browser = await puppeteer.launch({
     headless: false,
     dumpio: true,

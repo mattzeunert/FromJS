@@ -8,11 +8,9 @@ For example, some content might have been loaded using `fetch`, some might have 
 
 ## Getting started
 
-[**Note: Currently FromJS only works with Node 9 or below**](https://github.com/joeferner/node-http-mitm-proxy/issues/165)
-
 Install with `npm install -g @fromjs/cli` and then run `fromjs`. This will open a new Chrome browser window.
 
-By default FromJS will launch a web server on [localhost:7000](http://localhost:7000/), a proxy server on port 7001, and store the collected data in `./fromjs-session`.
+By default FromJS will launch a web server on [localhost:7000](http://localhost:7000/) and store the collected data in `./fromjs-session`.
 
 Loading pages will be slow! For large apps expect it to take several minutes. Maybe try something simple like [Backbone TodoMVC](http://todomvc.com/examples/backbone/) to get started.
 

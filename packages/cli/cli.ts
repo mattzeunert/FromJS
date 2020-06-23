@@ -70,14 +70,12 @@ if (!maxOldSpaceSizeArg) {
     disableDefaultBlockList: !!commander.disableDefaultBlockList,
     onReady: async function () {
       if (commander.openBrowser === "yes") {
-        // openBrowser();
+        openB();
       }
     },
   });
 
-  if (commander.openBrowser === "only") {
-    process["titl" + "e"] = "FromJS - CLI (browser only)";
-    console.log("Only opening browser with proxy port set to", proxyPort);
+  function openB() {
     openBrowser({
       userDataDir: backendOptions.getChromeUserDataDirectory(),
       extraArgs: [],
@@ -86,6 +84,12 @@ if (!maxOldSpaceSizeArg) {
         redirectUrl: `http://localhost:${bePort}/start/`,
       },
     });
+  }
+
+  if (commander.openBrowser === "only") {
+    process["titl" + "e"] = "FromJS - CLI (browser only)";
+    // console.log("Only opening browser with proxy port set to", proxyPort);
+    openB();
   } else {
     const backend = new Backend(backendOptions);
   }
