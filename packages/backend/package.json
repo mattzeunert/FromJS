@@ -14,6 +14,7 @@
     "@babel/core": "^7.2.2",
     "@fromjs/core": "^3.0.1",
     "@fromjs/proxy-instrumenter": "^3.0.0",
+    "@fromjs/proxy-extension": "^3.0.0",
     "@fromjs/ui": "^3.0.1",
     "@types/jest": "^22.2.3",
     "@types/node": "^12.12.6",

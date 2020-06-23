@@ -1,5 +1,5 @@
 {
-  "name": "loadarchive",
+  "name": "@fromjs/proxy-extension",
   "version": "3.0.0",
   "description": "",
   "main": "background.js",

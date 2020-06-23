@@ -1679,6 +1679,7 @@ function makeRequestHandler(options) {
 }
 
 export async function openBrowser({ userDataDir, extraArgs, config }) {
+  console.log("---", require.resolve("@fromjs/core"));
   let extensionPath = path.resolve(__dirname + "/../../proxy-extension/dist");
   const browser = await puppeteer.launch({
     headless: false,
