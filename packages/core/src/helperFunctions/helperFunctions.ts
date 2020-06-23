@@ -450,6 +450,7 @@ global.fromJSInspect = function(value: any, charIndex: number) {
   if (window["onFromJSInspect"]) {
     window["onFromJSInspect"]();
   }
+
   return postToBE("/inspect", {
     logId
   });

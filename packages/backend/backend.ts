@@ -422,7 +422,7 @@ function getPageSession(pageSessionId) {
   if (!session) {
     pageSessionsById[pageSessionId] = {};
   }
-  console.log("Page session", pageSessionId, pageSessionsById[pageSessionId]);
+  // console.log("Page session", pageSessionId, pageSessionsById[pageSessionId]);
   return pageSessionsById[pageSessionId];
 }
 
@@ -449,6 +449,117 @@ function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
         pageSessionId
       );
     }
+  });
+
+  /* capture snapshot with this code:
+
+function readElement(el) {
+ let className = el.className
+
+ function getNodes(el) {
+   let nodes = []
+    el.childNodes.forEach(node => {
+        let isElement = node.nodeType === 1
+        nodes.push({
+          elOrigin: {...node.__elOrigin, contents: undefined},
+          type: node.nodeType,
+          tagName: node.tagName,
+          isSVG: node instanceof SVGElement,
+          nodes: isElement ? getNodes(node) : [],
+          attributes: isElement ? node.getAttributeNames().map(attrName => ({ name: attrName, value: node.getAttribute(attrName) }))
+ : [], textContent: isElement ? undefined : node.textContent
+         })
+    })
+    return nodes
+ }
+ const nodes = getNodes(el)
+
+ return {
+     className, nodes
+ }
+}
+Array.from(document.querySelectorAll("script")).forEach(script => script.remove());
+if (document.querySelector("#fromjs-inspect-dom-button")) {
+    document.querySelector("#fromjs-inspect-dom-button").remove()
+}
+if (document.querySelector(".fromjs-inspector-container")) {
+document.querySelector(".fromjs-inspector-container").remove()    
+}
+
+var res= {
+  body: readElement(document.body),
+  head: readElement(document.head)
+}
+console.log(res)
+copy(JSON.stringify(res, null, 2))
+
+  */
+
+  app.get("/snapshot/lighthouse", async (req, res) => {
+    const { code } = await (await getRequestHandler()).processCode(
+      "console.log('Hello')",
+      "http://nothing.com?asdfadsfsf",
+      {}
+    );
+
+    res.end(`<!doctype html>
+    <html>
+      <head>
+      </head>
+      <body>
+        <div id="loading-snapshot">Loading snapshot...</div>
+        <script>
+        window.backendPort = 7000;
+        </script>
+        <script>
+        ${code}
+        </script>
+        <script>
+          function restoreEl(el, elData) {
+            el.className = elData.className
+
+            function addNodes(el, nodes) {
+              for (const node of nodes) {
+                if (node.type === 1) {
+                  let child
+                  if (node.isSVG) {
+                    child = document.createElementNS("http://www.w3.org/2000/svg", node.tagName)
+                  } else {
+                    child = document.createElement(node.tagName)
+                  }
+                  el.appendChild(child)
+                  for (const attr of node.attributes) {
+                    child.setAttribute(attr.name, attr.value)
+                  }
+                  child.__elOrigin = node.elOrigin
+                  addNodes(child, node.nodes)
+                } else if (node.type === 3) {
+                  let child = document.createTextNode(node.textContent)
+                  child.__elOrigin = node.elOrigin
+                  el.appendChild(child)
+                } else {
+                  console.log("ignoring node type", node.type)
+                }
+              }
+            }
+
+            addNodes(el, elData.nodes)
+          }
+
+          fetch("/snapshotData/lighthouse").then(r => r.json()).then(snapshotData => {
+            restoreEl(document.head, snapshotData.head)
+            restoreEl(document.body, snapshotData.body)
+            document.querySelector("#loading-snapshot").remove()
+          })
+        </script>
+      </body>
+    </html>`);
+  });
+
+  app.get("/snapshotData/lighthouse", (req, res) => {
+    res.json(
+      JSON.parse(fs.readFileSync("./snapshots/lighthouse.json", "utf-8"))
+    );
   });
 
   app.get("/sessionInfo", (req, res) => {

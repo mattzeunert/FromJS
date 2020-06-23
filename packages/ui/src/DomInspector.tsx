@@ -3,7 +3,7 @@ import { branch, root } from "baobab-react/higher-order";
 import {
   selectInspectedDomCharIndex,
   selectAndTraverse,
-  undoSelection
+  undoSelection,
 } from "./actions";
 import { TextEl } from "./TextEl";
 import * as cx from "classnames";
@@ -30,13 +30,13 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
                   border: "none",
                   backgroundSize: "100%",
                   backgroundImage:
-                    "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAQAAABIkb+zAAACWUlEQVR4Ae3YA7AdQRCF4Ylt2+acjgqxU4gKsW3bNgqxbdtOSrFt257Yu/ddTEevvy5ju/6LlVJKCCGEEEIIIYQQQgghBLqrfxsZ6vCvB/AnsAfwJ7AHGLRQfsoaF8WpIQZhAXbhKF3Dc3qGy3QQGzBGt8peKltaFYo1wN8EnYw60BJcJhPkvKLjNJXKUETWAO8TMsXUTbGLjM/zDHN1YZYA7xMoPY2mp2T8H5yk1qmjsgR8nIbKFTJgORkr84TGZ03HEOCekDkJJuMNGYvzUvdLHp4hwCEhFLXGczIMczF7UY6AHxKQgfaR4RtMpmj2A4yupT5CObwgwzzXkMd6AN5+SKA2ZH7LvKJmFgO+JNA6L5cfpplop0tmS6S+CaUzogqGYxseexeBSSqE1QCvZg/qpYuiPAul82EYnfHiaPNU6N8XcAcjfDuT62zoS7fJeJwVXxJ4A26jXeIIyg+pw6E+bng89mIVijUAbzE4U2QVgKyRMJBeedgwhzEAp3QOZQGILnrY0pYpABvt3YRlj45V7ue1bJoj4LAKqayirnjrsuts1kgc38BwZZmu5paAaQwBLAkVXe9xK/GcRvsry1DD7UpD0TgCGBKoq/Mm9GEJYEgIQZucn6Ezx+MIYEjIFBM3nfZgME8AQwKKO255mC4KUwBDwnTHLR14AhgSsiamlw4/oisqBE8AQwKNdNqhi3AGGPRQ1mRL5HSXitlsAfbfbGPSD0d+TZt0U52QK4AhIXvOr29Rl6JGlhjcz8QMCdiCGbr8t/fYQgghhBBCCCGEEEIIIYQQ7wC30XOuMHjaSwAAAABJRU5ErkJggg==)"
+                    "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAQAAABIkb+zAAACWUlEQVR4Ae3YA7AdQRCF4Ylt2+acjgqxU4gKsW3bNgqxbdtOSrFt257Yu/ddTEevvy5ju/6LlVJKCCGEEEIIIYQQQgghBLqrfxsZ6vCvB/AnsAfwJ7AHGLRQfsoaF8WpIQZhAXbhKF3Dc3qGy3QQGzBGt8peKltaFYo1wN8EnYw60BJcJhPkvKLjNJXKUETWAO8TMsXUTbGLjM/zDHN1YZYA7xMoPY2mp2T8H5yk1qmjsgR8nIbKFTJgORkr84TGZ03HEOCekDkJJuMNGYvzUvdLHp4hwCEhFLXGczIMczF7UY6AHxKQgfaR4RtMpmj2A4yupT5CObwgwzzXkMd6AN5+SKA2ZH7LvKJmFgO+JNA6L5cfpplop0tmS6S+CaUzogqGYxseexeBSSqE1QCvZg/qpYuiPAul82EYnfHiaPNU6N8XcAcjfDuT62zoS7fJeJwVXxJ4A26jXeIIyg+pw6E+bng89mIVijUAbzE4U2QVgKyRMJBeedgwhzEAp3QOZQGILnrY0pYpABvt3YRlj45V7ue1bJoj4LAKqayirnjrsuts1kgc38BwZZmu5paAaQwBLAkVXe9xK/GcRvsry1DD7UpD0TgCGBKoq/Mm9GEJYEgIQZucn6Ezx+MIYEjIFBM3nfZgME8AQwKKO255mC4KUwBDwnTHLR14AhgSsiamlw4/oisqBE8AQwKNdNqhi3AGGPRQ1mRL5HSXitlsAfbfbGPSD0d+TZt0U52QK4AhIXvOr29Rl6JGlhjcz8QMCdiCGbr8t/fYQgghhBBCCCGEEEIIIYQQ7wC30XOuMHjaSwAAAABJRU5ErkJggg==)",
                 }}
                 onClick={() => undoSelection()}
                 title="Undo"
               />
             )}
-            {window.parent !== window && (
+            {/* {window.parent !== window && (
               <button
                 style={{
                   height: 15,
@@ -54,19 +54,18 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
                 }}
                 title="Open in new tab"
               />
+            )} */}
+            {window.parent !== window && type === "dom" && (
+              <button
+                style={{ fontWeight: "bold", fontSize: 16 }}
+                onClick={() =>
+                  window.parent.postMessage({ type: "inspectParent" }, "*")
+                }
+                title="Select parent DOM element"
+              >
+                ⇧
+              </button>
             )}
-            {window.parent !== window &&
-              type === "dom" && (
-                <button
-                  style={{ fontWeight: "bold", fontSize: 16 }}
-                  onClick={() =>
-                    window.parent.postMessage({ type: "inspectParent" }, "*")
-                  }
-                  title="Select parent DOM element"
-                >
-                  ⇧
-                </button>
-              )}
           </div>
 
           <div
@@ -74,12 +73,12 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
               margin: -10,
               marginTop: 0,
               fontFamily: "monospace",
-              fontSize: 16
+              fontSize: 16,
             }}
           >
             <TextEl
               highlightedCharacterIndex={charIndex}
-              onCharacterClick={charIndex => {
+              onCharacterClick={(charIndex) => {
                 if (type === "dom") {
                   selectInspectedDomCharIndex(charIndex);
                 } else {
@@ -97,7 +96,7 @@ let DomInspector = class DomInspector extends React.Component<any, any> {
 DomInspector = branch(
   {
     inspectedString: ["inspectedString"],
-    canUndoSelection: ["canUndoSelection"]
+    canUndoSelection: ["canUndoSelection"],
   },
   DomInspector
 );
