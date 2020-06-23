@@ -173,12 +173,14 @@ export default function initDomInspectionUI(backendPort) {
     }
 
     let iframe = document.querySelector(".fromjs-inspector-container iframe");
-    if (iframe) {
-      iframe["src"] =
+    if (!iframe) {
+      const iframe = document.createElement("iframe");
+      iframe.src =
         "http://localhost:" +
         backendPort +
         "?pageSessionId=" +
         global["fromJSPageSessionId"];
+      inspectorUI.appendChild(iframe);
     }
 
     document.body.classList.add("showing-fromjs-inspector");
@@ -203,9 +205,6 @@ export default function initDomInspectionUI(backendPort) {
   function createInspectorUI() {
     const inspectorUI = document.createElement("div");
     inspectorUI.classList.add("fromjs-inspector-container");
-    const iframe = document.createElement("iframe");
-    iframe.src = "about:blank";
-    inspectorUI.appendChild(iframe);
     const inspectorStyles = document.createElement("style");
 
     inspectorStyles.textContent =
