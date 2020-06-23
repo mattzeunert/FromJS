@@ -422,7 +422,7 @@ function getPageSession(pageSessionId) {
   if (!session) {
     pageSessionsById[pageSessionId] = {};
   }
-  console.log("Page session", pageSessionId, pageSessionsById[pageSessionId]);
+  // console.log("Page session", pageSessionId, pageSessionsById[pageSessionId]);
   return pageSessionsById[pageSessionId];
 }
 

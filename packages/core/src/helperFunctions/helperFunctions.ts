@@ -450,11 +450,10 @@ global.fromJSInspect = function(value: any, charIndex: number) {
   if (window["onFromJSInspect"]) {
     window["onFromJSInspect"]();
   }
-  if (logId) {
-    return postToBE("/inspect", {
-      logId
-    });
-  }
+
+  return postToBE("/inspect", {
+    logId
+  });
 };
 
 function getTrackingPropName(propName) {
