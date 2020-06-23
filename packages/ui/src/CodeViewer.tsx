@@ -5,8 +5,6 @@ import { selectAndTraverse } from "./actions";
 import TraversalStep from "./TraversalStep";
 import { ErrorBoundary } from "./ErrorBoundary";
 
-console.log("kkkkkkkssssskkkk");
-
 // monaco.languages.registerHoverProvider("javascript", {
 //   provideHover: function(model, position) {
 //     let ret: monaco.languages.Hover;
