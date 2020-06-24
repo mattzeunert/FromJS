@@ -365,7 +365,7 @@ export default class Backend {
     });
 
     const serverReady = new Promise((resolve) => {
-      server.listen(bePort, () => resolve());
+      server.listen(bePort, "0.0.0.0", () => resolve());
     });
 
     console.timeLog("create backend", "end of function");
