@@ -141,8 +141,9 @@ export function setEnableInstrumentation(enableInstrumentation) {
   return callApi("setEnableInstrumentation", { enableInstrumentation });
 }
 
+let wsRoot = window["backendOriginWithoutPort"].replace("http://", "ws://");
 var exampleSocket = new WebSocket(
-  "ws://127.0.0.1:" + backendPort + "/?pageSessionId=" + pageSessionId
+  wsRoot + ":" + backendPort + "/?pageSessionId=" + pageSessionId
 );
 
 exampleSocket.onmessage = function (event) {
