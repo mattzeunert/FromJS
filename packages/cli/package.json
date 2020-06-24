@@ -1,12 +1,12 @@
 {
   "name": "@fromjs/cli",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "main": "index.js",
   "repository": "https://github.com/mattzeunert/FromJS/tree/master/packages/cli",
   "author": "Matt Zeunert <matt@mostlystatic.com>",
   "license": "MIT",
   "dependencies": {
-    "@fromjs/backend": "^3.0.5",
+    "@fromjs/backend": "^3.0.6",
     "@types/node": "^12.12.6",
     "commander": "^2.15.1",
     "file-loader": "^6.0.0",
@@ -19,7 +19,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@fromjs/core": "^3.0.5",
+    "@fromjs/core": "^3.0.6",
     "@types/jest": "^23.1.0",
     "http-server": "^0.11.1",
     "kill-port": "^1.2.0",
