@@ -73,6 +73,8 @@ if (!maxOldSpaceSizeArg) {
         openB();
       }
     },
+    backendOriginWithoutPort:
+      process.env.BACKEND_ORIGIN_WITHOUT_PORT || "http://localhost",
   });
 
   function openB() {

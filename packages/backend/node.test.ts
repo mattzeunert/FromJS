@@ -22,6 +22,7 @@ describe("Node", () => {
       const beOptions = new BackendOptions({
         sessionDirectory,
         bePort: backendPort,
+        backendOriginWithoutPort: "http://localhost",
         onReady: resolve,
       } as any);
       backend = new Backend(beOptions);

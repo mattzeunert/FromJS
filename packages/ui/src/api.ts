@@ -4,7 +4,7 @@ import { debounce } from "lodash";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
 
 let backendPort = window["backendPort"];
-let backendRoot = "http://localhost:" + backendPort;
+let backendRoot = window["backendOriginWithoutPort"] + ":" + backendPort;
 const resolveStackFrameCache = {};
 export function resolveStackFrame(operationLog) {
   const prettifyArg = appState.get("prettifyIfNoSourceMap") ? "/prettify" : "";

@@ -421,7 +421,10 @@ global.inspect = function(value) {
   };
 };
 
-initDomInspectionUI("BACKEND_PORT_PLACEHOLDER");
+initDomInspectionUI(
+  "BACKEND_PORT_PLACEHOLDER",
+  "BACKEND_ORIGIN_WITHOUT_PORT_PLACEHOLDER"
+);
 
 global["__getHtmlNodeOperationLogMapping"] = getHtmlNodeOperationLogMapping;
 

@@ -714,7 +714,11 @@ function plugin(babel) {
       let usableHelperCode;
 
       if (babelPluginOptions) {
-        const { accessToken, backendPort } = babelPluginOptions;
+        const {
+          accessToken,
+          backendPort,
+          backendOriginWithoutPort
+        } = babelPluginOptions;
         usableHelperCode = helperCode;
         usableHelperCode = usableHelperCode.replace(
           /ACCESS_TOKEN_PLACEHOLDER/g,
@@ -723,6 +727,10 @@ function plugin(babel) {
         usableHelperCode = usableHelperCode.replace(
           /BACKEND_PORT_PLACEHOLDER/g,
           backendPort
+        );
+        usableHelperCode = usableHelperCode.replace(
+          /BACKEND_ORIGIN_WITHOUT_PORT_PLACEHOLDER/g,
+          backendOriginWithoutPort
         );
       } else {
         usableHelperCode = helperCode;

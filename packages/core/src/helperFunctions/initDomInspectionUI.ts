@@ -1,6 +1,9 @@
 const inspectorWidth = "50vw";
 
-export default function initDomInspectionUI(backendPort) {
+export default function initDomInspectionUI(
+  backendPort,
+  backendOriginWithoutPort
+) {
   if (typeof document === "undefined") {
     return;
   }
@@ -176,7 +179,8 @@ export default function initDomInspectionUI(backendPort) {
     if (!iframe) {
       const iframe = document.createElement("iframe");
       iframe.src =
-        "http://localhost:" +
+        backendOriginWithoutPort +
+        ":" +
         backendPort +
         "?pageSessionId=" +
         global["fromJSPageSessionId"];
