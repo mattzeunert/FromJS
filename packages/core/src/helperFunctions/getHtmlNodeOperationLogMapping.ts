@@ -55,7 +55,7 @@ export default function getHtmlNodeOperationLogMapping(node) {
   const outerHTML = htmlParts.map(p => p[0]).join("");
 
   if (node["outerHTML"] !== undefined && outerHTML !== node["outerHTML"]) {
-    console.warn("OuterHTML is missing somethign for mapping");
+    console.warn("OuterHTML is missing something for mapping");
   }
 
   return new HtmlToOperationLogMapping(htmlParts);
