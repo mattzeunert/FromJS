@@ -203,8 +203,7 @@ function makePostToBE({ accessToken, fetch }) {
         headers
       });
     } else {
-      const url =
-        window["backendOriginWithoutPort"] + ":" + backendPort + endpoint;
+      const url = backendOriginWithoutPort + ":" + backendPort + endpoint;
       p = fetch(url, {
         method: "POST",
         headers: global.fromJSIsNode ? headers : new Headers(headers),
