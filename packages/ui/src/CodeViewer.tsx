@@ -95,7 +95,6 @@ export class App2 extends React.Component {
             height: "95vh",
           }}
         >
-          -aaaa
           {this.state.info.map((info, i) => {
             return (
               <InfoItem info={info} key={this._random + "_" + i}></InfoItem>
