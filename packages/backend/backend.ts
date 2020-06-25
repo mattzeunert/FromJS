@@ -582,7 +582,7 @@ copy(JSON.stringify(res, null, 2))
               document.querySelector("#fromjs-inspect-dom-button").click();
               setTimeout(() => {
                 fromJSDomInspectorInspect(document.querySelector(".lh-metric__title"));
-              }, 500)
+              }, 250)
             });
           })
         </script>
