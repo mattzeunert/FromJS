@@ -3,6 +3,7 @@ import { inspectDomChar, loadSteps } from "./api";
 import { debounce, last } from "lodash";
 
 export function traverse() {
+  appState.set("steps", []);
   const inspectionTarget = appState.get("inspectionTarget");
   if (!inspectionTarget || !inspectionTarget.logId) {
     console.log("no inspection target!!");

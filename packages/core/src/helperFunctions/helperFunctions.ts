@@ -101,6 +101,7 @@ function nodeHttpReq({ port, path, headers, bodyString, method }) {
 }
 
 let backendPort = "BACKEND_PORT_PLACEHOLDER";
+let backendOriginWithoutPort = "BACKEND_ORIGIN_WITHOUT_PORT_PLACEHOLDER";
 
 let requestQueueDirectory;
 
@@ -202,7 +203,7 @@ function makePostToBE({ accessToken, fetch }) {
         headers
       });
     } else {
-      const url = "http://localhost:" + backendPort + endpoint;
+      const url = backendOriginWithoutPort + ":" + backendPort + endpoint;
       p = fetch(url, {
         method: "POST",
         headers: global.fromJSIsNode ? headers : new Headers(headers),
@@ -421,7 +422,7 @@ global.inspect = function(value) {
   };
 };
 
-initDomInspectionUI("BACKEND_PORT_PLACEHOLDER");
+initDomInspectionUI(backendPort, backendOriginWithoutPort);
 
 global["__getHtmlNodeOperationLogMapping"] = getHtmlNodeOperationLogMapping;
 

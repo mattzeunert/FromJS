@@ -28,7 +28,7 @@ import { resolve } from "dns";
 
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
-const GENERATE_DERIVED = false;
+const GENERATE_DERIVED = process.env.GENERATE_DERIVED;
 
 let reportHtmlFileInfo = {
   url: "http://localhost:4444/report.html",
@@ -120,8 +120,13 @@ async function generateLocLogs({ logServer, locLogs }) {
 
     let locLogsToSave = {};
     async function doAdd() {
+      // console.log(
+      //   "doAdd",
+      //   JSON.stringify(locLogsToSave, null, 2).slice(0, 500)
+      // );
       let locIds = Object.keys(locLogsToSave);
       for (const locId of locIds) {
+        // console.log(locLogsToSave);
         await locLogs.addLogs(locId, locLogsToSave[locId]);
       }
       locLogsToSave = {};
@@ -135,8 +140,8 @@ async function generateLocLogs({ logServer, locLogs }) {
       if (value) {
         value = JSON.parse(value);
 
-        locLogsToSave[value.loc] = locLogsToSave[value.loc] || [];
-        locLogsToSave[value.loc].push(value.index);
+        locLogsToSave[value.l] = locLogsToSave[value.l] || [];
+        locLogsToSave[value.l].push(key.toString());
         i.next(iterate);
       } else {
         await doAdd();
@@ -215,6 +220,8 @@ export default class Backend {
     var { bePort, proxyPort } = options;
 
     const app = express();
+    var compression = require("compression");
+    app.use(compression());
 
     if (LOG_PERF) {
       console.log("will log perf");
@@ -365,7 +372,7 @@ export default class Backend {
     });
 
     const serverReady = new Promise((resolve) => {
-      server.listen(bePort, () => resolve());
+      server.listen(bePort, "0.0.0.0", () => resolve());
     });
 
     console.timeLog("create backend", "end of function");
@@ -486,6 +493,7 @@ function readElement(el) {
  }
 }
 Array.from(document.querySelectorAll("script")).forEach(script => script.remove());
+Array.from(document.querySelectorAll(".fromjs-element-marker")).forEach(marker => marker.remove());
 if (document.querySelector("#fromjs-inspect-dom-button")) {
     document.querySelector("#fromjs-inspect-dom-button").remove()
 }
@@ -553,10 +561,29 @@ copy(JSON.stringify(res, null, 2))
             addNodes(el, elData.nodes)
           }
 
+          function waitForElement(elSelector){
+            return new Promise(resolve => {
+              let i = setInterval(() => {
+                if (document.querySelector(elSelector)) {
+                  clearInterval(i)
+                  resolve()
+                }
+              }, 100)
+            })
+          }
+
           fetch("/snapshotData/lighthouse").then(r => r.json()).then(snapshotData => {
-            restoreEl(document.head, snapshotData.head)
-            restoreEl(document.body, snapshotData.body)
-            document.querySelector("#loading-snapshot").remove()
+            restoreEl(document.head, snapshotData.head);
+            restoreEl(document.body, snapshotData.body);
+            document.querySelector("#loading-snapshot").remove();
+            // I think waiting is only needed on local because the snapshot loads really quickly
+
+            waitForElement("#fromjs-inspect-dom-button").then(() => {
+              document.querySelector("#fromjs-inspect-dom-button").click();
+              setTimeout(() => {
+                fromJSDomInspectorInspect(document.querySelector(".lh-metric__title"));
+              }, 250)
+            });
           })
         </script>
       </body>
@@ -598,6 +625,11 @@ copy(JSON.stringify(res, null, 2))
   app.get("/", (req, res) => {
     let html = fs.readFileSync(uiDir + "/index.html").toString();
     html = html.replace(/BACKEND_PORT_PLACEHOLDER/g, options.bePort.toString());
+    console.log(options, process.env);
+    html = html.replace(
+      /BACKEND_ORIGIN_WITHOUT_PORT_PLACEHOLDER/g,
+      options.backendOriginWithoutPort.toString()
+    );
     // getProxy()
     //   ._getEnableInstrumentation()
     Promise.resolve(true).then(function (enabled) {
@@ -895,6 +927,7 @@ function setupBackend(
       </style>
       <script>
       window["backendPort"] =7000;
+      window["backendOriginWithoutPort"] = "${options.backendOriginWithoutPort}"
       </script>
       <div>
         <div id="appx"></div>
@@ -1663,6 +1696,7 @@ function makeRequestHandler(options) {
       }
       return false;
     },
+    backendOriginWithoutPort: options.options.backendOriginWithoutPort,
     backendPort: options.options.bePort,
     accessToken: options.accessToken,
     storeLocs: options.storeLocs,

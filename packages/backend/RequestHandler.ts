@@ -82,6 +82,7 @@ export class RequestHandler {
   _onCodeProcessed: any;
   _files: any;
   _pool: any;
+  _backendOriginWithoutPort: string;
 
   constructor({
     shouldBlock,
@@ -92,6 +93,7 @@ export class RequestHandler {
     onCodeProcessed,
     sessionDirectory,
     files,
+    backendOriginWithoutPort,
   }) {
     this._shouldBlock = shouldBlock;
     this._accessToken = accessToken;
@@ -101,6 +103,7 @@ export class RequestHandler {
     // this._cache = {};
     this._sessionDirectory = sessionDirectory;
     this._onCodeProcessed = onCodeProcessed;
+    this._backendOriginWithoutPort = backendOriginWithoutPort;
 
     this._files = files;
     this._pool = Pool(() => spawn(new Worker(instrumenterFilePath)), 4);
@@ -260,7 +263,9 @@ export class RequestHandler {
     const babelPluginOptions = {
       accessToken: this._accessToken,
       backendPort: this._backendPort,
+      backendOriginWithoutPort: this._backendOriginWithoutPort,
     };
+    console.log({ babelPluginOptions });
 
     const RUN_IN_SAME_PROCESS = false;
 

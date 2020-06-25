@@ -4,6 +4,7 @@ import { loadSteps, makeFEOperationLog } from "./api";
 import { selectAndTraverse } from "./actions";
 import TraversalStep from "./TraversalStep";
 import { ErrorBoundary } from "./ErrorBoundary";
+import "./CodeViewer.scss";
 
 // monaco.languages.registerHoverProvider("javascript", {
 //   provideHover: function(model, position) {
@@ -56,6 +57,11 @@ export class App2 extends React.Component {
         })
       );
       this._random = Math.random();
+
+      if (r && r[0] && r[0].logs && r[0].logs[0]) {
+        selectAndTraverse(r[0].logs[0].value.index, 0);
+      }
+
       this.setState({ info: r });
     };
     console.log({ monaco, r: this._random });
@@ -90,21 +96,21 @@ export class App2 extends React.Component {
         <div
           style={{
             flexGrow: 1,
-            width: "30vw",
+            width: "60vw",
             overflow: "auto",
-            height: "95vh",
           }}
         >
-          -aaaa
-          {this.state.info.map((info, i) => {
-            return (
-              <InfoItem info={info} key={this._random + "_" + i}></InfoItem>
-            );
-          })}
-        </div>
+          <div style={{ height: "40vh", overflow: "auto" }}>
+            {this.state.info.map((info, i) => {
+              return (
+                <InfoItem info={info} key={this._random + "_" + i}></InfoItem>
+              );
+            })}
+          </div>
 
-        <div style={{ flexGrow: 1, width: "30vw" }}>
-          <App></App>
+          <div style={{ height: "60vh", overflow: "auto" }}>
+            <App></App>
+          </div>
         </div>
       </div>
     );
@@ -265,13 +271,18 @@ class InfoItem extends React.Component {
   };
   render() {
     let { info } = this.props;
+
+    if (getCodeString(info.loc) === "todo") {
+      return null;
+    }
+
     return (
       <div>
-        <h2>{getCodeString(info.loc)}</h2>
-        Values:{" "}
+        <h2>Values for {getCodeString(info.loc)}</h2>
         {info.logs.map((l) => (
           <div>
             <code
+              className="values-list__value"
               onClick={() => {
                 selectAndTraverse(l.value.index, 0);
 

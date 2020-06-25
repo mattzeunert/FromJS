@@ -1,6 +1,6 @@
 {
   "name": "@fromjs/core",
-  "version": "3.0.5",
+  "version": "3.0.11",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "repository": "https://github.com/mattzeunert/FromJS/tree/master/packages/core",

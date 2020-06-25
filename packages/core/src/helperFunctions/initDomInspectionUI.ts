@@ -1,6 +1,9 @@
 const inspectorWidth = "50vw";
 
-export default function initDomInspectionUI(backendPort) {
+export default function initDomInspectionUI(
+  backendPort,
+  backendOriginWithoutPort
+) {
   if (typeof document === "undefined") {
     return;
   }
@@ -31,6 +34,12 @@ export default function initDomInspectionUI(backendPort) {
     global["fromJSInspect"](el);
   }
 
+  function handleClickElement(el) {
+    showInspectorUI();
+    setSelectedElement(el);
+  }
+  global["fromJSDomInspectorInspect"] = handleClickElement;
+
   function onSelectionEvent(e) {
     const el = e.target;
     if (el === toggleInspectDomButton) {
@@ -38,8 +47,7 @@ export default function initDomInspectionUI(backendPort) {
     }
 
     if (e.type == "click") {
-      showInspectorUI();
-      setSelectedElement(el);
+      handleClickElement(el);
     } else if (e.type === "mouseenter") {
       previewedElement = el;
       const inspectorContainer = document.querySelector(
@@ -173,12 +181,15 @@ export default function initDomInspectionUI(backendPort) {
     }
 
     let iframe = document.querySelector(".fromjs-inspector-container iframe");
-    if (iframe) {
-      iframe["src"] =
-        "http://localhost:" +
+    if (!iframe) {
+      const iframe = document.createElement("iframe");
+      iframe.src =
+        backendOriginWithoutPort +
+        ":" +
         backendPort +
         "?pageSessionId=" +
         global["fromJSPageSessionId"];
+      inspectorUI.appendChild(iframe);
     }
 
     document.body.classList.add("showing-fromjs-inspector");
@@ -203,9 +214,6 @@ export default function initDomInspectionUI(backendPort) {
   function createInspectorUI() {
     const inspectorUI = document.createElement("div");
     inspectorUI.classList.add("fromjs-inspector-container");
-    const iframe = document.createElement("iframe");
-    iframe.src = "about:blank";
-    inspectorUI.appendChild(iframe);
     const inspectorStyles = document.createElement("style");
 
     inspectorStyles.textContent =

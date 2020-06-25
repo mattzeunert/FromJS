@@ -4,7 +4,7 @@ import { debounce } from "lodash";
 import OperationLog from "../../core/src/helperFunctions/OperationLog";
 
 let backendPort = window["backendPort"];
-let backendRoot = "http://localhost:" + backendPort;
+let backendRoot = window["backendOriginWithoutPort"] + ":" + backendPort;
 const resolveStackFrameCache = {};
 export function resolveStackFrame(operationLog) {
   const prettifyArg = appState.get("prettifyIfNoSourceMap") ? "/prettify" : "";
@@ -141,8 +141,9 @@ export function setEnableInstrumentation(enableInstrumentation) {
   return callApi("setEnableInstrumentation", { enableInstrumentation });
 }
 
+let wsRoot = window["backendOriginWithoutPort"].replace("http://", "ws://");
 var exampleSocket = new WebSocket(
-  "ws://127.0.0.1:" + backendPort + "/?pageSessionId=" + pageSessionId
+  wsRoot + ":" + backendPort + "/?pageSessionId=" + pageSessionId
 );
 
 exampleSocket.onmessage = function (event) {

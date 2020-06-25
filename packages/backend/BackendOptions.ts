@@ -9,6 +9,7 @@ export class BackendOptions {
   dontTrack: any[];
   block: any[];
   disableDefaultBlockList: boolean;
+  backendOriginWithoutPort: string;
 
   constructor({
     bePort,
@@ -18,6 +19,7 @@ export class BackendOptions {
     dontTrack,
     block,
     disableDefaultBlockList,
+    backendOriginWithoutPort,
   }) {
     this.bePort = bePort;
     this.proxyPort = proxyPort;
@@ -26,6 +28,7 @@ export class BackendOptions {
     this.dontTrack = dontTrack;
     this.block = block;
     this.disableDefaultBlockList = disableDefaultBlockList;
+    this.backendOriginWithoutPort = backendOriginWithoutPort;
   }
 
   getCertDirectory() {
