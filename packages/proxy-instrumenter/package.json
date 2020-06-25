@@ -1,6 +1,6 @@
 {
   "name": "@fromjs/proxy-instrumenter",
-  "version": "3.0.6",
+  "version": "3.0.11",
   "main": "./dist/ProxyInstrumenter.js",
   "types": "./dist/ProxyInstrumenter.d.ts",
   "repository": "https://github.com/mattzeunert/FromJS/tree/master/packages/proxy-instrumenter",

@@ -1,6 +1,6 @@
 {
   "name": "@fromjs/proxy-extension",
-  "version": "3.0.6",
+  "version": "3.0.11",
   "description": "",
   "main": "index.js",
   "scripts": {
