@@ -28,7 +28,7 @@ import { resolve } from "dns";
 
 const ENABLE_DERIVED = false;
 const SAVE_LOG_USES = false;
-const GENERATE_DERIVED = false;
+const GENERATE_DERIVED = process.env.GENERATE_DERIVED;
 
 let reportHtmlFileInfo = {
   url: "http://localhost:4444/report.html",
@@ -120,8 +120,13 @@ async function generateLocLogs({ logServer, locLogs }) {
 
     let locLogsToSave = {};
     async function doAdd() {
+      // console.log(
+      //   "doAdd",
+      //   JSON.stringify(locLogsToSave, null, 2).slice(0, 500)
+      // );
       let locIds = Object.keys(locLogsToSave);
       for (const locId of locIds) {
+        // console.log(locLogsToSave);
         await locLogs.addLogs(locId, locLogsToSave[locId]);
       }
       locLogsToSave = {};
@@ -135,8 +140,8 @@ async function generateLocLogs({ logServer, locLogs }) {
       if (value) {
         value = JSON.parse(value);
 
-        locLogsToSave[value.loc] = locLogsToSave[value.loc] || [];
-        locLogsToSave[value.loc].push(value.index);
+        locLogsToSave[value.l] = locLogsToSave[value.l] || [];
+        locLogsToSave[value.l].push(key.toString());
         i.next(iterate);
       } else {
         await doAdd();
@@ -215,6 +220,8 @@ export default class Backend {
     var { bePort, proxyPort } = options;
 
     const app = express();
+    var compression = require("compression");
+    app.use(compression());
 
     if (LOG_PERF) {
       console.log("will log perf");
@@ -486,6 +493,7 @@ function readElement(el) {
  }
 }
 Array.from(document.querySelectorAll("script")).forEach(script => script.remove());
+Array.from(document.querySelectorAll(".fromjs-element-marker")).forEach(marker => marker.remove());
 if (document.querySelector("#fromjs-inspect-dom-button")) {
     document.querySelector("#fromjs-inspect-dom-button").remove()
 }
@@ -557,6 +565,7 @@ copy(JSON.stringify(res, null, 2))
             restoreEl(document.head, snapshotData.head)
             restoreEl(document.body, snapshotData.body)
             document.querySelector("#loading-snapshot").remove()
+            fromJSInspect(document.querySelector(".lh-metric__title"))
           })
         </script>
       </body>
@@ -900,6 +909,7 @@ function setupBackend(
       </style>
       <script>
       window["backendPort"] =7000;
+      window["backendOriginWithoutPort"] = "${options.backendOriginWithoutPort}"
       </script>
       <div>
         <div id="appx"></div>
