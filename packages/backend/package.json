@@ -1,6 +1,6 @@
 {
   "name": "@fromjs/backend",
-  "version": "3.0.8",
+  "version": "3.0.9",
   "main": "./dist/backend.js",
   "repository": "https://github.com/mattzeunert/FromJS/tree/master/packages/backend",
   "author": "Matt Zeunert <matt@mostlystatic.com>",
@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@babel/core": "^7.2.2",
-    "@fromjs/core": "^3.0.8",
+    "@fromjs/core": "^3.0.9",
     "@fromjs/proxy-extension": "^3.0.6",
     "@fromjs/proxy-instrumenter": "^3.0.6",
-    "@fromjs/ui": "^3.0.8",
+    "@fromjs/ui": "^3.0.9",
     "@types/jest": "^22.2.3",
     "@types/node": "^12.12.6",
     "@types/react": "^16.7.17",
