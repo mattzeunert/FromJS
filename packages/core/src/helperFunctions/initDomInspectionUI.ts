@@ -34,6 +34,12 @@ export default function initDomInspectionUI(
     global["fromJSInspect"](el);
   }
 
+  function handleClickElement(el) {
+    showInspectorUI();
+    setSelectedElement(el);
+  }
+  global["fromJSDomInspectorInspect"] = handleClickElement;
+
   function onSelectionEvent(e) {
     const el = e.target;
     if (el === toggleInspectDomButton) {
@@ -41,8 +47,7 @@ export default function initDomInspectionUI(
     }
 
     if (e.type == "click") {
-      showInspectorUI();
-      setSelectedElement(el);
+      handleClickElement(el);
     } else if (e.type === "mouseenter") {
       previewedElement = el;
       const inspectorContainer = document.querySelector(

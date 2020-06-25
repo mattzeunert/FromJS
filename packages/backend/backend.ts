@@ -561,11 +561,29 @@ copy(JSON.stringify(res, null, 2))
             addNodes(el, elData.nodes)
           }
 
+          function waitForElement(elSelector){
+            return new Promise(resolve => {
+              let i = setInterval(() => {
+                if (document.querySelector(elSelector)) {
+                  clearInterval(i)
+                  resolve()
+                }
+              }, 100)
+            })
+          }
+
           fetch("/snapshotData/lighthouse").then(r => r.json()).then(snapshotData => {
-            restoreEl(document.head, snapshotData.head)
-            restoreEl(document.body, snapshotData.body)
-            document.querySelector("#loading-snapshot").remove()
-            fromJSInspect(document.querySelector(".lh-metric__title"))
+            restoreEl(document.head, snapshotData.head);
+            restoreEl(document.body, snapshotData.body);
+            document.querySelector("#loading-snapshot").remove();
+            // I think waiting is only needed on local because the snapshot loads really quickly
+
+            waitForElement("#fromjs-inspect-dom-button").then(() => {
+              document.querySelector("#fromjs-inspect-dom-button").click();
+              setTimeout(() => {
+                fromJSDomInspectorInspect(document.querySelector(".lh-metric__title"));
+              }, 500)
+            });
           })
         </script>
       </body>
