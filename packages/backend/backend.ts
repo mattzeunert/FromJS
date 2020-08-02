@@ -668,6 +668,10 @@ copy(JSON.stringify(res, null, 2))
         // was getting this wrong sometimes, easier to just not send it
         return;
       }
+      if (headerKey === "content-security-policy") {
+        // Don't allow inspected sites to block localhost
+        return;
+      }
       res.set(headerKey, headers[headerKey]);
     });
 
