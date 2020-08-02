@@ -674,6 +674,7 @@ copy(JSON.stringify(res, null, 2))
       res.set(headerKey, headers[headerKey]);
     });
 
+    console.log("body len", body.length);
     res.end(body);
 
     // const r = await axios({

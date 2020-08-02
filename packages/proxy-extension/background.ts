@@ -347,29 +347,45 @@ class TTab {
     )
       .then((r) => {
         rr = r;
-        return r.text();
+        return r.blob();
       })
       .catch((err) => {
         console.log("Error making request", reqInfo);
         throw err;
       });
 
-    let responseText = `HTTP/1.1 ${rr.status}
+    let headerText = `HTTP/1.1 ${rr.status}
 ${Array.from(rr.headers)
   .map(([headerKey, headerValue]) => {
     return `${headerKey}: ${headerValue}`;
   })
   .join("\n")}
 
-${res}`;
+`;
+    console.log(info.request.url, res);
+
+    let headersAndResponseBody = new Blob([headerText, res]);
+
+    var blobToBase64 = function (blob, callback) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var dataUrl = reader.result;
+        var base64 = dataUrl.split(",")[1];
+        callback(base64);
+      };
+      reader.readAsDataURL(blob);
+    };
+
+    let rawResponse = await new Promise((resolve) => {
+      blobToBase64(headersAndResponseBody, resolve);
+    });
 
     chrome.debugger.sendCommand(
       targetArg,
       "Network.continueInterceptedRequest",
       {
         interceptionId,
-        // use this instead of btoa to avoid https://stackoverflow.com/questions/23223718/failed-to-execute-btoa-on-window-the-string-to-be-encoded-contains-characte
-        rawResponse: Base64.encode(responseText),
+        rawResponse,
       }
     );
   }
