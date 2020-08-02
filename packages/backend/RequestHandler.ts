@@ -181,23 +181,9 @@ export class RequestHandler {
       return ret;
     }
 
-    console.time("Making network request " + url);
-    //@ts-ignore
-    let { status, data, headers: responseHeaders } = await axios({
-      url,
-      method: method,
-      headers: headers,
-      validateStatus: (status) => true,
-      // prevent e.g parse json
-      transformResponse: (data) => data,
-      data: postData,
-    });
-    console.timeEnd("Making network request " + url);
+    console.log({ headers });
 
-    const hasha = require("hasha");
-    const hash = hasha(data, "hex").slice(0, 8);
-
-    let isJS = url.endsWith(".js");
+    let isJS = url.split("?")[0].endsWith(".js");
     var isHtml =
       !isJS &&
       !url.endsWith(".png") &&
@@ -205,7 +191,40 @@ export class RequestHandler {
       !url.endsWith(".woff2") &&
       headers.Accept &&
       headers.Accept.includes("text/html");
+
+    console.time("Making network request " + url);
+    //@ts-ignore
+    let { status, data, headers: responseHeaders } = await axios({
+      url,
+      method: method,
+      headers: {
+        ...headers,
+        "accept-encoding": "gzip, deflate",
+        "accept-language": "en-US,en;q=0.9,mt;q=0.8",
+        ...(isHtml
+          ? {
+              "sec-fetch-dest": "document",
+              "sec-fetch-mode": "navigate",
+              "sec-fetch-site": "none",
+            }
+          : {}),
+      },
+      validateStatus: (status) => true,
+      // prevent e.g parse json
+      transformResponse: (data) => data,
+      data: postData,
+    });
+
+    // console.log(data.toString());
+    console.log(JSON.stringify({ headers }, null, 2));
+
+    console.timeEnd("Making network request " + url);
+
+    const hasha = require("hasha");
+    const hash = hasha(data, "hex").slice(0, 8);
+
     if (this._shouldInstrument({ url })) {
+      console.log("SHOULD instrument", { isJS, isHtml });
       if (isJS) {
         const { code, map, locs } = await this._requestProcessCode(
           data.toString(),
@@ -248,6 +267,8 @@ export class RequestHandler {
       }
     }
 
+    // console.log(data);
+
     responseHeaders["content-length"] = data.length;
     logTimeEnd();
     return {
@@ -265,7 +286,7 @@ export class RequestHandler {
       backendPort: this._backendPort,
       backendOriginWithoutPort: this._backendOriginWithoutPort,
     };
-    console.log({ babelPluginOptions });
+    // console.log({ babelPluginOptions });
 
     const RUN_IN_SAME_PROCESS = false;
 
