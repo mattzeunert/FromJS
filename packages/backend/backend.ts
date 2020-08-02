@@ -625,7 +625,6 @@ copy(JSON.stringify(res, null, 2))
   app.get("/", (req, res) => {
     let html = fs.readFileSync(uiDir + "/index.html").toString();
     html = html.replace(/BACKEND_PORT_PLACEHOLDER/g, options.bePort.toString());
-    console.log(options, process.env);
     html = html.replace(
       /BACKEND_ORIGIN_WITHOUT_PORT_PLACEHOLDER/g,
       options.backendOriginWithoutPort.toString()
