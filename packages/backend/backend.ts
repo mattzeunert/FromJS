@@ -1741,16 +1741,12 @@ export async function openBrowser({ userDataDir, extraArgs, config }) {
   await page._client.send("Emulation.clearDeviceMetricsOverride");
   // await page.goto("http://localhost:" + bePort + "/start");
 
-  console.log("will wait 2s");
-  await page.waitFor(2000);
   await page.goto(
     "http://localhost:" +
       config.backendPort +
       "/fromJSInitPage?config=" +
       encodeURIComponent(JSON.stringify(config))
   );
-  console.log("will wait 2s");
-  await page.waitFor(2000);
 
   return browser;
 }
