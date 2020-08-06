@@ -175,8 +175,6 @@ export default class Backend {
   handleTraverse = null as any;
   doStoreLogs = null as any;
   constructor(private options: BackendOptions) {
-    console.time("create backend");
-
     if (DELETE_EXISTING_LOGS_AT_START) {
       console.log(
         "deleting existing log data, this makes sure perf data is more comparable... presumably leveldb slows down with more data"
@@ -375,9 +373,7 @@ export default class Backend {
       server.listen(bePort, "0.0.0.0", () => resolve());
     });
 
-    console.timeLog("create backend", "end of function");
     Promise.all([proxyReady, serverReady]).then(async () => {
-      console.timeEnd("create backend");
       console.log("Server listening on port " + bePort);
 
       if (process.env.PROCESS_REQUEST_QUEUE) {
@@ -646,7 +642,6 @@ copy(JSON.stringify(res, null, 2))
 
   app.post("/makeProxyRequest", async (req, res) => {
     const url = req.body.url;
-    console.log("makeProxyReq", url);
 
     const {
       status,
@@ -674,7 +669,7 @@ copy(JSON.stringify(res, null, 2))
       res.set(headerKey, headers[headerKey]);
     });
 
-    console.log("body len", body.length);
+    // console.log("body len", body.length);
     res.end(body);
 
     // const r = await axios({
@@ -1173,8 +1168,6 @@ function setupBackend(
     let luckyMatchesJson = lines.shift();
     let logLines = lines;
 
-    console.log({ luckyMatchesJson });
-
     const logs: any[] = [];
     for (var i = 0; i < logLines.length - 1; i += 2) {
       const logItem = [logLines[i], logLines[i + 1]];
@@ -1210,7 +1203,7 @@ function setupBackend(
       logServer.storeLogs(logs, function () {
         const timePassed = new Date().valueOf() - startTime.valueOf();
 
-        console.log("stored logs", logs.length);
+        // console.log("stored logs", logs.length);
 
         if (LOG_PERF) {
           const timePer1000 =
@@ -1257,7 +1250,7 @@ function setupBackend(
   });
 
   async function getNextStepFromFileContents(lastStep, loc: any = null) {
-    console.log("last step op", lastStep.operationLog.operation);
+    // console.log("last step op", lastStep.operationLog.operation);
     if (
       lastStep.operationLog.operation !== "stringLiteral" &&
       lastStep.operationLog.operation !== "numericLiteral" &&
@@ -1290,7 +1283,7 @@ function setupBackend(
           },
         };
       } else if (lastStep.operationLog.loc) {
-        console.log(JSON.stringify(lastStep, null, 2));
+        // console.log(JSON.stringify(lastStep, null, 2));
         loc = (await new Promise((resolve) =>
           locStore.getLoc(lastStep.operationLog.loc, (loc) => resolve(loc))
         )) as any;
@@ -1537,7 +1530,7 @@ function setupBackend(
     const opts = {
       keepResultData: "keepResultData" in req.query,
     };
-    console.log(opts);
+    // console.log(opts);
     let ret = (await handleTraverse(
       parseFloat(logId),
       parseFloat(charIndex),
@@ -1727,7 +1720,7 @@ export async function openBrowser({ userDataDir, extraArgs, config }) {
   let extensionPath = path.resolve(extensionDir);
   const browser = await puppeteer.launch({
     headless: false,
-    dumpio: true,
+    // dumpio: true,
     ignoreDefaultArgs: ["--disable-extensions"],
     args: [
       `--js-flags="--max_old_space_size=8192"`,
@@ -1759,7 +1752,5 @@ export async function openBrowser({ userDataDir, extraArgs, config }) {
   console.log("will wait 2s");
   await page.waitFor(2000);
 
-  console.log("PAGE: ", page.url());
-  console.log("Created browser", { config });
   return browser;
 }
