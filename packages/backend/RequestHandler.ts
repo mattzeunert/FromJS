@@ -223,10 +223,10 @@ export class RequestHandler {
         );
 
         data = code;
-        console.log("Code len", code.length);
-        console.log("updated data", code.slice(0, 100));
+        // console.log("Code len", code.length);
+        // console.log("updated data", code.slice(0, 100));
       } else if (isHtml) {
-        console.log("ishtml");
+        // console.log("ishtml");
         let initialHtmlLogIndex =
           990000000000000 + Math.round(Math.random() * 10000000000);
 
@@ -405,7 +405,7 @@ export class RequestHandler {
       })
     );
 
-    console.log("has compiled");
+    // console.log("has compiled");
 
     inlineScriptTags.forEach(node => {
       const textLoc = node.childNodes[0].sourceCodeLocation;

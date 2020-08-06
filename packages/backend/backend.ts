@@ -439,7 +439,7 @@ function getPageSession(pageSessionId) {
 function setupUI(options, app, wss, getProxy, files, getRequestHandler) {
   wss.on("connection", (ws: WebSocket, req) => {
     let pageSessionId = req.url.match(/pageSessionId=([a-zA-Z0-9_]+)/)[1];
-    console.log("On ws connection", { pageSessionId });
+    // console.log("On ws connection", { pageSessionId });
     ws.pageSessionId = pageSessionId;
     let pageSession = getPageSession(pageSessionId);
     if (pageSession.domToInspect) {
@@ -1514,7 +1514,7 @@ function setupBackend(
         json.charIndex = json.cursorOffset;
         delete json.cursorOffset;
       } catch (err) {
-        console.log("not json", err);
+        // console.log("not json", err);
         // not json
       }
     }
