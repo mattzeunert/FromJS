@@ -1318,7 +1318,7 @@ function setupBackend(
       // i think it also causes off-by-one errors, but we fix those with fixOffByOneTraversalError
       charIndex++;
 
-      console.log("will traverse", file);
+      // console.log("will traverse", file);
 
       let operationLog = await logServer.loadLogAwaitable(
         file.sourceOperationLog,
@@ -1405,7 +1405,7 @@ function setupBackend(
                 );
               }
             } else {
-              console.log("FILE CONT");
+              // console.log("FILE CONT");
             }
 
             if (nextStep) {
