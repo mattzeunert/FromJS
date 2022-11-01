@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "chrome-launcher": "^0.13.1",
-    "lighthouse": "^5.6.0",
+    "lighthouse": "^9.6.8",
     "lighthouse-logger": "^1.2.0"
   }
 }
