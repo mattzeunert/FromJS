@@ -24,7 +24,7 @@
     "body-parser": "^1.18.2",
     "compression": "^1.7.4",
     "error-stack-parser": "^2.0.1",
-    "express": "^4.16.3",
+    "express": "^4.17.3",
     "file-loader": "^6.0.0",
     "get-folder-size": "^2.0.1",
     "hasha": "^5.2.0",
